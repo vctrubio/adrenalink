@@ -12,6 +12,19 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    rules: {
+      "indent": ["error", 2],
+      "quotes": ["error", "double"],
+      "semi": ["error", "always"],
+      "no-trailing-spaces": "error",
+      "eol-last": "error",
+      "object-curly-spacing": ["error", "always"],
+      "array-bracket-spacing": ["error", "never"],
+      "comma-dangle": ["error", "always-multiline"],
+      "max-len": ["error", { "code": 365 }],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
