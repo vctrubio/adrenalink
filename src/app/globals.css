@@ -3,22 +3,19 @@
 
 @variant dark (.dark &);
 
-/* Global focus and outline styles */
-* {
+/* Global focus and outline styles - exclude form inputs */
+*:not(input):not(select):not(textarea) {
+  outline: none !important;
+}
+
+*:not(input):not(select):not(textarea):focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-*:focus {
+*:not(input):not(select):not(textarea):focus-visible {
   outline: none !important;
   box-shadow: none !important;
-  border: none !important;
-}
-
-*:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
 }
 
 body {
