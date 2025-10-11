@@ -17,9 +17,9 @@
     --accent: 235 235 240; /* matching muted for consistency */
     --accent-foreground: 28 28 30; /* rich dark gray */
     
-    /* Primary Colors - Apple blue with more sophistication */
-    --primary: 0 122 255; /* Apple's system blue */
-    --primary-foreground: 255 255 255; /* pure white */
+    /* Primary Colors - Neon blue/green effect */
+    --primary: 0 150 120; /* darker neon blue-green for readability */
+    --primary-foreground: 255 255 255; /* white for contrast */
     
     /* Secondary Colors - Apple green */
     --secondary: 52 199 89; /* Apple's system green */
@@ -44,7 +44,7 @@
     /* Border and Ring - Enhanced contrast for definition */
     --border: 199 199 204; /* stronger border for better definition */
     --input: 199 199 204; /* stronger input borders */
-    --ring: 0 122 255; /* Apple's system blue */
+    --ring: 0 255 204; /* neon blue-green */
   }
 
   .dark {
@@ -65,8 +65,8 @@
     --accent-foreground: 249 250 251; /* gray-50 */
     
     /* Primary Colors */
-    --primary: 10 132 255; /* Apple blue dark mode */
-    --primary-foreground: 255 255 255; /* white */
+    --primary: 0 200 160; /* brighter neon blue-green for dark mode */
+    --primary-foreground: 0 0 0; /* black for contrast */
     
     /* Secondary Colors */
     --secondary: 48 209 88; /* Apple green dark mode */
@@ -91,7 +91,7 @@
     /* Border and Ring */
     --border: 55 65 81; /* gray-700 */
     --input: 55 65 81; /* gray-700 */
-    --ring: 10 132 255; /* Apple blue dark mode */
+    --ring: 57 255 204; /* neon blue-green dark mode */
   }
 }
 
