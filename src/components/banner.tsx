@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 
-const sports = [
+type Sport = {
+  id: number;
+  name: string;
+  label: string;
+  color: string;
+};
+
+const sports: Sport[] = [
   { id: 1, name: "kite", label: "Kitesurfing", color: "bg-blue-500 hover:bg-blue-600" },
   { id: 2, name: "wing", label: "Wing Foiling", color: "bg-green-500 hover:bg-green-600" },
   { id: 3, name: "windsurf", label: "Windsurfing", color: "bg-purple-500 hover:bg-purple-600" },
@@ -11,7 +18,13 @@ const sports = [
   { id: 6, name: "snow", label: "Snow Sports", color: "bg-gray-500 hover:bg-gray-600" },
 ];
 
-function SportTag({ sport, isSelected, onClick }) {
+interface SportTagProps {
+  sport: Sport;
+  isSelected: boolean;
+  onClick: (sport: Sport) => void;
+}
+
+function SportTag({ sport, isSelected, onClick }: SportTagProps) {
   return (
     <button
       onClick={() => onClick(sport)}
