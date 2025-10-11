@@ -63,3 +63,17 @@
 - **Validation with Zod** - Use Zod schemas with `@hookform/resolvers/zod` for type-safe validation
 - **Error handling** - FormField automatically displays validation errors below inputs
 - **Semantic colors** - Forms use the semantic color system (border-input, focus:ring-ring, text-destructive for errors)
+
+## Project Directory Structure
+
+For detailed project structure, see `docs/structure.md`
+
+### Key Directories:
+- **actions/** - API call functions and server actions
+- **ai/** - Cloud-related files and generated markdown content
+- **backend/** - Backend classes and logic declarations
+- **config/** - Tenant-specific configuration files
+- **docs/** - Application documentation for Adrenalink
+- **drizzle/** - ORM configuration and database schema definitions
+- **getters/** - Entity getter functions (e.g., getUserByName, getEntityByName)
+- **src/** - Main application source code (Next.js app)
