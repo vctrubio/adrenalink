@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Code, Settings, User } from "lucide-react";
+import { Home, Code, Settings, User, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
@@ -8,6 +8,7 @@ import ToggleTheme from "./toggle-theme";
 
 const navigationItems = [
   { href: "/", icon: Home, label: "Home" },
+  { href: "/welcome", icon: UserPlus, label: "Welcome" },
   { href: "/dev", icon: Code, label: "Dev" },
 ];
 
