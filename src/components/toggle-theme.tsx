@@ -2,6 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { Switch } from "@headlessui/react";
+import { Sun, Moon } from "lucide-react";
 
 export default function ToggleTheme() {
   const { theme, setTheme } = useTheme();
@@ -12,23 +14,32 @@ export default function ToggleTheme() {
   }, []);
 
   if (!mounted) {
-    return <div className="flex gap-2"><div className="px-4 py-2 bg-gray-200 rounded">Light</div><div className="px-4 py-2 bg-gray-200 rounded">Dark</div></div>;
+    return (
+      <div className="flex items-center gap-3 p-2">
+        <Sun size={18} className="text-gray-400" />
+        <div className="w-11 h-6 bg-gray-200 rounded-full"></div>
+        <Moon size={18} className="text-gray-400" />
+      </div>
+    );
   }
 
+  const isDark = theme === "dark";
+
   return (
-    <div className="flex gap-2">
-      <button
-        onClick={() => setTheme("light")}
-        className={`px-4 py-2 rounded ${theme === "light" ? "border-2 border-black" : ""}`}
+    <div className="flex items-center gap-3">
+      <Switch
+        checked={isDark}
+        onChange={(checked) => setTheme(checked ? "dark" : "light")}
+        className={`${
+          isDark ? "bg-gray-700" : "bg-gray-400"
+        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
       >
-        Light
-      </button>
-      <button
-        onClick={() => setTheme("dark")}
-        className={`px-4 py-2 rounded ${theme === "dark" ? "border-2 border-black dark:border-white" : ""}`}
-      >
-        Dark
-      </button>
+        <span
+          className={`${
+            isDark ? "translate-x-6" : "translate-x-1"
+          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+        />
+      </Switch>
     </div>
   );
 }

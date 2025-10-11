@@ -19,3 +19,9 @@
 - Child components contain all business logic and state management
 - Props should be passed inline for clarity
 - Avoid unnecessary abstractions or complex patterns
+
+## Layout Guidelines
+
+- **Background and colors handled in layout** - Never add `bg-white dark:bg-black` or similar background/text colors in individual pages
+- **Layout manages global styling** - The root layout (`layout.tsx`) handles `min-h-screen`, `bg-background`, `text-foreground`
+- **Pages focus on content** - Individual pages should only handle their specific content and padding

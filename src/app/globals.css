@@ -1,6 +1,25 @@
 @import "tailwindcss";
+@import "./colors.css";
 
 @variant dark (.dark &);
+
+/* Global focus and outline styles */
+* {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+*:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 
 body {
   font-family: "American Typewriter", monospace;
