@@ -8,6 +8,9 @@ import Navbar from "../components/navbar";
 export const metadata: Metadata = {
   title: "Adrenalink",
   description: "Connecting Students, Teachers and Admins",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

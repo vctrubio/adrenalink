@@ -1,4 +1,4 @@
-import ColorsDemo from "../../components/colors-demo";
+import ColorsDemo from "../../../components/colors-demo";
 
 export default function DevPage() {
   return (
