@@ -49,6 +49,15 @@
 - **Layout manages global styling** - The root layout (`layout.tsx`) handles `min-h-screen`, `bg-background`, `text-foreground`
 - **Pages focus on content** - Individual pages should only handle their specific content and padding
 
+## Styling Guidelines
+
+- **No max-width constraints** - Never add `max-w-*` classes that limit content width
+- **Use semantic color tokens** - Always use semantic tokens like `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border` for proper dark mode support
+- **Dark mode friendly** - Never use hardcoded colors like `bg-white`, `text-gray-700`, `border-gray-300` that break in dark mode
+- **Table styling** - Headers must always have different background than rows (use `bg-muted/50` for headers), subtle borders with `border-muted/30`, `hover:bg-accent/30` for row hovers
+- **Interactive elements** - Use `bg-primary`, `hover:bg-primary/90`, `bg-accent` with semantic foreground colors
+- **Transitions** - Add `transition-colors` to interactive elements for smooth hover effects
+
 ## Form Component Guidelines
 
 - **Use Form wrapper for all forms** - All forms must use `src/components/ui/form/form.tsx` as the parent wrapper
