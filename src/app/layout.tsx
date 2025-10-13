@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
-import "./globals.css";
+import "../css/globals.css";
 import Providers from "../providers/theme-provider";
 import WalletProvider from "../providers/wallet-provider";
 import Navbar from "../components/navbar";
