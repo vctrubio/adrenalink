@@ -24,6 +24,7 @@
     --fifth: 255 45 85; /* Apple's system pink */
 
     --destructive: 255 59 48; /* Apple's system red */
+    --warning: 255 149 0; /* light orange for warnings */
 
     /* Border and Ring - Enhanced contrast for definition */
     --border: 199 199 204; /* stronger border for better definition */
@@ -56,6 +57,7 @@
     --fifth: 255 55 95; /* Apple pink dark mode */
 
     --destructive: 255 69 58; /* Apple red dark mode */
+    --warning: 255 159 10; /* light orange for warnings dark mode */
 
     /* Border and Ring */
     --border: 55 65 81; /* gray-700 */
@@ -153,6 +155,14 @@
   background-color: rgb(var(--destructive-foreground));
 }
 
+.bg-warning {
+  background-color: rgb(var(--warning));
+}
+
+.bg-warning-foreground {
+  background-color: rgb(var(--warning-foreground));
+}
+
 .text-background {
   color: rgb(var(--background));
 }
@@ -239,6 +249,18 @@
 
 .text-destructive-foreground {
   color: rgb(var(--destructive-foreground));
+}
+
+.text-warning {
+  color: rgb(var(--warning));
+}
+
+.text-warning-foreground {
+  color: rgb(var(--warning-foreground));
+}
+
+.border-warning {
+  border-color: rgb(var(--warning));
 }
 
 .border-border {
