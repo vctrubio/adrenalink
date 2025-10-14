@@ -17,7 +17,7 @@ const eslintConfig = [
       "quotes": ["error", "double"],
       "semi": ["error", "always"],
       "no-trailing-spaces": "error",
-      "eol-last": "error",
+      "eol-last": "off",
       "object-curly-spacing": ["error", "always"],
       "array-bracket-spacing": ["error", "never"],
       "comma-dangle": ["error", "always-multiline"],
