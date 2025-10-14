@@ -21,9 +21,13 @@ export const school = pgTable("school", {
 
 export const schoolStudents = pgTable("school_students", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull().references(() => school.id),
-  studentId: integer("student_id").notNull().references(() => student.id),
-  description: text("description"), // Comment for description
+  schoolId: integer("school_id")
+    .notNull()
+    .references(() => school.id),
+  studentId: integer("student_id")
+    .notNull()
+    .references(() => student.id),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
