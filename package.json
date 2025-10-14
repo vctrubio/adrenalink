@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "bun run drizzle/seeds/students.ts"
+    "db:seed": "bun run drizzle/seeds/students.ts",
+    "db:clear": "bun run drizzle/seeds/clear.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
