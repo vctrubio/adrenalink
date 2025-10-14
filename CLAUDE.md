@@ -18,6 +18,11 @@
 - **No trailing spaces** - Always remove trailing whitespace from lines to avoid ESLint errors
 - **Clean formatting** - Ensure proper indentation and spacing without extra whitespace
 - **Consistent line endings** - Use consistent line endings throughout files
+- **DRY principle** - Export shared functions and import them to avoid code duplication
+- **Constants at top** - Declare all configuration constants at the top of files
+- **Single source of truth** - Define arrays and configurations once, import everywhere
+- **Graceful error handling** - Use try/catch with descriptive "No X found, skipping..." messages
+- **Shared utilities** - Export reusable functions and import them across modules
 
 ## Component Architecture
 
