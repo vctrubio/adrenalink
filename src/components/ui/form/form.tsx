@@ -21,20 +21,23 @@ export default function Form<T extends FieldValues = FieldValues>({
   className = "",
 }: FormProps<T>) {
   const formRef = useRef<HTMLFormElement>(null);
-  const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isOpen && firstInputRef.current) {
-      firstInputRef.current.focus();
+    if (isOpen && formRef.current) {
+      const firstInput = formRef.current.querySelector('input, select, textarea') as HTMLInputElement;
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
     }
   }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && onClose) {
+        event.preventDefault();
         onClose();
       }
-      if (event.key === "Enter" && event.target !== document.body) {
+      if (event.key === "Enter" && event.shiftKey) {
         event.preventDefault();
         methods.handleSubmit(onSubmit)();
       }
@@ -55,7 +58,7 @@ export default function Form<T extends FieldValues = FieldValues>({
         onSubmit={methods.handleSubmit(onSubmit)}
         className={`border space-y-8 p-8 ${className}`}
       >
-        <div ref={firstInputRef}>{children}</div>
+        {children}
       </form>
     </FormProvider>
   );
