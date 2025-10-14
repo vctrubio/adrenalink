@@ -73,6 +73,13 @@
 - **Error handling** - FormField automatically displays validation errors below inputs
 - **Semantic colors** - Forms use the semantic color system (border-input, focus:ring-ring, text-destructive for errors)
 
+## Entity Configuration
+
+- **Entity icons and colors** - All entity visual configurations are defined in `config/entities.ts`
+- **ENTITY_DATA constant** - Contains icon, color, bgColor, hoverColor, link, and description for each entity
+- **Always reference entities** - When working with entities, always get color, icon, and route information from `config/entities.ts`
+- **Consistent entity representation** - Use the same visual styling across all UI components by importing from the entities config
+
 ## Project Directory Structure
 
 For detailed project structure, see `docs/structure.md`
@@ -81,7 +88,7 @@ For detailed project structure, see `docs/structure.md`
 - **actions/** - API call functions and server actions
 - **ai/** - Cloud-related files and generated markdown content
 - **backend/** - Backend classes and logic declarations
-- **config/** - Tenant-specific configuration files
+- **config/** - Tenant-specific configuration files (includes entities.ts for entity visual config)
 - **docs/** - Application documentation for Adrenalink
 - **drizzle/** - ORM configuration and database schema definitions
 - **getters/** - Entity getter functions (e.g., getUserByName, getEntityByName)

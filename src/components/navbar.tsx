@@ -1,16 +1,26 @@
 "use client";
 
-import { Home, Code, Settings, User, UserPlus } from "lucide-react";
+import { Home, Code, Settings, User, UserPlus, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import ToggleTheme from "./toggle-theme";
+import { ENTITY_DATA } from "../../config/entities";
 
 const navigationItems = [
   { href: "/", icon: Home, label: "Home" },
   { href: "/welcome", icon: UserPlus, label: "Welcome" },
   { href: "/dev", icon: Code, label: "Dev" },
+  { href: "/docs", icon: BookOpen, label: "Docs" },
 ];
+
+const tableNavigationItems = ENTITY_DATA.map(entity => ({
+  href: entity.link,
+  icon: entity.icon,
+  label: entity.name,
+  color: entity.color,
+  bgColor: entity.bgColor,
+}));
 
 const userMenuItems = [
   { href: "/profile", icon: User, label: "Profile" },
@@ -73,6 +83,26 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <ToggleTheme />
             <UserDropdown />
+          </div>
+        </div>
+
+        {/* Entity Tables Navigation Row */}
+        <div className="border-t border-gray-100 dark:border-gray-900 py-2">
+          <div className="flex flex-wrap gap-2">
+            {tableNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${
+                  pathname === href
+                    ? `${bgColor} text-white`
+                    : `hover:${bgColor} hover:text-white`
+                }`}
+              >
+                <Icon size={14} className={pathname === href ? "text-white" : color} />
+                <span className="text-xs">{label}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

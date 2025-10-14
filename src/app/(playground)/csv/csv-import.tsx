@@ -235,11 +235,11 @@ export default function CSVImport() {
                                           </div>
                                           <div className="text-xs text-muted-foreground truncate">
                                             <span className="text-red-500">
-                                              "{info.originalValue}"
+                                              &quot;{info.originalValue}&quot;
                                             </span>
                                             {" → "}
                                             <span className="text-green-600">
-                                              "{info.currentValue}"
+                                              &quot;{info.currentValue}&quot;
                                             </span>
                                           </div>
                                         </div>
