@@ -19,7 +19,7 @@ export const school = pgTable("school", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const schoolstudents = pgTable("schoolstudents", {
+export const schoolStudents = pgTable("school_students", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull().references(() => school.id),
   studentId: integer("student_id").notNull().references(() => student.id),
@@ -32,5 +32,5 @@ export type Student = typeof student.$inferSelect;
 export type NewStudent = typeof student.$inferInsert;
 export type School = typeof school.$inferSelect;
 export type NewSchool = typeof school.$inferInsert;
-export type SchoolStudent = typeof schoolstudents.$inferSelect;
-export type NewSchoolStudent = typeof schoolstudents.$inferInsert;
+export type SchoolStudent = typeof schoolStudents.$inferSelect;
+export type NewSchoolStudent = typeof schoolStudents.$inferInsert;
