@@ -1,12 +1,36 @@
-import { pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
+import { pgTable, serial, timestamp, varchar, integer, text } from "drizzle-orm/pg-core";
 
-export const students = pgTable("students", {
+export const student = pgTable("student", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
+  passport: varchar("passport", { length: 50 }).notNull().unique(),
+  country: varchar("country", { length: 100 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export type Student = typeof students.$inferSelect;
-export type NewStudent = typeof students.$inferInsert;
+export const school = pgTable("school", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  country: varchar("country", { length: 100 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const schoolstudents = pgTable("schoolstudents", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => school.id),
+  studentId: integer("student_id").notNull().references(() => student.id),
+  description: text("description"), // Comment for description
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Student = typeof student.$inferSelect;
+export type NewStudent = typeof student.$inferInsert;
+export type School = typeof school.$inferSelect;
+export type NewSchool = typeof school.$inferInsert;
+export type SchoolStudent = typeof schoolstudents.$inferSelect;
+export type NewSchoolStudent = typeof schoolstudents.$inferInsert;
