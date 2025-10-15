@@ -5,7 +5,7 @@ import { sql } from "drizzle-orm";
 config({ path: ".env.local" });
 
 // Tables and enums to clear
-export const TABLES_TO_CLEAR = ["students", "teachers"];
+export const TABLES_TO_CLEAR = ["student", "school", "school_students"];
 export const ENUMS_TO_CLEAR = ["gender"];
 
 export async function dropTable(tableName: string) {
