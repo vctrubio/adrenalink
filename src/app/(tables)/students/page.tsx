@@ -22,14 +22,14 @@ export default async function StudentsPage() {
                     <div className="space-y-4">
                         {students.map((student) => (
                             <EntityCard
-                                key={student.id}
-                                id={student.id}
-                                title={getStudentName(student)}
+                                key={student.schema.id}
+                                id={student.schema.id}
+                                title={getStudentName(student.schema)}
                                 entityType="students"
                                 fields={[
-                                    { label: "Passport", value: student.passport },
-                                    { label: "Country", value: student.country },
-                                    { label: "Phone", value: student.phone },
+                                    { label: "Passport", value: student.schema.passport },
+                                    { label: "Country", value: student.schema.country },
+                                    { label: "Phone", value: student.schema.phone },
                                 ]}
                             />
                         ))}
