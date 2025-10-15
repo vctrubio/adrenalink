@@ -30,18 +30,22 @@ const userMenuItems = [
 function UserDropdown() {
     return (
         <Menu as="div" className="relative inline-block text-left">
-            <Menu.Button className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors hover:bg-muted">
-                <User size={18} />
+            <Menu.Button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md">
+                <User size={18} className="transition-transform duration-300 hover:scale-110" />
                 <span className="text-sm">Menu</span>
             </Menu.Button>
 
-            <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="py-1">
+            <Menu.Items className="absolute right-0 z-10 mt-3 w-52 origin-top-right rounded-xl bg-card border border-border shadow-xl shadow-primary/5 backdrop-blur-sm">
+                <div className="py-2">
                     {userMenuItems.map(({ href, icon: Icon, label }) => (
                         <Menu.Item key={href}>
                             {({ active }) => (
-                                <Link href={href} className={`${active ? "bg-muted" : ""} group flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 transition-colors`}>
-                                    <Icon size={16} />
+                                <Link href={href} className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ease-out ${
+                                    active 
+                                        ? "bg-primary/10 text-primary scale-105 shadow-sm" 
+                                        : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-sm"
+                                }`}>
+                                    <Icon size={16} className="transition-transform duration-200 group-hover:scale-110" />
                                     {label}
                                 </Link>
                             )}
@@ -57,14 +61,20 @@ export default function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+        <nav className="border-b border-border bg-background">
             <div className="max-w-7xl mx-auto px-8">
                 <div className="flex justify-between items-center h-16">
-                    <div className="flex space-x-8">
+                    <div className="flex space-x-2">
                         {navigationItems.map(({ href, icon: Icon, label }) => (
-                            <Link key={href} href={href} className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${pathname === href ? "bg-gray-100 dark:bg-gray-800" : "hover:bg-gray-50 dark:hover:bg-gray-900"}`}>
-                                <Icon size={18} />
-                                <span>{label}</span>
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out ${
+                                    pathname === href ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
+                                }`}
+                            >
+                                <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
+                                <span className="text-sm">{label}</span>
                             </Link>
                         ))}
                     </div>
@@ -76,10 +86,10 @@ export default function Navbar() {
                 </div>
 
                 {/* Entity Tables Navigation Row */}
-                <div className="border-t border-gray-100 dark:border-gray-900 py-2">
+                <div className="border-t border-border py-2">
                     <div className="flex flex-wrap gap-2">
                         {tableNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
-                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `hover:${bgColor} hover:text-white`}`}>
+                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}>
                                 <Icon size={14} className={pathname === href ? "text-white" : color} />
                                 <span className="text-xs">{label}</span>
                             </Link>
