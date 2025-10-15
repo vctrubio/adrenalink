@@ -44,6 +44,22 @@ export async function getSchoolByUsername(username: string) {
         const result = await db.select().from(school).where(eq(school.username, username));
         if (result[0]) {
             const schoolModel = new SchoolModel(result[0]);
+            
+            // Load many-to-many students relationship
+            const studentsResult = await db
+                .select()
+                .from(schoolStudents)
+                .where(eq(schoolStudents.schoolId, result[0].id));
+            
+            schoolModel.manyToMany = {
+                students: studentsResult
+            };
+            
+            // Calculate lambda values
+            schoolModel.lambda = {
+                studentCount: studentsResult.length
+            };
+            
             return { success: true, data: schoolModel };
         }
         return { success: true, data: null };

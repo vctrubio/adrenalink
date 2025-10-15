@@ -1,5 +1,5 @@
 import { ENTITY_DATA } from "../../../../config/entities";
-import LabelTag from "../../../components/LabelTag";
+import LabelTag from "../../../components/tags/LabelTag";
 
 export default function EventsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "Event")!;

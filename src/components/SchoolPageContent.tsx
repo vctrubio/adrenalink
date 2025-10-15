@@ -2,10 +2,10 @@
 
 import type { School } from "@/drizzle/schema";
 import type { SerializedAbstractModel } from "@/backend/models";
-import EntityIdCard from "./EntityIdCard";
+import EntityIdCard from "./cards/EntityIdCard";
 import SchoolStudentsList from "./SchoolStudentsList";
-import AddStudentButton from "./AddStudentButton";
-import AbsModelCard from "./AbsModelCard";
+import AddStudentButton from "./buttons/AddStudentButton";
+import AbsModelCard from "./cards/AbsModelCard";
 
 export default function SchoolPageContent({ school }: { school: SerializedAbstractModel<School> }) {
     return (

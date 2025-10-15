@@ -1,6 +1,6 @@
 import { ENTITY_DATA } from "../../../../config/entities";
-import LabelTag from "../../../components/LabelTag";
-import EntityCard from "../../../components/EntityCard";
+import LabelTag from "../../../components/tags/LabelTag";
+import EntityCard from "../../../components/cards/EntityCard";
 import { getSchools } from "../../../../actions/schools-action";
 import { getSchoolName } from "../../../../getters/schools-getter";
 

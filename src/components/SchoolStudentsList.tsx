@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getStudentsBySchoolId } from "../../actions/schools-action";
 import { getStudentName } from "../../getters/students-getter";
-import EntityCard from "./EntityCard";
+import EntityCard from "./cards/EntityCard";
 import LinkSchoolToStudentModal from "./modals/LinkSchoolToStudentModal";
 
 interface SchoolStudentsListProps {

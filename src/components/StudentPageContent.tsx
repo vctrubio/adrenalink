@@ -2,9 +2,9 @@
 
 import type { Student } from "@/drizzle/schema";
 import type { SerializedAbstractModel } from "@/backend/models";
-import EntityIdCard from "./EntityIdCard";
+import EntityIdCard from "./cards/EntityIdCard";
 import StudentSchoolsList from "./StudentSchoolsList";
-import AbsModelCard from "./AbsModelCard";
+import AbsModelCard from "./cards/AbsModelCard";
 
 export default function StudentPageContent({ student }: { student: SerializedAbstractModel<Student> }) {
     return (
