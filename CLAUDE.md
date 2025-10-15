@@ -2,6 +2,8 @@
 
 ## Core Principles
 
+- **FOLLOW INSTRUCTIONS PRECISELY** - Execute exactly what is requested, nothing more, nothing less. Do not make any modifications or improvements unless explicitly asked.
+- **ASK BEFORE MODIFYING** - If you want to make any modification or improvement beyond what was requested, you MUST ask for permission first.
 - **Don't run, follow instructions** - Execute exactly what is requested, nothing more
 - **Use inline props** - Pass props directly inline rather than extracting to variables
 - **Don't overcomplicate** - Keep solutions simple and straightforward
