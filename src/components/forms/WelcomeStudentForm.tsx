@@ -43,7 +43,10 @@ export function WelcomeStudentForm() {
     const onSubmit = async (data: StudentFormData) => {
         try {
             await createStudent(data);
+            // Preserve the last used country when resetting
+            const lastCountry = data.country;
             methods.reset();
+            setValue("country", lastCountry);
             triggerPhoneClear();
             // Add success notification here if needed
         } catch (error) {

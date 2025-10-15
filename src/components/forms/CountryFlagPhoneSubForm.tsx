@@ -152,13 +152,11 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
         }
     }, [countryValue, onCountryChange]);
 
-    // Clear phone number when requested
+    // Clear phone number when requested (keep country selection)
     useEffect(() => {
-        if (onClearPhone) {
-            setPhoneNumber("");
-            onPhoneChange(phonePrefix);
-        }
-    }, [onClearPhone, phonePrefix, onPhoneChange]);
+        setPhoneNumber("");
+        onPhoneChange(phonePrefix);
+    }, [onClearPhone]);
 
     // Reset to default when form is cleared
     useEffect(() => {
@@ -186,16 +184,22 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
 
     const handlePrefixChange = (prefix: string) => {
         setPhonePrefix(prefix);
-        setIsPrefixModified(true);
+
+        // Check if prefix matches the selected country's actual prefix
+        const selectedCountry = getCountryByCode(selectedCountryCode);
+        const isModified = selectedCountry ? prefix !== selectedCountry.phoneCode : true;
+        setIsPrefixModified(isModified);
 
         const fullPhone = prefix + phoneNumber;
         onPhoneChange(fullPhone);
     };
 
     const handleNumberChange = (number: string) => {
-        setPhoneNumber(number);
+        // Only allow numbers and spaces
+        const cleanedNumber = number.replace(/[^\d\s]/g, "");
+        setPhoneNumber(cleanedNumber);
 
-        const fullPhone = phonePrefix + number;
+        const fullPhone = phonePrefix + cleanedNumber;
         onPhoneChange(fullPhone);
     };
 
