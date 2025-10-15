@@ -4,6 +4,7 @@
 
 - **FOLLOW INSTRUCTIONS PRECISELY** - Execute exactly what is requested, nothing more, nothing less. Do not make any modifications or improvements unless explicitly asked.
 - **ASK BEFORE MODIFYING** - If you want to make any modification or improvement beyond what was requested, you MUST ask for permission first.
+- **USE USERNAMES FOR URLS** - Always use username identifiers in URLs instead of UUIDs when the entity has a unique username field. URLs should be human-readable (e.g., `/schools/mit` not `/schools/uuid...`).
 - **Don't run, follow instructions** - Execute exactly what is requested, nothing more
 - **Use inline props** - Pass props directly inline rather than extracting to variables
 - **Don't overcomplicate** - Keep solutions simple and straightforward
@@ -113,6 +114,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { entityTable, type NewEntity } from "@/drizzle/schema";
+import { EntityModel } from "@/backend/models";
 
 export async function createEntity(entitySchema: NewEntity) {
   try {
@@ -125,6 +127,17 @@ export async function createEntity(entitySchema: NewEntity) {
   } catch (error) {
     console.error("Error creating entity:", error);
     return { success: false, error: "Failed to create entity" };
+  }
+}
+
+export async function getEntities(): Promise<{ success: boolean; data: EntityModel[]; error?: string }> {
+  try {
+    const result = await db.select().from(entityTable);
+    const entities: EntityModel[] = result.map(entityData => new EntityModel(entityData));
+    return { success: true, data: entities };
+  } catch (error) {
+    console.error("Error fetching entities:", error);
+    return { success: false, error: "Failed to fetch entities" };
   }
 }
 
@@ -158,6 +171,11 @@ export async function deleteEntity(id: number) {
 }
 ```
 
+**CRITICAL MODEL INHERITANCE PATTERN**: All `getEntities()` functions MUST return model instances that inherit from `AbstractModel`. This ensures:
+- Components access data via `.schema` property (e.g., `entity.schema.id`, `entity.schema.name`)
+- Consistent data structure across all entity pages
+- Support for `manyToMany` relationships and `lambda` computed values
+
 ### Getter Functions
 
 - **Use getters directory** - All data transformation and business logic functions in `/getters/` directory
@@ -180,6 +198,7 @@ For detailed project structure, see `docs/structure.md`
 - **actions/** - API call functions and server actions
 - **ai/** - Cloud-related files and generated markdown content
 - **backend/** - Backend classes and logic declarations
+  - **models/** - Entity model classes inheriting from AbstractModel base class
 - **config/** - Tenant-specific configuration files (includes entities.ts for entity visual config)
 - **docs/** - Application documentation for Adrenalink
 - **drizzle/** - ORM configuration and database schema definitions
