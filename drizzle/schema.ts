@@ -1,7 +1,7 @@
-import { pgTable, serial, timestamp, varchar, integer, text } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text } from "drizzle-orm/pg-core";
 
 export const student = pgTable("student", {
-    id: serial("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     passport: varchar("passport", { length: 50 }).notNull().unique(),
     country: varchar("country", { length: 100 }).notNull(),
@@ -11,7 +11,7 @@ export const student = pgTable("student", {
 });
 
 export const school = pgTable("school", {
-    id: serial("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     username: varchar("username", { length: 50 }).notNull().unique(),
     country: varchar("country", { length: 100 }).notNull(),
@@ -21,11 +21,11 @@ export const school = pgTable("school", {
 });
 
 export const schoolStudents = pgTable("school_students", {
-    id: serial("id").primaryKey(),
-    schoolId: integer("school_id")
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    schoolId: uuid("school_id")
         .notNull()
         .references(() => school.id),
-    studentId: integer("student_id")
+    studentId: uuid("student_id")
         .notNull()
         .references(() => student.id),
     description: text("description"),

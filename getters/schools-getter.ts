@@ -1,7 +1,7 @@
 import type { School } from "@/drizzle/schema";
 
 export function getSchoolName(school: School): string {
-    return school.name;
+    return `${school.name} @${school.username}`;
 }
 
 export function getSchoolInfo(school: School) {

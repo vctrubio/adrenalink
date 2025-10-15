@@ -1,5 +1,6 @@
 import { ENTITY_DATA } from "../../../../config/entities";
 import LabelTag from "../../../components/LabelTag";
+import EntityCard from "../../../components/EntityCard";
 import { getStudents } from "../../../../actions/students-action";
 import { getStudentName } from "../../../../getters/students-getter";
 
@@ -20,17 +21,17 @@ export default async function StudentsPage() {
                 ) : (
                     <div className="space-y-4">
                         {students.map((student) => (
-                            <div key={student.id} className="bg-card border border-border rounded-lg p-4 hover:bg-accent/30 transition-colors">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-medium text-foreground">{student.name}</h3>
-                                        <p className="text-sm text-muted-foreground">Passport: {student.passport}</p>
-                                        <p className="text-sm text-muted-foreground">Country: {student.country}</p>
-                                        <p className="text-sm text-muted-foreground">Phone: {student.phone}</p>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">ID: {student.id}</div>
-                                </div>
-                            </div>
+                            <EntityCard
+                                key={student.id}
+                                id={student.id}
+                                title={getStudentName(student)}
+                                entityType="students"
+                                fields={[
+                                    { label: "Passport", value: student.passport },
+                                    { label: "Country", value: student.country },
+                                    { label: "Phone", value: student.phone },
+                                ]}
+                            />
                         ))}
                     </div>
                 )}
