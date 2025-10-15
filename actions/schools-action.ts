@@ -1,9 +1,10 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { school, type NewSchool } from "@/drizzle/schema";
+import { school, student, schoolStudents, type NewSchool } from "@/drizzle/schema";
+import { SchoolModel } from "@/backend/models";
 
 export async function createSchool(schoolSchema: NewSchool) {
     try {
@@ -16,17 +17,19 @@ export async function createSchool(schoolSchema: NewSchool) {
     }
 }
 
-export async function getSchools() {
+export async function getSchools(): Promise<{ success: boolean; data: SchoolModel[]; error?: string }> {
     try {
         const result = await db.select().from(school);
-        return { success: true, data: result };
+        const schools: SchoolModel[] = result.map(schoolData => new SchoolModel(schoolData));
+        return { success: true, data: schools };
     } catch (error) {
         console.error("Error fetching schools:", error);
         return { success: false, error: "Failed to fetch schools" };
     }
 }
 
-export async function getSchoolById(id: number) {
+
+export async function getSchoolById(id: string) {
     try {
         const result = await db.select().from(school).where(eq(school.id, id));
         return { success: true, data: result[0] || null };
@@ -36,7 +39,21 @@ export async function getSchoolById(id: number) {
     }
 }
 
-export async function updateSchool(id: number, schoolSchema: Partial<NewSchool>) {
+export async function getSchoolByUsername(username: string) {
+    try {
+        const result = await db.select().from(school).where(eq(school.username, username));
+        if (result[0]) {
+            const schoolModel = new SchoolModel(result[0]);
+            return { success: true, data: schoolModel };
+        }
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Error fetching school:", error);
+        return { success: false, error: "Failed to fetch school" };
+    }
+}
+
+export async function updateSchool(id: string, schoolSchema: Partial<NewSchool>) {
     try {
         const result = await db.update(school).set(schoolSchema).where(eq(school.id, id)).returning();
         revalidatePath("/schools");
@@ -47,7 +64,7 @@ export async function updateSchool(id: number, schoolSchema: Partial<NewSchool>)
     }
 }
 
-export async function deleteSchool(id: number) {
+export async function deleteSchool(id: string) {
     try {
         await db.delete(school).where(eq(school.id, id));
         revalidatePath("/schools");
@@ -75,5 +92,27 @@ export async function checkUsernameAvailability(username: string) {
     } catch (error) {
         console.error("Error checking username availability:", error);
         return { success: false, error: "Failed to check username availability" };
+    }
+}
+
+export async function getStudentsBySchoolId(schoolId: string) {
+    try {
+        const result = await db
+            .select({
+                id: student.id,
+                name: student.name,
+                passport: student.passport,
+                country: student.country,
+                phone: student.phone,
+                createdAt: student.createdAt,
+                updatedAt: student.updatedAt,
+            })
+            .from(schoolStudents)
+            .innerJoin(student, eq(schoolStudents.studentId, student.id))
+            .where(eq(schoolStudents.schoolId, schoolId));
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("Error fetching students by school ID:", error);
+        return { success: false, error: "Failed to fetch students" };
     }
 }
