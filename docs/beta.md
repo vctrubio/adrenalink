@@ -7,11 +7,13 @@ This is the **beta version** of Adrenalink, currently in development for product
 ## Beta Phases
 
 ### Beta v1 (Initial Release)
+
 - **No Authentication**: Open access app - anyone can use without login
 - **Core Functionality**: Basic booking and school discovery features
 - **Focus**: Rapid deployment and core feature validation
 
 ### Beta v2 (Enhanced Release)
+
 - **Google Authentication**: Secure user login system
 - **Middleware**: Protected routes and user session management
 - **Enhanced Features**: Full user accounts and personalized experience
@@ -45,12 +47,14 @@ This application builds upon the successful functionality from our previous proj
 ## Implementation Roadmap
 
 ### Beta v1 Implementation
+
 - Complete core booking functionality (no auth required)
 - Implement school discovery and listing
 - Basic booking form and management
 - Deploy to pilot schools for testing
 
 ### Beta v2 Implementation
+
 - Integrate Google Authentication
 - Add authentication middleware
 - Implement user accounts and profiles

@@ -23,7 +23,7 @@ function clearMigrationFiles() {
     let deletedCount = 0;
 
     try {
-    // Remove entire meta directory
+        // Remove entire meta directory
         try {
             rmSync(metaDir, { recursive: true, force: true });
             deletedCount++;
@@ -35,7 +35,7 @@ function clearMigrationFiles() {
         // Clear migration SQL files (but keep the directories)
         try {
             const migrationFiles = readdirSync(migrationsDir);
-            migrationFiles.forEach(file => {
+            migrationFiles.forEach((file) => {
                 const filePath = join(migrationsDir, file);
                 if (statSync(filePath).isFile() && file.endsWith(".sql")) {
                     rmSync(filePath);
@@ -46,7 +46,6 @@ function clearMigrationFiles() {
         } catch (error) {
             console.log("⚠️  No migration files found, skipping...");
         }
-
     } catch (error) {
         console.log("⚠️  Migration directory not found, skipping...");
     }

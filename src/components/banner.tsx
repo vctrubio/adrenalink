@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 type Sport = {
-  id: number;
-  name: string;
-  label: string;
-  color: string;
+    id: number;
+    name: string;
+    label: string;
+    color: string;
 };
 
 const sports: Sport[] = [
@@ -19,20 +19,16 @@ const sports: Sport[] = [
 ];
 
 interface SportTagProps {
-  sport: Sport;
-  isSelected: boolean;
-  onClick: (sport: Sport) => void;
+    sport: Sport;
+    isSelected: boolean;
+    onClick: (sport: Sport) => void;
 }
 
 function SportTag({ sport, isSelected, onClick }: SportTagProps) {
     return (
         <button
             onClick={() => onClick(sport)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 ${
-                isSelected
-                    ? `${sport.color} text-white`
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 ${isSelected ? `${sport.color} text-white` : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"}`}
         >
             {sport.label}
         </button>
@@ -44,31 +40,22 @@ export default function Banner() {
 
     return (
         <div className="text-center space-y-8 max-w-4xl mx-auto">
-            <h1 className="text-6xl font-bold tracking-tight transition-all duration-300 hover:scale-105">
-        Adrenalink
-            </h1>
+            <h1 className="text-6xl font-bold tracking-tight transition-all duration-300 hover:scale-105">Adrenalink</h1>
 
             <div className="space-y-4">
-                <p className="text-xl text-gray-600 dark:text-gray-300 transition-colors slogan">
-          student - teacher connection
-                </p>
+                <p className="text-xl text-gray-600 dark:text-gray-300 transition-colors slogan">student - teacher connection</p>
                 <p className="text-lg font-medium">pick your sport</p>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 mt-8">
                 {sports.map((sport) => (
-                    <SportTag
-                        key={sport.id}
-                        sport={sport}
-                        isSelected={selectedSport.id === sport.id}
-                        onClick={setSelectedSport}
-                    />
+                    <SportTag key={sport.id} sport={sport} isSelected={selectedSport.id === sport.id} onClick={setSelectedSport} />
                 ))}
             </div>
 
             <div className="mt-6">
                 <p className="text-sm text-muted-foreground">
-          Selected: <span className="font-medium text-foreground">{selectedSport.label}</span>
+                    Selected: <span className="font-medium text-foreground">{selectedSport.label}</span>
                 </p>
             </div>
         </div>

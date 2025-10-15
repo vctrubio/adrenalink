@@ -4,22 +4,15 @@ import { ReactNode, useEffect, useRef } from "react";
 import { FormProvider, UseFormReturn, FieldValues } from "react-hook-form";
 
 interface FormProps<T extends FieldValues = FieldValues> {
-  children: ReactNode;
-  methods: UseFormReturn<T>;
-  onSubmit: (data: T) => void;
-  isOpen?: boolean;
-  onClose?: () => void;
-  className?: string;
+    children: ReactNode;
+    methods: UseFormReturn<T>;
+    onSubmit: (data: T) => void;
+    isOpen?: boolean;
+    onClose?: () => void;
+    className?: string;
 }
 
-export default function Form<T extends FieldValues = FieldValues>({
-    children,
-    methods,
-    onSubmit,
-    isOpen = true,
-    onClose,
-    className = "",
-}: FormProps<T>) {
+export default function Form<T extends FieldValues = FieldValues>({ children, methods, onSubmit, isOpen = true, onClose, className = "" }: FormProps<T>) {
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -53,11 +46,7 @@ export default function Form<T extends FieldValues = FieldValues>({
 
     return (
         <FormProvider {...methods}>
-            <form
-                ref={formRef}
-                onSubmit={methods.handleSubmit(onSubmit)}
-                className={`border space-y-8 p-8 ${className}`}
-            >
+            <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} className={`border space-y-8 p-8 ${className}`}>
                 {children}
             </form>
         </FormProvider>

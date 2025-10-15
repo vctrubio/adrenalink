@@ -1,9 +1,9 @@
 interface LabelTagProps {
-  icon: React.ComponentType<{ className?: string; size?: number }>;
-  title: string;
-  description: readonly string[];
-  borderColor: string;
-  textColor: string;
+    icon: React.ComponentType<{ className?: string; size?: number }>;
+    title: string;
+    description: readonly string[];
+    borderColor: string;
+    textColor: string;
 }
 
 export default function LabelTag({ icon: Icon, title, description, borderColor, textColor }: LabelTagProps) {
@@ -26,10 +26,7 @@ export default function LabelTag({ icon: Icon, title, description, borderColor, 
     };
 
     return (
-        <div
-            className="border-2 rounded-lg p-6"
-            style={{ borderColor: getBorderStyle(borderColor) }}
-        >
+        <div className="border-2 rounded-lg p-6" style={{ borderColor: getBorderStyle(borderColor) }}>
             <div className="flex items-center gap-4 mb-4">
                 <Icon size={32} className={textColor} />
                 <div>

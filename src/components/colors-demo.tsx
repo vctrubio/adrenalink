@@ -3,9 +3,7 @@ export default function ColorsDemo() {
         <div className="w-full max-w-6xl mx-auto space-y-8">
             <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold mb-4">Color System Demo</h2>
-                <p className="text-muted-foreground">
-          Understanding how Tailwind colors work in light and dark mode
-                </p>
+                <p className="text-muted-foreground">Understanding how Tailwind colors work in light and dark mode</p>
             </div>
 
             {/* Background Colors */}
@@ -206,15 +204,15 @@ export default function ColorsDemo() {
                 <h3 className="text-xl font-semibold">Interactive States</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button className="p-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors">
-            Primary Button
+                        Primary Button
                         <p className="text-xs opacity-90">hover:bg-primary/90</p>
                     </button>
                     <button className="p-4 border border-border hover:bg-muted rounded-lg transition-colors">
-            Secondary Button
+                        Secondary Button
                         <p className="text-xs text-muted-foreground">hover:bg-muted</p>
                     </button>
                     <button className="p-4 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-colors">
-            Destructive Button
+                        Destructive Button
                         <p className="text-xs opacity-90">hover:bg-destructive/90</p>
                     </button>
                 </div>
@@ -247,65 +245,123 @@ export default function ColorsDemo() {
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">Background Colors</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-background</code> - Main app background</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-card</code> - Card/panel backgrounds</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-muted</code> - Subtle/disabled elements</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-primary</code> - Brand/action buttons</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-secondary</code> - Alternative actions</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">bg-destructive</code> - Danger/delete actions</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-background</code> - Main app background
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-card</code> - Card/panel backgrounds
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-muted</code> - Subtle/disabled elements
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-primary</code> - Brand/action buttons
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-secondary</code> - Alternative actions
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">bg-destructive</code> - Danger/delete actions
+                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">Text Colors</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">text-foreground</code> - Primary text</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">text-muted-foreground</code> - Secondary/helper text</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">text-primary</code> - Links/emphasis</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">text-destructive</code> - Errors/warnings</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">text-card-foreground</code> - Text on cards</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">text-foreground</code> - Primary text
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">text-muted-foreground</code> - Secondary/helper text
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">text-primary</code> - Links/emphasis
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">text-destructive</code> - Errors/warnings
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">text-card-foreground</code> - Text on cards
+                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">Borders & Outlines</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">border-border</code> - Default borders</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">border-input</code> - Form inputs</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">border-primary</code> - Highlighted borders</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">ring-ring</code> - Focus rings</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">border-border</code> - Default borders
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">border-input</code> - Form inputs
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">border-primary</code> - Highlighted borders
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">ring-ring</code> - Focus rings
+                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">State Modifiers</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">hover:</code> - Mouse over states</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">dark:</code> - Dark mode variants</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">focus:</code> - Focus states</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">active:</code> - Pressed states</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">disabled:</code> - Disabled states</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">hover:</code> - Mouse over states
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">dark:</code> - Dark mode variants
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">focus:</code> - Focus states
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">active:</code> - Pressed states
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">disabled:</code> - Disabled states
+                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">Opacity & Effects</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">/50</code> - 50% opacity (bg-primary/50)</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">/90</code> - 90% opacity (hover states)</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">transition-colors</code> - Smooth color changes</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">shadow-lg</code> - Drop shadows</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">/50</code> - 50% opacity (bg-primary/50)
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">/90</code> - 90% opacity (hover states)
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">transition-colors</code> - Smooth color changes
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">shadow-lg</code> - Drop shadows
+                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-3 text-primary">Layout Utilities</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">flex</code> - Flexbox container</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">grid</code> - CSS Grid container</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">space-y-4</code> - Vertical spacing</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">gap-4</code> - Grid/flex gaps</li>
-                            <li><code className="bg-background px-2 py-1 rounded border border-border">rounded-lg</code> - Border radius</li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">flex</code> - Flexbox container
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">grid</code> - CSS Grid container
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">space-y-4</code> - Vertical spacing
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">gap-4</code> - Grid/flex gaps
+                            </li>
+                            <li>
+                                <code className="bg-background px-2 py-1 rounded border border-border">rounded-lg</code> - Border radius
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -313,8 +369,7 @@ export default function ColorsDemo() {
                 <div className="mt-6 p-4 bg-card rounded-lg border border-border">
                     <h4 className="font-semibold mb-2 text-primary">Why Use Semantic Colors?</h4>
                     <p className="text-sm text-muted-foreground">
-            Semantic colors like <code>bg-muted</code> and <code>text-muted-foreground</code> automatically adapt between light and dark modes.
-            They maintain consistent meaning across themes, making your UI more maintainable and accessible.
+                        Semantic colors like <code>bg-muted</code> and <code>text-muted-foreground</code> automatically adapt between light and dark modes. They maintain consistent meaning across themes, making your UI more maintainable and accessible.
                     </p>
                 </div>
             </div>

@@ -28,18 +28,13 @@ export function Breadcrumbs() {
             <div className="container mx-auto flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                     {isSubRoute && (
-                        <Link
-                            href={`/${entityName}`}
-                            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
-                        >
+                        <Link href={`/${entityName}`} className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="h-4 w-4" />
                             <span>Back to {entityName}</span>
                         </Link>
                     )}
 
-                    {!isSubRoute && (
-                        <div className="text-foreground font-medium capitalize">{entityName}</div>
-                    )}
+                    {!isSubRoute && <div className="text-foreground font-medium capitalize">{entityName}</div>}
 
                     {isFormRoute && (
                         <div className="text-foreground font-medium">
@@ -59,10 +54,7 @@ export function Breadcrumbs() {
                 </div>
 
                 {!isSubRoute && (
-                    <Link
-                        href={`/${entityName}/form`}
-                        className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-                    >
+                    <Link href={`/${entityName}/form`} className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
                         <Plus className="h-4 w-4" />
                         <span>Add {entityName.slice(0, -1)}</span>
                     </Link>

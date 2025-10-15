@@ -76,7 +76,7 @@
   - `form.tsx` - Parent wrapper with keyboard handling and React Hook Form provider
   - `form-field.tsx` - Wraps label, input, and error display
   - `form-input.tsx` - Styled input with semantic colors
-  - `form-select.tsx` - Styled select with semantic colors  
+  - `form-select.tsx` - Styled select with semantic colors
   - `form-button.tsx` - Styled button with variant system (primary, secondary, tertiary, fourth, fifth, destructive)
   - `form-submit.tsx` - Styled submit button with entity color support
 - **Validation with Zod** - Use Zod schemas with `@hookform/resolvers/zod` for type-safe validation
@@ -103,6 +103,7 @@
 - **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data
 
 ### Standard Action Function Template
+
 ```typescript
 "use server";
 
@@ -113,7 +114,10 @@ import { entityTable, type NewEntity } from "@/drizzle/schema";
 
 export async function createEntity(entitySchema: NewEntity) {
   try {
-    const result = await db.insert(entityTable).values(entitySchema).returning();
+    const result = await db
+      .insert(entityTable)
+      .values(entitySchema)
+      .returning();
     revalidatePath("/entities"); // ALWAYS revalidate the entity list page
     return { success: true, data: result[0] };
   } catch (error) {
@@ -122,9 +126,16 @@ export async function createEntity(entitySchema: NewEntity) {
   }
 }
 
-export async function updateEntity(id: number, entitySchema: Partial<NewEntity>) {
+export async function updateEntity(
+  id: number,
+  entitySchema: Partial<NewEntity>,
+) {
   try {
-    const result = await db.update(entityTable).set(entitySchema).where(eq(entityTable.id, id)).returning();
+    const result = await db
+      .update(entityTable)
+      .set(entitySchema)
+      .where(eq(entityTable.id, id))
+      .returning();
     revalidatePath("/entities"); // ALWAYS revalidate after updates
     return { success: true, data: result[0] };
   } catch (error) {
@@ -146,12 +157,14 @@ export async function deleteEntity(id: number) {
 ```
 
 ### Getter Functions
+
 - **Use getters directory** - All data transformation and business logic functions in `/getters/` directory
 - **File naming convention** - Use `entities-getter.ts` format (e.g., `students-getter.ts`, `schools-getter.ts`)
 - **Function patterns** - Include `getEntityName()`, `getAllEntityNames()`, `getEntityInfo()`, `getAllEntities()`
 - **Error handling** - Use graceful error handling with descriptive "No X found, skipping..." messages
 
 ### Phone Number Integration
+
 - **react-phone-number-input** - Use this library for all phone number inputs with country selection
 - **Form integration** - Phone inputs should integrate with the existing form system using setValue and watch from react-hook-form
 - **Styling consistency** - Phone inputs must match the semantic color system used by other form inputs
@@ -161,6 +174,7 @@ export async function deleteEntity(id: number) {
 For detailed project structure, see `docs/structure.md`
 
 ### Key Directories:
+
 - **actions/** - API call functions and server actions
 - **ai/** - Cloud-related files and generated markdown content
 - **backend/** - Backend classes and logic declarations

@@ -5,23 +5,23 @@
 
 /* Global focus and outline styles - exclude form inputs */
 *:not(input):not(select):not(textarea) {
-  outline: none !important;
+    outline: none !important;
 }
 
 *:not(input):not(select):not(textarea):focus {
-  outline: none !important;
-  box-shadow: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 *:not(input):not(select):not(textarea):focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 body {
-  font-family: "American Typewriter", monospace;
+    font-family: "American Typewriter", monospace;
 }
 
 .slogan {
-  font-family: "Playwrite US Modern", cursive;
+    font-family: "Playwrite US Modern", cursive;
 }

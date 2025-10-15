@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Breadcrumbs } from "@/src/components/Breadcrumbs";
 
 interface TablesLayoutProps {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 export default function TablesLayout({ children }: TablesLayoutProps) {

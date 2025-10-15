@@ -7,17 +7,7 @@ import { BadgeCheck } from "lucide-react";
 import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode } from "@/config/countries";
 
 // Sub-component for Country Selector
-function CountrySelector({
-    selectedCountryCode,
-    onCountryChange,
-    countryError,
-    isValid,
-}: {
-  selectedCountryCode: string;
-  onCountryChange: (countryCode: string, countryName: string) => void;
-  countryError?: string;
-  isValid?: boolean;
-}) {
+function CountrySelector({ selectedCountryCode, onCountryChange, countryError, isValid }: { selectedCountryCode: string; onCountryChange: (countryCode: string, countryName: string) => void; countryError?: string; isValid?: boolean }) {
     const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const countryCode = e.target.value;
         const country = getCountryByCode(countryCode);
@@ -29,7 +19,7 @@ function CountrySelector({
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground flex items-center">
-        Country
+                Country
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}
             </label>
@@ -50,10 +40,7 @@ function CountrySelector({
                     className={`
             w-full h-10 pl-12 pr-8 py-2 rounded-md border transition-colors
             bg-background text-foreground appearance-none
-            ${countryError
-            ? "border-destructive focus:ring-destructive"
-            : "border-input focus:ring-ring focus:border-ring"
-        }
+            ${countryError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
             focus:outline-none focus:ring-2 focus:ring-opacity-50
             disabled:opacity-50 disabled:cursor-not-allowed
           `}
@@ -73,8 +60,7 @@ function CountrySelector({
                         height={16}
                         className="text-muted-foreground"
                         style={{
-                            filter:
-                "brightness(0) saturate(100%) invert(45%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(60%) contrast(90%)",
+                            filter: "brightness(0) saturate(100%) invert(45%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(60%) contrast(90%)",
                         }}
                     />
                 </div>
@@ -94,18 +80,18 @@ function PhoneInput({
     phoneError,
     isValid,
 }: {
-  phonePrefix: string;
-  phoneNumber: string;
-  isPrefixModified: boolean;
-  onPrefixChange: (prefix: string) => void;
-  onNumberChange: (number: string) => void;
-  phoneError?: string;
-  isValid?: boolean;
+    phonePrefix: string;
+    phoneNumber: string;
+    isPrefixModified: boolean;
+    onPrefixChange: (prefix: string) => void;
+    onNumberChange: (number: string) => void;
+    phoneError?: string;
+    isValid?: boolean;
 }) {
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground flex items-center">
-        Phone
+                Phone
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}
             </label>
@@ -116,10 +102,7 @@ function PhoneInput({
                     onChange={(e) => onPrefixChange(e.target.value)}
                     className={`
             w-20 h-10 px-3 py-2 border border-r-0 rounded-l-md text-center font-mono transition-colors
-            ${isPrefixModified
-            ? "bg-warning/10 border-warning text-warning"
-            : "bg-muted border-input text-muted-foreground"
-        }
+            ${isPrefixModified ? "bg-warning/10 border-warning text-warning" : "bg-muted border-input text-muted-foreground"}
             focus:outline-none focus:ring-2 focus:ring-opacity-50
             ${isPrefixModified ? "focus:ring-warning" : "focus:ring-ring"}
           `}
@@ -132,10 +115,7 @@ function PhoneInput({
                     className={`
             flex-1 h-10 px-3 py-2 rounded-r-md border transition-colors
             bg-background text-foreground
-            ${phoneError
-            ? "border-destructive focus:ring-destructive"
-            : "border-input focus:ring-ring focus:border-ring"
-        }
+            ${phoneError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
             focus:outline-none focus:ring-2 focus:ring-opacity-50
             disabled:opacity-50 disabled:cursor-not-allowed
           `}
@@ -148,30 +128,19 @@ function PhoneInput({
 
 // Main component interface
 interface CountryFlagPhoneSubFormProps {
-  onCountryChange: (country: string) => void;
-  onPhoneChange: (phone: string) => void;
-  countryValue: string;
-  countryError?: string;
-  phoneError?: string;
-  onClearPhone?: () => void;
-  countryIsValid?: boolean;
-  phoneIsValid?: boolean;
+    onCountryChange: (country: string) => void;
+    onPhoneChange: (phone: string) => void;
+    countryValue: string;
+    countryError?: string;
+    phoneError?: string;
+    onClearPhone?: () => void;
+    countryIsValid?: boolean;
+    phoneIsValid?: boolean;
 }
 
 // Main component - ONLY RENDERS, logic in sub-components
-export function CountryFlagPhoneSubForm({
-    onCountryChange,
-    onPhoneChange,
-    countryValue,
-    countryError,
-    phoneError,
-    onClearPhone,
-    countryIsValid,
-    phoneIsValid,
-}: CountryFlagPhoneSubFormProps) {
-    const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
-        DEFAULT_COUNTRY_CONFIG.code,
-    );
+export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countryValue, countryError, phoneError, onClearPhone, countryIsValid, phoneIsValid }: CountryFlagPhoneSubFormProps) {
+    const [selectedCountryCode, setSelectedCountryCode] = useState<string>(DEFAULT_COUNTRY_CONFIG.code);
     const [phonePrefix, setPhonePrefix] = useState<string>(DEFAULT_COUNTRY_CONFIG.phoneCode);
     const [phoneNumber, setPhoneNumber] = useState<string>("");
     const [isPrefixModified, setIsPrefixModified] = useState<boolean>(false);
@@ -233,21 +202,8 @@ export function CountryFlagPhoneSubForm({
     // PARENT COMPONENT - ONLY RENDERS
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CountrySelector
-                selectedCountryCode={selectedCountryCode}
-                onCountryChange={handleCountryChange}
-                countryError={countryError}
-                isValid={countryIsValid}
-            />
-            <PhoneInput
-                phonePrefix={phonePrefix}
-                phoneNumber={phoneNumber}
-                isPrefixModified={isPrefixModified}
-                onPrefixChange={handlePrefixChange}
-                onNumberChange={handleNumberChange}
-                phoneError={phoneError}
-                isValid={phoneIsValid}
-            />
+            <CountrySelector selectedCountryCode={selectedCountryCode} onCountryChange={handleCountryChange} countryError={countryError} isValid={countryIsValid} />
+            <PhoneInput phonePrefix={phonePrefix} phoneNumber={phoneNumber} isPrefixModified={isPrefixModified} onPrefixChange={handlePrefixChange} onNumberChange={handleNumberChange} phoneError={phoneError} isValid={phoneIsValid} />
         </div>
     );
 }

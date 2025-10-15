@@ -38,11 +38,7 @@ export async function getStudentById(id: number) {
 
 export async function updateStudent(id: number, studentSchema: Partial<NewStudent>) {
     try {
-        const result = await db
-            .update(student)
-            .set(studentSchema)
-            .where(eq(student.id, id))
-            .returning();
+        const result = await db.update(student).set(studentSchema).where(eq(student.id, id)).returning();
         revalidatePath("/students");
         return { success: true, data: result[0] };
     } catch (error) {

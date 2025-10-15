@@ -28,7 +28,12 @@ export function WelcomeStudentForm() {
         },
     });
 
-    const { register, formState: { errors }, setValue, watch } = methods;
+    const {
+        register,
+        formState: { errors },
+        setValue,
+        watch,
+    } = methods;
     const countryValue = watch("country");
     const phoneValue = watch("phone");
     const nameValue = watch("name");
@@ -50,30 +55,12 @@ export function WelcomeStudentForm() {
     return (
         <Form methods={methods} onSubmit={onSubmit} className="bg-card border-border rounded-lg shadow-sm">
             <div className="space-y-6">
-                <FormField
-                    label="Full Name"
-                    required
-                    error={errors.name?.message}
-                    isValid={!errors.name && nameValue && nameValue.length > 0}
-                >
-                    <FormInput
-                        {...register("name")}
-                        placeholder="Enter student's full name"
-                        error={!!errors.name}
-                    />
+                <FormField label="Full Name" required error={errors.name?.message} isValid={!errors.name && nameValue && nameValue.length > 0}>
+                    <FormInput {...register("name")} placeholder="Enter student's full name" error={!!errors.name} />
                 </FormField>
 
-                <FormField
-                    label="Passport Number"
-                    required
-                    error={errors.passport?.message}
-                    isValid={!errors.passport && passportValue && passportValue.length > 0}
-                >
-                    <FormInput
-                        {...register("passport")}
-                        placeholder="Enter passport number"
-                        error={!!errors.passport}
-                    />
+                <FormField label="Passport Number" required error={errors.passport?.message} isValid={!errors.passport && passportValue && passportValue.length > 0}>
+                    <FormInput {...register("passport")} placeholder="Enter passport number" error={!!errors.passport} />
                 </FormField>
 
                 <div>
@@ -89,9 +76,7 @@ export function WelcomeStudentForm() {
                     />
                 </div>
 
-                <FormSubmit color="#eab308">
-          Create Student
-                </FormSubmit>
+                <FormSubmit color="#eab308">Create Student</FormSubmit>
             </div>
         </Form>
     );

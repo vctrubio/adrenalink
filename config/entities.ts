@@ -18,10 +18,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-indigo-300",
         hoverColor: "#e0e7ff", // indigo-100
         link: "/schools",
-        description: [
-            "Central entity that organizes all activities.",
-            "Contains teachers, packages, and bookings.",
-        ],
+        description: ["Central entity that organizes all activities.", "Contains teachers, packages, and bookings."],
     },
     {
         id: "Student",
@@ -31,10 +28,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-yellow-300",
         hoverColor: "#fef3c7", // yellow-100
         link: "/students",
-        description: [
-            "Students create bookings.",
-            "Can participate in multiple lessons through bookings.",
-        ],
+        description: ["Students create bookings.", "Can participate in multiple lessons through bookings."],
     },
     {
         id: "Teacher",
@@ -44,10 +38,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-green-300",
         hoverColor: "#d1fae5", // green-100
         link: "/teachers",
-        description: [
-            "Our employees, each has commission rates for lessons.",
-            "Payments are used to track earnings.",
-        ],
+        description: ["Our employees, each has commission rates for lessons.", "Payments are used to track earnings."],
     },
     {
         id: "Commission",
@@ -57,10 +48,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-emerald-300",
         hoverColor: "#d1fae5", // emerald-100
         link: "/commissions",
-        description: [
-            "Defines commission rates for teachers.",
-            "Can be percentage or fixed amount.",
-        ],
+        description: ["Defines commission rates for teachers.", "Can be percentage or fixed amount."],
     },
     {
         id: "Equipment",
@@ -70,10 +58,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-purple-300",
         hoverColor: "#e9d5ff", // purple-100
         link: "/equipment",
-        description: [
-            "Kites, wings, and other gear used in lessons.",
-            "Tracked for usage in each event.",
-        ],
+        description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
     },
     {
         id: "User Wallet",
@@ -83,10 +68,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-slate-300",
         hoverColor: "#f1f5f9", // slate-100
         link: "/users",
-        description: [
-            "Links users to teachers and defines roles.",
-            "Manages user authentication and permissions.",
-        ],
+        description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
     },
     {
         id: "School Package",
@@ -96,10 +78,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-orange-300",
         hoverColor: "#fed7aa", // orange-100
         link: "/packages",
-        description: [
-            "Determines duration, capacity, and equipment for bookings.",
-            "Defines pricing and availability.",
-        ],
+        description: ["Determines duration, capacity, and equipment for bookings.", "Defines pricing and availability."],
     },
     {
         id: "Booking",
@@ -109,10 +88,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-blue-300",
         hoverColor: "#dbeafe", // blue-100
         link: "/bookings",
-        description: [
-            "Has start and end dates for lessons.",
-            "Links students to packages.",
-        ],
+        description: ["Has start and end dates for lessons.", "Links students to packages."],
     },
     {
         id: "Lesson",
@@ -122,10 +98,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-cyan-300",
         hoverColor: "#cffafe", // cyan-100
         link: "/lessons",
-        description: [
-            "Represents a scheduled lesson.",
-            "Links teacher, booking, and commission.",
-        ],
+        description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
     },
     {
         id: "Event",
@@ -135,10 +108,7 @@ export const ENTITY_DATA = [
         bgColor: "bg-teal-300",
         hoverColor: "#ccfbf1", // teal-100
         link: "/events",
-        description: [
-            "Actual lesson occurrence with duration and location.",
-            "Tracks equipment usage during the lesson.",
-        ],
+        description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
     },
     {
         id: "Payment",
@@ -148,9 +118,6 @@ export const ENTITY_DATA = [
         bgColor: "bg-amber-300",
         hoverColor: "#fef3c7", // amber-100
         link: "/payments",
-        description: [
-            "Records payments made to teachers.",
-            "Tracks teacher earnings and compensation.",
-        ],
+        description: ["Records payments made to teachers.", "Tracks teacher earnings and compensation."],
     },
 ] as const;

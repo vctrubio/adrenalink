@@ -3,8 +3,8 @@
 import { useState, useCallback, ChangeEvent } from "react";
 
 interface ParsedData {
-  headers: string[];
-  rows: string[][];
+    headers: string[];
+    rows: string[][];
 }
 
 const SEPARATORS = [
@@ -48,9 +48,9 @@ export function useCSVImportLogic() {
                     const char = line[i];
                     const nextChar = line[i + 1];
 
-                    if (char === "\"") {
-                        if (inQuotes && nextChar === "\"") {
-                            current += "\"";
+                    if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                            current += '"';
                             i++;
                         } else {
                             inQuotes = !inQuotes;
@@ -194,9 +194,7 @@ export function useCSVImportLogic() {
 
         const newParsedData = {
             ...parsedData,
-            rows: parsedData.rows.map((row, rIdx) =>
-                rIdx === rowIndex ? row.map((cell, cIdx) => (cIdx === cellIndex ? value : cell)) : row,
-            ),
+            rows: parsedData.rows.map((row, rIdx) => (rIdx === rowIndex ? row.map((cell, cIdx) => (cIdx === cellIndex ? value : cell)) : row)),
         };
         setParsedData(newParsedData);
 
@@ -223,11 +221,7 @@ export function useCSVImportLogic() {
         const originalValue = originalParsedData.rows[rowIndex]?.[cellIndex] || "";
         const newParsedData = {
             ...parsedData,
-            rows: parsedData.rows.map((row, rIdx) =>
-                rIdx === rowIndex
-                    ? row.map((cell, cIdx) => (cIdx === cellIndex ? originalValue : cell))
-                    : row,
-            ),
+            rows: parsedData.rows.map((row, rIdx) => (rIdx === rowIndex ? row.map((cell, cIdx) => (cIdx === cellIndex ? originalValue : cell)) : row)),
         };
         setParsedData(newParsedData);
 
@@ -241,9 +235,7 @@ export function useCSVImportLogic() {
         const [rowIndex, cellIndex] = cellKey.split("-").map(Number);
         const currentValue = parsedData?.rows[rowIndex]?.[cellIndex] || "";
         const originalValue = originalParsedData?.rows[rowIndex]?.[cellIndex] || "";
-        const columnName =
-      (useCustomHeaders ? customHeaders : parsedData?.headers || [])[cellIndex] ||
-      `Column ${cellIndex + 1}`;
+        const columnName = (useCustomHeaders ? customHeaders : parsedData?.headers || [])[cellIndex] || `Column ${cellIndex + 1}`;
 
         return {
             rowIndex,
@@ -342,4 +334,3 @@ export function useCSVImportLogic() {
         setUseCustomHeaders,
     };
 }
-

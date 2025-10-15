@@ -51,7 +51,6 @@ async function clearDatabase() {
 
         console.log("🎉 Database cleared successfully!");
         console.log("💡 Run 'bun run db:push' to recreate tables");
-
     } catch (error) {
         console.error("❌ Error clearing database:", error);
         process.exit(1);

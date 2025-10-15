@@ -1,8 +1,8 @@
 export interface Country {
-  code: string;
-  name: string;
-  label: string;
-  phoneCode: string;
+    code: string;
+    name: string;
+    label: string;
+    phoneCode: string;
 }
 
 export const COUNTRIES: Country[] = [
@@ -259,11 +259,11 @@ export const COUNTRIES: Country[] = [
 
 // Helper functions
 export const getCountryByCode = (code: string): Country | undefined => {
-    return COUNTRIES.find(country => country.code === code);
+    return COUNTRIES.find((country) => country.code === code);
 };
 
 export const getCountryByName = (name: string): Country | undefined => {
-    return COUNTRIES.find(country => country.name === name);
+    return COUNTRIES.find((country) => country.name === name);
 };
 
 export const getPhoneCodeByCountryCode = (code: string): string => {

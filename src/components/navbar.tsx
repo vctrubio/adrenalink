@@ -14,7 +14,7 @@ const navigationItems = [
     { href: "/docs", icon: BookOpen, label: "Docs" },
 ];
 
-const tableNavigationItems = ENTITY_DATA.map(entity => ({
+const tableNavigationItems = ENTITY_DATA.map((entity) => ({
     href: entity.link,
     icon: entity.icon,
     label: entity.name,
@@ -40,12 +40,7 @@ function UserDropdown() {
                     {userMenuItems.map(({ href, icon: Icon, label }) => (
                         <Menu.Item key={href}>
                             {({ active }) => (
-                                <Link
-                                    href={href}
-                                    className={`${
-                                        active ? "bg-muted" : ""
-                                    } group flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 transition-colors`}
-                                >
+                                <Link href={href} className={`${active ? "bg-muted" : ""} group flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 transition-colors`}>
                                     <Icon size={16} />
                                     {label}
                                 </Link>
@@ -67,13 +62,7 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
                     <div className="flex space-x-8">
                         {navigationItems.map(({ href, icon: Icon, label }) => (
-                            <Link
-                                key={href}
-                                href={href}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                                    pathname === href ? "bg-gray-100 dark:bg-gray-800" : "hover:bg-gray-50 dark:hover:bg-gray-900"
-                                }`}
-                            >
+                            <Link key={href} href={href} className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${pathname === href ? "bg-gray-100 dark:bg-gray-800" : "hover:bg-gray-50 dark:hover:bg-gray-900"}`}>
                                 <Icon size={18} />
                                 <span>{label}</span>
                             </Link>
@@ -90,15 +79,7 @@ export default function Navbar() {
                 <div className="border-t border-gray-100 dark:border-gray-900 py-2">
                     <div className="flex flex-wrap gap-2">
                         {tableNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
-                            <Link
-                                key={href}
-                                href={href}
-                                className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${
-                                    pathname === href
-                                        ? `${bgColor} text-white`
-                                        : `hover:${bgColor} hover:text-white`
-                                }`}
-                            >
+                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `hover:${bgColor} hover:text-white`}`}>
                                 <Icon size={14} className={pathname === href ? "text-white" : color} />
                                 <span className="text-xs">{label}</span>
                             </Link>

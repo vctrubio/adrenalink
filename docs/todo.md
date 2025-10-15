@@ -3,27 +3,22 @@
 ## Phase 1: Database Setup and Configuration
 
 1. **Set up the database schema**
-
    - Define entity models and relationships
    - Create schema definitions in Drizzle
 
 2. **Set up the database local**
-
    - Configure local database environment
    - Install and configure database dependencies
 
 3. **Connect the app to Supabase**
-
    - Set up Supabase project
    - Configure connection strings and environment variables
 
 4. **Make sure we can create forms for two different entities**
-
    - Implement form creation for primary entities
    - Test form validation and submission
 
 5. **Make sure we can run migrations**
-
    - Set up migration system
    - Test migration execution and rollback
 

@@ -1,276 +1,276 @@
 /* Adrenalink Color Schema */
 @layer base {
-  :root {
-    /* Background Colors - Enhanced light mode with depth */
-    --background: 255 255 255; /* pure white */
-    --foreground: 28 28 30; /* rich dark gray, not pure black */
-    --card: 245 245 247; /* more contrasted card background */
-    --card-foreground: 28 28 30; /* rich dark gray */
-    --popover: 255 255 255; /* pure white */
-    --popover-foreground: 28 28 30; /* rich dark gray */
+    :root {
+        /* Background Colors - Enhanced light mode with depth */
+        --background: 255 255 255; /* pure white */
+        --foreground: 28 28 30; /* rich dark gray, not pure black */
+        --card: 245 245 247; /* more contrasted card background */
+        --card-foreground: 28 28 30; /* rich dark gray */
+        --popover: 255 255 255; /* pure white */
+        --popover-foreground: 28 28 30; /* rich dark gray */
 
-    /* Muted Colors - Enhanced contrast for depth */
-    --muted: 235 235 240; /* deeper muted with more contrast */
-    --muted-foreground: 102 102 107; /* darker muted text for better contrast */
+        /* Muted Colors - Enhanced contrast for depth */
+        --muted: 235 235 240; /* deeper muted with more contrast */
+        --muted-foreground: 102 102 107; /* darker muted text for better contrast */
 
-    /* Accent Colors */
-    --accent: 235 235 240; /* matching muted for consistency */
-    --accent-foreground: 28 28 30; /* rich dark gray */
+        /* Accent Colors */
+        --accent: 235 235 240; /* matching muted for consistency */
+        --accent-foreground: 28 28 30; /* rich dark gray */
 
-    --primary: 0 150 120; /* darker neon blue-green for readability */
-    --secondary: 52 199 89; /* Apple's system green */
-    --tertiary: 255 149 0; /* Apple's system orange */
-    --fourth: 175 82 222; /* Apple's system purple */
-    --fifth: 255 45 85; /* Apple's system pink */
+        --primary: 0 150 120; /* darker neon blue-green for readability */
+        --secondary: 52 199 89; /* Apple's system green */
+        --tertiary: 255 149 0; /* Apple's system orange */
+        --fourth: 175 82 222; /* Apple's system purple */
+        --fifth: 255 45 85; /* Apple's system pink */
 
-    --destructive: 255 59 48; /* Apple's system red */
-    --warning: 255 149 0; /* light orange for warnings */
+        --destructive: 255 59 48; /* Apple's system red */
+        --warning: 255 149 0; /* light orange for warnings */
 
-    /* Border and Ring - Enhanced contrast for definition */
-    --border: 199 199 204; /* stronger border for better definition */
-    --input: 199 199 204; /* stronger input borders */
-    --ring: 0 255 204; /* neon blue-green */
-  }
+        /* Border and Ring - Enhanced contrast for definition */
+        --border: 199 199 204; /* stronger border for better definition */
+        --input: 199 199 204; /* stronger input borders */
+        --ring: 0 255 204; /* neon blue-green */
+    }
 
-  .dark {
-    /* Background Colors */
-    --background: 0 0 0; /* black */
-    --foreground: 255 255 255; /* white */
-    --card: 17 24 39; /* gray-900 */
-    --card-foreground: 249 250 251; /* gray-50 */
-    --popover: 0 0 0; /* black */
-    --popover-foreground: 255 255 255; /* white */
+    .dark {
+        /* Background Colors */
+        --background: 0 0 0; /* black */
+        --foreground: 255 255 255; /* white */
+        --card: 17 24 39; /* gray-900 */
+        --card-foreground: 249 250 251; /* gray-50 */
+        --popover: 0 0 0; /* black */
+        --popover-foreground: 255 255 255; /* white */
 
-    /* Muted Colors */
-    --muted: 55 65 81; /* gray-700 */
-    --muted-foreground: 156 163 175; /* gray-400 */
+        /* Muted Colors */
+        --muted: 55 65 81; /* gray-700 */
+        --muted-foreground: 156 163 175; /* gray-400 */
 
-    /* Accent Colors */
-    --accent: 55 65 81; /* gray-700 */
-    --accent-foreground: 249 250 251; /* gray-50 */
+        /* Accent Colors */
+        --accent: 55 65 81; /* gray-700 */
+        --accent-foreground: 249 250 251; /* gray-50 */
 
-    /* Primary Colors */
-    --primary: 0 200 160; /* brighter neon blue-green for dark mode */
-    --secondary: 48 209 88; /* Apple green dark mode */
-    --tertiary: 255 159 10; /* Apple orange dark mode */
-    --fourth: 191 90 242; /* Apple purple dark mode */
-    --fifth: 255 55 95; /* Apple pink dark mode */
+        /* Primary Colors */
+        --primary: 0 200 160; /* brighter neon blue-green for dark mode */
+        --secondary: 48 209 88; /* Apple green dark mode */
+        --tertiary: 255 159 10; /* Apple orange dark mode */
+        --fourth: 191 90 242; /* Apple purple dark mode */
+        --fifth: 255 55 95; /* Apple pink dark mode */
 
-    --destructive: 255 69 58; /* Apple red dark mode */
-    --warning: 255 159 10; /* light orange for warnings dark mode */
+        --destructive: 255 69 58; /* Apple red dark mode */
+        --warning: 255 159 10; /* light orange for warnings dark mode */
 
-    /* Border and Ring */
-    --border: 55 65 81; /* gray-700 */
-    --input: 55 65 81; /* gray-700 */
-    --ring: 57 255 204; /* neon blue-green dark mode */
-  }
+        /* Border and Ring */
+        --border: 55 65 81; /* gray-700 */
+        --input: 55 65 81; /* gray-700 */
+        --ring: 57 255 204; /* neon blue-green dark mode */
+    }
 }
 
 /* Utility Classes */
 .bg-background {
-  background-color: rgb(var(--background));
+    background-color: rgb(var(--background));
 }
 
 .bg-foreground {
-  background-color: rgb(var(--foreground));
+    background-color: rgb(var(--foreground));
 }
 
 .bg-card {
-  background-color: rgb(var(--card));
+    background-color: rgb(var(--card));
 }
 
 .bg-card-foreground {
-  background-color: rgb(var(--card-foreground));
+    background-color: rgb(var(--card-foreground));
 }
 
 .bg-popover {
-  background-color: rgb(var(--popover));
+    background-color: rgb(var(--popover));
 }
 
 .bg-popover-foreground {
-  background-color: rgb(var(--popover-foreground));
+    background-color: rgb(var(--popover-foreground));
 }
 
 .bg-muted {
-  background-color: rgb(var(--muted));
+    background-color: rgb(var(--muted));
 }
 
 .bg-muted-foreground {
-  background-color: rgb(var(--muted-foreground));
+    background-color: rgb(var(--muted-foreground));
 }
 
 .bg-accent {
-  background-color: rgb(var(--accent));
+    background-color: rgb(var(--accent));
 }
 
 .bg-accent-foreground {
-  background-color: rgb(var(--accent-foreground));
+    background-color: rgb(var(--accent-foreground));
 }
 
 .bg-primary {
-  background-color: rgb(var(--primary));
+    background-color: rgb(var(--primary));
 }
 
 .bg-primary-foreground {
-  background-color: rgb(var(--primary-foreground));
+    background-color: rgb(var(--primary-foreground));
 }
 
 .bg-secondary {
-  background-color: rgb(var(--secondary));
+    background-color: rgb(var(--secondary));
 }
 
 .bg-secondary-foreground {
-  background-color: rgb(var(--secondary-foreground));
+    background-color: rgb(var(--secondary-foreground));
 }
 
 .bg-tertiary {
-  background-color: rgb(var(--tertiary));
+    background-color: rgb(var(--tertiary));
 }
 
 .bg-tertiary-foreground {
-  background-color: rgb(var(--tertiary-foreground));
+    background-color: rgb(var(--tertiary-foreground));
 }
 
 .bg-fourth {
-  background-color: rgb(var(--fourth));
+    background-color: rgb(var(--fourth));
 }
 
 .bg-fourth-foreground {
-  background-color: rgb(var(--fourth-foreground));
+    background-color: rgb(var(--fourth-foreground));
 }
 
 .bg-fifth {
-  background-color: rgb(var(--fifth));
+    background-color: rgb(var(--fifth));
 }
 
 .bg-fifth-foreground {
-  background-color: rgb(var(--fifth-foreground));
+    background-color: rgb(var(--fifth-foreground));
 }
 
 .bg-destructive {
-  background-color: rgb(var(--destructive));
+    background-color: rgb(var(--destructive));
 }
 
 .bg-destructive-foreground {
-  background-color: rgb(var(--destructive-foreground));
+    background-color: rgb(var(--destructive-foreground));
 }
 
 .bg-warning {
-  background-color: rgb(var(--warning));
+    background-color: rgb(var(--warning));
 }
 
 .bg-warning-foreground {
-  background-color: rgb(var(--warning-foreground));
+    background-color: rgb(var(--warning-foreground));
 }
 
 .text-background {
-  color: rgb(var(--background));
+    color: rgb(var(--background));
 }
 
 .text-foreground {
-  color: rgb(var(--foreground));
+    color: rgb(var(--foreground));
 }
 
 .text-card {
-  color: rgb(var(--card));
+    color: rgb(var(--card));
 }
 
 .text-card-foreground {
-  color: rgb(var(--card-foreground));
+    color: rgb(var(--card-foreground));
 }
 
 .text-popover {
-  color: rgb(var(--popover));
+    color: rgb(var(--popover));
 }
 
 .text-popover-foreground {
-  color: rgb(var(--popover-foreground));
+    color: rgb(var(--popover-foreground));
 }
 
 .text-muted {
-  color: rgb(var(--muted));
+    color: rgb(var(--muted));
 }
 
 .text-muted-foreground {
-  color: rgb(var(--muted-foreground));
+    color: rgb(var(--muted-foreground));
 }
 
 .text-accent {
-  color: rgb(var(--accent));
+    color: rgb(var(--accent));
 }
 
 .text-accent-foreground {
-  color: rgb(var(--accent-foreground));
+    color: rgb(var(--accent-foreground));
 }
 
 .text-primary {
-  color: rgb(var(--primary));
+    color: rgb(var(--primary));
 }
 
 .text-primary-foreground {
-  color: rgb(var(--primary-foreground));
+    color: rgb(var(--primary-foreground));
 }
 
 .text-secondary {
-  color: rgb(var(--secondary));
+    color: rgb(var(--secondary));
 }
 
 .text-secondary-foreground {
-  color: rgb(var(--secondary-foreground));
+    color: rgb(var(--secondary-foreground));
 }
 
 .text-tertiary {
-  color: rgb(var(--tertiary));
+    color: rgb(var(--tertiary));
 }
 
 .text-tertiary-foreground {
-  color: rgb(var(--tertiary-foreground));
+    color: rgb(var(--tertiary-foreground));
 }
 
 .text-fourth {
-  color: rgb(var(--fourth));
+    color: rgb(var(--fourth));
 }
 
 .text-fourth-foreground {
-  color: rgb(var(--fourth-foreground));
+    color: rgb(var(--fourth-foreground));
 }
 
 .text-fifth {
-  color: rgb(var(--fifth));
+    color: rgb(var(--fifth));
 }
 
 .text-fifth-foreground {
-  color: rgb(var(--fifth-foreground));
+    color: rgb(var(--fifth-foreground));
 }
 
 .text-destructive {
-  color: rgb(var(--destructive));
+    color: rgb(var(--destructive));
 }
 
 .text-destructive-foreground {
-  color: rgb(var(--destructive-foreground));
+    color: rgb(var(--destructive-foreground));
 }
 
 .text-warning {
-  color: rgb(var(--warning));
+    color: rgb(var(--warning));
 }
 
 .text-warning-foreground {
-  color: rgb(var(--warning-foreground));
+    color: rgb(var(--warning-foreground));
 }
 
 .border-warning {
-  border-color: rgb(var(--warning));
+    border-color: rgb(var(--warning));
 }
 
 .border-border {
-  border-color: rgb(var(--border));
+    border-color: rgb(var(--border));
 }
 
 .border-input {
-  border-color: rgb(var(--input));
+    border-color: rgb(var(--input));
 }
 
 .ring-ring {
-  --tw-ring-color: rgb(var(--ring));
+    --tw-ring-color: rgb(var(--ring));
 }

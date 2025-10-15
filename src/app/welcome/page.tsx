@@ -37,7 +37,7 @@ export default function WelcomePage() {
         },
     });
 
-    const selectedCountry = COUNTRIES.find(c => c.code === methods.watch("country"));
+    const selectedCountry = COUNTRIES.find((c) => c.code === methods.watch("country"));
 
     const onSubmit = (data: WelcomeFormData) => {
         const phoneWithPrefix = `${selectedCountry?.prefix}${data.phoneNumber}`;
@@ -54,41 +54,23 @@ export default function WelcomePage() {
 
                 <Form methods={methods} onSubmit={onSubmit} className="bg-card rounded-lg border border-border">
                     <FormField label="First Name" required error={methods.formState.errors.firstName?.message}>
-                        <FormInput
-                            {...methods.register("firstName")}
-                            placeholder="Your first name"
-                            autoFocus
-                        />
+                        <FormInput {...methods.register("firstName")} placeholder="Your first name" autoFocus />
                     </FormField>
 
                     <FormField label="Full Name" required error={methods.formState.errors.fullName?.message}>
-                        <FormInput
-                            {...methods.register("fullName")}
-                            placeholder="Your full name"
-                        />
+                        <FormInput {...methods.register("fullName")} placeholder="Your full name" />
                     </FormField>
 
                     <FormField label="Country" required error={methods.formState.errors.country?.message}>
-                        <FormSelect
-                            {...methods.register("country")}
-                            options={COUNTRIES.map(c => ({ value: c.code, label: c.name }))}
-                        />
+                        <FormSelect {...methods.register("country")} options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))} />
                     </FormField>
 
-                    <FormField
-                        label={`Phone Number ${selectedCountry?.prefix || ""}`}
-                        required
-                        error={methods.formState.errors.phoneNumber?.message}
-                    >
-                        <FormInput
-                            {...methods.register("phoneNumber")}
-                            placeholder="123456789"
-                            type="tel"
-                        />
+                    <FormField label={`Phone Number ${selectedCountry?.prefix || ""}`} required error={methods.formState.errors.phoneNumber?.message}>
+                        <FormInput {...methods.register("phoneNumber")} placeholder="123456789" type="tel" />
                     </FormField>
 
                     <FormButton type="submit" variant="primary" className="w-full">
-            Get Started
+                        Get Started
                     </FormButton>
                 </Form>
             </div>

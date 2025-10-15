@@ -110,24 +110,28 @@ adrenalink-beta/
 ## Entity System Architecture
 
 ### Entity Configuration (`config/entities.ts`)
+
 - **Centralized configuration**: All entity metadata in one place
 - **Visual consistency**: Icons, colors, routes, and descriptions
 - **Type safety**: TypeScript interfaces for reliable data structure
 - **Easy maintenance**: Single source of truth for entity properties
 
 ### Custom Icon System (`public/appSvgs/`)
+
 - **JSX Components**: SVG files converted to React components
 - **Customizable props**: `className` and `size` props for styling
 - **Consistent API**: All icons follow same interface pattern
 - **Bypass Tailwind purging**: Inline styles for dynamic colors
 
 ### Entity Pages (`src/app/(tables)/`)
+
 - **Consistent layout**: All entity pages use LabelTag component
 - **Color-coded borders**: Each entity has distinct visual identity
 - **DRY principle**: Reusable LabelTag component reduces code duplication
 - **Type-safe**: Leverages centralized entity configuration
 
 ### Navigation Enhancement
+
 - **Two-tier navigation**: Main nav + entity-specific nav
 - **Visual feedback**: Active states with entity colors
 - **Responsive design**: Flexible layout for different screen sizes
@@ -136,6 +140,7 @@ adrenalink-beta/
 ## API Architecture (`actions/` Directory)
 
 ### Server Actions Pattern
+
 - **File naming**: Each entity has its own action file (e.g., `student.ts`, `school.ts`)
 - **Function naming**: Use schema-based parameters (`createStudent(studentSchema: NewStudent)`)
 - **Consistent CRUD operations**: create, get, getById, update, delete for each entity
@@ -143,16 +148,22 @@ adrenalink-beta/
 - **Type safety**: Use Drizzle's inferred types (`NewStudent`, `NewSchool`, etc.)
 
 ### Standard Action Functions
+
 Each entity action file should include:
+
 ```typescript
-export async function createEntity(entitySchema: NewEntity)
-export async function getEntities() 
-export async function getEntityById(id: number)
-export async function updateEntity(id: number, entitySchema: Partial<NewEntity>)
-export async function deleteEntity(id: number)
+export async function createEntity(entitySchema: NewEntity);
+export async function getEntities();
+export async function getEntityById(id: number);
+export async function updateEntity(
+  id: number,
+  entitySchema: Partial<NewEntity>,
+);
+export async function deleteEntity(id: number);
 ```
 
 ### Form Integration
+
 - **react-phone-number-input**: Used in all forms requiring phone number input
 - **Zod validation**: Schema validation matches database schema structure
 - **Server actions**: Forms call actions directly with type-safe parameters

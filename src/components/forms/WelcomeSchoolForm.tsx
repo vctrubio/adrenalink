@@ -12,13 +12,11 @@ import { isUsernameReserved } from "@/config/predefinedNames";
 
 const schoolSchema = z.object({
     name: z.string().min(1, "School name is required"),
-    username: z.string()
+    username: z
+        .string()
         .min(1, "Username is required")
         .regex(/^[a-z0-9_]+$/, "Username can only contain lowercase letters, numbers, and underscores")
-        .refine(
-            (username) => !isUsernameReserved(username),
-            { message: "This username is reserved and cannot be used" },
-        ),
+        .refine((username) => !isUsernameReserved(username), { message: "This username is reserved and cannot be used" }),
     country: z.string().min(1, "Country is required"),
     phone: z.string().min(1, "Phone number is required"),
 });
@@ -60,7 +58,12 @@ export function WelcomeSchoolForm() {
         },
     });
 
-    const { register, formState: { errors }, setValue, watch } = methods;
+    const {
+        register,
+        formState: { errors },
+        setValue,
+        watch,
+    } = methods;
     const countryValue = watch("country");
     const phoneValue = watch("phone");
     const usernameValue = watch("username");
@@ -127,26 +130,11 @@ export function WelcomeSchoolForm() {
     return (
         <Form methods={methods} onSubmit={onSubmit} className="bg-card border-border rounded-lg shadow-sm">
             <div className="space-y-6">
-                <FormField
-                    label="School Name"
-                    required
-                    error={errors.name?.message}
-                    isValid={!errors.name && nameValue && nameValue.length > 0}
-                >
-                    <FormInput
-                        {...register("name")}
-                        placeholder="Enter school name"
-                        error={!!errors.name}
-                        onBlur={handleNameBlur}
-                    />
+                <FormField label="School Name" required error={errors.name?.message} isValid={!errors.name && nameValue && nameValue.length > 0}>
+                    <FormInput {...register("name")} placeholder="Enter school name" error={!!errors.name} onBlur={handleNameBlur} />
                 </FormField>
 
-                <FormField
-                    label="Username"
-                    required
-                    error={errors.username?.message}
-                    isValid={!errors.username && usernameValue && usernameValue.length > 0 && usernameStatus === "available"}
-                >
+                <FormField label="Username" required error={errors.username?.message} isValid={!errors.username && usernameValue && usernameValue.length > 0 && usernameStatus === "available"}>
                     <div className="relative">
                         <FormInput
                             {...register("username", { onChange: handleUsernameChange })}
@@ -160,23 +148,19 @@ export function WelcomeSchoolForm() {
               `}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                            {isGeneratingUsername && (
-                                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            )}
-                            {usernameStatus === "checking" && !isGeneratingUsername && (
-                                <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
-                            )}
+                            {isGeneratingUsername && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
+                            {usernameStatus === "checking" && !isGeneratingUsername && <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>}
                             {usernameStatus === "available" && (
                                 <div className="w-4 h-4 bg-secondary rounded-full flex items-center justify-center">
                                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                                        <path d="M9 1L3.5 6.5L1 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M9 1L3.5 6.5L1 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
                             )}
                             {usernameStatus === "unavailable" && (
                                 <div className="w-4 h-4 bg-warning rounded-full flex items-center justify-center">
                                     <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                                        <path d="M6 2L2 6M2 2L6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M6 2L2 6M2 2L6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
                             )}
@@ -197,9 +181,7 @@ export function WelcomeSchoolForm() {
                     />
                 </div>
 
-                <FormSubmit color="#6366f1">
-          Create School
-                </FormSubmit>
+                <FormSubmit color="#6366f1">Create School</FormSubmit>
             </div>
         </Form>
     );

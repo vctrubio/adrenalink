@@ -10,6 +10,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 max_line_length = 269
+quote_type = double
 
 [*.md]
 trim_trailing_whitespace = false

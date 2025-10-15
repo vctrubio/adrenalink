@@ -11,15 +11,15 @@ const SCHOOL_COUNT = 3;
 // Country codes for phone numbers
 const countryCodes = {
     "United States": "+1",
-    "Canada": "+1",
+    Canada: "+1",
     "United Kingdom": "+44",
-    "France": "+33",
-    "Germany": "+49",
-    "Spain": "+34",
-    "Italy": "+39",
-    "Australia": "+61",
-    "Japan": "+81",
-    "Brazil": "+55",
+    France: "+33",
+    Germany: "+49",
+    Spain: "+34",
+    Italy: "+39",
+    Australia: "+61",
+    Japan: "+81",
+    Brazil: "+55",
 };
 
 function getRandomCountry() {
@@ -60,7 +60,7 @@ async function seedDatabase() {
     console.log(`🌱 Seeding ${STUDENT_COUNT} students and ${SCHOOL_COUNT} schools...`);
 
     try {
-    // Seed students
+        // Seed students
         const studentsData = generateStudentData();
         const insertedStudents = [];
 
@@ -91,13 +91,7 @@ async function seedDatabase() {
                 await db.insert(schoolstudents).values({
                     schoolId: schoolRecord.id,
                     studentId: studentRecord.id,
-                    description: faker.helpers.arrayElement([
-                        "Full-time student",
-                        "Part-time student",
-                        "Exchange student",
-                        "Graduate student",
-                        "Visiting student",
-                    ]),
+                    description: faker.helpers.arrayElement(["Full-time student", "Part-time student", "Exchange student", "Graduate student", "Visiting student"]),
                 });
                 console.log(`🔗 Enrolled ${studentRecord.name} at ${schoolRecord.name}`);
             }

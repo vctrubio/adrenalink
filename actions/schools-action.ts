@@ -7,10 +7,7 @@ import { school, type NewSchool } from "@/drizzle/schema";
 
 export async function createSchool(schoolSchema: NewSchool) {
     try {
-        const result = await db
-            .insert(school)
-            .values(schoolSchema)
-            .returning();
+        const result = await db.insert(school).values(schoolSchema).returning();
         revalidatePath("/schools");
         return { success: true, data: result[0] };
     } catch (error) {
@@ -41,11 +38,7 @@ export async function getSchoolById(id: number) {
 
 export async function updateSchool(id: number, schoolSchema: Partial<NewSchool>) {
     try {
-        const result = await db
-            .update(school)
-            .set(schoolSchema)
-            .where(eq(school.id, id))
-            .returning();
+        const result = await db.update(school).set(schoolSchema).where(eq(school.id, id)).returning();
         revalidatePath("/schools");
         return { success: true, data: result[0] };
     } catch (error) {
@@ -68,7 +61,7 @@ export async function deleteSchool(id: number) {
 export async function getSchoolsUsernames() {
     try {
         const result = await db.select({ username: school.username }).from(school);
-        return { success: true, data: result.map(r => r.username) };
+        return { success: true, data: result.map((r) => r.username) };
     } catch (error) {
         console.error("Error fetching school usernames:", error);
         return { success: false, error: "Failed to fetch usernames" };
