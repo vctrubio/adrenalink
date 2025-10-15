@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, count } from "drizzle-orm";
+import { eq, count, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { school, student, schoolStudents, type NewSchool } from "@/drizzle/schema";
@@ -114,5 +114,28 @@ export async function getStudentsBySchoolId(schoolId: string) {
     } catch (error) {
         console.error("Error fetching students by school ID:", error);
         return { success: false, error: "Failed to fetch students" };
+    }
+}
+
+export async function getAvailableStudentsForSchool(schoolId: string) {
+    try {
+        const linkedStudentIds = await db
+            .select({ studentId: schoolStudents.studentId })
+            .from(schoolStudents)
+            .where(eq(schoolStudents.schoolId, schoolId));
+        
+        const linkedIds = linkedStudentIds.map(row => row.studentId);
+        
+        let query = db.select().from(student);
+        
+        if (linkedIds.length > 0) {
+            query = query.where(notInArray(student.id, linkedIds));
+        }
+        
+        const result = await query;
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("Error fetching available students:", error);
+        return { success: false, error: "Failed to fetch available students" };
     }
 }
