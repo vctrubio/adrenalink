@@ -6,10 +6,10 @@ interface TablesLayoutProps {
 }
 
 export default function TablesLayout({ children }: TablesLayoutProps) {
-  return (
-    <div>
-      <Breadcrumbs />
-      <main>{children}</main>
-    </div>
-  );
+    return (
+        <div>
+            <Breadcrumbs />
+            <main>{children}</main>
+        </div>
+    );
 }

@@ -13,53 +13,53 @@ interface FormProps<T extends FieldValues = FieldValues> {
 }
 
 export default function Form<T extends FieldValues = FieldValues>({
-  children,
-  methods,
-  onSubmit,
-  isOpen = true,
-  onClose,
-  className = "",
+    children,
+    methods,
+    onSubmit,
+    isOpen = true,
+    onClose,
+    className = "",
 }: FormProps<T>) {
-  const formRef = useRef<HTMLFormElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (isOpen && formRef.current) {
-      const firstInput = formRef.current.querySelector('input, select, textarea') as HTMLInputElement;
-      if (firstInput) {
-        setTimeout(() => firstInput.focus(), 100);
-      }
-    }
-  }, [isOpen]);
+    useEffect(() => {
+        if (isOpen && formRef.current) {
+            const firstInput = formRef.current.querySelector("input, select, textarea") as HTMLInputElement;
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+        }
+    }, [isOpen]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && onClose) {
-        event.preventDefault();
-        onClose();
-      }
-      if (event.key === "Enter" && event.shiftKey) {
-        event.preventDefault();
-        methods.handleSubmit(onSubmit)();
-      }
-    };
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && onClose) {
+                event.preventDefault();
+                onClose();
+            }
+            if (event.key === "Enter" && event.shiftKey) {
+                event.preventDefault();
+                methods.handleSubmit(onSubmit)();
+            }
+        };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [isOpen, methods, onSubmit, onClose]);
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, methods, onSubmit, onClose]);
 
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
-  return (
-    <FormProvider {...methods}>
-      <form
-        ref={formRef}
-        onSubmit={methods.handleSubmit(onSubmit)}
-        className={`border space-y-8 p-8 ${className}`}
-      >
-        {children}
-      </form>
-    </FormProvider>
-  );
+    return (
+        <FormProvider {...methods}>
+            <form
+                ref={formRef}
+                onSubmit={methods.handleSubmit(onSubmit)}
+                className={`border space-y-8 p-8 ${className}`}
+            >
+                {children}
+            </form>
+        </FormProvider>
+    );
 }

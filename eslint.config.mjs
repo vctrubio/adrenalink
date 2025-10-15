@@ -6,33 +6,33 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+    baseDirectory: __dirname,
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    rules: {
-      "indent": ["error", 2],
-      "quotes": ["error", "double"],
-      "semi": ["error", "always"],
-      "no-trailing-spaces": "error",
-      "eol-last": "off",
-      "object-curly-spacing": ["error", "always"],
-      "array-bracket-spacing": ["error", "never"],
-      "comma-dangle": ["error", "always-multiline"],
-      "max-len": ["error", { "code": 365 }],
+    ...compat.extends("next/core-web-vitals", "next/typescript"),
+    {
+        rules: {
+            "indent": ["error", 4],
+            "quotes": ["error", "double"],
+            "semi": ["error", "always"],
+            "no-trailing-spaces": "error",
+            "eol-last": "off",
+            "object-curly-spacing": ["error", "always"],
+            "array-bracket-spacing": ["error", "never"],
+            "comma-dangle": ["error", "always-multiline"],
+            "max-len": ["error", { "code": 269 }],
+        },
     },
-  },
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
-  },
+    {
+        ignores: [
+            "node_modules/**",
+            ".next/**",
+            "out/**",
+            "build/**",
+            "next-env.d.ts",
+        ],
+    },
 ];
 
 export default eslintConfig;

@@ -1,0 +1,35 @@
+export const RESERVED_USERNAMES = [
+    "admin",
+    "administrator",
+    "dashboard",
+    "tarifa",
+    "north",
+    "helloworld",
+    "api",
+    "www",
+    "mail",
+    "ftp",
+    "root",
+    "support",
+    "help",
+    "info",
+    "contact",
+    "about",
+    "login",
+    "signup",
+    "register",
+    "profile",
+    "settings",
+    "config",
+    "system",
+    "test",
+    "dev",
+    "staging",
+    "production",
+    "beta",
+    "alpha",
+];
+
+export function isUsernameReserved(username: string): boolean {
+    return RESERVED_USERNAMES.includes(username.toLowerCase());
+}

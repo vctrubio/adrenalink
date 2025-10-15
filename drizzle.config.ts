@@ -4,11 +4,11 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 export default {
-  schema: "./drizzle/schema.ts",
-  out: "./drizzle/migrations",
-  dialect: "postgresql",
-  dbCredentials: {
-    url: process.env.DATABASE_URL!,
-  },
-  casing: "snake_case",
+    schema: "./drizzle/schema.ts",
+    out: "./drizzle/migrations",
+    dialect: "postgresql",
+    dbCredentials: {
+        url: process.env.DATABASE_URL!,
+    },
+    casing: "snake_case",
 } satisfies Config;

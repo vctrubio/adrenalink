@@ -6,28 +6,28 @@ import WalletProvider from "../providers/wallet-provider";
 import Navbar from "../components/navbar";
 
 export const metadata: Metadata = {
-  title: "Adrenalink",
-  description: "Connecting Students, Teachers and Admins",
-  icons: {
-    icon: "/favicon.png",
-  },
+    title: "Adrenalink",
+    description: "Connecting Students, Teachers and Admins",
+    icons: {
+        icon: "/favicon.png",
+    },
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground">
-        <Providers>
-          <WalletProvider>
-            <Navbar />
-            {children}
-          </WalletProvider>
-        </Providers>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <body className="min-h-screen bg-background text-foreground">
+                <Providers>
+                    <WalletProvider>
+                        <Navbar />
+                        {children}
+                    </WalletProvider>
+                </Providers>
+            </body>
+        </html>
+    );
 }

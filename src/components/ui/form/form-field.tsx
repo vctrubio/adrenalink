@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { BadgeCheck } from "lucide-react";
 
 interface FormFieldProps {
   label: string;
@@ -8,23 +9,28 @@ interface FormFieldProps {
   required?: boolean;
   error?: string;
   className?: string;
+  isValid?: boolean;
 }
 
 export default function FormField({
-  label,
-  children,
-  required = false,
-  error,
-  className = "",
+    label,
+    children,
+    required = false,
+    error,
+    className = "",
+    isValid = false,
 }: FormFieldProps) {
-  return (
-    <div className={`space-y-3 mb-6 ${className}`}>
-      <label className="block text-sm font-medium text-foreground">
-        {label}
-        {required && <span className="text-destructive ml-1">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-sm text-destructive">{error}</p>}
-    </div>
-  );
+    return (
+        <div className={`space-y-3 mb-6 ${className}`}>
+            <label className="block text-sm font-medium text-foreground flex items-center">
+                {label}
+                {required && !isValid && <span className="text-destructive ml-1">*</span>}
+                {required && isValid && (
+                    <BadgeCheck className="w-4 h-4 text-secondary ml-1" />
+                )}
+            </label>
+            {children}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+    );
 }

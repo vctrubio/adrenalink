@@ -1,35 +1,36 @@
 import { pgTable, serial, timestamp, varchar, integer, text } from "drizzle-orm/pg-core";
 
 export const student = pgTable("student", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  passport: varchar("passport", { length: 50 }).notNull().unique(),
-  country: varchar("country", { length: 100 }).notNull(),
-  phone: varchar("phone", { length: 20 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    passport: varchar("passport", { length: 50 }).notNull().unique(),
+    country: varchar("country", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const school = pgTable("school", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  country: varchar("country", { length: 100 }).notNull(),
-  phone: varchar("phone", { length: 20 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    username: varchar("username", { length: 50 }).notNull().unique(),
+    country: varchar("country", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const schoolStudents = pgTable("school_students", {
-  id: serial("id").primaryKey(),
-  schoolId: integer("school_id")
-    .notNull()
-    .references(() => school.id),
-  studentId: integer("student_id")
-    .notNull()
-    .references(() => student.id),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    id: serial("id").primaryKey(),
+    schoolId: integer("school_id")
+        .notNull()
+        .references(() => school.id),
+    studentId: integer("student_id")
+        .notNull()
+        .references(() => student.id),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export type Student = typeof student.$inferSelect;
