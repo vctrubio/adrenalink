@@ -1,6 +1,6 @@
 import { getStudentById } from "../../../../../actions/students-action";
 import { getStudentName, getStudentInfo } from "../../../../../getters/students-getter";
-import EntityIdCard from "../../../../components/EntityIdCard";
+import StudentPageContent from "../../../../components/StudentPageContent";
 
 interface StudentPageProps {
     params: { id: string };
@@ -20,12 +20,11 @@ export default async function StudentPage({ params }: StudentPageProps) {
     }
 
     const student = studentResult.data;
-    const studentInfo = getStudentInfo(student);
 
     return (
         <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-8">{getStudentName(student)}</h1>
-            <EntityIdCard info={studentInfo} />
+            <h1 className="text-2xl font-bold text-foreground mb-8">{getStudentName(student.schema)}</h1>
+            <StudentPageContent student={student.serialize()} />
         </div>
     );
 }
