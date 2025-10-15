@@ -21,7 +21,13 @@ export default async function SchoolsPage() {
                 ) : (
                     <div className="space-y-4">
                         {schools.map((school) => (
-                            <EntityCard key={school.id} id={school.id} title={getSchoolName(school)} entityType="schools" />
+                            <EntityCard
+                                key={school.schema.id}
+                                id={school.schema.id}
+                                title={getSchoolName(school.schema)}
+                                entityType="schools"
+                                username={school.schema.username}
+                            />
                         ))}
                     </div>
                 )}
