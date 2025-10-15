@@ -14,6 +14,10 @@ adrenalink-beta/
 │   └── *-action.ts             # Additional entity action files (plural-action format)
 ├── ai/                         # Cloud-related files and generated markdown content
 ├── backend/                    # Backend classes and logic declarations
+│   └── models/                 # Entity model classes inheriting from AbstractModel
+│       ├── index.ts            # Model exports (AbstractModel, StudentModel, SchoolModel)
+│       ├── StudentModel.ts     # Student model extending AbstractModel<Student>
+│       └── SchoolModel.ts      # School model extending AbstractModel<School>
 ├── config/                     # Tenant-specific configuration files
 │   └── entities.ts             # Entity visual configuration (icons, colors, routes)
 ├── docs/                       # Application documentation
@@ -153,7 +157,7 @@ Each entity action file should include:
 
 ```typescript
 export async function createEntity(entitySchema: NewEntity);
-export async function getEntities();
+export async function getEntities(): Promise<{ success: boolean; data: EntityModel[]; error?: string }>;
 export async function getEntityById(id: number);
 export async function updateEntity(
   id: number,
@@ -161,6 +165,8 @@ export async function updateEntity(
 );
 export async function deleteEntity(id: number);
 ```
+
+**IMPORTANT**: All `getEntities()` functions must return model instances (e.g., `StudentModel[]`, `SchoolModel[]`) that inherit from `AbstractModel`. This ensures consistent data structure with `.schema` property access patterns in components.
 
 ### Form Integration
 
