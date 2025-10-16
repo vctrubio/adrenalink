@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { faker } from "@faker-js/faker";
 import { db } from "../db";
-import { student, school, schoolstudents } from "../schema";
+import { student, school, schoolStudents } from "../schema";
 
 config({ path: ".env.local" });
 
