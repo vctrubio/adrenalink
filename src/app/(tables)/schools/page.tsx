@@ -2,13 +2,13 @@ import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
 import SchoolCard from "@/src/components/cards/SchoolCard";
 import { getSchools } from "@/actions/schools-action";
-import type { School } from "@/drizzle/schema";
+import type { SchoolType } from "@/drizzle/schema";
 import type { AbstractModel } from "@/backend/models";
 
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: AbstractModel<School>[] | { error: string } = await getSchools();
+    const data: AbstractModel<SchoolType>[] | { error: string } = await getSchools();
 
     if ("error" in data) {
         return <>{data.error}</>;
