@@ -2,12 +2,17 @@ import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
 import SchoolCard from "@/src/components/cards/SchoolCard";
 import { getSchools } from "@/actions/schools-action";
+import type { School } from "@/drizzle/schema";
+import type { AbstractModel } from "@/backend/models";
 
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const schoolsResult = await getSchools();
-    const schools = schoolsResult.success ? schoolsResult.data : [];
+    const data: AbstractModel<School>[] | { error: string } = await getSchools();
+
+    if ("error" in data) {
+        return <>{data.error}</>;
+    }
 
     return (
         <div className="p-8">
@@ -15,11 +20,11 @@ export default async function SchoolsPage() {
 
             <div className="mt-8">
                 <h2 className="text-xl font-semibold text-foreground mb-4">All Schools</h2>
-                {schools.length === 0 ? (
+                {data.length === 0 ? (
                     <p className="text-muted-foreground">No schools found</p>
                 ) : (
                     <div className="space-y-4">
-                        {schools.map((school) => (
+                        {data.map((school) => (
                             <SchoolCard
                                 key={school.schema.id}
                                 school={school.serialize()}

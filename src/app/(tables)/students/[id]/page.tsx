@@ -1,6 +1,7 @@
 import { getStudentById } from "@/actions/students-action";
 import { getStudentName } from "@/getters/students-getter";
-import StudentPageContent from "@/src/components/StudentPageContent";
+import type { Student } from "@/drizzle/schema";
+import type { AbstractModel } from "@/backend/models";
 
 interface StudentPageProps {
     params: { id: string };
@@ -8,9 +9,9 @@ interface StudentPageProps {
 
 export default async function StudentPage({ params }: StudentPageProps) {
     const studentId = params.id;
-    const studentResult = await getStudentById(studentId);
+    const data: AbstractModel<Student> | { error: string } = await getStudentById(studentId);
 
-    if (!studentResult.success || !studentResult.data) {
+    if ("error" in data) {
         return (
             <div className="p-8">
                 <h1 className="text-2xl font-bold text-foreground mb-4">Student Not Found</h1>
@@ -19,12 +20,12 @@ export default async function StudentPage({ params }: StudentPageProps) {
         );
     }
 
-    const student = studentResult.data;
-
     return (
         <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-8">{getStudentName(student.schema)}</h1>
-            <StudentPageContent student={student.serialize()} />
+            <h1 className="text-2xl font-bold text-foreground mb-8">{getStudentName(data.schema)}</h1>
+            <pre className="bg-muted p-4 rounded-lg overflow-auto">
+                {JSON.stringify(data, null, 2)}
+            </pre>
         </div>
     );
 }

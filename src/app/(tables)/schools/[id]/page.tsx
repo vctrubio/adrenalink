@@ -1,6 +1,7 @@
 import { getSchoolById } from "@/actions/schools-action";
 import { getSchoolName } from "@/getters/schools-getter";
-import SchoolPageContent from "@/src/components/SchoolPageContent";
+import type { School } from "@/drizzle/schema";
+import type { AbstractModel } from "@/backend/models";
 
 interface SchoolPageProps {
     params: { id: string };
@@ -8,9 +9,9 @@ interface SchoolPageProps {
 
 export default async function SchoolPage({ params }: SchoolPageProps) {
     const username = params.id;
-    const schoolResult = await getSchoolById(username, true);
+    const data: AbstractModel<School> | { error: string } = await getSchoolById(username, true);
 
-    if (!schoolResult.success || !schoolResult.data) {
+    if ("error" in data) {
         return (
             <div className="p-8">
                 <h1 className="text-2xl font-bold text-foreground mb-4">School Not Found</h1>
@@ -19,12 +20,12 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
         );
     }
 
-    const school = schoolResult.data;
-
     return (
         <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-8">{getSchoolName(school.schema)}</h1>
-            <SchoolPageContent school={school.serialize()} />
+            <h1 className="text-2xl font-bold text-foreground mb-8">{getSchoolName(data.schema)}</h1>
+            <pre className="bg-muted p-4 rounded-lg overflow-auto">
+                {JSON.stringify(data, null, 2)}
+            </pre>
         </div>
     );
 }
