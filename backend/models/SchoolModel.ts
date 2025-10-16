@@ -3,7 +3,7 @@ import { AbstractModel } from "./AbstractModel";
 
 export class SchoolModel extends AbstractModel<School> {
     relations?: {
-        students?: SchoolStudent[];
+        schoolStudents?: SchoolStudent[];
     };
     lambda?: {
         studentCount?: number;
