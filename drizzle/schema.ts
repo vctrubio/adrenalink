@@ -2,6 +2,7 @@ import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean, intege
 import { sql } from "drizzle-orm";
 
 export const equipmentCategoryEnum = pgEnum("equipment_category", ["kite", "wing", "windsurf", "surf", "snowboard"]);
+export const studentPackageStatusEnum = pgEnum("student_package_status", ["requested", "accepted", "rejected"]);
 
 export const student = pgTable("student", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -61,6 +62,80 @@ export const schoolPackage = pgTable("school_package", {
     index("school_package_school_id_idx").on(table.schoolId),
 ]);
 
+export const studentPackage = pgTable("student_package", {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    studentId: uuid("student_id").notNull().references(() => student.id),
+    packageId: uuid("package_id").notNull().references(() => schoolPackage.id),
+    requestedDateStart: timestamp("requested_date_start", { mode: "string" }).notNull(),
+    requestedDateEnd: timestamp("requested_date_end", { mode: "string" }).notNull(),
+    status: studentPackageStatusEnum("status").notNull(),
+    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+}, (table) => [
+    foreignKey({
+        columns: [table.studentId],
+        foreignColumns: [student.id],
+        name: "student_package_student_id_fk",
+    }),
+    foreignKey({
+        columns: [table.packageId],
+        foreignColumns: [schoolPackage.id],
+        name: "student_package_package_id_fk",
+    }),
+    index("student_package_student_id_idx").on(table.studentId),
+    index("student_package_package_id_idx").on(table.packageId),
+]);
+
+export const booking = pgTable("booking", {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    packageId: uuid("package_id").notNull().references(() => schoolPackage.id),
+    dateStart: timestamp("date_start", { mode: "string" }).notNull(),
+    dateEnd: timestamp("date_end", { mode: "string" }).notNull(),
+    schoolId: uuid("school_id").references(() => school.id),
+    studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
+    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "string" }),
+}, (table) => [
+    foreignKey({
+        columns: [table.packageId],
+        foreignColumns: [schoolPackage.id],
+        name: "booking_package_id_fk",
+    }),
+    foreignKey({
+        columns: [table.schoolId],
+        foreignColumns: [school.id],
+        name: "booking_school_id_fk",
+    }),
+    foreignKey({
+        columns: [table.studentPackageId],
+        foreignColumns: [studentPackage.id],
+        name: "booking_student_package_id_fk",
+    }),
+    index("booking_school_id_idx").on(table.schoolId),
+    index("booking_package_id_idx").on(table.packageId),
+    index("booking_student_package_id_idx").on(table.studentPackageId),
+]);
+
+export const bookingStudent = pgTable("booking_student", {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    bookingId: uuid("booking_id").notNull().references(() => booking.id),
+    studentId: uuid("student_id").notNull().references(() => student.id),
+}, (table) => [
+    foreignKey({
+        columns: [table.bookingId],
+        foreignColumns: [booking.id],
+        name: "booking_student_booking_id_fk",
+    }),
+    foreignKey({
+        columns: [table.studentId],
+        foreignColumns: [student.id],
+        name: "booking_student_student_id_fk",
+    }),
+    unique("booking_student_unique").on(table.bookingId, table.studentId),
+    index("booking_student_booking_id_idx").on(table.bookingId),
+    index("booking_student_student_id_idx").on(table.studentId),
+]);
+
 // Types
 export type StudentType = typeof student.$inferSelect;
 export type StudentForm = typeof student.$inferInsert;
@@ -70,3 +145,9 @@ export type SchoolStudentType = typeof schoolStudents.$inferSelect;
 export type SchoolStudentForm = typeof schoolStudents.$inferInsert;
 export type SchoolPackageType = typeof schoolPackage.$inferSelect;
 export type SchoolPackageForm = typeof schoolPackage.$inferInsert;
+export type StudentPackageType = typeof studentPackage.$inferSelect;
+export type StudentPackageForm = typeof studentPackage.$inferInsert;
+export type BookingType = typeof booking.$inferSelect;
+export type BookingForm = typeof booking.$inferInsert;
+export type BookingStudentType = typeof bookingStudent.$inferSelect;
+export type BookingStudentForm = typeof bookingStudent.$inferInsert;
