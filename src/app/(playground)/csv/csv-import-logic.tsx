@@ -48,9 +48,9 @@ export function useCSVImportLogic() {
                     const char = line[i];
                     const nextChar = line[i + 1];
 
-                    if (char === '"') {
-                        if (inQuotes && nextChar === '"') {
-                            current += '"';
+                    if (char === "\"") {
+                        if (inQuotes && nextChar === "\"") {
+                            current += "\"";
                             i++;
                         } else {
                             inQuotes = !inQuotes;

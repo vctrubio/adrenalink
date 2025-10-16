@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSchoolsByStudentId } from "../../actions/students-action";
-import { getSchoolName } from "../../getters/schools-getter";
-import EntityCard from "./cards/EntityCard";
+import { useRouter } from "next/navigation";
+import { getSchoolsByStudentId } from "@/actions/students-action";
+import { getSchoolName } from "@/getters/schools-getter";
 import LinkStudentToSchoolModal from "./modals/LinkStudentToSchoolModal";
 
 interface StudentSchoolsListProps {
@@ -14,6 +14,7 @@ export default function StudentSchoolsList({ studentId }: StudentSchoolsListProp
     const [schools, setSchools] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         fetchSchools();
@@ -63,16 +64,23 @@ export default function StudentSchoolsList({ studentId }: StudentSchoolsListProp
             ) : (
                 <div className="space-y-4">
                     {schools.map((school) => (
-                        <EntityCard
+                        <div 
                             key={school.id}
-                            id={school.id}
-                            title={getSchoolName(school)}
-                            entityType="schools"
-                            fields={[
-                                { label: "Country", value: school.country },
-                                { label: "Phone", value: school.phone }
-                            ]}
-                        />
+                            onClick={() => router.push(`/schools/${school.username}`)}
+                            className="bg-card border border-border rounded-lg p-4 hover:bg-accent/30 transition-colors cursor-pointer"
+                        >
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="font-medium text-foreground">{getSchoolName(school)}</h3>
+                                    <p className="text-sm text-muted-foreground">@{school.username}</p>
+                                    <p className="text-sm text-muted-foreground">Country: {school.country}</p>
+                                    <p className="text-sm text-muted-foreground">Phone: {school.phone}</p>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    View Details →
+                                </div>
+                            </div>
+                        </div>
                     ))}
                 </div>
             )}

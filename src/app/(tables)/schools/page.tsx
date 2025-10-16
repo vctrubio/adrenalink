@@ -1,7 +1,7 @@
-import { ENTITY_DATA } from "../../../../config/entities";
-import LabelTag from "../../../components/tags/LabelTag";
-import SchoolCard from "../../../components/cards/SchoolCard";
-import { getSchools } from "../../../../actions/schools-action";
+import { ENTITY_DATA } from "@/config/entities";
+import LabelTag from "@/src/components/tags/LabelTag";
+import SchoolCard from "@/src/components/cards/SchoolCard";
+import { getSchools } from "@/actions/schools-action";
 
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;

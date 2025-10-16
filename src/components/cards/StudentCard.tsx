@@ -6,20 +6,20 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import type { SerializedAbstractModel } from "@/backend/models";
-import type { School } from "@/drizzle/schema";
+import type { Student } from "@/drizzle/schema";
 
-interface SchoolCardProps {
-    school: SerializedAbstractModel<School>;
+interface StudentCardProps {
+    student: SerializedAbstractModel<Student>;
 }
 
-export default function SchoolCard({ school }: SchoolCardProps) {
+export default function StudentCard({ student }: StudentCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const router = useRouter();
     
-    const studentCount = school.lambda?.studentCount || 0;
+    const schoolCount = student.lambda?.schoolCount || 0;
     
     const handleCardClick = () => {
-        router.push(`/schools/${school.schema.username}`);
+        router.push(`/students/${student.schema.id}`);
     };
     
     return (
@@ -30,32 +30,32 @@ export default function SchoolCard({ school }: SchoolCardProps) {
             <div className="flex items-center justify-between">
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-1">
-                        {school.schema.name}
+                        {student.schema.name}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                        @{school.schema.username}
+                        {student.schema.passport}
                     </p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{school.schema.country}</span>
-                        <span>{school.schema.phone}</span>
+                        <span>{student.schema.country}</span>
+                        <span>{student.schema.phone}</span>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                     <div className="text-right">
                         <p className="text-sm font-medium text-foreground">
-                            {studentCount} {studentCount === 1 ? "Student" : "Students"}
+                            {schoolCount} {schoolCount === 1 ? "School" : "Schools"}
                         </p>
                     </div>
                     
-                    {studentCount > 0 && (
+                    {schoolCount > 0 && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsExpanded(!isExpanded);
                             }}
                             className="p-2 hover:bg-accent rounded-md transition-colors"
-                            aria-label={isExpanded ? "Hide students" : "Show students"}
+                            aria-label={isExpanded ? "Hide schools" : "Show schools"}
                         >
                             {isExpanded ? (
                                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -67,24 +67,24 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                 </div>
             </div>
             
-            {isExpanded && studentCount > 0 && (
+            {isExpanded && schoolCount > 0 && (
                 <div className="mt-4 pt-4 border-t border-muted/30">
-                    <h4 className="text-sm font-medium text-foreground mb-3">Students:</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-3">Schools:</h4>
                     <div className="space-y-2">
-                        {school.relations?.students?.map((schoolStudent) => (
+                        {student.relations?.schools?.map((schoolRelation) => (
                             <Link
-                                key={schoolStudent.student.id}
-                                href={`/students/${schoolStudent.student.id}`}
+                                key={schoolRelation.school.id}
+                                href={`/schools/${schoolRelation.school.username}`}
                                 className="block p-3 bg-muted/50 rounded-md hover:bg-accent/50 transition-colors"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="font-medium text-foreground">
-                                            {schoolStudent.student.name}
+                                            {schoolRelation.school.name}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {schoolStudent.student.passport} • {schoolStudent.student.country}
+                                            @{schoolRelation.school.username} • {schoolRelation.school.country}
                                         </p>
                                     </div>
                                     <div className="text-xs text-muted-foreground">

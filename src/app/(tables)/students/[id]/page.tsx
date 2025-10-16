@@ -1,6 +1,6 @@
-import { getStudentById } from "../../../../../actions/students-action";
-import { getStudentName, getStudentInfo } from "../../../../../getters/students-getter";
-import StudentPageContent from "../../../../components/StudentPageContent";
+import { getStudentById } from "@/actions/students-action";
+import { getStudentName } from "@/getters/students-getter";
+import StudentPageContent from "@/src/components/StudentPageContent";
 
 interface StudentPageProps {
     params: { id: string };
