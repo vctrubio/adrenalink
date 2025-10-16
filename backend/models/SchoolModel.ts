@@ -1,8 +1,8 @@
 import type { School, SchoolStudent } from "@/drizzle/schema";
-import { AbstractModel } from "./StudentModel";
+import { AbstractModel } from "./AbstractModel";
 
 export class SchoolModel extends AbstractModel<School> {
-    manyToMany?: {
+    relations?: {
         students?: SchoolStudent[];
     };
     lambda?: {
