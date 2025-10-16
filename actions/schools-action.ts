@@ -3,12 +3,12 @@
 import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { school, student, schoolStudents, type NewSchool, type School } from "@/drizzle/schema";
+import { school, student, schoolStudents, type SchoolForm, type SchoolType } from "@/drizzle/schema";
 import { SchoolModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
 // CREATE
-export async function createSchool(schoolSchema: NewSchool) {
+export async function createSchool(schoolSchema: SchoolForm) {
     try {
         const result = await db.insert(school).values(schoolSchema).returning();
         revalidatePath("/schools");
@@ -20,7 +20,7 @@ export async function createSchool(schoolSchema: NewSchool) {
 }
 
 // READ
-export async function getSchools(): Promise<ApiActionResponseModelArray<School>> {
+export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolType>> {
     try {
         const result = await db.query.school.findMany({
             with: {
@@ -56,7 +56,7 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<School>>
     }
 }
 
-export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<School>> {
+export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolType>> {
     try {
         const result = await db.query.school.findFirst({
             where: username ? eq(school.username, id) : eq(school.id, id),
@@ -111,7 +111,7 @@ export async function checkUsernameAvailability(username: string) {
 }
 
 // UPDATE
-export async function updateSchool(id: string, schoolSchema: Partial<NewSchool>) {
+export async function updateSchool(id: string, schoolSchema: Partial<SchoolForm>) {
     try {
         const result = await db.update(school).set(schoolSchema).where(eq(school.id, id)).returning();
         revalidatePath("/schools");

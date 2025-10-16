@@ -3,12 +3,12 @@
 import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { student, school, schoolStudents, type NewStudent, type Student } from "@/drizzle/schema";
+import { student, school, schoolStudents, type StudentForm, type StudentType } from "@/drizzle/schema";
 import { StudentModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
 // CREATE
-export async function createStudent(studentSchema: NewStudent) {
+export async function createStudent(studentSchema: StudentForm) {
     try {
         const result = await db.insert(student).values(studentSchema).returning();
         revalidatePath("/students");
@@ -20,7 +20,7 @@ export async function createStudent(studentSchema: NewStudent) {
 }
 
 // READ
-export async function getStudents(): Promise<ApiActionResponseModelArray<Student>> {
+export async function getStudents(): Promise<ApiActionResponseModelArray<StudentType>> {
     try {
         const result = await db.query.student.findMany({
             with: {
@@ -56,7 +56,7 @@ export async function getStudents(): Promise<ApiActionResponseModelArray<Student
     }
 }
 
-export async function getStudentById(id: string): Promise<ApiActionResponseModel<Student>> {
+export async function getStudentById(id: string): Promise<ApiActionResponseModel<StudentType>> {
     try {
         const result = await db.query.student.findFirst({
             where: eq(student.id, id),
@@ -93,7 +93,7 @@ export async function getStudentById(id: string): Promise<ApiActionResponseModel
 }
 
 // UPDATE
-export async function updateStudent(id: string, studentSchema: Partial<NewStudent>) {
+export async function updateStudent(id: string, studentSchema: Partial<StudentForm>) {
     try {
         const result = await db.update(student).set(studentSchema).where(eq(student.id, id)).returning();
         revalidatePath("/students");
