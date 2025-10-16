@@ -1,8 +1,7 @@
 import { ENTITY_DATA } from "../../../../config/entities";
 import LabelTag from "../../../components/tags/LabelTag";
-import EntityCard from "../../../components/cards/EntityCard";
+import SchoolCard from "../../../components/cards/SchoolCard";
 import { getSchools } from "../../../../actions/schools-action";
-import { getSchoolName } from "../../../../getters/schools-getter";
 
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;
@@ -21,12 +20,9 @@ export default async function SchoolsPage() {
                 ) : (
                     <div className="space-y-4">
                         {schools.map((school) => (
-                            <EntityCard
+                            <SchoolCard
                                 key={school.schema.id}
-                                id={school.schema.id}
-                                title={getSchoolName(school.schema)}
-                                entityType="schools"
-                                username={school.schema.username}
+                                school={school.serialize()}
                             />
                         ))}
                     </div>
