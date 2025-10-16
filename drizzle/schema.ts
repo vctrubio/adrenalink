@@ -1,5 +1,7 @@
-import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean, integer, pgEnum, foreignKey, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const equipmentCategoryEnum = pgEnum("equipment_category", ["diving", "snorkeling", "surfing", "kayaking", "other"]);
 
 export const student = pgTable("student", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -39,9 +41,33 @@ export const schoolStudents = pgTable("school_students", {
     uniqueStudentSchool: unique("unique_student_school").on(table.studentId, table.schoolId),
 }));
 
+export const schoolPackage = pgTable("school_package", {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    durationMinutes: integer("duration_minutes").notNull(),
+    description: text("description"),
+    pricePerStudent: integer("price_per_student").notNull(),
+    capacityStudents: integer("capacity_students").notNull(),
+    capacityEquipment: integer("capacity_equipment").notNull().default(1),
+    categoryEquipment: equipmentCategoryEnum("category_equipment").notNull(),
+    schoolId: uuid("school_id"),
+    isPublic: boolean("is_public").notNull().default(true),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+    foreignKey({
+        columns: [table.schoolId],
+        foreignColumns: [school.id],
+        name: "school_package_school_id_fk",
+    }),
+    index("school_package_school_id_idx").on(table.schoolId),
+]);
+
 export type StudentType = typeof student.$inferSelect;
 export type StudentForm = typeof student.$inferInsert;
 export type SchoolType = typeof school.$inferSelect;
 export type SchoolForm = typeof school.$inferInsert;
 export type SchoolStudentType = typeof schoolStudents.$inferSelect;
 export type SchoolStudentForm = typeof schoolStudents.$inferInsert;
+export type SchoolPackageType = typeof schoolPackage.$inferSelect;
+export type SchoolPackageForm = typeof schoolPackage.$inferInsert;
