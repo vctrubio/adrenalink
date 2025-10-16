@@ -102,7 +102,8 @@
 - **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
 - **Consistent patterns** - Follow the established CRUD pattern for all entity operations
 - **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: NewStudent`)
-- **Error handling** - All action functions must return `{ success: boolean, data?, error? }` format
+- **Return types** - Use `ApiActionResponseModel<T>` and `ApiActionResponseModelArray<T>` for consistent typing
+- **Schema purity** - Schema objects contain ONLY database table fields. Relations go in separate `relations` property
 - **Type safety** - Always use Drizzle's inferred types (`NewStudent`, `NewSchool`, etc.) for parameters
 - **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data
 
@@ -114,91 +115,53 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { entityTable, type NewEntity } from "@/drizzle/schema";
+import { entityTable, type NewEntity, type Entity } from "@/drizzle/schema";
 import { EntityModel } from "@/backend/models";
+import type { ApiActionResponseModelArray } from "@/types/actions";
 
-export async function createEntity(entitySchema: NewEntity) {
-  try {
-    const result = await db
-      .insert(entityTable)
-      .values(entitySchema)
-      .returning();
-    revalidatePath("/entities"); // ALWAYS revalidate the entity list page
-    return { success: true, data: result[0] };
-  } catch (error) {
-    console.error("Error creating entity:", error);
-    return { success: false, error: "Failed to create entity" };
-  }
-}
-
-export async function getEntities(): Promise<{ success: boolean; data: EntityModel[]; error?: string }> {
+export async function getEntities(): Promise<ApiActionResponseModelArray<Entity>> {
   try {
     const result = await db.query.entityTable.findMany({
       with: {
-        // Include relations here, e.g.:
-        // entityRelations: {
-        //   with: {
-        //     relatedEntity: true
-        //   }
-        // }
+        entityRelations: {
+          with: {
+            relatedEntity: true
+          }
+        }
       }
     });
+    
     const entities: EntityModel[] = result.map(entityData => {
-      const entityModel = new EntityModel(entityData);
+      // Separate pure schema from relations
+      const { entityRelations, ...pureSchema } = entityData;
+      const entityModel = new EntityModel(pureSchema);
       
       // Map relations from query result
       entityModel.relations = {
-        // relatedEntities: entityData.entityRelations
+        entityRelations: entityRelations
       };
       
       // Calculate lambda values
       entityModel.lambda = {
-        // count: entityData.entityRelations.length
+        count: entityRelations.length
       };
       
       return entityModel;
     });
-    return { success: true, data: entities };
+    
+    return entities;
   } catch (error) {
     console.error("Error fetching entities:", error);
-    return { success: false, error: "Failed to fetch entities" };
-  }
-}
-
-export async function updateEntity(
-  id: number,
-  entitySchema: Partial<NewEntity>,
-) {
-  try {
-    const result = await db
-      .update(entityTable)
-      .set(entitySchema)
-      .where(eq(entityTable.id, id))
-      .returning();
-    revalidatePath("/entities"); // ALWAYS revalidate after updates
-    return { success: true, data: result[0] };
-  } catch (error) {
-    console.error("Error updating entity:", error);
-    return { success: false, error: "Failed to update entity" };
-  }
-}
-
-export async function deleteEntity(id: number) {
-  try {
-    await db.delete(entityTable).where(eq(entityTable.id, id));
-    revalidatePath("/entities"); // ALWAYS revalidate after deletes
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting entity:", error);
-    return { success: false, error: "Failed to delete entity" };
+    return { error: "Failed to fetch entities" };
   }
 }
 ```
 
 **CRITICAL MODEL INHERITANCE PATTERN**: All `getEntities()` functions MUST return model instances that inherit from `AbstractModel`. This ensures:
-- Components access data via `.schema` property (e.g., `entity.schema.id`, `entity.schema.name`)
-- Consistent data structure across all entity pages
-- Support for `manyToMany` relationships and `lambda` computed values
+- **Schema purity**: `.schema` contains ONLY database table fields
+- **Relations separation**: Relations stored in separate `.relations` property
+- **Consistent data structure** across all entity pages
+- **Lambda computed values** for calculated fields
 
 ### Getter Functions
 
