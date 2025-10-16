@@ -1,6 +1,6 @@
 {
-  "id": "473573b9-d9f9-4999-b760-30850864dd04",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "9dce8196-0784-48c8-b744-e5748787596f",
+  "prevId": "e1368b2d-2735-4859-9334-6742e9b91fb2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -67,7 +67,12 @@
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "username_format": {
+          "name": "username_format",
+          "value": "\"school\".\"username\" ~ '^[a-z0-9_]+$'"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.school_students": {
@@ -98,6 +103,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         },
         "created_at": {
           "name": "created_at",

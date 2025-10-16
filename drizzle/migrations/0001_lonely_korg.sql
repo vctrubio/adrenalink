@@ -1,0 +1,1 @@
+ALTER TABLE "school" ADD CONSTRAINT "username_format" CHECK ("school"."username" ~ '^[a-z0-9_]+$');

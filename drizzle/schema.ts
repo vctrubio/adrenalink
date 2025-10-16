@@ -1,4 +1,5 @@
-import { pgTable, uuid, timestamp, varchar, text, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const student = pgTable("student", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -18,7 +19,9 @@ export const school = pgTable("school", {
     phone: varchar("phone", { length: 20 }).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+    usernameFormat: check("username_format", sql`${table.username} ~ '^[a-z0-9_]+$'`),
+}));
 
 export const schoolStudents = pgTable("school_students", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -29,6 +32,7 @@ export const schoolStudents = pgTable("school_students", {
         .notNull()
         .references(() => student.id),
     description: text("description"),
+    active: boolean("active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

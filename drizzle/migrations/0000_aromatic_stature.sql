@@ -15,7 +15,8 @@ CREATE TABLE "school_students" (
 	"student_id" uuid NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "unique_student_school" UNIQUE("student_id","school_id")
 );
 --> statement-breakpoint
 CREATE TABLE "student" (
