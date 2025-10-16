@@ -22,13 +22,13 @@ export default function AbsModelCard({ model }: { model: SerializedAbstractModel
                     </div>
                 </div>
 
-                {/* Many-to-Many */}
-                {model.manyToMany && Object.keys(model.manyToMany).length > 0 && (
+                {/* Relations */}
+                {model.relations && Object.keys(model.relations).length > 0 && (
                     <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-3">Many-to-Many Relationships</h3>
+                        <h3 className="text-lg font-semibold text-foreground mb-3">Relations</h3>
                         <div className="bg-muted/20 rounded-lg p-4 font-mono text-sm overflow-x-auto">
                             <pre className="text-foreground whitespace-pre-wrap">
-                                {JSON.stringify(model.manyToMany, null, 2)}
+                                {JSON.stringify(model.relations, null, 2)}
                             </pre>
                         </div>
                     </div>
@@ -47,10 +47,10 @@ export default function AbsModelCard({ model }: { model: SerializedAbstractModel
                 )}
 
                 {/* Empty States */}
-                {(!model.manyToMany || Object.keys(model.manyToMany).length === 0) && (
+                {(!model.relations || Object.keys(model.relations).length === 0) && (
                     <div>
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-3">Many-to-Many Relationships</h3>
-                        <p className="text-muted-foreground italic">No relationships loaded</p>
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-3">Relations</h3>
+                        <p className="text-muted-foreground italic">No relations loaded</p>
                     </div>
                 )}
 

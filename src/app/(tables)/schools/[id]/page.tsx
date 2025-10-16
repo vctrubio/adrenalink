@@ -1,6 +1,6 @@
-import { getSchoolByUsername } from "../../../../../actions/schools-action";
-import { getSchoolName, getSchoolInfo } from "../../../../../getters/schools-getter";
-import SchoolPageContent from "../../../../components/SchoolPageContent";
+import { getSchoolById } from "@/actions/schools-action";
+import { getSchoolName } from "@/getters/schools-getter";
+import SchoolPageContent from "@/src/components/SchoolPageContent";
 
 interface SchoolPageProps {
     params: { id: string };
@@ -8,7 +8,7 @@ interface SchoolPageProps {
 
 export default async function SchoolPage({ params }: SchoolPageProps) {
     const username = params.id;
-    const schoolResult = await getSchoolByUsername(username);
+    const schoolResult = await getSchoolById(username, true);
 
     if (!schoolResult.success || !schoolResult.data) {
         return (

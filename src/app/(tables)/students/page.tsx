@@ -1,8 +1,8 @@
-import { ENTITY_DATA } from "../../../../config/entities";
-import LabelTag from "../../../components/tags/LabelTag";
-import EntityCard from "../../../components/cards/EntityCard";
-import { getStudents } from "../../../../actions/students-action";
-import { getStudentName } from "../../../../getters/students-getter";
+import { ENTITY_DATA } from "@/config/entities";
+import LabelTag from "@/src/components/tags/LabelTag";
+import EntityCard from "@/src/components/cards/EntityCard";
+import { getStudents } from "@/actions/students-action";
+import { getStudentName } from "@/getters/students-getter";
 
 export default async function StudentsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "Student")!;

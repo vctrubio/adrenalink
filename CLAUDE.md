@@ -99,6 +99,7 @@
 - **Use actions directory** - All database operations must be performed through server actions in the `actions/` directory
 - **File naming convention** - Use `entities-action.ts` format (e.g., `students-action.ts`, `schools-action.ts`)
 - **Drizzle ORM integration** - Use Drizzle's type-safe queries and schema types for all database operations
+- **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
 - **Consistent patterns** - Follow the established CRUD pattern for all entity operations
 - **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: NewStudent`)
 - **Error handling** - All action functions must return `{ success: boolean, data?, error? }` format
@@ -132,8 +133,31 @@ export async function createEntity(entitySchema: NewEntity) {
 
 export async function getEntities(): Promise<{ success: boolean; data: EntityModel[]; error?: string }> {
   try {
-    const result = await db.select().from(entityTable);
-    const entities: EntityModel[] = result.map(entityData => new EntityModel(entityData));
+    const result = await db.query.entityTable.findMany({
+      with: {
+        // Include relations here, e.g.:
+        // entityRelations: {
+        //   with: {
+        //     relatedEntity: true
+        //   }
+        // }
+      }
+    });
+    const entities: EntityModel[] = result.map(entityData => {
+      const entityModel = new EntityModel(entityData);
+      
+      // Map relations from query result
+      entityModel.relations = {
+        // relatedEntities: entityData.entityRelations
+      };
+      
+      // Calculate lambda values
+      entityModel.lambda = {
+        // count: entityData.entityRelations.length
+      };
+      
+      return entityModel;
+    });
     return { success: true, data: entities };
   } catch (error) {
     console.error("Error fetching entities:", error);

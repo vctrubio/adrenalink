@@ -19,7 +19,7 @@ export default function SchoolCard({ school }: SchoolCardProps) {
     const studentCount = school.lambda?.studentCount || 0;
     
     const handleCardClick = () => {
-        router.push(`/schools/${school.schema.id}`);
+        router.push(`/schools/${school.schema.username}`);
     };
     
     return (
