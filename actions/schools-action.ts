@@ -19,8 +19,32 @@ export async function createSchool(schoolSchema: NewSchool) {
 
 export async function getSchools(): Promise<{ success: boolean; data: SchoolModel[]; error?: string }> {
     try {
-        const result = await db.select().from(school);
-        const schools: SchoolModel[] = result.map(schoolData => new SchoolModel(schoolData));
+        const result = await db.query.school.findMany({
+            with: {
+                schoolStudents: {
+                    with: {
+                        student: true
+                    }
+                }
+            }
+        });
+        
+        const schools: SchoolModel[] = result.map(schoolData => {
+            const schoolModel = new SchoolModel(schoolData);
+            
+            // Map relations from query result
+            schoolModel.relations = {
+                students: schoolData.schoolStudents
+            };
+            
+            // Calculate lambda values
+            schoolModel.lambda = {
+                studentCount: schoolData.schoolStudents.length
+            };
+            
+            return schoolModel;
+        });
+        
         return { success: true, data: schools };
     } catch (error) {
         console.error("Error fetching schools:", error);
