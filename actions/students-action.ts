@@ -3,8 +3,9 @@
 import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { student, school, schoolStudents, type NewStudent } from "@/drizzle/schema";
+import { student, school, schoolStudents, type NewStudent, type Student } from "@/drizzle/schema";
 import { StudentModel } from "@/backend/models";
+import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
 // CREATE
 export async function createStudent(studentSchema: NewStudent) {
@@ -19,7 +20,7 @@ export async function createStudent(studentSchema: NewStudent) {
 }
 
 // READ
-export async function getStudents(): Promise<{ success: boolean; data: StudentModel[]; error?: string }> {
+export async function getStudents(): Promise<ApiActionResponseModelArray<Student>> {
     try {
         const result = await db.query.student.findMany({
             with: {
@@ -32,29 +33,30 @@ export async function getStudents(): Promise<{ success: boolean; data: StudentMo
         });
         
         const students: StudentModel[] = result.map(studentData => {
-            const studentModel = new StudentModel(studentData);
+            const { schoolStudents, ...pureSchema } = studentData;
+            const studentModel = new StudentModel(pureSchema);
             
             // Map relations from query result
             studentModel.relations = {
-                schools: studentData.schoolStudents
+                schoolStudents: schoolStudents
             };
             
             // Calculate lambda values
             studentModel.lambda = {
-                schoolCount: studentData.schoolStudents.length
+                schoolCount: schoolStudents.length
             };
             
             return studentModel;
         });
         
-        return { success: true, data: students };
+        return students;
     } catch (error) {
         console.error("Error fetching students:", error);
-        return { success: false, error: "Failed to fetch students" };
+        return { error: "Failed to fetch students" };
     }
 }
 
-export async function getStudentById(id: string) {
+export async function getStudentById(id: string): Promise<ApiActionResponseModel<Student>> {
     try {
         const result = await db.query.student.findFirst({
             where: eq(student.id, id),
@@ -68,24 +70,25 @@ export async function getStudentById(id: string) {
         });
         
         if (result) {
-            const studentModel = new StudentModel(result);
+            const { schoolStudents, ...pureSchema } = result;
+            const studentModel = new StudentModel(pureSchema);
             
             // Map relations from query result
             studentModel.relations = {
-                schools: result.schoolStudents
+                schoolStudents: schoolStudents
             };
             
             // Calculate lambda values
             studentModel.lambda = {
-                schoolCount: result.schoolStudents.length
+                schoolCount: schoolStudents.length
             };
             
-            return { success: true, data: studentModel };
+            return studentModel;
         }
-        return { success: true, data: null };
+        return { error: "Student not found" };
     } catch (error) {
         console.error("Error fetching student:", error);
-        return { success: false, error: "Failed to fetch student" };
+        return { error: "Failed to fetch student" };
     }
 }
 
@@ -159,11 +162,12 @@ export async function getAvailableSchoolsForStudent(studentId: string) {
     }
 }
 
-export async function linkStudentToSchool(studentId: string, schoolId: string) {
+export async function linkStudentToSchool(studentId: string, schoolId: string, description?: string) {
     try {
         const result = await db.insert(schoolStudents).values({
             studentId,
             schoolId,
+            description,
         }).returning();
         revalidatePath(`/students/${studentId}`);
         revalidatePath(`/schools/${schoolId}`);
