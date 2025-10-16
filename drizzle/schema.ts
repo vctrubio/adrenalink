@@ -4,23 +4,23 @@ import { sql } from "drizzle-orm";
 export const equipmentCategoryEnum = pgEnum("equipment_category", ["kite", "wing", "windsurf", "surf", "snowboard"]);
 
 export const student = pgTable("student", {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    name: varchar({ length: 255 }).notNull(),
-    passport: varchar({ length: 50 }).notNull().unique(),
-    country: varchar({ length: 100 }).notNull(),
-    phone: varchar({ length: 20 }).notNull(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    passport: varchar("passport", { length: 50 }).notNull().unique(),
+    country: varchar("country", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const school = pgTable("school", {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    name: varchar({ length: 255 }).notNull(),
-    username: varchar({ length: 50 }).notNull().unique(),
-    country: varchar({ length: 100 }).notNull(),
-    phone: varchar({ length: 20 }).notNull(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    username: varchar("username", { length: 50 }).notNull().unique(),
+    country: varchar("country", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // NOTE: CHECK constraint for username format was removed due to drizzle-kit parsing issues
@@ -28,30 +28,30 @@ export const school = pgTable("school", {
 // This caused TypeError during schema introspection in drizzle-kit push command
 
 export const schoolStudents = pgTable("school_students", {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    schoolId: uuid().notNull().references(() => school.id),
-    studentId: uuid().notNull().references(() => student.id),
-    description: text(),
-    active: boolean().default(true).notNull(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    schoolId: uuid("school_id").notNull().references(() => school.id),
+    studentId: uuid("student_id").notNull().references(() => student.id),
+    description: text("description"),
+    active: boolean("active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
     uniqueStudentSchool: unique("unique_student_school").on(table.studentId, table.schoolId),
 }));
 
 export const schoolPackage = pgTable("school_package", {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    durationMinutes: integer().notNull(),
-    description: text(),
-    pricePerStudent: integer().notNull(),
-    capacityStudents: integer().notNull(),
-    capacityEquipment: integer().notNull().default(1),
-    categoryEquipment: equipmentCategoryEnum().notNull(),
-    schoolId: uuid(),
-    isPublic: boolean().notNull().default(true),
-    active: boolean().notNull().default(true),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    durationMinutes: integer("duration_minutes").notNull(),
+    description: text("description"),
+    pricePerStudent: integer("price_per_student").notNull(),
+    capacityStudents: integer("capacity_students").notNull(),
+    capacityEquipment: integer("capacity_equipment").notNull().default(1),
+    categoryEquipment: equipmentCategoryEnum("category_equipment").notNull(),
+    schoolId: uuid("school_id"),
+    isPublic: boolean("is_public").notNull().default(true),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
     foreignKey({
         columns: [table.schoolId],
