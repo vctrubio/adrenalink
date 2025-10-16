@@ -3,8 +3,9 @@
 import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { school, student, schoolStudents, type NewSchool } from "@/drizzle/schema";
+import { school, student, schoolStudents, type NewSchool, type School } from "@/drizzle/schema";
 import { SchoolModel } from "@/backend/models";
+import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
 // CREATE
 export async function createSchool(schoolSchema: NewSchool) {
@@ -19,7 +20,7 @@ export async function createSchool(schoolSchema: NewSchool) {
 }
 
 // READ
-export async function getSchools(): Promise<{ success: boolean; data: SchoolModel[]; error?: string }> {
+export async function getSchools(): Promise<ApiActionResponseModelArray<School>> {
     try {
         const result = await db.query.school.findMany({
             with: {
@@ -32,29 +33,30 @@ export async function getSchools(): Promise<{ success: boolean; data: SchoolMode
         });
 
         const schools: SchoolModel[] = result.map((schoolData) => {
-            const schoolModel = new SchoolModel(schoolData);
+            const { schoolStudents, ...pureSchema } = schoolData;
+            const schoolModel = new SchoolModel(pureSchema);
 
             // Map relations from query result
             schoolModel.relations = {
-                students: schoolData.schoolStudents,
+                schoolStudents: schoolStudents,
             };
 
             // Calculate lambda values
             schoolModel.lambda = {
-                studentCount: schoolData.schoolStudents.length,
+                studentCount: schoolStudents.length,
             };
 
             return schoolModel;
         });
 
-        return { success: true, data: schools };
+        return schools;
     } catch (error) {
         console.error("Error fetching schools:", error);
-        return { success: false, error: "Failed to fetch schools" };
+        return { error: "Failed to fetch schools" };
     }
 }
 
-export async function getSchoolById(id: string, username: boolean = false) {
+export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<School>> {
     try {
         const result = await db.query.school.findFirst({
             where: username ? eq(school.username, id) : eq(school.id, id),
@@ -68,22 +70,23 @@ export async function getSchoolById(id: string, username: boolean = false) {
         });
 
         if (result) {
-            const schoolModel = new SchoolModel(result);
+            const { schoolStudents, ...pureSchema } = result;
+            const schoolModel = new SchoolModel(pureSchema);
 
             schoolModel.relations = {
-                students: result.schoolStudents,
+                schoolStudents: schoolStudents,
             };
 
             schoolModel.lambda = {
-                studentCount: result.schoolStudents.length,
+                studentCount: schoolStudents.length,
             };
 
-            return { success: true, data: schoolModel };
+            return schoolModel;
         }
-        return { success: true, data: null };
+        return { error: "School not found" };
     } catch (error) {
         console.error("Error fetching school:", error);
-        return { success: false, error: "Failed to fetch school" };
+        return { error: "Failed to fetch school" };
     }
 }
 
