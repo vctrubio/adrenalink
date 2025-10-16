@@ -15,6 +15,7 @@ interface LinkStudentToSchoolModalProps {
 export default function LinkStudentToSchoolModal({ isOpen, onClose, studentId, onSuccess }: LinkStudentToSchoolModalProps) {
     const [schools, setSchools] = useState<any[]>([]);
     const [selectedSchoolId, setSelectedSchoolId] = useState("");
+    const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -44,11 +45,12 @@ export default function LinkStudentToSchoolModal({ isOpen, onClose, studentId, o
 
         setSubmitting(true);
         try {
-            const result = await linkStudentToSchool(studentId, selectedSchoolId);
+            const result = await linkStudentToSchool(studentId, selectedSchoolId, description);
             if (result.success) {
                 onSuccess();
                 onClose();
                 setSelectedSchoolId("");
+                setDescription("");
             }
         } catch (error) {
             console.error("Error linking student to school:", error);
@@ -111,6 +113,19 @@ export default function LinkStudentToSchoolModal({ isOpen, onClose, studentId, o
                                                     </option>
                                                 ))}
                                             </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-foreground mb-2">
+                                                Description (optional)
+                                            </label>
+                                            <textarea
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring resize-none"
+                                                rows={3}
+                                                placeholder="Add a description for this relationship..."
+                                            />
                                         </div>
 
                                         <div className="flex justify-end space-x-3 pt-4">
