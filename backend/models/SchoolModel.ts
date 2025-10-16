@@ -1,15 +1,15 @@
-import type { School, SchoolStudent } from "@/drizzle/schema";
+import type { SchoolType, SchoolStudentType } from "@/drizzle/schema";
 import { AbstractModel } from "./AbstractModel";
 
-export class SchoolModel extends AbstractModel<School> {
+export class SchoolModel extends AbstractModel<SchoolType> {
     relations?: {
-        schoolStudents?: SchoolStudent[];
+        schoolStudents?: SchoolStudentType[];
     };
     lambda?: {
         studentCount?: number;
     };
 
-    constructor(schema: School) {
+    constructor(schema: SchoolType) {
         super("school", schema);
     }
 }
