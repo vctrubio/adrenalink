@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, varchar, text } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text, unique } from "drizzle-orm/pg-core";
 
 export const student = pgTable("student", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -31,11 +31,13 @@ export const schoolStudents = pgTable("school_students", {
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+    uniqueStudentSchool: unique("unique_student_school").on(table.studentId, table.schoolId),
+}));
 
-export type Student = typeof student.$inferSelect;
-export type NewStudent = typeof student.$inferInsert;
-export type School = typeof school.$inferSelect;
-export type NewSchool = typeof school.$inferInsert;
-export type SchoolStudent = typeof schoolStudents.$inferSelect;
-export type NewSchoolStudent = typeof schoolStudents.$inferInsert;
+export type StudentType = typeof student.$inferSelect;
+export type StudentForm = typeof student.$inferInsert;
+export type SchoolType = typeof school.$inferSelect;
+export type SchoolForm = typeof school.$inferInsert;
+export type SchoolStudentType = typeof schoolStudents.$inferSelect;
+export type SchoolStudentForm = typeof schoolStudents.$inferInsert;
