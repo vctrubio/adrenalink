@@ -30,6 +30,13 @@
 - **Simple, clean labels** - Use clear, professional text without decorative elements
 - **Dropdown indicators** - For custom dropdown styling, use the DropdownBullsIcon.svg from `/public/appSvgs/` with appropriate CSS filters for semantic color matching
 
+## Type Naming Conventions
+
+- **Entity Types** - Use `EntityType` pattern for select types (e.g., `StudentType`, `SchoolType`)
+- **Form Types** - Use `EntityForm` pattern for insert types (e.g., `StudentForm`, `SchoolForm`)
+- **Relationship Types** - Use `RelationshipType` pattern (e.g., `SchoolStudentType`, `SchoolStudentForm`)
+- **Consistency** - Always follow this pattern across all entities and database operations
+
 ## Component Architecture
 
 - Parent components are for layout and rendering
@@ -101,10 +108,10 @@
 - **Drizzle ORM integration** - Use Drizzle's type-safe queries and schema types for all database operations
 - **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
 - **Consistent patterns** - Follow the established CRUD pattern for all entity operations
-- **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: NewStudent`)
+- **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: StudentForm`)
 - **Return types** - Use `ApiActionResponseModel<T>` and `ApiActionResponseModelArray<T>` for consistent typing
 - **Schema purity** - Schema objects contain ONLY database table fields. Relations go in separate `relations` property
-- **Type safety** - Always use Drizzle's inferred types (`NewStudent`, `NewSchool`, etc.) for parameters
+- **Type safety** - Always use Drizzle's inferred types (`StudentForm`, `SchoolForm`, etc.) for parameters
 - **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data
 
 ### Standard Action Function Template
@@ -115,11 +122,11 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { entityTable, type NewEntity, type Entity } from "@/drizzle/schema";
+import { entityTable, type EntityForm, type EntityType } from "@/drizzle/schema";
 import { EntityModel } from "@/backend/models";
 import type { ApiActionResponseModelArray } from "@/types/actions";
 
-export async function getEntities(): Promise<ApiActionResponseModelArray<Entity>> {
+export async function getEntities(): Promise<ApiActionResponseModelArray<EntityType>> {
   try {
     const result = await db.query.entityTable.findMany({
       with: {
