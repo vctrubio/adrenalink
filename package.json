@@ -12,6 +12,7 @@
         "db:migrate": "drizzle-kit migrate",
         "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio",
+        "db:test-connection": "bun run drizzle/scripts/test-db-connection.ts",
         "db:seed": "bun run drizzle/scripts/students-seed.ts",
         "db:clear": "bun run drizzle/scripts/clear.ts",
         "db:clear-meta": "bun run drizzle/scripts/clear-meta.ts",
