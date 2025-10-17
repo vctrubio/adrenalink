@@ -1,10 +1,10 @@
-import type { School } from "@/drizzle/schema";
+import type { SchoolType } from "@/drizzle/schema";
 
-export function getSchoolName(school: School): string {
+export function getSchoolName(school: SchoolType): string {
     return `${school.name} @${school.username}`;
 }
 
-export function getSchoolInfo(school: School) {
+export function getSchoolInfo(school: SchoolType) {
     return {
         id: school.id,
         name: school.name,

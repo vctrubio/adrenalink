@@ -48,8 +48,10 @@ function generateStudentData() {
 function generateSchoolData() {
     return Array.from({ length: SCHOOL_COUNT }, () => {
         const country = getRandomCountry();
+        const schoolName = faker.company.name() + " " + faker.helpers.arrayElement(["University", "College", "Institute"]);
         return {
-            name: faker.company.name() + " " + faker.helpers.arrayElement(["University", "College", "Institute"]),
+            name: schoolName,
+            username: schoolName.toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 20) + faker.string.numeric(3),
             country,
             phone: generatePhoneNumber(country),
         };
@@ -88,7 +90,7 @@ async function seedDatabase() {
             const schoolsToEnroll = faker.helpers.arrayElements(insertedSchools, { min: 1, max: 2 });
 
             for (const schoolRecord of schoolsToEnroll) {
-                await db.insert(schoolstudents).values({
+                await db.insert(schoolStudents).values({
                     schoolId: schoolRecord.id,
                     studentId: studentRecord.id,
                     description: faker.helpers.arrayElement(["Full-time student", "Part-time student", "Exchange student", "Graduate student", "Visiting student"]),

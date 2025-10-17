@@ -23,7 +23,7 @@ export default function LinkSchoolToStudentModal({ isOpen, onClose, schoolId, on
         setLoading(true);
         try {
             const result = await getAvailableStudentsForSchool(schoolId);
-            if (result.success) {
+            if (result.success && result.data) {
                 setStudents(result.data);
             }
         } catch (error) {

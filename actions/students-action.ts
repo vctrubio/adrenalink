@@ -148,11 +148,9 @@ export async function getAvailableSchoolsForStudent(studentId: string) {
         
         const linkedIds = linkedSchoolIds.map(row => row.schoolId);
         
-        let query = db.select().from(school);
-        
-        if (linkedIds.length > 0) {
-            query = query.where(notInArray(school.id, linkedIds));
-        }
+        const query = linkedIds.length > 0 
+            ? db.select().from(school).where(notInArray(school.id, linkedIds))
+            : db.select().from(school);
         
         const result = await query;
         return { success: true, data: result };

@@ -58,11 +58,11 @@ export function WelcomeStudentForm() {
     return (
         <Form methods={methods} onSubmit={onSubmit} className="bg-card border-border rounded-lg shadow-sm">
             <div className="space-y-6">
-                <FormField label="Full Name" required error={errors.name?.message} isValid={!errors.name && nameValue && nameValue.length > 0}>
+                <FormField label="Full Name" required error={errors.name?.message} isValid={!errors.name && !!nameValue && nameValue.length > 0}>
                     <FormInput {...register("name")} placeholder="Enter student's full name" error={!!errors.name} />
                 </FormField>
 
-                <FormField label="Passport Number" required error={errors.passport?.message} isValid={!errors.passport && passportValue && passportValue.length > 0}>
+                <FormField label="Passport Number" required error={errors.passport?.message} isValid={!errors.passport && !!passportValue && passportValue.length > 0}>
                     <FormInput {...register("passport")} placeholder="Enter passport number" error={!!errors.passport} />
                 </FormField>
 
@@ -73,9 +73,9 @@ export function WelcomeStudentForm() {
                         countryValue={countryValue}
                         countryError={errors.country?.message}
                         phoneError={errors.phone?.message}
-                        onClearPhone={clearPhone}
-                        countryIsValid={!errors.country && countryValue && countryValue.length > 0}
-                        phoneIsValid={!errors.phone && phoneValue && phoneValue.length > 3}
+                        onClearPhone={triggerPhoneClear}
+                        countryIsValid={!errors.country && !!countryValue && countryValue.length > 0}
+                        phoneIsValid={!errors.phone && !!phoneValue && phoneValue.length > 3}
                     />
                 </div>
 

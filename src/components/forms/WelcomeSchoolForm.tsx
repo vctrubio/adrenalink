@@ -78,7 +78,7 @@ export function WelcomeSchoolForm() {
             setIsGeneratingUsername(true);
             try {
                 const usernames = await getSchoolsUsernames();
-                if (usernames.success) {
+                if (usernames.success && usernames.data) {
                     const baseUsername = generateUsername(name);
                     const finalUsername = generateUsernameVariants(baseUsername, usernames.data);
                     setValue("username", finalUsername);
@@ -133,11 +133,11 @@ export function WelcomeSchoolForm() {
     return (
         <Form methods={methods} onSubmit={onSubmit} className="bg-card border-border rounded-lg shadow-sm">
             <div className="space-y-6">
-                <FormField label="School Name" required error={errors.name?.message} isValid={!errors.name && nameValue && nameValue.length > 0}>
+                <FormField label="School Name" required error={errors.name?.message} isValid={!errors.name && !!nameValue && nameValue.length > 0}>
                     <FormInput {...register("name")} placeholder="Enter school name" error={!!errors.name} onBlur={handleNameBlur} />
                 </FormField>
 
-                <FormField label="Username" required error={errors.username?.message} isValid={!errors.username && usernameValue && usernameValue.length > 0 && usernameStatus === "available"}>
+                <FormField label="Username" required error={errors.username?.message} isValid={!errors.username && !!usernameValue && usernameValue.length > 0 && usernameStatus === "available"}>
                     <div className="relative">
                         <FormInput
                             {...register("username", { onChange: handleUsernameChange })}
@@ -178,9 +178,9 @@ export function WelcomeSchoolForm() {
                         countryValue={countryValue}
                         countryError={errors.country?.message}
                         phoneError={errors.phone?.message}
-                        onClearPhone={clearPhone}
-                        countryIsValid={!errors.country && countryValue && countryValue.length > 0}
-                        phoneIsValid={!errors.phone && phoneValue && phoneValue.length > 3}
+                        onClearPhone={triggerPhoneClear}
+                        countryIsValid={!errors.country && !!countryValue && countryValue.length > 0}
+                        phoneIsValid={!errors.phone && !!phoneValue && phoneValue.length > 3}
                     />
                 </div>
 

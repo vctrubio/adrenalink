@@ -12,9 +12,7 @@ const schoolPackageSchema = z.object({
     pricePerStudent: z.number().min(1, "Price per student is required"),
     capacityStudents: z.number().min(1, "Student capacity is required"),
     capacityEquipment: z.number().min(1, "Equipment capacity is required"),
-    categoryEquipment: z.enum(["diving", "snorkeling", "surfing", "kayaking", "other"], {
-        required_error: "Equipment category is required",
-    }),
+    categoryEquipment: z.enum(["kite", "wing", "windsurf", "surf", "snowboard"]),
     schoolId: z.string().min(1, "School is required"),
     isPublic: z.boolean(),
     active: z.boolean(),
@@ -36,7 +34,7 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
             pricePerStudent: 0,
             capacityStudents: 1,
             capacityEquipment: 1,
-            categoryEquipment: "diving",
+            categoryEquipment: "kite",
             schoolId: schoolId || "",
             isPublic: true,
             active: true,
@@ -46,7 +44,6 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
     const {
         register,
         formState: { errors },
-        setValue,
         watch,
     } = methods;
 
@@ -109,16 +106,16 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
                     />
                 </FormField>
 
-                <FormField label="Equipment Category" required error={errors.categoryEquipment?.message} isValid={!errors.categoryEquipment && categoryValue}>
+                <FormField label="Equipment Category" required error={errors.categoryEquipment?.message} isValid={!errors.categoryEquipment && !!categoryValue}>
                     <FormSelect 
                         {...register("categoryEquipment")} 
                         error={!!errors.categoryEquipment}
                         options={[
-                            { value: "diving", label: "Diving" },
-                            { value: "snorkeling", label: "Snorkeling" },
-                            { value: "surfing", label: "Surfing" },
-                            { value: "kayaking", label: "Kayaking" },
-                            { value: "other", label: "Other" },
+                            { value: "kite", label: "Kite" },
+                            { value: "wing", label: "Wing" },
+                            { value: "windsurf", label: "Windsurf" },
+                            { value: "surf", label: "Surf" },
+                            { value: "snowboard", label: "Snowboard" },
                         ]}
                     />
                 </FormField>

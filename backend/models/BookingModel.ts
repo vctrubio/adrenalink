@@ -7,10 +7,10 @@ type BookingStudentWithStudent = BookingStudentType & {
 
 export class BookingModel extends AbstractModel<BookingType> {
     relations?: {
-        school?: SchoolType;
-        schoolPackage?: SchoolPackageType;
-        studentPackage?: StudentPackageType;
-        bookingStudents?: BookingStudentWithStudent[];
+        school?: SchoolType | null;
+        schoolPackage?: SchoolPackageType | null;
+        studentPackage?: StudentPackageType | null;
+        bookingStudents?: BookingStudentWithStudent[] | null;
     };
 
     constructor(schema: BookingType) {

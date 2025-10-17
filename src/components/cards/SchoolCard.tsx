@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import type { SerializedAbstractModel } from "@/backend/models";
-import type { School } from "@/drizzle/schema";
+import type { SchoolType } from "@/drizzle/schema";
 
 interface SchoolCardProps {
-    school: SerializedAbstractModel<School>;
+    school: SerializedAbstractModel<SchoolType>;
 }
 
 export default function SchoolCard({ school }: SchoolCardProps) {
@@ -71,7 +71,7 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                 <div className="mt-4 pt-4 border-t border-muted/30">
                     <h4 className="text-sm font-medium text-foreground mb-3">Students:</h4>
                     <div className="space-y-2">
-                        {school.relations?.students?.map((schoolStudent) => (
+                        {school.relations?.schoolStudents?.map((schoolStudent: any) => (
                             <Link
                                 key={schoolStudent.student.id}
                                 href={`/students/${schoolStudent.student.id}`}

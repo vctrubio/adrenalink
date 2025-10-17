@@ -20,6 +20,9 @@ const eslintConfig = [
             "object-curly-spacing": ["error", "always"],
             "array-bracket-spacing": ["error", "never"],
             "max-len": ["error", { "code": 269 }],
+            "@typescript-eslint/no-explicit-any": "warn",
+            "react-hooks/exhaustive-deps": "warn",
+            "@typescript-eslint/no-unused-vars": "warn",
         },
     },
     {

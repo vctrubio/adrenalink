@@ -24,7 +24,7 @@ export default function SchoolStudentsList({ schoolId }: SchoolStudentsListProps
         setLoading(true);
         try {
             const result = await getStudentsBySchoolId(schoolId);
-            if (result.success) {
+            if (result.success && result.data) {
                 setStudents(result.data);
             }
         } catch (error) {

@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { SchoolType } from "@/drizzle/schema";
+import type { SchoolType, SchoolStudentType, StudentType } from "@/drizzle/schema";
 import type { SerializedAbstractModel } from "@/backend/models";
+
+type SchoolStudentWithStudent = SchoolStudentType & {
+    student: StudentType;
+};
 import LinkSchoolToStudentModal from "@/src/components/modals/LinkSchoolToStudentModal";
 
 interface SchoolClientPageProps {
@@ -53,7 +57,7 @@ export default function SchoolClientPage({ school }: SchoolClientPageProps) {
                 
                 {school.relations?.schoolStudents && school.relations.schoolStudents.length > 0 ? (
                     <div className="space-y-4">
-                        {school.relations.schoolStudents.map((relationship: any) => (
+                        {school.relations.schoolStudents.map((relationship: SchoolStudentWithStudent) => (
                             <div key={relationship.id} className="border border-border rounded-lg p-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>

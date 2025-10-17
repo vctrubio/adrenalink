@@ -1,14 +1,14 @@
 export type SerializedAbstractModel<T> = {
     tableName: string;
     schema: T;
-    relations?: Record<string, any[]>;
+    relations?: Record<string, any>;
     lambda?: Record<string, any>;
 };
 
 export abstract class AbstractModel<T> {
     tableName: string;
     schema: T;
-    relations?: Record<string, any[]>;
+    relations?: Record<string, any>;
     lambda?: Record<string, any>;
 
     constructor(tableName: string, schema: T) {
