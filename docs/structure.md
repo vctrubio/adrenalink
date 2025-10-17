@@ -148,7 +148,7 @@ adrenalink-beta/
 - **File naming**: Each entity has its own action file (e.g., `student.ts`, `school.ts`)
 - **Function naming**: Use schema-based parameters (`createStudent(studentSchema: NewStudent)`)
 - **Consistent CRUD operations**: create, get, getById, update, delete for each entity
-- **Error handling**: All functions return `{ success: boolean, data?, error? }` format
+- **Error handling**: All functions return `ApiActionResponseModel<T>` format (`AbstractModel<T> | { error: string }`)
 - **Type safety**: Use Drizzle's inferred types (`NewStudent`, `NewSchool`, etc.)
 
 ### Standard Action Functions
@@ -156,17 +156,17 @@ adrenalink-beta/
 Each entity action file should include:
 
 ```typescript
-export async function createEntity(entitySchema: NewEntity);
-export async function getEntities(): Promise<{ success: boolean; data: EntityModel[]; error?: string }>;
-export async function getEntityById(id: number);
+export async function createEntity(entitySchema: NewEntity): Promise<ApiActionResponseModel<EntityType>>;
+export async function getEntities(): Promise<EntityModel[]>;
+export async function getEntityById(id: number): Promise<ApiActionResponseModel<EntityType>>;
 export async function updateEntity(
   id: number,
   entitySchema: Partial<NewEntity>,
-);
-export async function deleteEntity(id: number);
+): Promise<ApiActionResponseModel<EntityType>>;
+export async function deleteEntity(id: number): Promise<{ error: string } | void>;
 ```
 
-**IMPORTANT**: All `getEntities()` functions must return model instances (e.g., `StudentModel[]`, `SchoolModel[]`) that inherit from `AbstractModel`. This ensures consistent data structure with `.schema` property access patterns in components.
+**IMPORTANT**: All `getEntities()` functions must return model instances (e.g., `StudentModel[]`, `SchoolModel[]`) that inherit from `AbstractModel`. This ensures consistent data structure with `.schema` property access patterns and `.relations.tableName` for related data access in components.
 
 ### Form Integration
 
