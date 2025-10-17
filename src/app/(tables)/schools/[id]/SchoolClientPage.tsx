@@ -1,94 +1,74 @@
 "use client";
 
-import { useState } from "react";
-import type { SchoolType, SchoolStudentType, StudentType } from "@/drizzle/schema";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import type { SchoolType, SchoolPackageType, StudentPackageType } from "@/drizzle/schema";
 import type { SerializedAbstractModel } from "@/backend/models";
-
-type SchoolStudentWithStudent = SchoolStudentType & {
-    student: StudentType;
-};
-import LinkSchoolToStudentModal from "@/src/components/modals/LinkSchoolToStudentModal";
+import SchoolStudentView from "@/src/portals/SchoolStudentView";
+import SchoolAdminView from "@/src/portals/SchoolAdminView";
 
 interface SchoolClientPageProps {
     school: SerializedAbstractModel<SchoolType>;
 }
 
 export default function SchoolClientPage({ school }: SchoolClientPageProps) {
-    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    // Extract and prepare data from school relations
+    const schoolPackages: SerializedAbstractModel<SchoolPackageType>[] = 
+        (school as any).relations?.schoolPackages?.map((pkg: any) => ({
+            schema: pkg,
+            relations: { 
+                school: {
+                    id: school.schema.id,
+                    name: school.schema.name,
+                    username: school.schema.username
+                },
+                studentPackages: pkg.studentPackages || []
+            },
+            lambda: {
+                durationHours: pkg.durationMinutes / 60,
+                revenue: pkg.pricePerStudent * pkg.capacityStudents,
+                studentPricePerHour: pkg.durationMinutes > 0 ? pkg.pricePerStudent / (pkg.durationMinutes / 60) : 0,
+                revenuePerHour: pkg.durationMinutes > 0 ? (pkg.pricePerStudent * pkg.capacityStudents) / (pkg.durationMinutes / 60) : 0,
+            }
+        })) || [];
 
-    const handleLinkSuccess = () => {
-        window.location.reload();
-    };
+    // Extract student package requests from all packages
+    const studentPackageRequests: SerializedAbstractModel<StudentPackageType>[] = 
+        schoolPackages.flatMap(pkg => 
+            pkg.relations?.studentPackages?.map((studentPkg: any) => ({
+                schema: studentPkg,
+                relations: {
+                    student: studentPkg.student,
+                    schoolPackage: pkg.schema
+                },
+                lambda: {}
+            })) || []
+        );
 
     return (
-        <div className="space-y-8">
-            <div className="bg-card p-6 rounded-lg border border-border">
-                <h2 className="text-xl font-semibold text-foreground mb-4">School Information</h2>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-sm font-medium text-muted-foreground">Name</label>
-                        <p className="text-foreground">{school.schema.name}</p>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-muted-foreground">Username</label>
-                        <p className="text-foreground">{school.schema.username}</p>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-muted-foreground">Country</label>
-                        <p className="text-foreground">{school.schema.country}</p>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                        <p className="text-foreground">{school.schema.phone}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-card p-6 rounded-lg border border-border">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Students</h2>
-                    <button
-                        onClick={() => setIsLinkModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    >
-                        Link Student
-                    </button>
-                </div>
-                
-                {school.relations?.schoolStudents && school.relations.schoolStudents.length > 0 ? (
-                    <div className="space-y-4">
-                        {school.relations.schoolStudents.map((relationship: SchoolStudentWithStudent) => (
-                            <div key={relationship.id} className="border border-border rounded-lg p-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Student</label>
-                                        <p className="text-foreground">{relationship.student?.name}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Passport</label>
-                                        <p className="text-foreground">{relationship.student?.passport}</p>
-                                    </div>
-                                </div>
-                                {relationship.description && (
-                                    <div className="mt-2">
-                                        <label className="text-sm font-medium text-muted-foreground">Description</label>
-                                        <p className="text-foreground">{relationship.description}</p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-muted-foreground">No students linked to this school.</p>
-                )}
-            </div>
-
-            <LinkSchoolToStudentModal
-                isOpen={isLinkModalOpen}
-                onClose={() => setIsLinkModalOpen(false)}
-                schoolId={school.schema.id}
-                onSuccess={handleLinkSuccess}
-            />
+        <div className="space-y-6">
+            <TabGroup>
+                <TabList className="flex space-x-1 rounded-xl bg-muted p-1">
+                    <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all data-[selected]:tab-active data-[hover]:bg-card/50 data-[hover]:text-foreground tab-inactive">
+                        Student Portal
+                    </Tab>
+                    <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all data-[selected]:tab-active data-[hover]:bg-card/50 data-[hover]:text-foreground tab-inactive">
+                        Admin Portal
+                    </Tab>
+                </TabList>
+                <TabPanels className="mt-6">
+                    <TabPanel className="rounded-xl focus:outline-none">
+                        <SchoolStudentView school={school} schoolId={school.schema.id} packages={schoolPackages} />
+                    </TabPanel>
+                    <TabPanel className="rounded-xl focus:outline-none">
+                        <SchoolAdminView 
+                            school={school} 
+                            schoolId={school.schema.id}
+                            packages={schoolPackages} 
+                            studentPackageRequests={studentPackageRequests} 
+                        />
+                    </TabPanel>
+                </TabPanels>
+            </TabGroup>
         </div>
     );
 }
