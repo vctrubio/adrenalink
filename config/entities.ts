@@ -31,46 +31,6 @@ export const ENTITY_DATA = [
         description: ["Students create bookings.", "Can participate in multiple lessons through bookings."],
     },
     {
-        id: "Teacher",
-        name: "Teachers",
-        icon: HeadsetIcon,
-        color: "text-green-500",
-        bgColor: "bg-green-300",
-        hoverColor: "#d1fae5", // green-100
-        link: "/teachers",
-        description: ["Our employees, each has commission rates for lessons.", "Payments are used to track earnings."],
-    },
-    {
-        id: "Commission",
-        name: "Commissions",
-        icon: CreditIcon,
-        color: "text-emerald-500",
-        bgColor: "bg-emerald-300",
-        hoverColor: "#d1fae5", // emerald-100
-        link: "/commissions",
-        description: ["Defines commission rates for teachers.", "Can be percentage or fixed amount."],
-    },
-    {
-        id: "Equipment",
-        name: "Equipments",
-        icon: EquipmentIcon,
-        color: "text-purple-500",
-        bgColor: "bg-purple-300",
-        hoverColor: "#e9d5ff", // purple-100
-        link: "/equipment",
-        description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
-    },
-    {
-        id: "User Wallet",
-        name: "Users",
-        icon: RegistrationIcon,
-        color: "text-slate-500",
-        bgColor: "bg-slate-300",
-        hoverColor: "#f1f5f9", // slate-100
-        link: "/users",
-        description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
-    },
-    {
         id: "School Package",
         name: "Packages",
         icon: PackageIcon,
@@ -90,34 +50,74 @@ export const ENTITY_DATA = [
         link: "/bookings",
         description: ["Has start and end dates for lessons.", "Links students to packages."],
     },
-    {
-        id: "Lesson",
-        name: "Lessons",
-        icon: FlagIcon,
-        color: "text-cyan-500",
-        bgColor: "bg-cyan-300",
-        hoverColor: "#cffafe", // cyan-100
-        link: "/lessons",
-        description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
-    },
-    {
-        id: "Event",
-        name: "Events",
-        icon: KiteIcon,
-        color: "text-teal-500",
-        bgColor: "bg-teal-300",
-        hoverColor: "#ccfbf1", // teal-100
-        link: "/events",
-        description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
-    },
-    {
-        id: "Payment",
-        name: "Payments",
-        icon: CreditIcon,
-        color: "text-amber-500",
-        bgColor: "bg-amber-300",
-        hoverColor: "#fef3c7", // amber-100
-        link: "/payments",
-        description: ["Records payments made to teachers.", "Tracks teacher earnings and compensation."],
-    },
+    // {
+    //     id: "Teacher",
+    //     name: "Teachers",
+    //     icon: HeadsetIcon,
+    //     color: "text-green-500",
+    //     bgColor: "bg-green-300",
+    //     hoverColor: "#d1fae5", // green-100
+    //     link: "/teachers",
+    //     description: ["Our employees, each has commission rates for lessons.", "Payments are used to track earnings."],
+    // },
+    // {
+    //     id: "Commission",
+    //     name: "Commissions",
+    //     icon: CreditIcon,
+    //     color: "text-emerald-500",
+    //     bgColor: "bg-emerald-300",
+    //     hoverColor: "#d1fae5", // emerald-100
+    //     link: "/commissions",
+    //     description: ["Defines commission rates for teachers.", "Can be percentage or fixed amount."],
+    // },
+    // {
+    //     id: "Equipment",
+    //     name: "Equipments",
+    //     icon: EquipmentIcon,
+    //     color: "text-purple-500",
+    //     bgColor: "bg-purple-300",
+    //     hoverColor: "#e9d5ff", // purple-100
+    //     link: "/equipment",
+    //     description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
+    // },
+    // {
+    //     id: "User Wallet",
+    //     name: "Users",
+    //     icon: RegistrationIcon,
+    //     color: "text-slate-500",
+    //     bgColor: "bg-slate-300",
+    //     hoverColor: "#f1f5f9", // slate-100
+    //     link: "/users",
+    //     description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
+    // },
+    // {
+    //     id: "Lesson",
+    //     name: "Lessons",
+    //     icon: FlagIcon,
+    //     color: "text-cyan-500",
+    //     bgColor: "bg-cyan-300",
+    //     hoverColor: "#cffafe", // cyan-100
+    //     link: "/lessons",
+    //     description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
+    // },
+    // {
+    //     id: "Event",
+    //     name: "Events",
+    //     icon: KiteIcon,
+    //     color: "text-teal-500",
+    //     bgColor: "bg-teal-300",
+    //     hoverColor: "#ccfbf1", // teal-100
+    //     link: "/events",
+    //     description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
+    // },
+    // {
+    //     id: "Payment",
+    //     name: "Payments",
+    //     icon: CreditIcon,
+    //     color: "text-amber-500",
+    //     bgColor: "bg-amber-300",
+    //     hoverColor: "#fef3c7", // amber-100
+    //     link: "/payments",
+    //     description: ["Records payments made to teachers.", "Tracks teacher earnings and compensation."],
+    // },
 ] as const;

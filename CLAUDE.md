@@ -21,6 +21,7 @@
 - **No trailing spaces** - Always remove trailing whitespace from lines to avoid ESLint errors
 - **Clean formatting** - Ensure proper indentation and spacing without extra whitespace
 - **Consistent line endings** - Use consistent line endings throughout files
+- **Double quotes only** - ALWAYS use double quotes for strings, never single quotes
 - **DRY principle** - Export shared functions and import them to avoid code duplication
 - **Constants at top** - Declare all configuration constants at the top of files
 - **Single source of truth** - Define arrays and configurations once, import everywhere
@@ -28,6 +29,7 @@
 - **Shared utilities** - Export reusable functions and import them across modules
 - **No emojis in code** - Never use emojis in user-facing text, labels, or any code components
 - **Simple, clean labels** - Use clear, professional text without decorative elements
+- **No fake data or assumptions** - NEVER add fake statuses, hardcoded values, or assumed data. Only display actual data from the database schema
 - **Dropdown indicators** - For custom dropdown styling, use the DropdownBullsIcon.svg from `/public/appSvgs/` with appropriate CSS filters for semantic color matching
 
 ## Type Naming Conventions
