@@ -66,19 +66,31 @@ export async function getSchoolById(id: string, username: boolean = false): Prom
                         student: true,
                     },
                 },
+                schoolPackages: {
+                    with: {
+                        studentPackages: {
+                            with: {
+                                student: true,
+                            },
+                        },
+                    },
+                },
             },
         });
 
         if (result) {
-            const { schoolStudents, ...pureSchema } = result;
+            const { schoolStudents, schoolPackages, ...pureSchema } = result;
             const schoolModel = new SchoolModel(pureSchema);
 
             schoolModel.relations = {
                 schoolStudents: schoolStudents,
+                schoolPackages: schoolPackages,
             };
 
             schoolModel.lambda = {
                 studentCount: schoolStudents.length,
+                packageCount: schoolPackages.length,
+                totalStudentRequests: schoolPackages.reduce((acc, pkg) => acc + pkg.studentPackages.length, 0),
             };
 
             return schoolModel;
