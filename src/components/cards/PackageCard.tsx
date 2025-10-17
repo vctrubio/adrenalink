@@ -26,6 +26,11 @@ export default function PackageCard({ package: pkg }: PackageCardProps) {
                         <categoryConfig.icon className="w-8 h-8" />
                         <div>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${categoryColors.bgColor} ${categoryColors.color} ${categoryColors.borderColor}`}>{categoryConfig.name.toUpperCase()}</span>
+                            {(pkg as any).relations?.school && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                    Offered by <span className="font-medium text-foreground">@{(pkg as any).relations.school.username}</span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-2 mt-1">
                                 <span className={`w-2 h-2 rounded-full ${pkg.schema.isPublic ? "bg-green-500" : "bg-orange-500"}`}></span>
                                 <span className="text-xs text-muted-foreground">{pkg.schema.isPublic ? "Public" : "Private"}</span>
