@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { booking, type BookingForm, type BookingType } from "@/drizzle/schema";
@@ -23,7 +23,6 @@ export async function createBooking(bookingSchema: BookingForm) {
 export async function getBookings(): Promise<ApiActionResponseModelArray<BookingType>> {
     try {
         const result = await db.query.booking.findMany({
-            where: isNull(booking.deletedAt), // Only get non-deleted bookings
             with: {
                 schoolPackage: true,
                 school: true,
@@ -174,7 +173,11 @@ export async function getBookingsByPackageId(packageId: string): Promise<ApiActi
 // UPDATE
 export async function updateBooking(id: string, bookingSchema: Partial<BookingForm>) {
     try {
-        const result = await db.update(booking).set(bookingSchema).where(eq(booking.id, id)).returning();
+        const updateData = {
+            ...bookingSchema,
+            updatedAt: new Date().toISOString()
+        };
+        const result = await db.update(booking).set(updateData).where(eq(booking.id, id)).returning();
         revalidatePath("/bookings");
         return { success: true, data: result[0] };
     } catch (error) {
@@ -183,29 +186,14 @@ export async function updateBooking(id: string, bookingSchema: Partial<BookingFo
     }
 }
 
-// DELETE (soft delete using deletedAt)
+// DELETE
 export async function deleteBooking(id: string) {
-    try {
-        const result = await db.update(booking)
-            .set({ deletedAt: new Date().toISOString() })
-            .where(eq(booking.id, id))
-            .returning();
-        revalidatePath("/bookings");
-        return { success: true, data: result[0] };
-    } catch (error) {
-        console.error("Error deleting booking:", error);
-        return { success: false, error: "Failed to delete booking" };
-    }
-}
-
-// HARD DELETE
-export async function hardDeleteBooking(id: string) {
     try {
         await db.delete(booking).where(eq(booking.id, id));
         revalidatePath("/bookings");
         return { success: true };
     } catch (error) {
-        console.error("Error hard deleting booking:", error);
-        return { success: false, error: "Failed to hard delete booking" };
+        console.error("Error deleting booking:", error);
+        return { success: false, error: "Failed to delete booking" };
     }
 }
