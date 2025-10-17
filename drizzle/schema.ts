@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean, integer, pgEnum, foreignKey, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean, integer, pgEnum, foreignKey, index, date } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const equipmentCategoryEnum = pgEnum("equipment_category", ["kite", "wing", "windsurf", "surf", "snowboard"]);
@@ -66,8 +66,8 @@ export const studentPackage = pgTable("student_package", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
     studentId: uuid("student_id").notNull().references(() => student.id),
     packageId: uuid("package_id").notNull().references(() => schoolPackage.id),
-    requestedDateStart: timestamp("requested_date_start", { mode: "string" }).notNull(),
-    requestedDateEnd: timestamp("requested_date_end", { mode: "string" }).notNull(),
+    requestedDateStart: date("requested_date_start").notNull(),
+    requestedDateEnd: date("requested_date_end").notNull(),
     status: studentPackageStatusEnum("status").notNull(),
     createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
@@ -89,8 +89,8 @@ export const studentPackage = pgTable("student_package", {
 export const booking = pgTable("booking", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
     packageId: uuid("package_id").notNull().references(() => schoolPackage.id),
-    dateStart: timestamp("date_start", { mode: "string" }).notNull(),
-    dateEnd: timestamp("date_end", { mode: "string" }).notNull(),
+    dateStart: date("date_start").notNull(),
+    dateEnd: date("date_end").notNull(),
     schoolId: uuid("school_id").references(() => school.id),
     studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
     createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
