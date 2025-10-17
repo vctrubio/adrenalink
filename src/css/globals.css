@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./colors.css";
+@import "./customs.css";
 
 @variant dark (.dark &);
 
