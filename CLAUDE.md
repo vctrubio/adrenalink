@@ -107,9 +107,12 @@
 - **File naming convention** - Use `entities-action.ts` format (e.g., `students-action.ts`, `schools-action.ts`)
 - **Drizzle ORM integration** - Use Drizzle's type-safe queries and schema types for all database operations
 - **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
+- **CRITICAL: Server-First Data Fetching** - ALL data fetching MUST happen in Server Components (page.tsx), NOT in Client Components. Client Components should only render data passed as props
+- **Single Query with Relations** - Fetch ALL required data in one server query using Drizzle relations, then pass complete serialized data to client components
 - **Consistent patterns** - Follow the established CRUD pattern for all entity operations
 - **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: StudentForm`)
 - **Return types** - Use `ApiActionResponseModel<T>` and `ApiActionResponseModelArray<T>` for consistent typing
+- **CRITICAL: API Response Format** - Actions MUST return either the data directly (AbstractModel instance) OR `{ error: string }`. NEVER use `{ success: boolean, data: T }` format
 - **Schema purity** - Schema objects contain ONLY database table fields. Relations go in separate `relations` property
 - **Type safety** - Always use Drizzle's inferred types (`StudentForm`, `SchoolForm`, etc.) for parameters
 - **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data
@@ -124,8 +127,23 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { entityTable, type EntityForm, type EntityType } from "@/drizzle/schema";
 import { EntityModel } from "@/backend/models";
-import type { ApiActionResponseModelArray } from "@/types/actions";
+import type { ApiActionResponseModelArray, ApiActionResponseModel } from "@/types/actions";
 
+// CREATE - Returns data directly or { error: string }
+export async function createEntity(entitySchema: EntityForm): Promise<ApiActionResponseModel<EntityType>> {
+  try {
+    const result = await db.insert(entityTable).values(entitySchema).returning();
+    revalidatePath("/entities");
+    // Return the data directly (AbstractModel instance)
+    return new EntityModel(result[0]);
+  } catch (error) {
+    console.error("Error creating entity:", error);
+    // Return error object
+    return { error: "Failed to create entity" };
+  }
+}
+
+// READ - Returns array directly or { error: string }
 export async function getEntities(): Promise<ApiActionResponseModelArray<EntityType>> {
   try {
     const result = await db.query.entityTable.findMany({
@@ -156,11 +174,22 @@ export async function getEntities(): Promise<ApiActionResponseModelArray<EntityT
       return entityModel;
     });
     
+    // Return the array directly
     return entities;
   } catch (error) {
     console.error("Error fetching entities:", error);
+    // Return error object
     return { error: "Failed to fetch entities" };
   }
+}
+
+// Component usage - Check for error property
+const result = await getEntities();
+if (result.error) {
+  console.error("Error:", result.error);
+} else {
+  // result is the array directly
+  setEntities(result.map(entity => entity.serialize()));
 }
 ```
 
@@ -182,6 +211,11 @@ export async function getEntities(): Promise<ApiActionResponseModelArray<EntityT
 - **react-phone-number-input** - Use this library for all phone number inputs with country selection
 - **Form integration** - Phone inputs should integrate with the existing form system using setValue and watch from react-hook-form
 - **Styling consistency** - Phone inputs must match the semantic color system used by other form inputs
+
+### UI Component Guidelines
+
+- **Headless UI compatibility** - Check component documentation for current API patterns. Some components like Tab may have newer APIs that replace deprecated patterns
+- **Component deprecation** - Always use the latest recommended patterns from component libraries to avoid deprecation warnings
 
 ## Project Directory Structure
 
