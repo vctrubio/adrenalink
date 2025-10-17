@@ -1,5 +1,6 @@
 import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
+import PackageCard from "@/src/components/cards/PackageCard";
 import { getPackages } from "@/actions/packages-action";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import type { AbstractModel } from "@/backend/models";
@@ -24,32 +25,10 @@ export default async function PackagesPage() {
                 ) : (
                     <div className="space-y-4">
                         {data.map((schoolPackage) => (
-                            <div key={schoolPackage.schema.id} className="bg-card p-6 rounded-lg border border-border">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Duration</label>
-                                        <p className="text-foreground">{schoolPackage.schema.durationMinutes} minutes</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Price per Student</label>
-                                        <p className="text-foreground">${schoolPackage.schema.pricePerStudent}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Student Capacity</label>
-                                        <p className="text-foreground">{schoolPackage.schema.capacityStudents}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Equipment Category</label>
-                                        <p className="text-foreground">{schoolPackage.schema.categoryEquipment}</p>
-                                    </div>
-                                </div>
-                                {schoolPackage.schema.description && (
-                                    <div className="mt-4">
-                                        <label className="text-sm font-medium text-muted-foreground">Description</label>
-                                        <p className="text-foreground">{schoolPackage.schema.description}</p>
-                                    </div>
-                                )}
-                            </div>
+                            <PackageCard
+                                key={schoolPackage.schema.id}
+                                package={schoolPackage.serialize()}
+                            />
                         ))}
                     </div>
                 )}

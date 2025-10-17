@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormField, FormInput, FormSelect, FormSubmit } from "@/src/components/ui/form";
 import { createPackage } from "@/actions/packages-action";
+import { EQUIPMENT_CATEGORIES } from "@/config/categories";
 
 const schoolPackageSchema = z.object({
     durationMinutes: z.number().min(1, "Duration is required"),
@@ -110,13 +111,10 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
                     <FormSelect 
                         {...register("categoryEquipment")} 
                         error={!!errors.categoryEquipment}
-                        options={[
-                            { value: "kite", label: "Kite" },
-                            { value: "wing", label: "Wing" },
-                            { value: "windsurf", label: "Windsurf" },
-                            { value: "surf", label: "Surf" },
-                            { value: "snowboard", label: "Snowboard" },
-                        ]}
+                        options={EQUIPMENT_CATEGORIES.map(category => ({
+                            value: category.id,
+                            label: category.name
+                        }))}
                     />
                 </FormField>
 
