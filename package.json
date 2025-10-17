@@ -16,7 +16,9 @@
         "db:seed": "bun run drizzle/scripts/students-seed.ts",
         "db:clear": "bun run drizzle/scripts/clear.ts",
         "db:clear-meta": "bun run drizzle/scripts/clear-meta.ts",
-        "db:workflow": "bun run db:generate && bun run db:migrate && bun run db:push"
+        "db:workflow": "bun run db:generate && bun run db:migrate && bun run db:push",
+        "db:reset": "bun run db:clear && bun run db:push",
+        "db:fresh": "bun run db:clear-meta && bun run db:push"
     },
     "dependencies": {
         "@faker-js/faker": "^10.0.0",
