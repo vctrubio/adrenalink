@@ -56,6 +56,12 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
     }
 }
 
+// Get school by username (for subdomain routing)
+export async function getSchoolByUsername(username: string): Promise<ApiActionResponseModel<SchoolType>> {
+    console.log("🔍 getSchoolByUsername called with:", username);
+    return getSchoolById(username, true);
+}
+
 export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolType>> {
     try {
         const result = await db.query.school.findFirst({
@@ -175,9 +181,7 @@ export async function getAvailableStudentsForSchool(schoolId: string) {
 
         const linkedIds = linkedStudentIds.map((row) => row.studentId);
 
-        const query = linkedIds.length > 0 
-            ? db.select().from(student).where(notInArray(student.id, linkedIds))
-            : db.select().from(student);
+        const query = linkedIds.length > 0 ? db.select().from(student).where(notInArray(student.id, linkedIds)) : db.select().from(student);
 
         const result = await query;
         return { success: true, data: result };
