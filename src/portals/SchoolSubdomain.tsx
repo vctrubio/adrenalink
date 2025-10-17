@@ -3,11 +3,11 @@
 import type { SchoolType } from "@/drizzle/schema";
 import type { SerializedAbstractModel } from "@/backend/models";
 
-interface AdminSubdomainProps {
+interface SchoolSubdomainProps {
     school: SerializedAbstractModel<SchoolType>;
 }
 
-export default function AdminSubdomain({ school }: AdminSubdomainProps) {
+export default function SchoolSubdomain({ school }: SchoolSubdomainProps) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-red-900 via-black to-red-900 text-white">
             <div className="container mx-auto px-6 py-12">
@@ -103,7 +103,7 @@ export default function AdminSubdomain({ school }: AdminSubdomainProps) {
 
                 {/* Footer */}
                 <div className="mt-16 text-center text-gray-500">
-                    <p className="text-sm">🔥 Administrative Portal • Powered by Subdomain Routing 🔥</p>
+                    <p className="text-sm">Administrative Portal</p>
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 import { getSchoolByUsername } from "@/actions/schools-action";
-import AdminSubdomain from "@/src/portals/AdminSubdomain";
+import SchoolSubdomain from "@/src/portals/SchoolSubdomain";
 
 interface SubdomainPageProps {
     searchParams: Promise<{
@@ -47,10 +47,10 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             );
         }
         
-        console.log("✅ School found, rendering AdminSubdomain");
+        console.log("✅ School found, rendering SchoolSubdomain");
         console.log("🏫 School name:", school.schema.name);
         
-        return <AdminSubdomain school={school.serialize()} />;
+        return <SchoolSubdomain school={school.serialize()} />;
         
     } catch (error) {
         console.error("💥 Error in subdomain page:", error);
