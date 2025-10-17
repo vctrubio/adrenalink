@@ -94,7 +94,7 @@ export const booking = pgTable("booking", {
     schoolId: uuid("school_id").references(() => school.id),
     studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
     createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-    deletedAt: timestamp("deleted_at", { mode: "string" }),
+    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 }, (table) => [
     foreignKey({
         columns: [table.packageId],
