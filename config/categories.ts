@@ -75,7 +75,7 @@ export function getCategoryConfig(categoryId: EquipmentCategory): CategoryConfig
     return CATEGORY_MAP[categoryId] || CATEGORY_MAP.kite; // fallback to kite
 }
 
-export function getCategoryIcon(categoryId: EquipmentCategory): string {
+export function getCategoryIcon(categoryId: EquipmentCategory) {
     return getCategoryConfig(categoryId).icon;
 }
 
