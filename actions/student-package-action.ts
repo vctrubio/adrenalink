@@ -51,10 +51,10 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
         revalidatePath("/schools");
         revalidatePath("/packages");
         
-        return { success: true, data: result[0] };
+        return new StudentPackageModel(result[0]);
     } catch (error) {
         console.error("Error creating student package request:", error);
-        return { success: false, error: "Failed to create package request" };
+        return { error: "Failed to create package request" };
     }
 }
 
@@ -218,10 +218,10 @@ export async function updateStudentPackageRequest(
         revalidatePath("/schools");
         revalidatePath("/packages");
         
-        return { success: true, data: result[0] };
+        return new StudentPackageModel(result[0]);
     } catch (error) {
         console.error("Error updating student package request:", error);
-        return { success: false, error: "Failed to update package request" };
+        return { error: "Failed to update package request" };
     }
 }
 
@@ -236,7 +236,7 @@ export async function rejectStudentPackageRequest(id: string): Promise<ApiAction
 }
 
 // DELETE - Cancel student package request
-export async function cancelStudentPackageRequest(id: string): Promise<ApiActionResponseModel<boolean>> {
+export async function cancelStudentPackageRequest(id: string): Promise<boolean | { error: string }> {
     try {
         const result = await db.delete(studentPackage).where(eq(studentPackage.id, id)).returning();
         
@@ -248,9 +248,9 @@ export async function cancelStudentPackageRequest(id: string): Promise<ApiAction
         revalidatePath("/schools");
         revalidatePath("/packages");
         
-        return { success: true, data: true };
+        return true;
     } catch (error) {
         console.error("Error canceling student package request:", error);
-        return { success: false, error: "Failed to cancel package request" };
+        return { error: "Failed to cancel package request" };
     }
 }
