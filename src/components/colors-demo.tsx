@@ -172,6 +172,205 @@ export default function ColorsDemo() {
                 </div>
             </div>
 
+            {/* Custom Pantone Palette */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Custom Pantone Color Palette</h3>
+                
+                {/* Primary Pantone Colors */}
+                <div className="space-y-2">
+                    <h4 className="font-medium text-muted-foreground">Primary Pantone Colors</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-ultra-violet rounded text-center text-white">
+                                <p className="text-xs font-medium">Ultra Violet</p>
+                                <p className="text-xs opacity-90">18-3838 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-living-coral rounded text-center text-white">
+                                <p className="text-xs font-medium">Living Coral</p>
+                                <p className="text-xs opacity-90">16-1546 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-greenery rounded text-center text-white">
+                                <p className="text-xs font-medium">Greenery</p>
+                                <p className="text-xs opacity-90">15-0343 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-classic-blue rounded text-center text-white">
+                                <p className="text-xs font-medium">Classic Blue</p>
+                                <p className="text-xs opacity-90">19-4052 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-serenity rounded text-center text-white">
+                                <p className="text-xs font-medium">Serenity</p>
+                                <p className="text-xs opacity-90">15-3919 TPG</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-marsala rounded text-center text-white">
+                                <p className="text-xs font-medium">Marsala</p>
+                                <p className="text-xs opacity-90">18-1438 TCX</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Secondary Pantone Colors */}
+                <div className="space-y-2">
+                    <h4 className="font-medium text-muted-foreground">Secondary Pantone Colors</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-rose-quartz rounded text-center text-gray-800">
+                                <p className="text-xs font-medium">Rose Quartz</p>
+                                <p className="text-xs opacity-70">PQ-13-1520TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-mocha-mousse rounded text-center text-white">
+                                <p className="text-xs font-medium">Mocha Mousse</p>
+                                <p className="text-xs opacity-90">17-1230 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-illuminating rounded text-center text-gray-800">
+                                <p className="text-xs font-medium">Illuminating</p>
+                                <p className="text-xs opacity-70">13-0647 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-ultimate-gray rounded text-center text-white">
+                                <p className="text-xs font-medium">Ultimate Gray</p>
+                                <p className="text-xs opacity-90">17-5104 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-peach-fuzz rounded text-center text-gray-800">
+                                <p className="text-xs font-medium">Peach Fuzz</p>
+                                <p className="text-xs opacity-70">13-1023 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-very-peri rounded text-center text-white">
+                                <p className="text-xs font-medium">Very Peri</p>
+                                <p className="text-xs opacity-90">17-3938 TCX</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="p-4 bg-pantone-viva-magenta rounded text-center text-white">
+                                <p className="text-xs font-medium">Viva Magenta</p>
+                                <p className="text-xs opacity-90">18-1750 TCX</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Paper Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Paper Scale (Professional Warm Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-paper-50 rounded text-center border border-paper-200">
+                        <p className="text-xs text-gray-800">paper-50</p>
+                        <p className="text-xs text-gray-600">lightest cream</p>
+                    </div>
+                    <div className="p-3 bg-paper-100 rounded text-center border border-paper-200">
+                        <p className="text-xs text-gray-800">paper-100</p>
+                        <p className="text-xs text-gray-600">soft ivory</p>
+                    </div>
+                    <div className="p-3 bg-paper-200 rounded text-center border border-paper-300">
+                        <p className="text-xs text-gray-800">paper-200</p>
+                        <p className="text-xs text-gray-600">warm white</p>
+                    </div>
+                    <div className="p-3 bg-paper-300 rounded text-center">
+                        <p className="text-xs text-gray-800">paper-300</p>
+                        <p className="text-xs text-gray-600">parchment</p>
+                    </div>
+                    <div className="p-3 bg-paper-400 rounded text-center">
+                        <p className="text-xs text-gray-800">paper-400</p>
+                        <p className="text-xs text-gray-600">aged paper</p>
+                    </div>
+                    <div className="p-3 bg-paper-500 rounded text-center">
+                        <p className="text-xs text-gray-800">paper-500</p>
+                        <p className="text-xs text-gray-600">vintage</p>
+                    </div>
+                    <div className="p-3 bg-paper-600 rounded text-center">
+                        <p className="text-xs text-white">paper-600</p>
+                        <p className="text-xs text-gray-200">document</p>
+                    </div>
+                    <div className="p-3 bg-paper-700 rounded text-center">
+                        <p className="text-xs text-white">paper-700</p>
+                        <p className="text-xs text-gray-200">antique</p>
+                    </div>
+                    <div className="p-3 bg-paper-800 rounded text-center">
+                        <p className="text-xs text-white">paper-800</p>
+                        <p className="text-xs text-gray-200">weathered</p>
+                    </div>
+                    <div className="p-3 bg-paper-900 rounded text-center">
+                        <p className="text-xs text-white">paper-900</p>
+                        <p className="text-xs text-gray-200">manuscript</p>
+                    </div>
+                    <div className="p-3 bg-paper-950 rounded text-center">
+                        <p className="text-xs text-white">paper-950</p>
+                        <p className="text-xs text-gray-200">ancient</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Stone Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Stone Scale (Professional Natural Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-stone-50 rounded text-center border border-stone-200">
+                        <p className="text-xs text-gray-800">stone-50</p>
+                        <p className="text-xs text-gray-600">limestone</p>
+                    </div>
+                    <div className="p-3 bg-stone-100 rounded text-center border border-stone-200">
+                        <p className="text-xs text-gray-800">stone-100</p>
+                        <p className="text-xs text-gray-600">marble</p>
+                    </div>
+                    <div className="p-3 bg-stone-200 rounded text-center">
+                        <p className="text-xs text-gray-800">stone-200</p>
+                        <p className="text-xs text-gray-600">sandstone</p>
+                    </div>
+                    <div className="p-3 bg-stone-300 rounded text-center">
+                        <p className="text-xs text-gray-800">stone-300</p>
+                        <p className="text-xs text-gray-600">travertine</p>
+                    </div>
+                    <div className="p-3 bg-stone-400 rounded text-center">
+                        <p className="text-xs text-white">stone-400</p>
+                        <p className="text-xs text-gray-200">limestone</p>
+                    </div>
+                    <div className="p-3 bg-stone-500 rounded text-center">
+                        <p className="text-xs text-white">stone-500</p>
+                        <p className="text-xs text-gray-200">granite</p>
+                    </div>
+                    <div className="p-3 bg-stone-600 rounded text-center">
+                        <p className="text-xs text-white">stone-600</p>
+                        <p className="text-xs text-gray-200">basalt</p>
+                    </div>
+                    <div className="p-3 bg-stone-700 rounded text-center">
+                        <p className="text-xs text-white">stone-700</p>
+                        <p className="text-xs text-gray-200">slate</p>
+                    </div>
+                    <div className="p-3 bg-stone-800 rounded text-center">
+                        <p className="text-xs text-white">stone-800</p>
+                        <p className="text-xs text-gray-200">charcoal</p>
+                    </div>
+                    <div className="p-3 bg-stone-900 rounded text-center">
+                        <p className="text-xs text-white">stone-900</p>
+                        <p className="text-xs text-gray-200">obsidian</p>
+                    </div>
+                    <div className="p-3 bg-stone-950 rounded text-center">
+                        <p className="text-xs text-white">stone-950</p>
+                        <p className="text-xs text-gray-200">volcanic</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Gray Scale */}
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Gray Scale (Light/Dark Adaptive)</h3>

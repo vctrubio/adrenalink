@@ -64,6 +64,52 @@
         --input: 55 65 81; /* gray-700 */
         --ring: 57 255 204; /* neon blue-green dark mode */
     }
+
+    /* Pantone Color Palette */
+    :root {
+        /* Primary Pantone Colors */
+        --pantone-ultra-violet: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
+        --pantone-living-coral: 255 108 122; /* PANTONE 16-1546 TCX Living Coral */
+        --pantone-greenery: 136 176 75; /* PANTONE 15-0343 TCX Greenery */
+        --pantone-classic-blue: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
+        --pantone-serenity: 145 168 208; /* PANTONE 15-3919 TPG Serenity */
+        --pantone-marsala: 149 82 81; /* PANTONE 18-1438 TCX Marsala */
+        
+        /* Secondary Pantone Colors */
+        --pantone-rose-quartz: 247 202 201; /* PANTONE PQ-13-1520TCX Rose Quartz */
+        --pantone-mocha-mousse: 171 133 115; /* PANTONE 17-1230 TCX Mocha Mousse */
+        --pantone-illuminating: 245 223 77; /* PANTONE 13-0647 TCX Illuminating */
+        --pantone-ultimate-gray: 147 149 151; /* PANTONE 17-5104 TCX Ultimate Gray */
+        --pantone-peach-fuzz: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
+        --pantone-very-peri: 102 103 171; /* PANTONE 17-3938 TCX Very Peri */
+        --pantone-viva-magenta: 190 36 105; /* PANTONE 18-1750 TCX Viva Magenta */
+
+        /* Paper Scale - Professional warm paper tones */
+        --paper-50: 255 254 251; /* lightest cream */
+        --paper-100: 254 252 246; /* soft ivory */
+        --paper-200: 252 248 237; /* warm white */
+        --paper-300: 249 241 220; /* light parchment */
+        --paper-400: 245 231 195; /* aged paper */
+        --paper-500: 238 217 166; /* vintage paper */
+        --paper-600: 227 197 128; /* old document */
+        --paper-700: 210 174 96; /* antique paper */
+        --paper-800: 189 150 73; /* weathered parchment */
+        --paper-900: 165 125 56; /* aged manuscript */
+        --paper-950: 139 103 42; /* ancient paper */
+
+        /* Stone Scale - Professional natural stone tones */
+        --stone-50: 250 250 249; /* limestone white */
+        --stone-100: 245 245 244; /* marble white */
+        --stone-200: 231 229 228; /* light sandstone */
+        --stone-300: 214 211 209; /* travertine */
+        --stone-400: 168 162 158; /* limestone gray */
+        --stone-500: 120 113 108; /* granite gray */
+        --stone-600: 87 83 81; /* basalt */
+        --stone-700: 68 64 60; /* slate gray */
+        --stone-800: 41 37 36; /* charcoal stone */
+        --stone-900: 28 25 23; /* obsidian */
+        --stone-950: 12 10 9; /* volcanic black */
+    }
 }
 
 /* Utility Classes */
@@ -274,3 +320,158 @@
 .ring-ring {
     --tw-ring-color: rgb(var(--ring));
 }
+
+/* Pantone Color Utility Classes */
+.bg-pantone-ultra-violet {
+    background-color: rgb(var(--pantone-ultra-violet));
+}
+
+.bg-pantone-living-coral {
+    background-color: rgb(var(--pantone-living-coral));
+}
+
+.bg-pantone-greenery {
+    background-color: rgb(var(--pantone-greenery));
+}
+
+.bg-pantone-classic-blue {
+    background-color: rgb(var(--pantone-classic-blue));
+}
+
+.bg-pantone-serenity {
+    background-color: rgb(var(--pantone-serenity));
+}
+
+.bg-pantone-marsala {
+    background-color: rgb(var(--pantone-marsala));
+}
+
+.bg-pantone-rose-quartz {
+    background-color: rgb(var(--pantone-rose-quartz));
+}
+
+.bg-pantone-mocha-mousse {
+    background-color: rgb(var(--pantone-mocha-mousse));
+}
+
+.bg-pantone-illuminating {
+    background-color: rgb(var(--pantone-illuminating));
+}
+
+.bg-pantone-ultimate-gray {
+    background-color: rgb(var(--pantone-ultimate-gray));
+}
+
+.bg-pantone-peach-fuzz {
+    background-color: rgb(var(--pantone-peach-fuzz));
+}
+
+.bg-pantone-very-peri {
+    background-color: rgb(var(--pantone-very-peri));
+}
+
+.bg-pantone-viva-magenta {
+    background-color: rgb(var(--pantone-viva-magenta));
+}
+
+.text-pantone-ultra-violet {
+    color: rgb(var(--pantone-ultra-violet));
+}
+
+.text-pantone-living-coral {
+    color: rgb(var(--pantone-living-coral));
+}
+
+.text-pantone-greenery {
+    color: rgb(var(--pantone-greenery));
+}
+
+.text-pantone-classic-blue {
+    color: rgb(var(--pantone-classic-blue));
+}
+
+.text-pantone-serenity {
+    color: rgb(var(--pantone-serenity));
+}
+
+.text-pantone-marsala {
+    color: rgb(var(--pantone-marsala));
+}
+
+.text-pantone-rose-quartz {
+    color: rgb(var(--pantone-rose-quartz));
+}
+
+.text-pantone-mocha-mousse {
+    color: rgb(var(--pantone-mocha-mousse));
+}
+
+.text-pantone-illuminating {
+    color: rgb(var(--pantone-illuminating));
+}
+
+.text-pantone-ultimate-gray {
+    color: rgb(var(--pantone-ultimate-gray));
+}
+
+.text-pantone-peach-fuzz {
+    color: rgb(var(--pantone-peach-fuzz));
+}
+
+.text-pantone-very-peri {
+    color: rgb(var(--pantone-very-peri));
+}
+
+.text-pantone-viva-magenta {
+    color: rgb(var(--pantone-viva-magenta));
+}
+
+/* Paper Scale Utility Classes */
+.bg-paper-50 { background-color: rgb(var(--paper-50)); }
+.bg-paper-100 { background-color: rgb(var(--paper-100)); }
+.bg-paper-200 { background-color: rgb(var(--paper-200)); }
+.bg-paper-300 { background-color: rgb(var(--paper-300)); }
+.bg-paper-400 { background-color: rgb(var(--paper-400)); }
+.bg-paper-500 { background-color: rgb(var(--paper-500)); }
+.bg-paper-600 { background-color: rgb(var(--paper-600)); }
+.bg-paper-700 { background-color: rgb(var(--paper-700)); }
+.bg-paper-800 { background-color: rgb(var(--paper-800)); }
+.bg-paper-900 { background-color: rgb(var(--paper-900)); }
+.bg-paper-950 { background-color: rgb(var(--paper-950)); }
+
+.text-paper-50 { color: rgb(var(--paper-50)); }
+.text-paper-100 { color: rgb(var(--paper-100)); }
+.text-paper-200 { color: rgb(var(--paper-200)); }
+.text-paper-300 { color: rgb(var(--paper-300)); }
+.text-paper-400 { color: rgb(var(--paper-400)); }
+.text-paper-500 { color: rgb(var(--paper-500)); }
+.text-paper-600 { color: rgb(var(--paper-600)); }
+.text-paper-700 { color: rgb(var(--paper-700)); }
+.text-paper-800 { color: rgb(var(--paper-800)); }
+.text-paper-900 { color: rgb(var(--paper-900)); }
+.text-paper-950 { color: rgb(var(--paper-950)); }
+
+/* Stone Scale Utility Classes */
+.bg-stone-50 { background-color: rgb(var(--stone-50)); }
+.bg-stone-100 { background-color: rgb(var(--stone-100)); }
+.bg-stone-200 { background-color: rgb(var(--stone-200)); }
+.bg-stone-300 { background-color: rgb(var(--stone-300)); }
+.bg-stone-400 { background-color: rgb(var(--stone-400)); }
+.bg-stone-500 { background-color: rgb(var(--stone-500)); }
+.bg-stone-600 { background-color: rgb(var(--stone-600)); }
+.bg-stone-700 { background-color: rgb(var(--stone-700)); }
+.bg-stone-800 { background-color: rgb(var(--stone-800)); }
+.bg-stone-900 { background-color: rgb(var(--stone-900)); }
+.bg-stone-950 { background-color: rgb(var(--stone-950)); }
+
+.text-stone-50 { color: rgb(var(--stone-50)); }
+.text-stone-100 { color: rgb(var(--stone-100)); }
+.text-stone-200 { color: rgb(var(--stone-200)); }
+.text-stone-300 { color: rgb(var(--stone-300)); }
+.text-stone-400 { color: rgb(var(--stone-400)); }
+.text-stone-500 { color: rgb(var(--stone-500)); }
+.text-stone-600 { color: rgb(var(--stone-600)); }
+.text-stone-700 { color: rgb(var(--stone-700)); }
+.text-stone-800 { color: rgb(var(--stone-800)); }
+.text-stone-900 { color: rgb(var(--stone-900)); }
+.text-stone-950 { color: rgb(var(--stone-950)); }
