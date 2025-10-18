@@ -371,6 +371,312 @@ export default function ColorsDemo() {
                 </div>
             </div>
 
+            {/* Ocean Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Ocean Scale (Professional Water Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-ocean-50 rounded text-center border border-ocean-200">
+                        <p className="text-xs text-gray-800">ocean-50</p>
+                        <p className="text-xs text-gray-600">sea foam</p>
+                    </div>
+                    <div className="p-3 bg-ocean-100 rounded text-center border border-ocean-200">
+                        <p className="text-xs text-gray-800">ocean-100</p>
+                        <p className="text-xs text-gray-600">shallow</p>
+                    </div>
+                    <div className="p-3 bg-ocean-200 rounded text-center">
+                        <p className="text-xs text-gray-800">ocean-200</p>
+                        <p className="text-xs text-gray-600">crystal</p>
+                    </div>
+                    <div className="p-3 bg-ocean-300 rounded text-center">
+                        <p className="text-xs text-gray-800">ocean-300</p>
+                        <p className="text-xs text-gray-600">lagoon</p>
+                    </div>
+                    <div className="p-3 bg-ocean-400 rounded text-center">
+                        <p className="text-xs text-white">ocean-400</p>
+                        <p className="text-xs text-gray-200">tropical</p>
+                    </div>
+                    <div className="p-3 bg-ocean-500 rounded text-center">
+                        <p className="text-xs text-white">ocean-500</p>
+                        <p className="text-xs text-gray-200">ocean</p>
+                    </div>
+                    <div className="p-3 bg-ocean-600 rounded text-center">
+                        <p className="text-xs text-white">ocean-600</p>
+                        <p className="text-xs text-gray-200">deep sea</p>
+                    </div>
+                    <div className="p-3 bg-ocean-700 rounded text-center">
+                        <p className="text-xs text-white">ocean-700</p>
+                        <p className="text-xs text-gray-200">navy</p>
+                    </div>
+                    <div className="p-3 bg-ocean-800 rounded text-center">
+                        <p className="text-xs text-white">ocean-800</p>
+                        <p className="text-xs text-gray-200">midnight</p>
+                    </div>
+                    <div className="p-3 bg-ocean-900 rounded text-center">
+                        <p className="text-xs text-white">ocean-900</p>
+                        <p className="text-xs text-gray-200">abyss</p>
+                    </div>
+                    <div className="p-3 bg-ocean-950 rounded text-center">
+                        <p className="text-xs text-white">ocean-950</p>
+                        <p className="text-xs text-gray-200">trench</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Forest Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Forest Scale (Professional Nature Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-forest-50 rounded text-center border border-forest-200">
+                        <p className="text-xs text-gray-800">forest-50</p>
+                        <p className="text-xs text-gray-600">dew</p>
+                    </div>
+                    <div className="p-3 bg-forest-100 rounded text-center border border-forest-200">
+                        <p className="text-xs text-gray-800">forest-100</p>
+                        <p className="text-xs text-gray-600">leaves</p>
+                    </div>
+                    <div className="p-3 bg-forest-200 rounded text-center">
+                        <p className="text-xs text-gray-800">forest-200</p>
+                        <p className="text-xs text-gray-600">spring</p>
+                    </div>
+                    <div className="p-3 bg-forest-300 rounded text-center">
+                        <p className="text-xs text-gray-800">forest-300</p>
+                        <p className="text-xs text-gray-600">meadow</p>
+                    </div>
+                    <div className="p-3 bg-forest-400 rounded text-center">
+                        <p className="text-xs text-white">forest-400</p>
+                        <p className="text-xs text-gray-200">forest</p>
+                    </div>
+                    <div className="p-3 bg-forest-500 rounded text-center">
+                        <p className="text-xs text-white">forest-500</p>
+                        <p className="text-xs text-gray-200">pine</p>
+                    </div>
+                    <div className="p-3 bg-forest-600 rounded text-center">
+                        <p className="text-xs text-white">forest-600</p>
+                        <p className="text-xs text-gray-200">evergreen</p>
+                    </div>
+                    <div className="p-3 bg-forest-700 rounded text-center">
+                        <p className="text-xs text-white">forest-700</p>
+                        <p className="text-xs text-gray-200">woods</p>
+                    </div>
+                    <div className="p-3 bg-forest-800 rounded text-center">
+                        <p className="text-xs text-white">forest-800</p>
+                        <p className="text-xs text-gray-200">floor</p>
+                    </div>
+                    <div className="p-3 bg-forest-900 rounded text-center">
+                        <p className="text-xs text-white">forest-900</p>
+                        <p className="text-xs text-gray-200">oak</p>
+                    </div>
+                    <div className="p-3 bg-forest-950 rounded text-center">
+                        <p className="text-xs text-white">forest-950</p>
+                        <p className="text-xs text-gray-200">shadow</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Sand Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Sand Scale (Professional Desert Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-sand-50 rounded text-center border border-sand-200">
+                        <p className="text-xs text-gray-800">sand-50</p>
+                        <p className="text-xs text-gray-600">white</p>
+                    </div>
+                    <div className="p-3 bg-sand-100 rounded text-center border border-sand-200">
+                        <p className="text-xs text-gray-800">sand-100</p>
+                        <p className="text-xs text-gray-600">beach</p>
+                    </div>
+                    <div className="p-3 bg-sand-200 rounded text-center">
+                        <p className="text-xs text-gray-800">sand-200</p>
+                        <p className="text-xs text-gray-600">dune</p>
+                    </div>
+                    <div className="p-3 bg-sand-300 rounded text-center">
+                        <p className="text-xs text-gray-800">sand-300</p>
+                        <p className="text-xs text-gray-600">desert</p>
+                    </div>
+                    <div className="p-3 bg-sand-400 rounded text-center">
+                        <p className="text-xs text-gray-800">sand-400</p>
+                        <p className="text-xs text-gray-600">golden</p>
+                    </div>
+                    <div className="p-3 bg-sand-500 rounded text-center">
+                        <p className="text-xs text-white">sand-500</p>
+                        <p className="text-xs text-gray-200">canyon</p>
+                    </div>
+                    <div className="p-3 bg-sand-600 rounded text-center">
+                        <p className="text-xs text-white">sand-600</p>
+                        <p className="text-xs text-gray-200">terracotta</p>
+                    </div>
+                    <div className="p-3 bg-sand-700 rounded text-center">
+                        <p className="text-xs text-white">sand-700</p>
+                        <p className="text-xs text-gray-200">adobe</p>
+                    </div>
+                    <div className="p-3 bg-sand-800 rounded text-center">
+                        <p className="text-xs text-white">sand-800</p>
+                        <p className="text-xs text-gray-200">earth</p>
+                    </div>
+                    <div className="p-3 bg-sand-900 rounded text-center">
+                        <p className="text-xs text-white">sand-900</p>
+                        <p className="text-xs text-gray-200">clay</p>
+                    </div>
+                    <div className="p-3 bg-sand-950 rounded text-center">
+                        <p className="text-xs text-white">sand-950</p>
+                        <p className="text-xs text-gray-200">burnt</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Sky Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Sky Scale (Professional Atmospheric Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-sky-50 rounded text-center border border-sky-200">
+                        <p className="text-xs text-gray-800">sky-50</p>
+                        <p className="text-xs text-gray-600">clouds</p>
+                    </div>
+                    <div className="p-3 bg-sky-100 rounded text-center border border-sky-200">
+                        <p className="text-xs text-gray-800">sky-100</p>
+                        <p className="text-xs text-gray-600">morning</p>
+                    </div>
+                    <div className="p-3 bg-sky-200 rounded text-center">
+                        <p className="text-xs text-gray-800">sky-200</p>
+                        <p className="text-xs text-gray-600">overcast</p>
+                    </div>
+                    <div className="p-3 bg-sky-300 rounded text-center">
+                        <p className="text-xs text-gray-800">sky-300</p>
+                        <p className="text-xs text-gray-600">storm</p>
+                    </div>
+                    <div className="p-3 bg-sky-400 rounded text-center">
+                        <p className="text-xs text-white">sky-400</p>
+                        <p className="text-xs text-gray-200">gray</p>
+                    </div>
+                    <div className="p-3 bg-sky-500 rounded text-center">
+                        <p className="text-xs text-white">sky-500</p>
+                        <p className="text-xs text-gray-200">twilight</p>
+                    </div>
+                    <div className="p-3 bg-sky-600 rounded text-center">
+                        <p className="text-xs text-white">sky-600</p>
+                        <p className="text-xs text-gray-200">evening</p>
+                    </div>
+                    <div className="p-3 bg-sky-700 rounded text-center">
+                        <p className="text-xs text-white">sky-700</p>
+                        <p className="text-xs text-gray-200">dusk</p>
+                    </div>
+                    <div className="p-3 bg-sky-800 rounded text-center">
+                        <p className="text-xs text-white">sky-800</p>
+                        <p className="text-xs text-gray-200">night</p>
+                    </div>
+                    <div className="p-3 bg-sky-900 rounded text-center">
+                        <p className="text-xs text-white">sky-900</p>
+                        <p className="text-xs text-gray-200">midnight</p>
+                    </div>
+                    <div className="p-3 bg-sky-950 rounded text-center">
+                        <p className="text-xs text-white">sky-950</p>
+                        <p className="text-xs text-gray-200">space</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Metal Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Metal Scale (Professional Industrial Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-metal-50 rounded text-center border border-metal-200">
+                        <p className="text-xs text-gray-800">metal-50</p>
+                        <p className="text-xs text-gray-600">steel</p>
+                    </div>
+                    <div className="p-3 bg-metal-100 rounded text-center border border-metal-200">
+                        <p className="text-xs text-gray-800">metal-100</p>
+                        <p className="text-xs text-gray-600">aluminum</p>
+                    </div>
+                    <div className="p-3 bg-metal-200 rounded text-center">
+                        <p className="text-xs text-gray-800">metal-200</p>
+                        <p className="text-xs text-gray-600">silver</p>
+                    </div>
+                    <div className="p-3 bg-metal-300 rounded text-center">
+                        <p className="text-xs text-gray-800">metal-300</p>
+                        <p className="text-xs text-gray-600">chrome</p>
+                    </div>
+                    <div className="p-3 bg-metal-400 rounded text-center">
+                        <p className="text-xs text-white">metal-400</p>
+                        <p className="text-xs text-gray-200">pewter</p>
+                    </div>
+                    <div className="p-3 bg-metal-500 rounded text-center">
+                        <p className="text-xs text-white">metal-500</p>
+                        <p className="text-xs text-gray-200">gunmetal</p>
+                    </div>
+                    <div className="p-3 bg-metal-600 rounded text-center">
+                        <p className="text-xs text-white">metal-600</p>
+                        <p className="text-xs text-gray-200">iron</p>
+                    </div>
+                    <div className="p-3 bg-metal-700 rounded text-center">
+                        <p className="text-xs text-white">metal-700</p>
+                        <p className="text-xs text-gray-200">steel</p>
+                    </div>
+                    <div className="p-3 bg-metal-800 rounded text-center">
+                        <p className="text-xs text-white">metal-800</p>
+                        <p className="text-xs text-gray-200">dark</p>
+                    </div>
+                    <div className="p-3 bg-metal-900 rounded text-center">
+                        <p className="text-xs text-white">metal-900</p>
+                        <p className="text-xs text-gray-200">carbon</p>
+                    </div>
+                    <div className="p-3 bg-metal-950 rounded text-center">
+                        <p className="text-xs text-white">metal-950</p>
+                        <p className="text-xs text-gray-200">black</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Warm Scale */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Warm Scale (Professional Cozy Tones)</h3>
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                    <div className="p-3 bg-warm-50 rounded text-center border border-warm-200">
+                        <p className="text-xs text-gray-800">warm-50</p>
+                        <p className="text-xs text-gray-600">cream</p>
+                    </div>
+                    <div className="p-3 bg-warm-100 rounded text-center border border-warm-200">
+                        <p className="text-xs text-gray-800">warm-100</p>
+                        <p className="text-xs text-gray-600">white</p>
+                    </div>
+                    <div className="p-3 bg-warm-200 rounded text-center">
+                        <p className="text-xs text-gray-800">warm-200</p>
+                        <p className="text-xs text-gray-600">peach</p>
+                    </div>
+                    <div className="p-3 bg-warm-300 rounded text-center">
+                        <p className="text-xs text-gray-800">warm-300</p>
+                        <p className="text-xs text-gray-600">apricot</p>
+                    </div>
+                    <div className="p-3 bg-warm-400 rounded text-center">
+                        <p className="text-xs text-white">warm-400</p>
+                        <p className="text-xs text-gray-200">sunset</p>
+                    </div>
+                    <div className="p-3 bg-warm-500 rounded text-center">
+                        <p className="text-xs text-white">warm-500</p>
+                        <p className="text-xs text-gray-200">orange</p>
+                    </div>
+                    <div className="p-3 bg-warm-600 rounded text-center">
+                        <p className="text-xs text-white">warm-600</p>
+                        <p className="text-xs text-gray-200">burnt</p>
+                    </div>
+                    <div className="p-3 bg-warm-700 rounded text-center">
+                        <p className="text-xs text-white">warm-700</p>
+                        <p className="text-xs text-gray-200">rust</p>
+                    </div>
+                    <div className="p-3 bg-warm-800 rounded text-center">
+                        <p className="text-xs text-white">warm-800</p>
+                        <p className="text-xs text-gray-200">copper</p>
+                    </div>
+                    <div className="p-3 bg-warm-900 rounded text-center">
+                        <p className="text-xs text-white">warm-900</p>
+                        <p className="text-xs text-gray-200">bronze</p>
+                    </div>
+                    <div className="p-3 bg-warm-950 rounded text-center">
+                        <p className="text-xs text-white">warm-950</p>
+                        <p className="text-xs text-gray-200">mahogany</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Gray Scale */}
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Gray Scale (Light/Dark Adaptive)</h3>
