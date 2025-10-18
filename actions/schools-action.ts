@@ -56,11 +56,6 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
     }
 }
 
-// Get school by username (for subdomain routing)
-export async function getSchoolByUsername(username: string): Promise<ApiActionResponseModel<SchoolType>> {
-    console.log("🔍 getSchoolByUsername called with:", username);
-    return getSchoolById(username, true);
-}
 
 export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolType>> {
     try {
