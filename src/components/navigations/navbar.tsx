@@ -40,11 +40,11 @@ function UserDropdown() {
                     {userMenuItems.map(({ href, icon: Icon, label }) => (
                         <Menu.Item key={href}>
                             {({ active }) => (
-                                <Link href={href} className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ease-out ${
-                                    active 
-                                        ? "bg-primary/10 text-primary scale-105 shadow-sm" 
-                                        : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-sm"
-                                }`}>
+                                <Link
+                                    href={href}
+                                    className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ease-out ${active ? "bg-primary/10 text-primary scale-105 shadow-sm" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-sm"
+                                        }`}
+                                >
                                     <Icon size={16} className="transition-transform duration-200 group-hover:scale-110" />
                                     {label}
                                 </Link>
@@ -69,9 +69,8 @@ export default function Navbar() {
                             <Link
                                 key={href}
                                 href={href}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out ${
-                                    pathname === href ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out ${pathname === href ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
+                                    }`}
                             >
                                 <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
                                 <span className="text-sm">{label}</span>

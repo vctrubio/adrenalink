@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import "../css/globals.css";
 import Providers from "../providers/theme-provider";
 import WalletProvider from "../providers/wallet-provider";
-import Navbar from "../components/navigations/navbar";
+import Navbar from "../components/navigations/Navbar";
 
 export const metadata: Metadata = {
     title: "Adrenalink",
