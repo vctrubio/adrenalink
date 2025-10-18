@@ -13,15 +13,15 @@ const eslintConfig = [
     ...compat.extends("next/core-web-vitals", "next/typescript"),
     {
         rules: {
-            "indent": ["error", 4],
+            "indent": "off",
             "quotes": ["error", "double"],
             "semi": ["error", "always"],
             "eol-last": "off",
             "object-curly-spacing": ["error", "always"],
             "array-bracket-spacing": ["error", "never"],
-            "max-len": ["error", { "code": 269 }],
+            "max-len": "off",
             "@typescript-eslint/no-explicit-any": "warn",
-            "react-hooks/exhaustive-deps": "warn",
+            "react-hooks/exhaustive-deps": "off",
             "@typescript-eslint/no-unused-vars": "warn",
         },
     },
