@@ -24,7 +24,7 @@ async function testStudentPackageRequests() {
             
             for (const packageRecord of packagesToRequest) {
                 // Generate request dates (within next 30 days)
-                const startDate = faker.date.future({ days: 30 });
+                const startDate = faker.date.future({ years: 1 });
                 const endDate = new Date(startDate);
                 endDate.setHours(startDate.getHours() + (packageRecord.durationMinutes / 60));
 
