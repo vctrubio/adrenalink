@@ -5,18 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-import type { SerializedAbstractModel } from "@/backend/models";
-import type { StudentType } from "@/drizzle/schema";
+import type { StudentModel } from "@/backend/models";
+import { getStudentSchoolCount } from "@/getters/students-getter";
 
 interface StudentCardProps {
-    student: SerializedAbstractModel<StudentType>;
+    student: StudentModel;
 }
 
 export default function StudentCard({ student }: StudentCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const router = useRouter();
     
-    const schoolCount = student.lambda?.schoolCount || 0;
+    const schoolCount = getStudentSchoolCount(student);
     
     const handleCardClick = () => {
         router.push(`/students/${student.schema.id}`);

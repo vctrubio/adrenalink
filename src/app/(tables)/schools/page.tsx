@@ -22,10 +22,7 @@ export default async function SchoolsPage() {
             <div className="flex-1 overflow-auto p-6">
                 <div className="space-y-4">
                     {data.map((school) => (
-                        <SchoolCard
-                            key={school.schema.id}
-                            school={school}
-                        />
+                        <SchoolCard key={school.schema.id} school={school} />
                     ))}
                 </div>
             </div>
