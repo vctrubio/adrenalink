@@ -5,11 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
-import type { SerializedAbstractModel } from "@/backend/models";
 import type { SchoolType } from "@/drizzle/schema";
 
 interface SchoolCardProps {
-    school: SerializedAbstractModel<SchoolType>;
+    school: {
+        tableName: string;
+        schema: SchoolType;
+        relations?: Record<string, any>;
+        lambda?: Record<string, any>;
+    };
 }
 
 export default function SchoolCard({ school }: SchoolCardProps) {
