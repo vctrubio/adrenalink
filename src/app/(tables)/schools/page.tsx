@@ -14,24 +14,24 @@ export default async function SchoolsPage() {
         return <>{data.error}</>;
     }
 
-    return (
-        <div className="p-8">
-            <LabelTag icon={entity.icon} title={`Hello, ${entity.name} Page`} description={entity.description} borderColor={borderColor} textColor={entity.color} />
+    // Manually serialize the data for Next.js 15 compatibility
+    const serializedSchools = data.map(school => school.toJSON());
 
-            <div className="mt-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4">All Schools</h2>
-                {data.length === 0 ? (
-                    <p className="text-muted-foreground">No schools found</p>
-                ) : (
-                    <div className="space-y-4">
-                        {data.map((school) => (
-                            <SchoolCard
-                                key={school.schema.id}
-                                school={school.serialize()}
-                            />
-                        ))}
-                    </div>
-                )}
+    return (
+        <div className="h-screen flex flex-col">
+            <div className="p-8 border-b border-border">
+                <LabelTag icon={entity.icon} title={`${entity.name} Discovery`} description={entity.description} borderColor={borderColor} textColor={entity.color} />
+            </div>
+
+            <div className="flex-1 overflow-auto p-6">
+                <div className="space-y-4">
+                    {serializedSchools.map((school) => (
+                        <SchoolCard
+                            key={school.schema.id}
+                            school={school}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     );
