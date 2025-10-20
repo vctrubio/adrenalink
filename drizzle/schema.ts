@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, varchar, text, unique, check, boolean, integer, pgEnum, foreignKey, index, date, decimal } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, varchar, text, unique, boolean, integer, pgEnum, foreignKey, index, date, decimal } from "drizzle-orm/pg-core";
 
 export const equipmentCategoryEnum = pgEnum("equipment_category", ["kite", "wing", "windsurf", "surf", "snowboard"]);
 export const studentPackageStatusEnum = pgEnum("student_package_status", ["requested", "accepted", "rejected"]);
