@@ -1,13 +1,27 @@
-import type { StudentPackageType, StudentType, SchoolPackageType } from "@/drizzle/schema";
-import { AbstractModel } from "./AbstractModel";
+import type { StudentPackageType } from "@/drizzle/schema";
+import type { AbstractModel } from "./AbstractModel";
+import { ENTITY_DATA } from "@/config/entities";
 
-export class StudentPackageModel extends AbstractModel<StudentPackageType> {
-    relations?: {
-        student?: StudentType;
-        schoolPackage?: SchoolPackageType;
+export type StudentPackageModel = AbstractModel<StudentPackageType>;
+
+export function createStudentPackageModel(studentPackageData: any): StudentPackageModel {
+    const { student, schoolPackage, ...pgTableSchema } = studentPackageData;
+    
+    const entityConfig = ENTITY_DATA.find(e => e.id === "Student Package")!;
+    const { icon, ...serializableEntityConfig } = entityConfig;
+    
+    const model = {
+        entityConfig: serializableEntityConfig,
+        schema: pgTableSchema,
+        relations: {
+            student,
+            schoolPackage,
+        },
     };
-
-    constructor(schema: StudentPackageType) {
-        super("student_package", schema);
+    
+    if (process.env.JSONIFY === "true") {
+        console.log("DEV:JSON: StudentPackageModel =", model);
     }
+    
+    return model;
 }

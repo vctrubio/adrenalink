@@ -1,19 +1,29 @@
-import type { BookingType, SchoolType, SchoolPackageType, StudentPackageType, BookingStudentType, StudentType } from "@/drizzle/schema";
-import { AbstractModel } from "./AbstractModel";
+import type { BookingType } from "@/drizzle/schema";
+import type { AbstractModel } from "./AbstractModel";
+import { ENTITY_DATA } from "@/config/entities";
 
-type BookingStudentWithStudent = BookingStudentType & {
-    student: StudentType;
-};
+export type BookingModel = AbstractModel<BookingType>;
 
-export class BookingModel extends AbstractModel<BookingType> {
-    relations?: {
-        school?: SchoolType | null;
-        schoolPackage?: SchoolPackageType | null;
-        studentPackage?: StudentPackageType | null;
-        bookingStudents?: BookingStudentWithStudent[] | null;
+export function createBookingModel(bookingData: any): BookingModel {
+    const { school, schoolPackage, studentPackage, bookingStudents, ...pgTableSchema } = bookingData;
+    
+    const entityConfig = ENTITY_DATA.find(e => e.id === "Booking")!;
+    const { icon, ...serializableEntityConfig } = entityConfig;
+    
+    const model = {
+        entityConfig: serializableEntityConfig,
+        schema: pgTableSchema,
+        relations: {
+            school,
+            schoolPackage,
+            studentPackage,
+            bookingStudents,
+        },
     };
-
-    constructor(schema: BookingType) {
-        super("booking", schema);
+    
+    if (process.env.JSONIFY === "true") {
+        console.log("DEV:JSON: BookingModel =", model);
     }
+    
+    return model;
 }

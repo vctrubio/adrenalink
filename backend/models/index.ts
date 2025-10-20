@@ -1,6 +1,6 @@
-export { AbstractModel } from "./AbstractModel";
-export { StudentModel } from "./StudentModel";
-export { SchoolModel } from "./SchoolModel";
-export { SchoolPackageModel } from "./SchoolPackageModel";
-export { StudentPackageModel } from "./StudentPackageModel";
-export { BookingModel } from "./BookingModel";
+export type { AbstractModel } from "./AbstractModel";
+export { createStudentModel, type StudentModel } from "./StudentModel";
+export { createSchoolModel, type SchoolModel } from "./SchoolModel";
+export { createSchoolPackageModel, type SchoolPackageModel } from "./SchoolPackageModel";
+export { createStudentPackageModel, type StudentPackageModel } from "./StudentPackageModel";
+export { createBookingModel, type BookingModel } from "./BookingModel";
