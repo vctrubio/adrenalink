@@ -1,10 +1,3 @@
-export type SerializedAbstractModel<T> = {
-    tableName: string;
-    schema: T;
-    relations?: Record<string, any>;
-    lambda?: Record<string, any>;
-};
-
 export abstract class AbstractModel<T> {
     tableName: string;
     schema: T;
@@ -16,7 +9,7 @@ export abstract class AbstractModel<T> {
         this.schema = schema;
     }
 
-    serialize(): SerializedAbstractModel<T> {
+    toJSON() {
         return {
             tableName: this.tableName,
             schema: this.schema,

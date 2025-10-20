@@ -1,4 +1,4 @@
-export { AbstractModel, type SerializedAbstractModel } from "./AbstractModel";
+export { AbstractModel } from "./AbstractModel";
 export { StudentModel } from "./StudentModel";
 export { SchoolModel } from "./SchoolModel";
 export { SchoolPackageModel } from "./SchoolPackageModel";
