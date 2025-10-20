@@ -5,7 +5,6 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormField, FormInput, FormSubmit, FormButton } from "@/src/components/ui/form";
-import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
 import { createSchool, getSchoolsUsernames, checkUsernameAvailability } from "@/actions/schools-action";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
@@ -54,7 +53,6 @@ const STEPS: Step[] = [
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
     { id: 4, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
-
 
 // Username generation utilities
 function generateUsername(name: string): string {
@@ -113,7 +111,7 @@ export function WelcomeSchoolForm() {
     const values = watch();
     const { clearPhone, triggerPhoneClear } = usePhoneClear();
 
-    const progress = useMemo(() => ((stepIndex) / (STEPS.length - 1)) * 100, [stepIndex]);
+    const progress = useMemo(() => (stepIndex / (STEPS.length - 1)) * 100, [stepIndex]);
 
     // Navigation functions
     const next = async () => {
@@ -133,7 +131,7 @@ export function WelcomeSchoolForm() {
             setTimeout(() => {
                 try {
                     setFocus(field as any);
-                } catch {}
+                } catch { }
             }, 60);
         }
     };
@@ -144,7 +142,7 @@ export function WelcomeSchoolForm() {
             // Only handle Enter key events and avoid interfering with form elements
             if (e.key === "Enter" && !(e.target as HTMLElement).closest("button, [type=submit]")) {
                 e.preventDefault();
-                
+
                 if (e.shiftKey) {
                     prev();
                 } else {
@@ -200,23 +198,28 @@ export function WelcomeSchoolForm() {
         }
     };
 
-    const handleLocationChange = useCallback((location: {
-        latitude?: number;
-        longitude?: number;
-        googlePlaceId?: string;
-    }) => {
-        if (location.latitude !== undefined) setValue("latitude", location.latitude);
-        if (location.longitude !== undefined) setValue("longitude", location.longitude);
-        if (location.googlePlaceId) setValue("googlePlaceId", location.googlePlaceId);
-    }, [setValue]);
+    const handleLocationChange = useCallback(
+        (location: { latitude?: number; longitude?: number; googlePlaceId?: string }) => {
+            if (location.latitude !== undefined) setValue("latitude", location.latitude);
+            if (location.longitude !== undefined) setValue("longitude", location.longitude);
+            if (location.googlePlaceId) setValue("googlePlaceId", location.googlePlaceId);
+        },
+        [setValue],
+    );
 
-    const handleCountryChange = useCallback((country: string) => {
-        setValue("country", country);
-    }, [setValue]);
+    const handleCountryChange = useCallback(
+        (country: string) => {
+            setValue("country", country);
+        },
+        [setValue],
+    );
 
-    const handlePhoneChange = useCallback((phone: string) => {
-        setValue("phone", phone);
-    }, [setValue]);
+    const handlePhoneChange = useCallback(
+        (phone: string) => {
+            setValue("phone", phone);
+        },
+        [setValue],
+    );
 
     const onSubmit = async (data: SchoolFormData) => {
         try {
@@ -225,18 +228,18 @@ export function WelcomeSchoolForm() {
                 ...data,
                 equipmentCategories: data.equipmentCategories.join(","),
             };
-            
+
             const result = await createSchool(schoolData);
-            
+
             // Check if the result has an error property
-            if (result && 'error' in result) {
+            if (result && "error" in result) {
                 console.error("Error creating school:", result.error);
                 // Add error notification here if needed
                 return;
             }
-            
+
             // Check for success
-            if (result && 'success' in result && result.success) {
+            if (result && "success" in result && result.success) {
                 console.log("✅ School created successfully:", result.data);
             } else {
                 console.log("✅ School created successfully:", result);
@@ -269,19 +272,17 @@ export function WelcomeSchoolForm() {
                         const complete = idx < stepIndex;
                         const active = idx === stepIndex;
                         return (
-                            <button
-                                key={s.id}
-                                type="button"
-                                onClick={() => goTo(idx)}
-                                className="flex-1 group"
-                                aria-current={active}
-                            >
-                                <div className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md border text-sm
+                            <button key={s.id} type="button" onClick={() => goTo(idx)} className="flex-1 group" aria-current={active}>
+                                <div
+                                    className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md border text-sm
                                     ${active ? "border-ring bg-accent/40" : complete ? "border-secondary bg-secondary/10" : "border-border"}
-                                `}>
-                                    <span className={`rounded-full w-6 h-6 flex items-center justify-center
+                                `}
+                                >
+                                    <span
+                                        className={`rounded-full w-6 h-6 flex items-center justify-center
                                         ${complete ? "bg-secondary text-secondary-foreground" : active ? "bg-ring/10 text-ring" : "bg-muted text-muted-foreground"}
-                                    `}>
+                                    `}
+                                    >
                                         {complete ? <CheckCircle2 className="w-4 h-4" /> : active ? <Circle className="w-3 h-3" /> : s.icon}
                                     </span>
                                     <span className={`hidden md:inline ${active ? "font-semibold" : ""}`}>{s.title}</span>
@@ -364,15 +365,13 @@ export function WelcomeSchoolForm() {
                                 {EQUIPMENT_CATEGORIES.map((cat) => {
                                     const checked = values.equipmentCategories?.includes(cat);
                                     return (
-                                        <label key={cat} className={`cursor-pointer select-none border rounded-md px-3 py-2 text-sm flex items-center justify-center gap-2 transition-colors
+                                        <label
+                                            key={cat}
+                                            className={`cursor-pointer select-none border rounded-md px-3 py-2 text-sm flex items-center justify-center gap-2 transition-colors
                                             ${checked ? "bg-secondary text-secondary-foreground border-secondary" : "bg-background border-input hover:bg-accent"}
-                                        `}>
-                                            <input
-                                                type="checkbox"
-                                                value={cat}
-                                                className="hidden"
-                                                {...register("equipmentCategories")}
-                                            />
+                                        `}
+                                        >
+                                            <input type="checkbox" value={cat} className="hidden" {...register("equipmentCategories")} />
                                             <span className="capitalize">{cat}</span>
                                         </label>
                                     );
@@ -424,9 +423,15 @@ export function WelcomeSchoolForm() {
                         </div>
 
                         <div className="flex flex-wrap gap-2 text-sm">
-                            <FormButton type="button" variant="secondary" onClick={() => goTo(0)}>Edit name</FormButton>
-                            <FormButton type="button" variant="secondary" onClick={() => goTo(1)}>Edit location</FormButton>
-                            <FormButton type="button" variant="secondary" onClick={() => goTo(2)}>Edit categories</FormButton>
+                            <FormButton type="button" variant="secondary" onClick={() => goTo(0)}>
+                                Edit name
+                            </FormButton>
+                            <FormButton type="button" variant="secondary" onClick={() => goTo(1)}>
+                                Edit location
+                            </FormButton>
+                            <FormButton type="button" variant="secondary" onClick={() => goTo(2)}>
+                                Edit categories
+                            </FormButton>
                         </div>
                     </div>
                 )}
