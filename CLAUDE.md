@@ -11,6 +11,40 @@
 - **Render only in parent** - Parent components handle rendering, child components handle logic
 - **Logic in sub-components** - Business logic belongs in child components, not parents
 
+## Clean Code Structure Pattern
+
+**CRITICAL: Use this pattern for all conditional logic with data fetching and processing:**
+
+```typescript
+// 1. Single variable declaration for condition
+const header = headers().get('x-school-username');
+
+// 2. Conditional data fetching with shared relations
+let result;
+if (header) {
+    result = await db.query.entity.findMany({
+        where: eq(table.field, header),
+        with: sharedRelations
+    });
+} else {
+    result = await db.query.entity.findMany({
+        with: sharedRelations
+    });
+}
+
+// 3. Single processing/mapping block
+if (result) {
+    const entities = result.map(data => createEntityModel(data));
+    return entities;
+}
+```
+
+**Benefits:**
+- **DRY Relations**: Same `with` clause used in both queries
+- **Single Mapping**: One processing block instead of duplication
+- **Clear Separation**: Query logic separate from processing logic
+- **Readable Flow**: Easy to follow top-to-bottom logic
+
 ## Import Guidelines
 
 - **Import React types explicitly** - Import ReactNode from React instead of using React.ReactNode
