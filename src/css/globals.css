@@ -4,6 +4,7 @@
 
 @variant dark (.dark &);
 
+
 /* Global focus and outline styles - exclude form inputs */
 *:not(input):not(select):not(textarea) {
     outline: none !important;
@@ -26,4 +27,3 @@ body {
 .slogan {
     font-family: "Playwrite US Modern", cursive;
 }
-
