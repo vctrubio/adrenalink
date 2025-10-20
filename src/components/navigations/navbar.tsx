@@ -14,7 +14,7 @@ const navigationItems = [
 ];
 
 const tableNavigationItems = ENTITY_DATA
-    .filter((entity) => ["School", "Student", "School Package", "Booking"].includes(entity.id))
+    .filter((entity) => ["Student", "School Package", "Booking"].includes(entity.id))
     .map((entity) => ({
         href: entity.link,
         icon: entity.icon,
