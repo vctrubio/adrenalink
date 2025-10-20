@@ -90,8 +90,8 @@ export const studentPackage = pgTable(
         requestedDateStart: date("requested_date_start").notNull(),
         requestedDateEnd: date("requested_date_end").notNull(),
         status: studentPackageStatusEnum("status").notNull(),
-        createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-        updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+        updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
     (table) => [
         foreignKey({
@@ -120,8 +120,8 @@ export const booking = pgTable(
         dateEnd: date("date_end").notNull(),
         schoolId: uuid("school_id").references(() => school.id),
         studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
-        createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-        updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+        updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
     (table) => [
         foreignKey({
