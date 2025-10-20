@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Code, Settings, User, UserPlus, BookOpen } from "lucide-react";
+import { Home, Code, Settings, User, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
@@ -9,7 +9,6 @@ import { ENTITY_DATA } from "../../../config/entities";
 
 const navigationItems = [
     { href: "/", icon: Home, label: "Home" },
-    { href: "/welcome", icon: UserPlus, label: "Welcome" },
     { href: "/dev", icon: Code, label: "Dev" },
     { href: "/docs", icon: BookOpen, label: "Docs" },
 ];
