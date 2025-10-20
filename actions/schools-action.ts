@@ -6,15 +6,18 @@ import { db } from "@/drizzle/db";
 import { school, student, schoolStudents, type SchoolForm, type SchoolType } from "@/drizzle/schema";
 import { SchoolModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+import { getTimeZoneLatLong } from "@/getters/timezone-getter";
 
 // CREATE
 export async function createSchool(schoolSchema: SchoolForm): Promise<ApiActionResponseModel<SchoolType>> {
     try {
         const result = await db.insert(school).values(schoolSchema).returning();
         revalidatePath("/schools");
-        return new SchoolModel(result[0]);
+        // Return plain object instead of class instance for create operations
+        return { success: true, data: result[0] };
     } catch (error) {
-        console.error("Error creating school:", error);
+        console.error("Error creating school - Full error:", error);
+        console.error("School data being inserted:", schoolSchema);
         return { error: "Failed to create school" };
     }
 }
@@ -32,6 +35,7 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
             },
         });
 
+        // Return SchoolModel instances - now auto-serializable via toJSON()
         const schools: SchoolModel[] = result.map((schoolData) => {
             const { schoolStudents, ...pureSchema } = schoolData;
             const schoolModel = new SchoolModel(pureSchema);
@@ -42,9 +46,13 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
             };
 
             // Calculate lambda values
+            const latitude = pureSchema.latitude ? parseFloat(pureSchema.latitude) : undefined;
+            const longitude = pureSchema.longitude ? parseFloat(pureSchema.longitude) : undefined;
+            
             schoolModel.lambda = {
                 studentCount: schoolStudents.length,
-                equipmentList: pureSchema.equipmentCategories ? JSON.parse(pureSchema.equipmentCategories) : [],
+                equipmentList: pureSchema.equipmentCategories ? pureSchema.equipmentCategories.split(",") : [],
+                timezone: getTimeZoneLatLong(latitude, longitude),
             };
 
             return schoolModel;
@@ -84,16 +92,22 @@ export async function getSchoolById(id: string, username: boolean = false): Prom
             const { schoolStudents, schoolPackages, ...pureSchema } = result;
             const schoolModel = new SchoolModel(pureSchema);
 
+            // Map relations from query result
             schoolModel.relations = {
                 schoolStudents: schoolStudents,
                 schoolPackages: schoolPackages,
             };
 
+            // Calculate lambda values
+            const latitude = pureSchema.latitude ? parseFloat(pureSchema.latitude) : undefined;
+            const longitude = pureSchema.longitude ? parseFloat(pureSchema.longitude) : undefined;
+            
             schoolModel.lambda = {
                 studentCount: schoolStudents.length,
                 packageCount: schoolPackages.length,
                 totalStudentRequests: schoolPackages.reduce((acc, pkg) => acc + pkg.studentPackages.length, 0),
-                equipmentList: pureSchema.equipmentCategories ? JSON.parse(pureSchema.equipmentCategories) : [],
+                equipmentList: pureSchema.equipmentCategories ? pureSchema.equipmentCategories.split(",") : [],
+                timezone: getTimeZoneLatLong(latitude, longitude),
             };
 
             return schoolModel;
