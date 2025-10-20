@@ -4,9 +4,35 @@ import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { school, student, schoolStudents, type SchoolForm, type SchoolType } from "@/drizzle/schema";
-import { SchoolModel } from "@/backend/models";
+import { createSchoolModel, type SchoolModel } from "@/backend/models/SchoolModel";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
-import { getTimeZoneLatLong } from "@/getters/timezone-getter";
+
+// DRY: Standard school relations query
+const schoolWithRelations = {
+    schoolStudents: {
+        with: {
+            student: true,
+        },
+    },
+    schoolPackages: {
+        with: {
+            studentPackages: {
+                with: {
+                    student: true,
+                },
+            },
+        },
+    },
+    bookings: {
+        with: {
+            studentPackage: {
+                with: {
+                    student: true,
+                },
+            },
+        },
+    },
+};
 
 // CREATE
 export async function createSchool(schoolSchema: SchoolForm): Promise<ApiActionResponseModel<SchoolType>> {
@@ -26,36 +52,11 @@ export async function createSchool(schoolSchema: SchoolForm): Promise<ApiActionR
 export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolType>> {
     try {
         const result = await db.query.school.findMany({
-            with: {
-                schoolStudents: {
-                    with: {
-                        student: true,
-                    },
-                },
-            },
+            with: schoolWithRelations,
         });
 
-        // Return SchoolModel instances - now auto-serializable via toJSON()
         const schools: SchoolModel[] = result.map((schoolData) => {
-            const { schoolStudents, ...pureSchema } = schoolData;
-            const schoolModel = new SchoolModel(pureSchema);
-
-            // Map relations from query result
-            schoolModel.relations = {
-                schoolStudents: schoolStudents,
-            };
-
-            // Calculate lambda values
-            const latitude = pureSchema.latitude ? parseFloat(pureSchema.latitude) : undefined;
-            const longitude = pureSchema.longitude ? parseFloat(pureSchema.longitude) : undefined;
-            
-            schoolModel.lambda = {
-                studentCount: schoolStudents.length,
-                equipmentList: pureSchema.equipmentCategories ? pureSchema.equipmentCategories.split(",") : [],
-                timezone: getTimeZoneLatLong(latitude, longitude),
-            };
-
-            return schoolModel;
+            return createSchoolModel(schoolData);
         });
 
         return schools;
@@ -70,47 +71,11 @@ export async function getSchoolById(id: string, username: boolean = false): Prom
     try {
         const result = await db.query.school.findFirst({
             where: username ? eq(school.username, id) : eq(school.id, id),
-            with: {
-                schoolStudents: {
-                    with: {
-                        student: true,
-                    },
-                },
-                schoolPackages: {
-                    with: {
-                        studentPackages: {
-                            with: {
-                                student: true,
-                            },
-                        },
-                    },
-                },
-            },
+            with: schoolWithRelations,
         });
 
         if (result) {
-            const { schoolStudents, schoolPackages, ...pureSchema } = result;
-            const schoolModel = new SchoolModel(pureSchema);
-
-            // Map relations from query result
-            schoolModel.relations = {
-                schoolStudents: schoolStudents,
-                schoolPackages: schoolPackages,
-            };
-
-            // Calculate lambda values
-            const latitude = pureSchema.latitude ? parseFloat(pureSchema.latitude) : undefined;
-            const longitude = pureSchema.longitude ? parseFloat(pureSchema.longitude) : undefined;
-            
-            schoolModel.lambda = {
-                studentCount: schoolStudents.length,
-                packageCount: schoolPackages.length,
-                totalStudentRequests: schoolPackages.reduce((acc, pkg) => acc + pkg.studentPackages.length, 0),
-                equipmentList: pureSchema.equipmentCategories ? pureSchema.equipmentCategories.split(",") : [],
-                timezone: getTimeZoneLatLong(latitude, longitude),
-            };
-
-            return schoolModel;
+            return createSchoolModel(result);
         }
         return { error: "School not found" };
     } catch (error) {

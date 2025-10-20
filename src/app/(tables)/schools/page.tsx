@@ -2,20 +2,16 @@ import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
 import SchoolCard from "@/src/components/cards/SchoolCard";
 import { getSchools } from "@/actions/schools-action";
-import type { SchoolType } from "@/drizzle/schema";
-import type { AbstractModel } from "@/backend/models";
+import type { SchoolModel } from "@/backend/models/SchoolModel";
 
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: AbstractModel<SchoolType>[] | { error: string } = await getSchools();
+    const data: SchoolModel[] | { error: string } = await getSchools();
 
     if ("error" in data) {
         return <>{data.error}</>;
     }
-
-    // Manually serialize the data for Next.js 15 compatibility
-    const serializedSchools = data.map(school => school.toJSON());
 
     return (
         <div className="h-screen flex flex-col">
@@ -25,7 +21,7 @@ export default async function SchoolsPage() {
 
             <div className="flex-1 overflow-auto p-6">
                 <div className="space-y-4">
-                    {serializedSchools.map((school) => (
+                    {data.map((school) => (
                         <SchoolCard
                             key={school.schema.id}
                             school={school}

@@ -1,20 +1,8 @@
-export abstract class AbstractModel<T> {
-    tableName: string;
+import type { EntityConfig } from "@/config/entities";
+
+export type AbstractModel<T, F = any> = {
+    entityConfig: Omit<EntityConfig, "icon">;
     schema: T;
+    form: F;
     relations?: Record<string, any>;
-    lambda?: Record<string, any>;
-
-    constructor(tableName: string, schema: T) {
-        this.tableName = tableName;
-        this.schema = schema;
-    }
-
-    toJSON() {
-        return {
-            tableName: this.tableName,
-            schema: this.schema,
-            relations: this.relations,
-            lambda: this.lambda
-        };
-    }
-}
+};

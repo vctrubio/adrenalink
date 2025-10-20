@@ -5,22 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
-import type { SchoolType } from "@/drizzle/schema";
+import type { SchoolModel } from "@/backend/models/SchoolModel";
+import { getSchoolStudentCount } from "@/getters/schools-getter";
 
 interface SchoolCardProps {
-    school: {
-        tableName: string;
-        schema: SchoolType;
-        relations?: Record<string, any>;
-        lambda?: Record<string, any>;
-    };
+    school: SchoolModel;
 }
 
 export default function SchoolCard({ school }: SchoolCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const router = useRouter();
 
-    const studentCount = school.lambda?.studentCount || 0;
+    const studentCount = getSchoolStudentCount(school);
 
     const handleCardClick = () => {
         router.push(`/schools/${school.schema.username}`);

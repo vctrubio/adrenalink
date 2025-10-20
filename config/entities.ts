@@ -9,7 +9,18 @@ import KiteIcon from "../public/appSvgs/KiteIcon.jsx";
 import PackageIcon from "../public/appSvgs/PackageIcon.jsx";
 import RegistrationIcon from "../public/appSvgs/RegistrationIcon.jsx";
 
-export const ENTITY_DATA = [
+export type EntityConfig = {
+    id: string;
+    name: string;
+    icon: React.ComponentType<any>;
+    color: string;
+    bgColor: string;
+    hoverColor: string;
+    link: string;
+    description: string[];
+};
+
+export const ENTITY_DATA: EntityConfig[] = [
     {
         id: "School",
         name: "Schools",
