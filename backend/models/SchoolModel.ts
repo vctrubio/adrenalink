@@ -10,8 +10,7 @@ export class SchoolModel extends AbstractModel<SchoolType> {
         studentCount?: number;
         packageCount?: number;
         totalStudentRequests?: number;
-        timezone?: string;
-        city?: string;
+        timezone?: string | null;
         equipmentList?: string[];
     };
 
