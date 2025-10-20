@@ -1,7 +1,8 @@
 "use server";
 
-import { eq, notInArray } from "drizzle-orm";
+import { eq, notInArray, exists, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
 import { student, school, schoolStudents, type StudentForm, type StudentType } from "@/drizzle/schema";
 import { createStudentModel, type StudentModel } from "@/backend/models";
@@ -32,13 +33,38 @@ export async function createStudent(studentSchema: StudentForm) {
 // READ
 export async function getStudents(): Promise<ApiActionResponseModelArray<StudentType>> {
     try {
-        const result = await db.query.student.findMany({
-            with: studentWithRelations
-        });
+        const header = headers().get('x-school-username');
         
-        const students: StudentModel[] = result.map(studentData => createStudentModel(studentData));
+        let result;
+        if (header) {
+            // Filter students by school username
+            result = await db.query.student.findMany({
+                where: exists(
+                    db.select()
+                      .from(schoolStudents)
+                      .innerJoin(school, eq(schoolStudents.schoolId, school.id))
+                      .where(
+                          and(
+                              eq(schoolStudents.studentId, student.id),
+                              eq(school.username, header)
+                          )
+                      )
+                ),
+                with: studentWithRelations
+            });
+        } else {
+            // Global query (admin mode)
+            result = await db.query.student.findMany({
+                with: studentWithRelations
+            });
+        }
         
-        return students;
+        if (result) {
+            const students: StudentModel[] = result.map(studentData => createStudentModel(studentData));
+            return students;
+        }
+        
+        return { error: "No students found" };
     } catch (error) {
         console.error("Error fetching students:", error);
         return { error: "Failed to fetch students" };

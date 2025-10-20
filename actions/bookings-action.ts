@@ -2,8 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
-import { booking, type BookingForm, type BookingType } from "@/drizzle/schema";
+import { booking, school, type BookingForm, type BookingType } from "@/drizzle/schema";
 import { createBookingModel, type BookingModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
@@ -33,13 +34,37 @@ export async function createBooking(bookingSchema: BookingForm) {
 // READ
 export async function getBookings(): Promise<ApiActionResponseModelArray<BookingType>> {
     try {
-        const result = await db.query.booking.findMany({
-            with: bookingWithRelations
-        });
+        const header = headers().get('x-school-username');
         
-        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
+        let result;
+        if (header) {
+            // Filter bookings by school username
+            const schoolWithUsername = await db.query.school.findFirst({
+                where: eq(school.username, header),
+                columns: { id: true }
+            });
+            
+            if (schoolWithUsername) {
+                result = await db.query.booking.findMany({
+                    where: eq(booking.schoolId, schoolWithUsername.id),
+                    with: bookingWithRelations
+                });
+            } else {
+                result = [];
+            }
+        } else {
+            // Global query (admin mode)
+            result = await db.query.booking.findMany({
+                with: bookingWithRelations
+            });
+        }
         
-        return bookings;
+        if (result) {
+            const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
+            return bookings;
+        }
+        
+        return { error: "No bookings found" };
     } catch (error) {
         console.error("Error fetching bookings:", error);
         return { error: "Failed to fetch bookings" };

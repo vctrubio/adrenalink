@@ -2,6 +2,7 @@
 
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
 import { 
     studentPackage, 
@@ -70,13 +71,40 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
 // READ - Get all student package requests
 export async function getStudentPackageRequests(): Promise<ApiActionResponseModelArray<StudentPackageType>> {
     try {
-        const result = await db.query.studentPackage.findMany({
-            with: studentPackageWithRelations,
-        });
+        const header = headers().get('x-school-username');
+        
+        let result: any[];
+        if (header) {
+            // Filter by school username - find school first, then filter packages
+            const schoolWithUsername = await db.query.school.findFirst({
+                where: eq(school.username, header),
+                columns: { id: true }
+            });
+            
+            if (schoolWithUsername) {
+                // Get all student packages, then filter by school
+                const allPackages = await db.query.studentPackage.findMany({
+                    with: studentPackageWithRelations
+                });
+                
+                // Filter by school ID after fetching
+                result = allPackages.filter(pkg => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
+            } else {
+                result = [];
+            }
+        } else {
+            // Global query (admin mode)
+            result = await db.query.studentPackage.findMany({
+                with: studentPackageWithRelations,
+            });
+        }
 
-        const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
-
-        return studentPackages;
+        if (result) {
+            const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
+            return studentPackages;
+        }
+        
+        return { error: "No student package requests found" };
     } catch (error) {
         console.error("Error fetching student package requests:", error);
         return { error: "Failed to fetch package requests" };
@@ -88,29 +116,15 @@ export async function getStudentPackagesByStudentId(studentId: string): Promise<
     try {
         const result = await db.query.studentPackage.findMany({
             where: eq(studentPackage.studentId, studentId),
-            with: {
-                student: true,
-                schoolPackage: {
-                    with: {
-                        school: true
-                    }
-                }
-            },
+            with: studentPackageWithRelations,
         });
 
-        const studentPackages: StudentPackageModel[] = result.map((packageData) => {
-            const { student: studentData, schoolPackage: packageWithSchool, ...pureSchema } = packageData;
-            const packageModel = new StudentPackageModel(pureSchema);
-
-            packageModel.relations = {
-                student: studentData,
-                schoolPackage: packageWithSchool,
-            };
-
-            return packageModel;
-        });
-
-        return studentPackages;
+        if (result) {
+            const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
+            return studentPackages;
+        }
+        
+        return { error: "No student packages found" };
     } catch (error) {
         console.error("Error fetching student packages:", error);
         return { error: "Failed to fetch student packages" };
@@ -127,19 +141,12 @@ export async function getStudentPackagesBySchoolId(schoolId: string): Promise<Ap
         // Filter by school ID after fetching (since we need to check nested relation)
         const filteredResults = result.filter(pkg => pkg.schoolPackage?.school?.id === schoolId);
 
-        const studentPackages: StudentPackageModel[] = filteredResults.map((packageData) => {
-            const { student: studentData, schoolPackage: packageWithSchool, ...pureSchema } = packageData;
-            const packageModel = new StudentPackageModel(pureSchema);
-
-            packageModel.relations = {
-                student: studentData,
-                schoolPackage: packageWithSchool,
-            };
-
-            return packageModel;
-        });
-
-        return studentPackages;
+        if (filteredResults) {
+            const studentPackages: StudentPackageModel[] = filteredResults.map((packageData) => createStudentPackageModel(packageData));
+            return studentPackages;
+        }
+        
+        return { error: "No student packages found" };
     } catch (error) {
         console.error("Error fetching student packages by school:", error);
         return { error: "Failed to fetch student packages" };
@@ -181,7 +188,7 @@ export async function updateStudentPackageRequest(
             .update(studentPackage)
             .set({
                 ...updateData,
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date()
             })
             .where(eq(studentPackage.id, id))
             .returning();

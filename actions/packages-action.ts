@@ -2,8 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
-import { schoolPackage, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
+import { schoolPackage, school, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
 import { createSchoolPackageModel, type SchoolPackageModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
@@ -28,13 +29,37 @@ export async function createPackage(packageSchema: SchoolPackageForm) {
 // READ
 export async function getPackages(): Promise<ApiActionResponseModelArray<SchoolPackageType>> {
     try {
-        const result = await db.query.schoolPackage.findMany({
-            with: schoolPackageWithRelations
-        });
+        const header = headers().get('x-school-username');
         
-        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
+        let result;
+        if (header) {
+            // Filter packages by school username - need to use a join approach
+            const schoolWithUsername = await db.query.school.findFirst({
+                where: eq(school.username, header),
+                columns: { id: true }
+            });
+            
+            if (schoolWithUsername) {
+                result = await db.query.schoolPackage.findMany({
+                    where: eq(schoolPackage.schoolId, schoolWithUsername.id),
+                    with: schoolPackageWithRelations
+                });
+            } else {
+                result = [];
+            }
+        } else {
+            // Global query (admin mode)
+            result = await db.query.schoolPackage.findMany({
+                with: schoolPackageWithRelations
+            });
+        }
         
-        return packages;
+        if (result) {
+            const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
+            return packages;
+        }
+        
+        return { error: "No packages found" };
     } catch (error) {
         console.error("Error fetching packages:", error);
         return { error: "Failed to fetch packages" };
