@@ -22,7 +22,6 @@ export const school = pgTable("school", {
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 10, scale: 8 }),
     googlePlaceId: varchar("google_place_id", { length: 255 }),
-    city: varchar("city", { length: 100 }),
     equipmentCategories: text("equipment_categories"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
