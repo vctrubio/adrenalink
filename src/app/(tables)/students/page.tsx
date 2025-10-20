@@ -2,13 +2,12 @@ import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
 import StudentCard from "@/src/components/cards/StudentCard";
 import { getStudents } from "@/actions/students-action";
-import type { StudentType } from "@/drizzle/schema";
-import type { AbstractModel } from "@/backend/models";
+import type { StudentModel } from "@/backend/models";
 
 export default async function StudentsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "Student")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: AbstractModel<StudentType>[] | { error: string } = await getStudents();
+    const data: StudentModel[] | { error: string } = await getStudents();
 
     if ("error" in data) {
         return <>{data.error}</>;
@@ -27,7 +26,7 @@ export default async function StudentsPage() {
                         {data.map((student) => (
                             <StudentCard
                                 key={student.schema.id}
-                                student={student.serialize()}
+                                student={student}
                             />
                         ))}
                     </div>

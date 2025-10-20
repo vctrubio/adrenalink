@@ -2,13 +2,12 @@ import { ENTITY_DATA } from "@/config/entities";
 import LabelTag from "@/src/components/tags/LabelTag";
 import PackageCard from "@/src/components/cards/PackageCard";
 import { getPackages } from "@/actions/packages-action";
-import type { SchoolPackageType } from "@/drizzle/schema";
-import type { AbstractModel } from "@/backend/models";
+import type { SchoolPackageModel } from "@/backend/models";
 
 export default async function PackagesPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School Package")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: AbstractModel<SchoolPackageType>[] | { error: string } = await getPackages();
+    const data: SchoolPackageModel[] | { error: string } = await getPackages();
 
     if ("error" in data) {
         return <>{data.error}</>;
@@ -27,7 +26,7 @@ export default async function PackagesPage() {
                         {data.map((schoolPackage) => (
                             <PackageCard
                                 key={schoolPackage.schema.id}
-                                package={schoolPackage.serialize()}
+                                package={schoolPackage}
                             />
                         ))}
                     </div>
