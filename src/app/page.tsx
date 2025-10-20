@@ -1,9 +1,9 @@
-import Banner from "../components/banner";
+import LandingPage from "@/src/components/Home";
 
 export default function Home() {
     return (
         <div className="p-8">
-            <Banner />
+            <LandingPage />
         </div>
     );
 }
