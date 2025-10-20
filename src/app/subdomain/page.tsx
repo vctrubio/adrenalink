@@ -38,7 +38,7 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             );
         }
         
-        return <SchoolSubdomain school={school.serialize()} />;
+        return <SchoolSubdomain school={school} />;
         
     } catch (error) {
         console.error("💥 Error in subdomain page:", error);

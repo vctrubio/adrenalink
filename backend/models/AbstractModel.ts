@@ -1,8 +1,7 @@
 import type { EntityConfig } from "@/config/entities";
 
-export type AbstractModel<T, F = any> = {
+export type AbstractModel<T> = {
     entityConfig: Omit<EntityConfig, "icon">;
     schema: T;
-    form: F;
     relations?: Record<string, any>;
 };

@@ -1,10 +1,9 @@
 "use client";
 
-import type { SchoolType } from "@/drizzle/schema";
-import type { SerializedAbstractModel } from "@/backend/models";
+import type { SchoolModel } from "@/backend/models/SchoolModel";
 
 interface SchoolSubdomainProps {
-    school: SerializedAbstractModel<SchoolType>;
+    school: SchoolModel;
 }
 
 export default function SchoolSubdomain({ school }: SchoolSubdomainProps) {
@@ -58,37 +57,20 @@ export default function SchoolSubdomain({ school }: SchoolSubdomainProps) {
                     </div>
                 </div>
 
-                {/* Relations & Lambda Data */}
-                {(school.relations || school.lambda) && (
+                {/* Relations Data */}
+                {school.relations && (
                     <div className="bg-black/40 rounded-lg border border-gray-700/50 p-8">
-                        <h2 className="text-3xl font-bold mb-6 text-gray-300 border-b border-gray-700/50 pb-3">Extended Data</h2>
-
-                        {/* Lambda Data */}
-                        {school.lambda && (
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-gray-400 mb-3">Lambda Computed Values</h3>
-                                <div className="bg-gray-900/50 p-4 rounded border border-gray-700/30">
-                                    <pre className="text-gray-300 font-mono text-sm whitespace-pre-wrap">{JSON.stringify(school.lambda, null, 2)}</pre>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Relations Data */}
-                        {school.relations && (
-                            <div>
-                                <h3 className="text-xl font-semibold text-gray-400 mb-3">Relations</h3>
-                                <div className="bg-gray-900/50 p-4 rounded border border-gray-700/30">
-                                    <div className="space-y-2">
-                                        {Object.entries(school.relations).map(([key, value]) => (
-                                            <div key={key}>
-                                                <span className="text-gray-300 font-semibold">{key}:</span>
-                                                <span className="text-white ml-2">{Array.isArray(value) ? `${value.length} items` : typeof value}</span>
-                                            </div>
-                                        ))}
+                        <h2 className="text-3xl font-bold mb-6 text-gray-300 border-b border-gray-700/50 pb-3">Relations Data</h2>
+                        <div className="bg-gray-900/50 p-4 rounded border border-gray-700/30">
+                            <div className="space-y-2">
+                                {Object.entries(school.relations).map(([key, value]) => (
+                                    <div key={key}>
+                                        <span className="text-gray-300 font-semibold">{key}:</span>
+                                        <span className="text-white ml-2">{Array.isArray(value) ? `${value.length} items` : typeof value}</span>
                                     </div>
-                                </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
                     </div>
                 )}
 

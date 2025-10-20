@@ -1,8 +1,8 @@
-import type { SchoolType, SchoolForm } from "@/drizzle/schema";
+import type { SchoolType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type SchoolModel = AbstractModel<SchoolType, SchoolForm>;
+export type SchoolModel = AbstractModel<SchoolType>;
 
 export function createSchoolModel(schoolData: any): SchoolModel {
     const { schoolStudents, schoolPackages, bookings, ...pgTableSchema } = schoolData;
@@ -13,7 +13,6 @@ export function createSchoolModel(schoolData: any): SchoolModel {
     const model = {
         entityConfig: serializableEntityConfig,
         schema: pgTableSchema,
-        form: {} as SchoolForm,
         relations: {
             schoolStudents,
             schoolPackages,
