@@ -12,15 +12,24 @@ export function middleware(request: NextRequest) {
         const subdomain = hostname.split(".")[0];
         printf("SUBDOMAIN DETECTED:", subdomain);
 
-        // Only rewrite the main page request, not static assets
+        // Create response with school context header for all routes
+        const response = NextResponse.next();
+        response.headers.set("x-school-username", subdomain);
+
+        // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
             const url = request.nextUrl.clone();
             url.pathname = "/subdomain";
             url.searchParams.set("username", subdomain);
 
             printf("🔄 REWRITING TO:", url.toString());
-            return NextResponse.rewrite(url);
+            const rewriteResponse = NextResponse.rewrite(url);
+            rewriteResponse.headers.set("x-school-username", subdomain);
+            return rewriteResponse;
         }
+
+        printf("🏫 SCHOOL CONTEXT SET:", subdomain);
+        return response;
     }
 
     return NextResponse.next();
