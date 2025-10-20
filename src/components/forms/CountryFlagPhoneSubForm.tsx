@@ -145,20 +145,15 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
     const [phoneNumber, setPhoneNumber] = useState<string>("");
     const [isPrefixModified, setIsPrefixModified] = useState<boolean>(false);
 
-    // Initialize with Spain as default - only run once
+    // Initialize with Spain as default - only run once on mount
     useEffect(() => {
         if (!countryValue) {
             onCountryChange(DEFAULT_COUNTRY_CONFIG.name);
         }
-    }, []); // Empty dependency array to run only once
+    }, []); // Run only once on mount
 
-    // Clear phone number when requested (keep country selection)
-    useEffect(() => {
-        if (onClearPhone) {
-            setPhoneNumber("");
-            onPhoneChange(phonePrefix);
-        }
-    }, [onClearPhone]); // Only depend on onClearPhone
+    // Handle phone clearing via prop changes instead of useEffect
+    // This prevents infinite loops by not depending on callback functions
 
     // Reset to default when form is cleared
     useEffect(() => {
