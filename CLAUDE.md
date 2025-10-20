@@ -130,16 +130,25 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { entityTable, type EntityForm, type EntityType } from "@/drizzle/schema";
-import { EntityModel } from "@/backend/models";
+import { createEntityModel, type EntityModel } from "@/backend/models";
 import type { ApiActionResponseModelArray, ApiActionResponseModel } from "@/types/actions";
+
+// DRY Relations constant
+const entityWithRelations = {
+  entityRelations: {
+    with: {
+      relatedEntity: true
+    }
+  }
+};
 
 // CREATE - Returns data directly or { error: string }
 export async function createEntity(entitySchema: EntityForm): Promise<ApiActionResponseModel<EntityType>> {
   try {
     const result = await db.insert(entityTable).values(entitySchema).returning();
     revalidatePath("/entities");
-    // Return the data directly (AbstractModel instance)
-    return new EntityModel(result[0]);
+    // Return the data directly (AbstractModel type instance)
+    return createEntityModel(result[0]);
   } catch (error) {
     console.error("Error creating entity:", error);
     // Return error object
@@ -151,32 +160,10 @@ export async function createEntity(entitySchema: EntityForm): Promise<ApiActionR
 export async function getEntities(): Promise<ApiActionResponseModelArray<EntityType>> {
   try {
     const result = await db.query.entityTable.findMany({
-      with: {
-        entityRelations: {
-          with: {
-            relatedEntity: true
-          }
-        }
-      }
+      with: entityWithRelations
     });
     
-    const entities: EntityModel[] = result.map(entityData => {
-      // Separate pure schema from relations
-      const { entityRelations, ...pureSchema } = entityData;
-      const entityModel = new EntityModel(pureSchema);
-      
-      // Map relations from query result
-      entityModel.relations = {
-        entityRelations: entityRelations
-      };
-      
-      // Calculate lambda values
-      entityModel.lambda = {
-        count: entityRelations.length
-      };
-      
-      return entityModel;
-    });
+    const entities: EntityModel[] = result.map(entityData => createEntityModel(entityData));
     
     // Return the array directly
     return entities;
@@ -192,23 +179,36 @@ const result = await getEntities();
 if (result.error) {
   console.error("Error:", result.error);
 } else {
-  // result is the array directly
-  setEntities(result.map(entity => entity.serialize()));
+  // result is the array directly - no .serialize() needed
+  setEntities(result);
 }
 ```
 
-**CRITICAL MODEL INHERITANCE PATTERN**: All `getEntities()` functions MUST return model instances that inherit from `AbstractModel`. This ensures:
+**CRITICAL MODEL TYPE PATTERN**: All `getEntities()` functions MUST return model instances that conform to `AbstractModel<T>` type. This ensures:
 - **Schema purity**: `.schema` contains ONLY database table fields
 - **Relations separation**: Relations stored in separate `.relations` property
 - **Consistent data structure** across all entity pages
-- **Lambda computed values** for calculated fields
+- **No lambda functions**: Computed values moved to `/getters/` directory for Next.js 15 compatibility
+- **Type-based architecture**: Uses types and create functions instead of classes for serialization compatibility
 
 ### Getter Functions
 
-- **Use getters directory** - All data transformation and business logic functions in `/getters/` directory
-- **File naming convention** - Use `entities-getter.ts` format (e.g., `students-getter.ts`, `schools-getter.ts`)
-- **Function patterns** - Include `getEntityName()`, `getAllEntityNames()`, `getEntityInfo()`, `getAllEntities()`
+- **Use getters directory** - All data transformation, business logic, and computed values in `/getters/` directory
+- **File naming convention** - Use `entities-getter.ts` format (e.g., `students-getter.ts`, `schools-getter.ts`, `school-packages-getter.ts`)
+- **Function patterns** - Include `getEntityName()`, computed values (e.g., `getDurationHours()`, `getRevenue()`), and business logic functions
+- **Model parameter types** - Functions should accept the full model type (e.g., `StudentModel`, `SchoolPackageModel`) to access both schema and relations
 - **Error handling** - Use graceful error handling with descriptive "No X found, skipping..." messages
+- **CRITICAL: No lambda functions in models** - All computed values must be moved to getter functions for Next.js 15 compatibility
+
+### Model Architecture (Next.js 15 Compatible)
+
+- **AbstractModel Type** - Base type definition: `{ entityConfig: Omit<EntityConfig, "icon">, schema: T, relations?: Record<string, any> }`
+- **Create Functions** - Each model has a `createEntityModel()` function that returns the properly structured type
+- **No Classes** - Models are types, not classes, to avoid Next.js 15 serialization issues
+- **No .serialize() calls** - Data can be passed directly to client components
+- **DRY Relations** - Each action file defines a `entityWithRelations` constant for consistent queries
+- **Icon Omission** - Icons are omitted from serialized data and retrieved from `config/entities.ts` by entity ID
+- **JSONIFY Debugging** - All create functions support `process.env.JSONIFY="true"` for debugging
 
 ### Phone Number Integration
 
@@ -229,10 +229,10 @@ For detailed project structure, see `docs/structure.md`
 
 - **actions/** - API call functions and server actions
 - **ai/** - Cloud-related files and generated markdown content
-- **backend/** - Backend classes and logic declarations
-  - **models/** - Entity model classes inheriting from AbstractModel base class
+- **backend/** - Backend type definitions and logic declarations
+  - **models/** - Entity model types and create functions based on AbstractModel type
 - **config/** - Tenant-specific configuration files (includes entities.ts for entity visual config)
 - **docs/** - Application documentation for Adrenalink
 - **drizzle/** - ORM configuration and database schema definitions
-- **getters/** - Entity getter functions (e.g., getUserByName, getEntityByName)
+- **getters/** - Entity getter functions and computed values (replaces lambda functions from models)
 - **src/** - Main application source code (Next.js app)
