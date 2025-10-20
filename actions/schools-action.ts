@@ -8,14 +8,14 @@ import { SchoolModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
 
 // CREATE
-export async function createSchool(schoolSchema: SchoolForm) {
+export async function createSchool(schoolSchema: SchoolForm): Promise<ApiActionResponseModel<SchoolType>> {
     try {
         const result = await db.insert(school).values(schoolSchema).returning();
         revalidatePath("/schools");
-        return { success: true, data: result[0] };
+        return new SchoolModel(result[0]);
     } catch (error) {
         console.error("Error creating school:", error);
-        return { success: false, error: "Failed to create school" };
+        return { error: "Failed to create school" };
     }
 }
 
@@ -44,6 +44,7 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
             // Calculate lambda values
             schoolModel.lambda = {
                 studentCount: schoolStudents.length,
+                equipmentList: pureSchema.equipmentCategories ? JSON.parse(pureSchema.equipmentCategories) : [],
             };
 
             return schoolModel;
@@ -92,6 +93,7 @@ export async function getSchoolById(id: string, username: boolean = false): Prom
                 studentCount: schoolStudents.length,
                 packageCount: schoolPackages.length,
                 totalStudentRequests: schoolPackages.reduce((acc, pkg) => acc + pkg.studentPackages.length, 0),
+                equipmentList: pureSchema.equipmentCategories ? JSON.parse(pureSchema.equipmentCategories) : [],
             };
 
             return schoolModel;
