@@ -13,13 +13,15 @@ const navigationItems = [
     { href: "/docs", icon: BookOpen, label: "Docs" },
 ];
 
-const tableNavigationItems = ENTITY_DATA.map((entity) => ({
-    href: entity.link,
-    icon: entity.icon,
-    label: entity.name,
-    color: entity.color,
-    bgColor: entity.bgColor,
-}));
+const tableNavigationItems = ENTITY_DATA
+    .filter((entity) => ["School", "Student", "School Package", "Booking"].includes(entity.id))
+    .map((entity) => ({
+        href: entity.link,
+        icon: entity.icon,
+        label: entity.name,
+        color: entity.color,
+        bgColor: entity.bgColor,
+    }));
 
 const userMenuItems = [
     { href: "/profile", icon: User, label: "Profile" },
