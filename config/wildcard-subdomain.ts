@@ -7,6 +7,8 @@
  * Production: Uses actual domain.com for live subdomains
  */
 
+import { RESERVED_USERNAMES } from "@/config/predefinedNames";
+
 interface SubdomainConfig {
     /** Main domain (without subdomain) */
     mainDomain: string;
@@ -27,15 +29,15 @@ const DEVELOPMENT_CONFIG: SubdomainConfig = {
     port: ":3000",
     protocol: "http",
     exampleSubdomain: "mit",
-    reservedSubdomains: ["www", "api", "admin", "dashboard", "app"],
+    reservedSubdomains: RESERVED_USERNAMES,
 };
 
 const PRODUCTION_CONFIG: SubdomainConfig = {
-    mainDomain: "adrenalink.com",
+    mainDomain: "adrenalink.tech",
     port: "",
     protocol: "https",
     exampleSubdomain: "mit",
-    reservedSubdomains: ["www", "api", "admin", "dashboard", "app"],
+    reservedSubdomains: RESERVED_USERNAMES,
 };
 
 // Export the active configuration
@@ -48,7 +50,7 @@ export const SUBDOMAIN_CONFIG = isDevelopment ? DEVELOPMENT_CONFIG : PRODUCTION_
  *
  * @example
  * // Development: "http://mit.lvh.me:3000"
- * // Production: "https://mit.adrenalink.com"
+ * // Production: "https://mit.adrenalink.tech"
  * getSubdomainUrl('mit')
  */
 export function getSubdomainUrl(username: string): string {
@@ -88,7 +90,7 @@ export function isMainDomain(hostname: string): boolean {
  *
  * @example
  * extractSubdomain('mit.lvh.me:3000') // returns 'mit'
- * extractSubdomain('mit.adrenalink.com') // returns 'mit'
+ * extractSubdomain('mit.adrenalink.tech') // returns 'mit'
  */
 export function extractSubdomain(hostname: string): string {
     const parts = hostname.split(".");
