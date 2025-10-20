@@ -4,8 +4,19 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { booking, type BookingForm, type BookingType } from "@/drizzle/schema";
-import { BookingModel } from "@/backend/models";
+import { createBookingModel, type BookingModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+
+const bookingWithRelations = {
+    schoolPackage: true,
+    school: true,
+    studentPackage: true,
+    bookingStudents: {
+        with: {
+            student: true
+        }
+    }
+};
 
 // CREATE
 export async function createBooking(bookingSchema: BookingForm) {
@@ -23,32 +34,10 @@ export async function createBooking(bookingSchema: BookingForm) {
 export async function getBookings(): Promise<ApiActionResponseModelArray<BookingType>> {
     try {
         const result = await db.query.booking.findMany({
-            with: {
-                schoolPackage: true,
-                school: true,
-                studentPackage: true,
-                bookingStudents: {
-                    with: {
-                        student: true
-                    }
-                }
-            }
+            with: bookingWithRelations
         });
         
-        const bookings: BookingModel[] = result.map(bookingData => {
-            const { schoolPackage, school, studentPackage, bookingStudents, ...pureSchema } = bookingData;
-            const bookingModel = new BookingModel(pureSchema);
-            
-            // Map relations from query result
-            bookingModel.relations = {
-                schoolPackage: schoolPackage,
-                school: school,
-                studentPackage: studentPackage,
-                bookingStudents: bookingStudents
-            };
-            
-            return bookingModel;
-        });
+        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
         
         return bookings;
     } catch (error) {
@@ -61,31 +50,11 @@ export async function getBookingById(id: string): Promise<ApiActionResponseModel
     try {
         const result = await db.query.booking.findFirst({
             where: eq(booking.id, id),
-            with: {
-                schoolPackage: true,
-                school: true,
-                studentPackage: true,
-                bookingStudents: {
-                    with: {
-                        student: true
-                    }
-                }
-            }
+            with: bookingWithRelations
         });
         
         if (result) {
-            const { schoolPackage, school, studentPackage, bookingStudents, ...pureSchema } = result;
-            const bookingModel = new BookingModel(pureSchema);
-            
-            // Map relations from query result
-            bookingModel.relations = {
-                schoolPackage: schoolPackage,
-                school: school,
-                studentPackage: studentPackage,
-                bookingStudents: bookingStudents
-            };
-            
-            return bookingModel;
+            return createBookingModel(result);
         }
         return { error: "Booking not found" };
     } catch (error) {
@@ -98,32 +67,10 @@ export async function getBookingsBySchoolId(schoolId: string): Promise<ApiAction
     try {
         const result = await db.query.booking.findMany({
             where: eq(booking.schoolId, schoolId),
-            with: {
-                schoolPackage: true,
-                school: true,
-                studentPackage: true,
-                bookingStudents: {
-                    with: {
-                        student: true
-                    }
-                }
-            }
+            with: bookingWithRelations
         });
         
-        const bookings: BookingModel[] = result.map(bookingData => {
-            const { schoolPackage, school, studentPackage, bookingStudents, ...pureSchema } = bookingData;
-            const bookingModel = new BookingModel(pureSchema);
-            
-            // Map relations from query result
-            bookingModel.relations = {
-                schoolPackage: schoolPackage,
-                school: school,
-                studentPackage: studentPackage,
-                bookingStudents: bookingStudents
-            };
-            
-            return bookingModel;
-        });
+        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
         
         return bookings;
     } catch (error) {
@@ -136,32 +83,10 @@ export async function getBookingsByPackageId(packageId: string): Promise<ApiActi
     try {
         const result = await db.query.booking.findMany({
             where: eq(booking.packageId, packageId),
-            with: {
-                schoolPackage: true,
-                school: true,
-                studentPackage: true,
-                bookingStudents: {
-                    with: {
-                        student: true
-                    }
-                }
-            }
+            with: bookingWithRelations
         });
         
-        const bookings: BookingModel[] = result.map(bookingData => {
-            const { schoolPackage, school, studentPackage, bookingStudents, ...pureSchema } = bookingData;
-            const bookingModel = new BookingModel(pureSchema);
-            
-            // Map relations from query result
-            bookingModel.relations = {
-                schoolPackage: schoolPackage,
-                school: school,
-                studentPackage: studentPackage,
-                bookingStudents: bookingStudents
-            };
-            
-            return bookingModel;
-        });
+        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
         
         return bookings;
     } catch (error) {

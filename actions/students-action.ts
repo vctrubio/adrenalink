@@ -4,8 +4,18 @@ import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { student, school, schoolStudents, type StudentForm, type StudentType } from "@/drizzle/schema";
-import { StudentModel } from "@/backend/models";
+import { createStudentModel, type StudentModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+
+const studentWithRelations = {
+    schoolStudents: {
+        with: {
+            school: true
+        }
+    },
+    studentPackages: true,
+    bookingStudents: true
+};
 
 // CREATE
 export async function createStudent(studentSchema: StudentForm) {
@@ -23,31 +33,10 @@ export async function createStudent(studentSchema: StudentForm) {
 export async function getStudents(): Promise<ApiActionResponseModelArray<StudentType>> {
     try {
         const result = await db.query.student.findMany({
-            with: {
-                schoolStudents: {
-                    with: {
-                        school: true
-                    }
-                }
-            }
+            with: studentWithRelations
         });
         
-        const students: StudentModel[] = result.map(studentData => {
-            const { schoolStudents, ...pureSchema } = studentData;
-            const studentModel = new StudentModel(pureSchema);
-            
-            // Map relations from query result
-            studentModel.relations = {
-                schoolStudents: schoolStudents
-            };
-            
-            // Calculate lambda values
-            studentModel.lambda = {
-                schoolCount: schoolStudents.length
-            };
-            
-            return studentModel;
-        });
+        const students: StudentModel[] = result.map(studentData => createStudentModel(studentData));
         
         return students;
     } catch (error) {
@@ -60,30 +49,11 @@ export async function getStudentById(id: string): Promise<ApiActionResponseModel
     try {
         const result = await db.query.student.findFirst({
             where: eq(student.id, id),
-            with: {
-                schoolStudents: {
-                    with: {
-                        school: true
-                    }
-                }
-            }
+            with: studentWithRelations
         });
         
         if (result) {
-            const { schoolStudents, ...pureSchema } = result;
-            const studentModel = new StudentModel(pureSchema);
-            
-            // Map relations from query result
-            studentModel.relations = {
-                schoolStudents: schoolStudents
-            };
-            
-            // Calculate lambda values
-            studentModel.lambda = {
-                schoolCount: schoolStudents.length
-            };
-            
-            return studentModel;
+            return createStudentModel(result);
         }
         return { error: "Student not found" };
     } catch (error) {

@@ -11,8 +11,17 @@ import {
     type StudentPackageForm, 
     type StudentPackageType 
 } from "@/drizzle/schema";
-import { StudentPackageModel } from "@/backend/models";
+import { createStudentPackageModel, type StudentPackageModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+
+const studentPackageWithRelations = {
+    student: true,
+    schoolPackage: {
+        with: {
+            school: true
+        }
+    }
+};
 
 // CREATE - Student requests a package
 export async function createStudentPackageRequest(requestData: StudentPackageForm): Promise<ApiActionResponseModel<StudentPackageType>> {
@@ -51,7 +60,7 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
         revalidatePath("/schools");
         revalidatePath("/packages");
         
-        return new StudentPackageModel(result[0]);
+        return createStudentPackageModel(result[0]);
     } catch (error) {
         console.error("Error creating student package request:", error);
         return { error: "Failed to create package request" };
@@ -62,28 +71,10 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
 export async function getStudentPackageRequests(): Promise<ApiActionResponseModelArray<StudentPackageType>> {
     try {
         const result = await db.query.studentPackage.findMany({
-            with: {
-                student: true,
-                schoolPackage: {
-                    with: {
-                        school: true
-                    }
-                }
-            },
+            with: studentPackageWithRelations,
         });
 
-        const studentPackages: StudentPackageModel[] = result.map((packageData) => {
-            const { student: studentData, schoolPackage: packageWithSchool, ...pureSchema } = packageData;
-            const packageModel = new StudentPackageModel(pureSchema);
-
-            // Map relations from query result
-            packageModel.relations = {
-                student: studentData,
-                schoolPackage: packageWithSchool,
-            };
-
-            return packageModel;
-        });
+        const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
 
         return studentPackages;
     } catch (error) {
@@ -130,14 +121,7 @@ export async function getStudentPackagesByStudentId(studentId: string): Promise<
 export async function getStudentPackagesBySchoolId(schoolId: string): Promise<ApiActionResponseModelArray<StudentPackageType>> {
     try {
         const result = await db.query.studentPackage.findMany({
-            with: {
-                student: true,
-                schoolPackage: {
-                    with: {
-                        school: true
-                    }
-                }
-            },
+            with: studentPackageWithRelations,
         });
 
         // Filter by school ID after fetching (since we need to check nested relation)
@@ -178,15 +162,7 @@ export async function getStudentPackageById(id: string): Promise<ApiActionRespon
         });
 
         if (result) {
-            const { student: studentData, schoolPackage: packageWithSchool, ...pureSchema } = result;
-            const packageModel = new StudentPackageModel(pureSchema);
-
-            packageModel.relations = {
-                student: studentData,
-                schoolPackage: packageWithSchool,
-            };
-
-            return packageModel;
+            return createStudentPackageModel(result);
         }
         return { error: "Student package request not found" };
     } catch (error) {
@@ -218,7 +194,7 @@ export async function updateStudentPackageRequest(
         revalidatePath("/schools");
         revalidatePath("/packages");
         
-        return new StudentPackageModel(result[0]);
+        return createStudentPackageModel(result[0]);
     } catch (error) {
         console.error("Error updating student package request:", error);
         return { error: "Failed to update package request" };

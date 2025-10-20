@@ -4,8 +4,14 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { schoolPackage, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
-import { SchoolPackageModel } from "@/backend/models";
+import { createSchoolPackageModel, type SchoolPackageModel } from "@/backend/models";
 import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+
+const schoolPackageWithRelations = {
+    school: true,
+    studentPackages: true,
+    bookings: true
+};
 
 // CREATE
 export async function createPackage(packageSchema: SchoolPackageForm) {
@@ -23,22 +29,10 @@ export async function createPackage(packageSchema: SchoolPackageForm) {
 export async function getPackages(): Promise<ApiActionResponseModelArray<SchoolPackageType>> {
     try {
         const result = await db.query.schoolPackage.findMany({
-            with: {
-                school: true
-            }
+            with: schoolPackageWithRelations
         });
         
-        const packages: SchoolPackageModel[] = result.map(packageData => {
-            const { school, ...pureSchema } = packageData;
-            const packageModel = new SchoolPackageModel(pureSchema);
-            
-            // Map relations from query result
-            packageModel.relations = {
-                school: school
-            };
-            
-            return packageModel;
-        });
+        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
         
         return packages;
     } catch (error) {
@@ -51,21 +45,11 @@ export async function getPackageById(id: string): Promise<ApiActionResponseModel
     try {
         const result = await db.query.schoolPackage.findFirst({
             where: eq(schoolPackage.id, id),
-            with: {
-                school: true
-            }
+            with: schoolPackageWithRelations
         });
         
         if (result) {
-            const { school, ...pureSchema } = result;
-            const packageModel = new SchoolPackageModel(pureSchema);
-            
-            // Map relations from query result
-            packageModel.relations = {
-                school: school
-            };
-            
-            return packageModel;
+            return createSchoolPackageModel(result);
         }
         return { error: "Package not found" };
     } catch (error) {
@@ -78,22 +62,10 @@ export async function getPackagesBySchoolId(schoolId: string): Promise<ApiAction
     try {
         const result = await db.query.schoolPackage.findMany({
             where: eq(schoolPackage.schoolId, schoolId),
-            with: {
-                school: true
-            }
+            with: schoolPackageWithRelations
         });
         
-        const packages: SchoolPackageModel[] = result.map(packageData => {
-            const { school, ...pureSchema } = packageData;
-            const packageModel = new SchoolPackageModel(pureSchema);
-            
-            // Map relations from query result
-            packageModel.relations = {
-                school: school
-            };
-            
-            return packageModel;
-        });
+        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
         
         return packages;
     } catch (error) {
