@@ -10,6 +10,9 @@ export class SchoolModel extends AbstractModel<SchoolType> {
         studentCount?: number;
         packageCount?: number;
         totalStudentRequests?: number;
+        timezone?: string;
+        city?: string;
+        equipmentList?: string[];
     };
 
     constructor(schema: SchoolType) {
