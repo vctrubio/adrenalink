@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 /**
  * New Relic agent configuration.
  *
@@ -9,18 +9,18 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: ['My Application'],
+  app_name: ["My Application"],
   /**
    * Your New Relic license key.
    */
-  license_key: 'license key here',
+  license_key: "license key here",
   logging: {
     /**
      * Level at which to log. 'trace' is most useful to New Relic when diagnosing
      * issues with the agent, 'info' and higher will impose the least overhead on
      * production applications.
      */
-    level: 'info'
+    level: "info"
   },
   /**
    * This provides instrumentation for `setTimeout` and `setInterval` calls.
@@ -48,16 +48,16 @@ exports.config = {
      * @name NEW_RELIC_ATTRIBUTES_EXCLUDE
      */
     exclude: [
-      'request.headers.cookie',
-      'request.headers.authorization',
-      'request.headers.proxyAuthorization',
-      'request.headers.setCookie*',
-      'request.headers.x*',
-      'response.headers.cookie',
-      'response.headers.authorization',
-      'response.headers.proxyAuthorization',
-      'response.headers.setCookie*',
-      'response.headers.x*'
+      "request.headers.cookie",
+      "request.headers.authorization",
+      "request.headers.proxyAuthorization",
+      "request.headers.setCookie*",
+      "request.headers.x*",
+      "response.headers.cookie",
+      "response.headers.authorization",
+      "response.headers.proxyAuthorization",
+      "response.headers.setCookie*",
+      "response.headers.x*"
     ]
   }
-}
+};
