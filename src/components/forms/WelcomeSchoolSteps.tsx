@@ -162,7 +162,7 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                             <label
                                 key={cat}
                                 className={`cursor-pointer select-none border rounded-md px-3 py-2 text-sm flex items-center justify-center gap-2 transition-colors
-                                ${checked ? "bg-secondary text-secondary-foreground border-secondary" : "bg-background border-input hover:bg-accent"}
+                                ${checked ? "bg-blue-200 text-blue-900 border-blue-300" : "bg-background border-input hover:bg-accent"}
                             `}
                             >
                                 <input type="checkbox" value={cat} className="hidden" {...register("equipmentCategories")} />

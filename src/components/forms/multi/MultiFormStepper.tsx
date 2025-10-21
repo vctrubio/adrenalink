@@ -28,7 +28,7 @@ export function MultiFormStepper({ steps, currentStep, onStepClick }: MultiFormS
                             >
                                 <div
                                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                                    ${complete ? "bg-secondary text-white" : active ? "bg-secondary text-white" : "bg-muted text-muted-foreground border-2 border-muted"}
+                                    ${complete ? "bg-blue-100 text-blue-800" : active ? "bg-blue-200 text-blue-900" : "bg-muted text-muted-foreground border-2 border-muted"}
                                 `}
                                 >
                                     {complete ? <CheckCircle2 className="w-5 h-5" /> : step.id}
@@ -39,7 +39,7 @@ export function MultiFormStepper({ steps, currentStep, onStepClick }: MultiFormS
                             </button>
                             
                             {!isLast && (
-                                <div className={`h-0.5 w-16 mx-2 transition-all ${complete ? "bg-secondary" : "bg-muted"}`} />
+                                <div className={`h-0.5 w-16 mx-2 transition-all ${complete ? "bg-blue-200" : "bg-muted"}`} />
                             )}
                         </div>
                     );
