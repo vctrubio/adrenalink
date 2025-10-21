@@ -4,14 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { getHeaderUsername } from "@/types/headers";
-import { 
-    studentPackage, 
-    student, 
-    schoolPackage, 
-    school,
-    type StudentPackageForm, 
-    type StudentPackageType 
-} from "@/drizzle/schema";
+import { studentPackage, student, schoolPackage, school, type StudentPackageForm } from "@/drizzle/schema";
 import { createStudentPackageModel, type StudentPackageModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
 
@@ -19,19 +12,16 @@ const studentPackageWithRelations = {
     student: true,
     schoolPackage: {
         with: {
-            school: true
-        }
-    }
+            school: true,
+        },
+    },
 };
 
 // CREATE - Student requests a package
-export async function createStudentPackageRequest(requestData: StudentPackageForm): Promise<ApiActionResponseModel<StudentPackageType>> {
+export async function createStudentPackageRequest(requestData: StudentPackageForm): Promise<ApiActionResponseModel<StudentPackageModel>> {
     try {
         // Validate that the student and package exist
-        const [studentExists, packageExists] = await Promise.all([
-            db.select({ id: student.id }).from(student).where(eq(student.id, requestData.studentId)),
-            db.select({ id: schoolPackage.id }).from(schoolPackage).where(eq(schoolPackage.id, requestData.packageId))
-        ]);
+        const [studentExists, packageExists] = await Promise.all([db.select({ id: student.id }).from(student).where(eq(student.id, requestData.studentId)), db.select({ id: schoolPackage.id }).from(schoolPackage).where(eq(schoolPackage.id, requestData.packageId))]);
 
         if (studentExists.length === 0) {
             return { success: false, error: "Student not found" };
@@ -45,12 +35,7 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
         const existingRequest = await db
             .select()
             .from(studentPackage)
-            .where(
-                and(
-                    eq(studentPackage.studentId, requestData.studentId),
-                    eq(studentPackage.packageId, requestData.packageId)
-                )
-            );
+            .where(and(eq(studentPackage.studentId, requestData.studentId), eq(studentPackage.packageId, requestData.packageId)));
 
         if (existingRequest.length > 0) {
             return { success: false, error: "Student already has a request for this package" };
@@ -60,7 +45,7 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
         revalidatePath("/students");
         revalidatePath("/schools");
         revalidatePath("/packages");
-        
+
         return { success: true, data: createStudentPackageModel(result[0]) };
     } catch (error) {
         console.error("Error creating student package request:", error);
@@ -72,23 +57,23 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
 export async function getStudentPackageRequests(): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
     try {
         const header = await getHeaderUsername();
-        
+
         let result: any[];
         if (header) {
             // Filter by school username - find school first, then filter packages
             const schoolWithUsername = await db.query.school.findFirst({
                 where: eq(school.username, header),
-                columns: { id: true }
+                columns: { id: true },
             });
-            
+
             if (schoolWithUsername) {
                 // Get all student packages, then filter by school
                 const allPackages = await db.query.studentPackage.findMany({
-                    with: studentPackageWithRelations
+                    with: studentPackageWithRelations,
                 });
-                
+
                 // Filter by school ID after fetching
-                result = allPackages.filter(pkg => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
+                result = allPackages.filter((pkg) => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
             } else {
                 result = [];
             }
@@ -99,15 +84,11 @@ export async function getStudentPackageRequests(): Promise<ApiActionResponseMode
             });
         }
 
-        if (result) {
-            const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
-            return studentPackages;
-        }
-        
-        return { error: "No student package requests found" };
+        const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
+        return { success: true, data: studentPackages };
     } catch (error) {
         console.error("Error fetching student package requests:", error);
-        return { error: "Failed to fetch package requests" };
+        return { success: false, error: "Failed to fetch package requests" };
     }
 }
 
@@ -119,15 +100,11 @@ export async function getStudentPackagesByStudentId(studentId: string): Promise<
             with: studentPackageWithRelations,
         });
 
-        if (result) {
-            const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
-            return studentPackages;
-        }
-        
-        return { error: "No student packages found" };
+        const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
+        return { success: true, data: studentPackages };
     } catch (error) {
         console.error("Error fetching student packages:", error);
-        return { error: "Failed to fetch student packages" };
+        return { success: false, error: "Failed to fetch student packages" };
     }
 }
 
@@ -135,21 +112,21 @@ export async function getStudentPackagesByStudentId(studentId: string): Promise<
 export async function getStudentPackagesBySchoolId(schoolId: string): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
     try {
         const header = await getHeaderUsername();
-        
+
         let result;
         if (header) {
             // Filter by school username - find school first, then filter packages
             const schoolWithUsername = await db.query.school.findFirst({
                 where: eq(school.username, header),
-                columns: { id: true }
+                columns: { id: true },
             });
-            
+
             if (schoolWithUsername) {
                 result = await db.query.studentPackage.findMany({
                     with: studentPackageWithRelations,
                 });
                 // Filter by school ID after fetching
-                result = result.filter(pkg => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
+                result = result.filter((pkg) => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
             } else {
                 result = [];
             }
@@ -159,7 +136,7 @@ export async function getStudentPackagesBySchoolId(schoolId: string): Promise<Ap
                 with: studentPackageWithRelations,
             });
             // Filter by school ID after fetching (since we need to check nested relation)
-            result = result.filter(pkg => pkg.schoolPackage?.school?.id === schoolId);
+            result = result.filter((pkg) => pkg.schoolPackage?.school?.id === schoolId);
         }
 
         const studentPackages: StudentPackageModel[] = result.map((packageData) => createStudentPackageModel(packageData));
@@ -179,9 +156,9 @@ export async function getStudentPackageById(id: string): Promise<ApiActionRespon
                 student: true,
                 schoolPackage: {
                     with: {
-                        school: true
-                    }
-                }
+                        school: true,
+                    },
+                },
             },
         });
 
@@ -196,16 +173,13 @@ export async function getStudentPackageById(id: string): Promise<ApiActionRespon
 }
 
 // UPDATE - Update student package request (mainly for status changes)
-export async function updateStudentPackageRequest(
-    id: string, 
-    updateData: Partial<StudentPackageForm>
-): Promise<ApiActionResponseModel<StudentPackageModel>> {
+export async function updateStudentPackageRequest(id: string, updateData: Partial<StudentPackageForm>): Promise<ApiActionResponseModel<StudentPackageModel>> {
     try {
         const result = await db
             .update(studentPackage)
             .set({
                 ...updateData,
-                updatedAt: new Date()
+                updatedAt: new Date(),
             })
             .where(eq(studentPackage.id, id))
             .returning();
@@ -217,7 +191,7 @@ export async function updateStudentPackageRequest(
         revalidatePath("/students");
         revalidatePath("/schools");
         revalidatePath("/packages");
-        
+
         return { success: true, data: createStudentPackageModel(result[0]) };
     } catch (error) {
         console.error("Error updating student package request:", error);
@@ -236,21 +210,21 @@ export async function rejectStudentPackageRequest(id: string): Promise<ApiAction
 }
 
 // DELETE - Cancel student package request
-export async function cancelStudentPackageRequest(id: string): Promise<boolean | { error: string }> {
+export async function cancelStudentPackageRequest(id: string): Promise<ApiActionResponseModel<null>> {
     try {
         const result = await db.delete(studentPackage).where(eq(studentPackage.id, id)).returning();
-        
+
         if (result.length === 0) {
-            return { error: "Student package request not found" };
+            return { success: false, error: "Student package request not found" };
         }
 
         revalidatePath("/students");
         revalidatePath("/schools");
         revalidatePath("/packages");
-        
-        return true;
+
+        return { success: true, data: null };
     } catch (error) {
         console.error("Error canceling student package request:", error);
-        return { error: "Failed to cancel package request" };
+        return { success: false, error: "Failed to cancel package request" };
     }
 }
