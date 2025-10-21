@@ -4,6 +4,14 @@
 
 @variant dark (.dark &);
 
+/* Font Variables */
+:root {
+    --font-sans: 'Geist', 'Geist Fallback';
+    --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+    --font-serif: 'Geist Serif', 'Geist Serif Fallback';
+    --font-display: 'Geist Display', 'Geist Display Fallback';
+}
+
 
 /* Global focus and outline styles - exclude form inputs */
 *:not(input):not(select):not(textarea) {
@@ -18,12 +26,4 @@
 *:not(input):not(select):not(textarea):focus-visible {
     outline: none !important;
     box-shadow: none !important;
-}
-
-body {
-    font-family: "American Typewriter", monospace;
-}
-
-.slogan {
-    font-family: "Playwrite US Modern", cursive;
 }

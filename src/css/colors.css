@@ -1,24 +1,25 @@
 /* Adrenalink Color Schema */
 @layer base {
     :root {
-        /* Background Colors - Enhanced light mode with depth */
-        --background: 255 255 255; /* pure white */
-        --foreground: 28 28 30; /* rich dark gray, not pure black */
-        --card: 245 245 247; /* more contrasted card background */
-        --card-foreground: 28 28 30; /* rich dark gray */
-        --popover: 255 255 255; /* pure white */
-        --popover-foreground: 28 28 30; /* rich dark gray */
+        /* Background Colors - Landing hero gradient background */
+        --background: 248 250 252; /* slate-50 */
+        --foreground: 30 41 59; /* slate-800 - rich dark gray */
+        --card: 241 245 249; /* slate-100 */
+        --card-foreground: 30 41 59; /* slate-800 */
+        --popover: 248 250 252; /* slate-50 */
+        --popover-foreground: 30 41 59; /* slate-800 */
 
         /* Muted Colors - Enhanced contrast for depth */
-        --muted: 235 235 240; /* deeper muted with more contrast */
-        --muted-foreground: 102 102 107; /* darker muted text for better contrast */
+        --muted: 226 232 240; /* slate-200 */
+        --muted-foreground: 100 116 139; /* slate-500 */
 
         /* Accent Colors */
-        --accent: 235 235 240; /* matching muted for consistency */
-        --accent-foreground: 28 28 30; /* rich dark gray */
+        --accent: 226 232 240; /* slate-200 */
+        --accent-foreground: 30 41 59; /* slate-800 */
 
-        --primary: 0 150 120; /* darker neon blue-green for readability */
-        --secondary: 52 199 89; /* Apple's system green */
+        /* Primary Colors - Blue from "connecting students and teachers" */
+        --primary: 30 41 59; /* slate-800 - main text color */
+        --secondary: 59 130 246; /* blue-500 - the blue accent */
         --tertiary: 255 149 0; /* Apple's system orange */
         --fourth: 175 82 222; /* Apple's system purple */
         --fifth: 255 45 85; /* Apple's system pink */
@@ -27,31 +28,31 @@
         --warning: 255 149 0; /* light orange for warnings */
 
         /* Border and Ring - Enhanced contrast for definition */
-        --border: 199 199 204; /* stronger border for better definition */
-        --input: 199 199 204; /* stronger input borders */
-        --ring: 0 255 204; /* neon blue-green */
+        --border: 203 213 225; /* slate-300 */
+        --input: 203 213 225; /* slate-300 */
+        --ring: 59 130 246; /* blue-500 */
     }
 
     .dark {
-        /* Background Colors */
-        --background: 0 0 0; /* black */
-        --foreground: 255 255 255; /* white */
-        --card: 17 24 39; /* gray-900 */
-        --card-foreground: 249 250 251; /* gray-50 */
-        --popover: 0 0 0; /* black */
-        --popover-foreground: 255 255 255; /* white */
+        /* Background Colors - Landing hero dark gradient background */
+        --background: 15 23 42; /* slate-900 */
+        --foreground: 248 250 252; /* slate-50 - light text */
+        --card: 30 41 59; /* slate-800 */
+        --card-foreground: 248 250 252; /* slate-50 */
+        --popover: 15 23 42; /* slate-900 */
+        --popover-foreground: 248 250 252; /* slate-50 */
 
         /* Muted Colors */
-        --muted: 55 65 81; /* gray-700 */
-        --muted-foreground: 156 163 175; /* gray-400 */
+        --muted: 51 65 85; /* slate-700 */
+        --muted-foreground: 148 163 184; /* slate-400 */
 
         /* Accent Colors */
-        --accent: 55 65 81; /* gray-700 */
-        --accent-foreground: 249 250 251; /* gray-50 */
+        --accent: 51 65 85; /* slate-700 */
+        --accent-foreground: 248 250 252; /* slate-50 */
 
-        /* Primary Colors */
-        --primary: 0 200 160; /* brighter neon blue-green for dark mode */
-        --secondary: 48 209 88; /* Apple green dark mode */
+        /* Primary Colors - Consistent with light mode */
+        --primary: 248 250 252; /* slate-50 - light text for dark mode */
+        --secondary: 96 165 250; /* blue-400 - brighter blue for dark mode */
         --tertiary: 255 159 10; /* Apple orange dark mode */
         --fourth: 191 90 242; /* Apple purple dark mode */
         --fifth: 255 55 95; /* Apple pink dark mode */
@@ -60,9 +61,9 @@
         --warning: 255 159 10; /* light orange for warnings dark mode */
 
         /* Border and Ring */
-        --border: 55 65 81; /* gray-700 */
-        --input: 55 65 81; /* gray-700 */
-        --ring: 57 255 204; /* neon blue-green dark mode */
+        --border: 51 65 85; /* slate-700 */
+        --input: 51 65 85; /* slate-700 */
+        --ring: 96 165 250; /* blue-400 */
     }
 
     /* Pantone Color Palette */
