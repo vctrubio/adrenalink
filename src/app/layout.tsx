@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import "../css/globals.css";
 import Providers from "../providers/theme-provider";
 import WalletProvider from "../providers/wallet-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
     title: "Adrenalink",
@@ -24,6 +25,7 @@ export default function RootLayout({
                     <Providers>
                         <WalletProvider>{children}</WalletProvider>
                     </Providers>
+                    <Analytics />
                 </div>
             </body>
         </html>
