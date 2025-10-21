@@ -82,7 +82,7 @@ export function LocationStep({
                 }
 
                 const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${apiKey}&types=establishment|geocode`;
-                console.log("📡 Making HTTP API request to:", url.replace(apiKey, 'API_KEY_HIDDEN'));
+                console.log("📡 Making HTTP API request to:", url.replace(apiKey, "API_KEY_HIDDEN"));
 
                 // Use a proxy endpoint to avoid CORS issues
                 const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
@@ -90,7 +90,7 @@ export function LocationStep({
 
                 console.log("📨 API Response:", data);
                 
-                if (data.status === 'OK' && data.predictions) {
+                if (data.status === "OK" && data.predictions) {
                     console.log("✅ Places found:", data.predictions.slice(0, 5));
                     setGooglePlaces(data.predictions.slice(0, 5));
                 } else {
@@ -115,7 +115,7 @@ export function LocationStep({
 
             console.log("📨 Place details response:", data);
 
-            if (data.status === 'OK' && data.result) {
+            if (data.status === "OK" && data.result) {
                 const result = data.result;
                 setSelectedPlace(result);
                 

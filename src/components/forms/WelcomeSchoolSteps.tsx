@@ -1,22 +1,44 @@
 "use client";
 
-import { FormField, FormInput, FormButton } from "@/src/components/ui/form";
+import { FormField, FormInput } from "@/src/components/ui/form";
 import { LocationStep } from "./LocationStep";
 import { Building, MapPin, Tag, CheckCircle2 } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
-import { UseFormReturn } from "react-hook-form";
+import { z } from "zod";
 
 const EQUIPMENT_CATEGORIES = ["kite", "wing", "windsurf", "surf", "snowboard"] as const;
 
-export const WELCOME_SCHOOL_STEPS: FormStep[] = [
+// Define the schema types
+const nameSchema = z.object({
+    name: z.string().min(1, "School name is required"),
+    username: z.string().min(1, "Username is required"),
+});
+
+const locationSchema = z.object({
+    country: z.string().min(1, "Country is required"),
+    phone: z.string().min(1, "Phone number is required"),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+    googlePlaceId: z.string().optional(),
+});
+
+const categoriesSchema = z.object({
+    equipmentCategories: z.array(z.enum(EQUIPMENT_CATEGORIES)).min(1, "Select at least one equipment category"),
+});
+
+const schoolSchema = nameSchema.merge(locationSchema).merge(categoriesSchema);
+
+export type SchoolFormData = z.infer<typeof schoolSchema>;
+
+export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 1, title: "Name", icon: <Building className="w-4 h-4" />, fields: ["name", "username"] },
     { id: 2, title: "Location", icon: <MapPin className="w-4 h-4" />, fields: ["country", "phone", "latitude", "longitude", "googlePlaceId"] },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
     { id: 4, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
-interface NameStepProps extends BaseStepProps {
+interface NameStepProps extends BaseStepProps<SchoolFormData> {
     isGeneratingUsername: boolean;
     usernameStatus: "available" | "unavailable" | "checking" | null;
     onNameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -89,7 +111,7 @@ export function NameStep({
     );
 }
 
-interface LocationStepWrapperProps extends BaseStepProps {
+interface LocationStepWrapperProps extends BaseStepProps<SchoolFormData> {
     onCountryChange: (country: string) => void;
     onPhoneChange: (phone: string) => void;
     onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string }) => void;
@@ -122,9 +144,7 @@ export function LocationStepWrapper({
     );
 }
 
-interface CategoriesStepProps extends BaseStepProps {}
-
-export function CategoriesStep({ formMethods }: CategoriesStepProps) {
+export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     const { register, formState: { errors }, watch } = formMethods;
     const values = watch();
     return (
@@ -156,8 +176,8 @@ export function CategoriesStep({ formMethods }: CategoriesStepProps) {
     );
 }
 
-interface SummaryStepProps extends BaseStepProps {
-    onEditField: (field: string) => void;
+interface SummaryStepProps extends BaseStepProps<SchoolFormData> {
+    onEditField: (field: keyof SchoolFormData) => void;
 }
 
 export function SummaryStep({ formMethods, onEditField }: SummaryStepProps) {

@@ -8,36 +8,23 @@ import { createSchool, getSchoolsUsernames, checkUsernameAvailability } from "@/
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 import { MultiFormContainer } from "./multi";
-import { NameStep, LocationStepWrapper, CategoriesStep, SummaryStep, WELCOME_SCHOOL_STEPS } from "./WelcomeSchoolSteps";
+import { NameStep, LocationStepWrapper, CategoriesStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
 
-// Step 1: Name schema
-const nameSchema = z.object({
+// Main school schema with validation
+const schoolSchema = z.object({
     name: z.string().min(1, "School name is required"),
     username: z
         .string()
         .min(1, "Username is required")
         .regex(/^[a-z0-9_]+$/, "Username can only contain lowercase letters, numbers, and underscores")
         .refine((username) => !isUsernameReserved(username), { message: "This username is reserved and cannot be used" }),
-});
-
-// Step 2: Location schema
-const locationSchema = z.object({
     country: z.string().min(1, "Country is required"),
     phone: z.string().min(1, "Phone number is required"),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
     googlePlaceId: z.string().optional(),
+    equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf", "surf", "snowboard"])).min(1, "Select at least one equipment category"),
 });
-
-// Step 3: Categories schema
-const EQUIPMENT_CATEGORIES = ["kite", "wing", "windsurf", "surf", "snowboard"] as const;
-const categoriesSchema = z.object({
-    equipmentCategories: z.array(z.enum(EQUIPMENT_CATEGORIES)).min(1, "Select at least one equipment category"),
-});
-
-const schoolSchema = nameSchema.merge(locationSchema).merge(categoriesSchema);
-
-type SchoolFormData = z.infer<typeof schoolSchema>;
 
 
 // Username generation utilities
@@ -84,7 +71,7 @@ export function WelcomeSchoolForm() {
     });
 
     const { setValue, setFocus } = methods;
-    const { clearPhone, triggerPhoneClear } = usePhoneClear();
+    const { triggerPhoneClear } = usePhoneClear();
 
     const editField = (field: keyof SchoolFormData) => {
         const targetIdx = WELCOME_SCHOOL_STEPS.findIndex((s) => s.fields?.includes(field));
@@ -228,7 +215,7 @@ export function WelcomeSchoolForm() {
     };
 
     return (
-        <MultiFormContainer
+        <MultiFormContainer<SchoolFormData>
             steps={WELCOME_SCHOOL_STEPS}
             formMethods={methods}
             onSubmit={onSubmit}

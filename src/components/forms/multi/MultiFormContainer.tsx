@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, FieldValues } from "react-hook-form";
 import { Form } from "@/src/components/ui/form";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
 import { MultiFormStepper } from "./MultiFormStepper";
 import { MultiFormButtons } from "./MultiFormButtons";
 import type { FormStep } from "./types";
 
-interface MultiFormContainerProps<T = any> {
+interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Form configuration
-    steps: FormStep[];
+    steps: FormStep<T>[];
     formMethods: UseFormReturn<T>;
     onSubmit: (data: T) => Promise<void>;
     
@@ -35,7 +35,7 @@ interface MultiFormContainerProps<T = any> {
     navSlogan?: string;
 }
 
-export function MultiFormContainer<T = any>({
+export function MultiFormContainer<T extends FieldValues = FieldValues>({
     steps,
     formMethods,
     onSubmit,
@@ -56,7 +56,7 @@ export function MultiFormContainer<T = any>({
     // Navigation functions
     const next = async () => {
         const currentFields = steps[stepIndex].fields;
-        const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as any);
+        const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as (keyof T)[]);
         if (isValid && stepIndex < steps.length - 1) {
             const newStep = stepIndex + 1;
             setStepIndex(newStep);
@@ -130,8 +130,6 @@ export function MultiFormContainer<T = any>({
 
                 {/* Navigation */}
                 <MultiFormButtons
-                    currentStep={stepIndex}
-                    totalSteps={steps.length}
                     isFirstStep={stepIndex === 0}
                     isLastStep={stepIndex === steps.length - 1}
                     onPrev={prev}

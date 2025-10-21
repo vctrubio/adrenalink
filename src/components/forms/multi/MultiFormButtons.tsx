@@ -3,19 +3,16 @@
 import { FormButton, FormSubmit } from "@/src/components/ui/form";
 
 interface MultiFormButtonsProps {
-    currentStep: number;
-    totalSteps: number;
     isFirstStep: boolean;
     isLastStep: boolean;
     onPrev: () => void;
     onNext: () => void;
     submitButtonText?: string;
-    submitButtonColor?: string;
     backButtonText?: string;
     nextButtonText?: string;
 }
 
-export function MultiFormButtons({ currentStep, totalSteps, isFirstStep, isLastStep, onPrev, onNext, submitButtonText = "Submit", submitButtonColor, backButtonText = "Back", nextButtonText = "Next" }: MultiFormButtonsProps) {
+export function MultiFormButtons({ isFirstStep, isLastStep, onPrev, onNext, submitButtonText = "Submit", backButtonText = "Back", nextButtonText = "Next" }: MultiFormButtonsProps) {
     return (
         <div className="mt-8 flex items-center justify-between">
             {/* Back Button */}

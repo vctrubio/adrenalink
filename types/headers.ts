@@ -6,5 +6,5 @@ import { headers } from "next/headers";
  */
 export async function getHeaderUsername(): Promise<string | null> {
     const headersList = await headers();
-    return headersList.get('x-school-username');
+    return headersList.get("x-school-username");
 }
