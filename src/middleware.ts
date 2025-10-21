@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import printf from "../printf.js";
+import { detectSubdomain } from "../types/domain";
 
 export function middleware(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
@@ -7,28 +8,29 @@ export function middleware(request: NextRequest) {
     printf("MIDDLEWARE:2", request.url);
     printf("Host:", hostname);
 
-    // Check for subdomain: if it contains .lvh.me:3000 but doesn't start with lvh.me
-    if (hostname.includes(".lvh.me:3000") && !hostname.startsWith("lvh.me")) {
-        const subdomain = hostname.split(".")[0];
-        printf("SUBDOMAIN DETECTED:", subdomain);
+    // Check for subdomain using domain utilities
+    const subdomainInfo = detectSubdomain(hostname);
+    
+    if (subdomainInfo) {
+        printf("SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
 
         // Create response with school context header for all routes
         const response = NextResponse.next();
-        response.headers.set("x-school-username", subdomain);
+        response.headers.set("x-school-username", subdomainInfo.subdomain);
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
             const url = request.nextUrl.clone();
             url.pathname = "/subdomain";
-            url.searchParams.set("username", subdomain);
+            url.searchParams.set("username", subdomainInfo.subdomain);
 
             printf("🔄 REWRITING TO:", url.toString());
             const rewriteResponse = NextResponse.rewrite(url);
-            rewriteResponse.headers.set("x-school-username", subdomain);
+            rewriteResponse.headers.set("x-school-username", subdomainInfo.subdomain);
             return rewriteResponse;
         }
 
-        printf("🏫 SCHOOL CONTEXT SET:", subdomain);
+        printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
         return response;
     }
 

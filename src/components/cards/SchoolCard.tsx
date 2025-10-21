@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import type { SchoolModel } from "@/backend/models/SchoolModel";
 import { getSchoolStudentCount } from "@/getters/schools-getter";
+import { DOMAINS } from "@/types/domain";
 
 interface SchoolCardProps {
     school: SchoolModel;
@@ -24,8 +25,11 @@ export default function SchoolCard({ school }: SchoolCardProps) {
 
     const handleSubdomainClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // For development testing - use lvh.me which automatically resolves to localhost
-        const subdomainUrl = `http://${school.schema.username}.lvh.me:3000`;
+        // Determine if we're in development or production
+        const isDev = process.env.NODE_ENV === "development";
+        const domain = isDev ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION;
+        const protocol = isDev ? "http" : "https";
+        const subdomainUrl = `${protocol}://${school.schema.username}${domain}`;
         window.open(subdomainUrl, "_blank");
     };
 
@@ -46,11 +50,13 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                         <p className="text-sm font-medium text-foreground">
                             {studentCount} {studentCount === 1 ? "Student" : "Students"}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">{school.schema.username}.lvh.me:3000</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {school.schema.username}{process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}
+                        </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <button onClick={handleSubdomainClick} className="p-2 hover:bg-blue-500/20 border border-blue-500/30 rounded-md transition-colors group" aria-label="Test subdomain portal" title={`Open ${school.schema.username}.lvh.me:3000`}>
+                        <button onClick={handleSubdomainClick} className="p-2 hover:bg-blue-500/20 border border-blue-500/30 rounded-md transition-colors group" aria-label="Test subdomain portal" title={`Open ${school.schema.username}${process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}`}>
                             <ExternalLink className="h-4 w-4 text-blue-500 group-hover:text-blue-400" />
                         </button>
 

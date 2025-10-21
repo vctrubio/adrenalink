@@ -8,6 +8,7 @@
  */
 
 import { RESERVED_USERNAMES } from "@/config/predefinedNames";
+import { DOMAINS, BASE_DOMAINS } from "@/types/domain";
 
 interface SubdomainConfig {
     /** Main domain (without subdomain) */
@@ -25,7 +26,7 @@ interface SubdomainConfig {
 const isDevelopment = process.env.NODE_ENV === "development";
 
 const DEVELOPMENT_CONFIG: SubdomainConfig = {
-    mainDomain: "lvh.me",
+    mainDomain: BASE_DOMAINS.DEVELOPMENT,
     port: ":3000",
     protocol: "http",
     exampleSubdomain: "mit",
@@ -33,7 +34,7 @@ const DEVELOPMENT_CONFIG: SubdomainConfig = {
 };
 
 const PRODUCTION_CONFIG: SubdomainConfig = {
-    mainDomain: "adrenalink.tech",
+    mainDomain: BASE_DOMAINS.PRODUCTION,
     port: "",
     protocol: "https",
     exampleSubdomain: "mit",
