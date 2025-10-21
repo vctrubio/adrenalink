@@ -4,7 +4,7 @@ import { Home, Code, Settings, User, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
-import ToggleTheme from "../toggle-theme";
+import ToggleTheme from "../themes/toggle-theme";
 import { ENTITY_DATA } from "../../../config/entities";
 
 const navigationItems = [
