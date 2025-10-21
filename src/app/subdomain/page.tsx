@@ -1,5 +1,5 @@
 import { getSchoolById } from "@/actions/schools-action";
-import SchoolSubdomain from "@/src/portals/SchoolSubdomain";
+import SchoolSubdomain from "@/src/portals/SchoolDebugSubdomain";
 
 interface SubdomainPageProps {
     searchParams: Promise<{

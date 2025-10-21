@@ -1,6 +1,5 @@
 import SchoolCard from "@/src/components/cards/SchoolCard";
 import { getSchools } from "@/actions/schools-action";
-import type { SchoolModel } from "@/backend/models/SchoolModel";
 import LandingPage from "@/src/components/Home";
 
 export default async function Home() {

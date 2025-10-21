@@ -6,9 +6,9 @@ interface SchoolSubdomainProps {
     school: SchoolModel;
 }
 
-export default function SchoolSubdomain({ school }: SchoolSubdomainProps) {
+export default function SchoolDebugSubdomain({ school }: SchoolSubdomainProps) {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white border">
             <div className="container mx-auto px-6 py-12">
                 {/* Welcome Header */}
                 <div className="text-center mb-12">

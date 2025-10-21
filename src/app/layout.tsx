@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 import "../css/globals.css";
 import Providers from "../providers/theme-provider";
 import WalletProvider from "../providers/wallet-provider";
-import Navbar from "../components/navigations/Navbar";
 
 export const metadata: Metadata = {
     title: "Adrenalink",
@@ -23,7 +22,6 @@ export default function RootLayout({
             <body className="min-h-screen bg-background text-foreground">
                 <Providers>
                     <WalletProvider>
-                        <Navbar />
                         {children}
                     </WalletProvider>
                 </Providers>
