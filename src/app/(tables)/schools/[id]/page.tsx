@@ -8,9 +8,9 @@ interface SchoolPageProps {
 
 export default async function SchoolPage({ params }: SchoolPageProps) {
     const { id: username } = await params;
-    const data: SchoolModel | { error: string } = await getSchoolById(username, true);
+    const result = await getSchoolById(username, true);
 
-    if ("error" in data) {
+    if (!result.success) {
         return (
             <div className="p-8">
                 <h1 className="text-2xl font-bold text-foreground mb-4">School Not Found</h1>
@@ -21,8 +21,8 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
 
     return (
         <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-8">{getSchoolName(data.schema)}</h1>
-            <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">{JSON.stringify(data, null, 2)}</pre>
+            <h1 className="text-2xl font-bold text-foreground mb-8">{getSchoolName(result.data.schema)}</h1>
+            <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">{JSON.stringify(result.data, null, 2)}</pre>
         </div>
     );
 }

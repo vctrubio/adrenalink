@@ -7,10 +7,10 @@ import type { StudentModel } from "@/backend/models";
 export default async function StudentsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "Student")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: StudentModel[] | { error: string } = await getStudents();
+    const result = await getStudents();
 
-    if ("error" in data) {
-        return <>{data.error}</>;
+    if (!result.success) {
+        return <>{result.error}</>;
     }
 
     return (
@@ -19,11 +19,11 @@ export default async function StudentsPage() {
 
             <div className="mt-8">
                 <h2 className="text-xl font-semibold text-foreground mb-4">All Students</h2>
-                {data.length === 0 ? (
+                {result.data.length === 0 ? (
                     <p className="text-muted-foreground">No students found</p>
                 ) : (
                     <div className="space-y-4">
-                        {data.map((student) => (
+                        {result.data.map((student) => (
                             <StudentCard
                                 key={student.schema.id}
                                 student={student}

@@ -2,24 +2,24 @@
 
 import { eq, notInArray, exists, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
-import { student, school, schoolStudents, type StudentForm, type StudentType } from "@/drizzle/schema";
+import { getHeaderUsername } from "@/types/headers";
+import { student, school, schoolStudents, type StudentForm, type StudentType, type SchoolType, type SchoolStudentType } from "@/drizzle/schema";
 import { createStudentModel, type StudentModel } from "@/backend/models";
-import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 const studentWithRelations = {
     schoolStudents: {
         with: {
-            school: true
-        }
+            school: true,
+        },
     },
     studentPackages: true,
-    bookingStudents: true
+    bookingStudents: true,
 };
 
 // CREATE
-export async function createStudent(studentSchema: StudentForm) {
+export async function createStudent(studentSchema: StudentForm): Promise<ApiActionResponseModel<StudentType>> {
     try {
         const result = await db.insert(student).values(studentSchema).returning();
         revalidatePath("/students");
@@ -31,65 +31,57 @@ export async function createStudent(studentSchema: StudentForm) {
 }
 
 // READ
-export async function getStudents(): Promise<ApiActionResponseModelArray<StudentType>> {
+export async function getStudents(): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
-        const header = headers().get('x-school-username');
-        
+        const header = await getHeaderUsername();
+
         let result;
         if (header) {
             // Filter students by school username
             result = await db.query.student.findMany({
                 where: exists(
-                    db.select()
-                      .from(schoolStudents)
-                      .innerJoin(school, eq(schoolStudents.schoolId, school.id))
-                      .where(
-                          and(
-                              eq(schoolStudents.studentId, student.id),
-                              eq(school.username, header)
-                          )
-                      )
+                    db
+                        .select()
+                        .from(schoolStudents)
+                        .innerJoin(school, eq(schoolStudents.schoolId, school.id))
+                        .where(and(eq(schoolStudents.studentId, student.id), eq(school.username, header))),
                 ),
-                with: studentWithRelations
+                with: studentWithRelations,
             });
         } else {
             // Global query (admin mode)
             result = await db.query.student.findMany({
-                with: studentWithRelations
+                with: studentWithRelations,
             });
         }
-        
-        if (result) {
-            const students: StudentModel[] = result.map(studentData => createStudentModel(studentData));
-            return students;
-        }
-        
-        return { error: "No students found" };
+
+        const students: StudentModel[] = result.map((studentData) => createStudentModel(studentData));
+        return { success: true, data: students };
     } catch (error) {
         console.error("Error fetching students:", error);
-        return { error: "Failed to fetch students" };
+        return { success: false, error: "Failed to fetch students" };
     }
 }
 
-export async function getStudentById(id: string): Promise<ApiActionResponseModel<StudentType>> {
+export async function getStudentById(id: string): Promise<ApiActionResponseModel<StudentModel>> {
     try {
         const result = await db.query.student.findFirst({
             where: eq(student.id, id),
-            with: studentWithRelations
+            with: studentWithRelations,
         });
-        
+
         if (result) {
-            return createStudentModel(result);
+            return { success: true, data: createStudentModel(result) };
         }
-        return { error: "Student not found" };
+        return { success: false, error: "Student not found" };
     } catch (error) {
         console.error("Error fetching student:", error);
-        return { error: "Failed to fetch student" };
+        return { success: false, error: "Failed to fetch student" };
     }
 }
 
 // UPDATE
-export async function updateStudent(id: string, studentSchema: Partial<StudentForm>) {
+export async function updateStudent(id: string, studentSchema: Partial<StudentForm>): Promise<ApiActionResponseModel<StudentType>> {
     try {
         const result = await db.update(student).set(studentSchema).where(eq(student.id, id)).returning();
         revalidatePath("/students");
@@ -101,11 +93,11 @@ export async function updateStudent(id: string, studentSchema: Partial<StudentFo
 }
 
 // DELETE
-export async function deleteStudent(id: string) {
+export async function deleteStudent(id: string): Promise<ApiActionResponseModel<null>> {
     try {
         await db.delete(student).where(eq(student.id, id));
         revalidatePath("/students");
-        return { success: true };
+        return { success: true, data: null };
     } catch (error) {
         console.error("Error deleting student:", error);
         return { success: false, error: "Failed to delete student" };
@@ -113,7 +105,7 @@ export async function deleteStudent(id: string) {
 }
 
 // RELATIONS
-export async function getSchoolsByStudentId(studentId: string) {
+export async function getSchoolsByStudentId(studentId: string): Promise<ApiActionResponseModel<SchoolType[]>> {
     try {
         const result = await db
             .select({
@@ -122,6 +114,10 @@ export async function getSchoolsByStudentId(studentId: string) {
                 username: school.username,
                 country: school.country,
                 phone: school.phone,
+                latitude: school.latitude,
+                longitude: school.longitude,
+                googlePlaceId: school.googlePlaceId,
+                equipmentCategories: school.equipmentCategories,
                 createdAt: school.createdAt,
                 updatedAt: school.updatedAt,
             })
@@ -135,19 +131,14 @@ export async function getSchoolsByStudentId(studentId: string) {
     }
 }
 
-export async function getAvailableSchoolsForStudent(studentId: string) {
+export async function getAvailableSchoolsForStudent(studentId: string): Promise<ApiActionResponseModel<SchoolType[]>> {
     try {
-        const linkedSchoolIds = await db
-            .select({ schoolId: schoolStudents.schoolId })
-            .from(schoolStudents)
-            .where(eq(schoolStudents.studentId, studentId));
-        
-        const linkedIds = linkedSchoolIds.map(row => row.schoolId);
-        
-        const query = linkedIds.length > 0 
-            ? db.select().from(school).where(notInArray(school.id, linkedIds))
-            : db.select().from(school);
-        
+        const linkedSchoolIds = await db.select({ schoolId: schoolStudents.schoolId }).from(schoolStudents).where(eq(schoolStudents.studentId, studentId));
+
+        const linkedIds = linkedSchoolIds.map((row) => row.schoolId);
+
+        const query = linkedIds.length > 0 ? db.select().from(school).where(notInArray(school.id, linkedIds)) : db.select().from(school);
+
         const result = await query;
         return { success: true, data: result };
     } catch (error) {
@@ -156,13 +147,16 @@ export async function getAvailableSchoolsForStudent(studentId: string) {
     }
 }
 
-export async function linkStudentToSchool(studentId: string, schoolId: string, description?: string) {
+export async function linkStudentToSchool(studentId: string, schoolId: string, description?: string): Promise<ApiActionResponseModel<SchoolStudentType>> {
     try {
-        const result = await db.insert(schoolStudents).values({
-            studentId,
-            schoolId,
-            description,
-        }).returning();
+        const result = await db
+            .insert(schoolStudents)
+            .values({
+                studentId,
+                schoolId,
+                description,
+            })
+            .returning();
         revalidatePath(`/students/${studentId}`);
         revalidatePath(`/schools/${schoolId}`);
         return { success: true, data: result[0] };

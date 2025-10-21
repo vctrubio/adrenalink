@@ -8,9 +8,9 @@ interface StudentPageProps {
 
 export default async function StudentPage({ params }: StudentPageProps) {
     const { id } = await params;
-    const data: StudentModel | { error: string } = await getStudentById(id);
+    const result = await getStudentById(id);
 
-    if ("error" in data) {
+    if (!result.success) {
         return (
             <div className="p-8">
                 <h1 className="text-2xl font-bold text-foreground mb-4">Student Not Found</h1>
@@ -21,8 +21,8 @@ export default async function StudentPage({ params }: StudentPageProps) {
 
     return (
         <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-8">Student: {getStudentName(data.schema)}</h1>
-            <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">{JSON.stringify(data, null, 2)}</pre>
+            <h1 className="text-2xl font-bold text-foreground mb-8">Student: {getStudentName(result.data.schema)}</h1>
+            <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">{JSON.stringify(result.data, null, 2)}</pre>
         </div>
     );
 }

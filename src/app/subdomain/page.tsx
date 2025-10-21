@@ -24,9 +24,9 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
     }
     
     try {
-        const school = await getSchoolById(username, true);
+        const result = await getSchoolById(username, true);
         
-        if ("error" in school) {
+        if (!result.success) {
             return (
                 <div className="min-h-screen bg-red-900 text-white flex items-center justify-center">
                     <div className="text-center">
@@ -38,7 +38,7 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             );
         }
         
-        return <SchoolSubdomain school={school} />;
+        return <SchoolSubdomain school={result.data} />;
         
     } catch (error) {
         console.error("💥 Error in subdomain page:", error);

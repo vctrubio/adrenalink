@@ -3,9 +3,9 @@
 import { eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { school, student, schoolStudents, type SchoolForm, type SchoolType } from "@/drizzle/schema";
+import { school, student, schoolStudents, type SchoolForm, type SchoolType, type StudentType } from "@/drizzle/schema";
 import { createSchoolModel, type SchoolModel } from "@/backend/models/SchoolModel";
-import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 // DRY: Standard school relations query
 const schoolWithRelations = {
@@ -39,17 +39,16 @@ export async function createSchool(schoolSchema: SchoolForm): Promise<ApiActionR
     try {
         const result = await db.insert(school).values(schoolSchema).returning();
         revalidatePath("/schools");
-        // Return plain object instead of class instance for create operations
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error creating school - Full error:", error);
         console.error("School data being inserted:", schoolSchema);
-        return { error: "Failed to create school" };
+        return { success: false, error: "Failed to create school" };
     }
 }
 
 // READ
-export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolType>> {
+export async function getSchools(): Promise<ApiActionResponseModel<SchoolModel[]>> {
     try {
         const result = await db.query.school.findMany({
             with: schoolWithRelations,
@@ -59,15 +58,15 @@ export async function getSchools(): Promise<ApiActionResponseModelArray<SchoolTy
             return createSchoolModel(schoolData);
         });
 
-        return schools;
+        return { success: true, data: schools };
     } catch (error) {
         console.error("Error fetching schools:", error);
-        return { error: "Failed to fetch schools" };
+        return { success: false, error: "Failed to fetch schools" };
     }
 }
 
 
-export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolType>> {
+export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolModel>> {
     try {
         const result = await db.query.school.findFirst({
             where: username ? eq(school.username, id) : eq(school.id, id),
@@ -75,16 +74,16 @@ export async function getSchoolById(id: string, username: boolean = false): Prom
         });
 
         if (result) {
-            return createSchoolModel(result);
+            return { success: true, data: createSchoolModel(result) };
         }
-        return { error: "School not found" };
+        return { success: false, error: "School not found" };
     } catch (error) {
         console.error("Error fetching school:", error);
-        return { error: "Failed to fetch school" };
+        return { success: false, error: "Failed to fetch school" };
     }
 }
 
-export async function getSchoolsUsernames() {
+export async function getSchoolsUsernames(): Promise<ApiActionResponseModel<string[]>> {
     try {
         const result = await db.select({ username: school.username }).from(school);
         return { success: true, data: result.map((r) => r.username) };
@@ -94,10 +93,10 @@ export async function getSchoolsUsernames() {
     }
 }
 
-export async function checkUsernameAvailability(username: string) {
+export async function checkUsernameAvailability(username: string): Promise<ApiActionResponseModel<boolean>> {
     try {
         const result = await db.select({ username: school.username }).from(school).where(eq(school.username, username));
-        return { success: true, available: result.length === 0 };
+        return { success: true, data: result.length === 0 };
     } catch (error) {
         console.error("Error checking username availability:", error);
         return { success: false, error: "Failed to check username availability" };
@@ -105,7 +104,7 @@ export async function checkUsernameAvailability(username: string) {
 }
 
 // UPDATE
-export async function updateSchool(id: string, schoolSchema: Partial<SchoolForm>) {
+export async function updateSchool(id: string, schoolSchema: Partial<SchoolForm>): Promise<ApiActionResponseModel<SchoolType>> {
     try {
         const result = await db.update(school).set(schoolSchema).where(eq(school.id, id)).returning();
         revalidatePath("/schools");
@@ -117,11 +116,11 @@ export async function updateSchool(id: string, schoolSchema: Partial<SchoolForm>
 }
 
 // DELETE
-export async function deleteSchool(id: string) {
+export async function deleteSchool(id: string): Promise<ApiActionResponseModel<null>> {
     try {
         await db.delete(school).where(eq(school.id, id));
         revalidatePath("/schools");
-        return { success: true };
+        return { success: true, data: null };
     } catch (error) {
         console.error("Error deleting school:", error);
         return { success: false, error: "Failed to delete school" };
@@ -129,7 +128,7 @@ export async function deleteSchool(id: string) {
 }
 
 // RELATIONS
-export async function getStudentsBySchoolId(schoolId: string) {
+export async function getStudentsBySchoolId(schoolId: string): Promise<ApiActionResponseModel<StudentType[]>> {
     try {
         const result = await db
             .select({
@@ -151,7 +150,7 @@ export async function getStudentsBySchoolId(schoolId: string) {
     }
 }
 
-export async function getAvailableStudentsForSchool(schoolId: string) {
+export async function getAvailableStudentsForSchool(schoolId: string): Promise<ApiActionResponseModel<StudentType[]>> {
     try {
         const linkedStudentIds = await db.select({ studentId: schoolStudents.studentId }).from(schoolStudents).where(eq(schoolStudents.schoolId, schoolId));
 

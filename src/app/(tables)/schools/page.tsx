@@ -7,10 +7,10 @@ import type { SchoolModel } from "@/backend/models/SchoolModel";
 export default async function SchoolsPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: SchoolModel[] | { error: string } = await getSchools();
+    const result = await getSchools();
 
-    if ("error" in data) {
-        return <>{data.error}</>;
+    if (!result.success) {
+        return <>{result.error}</>;
     }
 
     return (
@@ -21,7 +21,7 @@ export default async function SchoolsPage() {
 
             <div className="flex-1 overflow-auto p-6">
                 <div className="space-y-4">
-                    {data.map((school) => (
+                    {result.data.map((school) => (
                         <SchoolCard key={school.schema.id} school={school} />
                     ))}
                 </div>

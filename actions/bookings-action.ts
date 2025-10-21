@@ -2,11 +2,11 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
+import { getHeaderUsername } from "@/types/headers";
 import { booking, school, type BookingForm, type BookingType } from "@/drizzle/schema";
 import { createBookingModel, type BookingModel } from "@/backend/models";
-import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 const bookingWithRelations = {
     schoolPackage: true,
@@ -20,7 +20,7 @@ const bookingWithRelations = {
 };
 
 // CREATE
-export async function createBooking(bookingSchema: BookingForm) {
+export async function createBooking(bookingSchema: BookingForm): Promise<ApiActionResponseModel<BookingType>> {
     try {
         const result = await db.insert(booking).values(bookingSchema).returning();
         revalidatePath("/bookings");
@@ -32,9 +32,9 @@ export async function createBooking(bookingSchema: BookingForm) {
 }
 
 // READ
-export async function getBookings(): Promise<ApiActionResponseModelArray<BookingType>> {
+export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
-        const header = headers().get('x-school-username');
+        const header = await getHeaderUsername();
         
         let result;
         if (header) {
@@ -59,19 +59,15 @@ export async function getBookings(): Promise<ApiActionResponseModelArray<Booking
             });
         }
         
-        if (result) {
-            const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
-            return bookings;
-        }
-        
-        return { error: "No bookings found" };
+        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
+        return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching bookings:", error);
-        return { error: "Failed to fetch bookings" };
+        return { success: false, error: "Failed to fetch bookings" };
     }
 }
 
-export async function getBookingById(id: string): Promise<ApiActionResponseModel<BookingType>> {
+export async function getBookingById(id: string): Promise<ApiActionResponseModel<BookingModel>> {
     try {
         const result = await db.query.booking.findFirst({
             where: eq(booking.id, id),
@@ -79,16 +75,16 @@ export async function getBookingById(id: string): Promise<ApiActionResponseModel
         });
         
         if (result) {
-            return createBookingModel(result);
+            return { success: true, data: createBookingModel(result) };
         }
-        return { error: "Booking not found" };
+        return { success: false, error: "Booking not found" };
     } catch (error) {
         console.error("Error fetching booking:", error);
-        return { error: "Failed to fetch booking" };
+        return { success: false, error: "Failed to fetch booking" };
     }
 }
 
-export async function getBookingsBySchoolId(schoolId: string): Promise<ApiActionResponseModelArray<BookingType>> {
+export async function getBookingsBySchoolId(schoolId: string): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
         const result = await db.query.booking.findMany({
             where: eq(booking.schoolId, schoolId),
@@ -97,14 +93,14 @@ export async function getBookingsBySchoolId(schoolId: string): Promise<ApiAction
         
         const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
         
-        return bookings;
+        return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching bookings by school ID:", error);
-        return { error: "Failed to fetch bookings" };
+        return { success: false, error: "Failed to fetch bookings" };
     }
 }
 
-export async function getBookingsByPackageId(packageId: string): Promise<ApiActionResponseModelArray<BookingType>> {
+export async function getBookingsByPackageId(packageId: string): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
         const result = await db.query.booking.findMany({
             where: eq(booking.packageId, packageId),
@@ -113,15 +109,15 @@ export async function getBookingsByPackageId(packageId: string): Promise<ApiActi
         
         const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
         
-        return bookings;
+        return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching bookings by package ID:", error);
-        return { error: "Failed to fetch bookings" };
+        return { success: false, error: "Failed to fetch bookings" };
     }
 }
 
 // UPDATE
-export async function updateBooking(id: string, bookingSchema: Partial<BookingForm>) {
+export async function updateBooking(id: string, bookingSchema: Partial<BookingForm>): Promise<ApiActionResponseModel<BookingType>> {
     try {
         const updateData = {
             ...bookingSchema,
@@ -137,11 +133,11 @@ export async function updateBooking(id: string, bookingSchema: Partial<BookingFo
 }
 
 // DELETE
-export async function deleteBooking(id: string) {
+export async function deleteBooking(id: string): Promise<ApiActionResponseModel<null>> {
     try {
         await db.delete(booking).where(eq(booking.id, id));
         revalidatePath("/bookings");
-        return { success: true };
+        return { success: true, data: null };
     } catch (error) {
         console.error("Error deleting booking:", error);
         return { success: false, error: "Failed to delete booking" };

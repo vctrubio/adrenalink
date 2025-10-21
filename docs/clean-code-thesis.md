@@ -23,31 +23,33 @@ We believe in writing **DRY, reusable, and human-friendly code** that tells a st
 
 ## Preferred Code Pattern
 
-### ✅ GOOD: Clean Structure
+### ✅ GOOD: Clean Structure with Result Pattern
 ```typescript
-export async function getStudents(): Promise<StudentModel[]> {
-    const header = headers().get('x-school-username');
-    
-    let result;
-    if (header) {
-        result = await db.query.schoolStudents.findMany({
-            where: eq(school.username, header),
-            with: studentWithRelations
-        });
-    } else {
-        result = await db.query.student.findMany({
-            with: studentWithRelations
-        });
-    }
-    
-    if (result) {
+export async function getStudents(): Promise<ApiActionResponseModel<StudentType[]>> {
+    try {
+        const header = headers().get('x-school-username');
+        
+        let result;
+        if (header) {
+            result = await db.query.schoolStudents.findMany({
+                where: eq(school.username, header),
+                with: studentWithRelations
+            });
+        } else {
+            result = await db.query.student.findMany({
+                with: studentWithRelations
+            });
+        }
+        
         const students = header 
-            ? result.map(schoolStudent => createStudentModel(schoolStudent.student))
-            : result.map(studentData => createStudentModel(studentData));
-        return students;
+            ? result.map(schoolStudent => schoolStudent.student)
+            : result;
+            
+        return { success: true, data: students };
+    } catch (error) {
+        console.error("Error fetching students:", error);
+        return { success: false, error: "Failed to fetch students" };
     }
-    
-    return { error: "No students found" };
 }
 ```
 
@@ -102,9 +104,10 @@ export async function getStudents(): Promise<StudentModel[]> {
 4. **Return consistently**: Same return type and error handling
 
 ### Error Handling
-- Consistent error objects: `{ error: "descriptive message" }`
-- Early returns for error cases
-- Descriptive error messages that help debugging
+- **Result Pattern**: Use `{ success: true, data: T }` or `{ success: false, error: string }`
+- **Consistent API**: All actions return the same result structure
+- **Type Safety**: `result.success` check provides proper type narrowing
+- **Clean Usage**: `if (result.success) { result.data }` is readable and safe
 
 ## Enforcement
 

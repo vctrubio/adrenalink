@@ -160,10 +160,10 @@ export function WelcomeSchoolForm() {
         if (name && !values.username) {
             setIsGeneratingUsername(true);
             try {
-                const usernames = await getSchoolsUsernames();
-                if (usernames.success && usernames.data) {
+                const result = await getSchoolsUsernames();
+                if (result.success) {
                     const baseUsername = generateUsername(name);
-                    const finalUsername = generateUsernameVariants(baseUsername, usernames.data);
+                    const finalUsername = generateUsernameVariants(baseUsername, result.data);
                     setValue("username", finalUsername);
                     setUsernameStatus("available");
                 }
@@ -187,7 +187,7 @@ export function WelcomeSchoolForm() {
 
                 const result = await checkUsernameAvailability(username);
                 if (result.success) {
-                    setUsernameStatus(result.available ? "available" : "unavailable");
+                    setUsernameStatus(result.data ? "available" : "unavailable");
                 }
             } catch (error) {
                 console.error("Error checking username:", error);
@@ -231,19 +231,13 @@ export function WelcomeSchoolForm() {
 
             const result = await createSchool(schoolData);
 
-            // Check if the result has an error property
-            if (result && "error" in result) {
+            if (!result.success) {
                 console.error("Error creating school:", result.error);
                 // Add error notification here if needed
                 return;
             }
 
-            // Check for success
-            if (result && "success" in result && result.success) {
-                console.log("✅ School created successfully:", result.data);
-            } else {
-                console.log("✅ School created successfully:", result);
-            }
+            console.log("✅ School created successfully:", result.data);
             const lastCountry = data.country;
             methods.reset();
             setValue("country", lastCountry);

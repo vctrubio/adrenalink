@@ -4,10 +4,10 @@ import type { SchoolModel } from "@/backend/models/SchoolModel";
 import LandingPage from "@/src/components/Home";
 
 export default async function Home() {
-    const data: SchoolModel[] | { error: string } = await getSchools();
+    const result = await getSchools();
 
-    if ("error" in data) {
-        return <>{data.error}</>;
+    if (!result.success) {
+        return <>{result.error}</>;
     }
 
     return (
@@ -16,7 +16,7 @@ export default async function Home() {
             <div className="h-screen flex flex-col">
                 <div className="flex-1 overflow-auto p-6">
                     <div className="space-y-4">
-                        {data.map((school) => (
+                        {result.data.map((school) => (
                             <SchoolCard key={school.schema.id} school={school} />
                         ))}
                     </div>

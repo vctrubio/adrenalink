@@ -2,11 +2,11 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { db } from "@/drizzle/db";
+import { getHeaderUsername } from "@/types/headers";
 import { schoolPackage, school, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
 import { createSchoolPackageModel, type SchoolPackageModel } from "@/backend/models";
-import type { ApiActionResponseModel, ApiActionResponseModelArray } from "@/types/actions";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 const schoolPackageWithRelations = {
     school: true,
@@ -15,7 +15,7 @@ const schoolPackageWithRelations = {
 };
 
 // CREATE
-export async function createPackage(packageSchema: SchoolPackageForm) {
+export async function createPackage(packageSchema: SchoolPackageForm): Promise<ApiActionResponseModel<SchoolPackageType>> {
     try {
         const result = await db.insert(schoolPackage).values(packageSchema).returning();
         revalidatePath("/packages");
@@ -27,9 +27,9 @@ export async function createPackage(packageSchema: SchoolPackageForm) {
 }
 
 // READ
-export async function getPackages(): Promise<ApiActionResponseModelArray<SchoolPackageType>> {
+export async function getPackages(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
     try {
-        const header = headers().get('x-school-username');
+        const header = await getHeaderUsername();
         
         let result;
         if (header) {
@@ -54,19 +54,15 @@ export async function getPackages(): Promise<ApiActionResponseModelArray<SchoolP
             });
         }
         
-        if (result) {
-            const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
-            return packages;
-        }
-        
-        return { error: "No packages found" };
+        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
+        return { success: true, data: packages };
     } catch (error) {
         console.error("Error fetching packages:", error);
-        return { error: "Failed to fetch packages" };
+        return { success: false, error: "Failed to fetch packages" };
     }
 }
 
-export async function getPackageById(id: string): Promise<ApiActionResponseModel<SchoolPackageType>> {
+export async function getPackageById(id: string): Promise<ApiActionResponseModel<SchoolPackageModel>> {
     try {
         const result = await db.query.schoolPackage.findFirst({
             where: eq(schoolPackage.id, id),
@@ -74,16 +70,16 @@ export async function getPackageById(id: string): Promise<ApiActionResponseModel
         });
         
         if (result) {
-            return createSchoolPackageModel(result);
+            return { success: true, data: createSchoolPackageModel(result) };
         }
-        return { error: "Package not found" };
+        return { success: false, error: "Package not found" };
     } catch (error) {
         console.error("Error fetching package:", error);
-        return { error: "Failed to fetch package" };
+        return { success: false, error: "Failed to fetch package" };
     }
 }
 
-export async function getPackagesBySchoolId(schoolId: string): Promise<ApiActionResponseModelArray<SchoolPackageType>> {
+export async function getPackagesBySchoolId(schoolId: string): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
     try {
         const result = await db.query.schoolPackage.findMany({
             where: eq(schoolPackage.schoolId, schoolId),
@@ -92,15 +88,15 @@ export async function getPackagesBySchoolId(schoolId: string): Promise<ApiAction
         
         const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
         
-        return packages;
+        return { success: true, data: packages };
     } catch (error) {
         console.error("Error fetching packages by school ID:", error);
-        return { error: "Failed to fetch packages" };
+        return { success: false, error: "Failed to fetch packages" };
     }
 }
 
 // UPDATE
-export async function updatePackage(id: string, packageSchema: Partial<SchoolPackageForm>) {
+export async function updatePackage(id: string, packageSchema: Partial<SchoolPackageForm>): Promise<ApiActionResponseModel<SchoolPackageType>> {
     try {
         const result = await db.update(schoolPackage).set(packageSchema).where(eq(schoolPackage.id, id)).returning();
         revalidatePath("/packages");
@@ -112,11 +108,11 @@ export async function updatePackage(id: string, packageSchema: Partial<SchoolPac
 }
 
 // DELETE
-export async function deletePackage(id: string) {
+export async function deletePackage(id: string): Promise<ApiActionResponseModel<null>> {
     try {
         await db.delete(schoolPackage).where(eq(schoolPackage.id, id));
         revalidatePath("/packages");
-        return { success: true };
+        return { success: true, data: null };
     } catch (error) {
         console.error("Error deleting package:", error);
         return { success: false, error: "Failed to delete package" };

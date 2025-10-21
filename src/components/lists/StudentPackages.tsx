@@ -101,7 +101,7 @@ export default function StudentPackages({ studentPackageRequests }: StudentPacka
                                     className="px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
                                     onClick={async () => {
                                         const result = await acceptStudentPackageRequest(studentPackage.schema.id);
-                                        if ("error" in result) {
+                                        if (!result.success) {
                                             console.error("Error accepting package:", result.error);
                                         } else {
                                             // Update local state optimistically
@@ -121,8 +121,8 @@ export default function StudentPackages({ studentPackageRequests }: StudentPacka
                                     className="px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
                                     onClick={async () => {
                                         const result = await rejectStudentPackageRequest(studentPackage.schema.id);
-                                        if ("error" in result) {
-                                            console.error("Error accepting package:", result.error);
+                                        if (!result.success) {
+                                            console.error("Error rejecting package:", result.error);
                                         } else {
                                             // Update local state optimistically
                                             setStudentPackages(prev => 

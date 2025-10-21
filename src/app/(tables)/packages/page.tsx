@@ -7,10 +7,10 @@ import type { SchoolPackageModel } from "@/backend/models";
 export default async function PackagesPage() {
     const entity = ENTITY_DATA.find((e) => e.id === "School Package")!;
     const borderColor = entity.color.replace("text-", "border-");
-    const data: SchoolPackageModel[] | { error: string } = await getPackages();
+    const result = await getPackages();
 
-    if ("error" in data) {
-        return <>{data.error}</>;
+    if (!result.success) {
+        return <>{result.error}</>;
     }
 
     return (
@@ -19,11 +19,11 @@ export default async function PackagesPage() {
 
             <div className="mt-8">
                 <h2 className="text-xl font-semibold text-foreground mb-4">All School Packages</h2>
-                {data.length === 0 ? (
+                {result.data.length === 0 ? (
                     <p className="text-muted-foreground">No packages found</p>
                 ) : (
                     <div className="space-y-4">
-                        {data.map((schoolPackage) => (
+                        {result.data.map((schoolPackage) => (
                             <PackageCard
                                 key={schoolPackage.schema.id}
                                 package={schoolPackage}

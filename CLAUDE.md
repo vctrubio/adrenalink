@@ -144,12 +144,13 @@ if (result) {
 - **Drizzle ORM integration** - Use Drizzle's type-safe queries and schema types for all database operations
 - **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
 - **CRITICAL: Server-First Data Fetching** - ALL data fetching MUST happen in Server Components (page.tsx), NOT in Client Components. Client Components should only render data passed as props
+- **Header Utilities** - Use `getHeaderUsername()` from `@/types/headers` instead of calling `headers().get()` directly
 - **Single Query with Relations** - Fetch ALL required data in one server query using Drizzle relations, then pass complete serialized data to client components
 - **CRITICAL: Relations Pattern** - Access related data via `.relations.tableName` (e.g., `school.relations.schoolPackages`, `package.relations.school.username`). Use `.schema` for direct table field access only
 - **Consistent patterns** - Follow the established CRUD pattern for all entity operations
 - **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: StudentForm`)
-- **Return types** - Use `ApiActionResponseModel<T>` and `ApiActionResponseModelArray<T>` for consistent typing
-- **CRITICAL: API Response Format** - Actions MUST return either the data directly (AbstractModel instance) OR `{ error: string }`. NEVER use `{ success: boolean, data: T }` format
+- **Return types** - Use `ApiActionResponseModel<T>` for single items and `ApiActionResponseModel<T[]>` for arrays
+- **CRITICAL: API Response Format** - Actions MUST return `{ success: true, data: T }` or `{ success: false, error: string }` using the Result pattern
 - **Schema purity** - Schema objects contain ONLY database table fields. Relations go in separate `relations` property
 - **Relations data structure** - All related data accessed through `.relations.tableName` pattern, never directly on schema
 - **Type safety** - Always use Drizzle's inferred types (`StudentForm`, `SchoolForm`, etc.) for parameters
@@ -208,13 +209,13 @@ export async function getEntities(): Promise<ApiActionResponseModelArray<EntityT
   }
 }
 
-// Component usage - Check for error property
+// Component usage - Check for success property
 const result = await getEntities();
-if (result.error) {
+if (!result.success) {
   console.error("Error:", result.error);
 } else {
-  // result is the array directly - no .serialize() needed
-  setEntities(result);
+  // result.data is the array - no .serialize() needed
+  setEntities(result.data);
 }
 ```
 
