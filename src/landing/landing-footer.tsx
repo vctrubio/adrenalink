@@ -1,7 +1,11 @@
 "use client";
 
-import { Mail, Linkedin } from "lucide-react";
+import { Mail, Linkedin, Calendar } from "lucide-react";
 import { WindToggle } from "@/src/components/themes/WindToggle";
+import Link from "next/link";
+import Image from "next/image";
+import BetaCountdown from "./BetaCountdown";
+
 interface DevAboutMeFooterProps {
     onThemeChange?: () => void;
 }
@@ -15,40 +19,59 @@ export function DevAboutMeFooter({ onThemeChange }: DevAboutMeFooterProps = {}) 
                     <div className="space-y-8">
                         <h2 className="text-4xl font-light tracking-tight text-foreground">Ready to transform your school?</h2>
 
-                        <div className="text-2xl font-mono text-secondary">your_school.adrenalink.com</div>
+                        <div className="text-2xl font-mono text-secondary">your_school.adrenalink.tech</div>
 
-                        <p className="text-xl text-muted-foreground">First come, first served</p>
+                        {/* <p className="text-xl text-muted-foreground">First come, first served</p> */}
                     </div>
 
                     {/* Beta Version */}
-                    <div className="space-y-8">
-                        <div className="text-lg text-muted-foreground">Beta Version Coming: January 1, 2026</div>
-                    </div>
+                    {/* <BetaCountdown /> */}
 
                     {/* Contact */}
-                    <div className="space-y-8">
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                            <a
+                    <div className="space-y-8 bg-muted p-8 rounded-2xl">
+                        <div className="grid grid-cols-2 gap-6 divide-blue-50">
+                            <Link
                                 href="mailto:vctrubio@gmail.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
-                                title="Email vctrubio"
+                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
+                                title="Contact me"
                             >
                                 <Mail className="w-5 h-5" />
-                                <span>Get in Touch</span>
-                            </a>
-
-                            <a
+                                <span>Contact me</span>
+                            </Link>
+                            <Link
                                 href="https://www.linkedin.com/in/vctrubio/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
+                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
                                 title="LinkedIn Profile"
                             >
                                 <Linkedin className="w-5 h-5" />
                                 <span>Connect on LinkedIn</span>
-                            </a>
+                            </Link>
+
+                            <Link
+                                href="https://donkeydrills.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
+                                title="Personal Website"
+                            >
+                                <Image src="/donkey.png" alt="Donkey Drills" width={42} height={42} />
+                                <span>Portfolio</span>
+                            </Link>
+
+                            <Link
+                                href="mailto:vctrubio@gmail.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
+                                title="Book a Call"
+                            >
+                                <Calendar className="w-5 h-5" />
+                                <span>Book A Call</span>
+                            </Link>
                         </div>
                     </div>
 
