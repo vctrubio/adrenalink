@@ -18,13 +18,13 @@ export default function RootLayout({
     children: ReactNode;
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
-            <body>
-                <Providers>
-                    <WalletProvider>
-                        {children}
-                    </WalletProvider>
-                </Providers>
+        <html lang="en" suppressHydrationWarning className="h-full">
+            <body className="h-full bg-background text-foreground">
+                <div className="min-h-screen bg-background">
+                    <Providers>
+                        <WalletProvider>{children}</WalletProvider>
+                    </Providers>
+                </div>
             </body>
         </html>
     );
