@@ -17,12 +17,12 @@
         --accent: 226 232 240; /* slate-200 */
         --accent-foreground: 30 41 59; /* slate-800 */
 
-        /* Primary Colors - Blue from "connecting students and teachers" */
-        --primary: 30 41 59; /* slate-800 - main text color */
+        /* Primary Colors - Green as main interactive color */
+        --primary: 22 163 74; /* green-600 */
         --secondary: 59 130 246; /* blue-500 - the blue accent */
-        --tertiary: 255 149 0; /* Apple's system orange */
-        --fourth: 175 82 222; /* Apple's system purple */
-        --fifth: 255 45 85; /* Apple's system pink */
+        --tertiary: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
+        --fourth: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
+        --fifth: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
 
         --destructive: 255 59 48; /* Apple's system red */
         --warning: 255 149 0; /* light orange for warnings */
@@ -50,19 +50,19 @@
         --accent: 51 65 85; /* slate-700 */
         --accent-foreground: 248 250 252; /* slate-50 */
 
-        /* Primary Colors - Consistent with light mode */
-        --primary: 248 250 252; /* slate-50 - light text for dark mode */
+        /* Primary Colors - Darker versions for dark mode */
+        --primary: 210 174 96; /* paper-700 - darker parchment for dark mode */
         --secondary: 96 165 250; /* blue-400 - brighter blue for dark mode */
-        --tertiary: 255 159 10; /* Apple orange dark mode */
-        --fourth: 191 90 242; /* Apple purple dark mode */
-        --fifth: 255 55 95; /* Apple pink dark mode */
+        --tertiary: 255 200 175; /* Lighter Peach Fuzz for dark mode */
+        --fourth: 62 135 182; /* Lighter Classic Blue for dark mode */
+        --fifth: 115 77 149; /* Lighter Ultra Violet for dark mode */
 
         --destructive: 255 69 58; /* Apple red dark mode */
         --warning: 255 159 10; /* light orange for warnings dark mode */
 
         /* Border and Ring */
-        --border: 51 65 85; /* slate-700 */
-        --input: 51 65 85; /* slate-700 */
+        --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
+        --input: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
         --ring: 96 165 250; /* blue-400 */
     }
 
