@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Breadcrumbs } from "@/src/components/navigations/Breadcrumbs";
-import Navbar from "@/src/components/navigations/Navbar";
+import Devbar from "@/src/components/navigations/Devbar";
 
 interface TablesLayoutProps {
     children: ReactNode;
@@ -9,7 +9,7 @@ interface TablesLayoutProps {
 export default function TablesLayout({ children }: TablesLayoutProps) {
     return (
         <div>
-            <Navbar />
+            <Devbar />
             <Breadcrumbs />
             <main>{children}</main>
         </div>

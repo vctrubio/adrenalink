@@ -58,7 +58,7 @@ function UserDropdown() {
     );
 }
 
-export default function Navbar() {
+export default function Devbar() {
     const pathname = usePathname();
 
     return (
