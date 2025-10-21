@@ -1,25 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-function FloatingNav({ show }: { show: boolean }) {
-    return (
-        <nav
-            className={`
-        absolute top-8 left-1/2 -translate-x-1/2 z-50
-        px-8 py-4 rounded-full border border-secondary/60 bg-card/30 backdrop-blur-md
-        shadow-lg
-        transition-all duration-500
-        ${show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"}
-      `}
-        >
-            <span className="text-xl font-semibold tracking-tight text-foreground">
-                Adrenalink
-                <span className="ml-3 align-middle text-sm font-normal text-secondary/80 italic tracking-wide">streamlining the experience</span>
-            </span>
-        </nav>
-    );
-}
+import FloatingNav from "@/src/components/navigations/FloatingNav";
 
 export function LandingDescription() {
     const [showNavbar, setShowNavbar] = useState(false);
@@ -42,7 +24,7 @@ export function LandingDescription() {
     return (
         <section className="h-screen snap-start relative overflow-hidden">
             {/* Floating Navbar */}
-            <FloatingNav show={showNavbar} />
+            <FloatingNav show={showNavbar} slogan="streamlining the experience" />
 
             {/* Foreground */}
             <div className="relative z-10 h-full flex items-center justify-center px-4">

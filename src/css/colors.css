@@ -50,12 +50,12 @@
         --accent: 51 65 85; /* slate-700 */
         --accent-foreground: 248 250 252; /* slate-50 */
 
-        /* Primary Colors - Darker versions for dark mode */
-        --primary: 210 174 96; /* paper-700 - darker parchment for dark mode */
-        --secondary: 96 165 250; /* blue-400 - brighter blue for dark mode */
-        --tertiary: 255 200 175; /* Lighter Peach Fuzz for dark mode */
-        --fourth: 62 135 182; /* Lighter Classic Blue for dark mode */
-        --fifth: 115 77 149; /* Lighter Ultra Violet for dark mode */
+        /* Primary Colors - Same as light mode for consistency */
+        --primary: 22 163 74; /* green-600 */
+        --secondary: 59 130 246; /* blue-500 - the blue accent */
+        --tertiary: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
+        --fourth: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
+        --fifth: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
 
         --destructive: 255 69 58; /* Apple red dark mode */
         --warning: 255 159 10; /* light orange for warnings dark mode */
