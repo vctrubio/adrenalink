@@ -30,6 +30,10 @@ interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Submit button
     submitButtonText?: string;
     
+    // Success state
+    successTitle?: string;
+    successMessage?: string;
+    
     // Floating nav
     showFloatingNav?: boolean;
     navSlogan?: string;
@@ -47,11 +51,14 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     className = "w-full max-w-3xl mx-auto",
     onStepChange,
     submitButtonText = "Submit",
+    successTitle = "Congratulations",
+    successMessage = "We will get back to you in 1 business day. Thank you.",
     showFloatingNav = true,
     navSlogan = "streamlining the experience"
 }: MultiFormContainerProps<T>) {
     const [stepIndex, setStepIndex] = useState(0);
-    const { handleSubmit, trigger } = formMethods;
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const { handleSubmit, trigger, formState } = formMethods;
 
     // Navigation functions
     const next = async () => {
@@ -96,10 +103,55 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [stepIndex]);
 
+    // Enhanced submit handler
+    const handleFormSubmit = async (data: T) => {
+        try {
+            await onSubmit(data);
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Form submission error:", error);
+        }
+    };
+
     // Get current step component and subtitle
     const CurrentStepComponent = stepComponents[stepIndex];
     const currentStepProps = stepProps[stepIndex] || {};
     const currentSubtitle = stepSubtitles?.[stepIndex] || subtitle;
+
+    // Success view
+    if (isSubmitted) {
+        return (
+            <div className={className}>
+                {/* Floating Nav */}
+                {showFloatingNav && <FloatingNav show={showFloatingNav} slogan={navSlogan} />}
+                
+                {/* Success Content */}
+                <div className="bg-card rounded-lg border border-border p-6 md:p-8 text-center animate-in fade-in duration-500">
+                    <div className="space-y-6">
+                        <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
+                            <svg className="w-8 h-8 text-secondary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        
+                        <div className="animate-in slide-in-from-bottom duration-500 delay-300">
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{successTitle}</h1>
+                            <p className="text-muted-foreground text-lg">{successMessage}</p>
+                        </div>
+                        
+                        <div className="animate-in slide-in-from-bottom duration-500 delay-500">
+                            <button
+                                onClick={() => window.location.href = "/"}
+                                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200"
+                            >
+                                Go to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={className}>
@@ -118,7 +170,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
 
             {/* Form */}
-            <Form methods={formMethods} onSubmit={handleSubmit(onSubmit)} className="bg-card rounded-lg border border-border p-6 md:p-8">
+            <Form methods={formMethods} onSubmit={handleSubmit(handleFormSubmit)} className="bg-card rounded-lg border border-border p-6 md:p-8">
                 {/* Current Step Content */}
                 {CurrentStepComponent && (
                     <CurrentStepComponent
@@ -135,6 +187,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                     onPrev={prev}
                     onNext={next}
                     submitButtonText={submitButtonText}
+                    isFormValid={formState.isValid}
                 />
             </Form>
         </div>

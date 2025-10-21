@@ -15,8 +15,8 @@ const FormSubmit = forwardRef<HTMLButtonElement, FormSubmitProps>(({ className =
             ref={ref}
             type="submit"
             className={`
-          w-full px-4 py-3 rounded-md font-medium transition-all duration-200
-          ${color ? "text-white hover:shadow-lg" : "bg-transparent border border-border text-foreground hover:bg-accent"}
+          px-4 py-2 text-base rounded-md font-medium transition-all duration-200
+          ${color ? "text-white hover:shadow-lg" : "bg-transparent border border-secondary text-foreground hover:bg-accent"}
           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}

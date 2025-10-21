@@ -5,31 +5,20 @@ import { LocationStep } from "./LocationStep";
 import { Building, MapPin, Tag, CheckCircle2 } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
-import { z } from "zod";
 
 const EQUIPMENT_CATEGORIES = ["kite", "wing", "windsurf", "surf", "snowboard"] as const;
 
-// Define the schema types
-const nameSchema = z.object({
-    name: z.string().min(1, "School name is required"),
-    username: z.string().min(1, "Username is required"),
-});
-
-const locationSchema = z.object({
-    country: z.string().min(1, "Country is required"),
-    phone: z.string().min(1, "Phone number is required"),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    googlePlaceId: z.string().optional(),
-});
-
-const categoriesSchema = z.object({
-    equipmentCategories: z.array(z.enum(EQUIPMENT_CATEGORIES)).min(1, "Select at least one equipment category"),
-});
-
-const schoolSchema = nameSchema.merge(locationSchema).merge(categoriesSchema);
-
-export type SchoolFormData = z.infer<typeof schoolSchema>;
+// Define the type directly for the multi-step form
+export type SchoolFormData = {
+    name: string;
+    username: string;
+    country: string;
+    phone: string;
+    latitude?: number;
+    longitude?: number;
+    googlePlaceId?: string;
+    equipmentCategories: ("kite" | "wing" | "windsurf" | "surf" | "snowboard")[];
+};
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 1, title: "Name", icon: <Building className="w-4 h-4" />, fields: ["name", "username"] },
@@ -177,10 +166,10 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
 }
 
 interface SummaryStepProps extends BaseStepProps<SchoolFormData> {
-    onEditField: (field: keyof SchoolFormData) => void;
+    onEditField: (field: keyof SchoolFormData, goToStep?: (stepIndex: number) => void) => void;
 }
 
-export function SummaryStep({ formMethods, onEditField }: SummaryStepProps) {
+export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummaryStepProps) {
     const summaryFields: SummaryField[] = [
         {
             key: "name",
@@ -213,7 +202,7 @@ export function SummaryStep({ formMethods, onEditField }: SummaryStepProps) {
         <MultiStepSummary
             formMethods={formMethods}
             fields={summaryFields}
-            onEditField={onEditField}
+            onEditField={(fieldKey) => onEditField(fieldKey as keyof SchoolFormData, onGoToStep)}
             gridCols={2}
         />
     );

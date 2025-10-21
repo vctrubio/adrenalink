@@ -48,6 +48,16 @@ export function MultiStepSummary({
         return String(value);
     };
 
+    const isFieldEmpty = (field: SummaryField): boolean => {
+        const value = values[field.key];
+        
+        if (Array.isArray(value)) {
+            return value.length === 0;
+        }
+        
+        return value === null || value === undefined || value === "";
+    };
+
     return (
         <div className="space-y-6">
             <div className={`grid grid-cols-1 ${gridCols === 2 ? "md:grid-cols-2" : `md:grid-cols-${gridCols}`} gap-4`}>
@@ -58,7 +68,7 @@ export function MultiStepSummary({
                     return (
                         <div 
                             key={field.key}
-                            className={`relative p-4 rounded-md border bg-background ${field.colSpan === 2 ? `md:col-span-${gridCols}` : ""}`}
+                            className={`relative p-4 rounded-md border bg-background ${field.colSpan === 2 ? `md:col-span-${gridCols}` : ""} ${isFieldEmpty(field) ? "border-orange-400 border-2" : "border-border"}`}
                         >
                             {isEditable && onEditField && (
                                 <button 

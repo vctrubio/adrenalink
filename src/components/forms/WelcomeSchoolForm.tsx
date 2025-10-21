@@ -73,14 +73,19 @@ export function WelcomeSchoolForm() {
     const { setValue, setFocus } = methods;
     const { triggerPhoneClear } = usePhoneClear();
 
-    const editField = (field: keyof SchoolFormData) => {
+    const editField = (field: keyof SchoolFormData, goToStep?: (stepIndex: number) => void) => {
         const targetIdx = WELCOME_SCHOOL_STEPS.findIndex((s) => s.fields?.includes(field));
         if (targetIdx >= 0) {
+            // Navigate to the step first
+            if (goToStep) {
+                goToStep(targetIdx);
+            }
+            // Then focus the field
             setTimeout(() => {
                 try {
                     setFocus(field as any);
                 } catch { }
-            }, 60);
+            }, 100);
         }
     };
 
@@ -224,7 +229,8 @@ export function WelcomeSchoolForm() {
             stepSubtitles={stepSubtitles}
             title="Start Your Adventure"
             submitButtonText="Create School"
-            submitButtonColor="#6366f1"
+            successTitle="Congratulations"
+            successMessage="We will get back to you in 1 business day. Thank you."
         />
     );
 }
