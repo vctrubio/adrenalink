@@ -14,17 +14,17 @@ export default async function Home() {
     return (
         <>
             <LandingPage />
-            <div className="max-w-7xl mx-auto mb-16">
-                <div className="text-center">
-                    ---- this break here ---- and count {result.data.length} ----
-                    <Link href="/welcome" className="text-forest-400 underline ml-8">
-                        Sign Up Now
-                    </Link>
-                </div>
-                {result.data.map((school) => (
-                    <SchoolCard key={school.schema.id} school={school} />
-                ))}
-            </div>
+            {/* <div className="max-w-7xl mx-auto mb-16"> */}
+            {/*     <div className="text-center"> */}
+            {/*         ---- this break here ---- and count {result.data.length} ---- */}
+            {/*         <Link href="/welcome" className="text-forest-400 underline ml-8"> */}
+            {/*             Sign Up Now */}
+            {/*         </Link> */}
+            {/*     </div> */}
+            {/*     {result.data.map((school) => ( */}
+            {/*         <SchoolCard key={school.schema.id} school={school} /> */}
+            {/*     ))} */}
+            {/* </div> */}
         </>
     );
 }
