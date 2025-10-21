@@ -1,6 +1,6 @@
 import SchoolCard from "@/src/components/cards/SchoolCard";
 import { getSchools } from "@/actions/schools-action";
-import LandingPage from "@/src/components/Home";
+import { LandingPage } from "@/src/landing/landing-page";
 
 export default async function Home() {
     const result = await getSchools();
@@ -9,18 +9,16 @@ export default async function Home() {
         return <>{result.error}</>;
     }
 
+    console.log("result.data", result.data);
     return (
         <>
-            <LandingPage />
-            <div className="h-screen flex flex-col">
-                <div className="flex-1 overflow-auto p-6">
-                    <div className="space-y-4">
-                        {result.data.map((school) => (
-                            <SchoolCard key={school.schema.id} school={school} />
-                        ))}
-                    </div>
-                </div>
-            </div>
+        <LandingPage />
+        <div>
+          ---- this break here ---- and count {result.data.length}
+          {result.data.map((school) => (
+            <SchoolCard key={school.schema.id} school={school} />
+          ))}
+        </div>
         </>
     );
 }
