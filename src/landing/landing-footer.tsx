@@ -63,7 +63,7 @@ export function DevAboutMeFooter({ onThemeChange }: DevAboutMeFooterProps = {}) 
                             </Link>
 
                             <Link
-                                href="mailto:vctrubio@gmail.com"
+                                href="https://calendly.com/vctrubio/adrenalink-earlybird"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
