@@ -1,4 +1,5 @@
 CREATE TYPE "public"."equipment_category" AS ENUM('kite', 'wing', 'windsurf', 'surf', 'snowboard');--> statement-breakpoint
+CREATE TYPE "public"."school_status" AS ENUM('active', 'pending', 'closed');--> statement-breakpoint
 CREATE TYPE "public"."student_package_status" AS ENUM('requested', 'accepted', 'rejected');--> statement-breakpoint
 CREATE TABLE "booking" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -24,6 +25,9 @@ CREATE TABLE "school" (
 	"username" varchar(50) NOT NULL,
 	"country" varchar(100) NOT NULL,
 	"phone" varchar(20) NOT NULL,
+	"icon_url" varchar(500),
+	"banner_url" varchar(500),
+	"status" "school_status" DEFAULT 'pending' NOT NULL,
 	"latitude" numeric(10, 8),
 	"longitude" numeric(10, 8),
 	"google_place_id" varchar(255),

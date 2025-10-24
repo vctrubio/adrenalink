@@ -1,5 +1,5 @@
 {
-  "id": "5dded6f9-a1c6-4b3c-9ef1-ebefc1734201",
+  "id": "fc559b65-b395-497e-a327-f8b8a0c4a34b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -352,6 +352,26 @@
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true
+        },
+        "icon_url": {
+          "name": "icon_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banner_url": {
+          "name": "banner_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "school_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
         },
         "latitude": {
           "name": "latitude",
@@ -851,6 +871,15 @@
         "windsurf",
         "surf",
         "snowboard"
+      ]
+    },
+    "public.school_status": {
+      "name": "school_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "pending",
+        "closed"
       ]
     },
     "public.student_package_status": {

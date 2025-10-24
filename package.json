@@ -31,7 +31,7 @@
         "@vercel/analytics": "^1.5.0",
         "dotenv": "^17.2.3",
         "drizzle-kit": "^0.31.5",
-        "drizzle-orm": "^0.44.6",
+        "drizzle-orm": "^0.44.7",
         "lucide-react": "^0.545.0",
         "newrelic": "^13.5.0",
         "next": "15.5.4",

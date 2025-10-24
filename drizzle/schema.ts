@@ -2,6 +2,7 @@ import { pgTable, uuid, timestamp, varchar, text, unique, boolean, integer, pgEn
 
 export const equipmentCategoryEnum = pgEnum("equipment_category", ["kite", "wing", "windsurf", "surf", "snowboard"]);
 export const studentPackageStatusEnum = pgEnum("student_package_status", ["requested", "accepted", "rejected"]);
+export const schoolStatusEnum = pgEnum("school_status", ["active", "pending", "closed"]);
 
 export const student = pgTable("student", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -19,6 +20,9 @@ export const school = pgTable("school", {
     username: varchar("username", { length: 50 }).notNull().unique(),
     country: varchar("country", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }).notNull(),
+    iconUrl: varchar("icon_url", { length: 500 }),
+    bannerUrl: varchar("banner_url", { length: 500 }),
+    status: schoolStatusEnum("status").notNull().default("pending"),
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 10, scale: 8 }),
     googlePlaceId: varchar("google_place_id", { length: 255 }),
