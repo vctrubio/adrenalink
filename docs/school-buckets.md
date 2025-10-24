@@ -1,13 +1,21 @@
-# School Asset Management
+# School Asset Management - Cloudflare R2
 
-## Google Cloud Storage Structure
+## Cloudflare R2 Bucket Structure
 
 ```
-gs://adrenalink-schools-forms/
+r2://adrenalink-assets/
 ├── {username}/
 │   ├── icon.png          (~100KB)
 │   ├── banner.jpeg       (~500KB)
 │   └── metadata.json
+```
+
+## Public URLs
+
+Assets accessible via custom domain or R2 public URLs:
+```
+https://assets.adrenalink.tech/{username}/icon.png
+https://assets.adrenalink.tech/{username}/banner.jpeg
 ```
 
 ## Metadata JSON
@@ -23,22 +31,35 @@ gs://adrenalink-schools-forms/
 }
 ```
 
-## Database Schema Changes
+## Environment Configuration
 
-### Add to school table:
+```bash
+# Cloudflare R2 Configuration
+CLOUDFLARE_R2_ACCOUNT_ID=your-account-id
+CLOUDFLARE_R2_ACCESS_KEY=your-access-key
+CLOUDFLARE_R2_SECRET_KEY=your-secret-key
+CLOUDFLARE_R2_BUCKET=adrenalink-assets
+CLOUDFLARE_R2_PUBLIC_URL=https://assets.adrenalink.tech
+```
+
+## Database Schema (Already Applied)
+
 ```sql
 iconUrl: varchar("icon_url", { length: 500 }),
 bannerUrl: varchar("banner_url", { length: 500 }),
 status: schoolStatusEnum("status").notNull().default("pending"),
 ```
 
-### Create status enum:
-```sql
-export const schoolStatusEnum = pgEnum("school_status", ["active", "pending", "closed"]);
-```
+## Upload Flow
 
-## Flow
+1. **Registration Form**: User uploads icon + banner files
+2. **Upload to R2**: Files uploaded to `{username}/` folder
+3. **Get Public URLs**: Generate URLs for uploaded assets
+4. **Save to Database**: Store URLs in `iconUrl`/`bannerUrl` fields
+5. **Display**: Subdomain page loads assets from R2 URLs
 
-1. **Registration**: School uploads assets → GCS folder created with icon.png + banner.jpeg + metadata.json
-2. **Approval**: Admin approves → metadata.json `approved_at` updated + database status → "active"  
-3. **Display**: Subdomain page reads `iconUrl`/`bannerUrl` from database
+## Cost Benefits
+
+- **Storage**: $0.015/GB/month (vs Google's $0.020/GB)
+- **Egress**: FREE (vs Google's $0.12/GB)
+- **Operations**: $4.50 per million requests

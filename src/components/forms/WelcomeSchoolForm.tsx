@@ -7,8 +7,9 @@ import { z } from "zod";
 import { createSchool, getSchoolsUsernames, checkUsernameAvailability } from "@/actions/schools-action";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
+// Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import { NameStep, LocationStepWrapper, CategoriesStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import { NameStep, LocationStepWrapper, CategoriesStep, AssetsStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
 
 // Main school schema with validation
 const schoolSchema = z.object({
@@ -24,6 +25,10 @@ const schoolSchema = z.object({
     longitude: z.number().optional(),
     googlePlaceId: z.string().optional(),
     equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf", "surf", "snowboard"])).min(1, "Select at least one equipment category"),
+    iconFile: z.instanceof(File).optional(),
+    bannerFile: z.instanceof(File).optional(),
+    iconUrl: z.string().optional(),
+    bannerUrl: z.string().optional(),
 });
 
 
@@ -54,6 +59,8 @@ function generateUsernameVariants(baseUsername: string, existingUsernames: strin
 export function WelcomeSchoolForm() {
     const [isGeneratingUsername, setIsGeneratingUsername] = useState(false);
     const [usernameStatus, setUsernameStatus] = useState<"available" | "unavailable" | "checking" | null>(null);
+    const [pendingToBucket, setPendingToBucket] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState<string>("");
 
     const methods = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema),
@@ -66,6 +73,10 @@ export function WelcomeSchoolForm() {
             longitude: undefined,
             googlePlaceId: "",
             equipmentCategories: [],
+            iconFile: undefined,
+            bannerFile: undefined,
+            iconUrl: "",
+            bannerUrl: "",
         },
         mode: "onTouched",
     });
@@ -158,30 +169,88 @@ export function WelcomeSchoolForm() {
 
     const onSubmit = async (data: SchoolFormData) => {
         try {
-            // Convert equipmentCategories array to comma-separated string for database
+            setPendingToBucket(true);
+            setUploadStatus("Preparing upload...");
+            
+            // Step 1: Upload assets to R2 via API route
+            let iconUrl = "";
+            let bannerUrl = "";
+            
+            if (data.iconFile || data.bannerFile) {
+                setUploadStatus("Uploading content...");
+                console.log("📤 Uploading assets to R2...");
+                
+                const formData = new FormData();
+                formData.append("username", data.username);
+                
+                if (data.iconFile) {
+                    formData.append("iconFile", data.iconFile);
+                }
+                if (data.bannerFile) {
+                    formData.append("bannerFile", data.bannerFile);
+                }
+                
+                const uploadResponse = await fetch("/api/cloudflare/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResult.success) {
+                    console.error("Asset upload failed:", uploadResult.error);
+                    setPendingToBucket(false);
+                    setUploadStatus("");
+                    alert(`Failed to upload assets: ${uploadResult.error}`);
+                    return;
+                }
+                
+                iconUrl = uploadResult.iconUrl || "";
+                bannerUrl = uploadResult.bannerUrl || "";
+                console.log("✅ Assets uploaded successfully");
+            }
+            
+            // Step 2: Prepare school data with asset URLs
             const schoolData = {
                 ...data,
                 equipmentCategories: data.equipmentCategories.join(","),
+                iconUrl,
+                bannerUrl,
+                // Remove file objects before sending to database
+                iconFile: undefined,
+                bannerFile: undefined,
             };
 
+            // Step 3: Create school in database with asset URLs
+            setUploadStatus("Creating school...");
+            console.log("💾 Creating school in database...");
             const result = await createSchool(schoolData);
 
             if (!result.success) {
-                console.error("Error creating school:", result.error);
-                // Add error notification here if needed
+                console.error("❌ Database error:", result.error);
+                setPendingToBucket(false);
+                setUploadStatus("");
+                
+                // Show error to user instead of congratulations
+                alert(`Failed to create school: ${result.error}`);
                 return;
             }
 
             console.log("✅ School created successfully:", result.data);
+            
+            // Step 4: Reset form and state ONLY on success
             const lastCountry = data.country;
             methods.reset();
             setValue("country", lastCountry);
             triggerPhoneClear();
             setUsernameStatus(null);
-            // Add success notification here if needed
+            setPendingToBucket(false);
+            setUploadStatus("");
+            
         } catch (error) {
-            console.error("Error creating school:", error);
-            // Add error notification here if needed
+            console.error("Error in school creation flow:", error);
+            setPendingToBucket(false);
+            setUploadStatus("");
         }
     };
 
@@ -190,14 +259,16 @@ export function WelcomeSchoolForm() {
         0: NameStep,
         1: LocationStepWrapper,
         2: CategoriesStep,
-        3: SummaryStep,
+        3: AssetsStep,
+        4: SummaryStep,
     };
 
     const stepSubtitles = {
         0: "Tell Us Who You Are",
         1: "Where Can We Find You",
         2: "What do you have to offer?",
-        3: "Does everything look correct officer?",
+        3: "Make your school stand out",
+        4: "Does everything look correct officer?",
     };
 
     const stepProps = {
@@ -215,6 +286,10 @@ export function WelcomeSchoolForm() {
         },
         2: {},
         3: {
+            pendingToBucket,
+            uploadStatus,
+        },
+        4: {
             onEditField: editField,
         },
     };

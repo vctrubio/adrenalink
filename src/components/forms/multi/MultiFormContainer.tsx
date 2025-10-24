@@ -58,7 +58,15 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 }: MultiFormContainerProps<T>) {
     const [stepIndex, setStepIndex] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const { handleSubmit, trigger, formState } = formMethods;
+    const { handleSubmit, trigger, formState, setFocus } = formMethods;
+
+    // Auto-focus first input when step changes
+    useEffect(() => {
+        const currentFields = steps[stepIndex]?.fields;
+        if (currentFields && currentFields.length > 0) {
+            setTimeout(() => setFocus(currentFields[0] as any), 50);
+        }
+    }, [stepIndex, setFocus, steps]);
 
     // Navigation functions
     const next = async () => {

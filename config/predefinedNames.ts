@@ -1,6 +1,7 @@
 export const RESERVED_USERNAMES = [
     "admin",
     "administrator",
+    "assets",
     "dashboard",
     "tarifa",
     "north",
