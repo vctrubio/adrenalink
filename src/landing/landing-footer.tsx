@@ -1,89 +1,77 @@
-"use client";
-
-import { Mail, Linkedin, Calendar } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import { WindToggle } from "@/src/components/themes/WindToggle";
 import Link from "next/link";
-import Image from "next/image";
-import BetaCountdown from "./BetaCountdown";
 
 interface DevAboutMeFooterProps {
     onThemeChange?: () => void;
 }
 
+// Hero Section Component
+function HeroSection() {
+    return (
+        <div className="text-center space-y-8 mb-16">
+            <div className="space-y-4">
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground animate-in slide-in-from-bottom-4 duration-1000">Transform Your School</h1>
+                <p className="text-xl md:text-2xl text-muted-foreground animate-in slide-in-from-bottom-4 duration-1000 delay-200">First come, first served</p>
+            </div>
+            <div className="text-3xl md:text-4xl font-mono text-primary animate-in slide-in-from-bottom-4 duration-1000 delay-300">your_school.adrenalink.tech</div>
+        </div>
+    );
+}
+
+// CTA Buttons Component
+function CTAButtons() {
+    return (
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <Link
+                href="/welcome"
+                className="group bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-left-4 duration-1000 delay-500"
+            >
+                Sign Up (Early Bird)
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+                href="https://calendly.com/vctrubio/adrenalink-earlybird"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group border-2 border-secondary hover:bg-secondary/10 text-foreground px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-right-4 duration-1000 delay-500"
+            >
+                <Calendar className="w-5 h-5" />
+                Request a Demo
+            </Link>
+        </div>
+    );
+}
+
+// Footer Credits Component
+function FooterCredits({ onThemeChange }: { onThemeChange?: () => void }) {
+    return (
+        <footer className="mt-auto py-8 bg-muted rounded-2xl">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                        Developed by <span className="text-secondary font-medium">vctrubio</span> 📍 Tarifa
+                    </div>
+                    <WindToggle onThemeChange={onThemeChange} />
+                </div>
+            </div>
+        </footer>
+    );
+}
+
 export function DevAboutMeFooter({ onThemeChange }: DevAboutMeFooterProps = {}) {
     return (
         <section className="h-screen snap-start relative overflow-hidden">
-            <div className="h-full flex flex-col items-center justify-center px-4">
-                <div className="max-w-2xl mx-auto text-center space-y-16">
-                    {/* Main Content */}
-                    <div className="space-y-8">
-                        <h2 className="text-4xl font-light tracking-tight text-foreground">Ready to transform your school?</h2>
-
-                        <div className="text-2xl font-mono text-secondary">your_school.adrenalink.tech</div>
-
-                        {/* <p className="text-xl text-muted-foreground">First come, first served</p> */}
-                    </div>
-
-                    {/* Beta Version */}
-                    {/* <BetaCountdown /> */}
-
-                    {/* Contact */}
-                    <div className="space-y-8 bg-muted p-8 rounded-2xl">
-                        <div className="grid grid-cols-2 gap-6 divide-blue-50">
-                            <Link
-                                href="mailto:vctrubio@gmail.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
-                                title="Contact me"
-                            >
-                                <Mail className="w-5 h-5" />
-                                <span>Contact me</span>
-                            </Link>
-                            <Link
-                                href="https://www.linkedin.com/in/vctrubio/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
-                                title="LinkedIn Profile"
-                            >
-                                <Linkedin className="w-5 h-5" />
-                                <span>Connect on LinkedIn</span>
-                            </Link>
-
-                            <Link
-                                href="https://donkeydrills.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
-                                title="Personal Website"
-                            >
-                                <Image src="/donkey.png" alt="Donkey Drills" width={42} height={42} />
-                                <span>Portfolio</span>
-                            </Link>
-
-                            <Link
-                                href="https://calendly.com/vctrubio/adrenalink-earlybird"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 px-6 py-3 text-lg rounded-xl border-2 transition-all duration-300 text-foreground border-secondary bg-secondary/10 hover:bg-secondary/20 hover:border-secondary hover:shadow-lg"
-                                title="Book a Call"
-                            >
-                                <Calendar className="w-5 h-5" />
-                                <span>Book A Call</span>
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Theme Toggle */}
-                    <div className="pt-8">
-                        <div className="text-sm text-muted-foreground mb-2">
-                            Developed by <span className="text-secondary">vctrubio</span> 📍 Tarifa
-                        </div>
-
-                        <WindToggle onThemeChange={onThemeChange} />
+            <div className="h-full flex flex-col justify-between px-4 py-16">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <HeroSection />
+                        <CTAButtons />
                     </div>
                 </div>
+
+                <FooterCredits onThemeChange={onThemeChange} />
             </div>
         </section>
     );
