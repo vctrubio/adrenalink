@@ -25,8 +25,6 @@ CREATE TABLE "school" (
 	"username" varchar(50) NOT NULL,
 	"country" varchar(100) NOT NULL,
 	"phone" varchar(20) NOT NULL,
-	"icon_url" varchar(500),
-	"banner_url" varchar(500),
 	"status" "school_status" DEFAULT 'pending' NOT NULL,
 	"latitude" numeric(10, 8),
 	"longitude" numeric(10, 8),

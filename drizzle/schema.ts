@@ -20,8 +20,6 @@ export const school = pgTable("school", {
     username: varchar("username", { length: 50 }).notNull().unique(),
     country: varchar("country", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }).notNull(),
-    iconUrl: varchar("icon_url", { length: 500 }),
-    bannerUrl: varchar("banner_url", { length: 500 }),
     status: schoolStatusEnum("status").notNull().default("pending"),
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 10, scale: 8 }),

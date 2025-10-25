@@ -1,5 +1,5 @@
 {
-  "id": "bc76ae88-1cd9-485c-ae7d-9d8d93e3b563",
+  "id": "8411740d-5c3a-4fce-91c2-a9d05d8cb00c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -352,18 +352,6 @@
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true
-        },
-        "icon_url": {
-          "name": "icon_url",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "banner_url": {
-          "name": "banner_url",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
         },
         "status": {
           "name": "status",
