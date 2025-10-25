@@ -23,24 +23,26 @@ const getR2Client = () => {
 
 export async function POST(request: NextRequest) {
     try {
+        console.log("🔵 API: Starting upload process...");
         const formData = await request.formData();
         const username = formData.get("username") as string;
         const iconFile = formData.get("iconFile") as File | null;
         const bannerFile = formData.get("bannerFile") as File | null;
         const metadataString = formData.get("metadata") as string | null;
 
+        console.log(`🔵 API: Username: ${username}, Icon: ${iconFile?.name}, Banner: ${bannerFile?.name}`);
+
         if (!username) {
-            return NextResponse.json(
-                { error: "Username is required" },
-                { status: 400 }
-            );
+            console.log("❌ API: No username provided");
+            return NextResponse.json({ error: "Username is required" }, { status: 400 });
         }
 
+        console.log("🔵 API: Getting R2 client...");
         const r2Client = getR2Client();
         const bucketName = process.env.CLOUDFLARE_R2_BUCKET || "adrenalink-assets";
-        const publicBaseUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
-        
-        const results: { iconUrl?: string; bannerUrl?: string } = {};
+
+        console.log(`🔵 API: Using bucket: ${bucketName}`);
+        const uploadResults: string[] = [];
 
         // Upload icon if provided
         if (iconFile && iconFile.size > 0) {
@@ -56,21 +58,18 @@ export async function POST(request: NextRequest) {
             });
 
             const iconResult = await r2Client.send(iconUploadCommand);
-            
+
             if (iconResult.$metadata.httpStatusCode === 200) {
-                results.iconUrl = `${publicBaseUrl}/${iconKey}`;
+                uploadResults.push("icon");
             } else {
-                return NextResponse.json(
-                    { error: `Icon upload failed with status: ${iconResult.$metadata.httpStatusCode}` },
-                    { status: 500 }
-                );
+                return NextResponse.json({ error: `Icon upload failed with status: ${iconResult.$metadata.httpStatusCode}` }, { status: 500 });
             }
         }
 
         // Upload banner if provided
         if (bannerFile && bannerFile.size > 0) {
             const bannerBuffer = await bannerFile.arrayBuffer();
-            const bannerKey = `${username}/banner.jpeg`;
+            const bannerKey = `${username}/banner.png`;
 
             const bannerUploadCommand = new PutObjectCommand({
                 Bucket: bucketName,
@@ -81,21 +80,18 @@ export async function POST(request: NextRequest) {
             });
 
             const bannerResult = await r2Client.send(bannerUploadCommand);
-            
+
             if (bannerResult.$metadata.httpStatusCode === 200) {
-                results.bannerUrl = `${publicBaseUrl}/${bannerKey}`;
+                uploadResults.push("banner");
             } else {
-                return NextResponse.json(
-                    { error: `Banner upload failed with status: ${bannerResult.$metadata.httpStatusCode}` },
-                    { status: 500 }
-                );
+                return NextResponse.json({ error: `Banner upload failed with status: ${bannerResult.$metadata.httpStatusCode}` }, { status: 500 });
             }
         }
 
         // Upload metadata.json if provided
         if (metadataString) {
             const metadataKey = `${username}/metadata.json`;
-            
+
             const metadataUploadCommand = new PutObjectCommand({
                 Bucket: bucketName,
                 Key: metadataKey,
@@ -105,26 +101,26 @@ export async function POST(request: NextRequest) {
             });
 
             const metadataResult = await r2Client.send(metadataUploadCommand);
-            
+
             if (metadataResult.$metadata.httpStatusCode !== 200) {
                 console.warn(`Metadata upload failed with status: ${metadataResult.$metadata.httpStatusCode}`);
                 // Don't fail the whole upload if metadata fails
             }
         }
 
+        console.log(`✅ API: Upload successful! Results: ${uploadResults.join(", ")}`);
         return NextResponse.json({
             success: true,
-            ...results
+            uploaded: uploadResults,
         });
-
     } catch (error) {
-        console.error("R2 upload error:", error);
+        console.error("❌ API: R2 upload error:", error);
         return NextResponse.json(
-            { 
+            {
                 error: error instanceof Error ? error.message : "Upload failed",
-                success: false
+                success: false,
             },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }
