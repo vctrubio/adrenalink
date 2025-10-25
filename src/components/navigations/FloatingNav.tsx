@@ -9,8 +9,8 @@ export default function FloatingNav({ show = true, slogan = "streamlining the ex
     return (
         <nav
             className={`
-        absolute top-8 left-1/2 -translate-x-1/2 z-50
-        px-8 py-4 rounded-full border border-secondary/60 bg-card/30 backdrop-blur-md
+        fixed top-4 left-1/2 -translate-x-1/2 z-50
+        px-6 py-3 rounded-full border border-secondary/60 bg-card/80 backdrop-blur-md
         shadow-lg
         transition-all duration-500
         ${show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"}
