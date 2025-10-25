@@ -1,9 +1,6 @@
 import Image from "next/image";
 import type { SchoolModel } from "@/backend/models/SchoolModel";
-
-// Fallback asset URLs from environment variables
-const FALLBACK_BANNER_URL = process.env.FALLBACK_BANNER_URL!;
-const FALLBACK_ICON_URL = process.env.FALLBACK_ICON_URL!;
+import { getSchoolAssets } from "@/getters/cdn-getter";
 
 interface SchoolHeaderProps {
     school: SchoolModel;
@@ -53,9 +50,8 @@ function SchoolCategories({ categories }: { categories?: string }) {
 }
 
 
-export default function SchoolHeader({ school }: SchoolHeaderProps) {
-    const bannerUrl = school.schema.bannerUrl || FALLBACK_BANNER_URL;
-    const iconUrl = school.schema.iconUrl || FALLBACK_ICON_URL;
+export default async function SchoolHeader({ school }: SchoolHeaderProps) {
+    const { iconUrl, bannerUrl } = await getSchoolAssets(school.schema.username);
 
     return (
         <div className="relative w-full">
