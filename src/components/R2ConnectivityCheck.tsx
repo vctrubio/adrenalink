@@ -21,23 +21,22 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
         setError(null);
         
         try {
-            console.log("🔍 Checking R2 connectivity...");
+            console.log("🔍 Checking R2 connectivity via upload endpoint...");
             
-            const response = await fetch("/api/test-r2", {
-                method: "GET",
-                signal: AbortSignal.timeout(10000), // 10 second timeout
+            // Test connectivity by making a simple HEAD request to the upload endpoint
+            const response = await fetch("/api/cloudflare/upload", {
+                method: "HEAD",
+                signal: AbortSignal.timeout(8000), // 8 second timeout
             });
 
-            const result = await response.json();
-            
-            if (result.success && result.overall === "SUCCESS") {
+            if (response.ok || response.status === 405) { // 405 Method Not Allowed is expected for HEAD
                 console.log("✅ R2 connectivity check passed");
                 setIsConnected(true);
                 onConnectivityChange?.(true);
             } else {
-                console.log("❌ R2 connectivity check failed:", result.message);
+                console.log("❌ R2 connectivity check failed with status:", response.status);
                 setIsConnected(false);
-                setError(result.message || "R2 connectivity test failed");
+                setError(`Upload endpoint returned status ${response.status}`);
                 onConnectivityChange?.(false);
             }
         } catch (error) {
