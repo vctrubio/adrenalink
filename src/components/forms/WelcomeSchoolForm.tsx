@@ -11,6 +11,7 @@ import { isUsernameReserved } from "@/config/predefinedNames";
 import { MultiFormContainer } from "./multi";
 import { NameStep, LocationStepWrapper, CategoriesStep, AssetsStep, ContactStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
 import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
+import { HandleFormTimeOut } from "./HandleFormTimeOut";
 
 // Main school schema with validation
 const schoolSchema = z.object({
@@ -26,12 +27,16 @@ const schoolSchema = z.object({
     longitude: z.number().optional(),
     googlePlaceId: z.string().optional(),
     equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf", "surf", "snowboard"])).min(1, "Select at least one equipment category"),
-    iconFile: z.instanceof(File).optional(),
-    bannerFile: z.instanceof(File).optional(),
-    iconUrl: z.string().optional(),
-    bannerUrl: z.string().optional(),
+    iconFile: z.instanceof(File, { message: "Icon file is required" }).refine(
+        (file) => file && file.type.startsWith("image/"),
+        "Icon must be an image file"
+    ),
+    bannerFile: z.instanceof(File, { message: "Banner file is required" }).refine(
+        (file) => file && file.type.startsWith("image/"),
+        "Banner must be an image file"
+    ),
     ownerEmail: z.string().email("Valid email is required"),
-    referenceNote: z.string().min(1, "Please tell us how you heard about us"),
+    referenceNote: z.string().optional(),
 });
 
 // Username generation utilities
@@ -63,6 +68,8 @@ export function WelcomeSchoolForm() {
     const [usernameStatus, setUsernameStatus] = useState<"available" | "unavailable" | "checking" | null>(null);
     const [pendingToBucket, setPendingToBucket] = useState(false);
     const [uploadStatus, setUploadStatus] = useState<string>("");
+    const [showTimeoutHandler, setShowTimeoutHandler] = useState(false);
+    const [timeoutFormData, setTimeoutFormData] = useState<SchoolFormData | null>(null);
 
     const methods = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema),
@@ -77,8 +84,6 @@ export function WelcomeSchoolForm() {
             equipmentCategories: [],
             iconFile: undefined,
             bannerFile: undefined,
-            iconUrl: "",
-            bannerUrl: "",
             ownerEmail: "",
             referenceNote: "",
         },
@@ -177,11 +182,8 @@ export function WelcomeSchoolForm() {
             setUploadStatus("Preparing upload...");
 
             // Step 1: Upload assets to R2 via API route
-            let iconUrl = "";
-            let bannerUrl = "";
-
             if (data.iconFile || data.bannerFile) {
-                setUploadStatus("Uploading content...");
+                setUploadStatus("Uploading assets to R2...");
                 console.log("📤 Uploading assets to R2...");
 
                 const formData = new FormData();
@@ -205,38 +207,36 @@ export function WelcomeSchoolForm() {
                     formData.append("bannerFile", data.bannerFile);
                 }
 
+                console.log("🟡 Frontend: Sending upload request...");
                 const uploadResponse = await fetch("/api/cloudflare/upload", {
                     method: "POST",
                     body: formData,
                 });
 
+                console.log(`🟡 Frontend: Upload response status: ${uploadResponse.status}`);
                 const uploadResult = await uploadResponse.json();
+                console.log("🟡 Frontend: Upload result:", uploadResult);
 
                 if (!uploadResult.success) {
-                    console.error("Asset upload failed:", uploadResult.error);
+                    console.error("❌ Frontend: Asset upload failed:", uploadResult.error);
                     setPendingToBucket(false);
                     setUploadStatus("");
-                    alert(`Failed to upload assets: ${uploadResult.error}`);
-                    return;
+                    throw new Error(`Failed to upload assets: ${uploadResult.error}`);
                 }
 
-                iconUrl = uploadResult.iconUrl || "";
-                bannerUrl = uploadResult.bannerUrl || "";
-                console.log("✅ Assets uploaded successfully");
+                console.log("✅ Frontend: Assets uploaded successfully:", uploadResult.uploaded);
             }
 
-            // Step 2: Prepare school data with asset URLs
+            // Step 2: Prepare school data (no longer storing asset URLs)
             const schoolData = {
                 ...data,
                 equipmentCategories: data.equipmentCategories.join(","),
-                iconUrl,
-                bannerUrl,
                 // Remove file objects before sending to database
                 iconFile: undefined,
                 bannerFile: undefined,
             };
 
-            // Step 3: Create school in database with asset URLs
+            // Step 3: Create school in database
             setUploadStatus("Creating school...");
             console.log("💾 Creating school in database...");
             const result = await createSchool(schoolData);
@@ -246,9 +246,8 @@ export function WelcomeSchoolForm() {
                 setPendingToBucket(false);
                 setUploadStatus("");
 
-                // Show error to user instead of congratulations
-                alert(`Failed to create school: ${result.error}`);
-                return;
+                // Throw error to prevent success page
+                throw new Error(`Failed to create school: ${result.error}`);
             }
 
             console.log("✅ School created successfully:", result.data);
@@ -265,10 +264,22 @@ export function WelcomeSchoolForm() {
             console.error("Error in school creation flow:", error);
             setPendingToBucket(false);
             setUploadStatus("");
+            
+            // Show timeout handler for R2 connectivity issues
+            if (error instanceof Error && (
+                error.message.includes("timeout") ||
+                error.message.includes("ETIMEDOUT") ||
+                error.message.includes("upload") ||
+                error.message.includes("Failed to upload assets")
+            )) {
+                console.log("🔄 R2 upload failed, showing timeout handler");
+                setTimeoutFormData(data);
+                setShowTimeoutHandler(true);
+            }
         }
     };
 
-    // Step configuration
+    // Step configuration (0-based indexing for array steps)
     const stepComponents = {
         0: NameStep,
         1: LocationStepWrapper,
@@ -312,17 +323,29 @@ export function WelcomeSchoolForm() {
     };
 
     return (
-        <MultiFormContainer<SchoolFormData>
-            steps={WELCOME_SCHOOL_STEPS}
-            formMethods={methods}
-            onSubmit={onSubmit}
-            stepComponents={stepComponents}
-            stepProps={stepProps}
-            stepSubtitles={stepSubtitles}
-            title="Start Your Adventure"
-            submitButtonText="Create School"
-            successTitle="Congratulations"
-            successMessage="We will get back to you in 1 business day. Thank you."
-        />
+        <>
+            <MultiFormContainer<SchoolFormData>
+                steps={WELCOME_SCHOOL_STEPS}
+                formMethods={methods}
+                onSubmit={onSubmit}
+                stepComponents={stepComponents}
+                stepProps={stepProps}
+                stepSubtitles={stepSubtitles}
+                title="Start Your Adventure"
+                submitButtonText="Create School"
+                successTitle="Congratulations"
+                successMessage="We will get back to you in 1 business day. Thank you."
+            />
+            
+            {showTimeoutHandler && timeoutFormData && (
+                <HandleFormTimeOut
+                    formData={timeoutFormData}
+                    onClose={() => {
+                        setShowTimeoutHandler(false);
+                        setTimeoutFormData(null);
+                    }}
+                />
+            )}
+        </>
     );
 }

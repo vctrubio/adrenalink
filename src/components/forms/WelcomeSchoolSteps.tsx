@@ -42,37 +42,20 @@ interface NameStepProps extends BaseStepProps<SchoolFormData> {
     onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function NameStep({ 
-    formMethods,
-    isGeneratingUsername, 
-    usernameStatus, 
-    onNameBlur, 
-    onUsernameChange 
-}: NameStepProps) {
-    const { register, formState: { errors }, watch } = formMethods;
+export function NameStep({ formMethods, isGeneratingUsername, usernameStatus, onNameBlur, onUsernameChange }: NameStepProps) {
+    const {
+        register,
+        formState: { errors },
+        watch,
+    } = formMethods;
     const values = watch();
     return (
-        <div className="space-y-6">
-            <FormField 
-                label="School Name" 
-                required 
-                error={errors.name?.message} 
-                isValid={!errors.name && !!values.name && values.name.length > 0}
-            >
-                <FormInput 
-                    {...register("name")} 
-                    placeholder="Enter school name" 
-                    autoFocus 
-                    onBlur={onNameBlur} 
-                />
+        <div className="space-y-4 md:space-y-6">
+            <FormField label="School Name" required error={errors.name?.message} isValid={!errors.name && !!values.name && values.name.length > 0}>
+                <FormInput {...register("name")} placeholder="Enter school name" autoFocus onBlur={onNameBlur} />
             </FormField>
 
-            <FormField 
-                label="Username" 
-                required 
-                error={errors.username?.message} 
-                isValid={!errors.username && !!values.username && values.username.length > 0 && usernameStatus === "available"}
-            >
+            <FormField label="Username" required error={errors.username?.message} isValid={!errors.username && !!values.username && values.username.length > 0 && usernameStatus === "available"}>
                 <div className="relative">
                     <FormInput
                         {...register("username", { onChange: onUsernameChange })}
@@ -84,19 +67,19 @@ export function NameStep({
                             ${usernameStatus === "unavailable" ? "border-warning focus:ring-warning" : ""}
                         `}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                        {isGeneratingUsername && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
-                        {usernameStatus === "checking" && !isGeneratingUsername && <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>}
+                    <div className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 md:space-x-2">
+                        {isGeneratingUsername && <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
+                        {usernameStatus === "checking" && !isGeneratingUsername && <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>}
                         {usernameStatus === "available" && (
-                            <div className="w-4 h-4 bg-secondary rounded-full flex items-center justify-center">
-                                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <div className="w-3 h-3 md:w-4 md:h-4 bg-secondary rounded-full flex items-center justify-center">
+                                <svg width="8" height="6" viewBox="0 0 10 8" fill="none" className="md:w-[10px] md:h-2">
                                     <path d="M9 1L3.5 6.5L1 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </div>
                         )}
                         {usernameStatus === "unavailable" && (
-                            <div className="w-4 h-4 bg-warning rounded-full flex items-center justify-center">
-                                <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                            <div className="w-3 h-3 md:w-4 md:h-4 bg-warning rounded-full flex items-center justify-center">
+                                <svg width="6" height="6" viewBox="0 0 8 8" fill="none" className="md:w-2 md:h-2">
                                     <path d="M6 2L2 6M2 2L6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </div>
@@ -115,14 +98,11 @@ interface LocationStepWrapperProps extends BaseStepProps<SchoolFormData> {
     triggerPhoneClear: () => void;
 }
 
-export function LocationStepWrapper({ 
-    formMethods,
-    onCountryChange, 
-    onPhoneChange, 
-    onLocationChange, 
-    triggerPhoneClear 
-}: LocationStepWrapperProps) {
-    const { formState: { errors }, watch } = formMethods;
+export function LocationStepWrapper({ formMethods, onCountryChange, onPhoneChange, onLocationChange, triggerPhoneClear }: LocationStepWrapperProps) {
+    const {
+        formState: { errors },
+        watch,
+    } = formMethods;
     const values = watch();
     return (
         <LocationStep
@@ -142,23 +122,22 @@ export function LocationStepWrapper({
 }
 
 export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
-    const { register, formState: { errors }, watch } = formMethods;
+    const {
+        register,
+        formState: { errors },
+        watch,
+    } = formMethods;
     const values = watch();
     return (
         <div className="space-y-4">
-            <FormField 
-                label="Equipment Categories" 
-                required 
-                error={errors.equipmentCategories?.message as string | undefined} 
-                isValid={Array.isArray(values.equipmentCategories) && values.equipmentCategories.length > 0}
-            >
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            <FormField label="Equipment Categories" required error={errors.equipmentCategories?.message as string | undefined} isValid={Array.isArray(values.equipmentCategories) && values.equipmentCategories.length > 0}>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
                     {EQUIPMENT_CATEGORIES.map((cat) => {
                         const checked = values.equipmentCategories?.includes(cat);
                         return (
                             <label
                                 key={cat}
-                                className={`cursor-pointer select-none border rounded-md px-3 py-2 text-sm flex items-center justify-center gap-2 transition-colors
+                                className={`cursor-pointer select-none border rounded-md px-2 py-2 md:px-3 md:py-2 text-xs md:text-sm flex items-center justify-center gap-1 md:gap-2 transition-colors
                                 ${checked ? "bg-blue-200 text-blue-900 border-blue-300" : "bg-background border-input hover:bg-accent"}
                             `}
                             >
@@ -197,35 +176,17 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
     };
 
     return (
-        <div className="space-y-8">
-            <div className="text-center mb-6">
-                <h3 className="text-lg font-medium text-foreground mb-2">Upload Your School Assets</h3>
-                <p className="text-muted-foreground">Add an icon and banner to make your school stand out</p>
-            </div>
+        <div className="space-y-6 md:space-y-8">
 
             {/* Icon Upload */}
-            <div className="space-y-4">
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="w-24 h-24 bg-muted rounded-full border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
-                        {values.iconFile ? (
-                            <img 
-                                src={URL.createObjectURL(values.iconFile)} 
-                                alt="Icon preview" 
-                                className="w-full h-full object-cover rounded-full"
-                            />
-                        ) : (
-                            <Building className="w-8 h-8 text-muted-foreground" />
-                        )}
+            <div className="space-y-3 md:space-y-4">
+                <div className="flex flex-col items-center space-y-3 md:space-y-4">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-muted rounded-full border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
+                        {values.iconFile ? <img src={URL.createObjectURL(values.iconFile)} alt="Icon preview" className="w-full h-full object-cover rounded-full" /> : <Building className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />}
                     </div>
                     <div className="text-center">
-                        <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg"
-                                onChange={handleIconChange}
-                                className="hidden"
-                                disabled={pendingToBucket}
-                            />
+                        <label className="cursor-pointer inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors">
+                            <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleIconChange} className="hidden" disabled={pendingToBucket} />
                             Choose Icon
                         </label>
                         <p className="text-xs text-muted-foreground mt-1">PNG or JPG, max 2MB, square recommended</p>
@@ -234,28 +195,14 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
             </div>
 
             {/* Banner Upload */}
-            <div className="space-y-4">
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="w-full max-w-md h-32 bg-muted rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
-                        {values.bannerFile ? (
-                            <img 
-                                src={URL.createObjectURL(values.bannerFile)} 
-                                alt="Banner preview" 
-                                className="w-full h-full object-cover rounded-lg"
-                            />
-                        ) : (
-                            <Image className="w-8 h-8 text-muted-foreground" />
-                        )}
+            <div className="space-y-3 md:space-y-4">
+                <div className="flex flex-col items-center space-y-3 md:space-y-4">
+                    <div className="w-full max-w-sm md:max-w-md h-28 md:h-32 bg-muted rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
+                        {values.bannerFile ? <img src={URL.createObjectURL(values.bannerFile)} alt="Banner preview" className="w-full h-full object-cover rounded-lg" /> : <Image className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />}
                     </div>
                     <div className="text-center">
-                        <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg"
-                                onChange={handleBannerChange}
-                                className="hidden"
-                                disabled={pendingToBucket}
-                            />
+                        <label className="cursor-pointer inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors">
+                            <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleBannerChange} className="hidden" disabled={pendingToBucket} />
                             Choose Banner
                         </label>
                         <p className="text-xs text-muted-foreground mt-1">PNG or JPG, max 5MB, 16:9 ratio recommended</p>
@@ -264,9 +211,9 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
             </div>
 
             {pendingToBucket && (
-                <div className="flex items-center justify-center space-x-3 text-primary">
-                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-sm font-medium">{uploadStatus || "Processing..."}</span>
+                <div className="flex items-center justify-center space-x-2 md:space-x-3 text-primary">
+                    <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs md:text-sm font-medium">{uploadStatus || "Processing..."}</span>
                 </div>
             )}
         </div>
@@ -274,38 +221,25 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
 }
 
 export function ContactStep({ formMethods }: BaseStepProps<SchoolFormData>) {
-    const { register, formState: { errors } } = formMethods;
+    const {
+        register,
+        formState: { errors },
+    } = formMethods;
 
     return (
-        <div className="space-y-6">
-            <div className="text-center space-y-2">
-                <h3 className="text-lg font-semibold">Contact Information</h3>
-                <p className="text-muted-foreground">How can we reach you and learn more about your journey?</p>
+        <div className="space-y-4 md:space-y-6">
+            <div className="text-center space-y-1 md:space-y-2">
+                <h3 className="text-base md:text-lg font-semibold">Contact Information</h3>
+                <p className="text-sm md:text-base text-muted-foreground">How can we reach you and learn more about your journey?</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
                 <FormField label="Contact Email" error={errors.ownerEmail?.message}>
-                    <FormInput
-                        type="email"
-                        placeholder="your@email.com"
-                        {...register("ownerEmail")}
-                    />
+                    <FormInput type="email" placeholder="your@email.com" {...register("ownerEmail")} />
                 </FormField>
 
                 <FormField label="How did you hear about us?" error={errors.referenceNote?.message}>
-                    <select
-                        className="w-full h-10 px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                        {...register("referenceNote")}
-                    >
-                        <option value="">Select an option...</option>
-                        <option value="Social Media">Social Media</option>
-                        <option value="Google Search">Google Search</option>
-                        <option value="Friend/Colleague">Friend/Colleague</option>
-                        <option value="Industry Event">Industry Event</option>
-                        <option value="Website">Website</option>
-                        <option value="Advertisement">Advertisement</option>
-                        <option value="Other">Other</option>
-                    </select>
+                    <FormInput type="text" placeholder="Social media, Google, friend, etc..." {...register("referenceNote")} />
                 </FormField>
             </div>
         </div>
@@ -317,50 +251,66 @@ interface SummaryStepProps extends BaseStepProps<SchoolFormData> {
 }
 
 export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummaryStepProps) {
+    const { watch } = formMethods;
+    const values = watch();
+
     const summaryFields: SummaryField[] = [
         {
             key: "name",
             label: "School Name",
-            colSpan: 1
+            colSpan: 1,
         },
         {
-            key: "username", 
+            key: "username",
             label: "Username",
-            colSpan: 1
+            colSpan: 1,
         },
         {
             key: "country",
-            label: "Country", 
-            colSpan: 1
+            label: "Country",
+            colSpan: 1,
         },
         {
             key: "phone",
             label: "Phone",
-            colSpan: 1
+            colSpan: 1,
         },
         {
             key: "equipmentCategories",
             label: "Equipment Categories",
-            colSpan: 2
+            colSpan: 2,
+        },
+        {
+            key: "latitude",
+            label: "Geolocation",
+            colSpan: 2,
+            displayValue: values.latitude && values.longitude 
+                ? `${values.latitude.toFixed(6)}, ${values.longitude.toFixed(6)}`
+                : "—",
+        },
+        {
+            key: "iconFile",
+            label: "School Icon",
+            colSpan: 1,
+            displayValue: values.iconFile ? "📷 Icon uploaded" : "—",
+        },
+        {
+            key: "bannerFile",
+            label: "School Banner",
+            colSpan: 1,
+            displayValue: values.bannerFile ? "🖼️ Banner uploaded" : "—",
         },
         {
             key: "ownerEmail",
             label: "Contact Email",
-            colSpan: 1
+            colSpan: 1,
         },
         {
             key: "referenceNote",
             label: "How you heard about us",
-            colSpan: 1
-        }
+            colSpan: 1,
+        },
     ];
 
-    return (
-        <MultiStepSummary
-            formMethods={formMethods}
-            fields={summaryFields}
-            onEditField={(fieldKey) => onEditField(fieldKey as keyof SchoolFormData, onGoToStep)}
-            gridCols={2}
-        />
-    );
+    return <MultiStepSummary formMethods={formMethods} fields={summaryFields} onEditField={(fieldKey) => onEditField(fieldKey as keyof SchoolFormData, onGoToStep)} gridCols={2} />;
 }

@@ -13,27 +13,27 @@ interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     steps: FormStep<T>[];
     formMethods: UseFormReturn<T>;
     onSubmit: (data: T) => Promise<void>;
-    
+
     // Step components
     stepComponents: Record<number, React.ComponentType<any>>;
     stepProps: Record<number, any>;
-    
+
     // UI customization
     title?: string;
     subtitle?: string;
     stepSubtitles?: Record<number, string>;
     className?: string;
-    
+
     // Navigation
     onStepChange?: (stepIndex: number) => void;
-    
+
     // Submit button
     submitButtonText?: string;
-    
+
     // Success state
     successTitle?: string;
     successMessage?: string;
-    
+
     // Floating nav
     showFloatingNav?: boolean;
     navSlogan?: string;
@@ -54,7 +54,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     successTitle = "Congratulations",
     successMessage = "We will get back to you in 1 business day. Thank you.",
     showFloatingNav = true,
-    navSlogan = "streamlining the experience"
+    navSlogan = "streamlining the experience",
 }: MultiFormContainerProps<T>) {
     const [stepIndex, setStepIndex] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -132,7 +132,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             <div className={className}>
                 {/* Floating Nav */}
                 {showFloatingNav && <FloatingNav show={showFloatingNav} slogan={navSlogan} />}
-                
+
                 {/* Success Content */}
                 <div className="bg-card rounded-lg border border-border p-6 md:p-8 text-center animate-in fade-in duration-500">
                     <div className="space-y-6">
@@ -141,17 +141,14 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        
+
                         <div className="animate-in slide-in-from-bottom duration-500 delay-300">
                             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{successTitle}</h1>
                             <p className="text-muted-foreground text-lg">{successMessage}</p>
                         </div>
-                        
+
                         <div className="animate-in slide-in-from-bottom duration-500 delay-500">
-                            <button
-                                onClick={() => window.location.href = "/"}
-                                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200"
-                            >
+                            <button onClick={() => (window.location.href = "/")} className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200">
                                 Go to Home
                             </button>
                         </div>
@@ -162,15 +159,15 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     }
 
     return (
-        <div className={className}>
+        <div className={`mt-4 md:mt-18 px-2 md:px-0 ${className}`}>
             {/* Floating Nav */}
             {showFloatingNav && <FloatingNav show={showFloatingNav} slogan={navSlogan} />}
-            
+
             {/* Header */}
             {(title || currentSubtitle) && (
-                <div className="mb-6 text-center">
-                    {title && <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>}
-                    {currentSubtitle && <p className="text-muted-foreground mt-1">{currentSubtitle}</p>}
+                <div className="mb-3 md:mb-8 text-center">
+                    {title && <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-foreground mb-1 md:mb-2">{title}</h1>}
+                    {currentSubtitle && <p className="text-sm md:text-lg text-muted-foreground">{currentSubtitle}</p>}
                 </div>
             )}
 
@@ -178,25 +175,16 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
 
             {/* Form */}
-            <Form methods={formMethods} onSubmit={handleSubmit(handleFormSubmit)} className="bg-card rounded-lg border border-border p-6 md:p-8">
+            <Form methods={formMethods} onSubmit={handleSubmit(handleFormSubmit)} className="bg-card rounded-lg md:rounded-xl border border-border/50 p-3 md:p-8 lg:p-12 shadow-lg mx-auto">
                 {/* Current Step Content */}
                 {CurrentStepComponent && (
-                    <CurrentStepComponent
-                        {...currentStepProps}
-                        formMethods={formMethods}
-                        onGoToStep={goTo}
-                    />
+                    <div className="space-y-4 md:space-y-6">
+                        <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
+                    </div>
                 )}
 
                 {/* Navigation */}
-                <MultiFormButtons
-                    isFirstStep={stepIndex === 0}
-                    isLastStep={stepIndex === steps.length - 1}
-                    onPrev={prev}
-                    onNext={next}
-                    submitButtonText={submitButtonText}
-                    isFormValid={formState.isValid}
-                />
+                <MultiFormButtons isFirstStep={stepIndex === 0} isLastStep={stepIndex === steps.length - 1} onPrev={prev} onNext={next} submitButtonText={submitButtonText} isFormValid={formState.isValid} />
             </Form>
         </div>
     );
