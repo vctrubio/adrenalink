@@ -9,6 +9,7 @@ AdrenaLink is a first-of-a-kind application that connects teachers and students 
 ### Domain Configuration
 - **Production Domain**: `adrenalink.tech`
 - **Subdomain Architecture**: School-specific subdomains (e.g., `schoolname.adrenalink.tech`)
+- **CDN Domain**: `cdn.adrenalink.tech` - Direct link to Cloudflare R2 bucket for optimized asset delivery
 
 ### Middleware Implementation
 The production environment uses Next.js middleware (`src/middleware.ts`) to handle:

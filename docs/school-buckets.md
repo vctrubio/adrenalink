@@ -4,19 +4,42 @@
 
 ```
 r2://adrenalink-assets/
+├── admin/
+│   ├── icon.png          # Default fallback icon (~100KB)
+│   └── banner.png        # Default fallback banner (~500KB)
 ├── {username}/
-│   ├── icon.png          (~100KB)
-│   ├── banner.jpeg       (~500KB)
-│   └── metadata.json
+│   ├── icon.png          # School-specific icon (~100KB)
+│   ├── banner.jpeg       # School-specific banner (~500KB)
+│   └── metadata.json     # School metadata
 ```
 
 ## Public URLs
 
-Assets accessible via custom domain or R2 public URLs:
+Assets accessible via CDN domain for optimal performance:
 ```
-https://assets.adrenalink.tech/{username}/icon.png
-https://assets.adrenalink.tech/{username}/banner.jpeg
+https://cdn.adrenalink.tech/admin/icon.png       # Default fallback icon
+https://cdn.adrenalink.tech/admin/banner.png     # Default fallback banner
+https://cdn.adrenalink.tech/{username}/icon.png  # School icon
+https://cdn.adrenalink.tech/{username}/banner.jpeg # School banner
 ```
+
+## CDN Configuration
+
+- **Primary Domain**: `cdn.adrenalink.tech` (Cloudflare CDN + R2)
+- **Fallback**: Direct R2 public dev URL for development
+- **Performance**: Unoptimized Next.js images for maximum speed
+- **Caching**: Global edge caching via Cloudflare
+
+## Reserved Subdomains
+
+The following subdomains are reserved and cannot be used as school usernames:
+- `assets` - Legacy asset domain
+- `api` - API endpoints
+- `www` - Main website
+- `admin` - Admin dashboard
+- `dashboard` - User dashboard
+- `app` - Main application
+- `cdn` - Content delivery network
 
 ## Metadata JSON
 
@@ -39,7 +62,8 @@ CLOUDFLARE_R2_ACCOUNT_ID=your-account-id
 CLOUDFLARE_R2_ACCESS_KEY=your-access-key
 CLOUDFLARE_R2_SECRET_KEY=your-secret-key
 CLOUDFLARE_R2_BUCKET=adrenalink-assets
-CLOUDFLARE_R2_PUBLIC_URL=https://assets.adrenalink.tech
+CLOUDFLARE_R2_PUBLIC_URL=https://cdn.your-domain.com
+CLOUDFLARE_ZONE_ID=your-zone-id
 ```
 
 ## Database Schema (Already Applied)

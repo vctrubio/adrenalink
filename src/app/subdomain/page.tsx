@@ -1,5 +1,6 @@
 import { getSchoolById } from "@/actions/schools-action";
-import SchoolSubdomain from "@/src/portals/SchoolDebugSubdomain";
+import SchoolSubdomain from "@/src/portals/schools/SchoolDebugSubdomain";
+import SchoolHeader from "@/src/portals/schools/SchoolHeader";
 
 interface SubdomainPageProps {
     searchParams: Promise<{
@@ -38,7 +39,12 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             );
         }
         
-        return <SchoolSubdomain school={result.data} />;
+        return (
+            <>
+                <SchoolHeader school={result.data} />
+                <SchoolSubdomain school={result.data} />
+            </>
+        );
         
     } catch (error) {
         console.error("💥 Error in subdomain page:", error);

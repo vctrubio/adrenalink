@@ -2,7 +2,7 @@
 
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { LocationStep } from "./LocationStep";
-import { Building, MapPin, Tag, Image, CheckCircle2 } from "lucide-react";
+import { Building, MapPin, Tag, Image, Mail, CheckCircle2 } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
 
@@ -22,6 +22,8 @@ export type SchoolFormData = {
     bannerFile?: File;
     iconUrl?: string;
     bannerUrl?: string;
+    ownerEmail: string;
+    referenceNote: string;
 };
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
@@ -29,7 +31,8 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 2, title: "Location", icon: <MapPin className="w-4 h-4" />, fields: ["country", "phone", "latitude", "longitude", "googlePlaceId"] },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
     { id: 4, title: "Assets", icon: <Image className="w-4 h-4" />, fields: ["iconFile", "bannerFile"] },
-    { id: 5, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
+    { id: 5, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
+    { id: 6, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
 interface NameStepProps extends BaseStepProps<SchoolFormData> {
@@ -270,6 +273,45 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
     );
 }
 
+export function ContactStep({ formMethods }: BaseStepProps<SchoolFormData>) {
+    const { register, formState: { errors } } = formMethods;
+
+    return (
+        <div className="space-y-6">
+            <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold">Contact Information</h3>
+                <p className="text-muted-foreground">How can we reach you and learn more about your journey?</p>
+            </div>
+
+            <div className="space-y-4">
+                <FormField label="Contact Email" error={errors.ownerEmail?.message}>
+                    <FormInput
+                        type="email"
+                        placeholder="your@email.com"
+                        {...register("ownerEmail")}
+                    />
+                </FormField>
+
+                <FormField label="How did you hear about us?" error={errors.referenceNote?.message}>
+                    <select
+                        className="w-full h-10 px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                        {...register("referenceNote")}
+                    >
+                        <option value="">Select an option...</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Google Search">Google Search</option>
+                        <option value="Friend/Colleague">Friend/Colleague</option>
+                        <option value="Industry Event">Industry Event</option>
+                        <option value="Website">Website</option>
+                        <option value="Advertisement">Advertisement</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </FormField>
+            </div>
+        </div>
+    );
+}
+
 interface SummaryStepProps extends BaseStepProps<SchoolFormData> {
     onEditField: (field: keyof SchoolFormData, goToStep?: (stepIndex: number) => void) => void;
 }
@@ -300,6 +342,16 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
             key: "equipmentCategories",
             label: "Equipment Categories",
             colSpan: 2
+        },
+        {
+            key: "ownerEmail",
+            label: "Contact Email",
+            colSpan: 1
+        },
+        {
+            key: "referenceNote",
+            label: "How you heard about us",
+            colSpan: 1
         }
     ];
 

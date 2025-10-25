@@ -1,3 +1,13 @@
+export const RESERVED_SUBDOMAINS = [
+    "assets",
+    "api",
+    "www",
+    "admin",
+    "dashboard",
+    "app",
+    "cdn",
+] as const;
+
 export const RESERVED_USERNAMES = [
     "admin",
     "administrator",
@@ -36,6 +46,7 @@ export const RESERVED_USERNAMES = [
     "production",
     "beta",
     "alpha",
+    "cdn",
 ];
 
 export function isUsernameReserved(username: string): boolean {

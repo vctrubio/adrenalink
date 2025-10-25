@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
         const username = formData.get("username") as string;
         const iconFile = formData.get("iconFile") as File | null;
         const bannerFile = formData.get("bannerFile") as File | null;
+        const metadataString = formData.get("metadata") as string | null;
 
         if (!username) {
             return NextResponse.json(
@@ -88,6 +89,26 @@ export async function POST(request: NextRequest) {
                     { error: `Banner upload failed with status: ${bannerResult.$metadata.httpStatusCode}` },
                     { status: 500 }
                 );
+            }
+        }
+
+        // Upload metadata.json if provided
+        if (metadataString) {
+            const metadataKey = `${username}/metadata.json`;
+            
+            const metadataUploadCommand = new PutObjectCommand({
+                Bucket: bucketName,
+                Key: metadataKey,
+                Body: metadataString,
+                ContentType: "application/json",
+                ContentLength: Buffer.byteLength(metadataString, "utf8"),
+            });
+
+            const metadataResult = await r2Client.send(metadataUploadCommand);
+            
+            if (metadataResult.$metadata.httpStatusCode !== 200) {
+                console.warn(`Metadata upload failed with status: ${metadataResult.$metadata.httpStatusCode}`);
+                // Don't fail the whole upload if metadata fails
             }
         }
 

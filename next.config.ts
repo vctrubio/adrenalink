@@ -1,11 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    experimental: {
-        instrumentationHook: true,
-    },
+    // experimental: {
+    //     instrumentationHook: true,
+    // },
     typescript: {
         ignoreBuildErrors: true,
+    },
+    images: {
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "cdn.adrenalink.tech",
+                port: "",
+                pathname: "/**",
+            },
+        ],
+        unoptimized: true,
     },
 };
 

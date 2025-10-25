@@ -9,7 +9,8 @@ import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import { NameStep, LocationStepWrapper, CategoriesStep, AssetsStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import { NameStep, LocationStepWrapper, CategoriesStep, AssetsStep, ContactStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
 
 // Main school schema with validation
 const schoolSchema = z.object({
@@ -29,8 +30,9 @@ const schoolSchema = z.object({
     bannerFile: z.instanceof(File).optional(),
     iconUrl: z.string().optional(),
     bannerUrl: z.string().optional(),
+    ownerEmail: z.string().email("Valid email is required"),
+    referenceNote: z.string().min(1, "Please tell us how you heard about us"),
 });
-
 
 // Username generation utilities
 function generateUsername(name: string): string {
@@ -77,6 +79,8 @@ export function WelcomeSchoolForm() {
             bannerFile: undefined,
             iconUrl: "",
             bannerUrl: "",
+            ownerEmail: "",
+            referenceNote: "",
         },
         mode: "onTouched",
     });
@@ -171,32 +175,43 @@ export function WelcomeSchoolForm() {
         try {
             setPendingToBucket(true);
             setUploadStatus("Preparing upload...");
-            
+
             // Step 1: Upload assets to R2 via API route
             let iconUrl = "";
             let bannerUrl = "";
-            
+
             if (data.iconFile || data.bannerFile) {
                 setUploadStatus("Uploading content...");
                 console.log("📤 Uploading assets to R2...");
-                
+
                 const formData = new FormData();
                 formData.append("username", data.username);
-                
+
+                // Add metadata for bucket storage
+                const metadata: BucketMetadata = {
+                    school_username: data.username,
+                    school_name: data.name,
+                    owner_email: data.ownerEmail,
+                    reference_note: data.referenceNote,
+                    created_at: new Date().toISOString(),
+                    approved_at: null,
+                };
+                formData.append("metadata", JSON.stringify(metadata));
+
                 if (data.iconFile) {
                     formData.append("iconFile", data.iconFile);
                 }
                 if (data.bannerFile) {
                     formData.append("bannerFile", data.bannerFile);
                 }
-                
+
                 const uploadResponse = await fetch("/api/cloudflare/upload", {
                     method: "POST",
                     body: formData,
                 });
-                
+
                 const uploadResult = await uploadResponse.json();
-                
+
                 if (!uploadResult.success) {
                     console.error("Asset upload failed:", uploadResult.error);
                     setPendingToBucket(false);
@@ -204,12 +219,12 @@ export function WelcomeSchoolForm() {
                     alert(`Failed to upload assets: ${uploadResult.error}`);
                     return;
                 }
-                
+
                 iconUrl = uploadResult.iconUrl || "";
                 bannerUrl = uploadResult.bannerUrl || "";
                 console.log("✅ Assets uploaded successfully");
             }
-            
+
             // Step 2: Prepare school data with asset URLs
             const schoolData = {
                 ...data,
@@ -230,14 +245,14 @@ export function WelcomeSchoolForm() {
                 console.error("❌ Database error:", result.error);
                 setPendingToBucket(false);
                 setUploadStatus("");
-                
+
                 // Show error to user instead of congratulations
                 alert(`Failed to create school: ${result.error}`);
                 return;
             }
 
             console.log("✅ School created successfully:", result.data);
-            
+
             // Step 4: Reset form and state ONLY on success
             const lastCountry = data.country;
             methods.reset();
@@ -246,7 +261,6 @@ export function WelcomeSchoolForm() {
             setUsernameStatus(null);
             setPendingToBucket(false);
             setUploadStatus("");
-            
         } catch (error) {
             console.error("Error in school creation flow:", error);
             setPendingToBucket(false);
@@ -260,7 +274,8 @@ export function WelcomeSchoolForm() {
         1: LocationStepWrapper,
         2: CategoriesStep,
         3: AssetsStep,
-        4: SummaryStep,
+        4: ContactStep,
+        5: SummaryStep,
     };
 
     const stepSubtitles = {
@@ -268,7 +283,8 @@ export function WelcomeSchoolForm() {
         1: "Where Can We Find You",
         2: "What do you have to offer?",
         3: "Make your school stand out",
-        4: "Does everything look correct officer?",
+        4: "How can we reach you?",
+        5: "Does everything look correct officer?",
     };
 
     const stepProps = {
@@ -289,7 +305,8 @@ export function WelcomeSchoolForm() {
             pendingToBucket,
             uploadStatus,
         },
-        4: {
+        4: {},
+        5: {
             onEditField: editField,
         },
     };
