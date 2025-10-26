@@ -13,13 +13,14 @@ adrenalink-beta/
 │   ├── schools-action.ts       # School CRUD operations
 │   └── *-action.ts             # Additional entity action files (plural-action format)
 ├── ai/                         # Cloud-related files and generated markdown content
-├── backend/                    # Backend classes and logic declarations
-│   └── models/                 # Entity model classes inheriting from AbstractModel
-│       ├── index.ts            # Model exports (AbstractModel, StudentModel, SchoolModel)
-│       ├── StudentModel.ts     # Student model extending AbstractModel<Student>
-│       └── SchoolModel.ts      # School model extending AbstractModel<School>
+├── backend/                    # Backend type definitions and logic declarations
+│   └── models/                 # Entity model types and create functions (Next.js 15 compatible)
+│       ├── index.ts            # Model exports (AbstractModel type, all entity models)
+│       ├── StudentModel.ts     # Student model type with createStudentModel function
+│       ├── SchoolModel.ts      # School model type with createSchoolModel function
+│       └── *Model.ts           # Additional entity model files
 ├── config/                     # Tenant-specific configuration files
-│   └── entities.ts             # Entity visual configuration (icons, colors, routes)
+│   └── entities.ts             # Entity configuration (icons, colors, routes, relations)
 ├── docs/                       # Application documentation
 ├── drizzle/                    # ORM configuration and database schema definitions
 │   ├── db.ts                   # Database connection instance
@@ -27,9 +28,10 @@ adrenalink-beta/
 │   ├── migrations/             # Generated migration files
 │   └── seeds/                  # Database seeding scripts
 │       └── students.ts         # Student table seed data with Faker
-├── getters/                    # Entity getter functions and business logic
-│   ├── students-getter.ts      # Student data transformation functions (getStudentName, getAllStudents)
-│   ├── schools-getter.ts       # School data transformation functions (getSchoolName, getAllSchools)
+├── getters/                    # Entity getter functions and computed values (Next.js 15 compatible)
+│   ├── students-getter.ts      # Student data transformation functions (getStudentName, computed values)
+│   ├── schools-getter.ts       # School data transformation functions (getSchoolName, computed values)
+│   ├── entities-getter.ts      # Entity count fetching (getEntityCount)
 │   └── *-getter.ts             # Additional entity getter files (plural-getter format)
 ├── public/                     # Static assets (images, icons, etc.)
 │   └── appSvgs/                # Custom SVG icons converted to JSX components
@@ -48,32 +50,43 @@ adrenalink-beta/
 │   ├── app/                    # Next.js app router pages and routes
 │   │   ├── (playground)/       # Development and testing pages
 │   │   │   ├── csv/            # CSV import functionality
-│   │   │   └── docs/           # Entity documentation page
-│   │   ├── (tables)/           # Entity management pages with breadcrumb layout
+│   │   │   ├── docs/           # Entity documentation page
+│   │   │   └── table/          # Entity databoard with relations visualization
+│   │   ├── (tables)/           # Entity management pages with EntityCard headers
 │   │   │   ├── layout.tsx      # Tables layout with Breadcrumbs component
-│   │   │   ├── bookings/       # Booking entity page
-│   │   │   ├── commissions/    # Commission entity page
-│   │   │   ├── equipment/      # Equipment entity page
-│   │   │   ├── events/         # Event entity page
-│   │   │   ├── lessons/        # Lesson entity page
-│   │   │   ├── packages/       # Package entity page
-│   │   │   ├── payments/       # Payment entity page
-│   │   │   ├── schools/        # School entity page with data listing
+│   │   │   ├── bookings/       # Booking entity page with EntityCard
+│   │   │   ├── commissions/    # Commission entity page with EntityCard
+│   │   │   ├── equipment/      # Equipment entity page with EntityCard
+│   │   │   ├── events/         # Event entity page with EntityCard
+│   │   │   ├── lessons/        # Lesson entity page with EntityCard
+│   │   │   ├── packages/       # Package entity page with data listing and EntityCard
+│   │   │   ├── payments/       # Payment entity page with EntityCard
+│   │   │   ├── request/        # Student package requests page (/request)
+│   │   │   ├── schools/        # School entity page with data listing and EntityCard
 │   │   │   │   └── form/       # School form page (/schools/form)
-│   │   │   ├── students/       # Student entity page with data listing
+│   │   │   ├── students/       # Student entity page with data listing and EntityCard
 │   │   │   │   └── form/       # Student form page (/students/form)
-│   │   │   ├── teachers/       # Teacher entity page
-│   │   │   └── users/          # User entity page
+│   │   │   ├── teachers/       # Teacher entity page with EntityCard
+│   │   │   └── users/          # User entity page with EntityCard
 │   │   ├── dev/                # Development-specific pages
 │   │   └── welcome/            # Welcome page components
 │   ├── components/             # React components
+│   │   ├── cards/              # Card components
+│   │   │   ├── EntityCard.tsx  # Entity card with relations (client component)
+│   │   │   ├── SchoolCard.tsx  # School entity card
+│   │   │   ├── StudentCard.tsx # Student entity card
+│   │   │   └── *.tsx           # Additional entity card components
 │   │   ├── forms/              # Entity-specific form components
 │   │   │   ├── WelcomeStudentForm.tsx # Student registration form with phone input
 │   │   │   ├── WelcomeSchoolForm.tsx  # School registration form with phone input
 │   │   │   └── *.tsx           # Additional entity form components
-│   │   ├── Breadcrumbs.tsx     # Navigation breadcrumbs for entity pages with form/detail routing
-│   │   ├── LabelTag.tsx        # Reusable entity display component
-│   │   ├── navbar.tsx          # Navigation with entity links
+│   │   ├── navigations/        # Navigation components
+│   │   │   ├── Devbar.tsx      # Development navigation bar
+│   │   │   └── Breadcrumbs.tsx # Navigation breadcrumbs for entity pages
+│   │   ├── tags/               # Tag/badge components
+│   │   │   └── LabelTag.tsx    # Reusable entity badge with optional link (client component)
+│   │   ├── themes/             # Theme components
+│   │   │   └── toggle-theme.tsx # Dark mode toggle
 │   │   └── ui/                 # Reusable UI components
 │   │       └── form/           # Form-related components (form.tsx, form-field.tsx, etc.)
 │   └── providers/              # React context providers and app-wide providers
@@ -89,17 +102,18 @@ adrenalink-beta/
 
 ## Architecture Notes
 
-- **Frontend**: Next.js with App Router
+- **Frontend**: Next.js 15 with App Router
 - **Backend**: Server actions and API routes
 - **Database**: Supabase PostgreSQL with Drizzle ORM
-- **ORM**: Drizzle with migrations, seeding, and type-safe queries
-- **Components**: UI component library with form system
-- **Styling**: Tailwind CSS with semantic color system
-- **Entity System**: Centralized configuration with custom JSX icons
+- **ORM**: Drizzle with migrations, seeding, and type-safe queries using `db.query` syntax
+- **Components**: UI component library with form system and entity card system
+- **Styling**: Tailwind CSS with semantic color system and dynamic hex colors
+- **Entity System**: Centralized configuration with custom JSX icons and relations mapping
 - **API Layer**: Server actions in `/actions/` directory for all database operations with revalidatePath
 - **Forms**: Entity-specific forms with react-phone-number-input integration
-- **Navigation**: Breadcrumb navigation system for entity pages and form routing
+- **Navigation**: Breadcrumb navigation system and entity-based navigation with relations
 - **Path Mapping**: TypeScript paths with `@/*` pointing to root directory
+- **Model Architecture**: Type-based models (not classes) for Next.js 15 compatibility with no serialization issues
 
 ## File Organization Principles
 
@@ -116,9 +130,11 @@ adrenalink-beta/
 ### Entity Configuration (`config/entities.ts`)
 
 - **Centralized configuration**: All entity metadata in one place
-- **Visual consistency**: Icons, colors, routes, and descriptions
+- **Visual consistency**: Icons, colors (hex values), routes, and descriptions
+- **Relations mapping**: Each entity defines related entity IDs
 - **Type safety**: TypeScript interfaces for reliable data structure
 - **Easy maintenance**: Single source of truth for entity properties
+- **Color system**: Uses hex values for dynamic styling (no Tailwind class conversion)
 
 ### Custom Icon System (`public/appSvgs/`)
 
@@ -129,17 +145,21 @@ adrenalink-beta/
 
 ### Entity Pages (`src/app/(tables)/`)
 
-- **Consistent layout**: All entity pages use LabelTag component
-- **Color-coded borders**: Each entity has distinct visual identity
-- **DRY principle**: Reusable LabelTag component reduces code duplication
+- **Consistent layout**: All entity pages use EntityCard component as header
+- **Relations display**: EntityCard shows related entities with clickable badges
+- **Color-coded borders**: Each entity has distinct visual identity using hex colors
+- **DRY principle**: EntityCard fetches entity data internally using entityId prop
 - **Type-safe**: Leverages centralized entity configuration
+- **Navigation**: Clicking relation badges navigates to related entity pages
 
 ### Navigation Enhancement
 
-- **Two-tier navigation**: Main nav + entity-specific nav
-- **Visual feedback**: Active states with entity colors
+- **Devbar Component**: Main navigation with entity tables sub-navigation
+- **Entity relations**: Visual relation badges in EntityCard headers
+- **Visual feedback**: Active states with entity colors and hover effects
 - **Responsive design**: Flexible layout for different screen sizes
 - **Accessibility**: Proper ARIA labels and semantic markup
+- **Router-based navigation**: Uses Next.js router for programmatic navigation in badges
 
 ## API Architecture (`actions/` Directory)
 
@@ -166,10 +186,37 @@ export async function updateEntity(
 export async function deleteEntity(id: number): Promise<{ error: string } | void>;
 ```
 
-**IMPORTANT**: All `getEntities()` functions must return model instances (e.g., `StudentModel[]`, `SchoolModel[]`) that inherit from `AbstractModel`. This ensures consistent data structure with `.schema` property access patterns and `.relations.tableName` for related data access in components.
+**IMPORTANT**: All `getEntities()` functions must return model instances (e.g., `StudentModel[]`, `SchoolModel[]`) that conform to `AbstractModel<T>` type. This ensures consistent data structure with `.schema` property access patterns and `.relations.tableName` for related data access in components. Models use type-based architecture (not classes) for Next.js 15 serialization compatibility.
 
 ### Form Integration
 
 - **react-phone-number-input**: Used in all forms requiring phone number input
 - **Zod validation**: Schema validation matches database schema structure
 - **Server actions**: Forms call actions directly with type-safe parameters
+
+## Component Architecture
+
+### EntityCard Component (`src/components/cards/EntityCard.tsx`)
+
+- **Client component**: Uses `"use client"` directive for interactive features
+- **Simplified API**: Accepts only `entityId` and optional `count` props
+- **Auto-fetching**: Fetches entity data from `ENTITY_DATA` internally
+- **Relations display**: Shows related entities as clickable color-coded badges
+- **Single source**: Uses hex colors directly from entity configuration
+- **Clickable**: Entire card is a link to entity page
+
+### LabelTag Component (`src/components/tags/LabelTag.tsx`)
+
+- **Client component**: Uses `"use client"` for router navigation
+- **Badge display**: Small icon + text badge with entity colors
+- **Optional link**: If link provided, uses `router.push()` for navigation
+- **No nested links**: Uses div with onClick to avoid nested `<a>` tags
+- **Reusable**: Used for relation badges in EntityCard
+
+### Model Architecture (Next.js 15 Compatible)
+
+- **Type-based**: Models are types, not classes (no serialization issues)
+- **Create functions**: Each model has `createEntityModel()` function
+- **AbstractModel type**: Base type with `entityConfig`, `schema`, and `relations`
+- **No lambda functions**: All computed values moved to `/getters/` directory
+- **Direct passing**: Model data can be passed directly to client components without `.serialize()`
