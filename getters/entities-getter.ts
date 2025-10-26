@@ -5,23 +5,25 @@ import {
     school,
     student,
     schoolPackage,
+    studentPackage,
     booking
 } from "@/drizzle/schema";
 import { sql } from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 
 const ENTITY_TABLE_MAP: Record<string, PgTable<any> | null> = {
-    "School": school,
-    "Student": student,
-    "School Package": schoolPackage,
-    "Booking": booking,
-    "Teacher": null,
-    "Commission": null,
-    "Equipment": null,
-    "User Wallet": null,
-    "Lesson": null,
-    "Event": null,
-    "Payment": null
+    "school": school,
+    "student": student,
+    "schoolPackage": schoolPackage,
+    "studentPackage": studentPackage,
+    "booking": booking,
+    "teacher": null,
+    "commission": null,
+    "equipment": null,
+    "userWallet": null,
+    "lesson": null,
+    "event": null,
+    "payment": null
 };
 
 export async function getEntityCount(entityId: string): Promise<number> {
