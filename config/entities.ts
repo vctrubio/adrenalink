@@ -18,11 +18,12 @@ export type EntityConfig = {
     hoverColor: string;
     link: string;
     description: string[];
+    count?: number;
 };
 
 export const ENTITY_DATA: EntityConfig[] = [
     {
-        id: "School",
+        id: "school",
         name: "Schools",
         icon: AdminIcon,
         color: "text-indigo-500",
@@ -32,7 +33,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Central entity that organizes all activities.", "Contains teachers, packages, and bookings."],
     },
     {
-        id: "Student",
+        id: "student",
         name: "Students",
         icon: HelmetIcon,
         color: "text-yellow-500",
@@ -42,7 +43,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Students create bookings.", "Can participate in multiple lessons through bookings."],
     },
     {
-        id: "School Package",
+        id: "schoolPackage",
         name: "Packages",
         icon: PackageIcon,
         color: "text-orange-500",
@@ -52,7 +53,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Determines duration, capacity, and equipment for bookings.", "Defines pricing and availability."],
     },
     {
-        id: "Booking",
+        id: "booking",
         name: "Bookings",
         icon: BookingIcon,
         color: "text-blue-500",
@@ -62,7 +63,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Has start and end dates for lessons.", "Links students to packages."],
     },
     {
-        id: "Teacher",
+        id: "teacher",
         name: "Teachers",
         icon: HeadsetIcon,
         color: "text-green-500",
@@ -72,7 +73,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Our employees, each has commission rates for lessons.", "Payments are used to track earnings."],
     },
     {
-        id: "Commission",
+        id: "commission",
         name: "Commissions",
         icon: CreditIcon,
         color: "text-emerald-500",
@@ -82,7 +83,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Defines commission rates for teachers.", "Can be percentage or fixed amount."],
     },
     {
-        id: "Equipment",
+        id: "equipment",
         name: "Equipments",
         icon: EquipmentIcon,
         color: "text-purple-500",
@@ -92,7 +93,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
     },
     {
-        id: "User Wallet",
+        id: "userWallet",
         name: "Users",
         icon: RegistrationIcon,
         color: "text-slate-500",
@@ -102,7 +103,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
     },
     {
-        id: "Lesson",
+        id: "lesson",
         name: "Lessons",
         icon: FlagIcon,
         color: "text-cyan-500",
@@ -112,7 +113,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
     },
     {
-        id: "Event",
+        id: "event",
         name: "Events",
         icon: KiteIcon,
         color: "text-teal-500",
@@ -122,7 +123,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
     },
     {
-        id: "Payment",
+        id: "payment",
         name: "Payments",
         icon: CreditIcon,
         color: "text-amber-500",
