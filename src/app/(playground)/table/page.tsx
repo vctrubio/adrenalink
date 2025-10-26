@@ -4,11 +4,12 @@ import TableClient from "./TableClient";
 
 export default async function TablePage() {
   const entitiesWithCounts = await Promise.all(
-    ENTITY_DATA.map(async (entity) => {
+    ENTITY_DATA.map(async entity => {
       const count = await getEntityCount(entity.id);
+      const { icon, ...serializableEntity } = entity;
       return {
-        ...entity,
-        count
+        ...serializableEntity,
+        count,
       };
     })
   );
