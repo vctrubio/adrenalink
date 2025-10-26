@@ -1,12 +1,9 @@
-import { ENTITY_DATA } from "@/config/entities";
-import LabelTag from "@/src/components/tags/LabelTag";
+import { EntityCard } from "@/src/components/cards/EntityCard";
 import StudentCard from "@/src/components/cards/StudentCard";
 import { getStudents } from "@/actions/students-action";
 import type { StudentModel } from "@/backend/models";
 
 export default async function StudentsPage() {
-    const entity = ENTITY_DATA.find((e) => e.id === "Student")!;
-    const borderColor = entity.color.replace("text-", "border-");
     const result = await getStudents();
 
     if (!result.success) {
@@ -14,23 +11,21 @@ export default async function StudentsPage() {
     }
 
     return (
-        <div className="p-8">
-            <LabelTag icon={entity.icon} title={`Hello, ${entity.name} Page`} description={entity.description} borderColor={borderColor} textColor={entity.color} />
+        <div className="h-screen flex flex-col">
+            <div className="p-8 border-b border-border">
+                <EntityCard entityId="student" count={result.data.length} />
+            </div>
 
-            <div className="mt-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4">All Students</h2>
-                {result.data.length === 0 ? (
-                    <p className="text-muted-foreground">No students found</p>
-                ) : (
-                    <div className="space-y-4">
-                        {result.data.map((student) => (
-                            <StudentCard
-                                key={student.schema.id}
-                                student={student}
-                            />
-                        ))}
-                    </div>
-                )}
+            <div className="flex-1 overflow-auto p-6">
+                <div className="space-y-4">
+                    {result.data.length === 0 ? (
+                        <p className="text-muted-foreground">No students found</p>
+                    ) : (
+                        result.data.map((student) => (
+                            <StudentCard key={student.schema.id} student={student} />
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );
