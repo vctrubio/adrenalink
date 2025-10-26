@@ -7,7 +7,7 @@ export type StudentPackageModel = AbstractModel<StudentPackageType>;
 export function createStudentPackageModel(studentPackageData: any): StudentPackageModel {
     const { student, schoolPackage, ...pgTableSchema } = studentPackageData;
     
-    const entityConfig = ENTITY_DATA.find(e => e.id === "Student Package")!;
+    const entityConfig = ENTITY_DATA.find(e => e.id === "studentPackage")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
     
     const model = {

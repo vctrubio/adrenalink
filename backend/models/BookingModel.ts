@@ -7,7 +7,7 @@ export type BookingModel = AbstractModel<BookingType>;
 export function createBookingModel(bookingData: any): BookingModel {
     const { school, schoolPackage, studentPackage, bookingStudents, ...pgTableSchema } = bookingData;
     
-    const entityConfig = ENTITY_DATA.find(e => e.id === "Booking")!;
+    const entityConfig = ENTITY_DATA.find(e => e.id === "booking")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
     
     const model = {
