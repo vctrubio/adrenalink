@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Code, Settings, User, BookOpen } from "lucide-react";
+import { Home, Code, Settings, User, BookOpen, Table } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
@@ -11,14 +11,15 @@ const navigationItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/dev", icon: Code, label: "Dev" },
     { href: "/docs", icon: BookOpen, label: "Docs" },
+    { href: "/table", icon: Table, label: "Table" },
 ];
 
 const tableNavigationItems = ENTITY_DATA
-    .filter((entity) => ["Student", "School Package", "Booking"].includes(entity.id))
+    .filter((entity) => ["student", "schoolPackage", "studentPackage", "booking"].includes(entity.id))
     .map((entity) => ({
         href: entity.link,
         icon: entity.icon,
-        label: entity.name,
+        label: entity.id === "studentPackage" ? "Request" : entity.name,
         color: entity.color,
         bgColor: entity.bgColor,
     }));
