@@ -91,13 +91,13 @@ export function LandingHero() {
     }, []);
 
     return (
-        <section className="h-screen snap-start relative w-full flex items-center justify-center">
+        <section className="h-screen snap-start relative w-full flex items-center justify-center bg-sky-900">
             {/* Animated Background Canvas */}
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
             {/* Content */}
             <div className="relative z-10 text-center space-y-4">
-                <h1 className="text-7xl md:text-9xl font-bold tracking-tight text-foreground drop-shadow-2xl">Adrenalink</h1>
+                <h1 className="text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl">Adrenalink</h1>
                 <p className="text-xl md:text-2xl text-secondary tracking-wide drop-shadow-lg">connecting students and teachers</p>
             </div>
         </section>

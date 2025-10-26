@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DollarSign, Database } from "lucide-react";
+import { DollarSign, Database, Camera } from "lucide-react";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import BookingCompleteIcon from "@/public/appSvgs/BookingCompleteIcon";
 import RegistrationIcon from "@/public/appSvgs/RegistrationIcon";
+import Link from "next/link";
 
 // Feature data based on your handwritten notes
 const FEATURES = [
@@ -50,9 +51,9 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
         <div className="p-6 rounded-lg border border-secondary/60 bg-card/20 backdrop-blur-sm hover:border-secondary hover:shadow-xl transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
                 <IconComponent className="w-6 h-6 text-secondary group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold text-foreground/90 group-hover:scale-105 transition-transform">{feature.title}</h3>
+                <h3 className="text-xl font-semibold group-hover:scale-105 transition-transform">{feature.title}</h3>
             </div>
-            <p className="text-sm text-secondary/80">{feature.description}</p>
+            <p className="text-sm text-white/80">{feature.description}</p>
         </div>
     );
 }
@@ -61,8 +62,8 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
 function HeroSection() {
     return (
         <div className="space-y-4">
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground drop-shadow-2xl">Revolutionize Your School</h2>
-            <p className="text-xs text-muted-foreground/60 font-mono tracking-wider">NextGen™ Sports Management Solutions</p>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight drop-shadow-2xl">Revolutionize Your School</h2>
+            <p className="text-xs text-secondary/60 font-mono tracking-wider">NextGen™ Sports Management Solutions</p>
         </div>
     );
 }
@@ -97,8 +98,38 @@ export function LandingDescription() {
     }, []);
 
     return (
-        <section className="h-screen snap-start relative overflow-hidden">
+        <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
+            {/* Background Wave Image */}
+            <div
+                className="absolute inset-0 z-0"
+                style={{
+                    backgroundImage: "url(/kritaps_ungurs_unplash/wave-wide.jpg)",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                }}
+            />
+
+            {/* Gradient Overlay - top blend with hero, bottom blend with footer */}
+            <div
+                className="absolute inset-0 z-[1]"
+                style={{
+                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.8) 8%, rgba(15, 23, 42, 0.3) 15%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 100%)",
+                }}
+            />
+
             <FloatingNav show={showNavbar} slogan="streamlining the experience" />
+
+            {/* Photo Credit */}
+            <Link
+                href="https://unsplash.com/@kristapsungurs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/30 hover:bg-black/50 text-white/70 hover:text-white transition-all duration-300 backdrop-blur-sm group"
+            >
+                <Camera className="w-4 h-4" />
+                <span className="text-xs font-medium">Kristaps Ungurs</span>
+            </Link>
 
             <div className="relative z-10 h-full flex items-center justify-center px-4">
                 <div className="max-w-4xl space-y-10 text-center">

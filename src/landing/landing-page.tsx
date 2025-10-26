@@ -4,7 +4,7 @@ import { DevAboutMeFooter } from "./landing-footer";
 
 export function LandingPage() {
     return (
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen text-white">
             <main className="flex-1">
                 <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
                     <LandingHero />
