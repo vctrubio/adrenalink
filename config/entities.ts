@@ -6,7 +6,7 @@ import FlagIcon from "../public/appSvgs/FlagIcon.jsx";
 import HandshakeIcon from "../public/appSvgs/HandshakeIcon.jsx";
 import HeadsetIcon from "../public/appSvgs/HeadsetIcon.jsx";
 import HelmetIcon from "../public/appSvgs/HelmetIcon.jsx";
-import KiteIcon from "../public/appSvgs/KiteIcon.jsx";
+import LessonIcon from "../public/appSvgs/LessonIcon.jsx";
 import PackageIcon from "../public/appSvgs/PackageIcon.jsx";
 import RegistrationIcon from "../public/appSvgs/RegistrationIcon.jsx";
 
@@ -104,7 +104,7 @@ export const ENTITY_DATA: EntityConfig[] = [
     {
         id: "lesson",
         name: "Lessons",
-        icon: FlagIcon,
+        icon: LessonIcon,
         color: "text-cyan-500",
         bgColor: "bg-cyan-300",
         hoverColor: "#cffafe",
@@ -115,7 +115,7 @@ export const ENTITY_DATA: EntityConfig[] = [
     {
         id: "event",
         name: "Events",
-        icon: KiteIcon,
+        icon: FlagIcon,
         color: "text-metal-700", //metal dark mate
         bgColor: "bg-metal-400",
         hoverColor: "#e0e7ff",
