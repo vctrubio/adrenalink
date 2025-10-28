@@ -26,7 +26,7 @@ const schoolSchema = z.object({
     latitude: z.number().optional(),
     longitude: z.number().optional(),
     googlePlaceId: z.string().optional(),
-    equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf", "surf", "snowboard"])).min(1, "Select at least one equipment category"),
+    equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf"])).min(1, "Select at least one equipment category"),
     iconFile: z.instanceof(File, { message: "Icon file is required" }).refine(
         (file) => file && file.type.startsWith("image/"),
         "Icon must be an image file"

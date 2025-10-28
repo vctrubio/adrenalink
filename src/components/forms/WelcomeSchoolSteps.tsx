@@ -5,8 +5,7 @@ import { LocationStep } from "./LocationStep";
 import { Building, MapPin, Tag, Image, Mail, CheckCircle2 } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
-
-const EQUIPMENT_CATEGORIES = ["kite", "wing", "windsurf", "surf", "snowboard"] as const;
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 // Define the type directly for the multi-step form
 export type SchoolFormData = {
@@ -17,7 +16,7 @@ export type SchoolFormData = {
     latitude?: number;
     longitude?: number;
     googlePlaceId?: string;
-    equipmentCategories: ("kite" | "wing" | "windsurf" | "surf" | "snowboard")[];
+    equipmentCategories: ("kite" | "wing" | "windsurf")[];
     iconFile?: File;
     bannerFile?: File;
     iconUrl?: string;
@@ -131,18 +130,22 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     return (
         <div className="space-y-4">
             <FormField label="Equipment Categories" required error={errors.equipmentCategories?.message as string | undefined} isValid={Array.isArray(values.equipmentCategories) && values.equipmentCategories.length > 0}>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
-                    {EQUIPMENT_CATEGORIES.map((cat) => {
-                        const checked = values.equipmentCategories?.includes(cat);
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    {EQUIPMENT_CATEGORIES.map((category) => {
+                        const checked = values.equipmentCategories?.includes(category.id as "kite" | "wing" | "windsurf");
+                        const Icon = category.icon;
                         return (
                             <label
-                                key={cat}
-                                className={`cursor-pointer select-none border rounded-md px-2 py-2 md:px-3 md:py-2 text-xs md:text-sm flex items-center justify-center gap-1 md:gap-2 transition-colors
-                                ${checked ? "bg-blue-200 text-blue-900 border-blue-300" : "bg-background border-input hover:bg-accent"}
+                                key={category.id}
+                                className={`cursor-pointer select-none border-2 rounded-lg p-4 flex flex-col items-center gap-3 transition-all
+                                ${checked ? `${category.bgColor} ${category.color} border-current` : "bg-card border-border hover:border-muted-foreground"}
                             `}
                             >
-                                <input type="checkbox" value={cat} className="hidden" {...register("equipmentCategories")} />
-                                <span className="capitalize">{cat}</span>
+                                <input type="checkbox" value={category.id} className="hidden" {...register("equipmentCategories")} />
+                                <div className={`p-3 rounded-full ${checked ? "bg-white/20" : category.bgColor}`}>
+                                    <Icon className={`w-8 h-8 ${checked ? "text-current" : category.color}`} size={32} center={true} />
+                                </div>
+                                <span className="font-semibold">{category.name}</span>
                             </label>
                         );
                     })}
