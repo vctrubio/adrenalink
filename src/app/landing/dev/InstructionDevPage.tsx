@@ -38,7 +38,7 @@ export function InstructionDevPage() {
 
     return (
         <div>
-            <InstructionHeader icon={school?.icon!} title="Sign Up" subtitle="Early Bird" bgColor="bg-indigo-50 dark:bg-indigo-950/20" iconColor="text-indigo-500" iconBgColor="bg-indigo-300">
+            <InstructionHeader icon={school!.icon} title="Sign Up" subtitle="Early Bird" bgColor="bg-indigo-50 dark:bg-indigo-950/20" iconColor="text-indigo-500" iconBgColor="bg-indigo-300">
                 <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
                     {school && (
                         <DevCard
@@ -54,7 +54,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={schoolPackage?.icon!} title="Set Up Your Operations" subtitle="Create Packages" bgColor="bg-orange-50 dark:bg-orange-950/20" iconColor="text-orange-500" iconBgColor="bg-orange-300">
+            <InstructionHeader icon={schoolPackage!.icon} title="Set Up Your Operations" subtitle="Create Packages" bgColor="bg-orange-50 dark:bg-orange-950/20" iconColor="text-orange-500" iconBgColor="bg-orange-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[schoolPackage, equipment].map((entity) => {
                         if (!entity) return null;
@@ -74,7 +74,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={teacher?.icon!} title="Build Your Team" subtitle="Hire Teachers" bgColor="bg-green-50 dark:bg-green-950/20" iconColor="text-green-500" iconBgColor="bg-green-300">
+            <InstructionHeader icon={teacher!.icon} title="Build Your Team" subtitle="Hire Teachers" bgColor="bg-green-50 dark:bg-green-950/20" iconColor="text-green-500" iconBgColor="bg-green-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[teacher, commission].map((entity) => {
                         if (!entity) return null;
@@ -94,7 +94,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={student?.icon!} title="Student Enrollment" subtitle="Welcome Riders" bgColor="bg-yellow-50 dark:bg-yellow-950/20" iconColor="text-yellow-500" iconBgColor="bg-yellow-300">
+            <InstructionHeader icon={student!.icon} title="Student Enrollment" subtitle="Welcome Riders" bgColor="bg-yellow-50 dark:bg-yellow-950/20" iconColor="text-yellow-500" iconBgColor="bg-yellow-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[student, studentPackage].map((entity) => {
                         if (!entity) return null;
@@ -114,7 +114,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={booking?.icon!} title="Booking & Lesson Planning" subtitle="Schedule Sessions" bgColor="bg-blue-50 dark:bg-blue-950/20" iconColor="text-blue-500" iconBgColor="bg-blue-300">
+            <InstructionHeader icon={booking!.icon} title="Booking & Lesson Planning" subtitle="Schedule Sessions" bgColor="bg-blue-50 dark:bg-blue-950/20" iconColor="text-blue-500" iconBgColor="bg-blue-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[booking, lesson].map((entity) => {
                         if (!entity) return null;
@@ -134,7 +134,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={equipment?.icon!} title="Daily Operations" subtitle="Track & Improve" bgColor="bg-purple-50 dark:bg-purple-950/20" iconColor="text-purple-500" iconBgColor="bg-purple-300">
+            <InstructionHeader icon={equipment!.icon} title="Daily Operations" subtitle="Track & Improve" bgColor="bg-purple-50 dark:bg-purple-950/20" iconColor="text-purple-500" iconBgColor="bg-purple-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[event, equipment].map((entity) => {
                         if (!entity) return null;
@@ -154,7 +154,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={feedback?.icon!} title="Analytics & Revenue" subtitle="Monitor Performance" bgColor="bg-sand-50 dark:bg-sand-950/20" iconColor="text-sand-800" iconBgColor="bg-sand-300">
+            <InstructionHeader icon={feedback!.icon} title="Analytics & Revenue" subtitle="Monitor Performance" bgColor="bg-sand-50 dark:bg-sand-950/20" iconColor="text-sand-800" iconBgColor="bg-sand-300">
                 <div className="grid grid-cols-2 gap-4">
                     {[feedback, statistic].map((entity) => {
                         if (!entity) return null;
