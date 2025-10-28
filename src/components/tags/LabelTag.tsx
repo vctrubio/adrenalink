@@ -22,11 +22,7 @@ export default function LabelTag({ icon: Icon, name, backgroundColor, color, lin
     };
 
     const content = (
-        <div
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all hover:scale-105 cursor-pointer"
-            style={{ backgroundColor }}
-            onClick={link ? handleClick : undefined}
-        >
+        <div className="flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 cursor-pointer" style={{ backgroundColor }} onClick={link ? handleClick : undefined}>
             <Icon className={`w-3 h-3 ${color}`} />
             <span className="text-foreground">{name}</span>
         </div>
