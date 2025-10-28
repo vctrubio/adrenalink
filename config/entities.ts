@@ -1,5 +1,6 @@
 import AdminIcon from "../public/appSvgs/AdminIcon.jsx";
 import BookingIcon from "../public/appSvgs/BookingIcon.jsx";
+import BookingCompleteIcon from "../public/appSvgs/BookingCompleteIcon.jsx";
 import CreditIcon from "../public/appSvgs/CreditIcon.jsx";
 import EquipmentIcon from "../public/appSvgs/EquipmentIcon.jsx";
 import FlagIcon from "../public/appSvgs/FlagIcon.jsx";
@@ -9,6 +10,9 @@ import HelmetIcon from "../public/appSvgs/HelmetIcon.jsx";
 import LessonIcon from "../public/appSvgs/LessonIcon.jsx";
 import PackageIcon from "../public/appSvgs/PackageIcon.jsx";
 import RegistrationIcon from "../public/appSvgs/RegistrationIcon.jsx";
+import RequestIcon from "../public/appSvgs/RequestIcon.jsx";
+import VerifiedIcon from "../public/appSvgs/VerifiedIcon.jsx";
+import OctagonIcon from "../public/appSvgs/OctagonIcon.jsx";
 
 export type EntityConfig = {
     id: string;
@@ -33,7 +37,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         hoverColor: "#e0e7ff",
         link: "/schools",
         description: ["Central entity that organizes all activities.", "Contains teachers, packages, and bookings."],
-        relations: ["student", "teacher", "booking", "equipment"],
+        relations: ["schoolPackage", "student", "teacher", "booking", "equipment"],
     },
     {
         id: "student",
@@ -48,8 +52,8 @@ export const ENTITY_DATA: EntityConfig[] = [
     },
     {
         id: "studentPackage",
-        name: "Student Packages",
-        icon: PackageIcon,
+        name: "Requests",
+        icon: RequestIcon,
         color: "text-amber-500",
         bgColor: "bg-amber-300",
         hoverColor: "#fef9c3",
@@ -66,7 +70,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         hoverColor: "#ffedd5",
         link: "/packages",
         description: ["Determines duration, capacity, and equipment for bookings.", "Defines pricing and availability."],
-        relations: ["student", "booking", "event"],
+        relations: ["school", "booking"],
     },
     {
         id: "teacher",
@@ -105,9 +109,9 @@ export const ENTITY_DATA: EntityConfig[] = [
         id: "lesson",
         name: "Lessons",
         icon: LessonIcon,
-        color: "text-cyan-500",
-        bgColor: "bg-cyan-300",
-        hoverColor: "#cffafe",
+        color: "text-metal-700", //metal dark mate
+        bgColor: "bg-metal-400",
+        hoverColor: "#e0e7ff",
         link: "/lessons",
         description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
         relations: ["student", "teacher", "event"],
@@ -116,12 +120,12 @@ export const ENTITY_DATA: EntityConfig[] = [
         id: "event",
         name: "Events",
         icon: FlagIcon,
-        color: "text-metal-700", //metal dark mate
-        bgColor: "bg-metal-400",
+        color: "text-cyan-500",
+        bgColor: "bg-cyan-300",
         hoverColor: "#e0e7ff",
         link: "/events",
         description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
-        relations: ["student", "teacher", "equipment"],
+        relations: ["booking", "student", "teacher", "equipment"],
     },
     {
         id: "equipment",
@@ -132,7 +136,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         hoverColor: "#e9d5ff",
         link: "/equipment",
         description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
-        relations: ["teacher", "student", "event"],
+        relations: ["package", "teacher", "event"],
     },
     {
         id: "payment",
@@ -143,7 +147,18 @@ export const ENTITY_DATA: EntityConfig[] = [
         hoverColor: "#fef3c7",
         link: "/payments",
         description: ["Records payments made to teachers.", "Tracks teacher earnings and compensation."],
-        relations: ["teacher"],
+        relations: ["teacher", "lesson"],
+    },
+    {
+        id: "feedback",
+        name: "Feedback",
+        icon: VerifiedIcon,
+        color: "text-sand-800",
+        bgColor: "bg-sand-300",
+        hoverColor: "#fef3c7",
+        link: "/feedback",
+        description: ["Student and teacher feedback on lessons.", "Helps improve quality and track satisfaction."],
+        relations: ["student", "teacher", "event"],
     },
     {
         id: "userWallet",
@@ -154,6 +169,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         hoverColor: "#f1f5f9",
         link: "/users",
         description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
-        relations: ["teacher"],
+        relations: ["student", "teacher", "school"],
     },
 ] as const;
