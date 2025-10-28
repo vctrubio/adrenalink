@@ -98,7 +98,7 @@ export function LandingHero() {
             {/* Content */}
             <div className="relative z-10 text-center space-y-4">
                 <h1 className="text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl">Adrenalink</h1>
-                <p className="text-xl md:text-2xl text-secondary tracking-wide drop-shadow-lg">connecting students and teachers</p>
+                <p className="text-xl md:text-2xl text-secondary tracking-wide drop-shadow-lg">connecting schools and students </p>
             </div>
         </section>
     );

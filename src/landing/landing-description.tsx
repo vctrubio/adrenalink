@@ -1,45 +1,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DollarSign, Database, Camera } from "lucide-react";
+import { ChartColumnDecreasing, Zap, Wifi, Calendar, Camera } from "lucide-react";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import BookingCompleteIcon from "@/public/appSvgs/BookingCompleteIcon";
-import RegistrationIcon from "@/public/appSvgs/RegistrationIcon";
+import OpenBookIcon from "@/public/appSvgs/OpenBookIcon";
 import Link from "next/link";
 
-// Feature data based on your handwritten notes
+// Feature data with call-to-action links
 const FEATURES = [
     {
-        icon: EquipmentIcon,
-        title: "Equipment Tracking",
-        description: "See how many hours of flight time before you need to sell",
+        icon: OpenBookIcon,
+        title: "Docs",
+        description: "Complete documentation and guides",
+        link: "/landing/dev",
     },
     {
-        icon: FlagIcon,
-        title: "Lesson Management",
-        description: "Easily create lessons, and receive feedback + confirmation",
+        icon: ChartColumnDecreasing,
+        title: "Vision",
+        description: "Next generation school management for kitesurfers",
+        link: "/landing/vision",
     },
     {
-        icon: BookingCompleteIcon,
-        title: "Booking Progress",
-        description: "Track the number of hours vs expected hours",
+        icon: Zap,
+        title: "Lesson Automation",
+        description: "From booking to payment in 2 clicks",
+        link: "/landing/automation",
     },
     {
-        icon: DollarSign,
-        title: "Statistics Review",
-        description: "Filter stats by months, weeks or days",
+        icon: ChartColumnDecreasing,
+        title: "Revenue Statistics",
+        description: "Real-time analytics dashboard for all entities",
+        link: "/landing/revenue",
     },
     {
-        icon: Database,
-        title: "One Source of Truth",
-        description: "Centralized data management visible to everyone",
+        icon: Wifi,
+        title: "Live Sync",
+        description: "Real-time updates across teacher and student portals",
+        link: "/landing/sync",
     },
     {
-        icon: RegistrationIcon,
-        title: "3 Apps in 1",
-        description: "Student, teacher and Admin Dashboards",
+        icon: Calendar,
+        title: "Beta Release 2026",
+        description: "Join the waitlist for early access",
+        link: "#footer",
     },
 ];
 
@@ -48,13 +51,13 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
     const IconComponent = feature.icon;
 
     return (
-        <div className="p-6 rounded-lg border border-secondary/60 bg-card/20 backdrop-blur-sm hover:border-secondary hover:shadow-xl transition-all duration-300 group">
+        <Link href={feature.link} className="block p-6 rounded-lg border border-secondary/60 bg-card/20 backdrop-blur-sm hover:border-secondary hover:shadow-xl transition-all duration-300 group cursor-pointer">
             <div className="flex items-center gap-3 mb-3">
                 <IconComponent className="w-6 h-6 text-secondary group-hover:scale-110 transition-transform" />
                 <h3 className="text-xl font-semibold group-hover:scale-105 transition-transform">{feature.title}</h3>
             </div>
             <p className="text-sm text-white/80">{feature.description}</p>
-        </div>
+        </Link>
     );
 }
 
