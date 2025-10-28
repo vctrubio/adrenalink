@@ -25,10 +25,7 @@ export function EntityCard({ entityId, count }: EntityCardProps) {
             {count !== undefined && <span className="mb-2 text-sm font-bold text-foreground">Count: {count}</span>}
 
             {/* Card */}
-            <div
-                className="w-full border-4 rounded-lg p-6 transition-all duration-200 shadow-md hover:shadow-lg"
-                style={{ borderColor: hoverColor }}
-            >
+            <div className="w-full border-4 rounded-lg p-6 transition-all duration-200 shadow-md hover:shadow-lg" style={{ borderColor: hoverColor }}>
                 <div className="flex items-start gap-4">
                     {/* Icon */}
                     <Icon className={`w-8 h-8 ${color}`} />
@@ -53,16 +50,7 @@ export function EntityCard({ entityId, count }: EntityCardProps) {
                                 <div className="flex flex-wrap gap-2">
                                     {relatedEntities.map((relEntity) => {
                                         if (!relEntity) return null;
-                                        return (
-                                            <LabelTag
-                                                key={relEntity.id}
-                                                icon={relEntity.icon}
-                                                name={relEntity.name}
-                                                backgroundColor={relEntity.hoverColor}
-                                                color={relEntity.color}
-                                                link={relEntity.link}
-                                            />
-                                        );
+                                        return <LabelTag key={relEntity.id} icon={relEntity.icon} name={relEntity.name} backgroundColor={relEntity.hoverColor} color={relEntity.color} link={relEntity.link} />;
                                     })}
                                 </div>
                             </div>
