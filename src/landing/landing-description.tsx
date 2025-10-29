@@ -1,48 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChartColumnDecreasing, Zap, Wifi, Calendar, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
 import OpenBookIcon from "@/public/appSvgs/OpenBookIcon";
+import MagnifyingGlassIcon from "@/public/appSvgs/MagnifyingGlassIcon";
+import OnboardingAndPricingIcon from "@/public/appSvgs/OnboardingAndPricingIcon";
 import Link from "next/link";
 
 // Feature data with call-to-action links
 const FEATURES = [
     {
         icon: OpenBookIcon,
-        title: "Docs",
+        title: "Read the manual",
         description: "Complete documentation and guides",
-        link: "/landing/dev",
+        link: "/docs/manual",
     },
     {
-        icon: ChartColumnDecreasing,
-        title: "Vision",
-        description: "Next generation school management for kitesurfers",
-        link: "/landing/vision",
+        icon: MagnifyingGlassIcon,
+        title: "What We Do",
+        description: "Discover our mission and values",
+        link: "/docs/wwd",
     },
     {
-        icon: Zap,
-        title: "Lesson Automation",
-        description: "From booking to payment in 2 clicks",
-        link: "/landing/automation",
-    },
-    {
-        icon: ChartColumnDecreasing,
-        title: "Revenue Statistics",
-        description: "Real-time analytics dashboard for all entities",
-        link: "/landing/revenue",
-    },
-    {
-        icon: Wifi,
-        title: "Live Sync",
-        description: "Real-time updates across teacher and student portals",
-        link: "/landing/sync",
-    },
-    {
-        icon: Calendar,
-        title: "Beta Release 2026",
-        description: "Join the waitlist for early access",
-        link: "#footer",
+        icon: OnboardingAndPricingIcon,
+        title: (
+            <>
+                <span className="text-secondary font-bold" style={{ WebkitTextStroke: "1px black", textShadow: "0 0 2px rgb(59, 130, 246)" }}>
+                    Onboarding
+                </span>{" "}
+                &{" "}
+                <span className="text-primary font-bold" style={{ WebkitTextStroke: "1px black", textShadow: "0 0 2px rgb(22, 163, 74)" }}>
+                    Pricing
+                </span>
+            </>
+        ),
+        description: "Get started and view our plans",
+        link: "/docs/pricing",
     },
 ];
 
@@ -52,11 +46,15 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
 
     return (
         <Link href={feature.link} className="block p-6 rounded-lg border border-secondary/60 bg-card/20 backdrop-blur-sm hover:border-secondary hover:shadow-xl transition-all duration-300 group cursor-pointer">
-            <div className="flex items-center gap-3 mb-3">
-                <IconComponent className="w-6 h-6 text-secondary group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold group-hover:scale-105 transition-transform">{feature.title}</h3>
+            <div className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-4 flex-1">
+                    <IconComponent className="w-12 h-12 text-black group-hover:scale-110 transition-transform" />
+                    <div>
+                        <h3 className="text-xl font-semibold group-hover:scale-105 transition-transform mb-1">{feature.title}</h3>
+                        <p className="text-sm text-white/80">{feature.description}</p>
+                    </div>
+                </div>
             </div>
-            <p className="text-sm text-white/80">{feature.description}</p>
         </Link>
     );
 }
@@ -74,7 +72,7 @@ function HeroSection() {
 // Features Grid Component
 function FeaturesGrid() {
     return (
-        <div className="grid md:grid-cols-3 gap-6 pt-4">
+        <div className="flex flex-col gap-4 pt-4">
             {FEATURES.map((feature, index) => (
                 <FeatureCard key={index} feature={feature} />
             ))}
