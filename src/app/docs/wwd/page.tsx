@@ -1,0 +1,212 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ENTITY_DATA } from "@/config/entities";
+
+// Sub-component for feature sections
+function FeatureSection({ title, items, accentColor }: { title: string; items: string[]; accentColor: string }) {
+    return (
+        <div className="space-y-4">
+            <h2 className="text-3xl font-bold mb-6" style={{ color: accentColor }}>
+                {title}
+            </h2>
+            <ul className="space-y-3">
+                {items.map((item, index) => (
+                    <li key={index} className="flex items-start gap-3 text-lg">
+                        <span className="text-2xl" style={{ color: accentColor }}>
+                            •
+                        </span>
+                        <span>{item}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+// Extract RGB values from tailwind color classes
+const getColorFromClass = (colorClass: string): string => {
+    const colorMap: Record<string, string> = {
+        "text-indigo-500": "99, 102, 241",
+        "text-yellow-500": "234, 179, 8",
+        "text-amber-500": "245, 158, 11",
+        "text-orange-400": "251, 146, 60",
+        "text-green-500": "34, 197, 94",
+        "text-emerald-500": "16, 185, 129",
+        "text-blue-500": "59, 130, 246",
+        "text-metal-700": "63, 63, 70",
+        "text-cyan-500": "6, 182, 212",
+        "text-purple-500": "168, 85, 247",
+        "text-sand-600": "209, 130, 57",
+        "text-sand-800": "147, 82, 31",
+        "text-slate-500": "100, 116, 139",
+    };
+    return colorMap[colorClass] || "59, 130, 246";
+};
+
+export default function WhatWeDoPage() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [iconPositions, setIconPositions] = useState<Array<{ x: number; y: number; entityIndex: number; opacity: number }>>([]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const container = containerRef.current;
+        if (!canvas || !container) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        let animationId: number;
+        let time = 0;
+
+        const resizeCanvas = () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        };
+
+        const draw = () => {
+            time += 0.005;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Subtle wave patterns
+            for (let layer = 0; layer < 2; layer++) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(59, 130, 246, ${0.05 - layer * 0.02})`;
+                ctx.lineWidth = 1;
+
+                for (let x = 0; x < canvas.width; x += 3) {
+                    const wave1 = Math.sin(x * 0.01 + time + layer) * 30;
+                    const wave2 = Math.sin(x * 0.005 + time * 0.5 + layer * 2) * 20;
+                    const y = centerY + wave1 + wave2;
+
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // Calculate positions for floating entity icons
+            const newPositions: Array<{ x: number; y: number; entityIndex: number; opacity: number }> = [];
+            for (let i = 0; i < ENTITY_DATA.length; i++) {
+                const entityIndex = i;
+                const angle = (i / ENTITY_DATA.length) * Math.PI * 2 + time * 0.5;
+                const radius = 250 + Math.sin(time + i) * 80;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius * 0.3;
+                const opacity = 0.5 + Math.sin(time + i) * 0.3;
+
+                newPositions.push({ x, y, entityIndex, opacity });
+            }
+
+            setIconPositions(newPositions);
+            animationId = requestAnimationFrame(draw);
+        };
+
+        resizeCanvas();
+        draw();
+
+        window.addEventListener("resize", resizeCanvas);
+
+        return () => {
+            cancelAnimationFrame(animationId);
+            window.removeEventListener("resize", resizeCanvas);
+        };
+    }, []);
+
+    return (
+        <div className="min-h-screen relative">
+            {/* Background Forest Image */}
+            <div
+                className="fixed inset-0 z-0"
+                style={{
+                    backgroundImage: "url(/kritaps_ungurs_unplash/forest.jpg)",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                }}
+            />
+
+            {/* Gradient Overlay */}
+            <div
+                className="fixed inset-0 z-[1]"
+                style={{
+                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)",
+                }}
+            />
+
+            {/* Hero Section with Animated Background */}
+            <section ref={containerRef} className="relative h-[40vh] flex items-center justify-center overflow-hidden z-[2]">
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+                {/* Floating Entity Icons */}
+                {iconPositions.map((pos, index) => {
+                    const entity = ENTITY_DATA[pos.entityIndex];
+                    const IconComponent = entity.icon;
+                    return (
+                        <div
+                            key={index}
+                            className="absolute pointer-events-none transition-opacity duration-300 z-[3]"
+                            style={{
+                                left: `${pos.x}px`,
+                                top: `${pos.y}px`,
+                                transform: "translate(-50%, -50%)",
+                                opacity: pos.opacity,
+                            }}
+                        >
+                            <IconComponent className={`w-6 h-6 ${entity.color}`} />
+                        </div>
+                    );
+                })}
+
+                <div className="relative z-[4] text-center">
+                    <h1 className="text-6xl md:text-7xl font-bold tracking-tight drop-shadow-2xl text-white">What We Do</h1>
+                </div>
+            </section>
+
+            {/* Content Sections */}
+            <div className="relative z-[2] max-w-5xl mx-auto px-6 py-16 space-y-16">
+                {/* Lesson Management App */}
+                <FeatureSection
+                    title="Lesson Management App"
+                    accentColor="rgb(59, 130, 246)"
+                    items={[
+                        "Real time sync across all portals",
+                        "Proof of stake - transparency in what everyone is paying",
+                        "Confirmations and feedback from teachers and students",
+                        "Progress tracking and comprehensive data analytics",
+                    ]}
+                />
+
+                {/* Equipment Tracking */}
+                <FeatureSection
+                    title="Equipment Tracking"
+                    accentColor="rgb(22, 163, 74)"
+                    items={[
+                        "Track which equipment, monitor number of flight hours",
+                        "Know what, when, and analyze condition over time",
+                        "Too good to sell? Set a timer to know when enough is enough",
+                    ]}
+                />
+
+                {/* Business Upscaling */}
+                <FeatureSection
+                    title="And! We Help Upscale Your Business"
+                    accentColor="rgb(255, 190, 165)"
+                    items={[
+                        "Marketing tools with custom URLs for your school",
+                        "Showcase photos and banners - tell us why your school is the coolest",
+                        "World mapping to help students find your location",
+                        "Join one adrenaline community connecting schools globally",
+                    ]}
+                />
+            </div>
+        </div>
+    );
+}
