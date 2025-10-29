@@ -1,71 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import { ENTITY_DATA } from "@/config/entities";
-import { EntityDetails } from "./EntityDetails";
-import { DevCard } from "./DevCard";
+import { ENTITY_DATA, type EntityConfig } from "@/config/entities";
+import { GridEntityDev } from "./GridEntityDev";
+import { Globe } from "lucide-react";
+import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
+
+const entitySchool: EntityConfig = {
+    id: "school",
+    name: "Schools",
+    icon: AdminIcon,
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-300",
+    hoverColor: "#e0e7ff",
+    link: "/schools",
+    description: ["Central entity that organizes all activities.", "Contains teachers, packages, and bookings."],
+    relations: ["schoolPackage", "student", "teacher", "booking", "equipment"],
+};
+
+const entitySubdomain: EntityConfig = {
+    id: "subdomain",
+    name: "Subdomain",
+    icon: Globe,
+    color: "text-sky-500",
+    bgColor: "bg-sky-300",
+    hoverColor: "#e0f2fe",
+    link: "/subdomain",
+    description: ["School subdomain for public access.", "Students book through this portal."],
+    relations: ["school"],
+};
+
+const entityPackage: EntityConfig = {
+    id: "schoolPackage",
+    name: "Packages",
+    icon: ENTITY_DATA.find((e) => e.id === "schoolPackage")?.icon!,
+    color: "text-orange-400",
+    bgColor: "bg-orange-200",
+    hoverColor: "#ffedd5",
+    link: "/packages",
+    description: ["Determines duration, capacity, and equipment for bookings.", "Defines pricing and availability."],
+    relations: ["school", "booking"],
+};
 
 export function SchoolDevPage() {
-    const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
-    const [hoveredEntity, setHoveredEntity] = useState<string | null>(null);
-
-    const selectedData = ENTITY_DATA.find((e) => e.id === selectedEntity);
-    const isRelated = (entityId: string) => {
-        if (!selectedEntity) return false;
-        const selected = ENTITY_DATA.find((e) => e.id === selectedEntity);
-        return selected?.relations.includes(entityId);
-    };
-
-    const entityPairs = [
-        ["school", "schoolPackage"],
-        ["teacher", "commission"],
-        ["student", "studentPackage"],
-        ["booking", "lesson"],
-        ["event", "equipment"],
-        ["payment", "feedback"],
-    ];
-
-    const orderedEntities = entityPairs
-        .flat()
-        .map((id) => ENTITY_DATA.find((e) => e.id === id))
-        .filter(Boolean);
-
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-5xl font-bold text-foreground mb-6">Schools Architecture</h1>
-                <p className="text-muted-foreground text-lg">Entity pairs organized by relationship</p>
-            </div>
-
-            <div>
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                    {orderedEntities.map((entity) => {
-                        if (!entity) return null;
-                        const isSelected = selectedEntity === entity.id;
-                        const isRelatedEntity = isRelated(entity.id);
-                        const isHovered = hoveredEntity === entity.id;
-
-                        return (
-                            <DevCard
-                                key={entity.id}
-                                entity={entity}
-                                isSelected={isSelected}
-                                isHovered={isHovered}
-                                isRelated={isRelatedEntity}
-                                onClick={() => setSelectedEntity(isSelected ? null : entity.id)}
-                                onMouseEnter={() => setHoveredEntity(entity.id)}
-                                onMouseLeave={() => setHoveredEntity(null)}
-                            />
-                        );
-                    })}
+                <div className="flex items-center gap-4 mb-4">
+                    <entitySchool.icon className="w-12 h-12" style={{ color: entitySchool.color.replace("text-", "") }} />
+                    <h1 className="text-5xl font-bold text-foreground">School Setup</h1>
                 </div>
-
-                {selectedData && (
-                    <div className="mb-8">
-                        <EntityDetails entity={selectedData} onNavigateToEntity={setSelectedEntity} />
-                    </div>
-                )}
+                <p className="text-muted-foreground text-lg">Sign Up</p>
             </div>
+
+            <GridEntityDev entityA={entitySchool} entityB={entitySubdomain} entityC={entityPackage} description="School sets up account." />
         </div>
     );
 }

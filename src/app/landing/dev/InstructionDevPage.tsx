@@ -154,7 +154,7 @@ export function InstructionDevPage() {
                 </div>
             </InstructionHeader>
 
-            <InstructionHeader icon={feedback!.icon} title="Analytics & Revenue" subtitle="Monitor Performance" bgColor="bg-sand-50 dark:bg-sand-950/20" iconColor="text-sand-800" iconBgColor="bg-sand-300">
+            <InstructionHeader icon={feedback!.icon} title="Analytics & Revenue" subtitle="Monitor Performance" bgColor="" iconColor="text-sand-600 dark:text-sand-400" iconBgColor="bg-sand-300 dark:bg-sand-700">
                 <div className="grid grid-cols-2 gap-4">
                     {[feedback, statistic].map((entity) => {
                         if (!entity) return null;

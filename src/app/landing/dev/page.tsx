@@ -2,44 +2,56 @@
 import { useState } from "react";
 import LeftNavigation from "@/src/components/navigations/LeftNavigation";
 import { WindToggle } from "@/src/components/themes/WindToggle";
+import { ReadmeDevPage } from "./ReadmeDevPage";
 import { InstructionDevPage } from "./InstructionDevPage";
 import { SchoolDevPage } from "./SchoolDevPage";
-import { StudentDevPage } from "./StudentDevPage";
 import { TeachersDevPage } from "./TeachersDevPage";
-import { EquipmentDevPage } from "./EquipmentDevPage";
+import { StudentDevPage } from "./StudentDevPage";
+import { EventDevPage } from "./EventDevPage";
+import { StatisticDevPage } from "./StatisticDevPage";
+import { EntityDevPage } from "./EntityDevPage";
+import CompassIcon from "@/public/appSvgs/CompassIcon.jsx";
 import OpenBookIcon from "@/public/appSvgs/OpenBookIcon.jsx";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon.jsx";
-import { BookmarkIcon } from "lucide-react";
+import PyramidIcon from "@/public/appSvgs/PyramidIcon.jsx";
+import { Calendar, ChartColumnDecreasing } from "lucide-react";
 
 export default function DevPage() {
-    const [activePage, setActivePage] = useState("instructions");
+    const [activePage, setActivePage] = useState("readme");
 
     const navigationItems = [
+        { id: "readme", label: "README", icon: <CompassIcon className="w-7 h-7" size={28} />, color: "text-red-500", bgColor: "bg-red-100" },
         { id: "instructions", label: "Instructions", icon: <OpenBookIcon className="w-7 h-7" size={28} />, color: "text-blue-500", bgColor: "bg-blue-100" },
         { id: "schools", label: "Schools", icon: <AdminIcon className="w-7 h-7" size={28} />, color: "text-indigo-500", bgColor: "bg-indigo-100" },
-        { id: "packages", label: "Packages", icon: <BookmarkIcon className="w-7 h-7" size={28} />, color: "text-orange-400", bgColor: "bg-orange-200" },
         { id: "teachers", label: "Teachers", icon: <HeadsetIcon className="w-7 h-7" size={28} />, color: "text-green-500", bgColor: "bg-green-100" },
         { id: "students", label: "Students", icon: <HelmetIcon className="w-7 h-7" size={28} />, color: "text-yellow-500", bgColor: "bg-yellow-100" },
-        { id: "equipment", label: "Equipment", icon: <EquipmentIcon className="w-7 h-7" size={28} />, color: "text-purple-500", bgColor: "bg-purple-100" },
+        { id: "events", label: "Events", icon: <Calendar className="w-7 h-7" size={28} />, color: "text-purple-500", bgColor: "bg-purple-100" },
+        { id: "revenue", label: "Revenue", icon: <ChartColumnDecreasing className="w-7 h-7" size={28} />, color: "text-sand-500", bgColor: "bg-sand-100" },
+        { id: "entities", label: "All Entities", icon: <PyramidIcon className="w-7 h-7" size={28} />, color: "text-gray-500", bgColor: "bg-gray-100" },
     ];
 
     const renderPage = () => {
         switch (activePage) {
+            case "readme":
+                return <ReadmeDevPage />;
             case "instructions":
                 return <InstructionDevPage />;
             case "schools":
                 return <SchoolDevPage />;
-            case "students":
-                return <StudentDevPage />;
             case "teachers":
                 return <TeachersDevPage />;
-            case "equipment":
-                return <EquipmentDevPage />;
+            case "students":
+                return <StudentDevPage />;
+            case "events":
+                return <EventDevPage />;
+            case "revenue":
+                return <StatisticDevPage />;
+            case "entities":
+                return <EntityDevPage />;
             default:
-                return <InstructionDevPage />;
+                return <ReadmeDevPage />;
         }
     };
 
