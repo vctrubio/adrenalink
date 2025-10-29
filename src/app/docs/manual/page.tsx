@@ -13,6 +13,7 @@ function Introduction() {
             <div className="pb-6 border-b border-white/20">
                 <div className="flex items-start gap-3 mb-4">
                     <span className="text-2xl font-bold text-secondary">1.</span>
+                    <div className="underline">Meet the Team.</div>
                     <div>
                         <span className="font-bold text-xl text-white italic">Think of each icon as a character</span>, each with a specific role.
                     </div>
@@ -40,17 +41,9 @@ function Introduction() {
                     <span className="text-2xl font-bold text-secondary">2.</span>
                     <div>
                         This management app aims to quickly and efficiently{" "}
-                        <span
-                            className="relative inline-block cursor-help font-semibold text-secondary underline decoration-dotted"
-                            onMouseEnter={() => setShowCrudTooltip(true)}
-                            onMouseLeave={() => setShowCrudTooltip(false)}
-                        >
+                        <span className="relative inline-block cursor-help font-semibold text-secondary underline decoration-dotted" onMouseEnter={() => setShowCrudTooltip(true)} onMouseLeave={() => setShowCrudTooltip(false)}>
                             CRUD
-                            {showCrudTooltip && (
-                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg whitespace-nowrap backdrop-blur-sm">
-                                    Create, Read, Update, Delete
-                                </span>
-                            )}
+                            {showCrudTooltip && <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg whitespace-nowrap backdrop-blur-sm">Create, Read, Update, Delete</span>}
                         </span>{" "}
                         lessons. A lesson consists of:
                         <ul className="mt-3 ml-6 space-y-2">
@@ -68,10 +61,8 @@ function Introduction() {
                 <div className="flex items-start gap-3">
                     <span className="text-2xl font-bold text-secondary">3.</span>
                     <div>
-                        All entities have respective tables, forms, and ID pages. For example:{" "}
-                        <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students/id</code> or{" "}
-                        <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students/form</code> or{" "}
-                        <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students</code> (the table route).
+                        All entities have respective tables, forms, and ID pages. For example: <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students/id</code> or <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students/form</code>{" "}
+                        or <code className="px-2 py-1 bg-black/40 rounded text-sm font-mono">students</code> (the table route).
                     </div>
                 </div>
             </div>

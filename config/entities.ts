@@ -36,7 +36,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-indigo-300",
         hoverColor: "#e0e7ff",
         link: "/schools",
-        description: ["Central entity that organizes all activities.", "Contains teachers, packages, and bookings."],
+        description: ["This is you, you sign up."],
         relations: ["schoolPackage", "student", "teacher", "booking", "equipment"],
     },
     {
@@ -47,7 +47,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-yellow-300",
         hoverColor: "#fef3c7",
         link: "/students",
-        description: ["Students create bookings.", "Can participate in multiple lessons through bookings."],
+        description: ["Students registers"],
         relations: ["schoolPackage", "booking", "event"],
     },
     {
@@ -58,7 +58,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-amber-300",
         hoverColor: "#fef9c3",
         link: "/request",
-        description: ["Student requests a package on the school subdomain.", "Admin receives booking and verifies the dates and status."],
+        description: ["They request a package"],
         relations: ["student", "schoolPackage", "booking"],
     },
     {
@@ -69,7 +69,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-orange-200",
         hoverColor: "#ffedd5",
         link: "/packages",
-        description: ["Determines duration, capacity, and equipment for bookings.", "Defines pricing and availability."],
+        description: ["Set your packages"],
         relations: ["school", "booking"],
     },
     {
@@ -80,7 +80,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-green-300",
         hoverColor: "#d1fae5",
         link: "/teachers",
-        description: ["Our employees, each has commission rates for lessons.", "Payments are used to track earnings."],
+        description: ["Create teachers"],
         relations: ["commission", "lesson", "equipment"],
     },
     {
@@ -91,7 +91,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-emerald-300",
         hoverColor: "#d1fae5",
         link: "/commissions",
-        description: ["Defines commission rates for teachers.", "Can be percentage or fixed amount."],
+        description: ["Give them comission based salaries"],
         relations: ["teacher"],
     },
     {
@@ -102,18 +102,18 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-blue-300",
         hoverColor: "#dbeafe",
         link: "/bookings",
-        description: ["Has start and end dates for lessons.", "Links students to packages."],
+        description: ["You accept the booking"],
         relations: ["teacher", "student", "schoolPackage", "lesson", "event"],
     },
     {
         id: "lesson",
         name: "Lessons",
         icon: LessonIcon,
-        color: "text-metal-700", //metal dark mate
-        bgColor: "bg-metal-400",
+        color: "text-foreground",
+        bgColor: "bg-foreground-300",
         hoverColor: "#e0e7ff",
         link: "/lessons",
-        description: ["Represents a scheduled lesson.", "Links teacher, booking, and commission."],
+        description: ["Assign a teacher to booking"],
         relations: ["student", "teacher", "event"],
     },
     {
@@ -124,7 +124,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-cyan-300",
         hoverColor: "#e0e7ff",
         link: "/events",
-        description: ["Actual lesson occurrence with duration and location.", "Tracks equipment usage during the lesson."],
+        description: ["Make events"],
         relations: ["booking", "student", "teacher", "equipment"],
     },
     {
@@ -135,7 +135,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-purple-300",
         hoverColor: "#e9d5ff",
         link: "/equipment",
-        description: ["Kites, wings, and other gear used in lessons.", "Tracked for usage in each event."],
+        description: ["Link equipment"],
         relations: ["package", "teacher", "event"],
     },
     {
@@ -146,7 +146,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-sand-200",
         hoverColor: "#fef3c7",
         link: "/payments",
-        description: ["Records payments made to teachers.", "Tracks teacher earnings and compensation."],
+        description: ["Pay who needs to be paid"],
         relations: ["teacher", "lesson"],
     },
     {
@@ -157,7 +157,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-sand-300",
         hoverColor: "#fef3c7",
         link: "/feedback",
-        description: ["Student and teacher feedback on lessons.", "Helps improve quality and track satisfaction."],
+        description: ["Get confirmation of hours"],
         relations: ["student", "teacher", "event"],
     },
     {
