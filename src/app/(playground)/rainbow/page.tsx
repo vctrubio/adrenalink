@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Rainbow, RainbowShade, ColorMapping } from "@/components/rainbow";
+import { Rainbow, RainbowShade, ColorMapping } from "@/src/components/rainbow";
 
 const Index = () => {
   const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);

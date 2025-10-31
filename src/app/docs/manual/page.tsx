@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { Rainbow, RainbowShade, ColorMapping } from "@/components/rainbow";
+import { Rainbow, RainbowShade, ColorMapping } from "@/src/components/rainbow";
 
 // Introduction sub-component
 function Introduction() {
