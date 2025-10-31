@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
+import { Rainbow, RainbowShade, ColorMapping } from "@/components/rainbow";
 
 // Introduction sub-component
 function Introduction() {
@@ -70,6 +71,18 @@ function Introduction() {
     );
 }
 
+// Rainbow visualization sub-component
+function RainbowVisualization() {
+    const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);
+
+    return (
+        <div className="space-y-8">
+            <Rainbow onShadeHover={setHoveredShade} hoveredShade={hoveredShade} />
+            <ColorMapping hoveredShade={hoveredShade} onShadeHover={setHoveredShade} />
+        </div>
+    );
+}
+
 export default function ManualPage() {
     return (
         <div className="min-h-screen relative flex items-center justify-center py-12">
@@ -95,7 +108,7 @@ export default function ManualPage() {
             {/* Content Card */}
             <div className="relative z-[2] p-8 rounded-lg border border-secondary/60 bg-card/80 backdrop-blur-md shadow-xl max-w-4xl mx-4">
                 <h1 className="text-4xl font-bold text-center text-white drop-shadow-lg mb-8">Manual</h1>
-                <Introduction />
+                <RainbowVisualization />
             </div>
         </div>
     );
