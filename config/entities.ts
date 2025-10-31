@@ -12,7 +12,7 @@ import RegistrationIcon from "../public/appSvgs/RegistrationIcon.jsx";
 import RequestIcon from "../public/appSvgs/RequestIcon.jsx";
 import VerifiedIcon from "../public/appSvgs/VerifiedIcon.jsx";
 import LinkIcon from "../public/appSvgs/LinkIcon.jsx";
-import RepairIcon from "../public/appSvgs/RepairIcon.tsx";
+import RepairIcon from "../public/appSvgs/RepairIcon.jsx";
 
 export type EntityConfig = {
     id: string;
