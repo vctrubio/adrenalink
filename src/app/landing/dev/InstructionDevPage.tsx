@@ -22,7 +22,7 @@ export function InstructionDevPage() {
     const booking = getEntity("booking");
     const lesson = getEntity("lesson");
     const event = getEntity("event");
-    const feedback = getEntity("feedback");
+    const feedback = getEntity("student_lesson_feedback");
 
     const statistic = {
         id: "statistic",
