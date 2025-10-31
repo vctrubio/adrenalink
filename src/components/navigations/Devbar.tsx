@@ -6,23 +6,28 @@ import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
 import ToggleTheme from "../themes/toggle-theme";
 import { ENTITY_DATA } from "../../../config/entities";
+import { HIDDEN_ENTITIES } from "../../../config/tables";
 
 const navigationItems = [
     { href: "/", icon: Home, label: "Home" },
-    { href: "/dev", icon: Code, label: "Dev" },
-    { href: "/docs", icon: BookOpen, label: "Docs" },
     { href: "/table", icon: Table, label: "Table" },
 ];
 
-const tableNavigationItems = ENTITY_DATA
-    .filter((entity) => ["student", "schoolPackage", "studentPackage", "booking"].includes(entity.id))
-    .map((entity) => ({
-        href: entity.link,
-        icon: entity.icon,
-        label: entity.id === "studentPackage" ? "Request" : entity.name,
-        color: entity.color,
-        bgColor: entity.bgColor,
-    }));
+const visibleNavigationItems = ENTITY_DATA.map((entity) => ({
+    href: entity.link,
+    icon: entity.icon,
+    label: entity.name,
+    color: entity.color,
+    bgColor: entity.bgColor,
+}));
+
+const hiddenNavigationItems = HIDDEN_ENTITIES.map((entity) => ({
+    href: entity.link,
+    icon: entity.icon,
+    label: entity.name,
+    color: entity.color,
+    bgColor: entity.bgColor,
+}));
 
 const userMenuItems = [
     { href: "/profile", icon: User, label: "Profile" },
@@ -64,7 +69,7 @@ export default function Devbar() {
 
     return (
         <nav className="border-b border-border bg-background">
-            <div className="max-w-7xl mx-auto px-8">
+            <div className=" mx-auto px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex space-x-2">
                         {navigationItems.map(({ href, icon: Icon, label }) => (
@@ -86,10 +91,22 @@ export default function Devbar() {
                     </div>
                 </div>
 
-                {/* Entity Tables Navigation Row */}
+                {/* Visible Entities Navigation Row */}
                 <div className="border-t border-border py-2">
                     <div className="flex flex-wrap gap-2">
-                        {tableNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
+                        {visibleNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
+                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}>
+                                <Icon size={14} className={pathname === href ? "text-white" : color} />
+                                <span className="text-xs">{label}</span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Hidden Entities Navigation Row */}
+                <div className="border-t border-border py-2">
+                    <div className="flex flex-wrap gap-2">
+                        {hiddenNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
                             <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}>
                                 <Icon size={14} className={pathname === href ? "text-white" : color} />
                                 <span className="text-xs">{label}</span>
