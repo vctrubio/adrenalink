@@ -24,6 +24,7 @@ export function EntityDevPage() {
         ["event", "equipment"],
         ["payment", "student_lesson_feedback"],
         ["repairs", "rental"],
+        ["userWallet", "referral"],
     ];
 
     const orderedEntities = entityPairs
