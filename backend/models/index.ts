@@ -4,3 +4,8 @@ export { createSchoolModel, type SchoolModel } from "./SchoolModel";
 export { createSchoolPackageModel, type SchoolPackageModel } from "./SchoolPackageModel";
 export { createStudentPackageModel, type StudentPackageModel } from "./StudentPackageModel";
 export { createBookingModel, type BookingModel } from "./BookingModel";
+export { createLessonModel, type LessonModel } from "./LessonModel";
+export { createEquipmentModel, type EquipmentModel } from "./EquipmentModel";
+export { createTeacherModel, type TeacherModel } from "./TeacherModel";
+export { createCommissionModel, type CommissionModel } from "./CommissionModel";
+export { createEventModel, type EventModel } from "./EventModel";
