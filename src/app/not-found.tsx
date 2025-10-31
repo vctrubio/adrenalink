@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Compass } from "lucide-react";
 import { useTheme } from "next-themes";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 function NotFoundHeader() {
     const [isSpinning, setIsSpinning] = useState(false);
@@ -30,7 +30,7 @@ function NotFoundHeader() {
                         className="p-6 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer bg-card/50 border-2 border-border hover:border-primary backdrop-blur-sm hover:shadow-xl"
                         title="Toggle theme"
                     >
-                        <Compass className="w-20 h-20 transition-all duration-600 text-primary" />
+                        <AdranlinkIcon className="w-20 h-20 transition-all duration-600 text-primary" size={80} />
                     </button>
                 </div>
 
@@ -52,7 +52,7 @@ function NotFoundHeader() {
                         } backdrop-blur-sm hover:shadow-xl`}
                     title="Toggle theme"
                 >
-                    <Compass className={`w-20 h-20 transition-all duration-600 ${isDarkMode ? "text-primary" : "text-primary"} ${isSpinning ? "animate-spin" : ""} ${isDarkMode ? "rotate-180" : "rotate-0"}`} />
+                    <AdranlinkIcon size={80} className={`w-20 h-20 transition-all duration-600 ${isDarkMode ? "text-primary" : "text-primary"} ${isSpinning ? "animate-spin" : ""} ${isDarkMode ? "rotate-180" : "rotate-0"}`} />
                 </button>
             </div>
 
