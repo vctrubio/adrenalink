@@ -1,6 +1,29 @@
 "use client";
 import type { EntityConfig } from "@/config/entities";
 
+const tailwindColorMap: Record<string, string> = {
+    "bg-indigo-300": "#e0e7ff",
+    "bg-yellow-300": "#fef3c7",
+    "bg-amber-300": "#fef9c3",
+    "bg-orange-200": "#ffedd5",
+    "bg-green-300": "#d1fae5",
+    "bg-emerald-300": "#d1fae5",
+    "bg-blue-300": "#dbeafe",
+    "bg-foreground-300": "#e0e7ff",
+    "bg-cyan-300": "#e0e7ff",
+    "bg-purple-300": "#e9d5ff",
+    "bg-sand-200": "#fef3c7",
+    "bg-sand-300": "#fef3c7",
+    "bg-slate-300": "#f1f5f9",
+    "bg-amber-400": "#fcd34d",
+    "bg-gray-300": "#e5e7eb",
+    "bg-blue-300": "#bbf7d0",
+    "bg-sky-300": "#bae6fd",
+    "bg-pink-300": "#fbcfe8",
+    "bg-red-300": "#fecaca",
+    "bg-teal-300": "#99f6e4",
+};
+
 // === BACK COVER: Icon touches top-right edge ===
 function DevCardBack({ entity }: { entity: EntityConfig }) {
     const Icon = entity.icon;
@@ -47,6 +70,7 @@ type DevCardProps = {
 //backCover for user Story
 export function DevCard({ entity, isSelected, isHovered, isRelated, backCover = false, onClick, onMouseEnter, onMouseLeave }: DevCardProps) {
     const Icon = entity.icon;
+    const bgColorHex = tailwindColorMap[entity.bgColor] || "#e0e7ff";
 
     return (
         <div
@@ -61,7 +85,7 @@ export function DevCard({ entity, isSelected, isHovered, isRelated, backCover = 
         ${isHovered && !isSelected ? "scale-105 shadow-lg" : ""}
       `}
             style={{
-                backgroundColor: isSelected ? entity.hoverColor + "40" : undefined,
+                backgroundColor: isSelected ? bgColorHex + "40" : undefined,
             }}
         >
             {/* === FRONT: Padding applied only here === */}
