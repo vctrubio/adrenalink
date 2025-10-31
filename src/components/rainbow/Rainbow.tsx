@@ -34,10 +34,10 @@ export const getShadeColor = (shade: RainbowShade | null): { fill: string; hover
 const allShades: RainbowShade[] = ["purple-0", "purple-1", "blue-0", "blue-1", "blue-2", "green-0", "green-1", "yellow-0", "orange-0", "orange-1", "red-0", "grey-0", "grey-1"];
 
 export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
-    const centerX = 400;
-    const centerY = 400;
-    const baseRadius = 50;
-    const strokeWidth = 40;
+    const centerX = 960;
+    const centerY = 1000;
+    const baseRadius = 200;
+    const strokeWidth = 50;
 
     const createArc = (radius: number, shade: RainbowShade, index: number) => {
         const isHovered = hoveredShade === shade;
@@ -63,8 +63,8 @@ export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
     };
 
     return (
-        <div className="flex justify-center items-start py-12">
-            <svg width="1200" height="800" viewBox="0 0 800 400" className="max-w-full h-auto border" xmlns="http://www.w3.org/2000/svg">
+        <div className="flex justify-center items-start py-12 w-full">
+            <svg width="1920" height="1200" viewBox="0 0 1920 1200" className="w-full h-auto border" xmlns="http://www.w3.org/2000/svg">
                 {allShades.map((shade, index) => {
                     const radius = baseRadius + index * strokeWidth;
                     return createArc(radius, shade, index);

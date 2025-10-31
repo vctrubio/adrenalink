@@ -106,8 +106,7 @@ export default function ManualPage() {
             />
 
             {/* Content Card */}
-            <div className="relative z-[2] p-8 rounded-lg border border-secondary/60 bg-card/80 backdrop-blur-md">
-                <h1 className="text-4xl font-bold text-center text-white drop-shadow-lg mb-8">Manual</h1>
+            <div className="relative z-[2] p-8 rounded-lg bg-card/80 backdrop-blur-md">
                 <RainbowVisualization />
             </div>
         </div>

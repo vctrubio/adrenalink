@@ -108,7 +108,7 @@ export const ColorMapping = ({ hoveredShade, onShadeHover }: ColorMappingProps) 
     const colorCardGroups = [["purple", "blue", "green"] as RainbowColor[], ["yellow", "orange", "red"] as RainbowColor[]];
 
     return (
-        <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="w-full px-6 py-12">
             {/* School Wrapper - Contains all color groups and school info */}
             {(() => {
                 const color = "grey" as RainbowColor;
