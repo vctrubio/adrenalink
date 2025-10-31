@@ -22,7 +22,8 @@ export function EntityDevPage() {
         ["student", "studentPackage"],
         ["booking", "lesson"],
         ["event", "equipment"],
-        ["payment", "feedback"],
+        ["payment", "student_lesson_feedback"],
+        ["repairs", "rental"],
     ];
 
     const orderedEntities = entityPairs
