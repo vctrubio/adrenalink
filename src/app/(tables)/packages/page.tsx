@@ -1,7 +1,6 @@
 import { EntityCard } from "@/src/components/cards/EntityCard";
 import PackageCard from "@/src/components/cards/PackageCard";
 import { getPackages } from "@/actions/packages-action";
-import type { SchoolPackageModel } from "@/backend/models";
 
 export default async function PackagesPage() {
     const result = await getPackages();
@@ -17,15 +16,7 @@ export default async function PackagesPage() {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-                <div className="space-y-4">
-                    {result.data.length === 0 ? (
-                        <p className="text-muted-foreground">No packages found</p>
-                    ) : (
-                        result.data.map((schoolPackage) => (
-                            <PackageCard key={schoolPackage.schema.id} package={schoolPackage} />
-                        ))
-                    )}
-                </div>
+                <div className="space-y-4">{result.data.length === 0 ? <p className="text-muted-foreground">No packages found</p> : result.data.map((schoolPackage) => <PackageCard key={schoolPackage.schema.id} package={schoolPackage} />)}</div>
             </div>
         </div>
     );
