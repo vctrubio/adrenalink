@@ -14,9 +14,25 @@ const bookingWithRelations = {
     studentPackage: true,
     bookingStudents: {
         with: {
-            student: true
-        }
-    }
+            student: true,
+        },
+    },
+    lessons: {
+        with: {
+            teacher: true,
+            commission: true,
+            events: {
+                with: {
+                    equipmentEvents: {
+                        with: {
+                            equipment: true,
+                        },
+                    },
+                },
+            },
+            payments: true,
+        },
+    },
 };
 
 // CREATE
