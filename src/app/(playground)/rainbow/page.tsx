@@ -1,0 +1,20 @@
+"use client";
+
+import { useState } from "react";
+import { Rainbow, RainbowShade } from "./Rainbow";
+import { ColorMapping } from "./ColorMapping";
+
+const Index = () => {
+  const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <main className="pt-12">
+        <Rainbow onShadeHover={setHoveredShade} hoveredShade={hoveredShade} />
+        <ColorMapping hoveredShade={hoveredShade} onShadeHover={setHoveredShade} />
+      </main>
+    </div>
+  );
+};
+
+export default Index;

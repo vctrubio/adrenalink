@@ -40,7 +40,7 @@ export const HIDDEN_ENTITIES: EntityConfig[] = [
         color: "text-teal-500",
         bgColor: "bg-teal-300",
         link: "/permissions",
-        description: ["Links teachers to specific equipment."],
+        description: ["Assigns specific equipment to authorized teachers."],
         relations: ["teacher", "equipment"],
     },
 ];
