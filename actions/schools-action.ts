@@ -14,15 +14,7 @@ const schoolWithRelations = {
             student: true,
         },
     },
-    schoolPackages: {
-        with: {
-            studentPackages: {
-                with: {
-                    student: true,
-                },
-            },
-        },
-    },
+    schoolPackages: true,
     bookings: {
         with: {
             studentPackage: {
@@ -64,7 +56,6 @@ export async function getSchools(): Promise<ApiActionResponseModel<SchoolModel[]
         return { success: false, error: "Failed to fetch schools" };
     }
 }
-
 
 export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolModel>> {
     try {
