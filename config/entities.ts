@@ -1,6 +1,5 @@
 import AdminIcon from "../public/appSvgs/AdminIcon.jsx";
 import BookingIcon from "../public/appSvgs/BookingIcon.jsx";
-import BookingCompleteIcon from "../public/appSvgs/BookingCompleteIcon.jsx";
 import CreditIcon from "../public/appSvgs/CreditIcon.jsx";
 import EquipmentIcon from "../public/appSvgs/EquipmentIcon.jsx";
 import FlagIcon from "../public/appSvgs/FlagIcon.jsx";
@@ -12,7 +11,8 @@ import PackageIcon from "../public/appSvgs/PackageIcon.jsx";
 import RegistrationIcon from "../public/appSvgs/RegistrationIcon.jsx";
 import RequestIcon from "../public/appSvgs/RequestIcon.jsx";
 import VerifiedIcon from "../public/appSvgs/VerifiedIcon.jsx";
-import OctagonIcon from "../public/appSvgs/OctagonIcon.jsx";
+import LinkIcon from "../public/appSvgs/LinkIcon.jsx";
+import RepairIcon from "../public/appSvgs/RepairIcon.tsx";
 
 export type EntityConfig = {
     id: string;
@@ -20,11 +20,9 @@ export type EntityConfig = {
     icon: React.ComponentType<any>;
     color: string;
     bgColor: string;
-    hoverColor: string;
     link: string;
     description: string[];
     relations: string[]; // Related entity IDs
-    count?: number;
 };
 
 export const ENTITY_DATA: EntityConfig[] = [
@@ -34,7 +32,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: AdminIcon,
         color: "text-indigo-500",
         bgColor: "bg-indigo-300",
-        hoverColor: "#e0e7ff",
         link: "/schools",
         description: ["This is you, you sign up."],
         relations: ["schoolPackage", "student", "teacher", "booking", "equipment"],
@@ -45,7 +42,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: HelmetIcon,
         color: "text-yellow-500",
         bgColor: "bg-yellow-300",
-        hoverColor: "#fef3c7",
         link: "/students",
         description: ["Students registers"],
         relations: ["schoolPackage", "booking", "event"],
@@ -56,7 +52,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: RequestIcon,
         color: "text-amber-500",
         bgColor: "bg-amber-300",
-        hoverColor: "#fef9c3",
         link: "/requests",
         description: ["They request a package"],
         relations: ["student", "schoolPackage", "booking"],
@@ -67,7 +62,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: PackageIcon,
         color: "text-orange-400",
         bgColor: "bg-orange-200",
-        hoverColor: "#ffedd5",
         link: "/packages",
         description: ["Set your packages"],
         relations: ["school", "booking"],
@@ -78,7 +72,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: HeadsetIcon,
         color: "text-green-500",
         bgColor: "bg-green-300",
-        hoverColor: "#d1fae5",
         link: "/teachers",
         description: ["Create teachers"],
         relations: ["commission", "lesson", "equipment"],
@@ -89,7 +82,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: HandshakeIcon,
         color: "text-emerald-500",
         bgColor: "bg-emerald-300",
-        hoverColor: "#d1fae5",
         link: "/commissions",
         description: ["Give them comission based salaries"],
         relations: ["teacher"],
@@ -100,7 +92,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: BookingIcon,
         color: "text-blue-500",
         bgColor: "bg-blue-300",
-        hoverColor: "#dbeafe",
         link: "/bookings",
         description: ["You accept the booking"],
         relations: ["teacher", "student", "schoolPackage", "lesson", "event"],
@@ -111,7 +102,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: LessonIcon,
         color: "text-foreground",
         bgColor: "bg-foreground-300",
-        hoverColor: "#e0e7ff",
         link: "/lessons",
         description: ["Assign a teacher to booking"],
         relations: ["student", "teacher", "event"],
@@ -122,7 +112,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: FlagIcon,
         color: "text-cyan-500",
         bgColor: "bg-cyan-300",
-        hoverColor: "#e0e7ff",
         link: "/events",
         description: ["Make events"],
         relations: ["booking", "student", "teacher", "equipment"],
@@ -133,8 +122,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: EquipmentIcon,
         color: "text-purple-500",
         bgColor: "bg-purple-300",
-        hoverColor: "#e9d5ff",
-        link: "/equipment",
+        link: "/events?equipment=true",
         description: ["Link equipment"],
         relations: ["package", "teacher", "event"],
     },
@@ -144,7 +132,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: CreditIcon,
         color: "text-sand-600",
         bgColor: "bg-sand-200",
-        hoverColor: "#fef3c7",
         link: "/payments",
         description: ["Pay who needs to be paid"],
         relations: ["teacher", "lesson"],
@@ -155,7 +142,6 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: VerifiedIcon,
         color: "text-sand-800",
         bgColor: "bg-sand-300",
-        hoverColor: "#fef3c7",
         link: "/feedback",
         description: ["Get confirmation of hours"],
         relations: ["student", "teacher", "event"],
@@ -166,9 +152,38 @@ export const ENTITY_DATA: EntityConfig[] = [
         icon: RegistrationIcon,
         color: "text-slate-500",
         bgColor: "bg-slate-300",
-        hoverColor: "#f1f5f9",
         link: "/users",
         description: ["Links users to teachers and defines roles.", "Manages user authentication and permissions."],
         relations: ["student", "teacher", "school"],
+    },
+    {
+        id: "referral",
+        name: "Referrals",
+        icon: LinkIcon,
+        color: "text-gray-500",
+        bgColor: "bg-gray-300",
+        link: "/referrals",
+        description: ["Tracks referral codes and their associated commissions."],
+        relations: ["school", "student_package"],
+    },
+    {
+        id: "rental",
+        name: "Rentals",
+        icon: HelmetIcon,
+        color: "text-red-500",
+        bgColor: "bg-red-300",
+        link: "/rentals",
+        description: ["Manages direct equipment rentals by students."],
+        relations: ["student", "equipment"],
+    },
+    {
+        id: "repairs",
+        name: "Repairs",
+        icon: RepairIcon,
+        color: "text-pink-500",
+        bgColor: "bg-pink-300",
+        link: "/repairs",
+        description: ["Logs repair history and costs for equipment."],
+        relations: ["equipment"],
     },
 ] as const;
