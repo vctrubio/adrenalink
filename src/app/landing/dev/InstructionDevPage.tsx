@@ -30,7 +30,6 @@ export function InstructionDevPage() {
         icon: ChartColumnDecreasing,
         color: "text-sand-500",
         bgColor: "bg-sand-300",
-        hoverColor: "#cccbf1",
         link: "/statistics",
         description: ["Track key metrics and performance indicators.", "Monitor revenue, bookings, and student progress."],
         relations: ["booking", "events", "equipment"],
