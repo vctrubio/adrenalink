@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { school, student, schoolStudents, schoolPackage, studentPackage, booking, bookingStudent } from "./schema";
+import { school, student, schoolStudents, schoolPackage, studentPackage, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment } from "./schema";
 
 export const schoolRelations = relations(school, ({ many }) => ({
     schoolStudents: many(schoolStudents),
@@ -69,5 +69,98 @@ export const bookingStudentRelations = relations(bookingStudent, ({ one }) => ({
     student: one(student, {
         fields: [bookingStudent.studentId],
         references: [student.id],
+    }),
+}));
+
+export const lessonRelations = relations(lesson, ({ one, many }) => ({
+    teacher: one(teacher, {
+        fields: [lesson.teacherId],
+        references: [teacher.id],
+    }),
+    booking: one(booking, {
+        fields: [lesson.bookingId],
+        references: [booking.id],
+    }),
+    commission: one(teacherCommission, {
+        fields: [lesson.commissionId],
+        references: [teacherCommission.id],
+    }),
+    events: many(event),
+    payments: many(teacherLessonPayment),
+    feedback: many(studentLessonFeedback),
+}));
+
+export const eventRelations = relations(event, ({ one, many }) => ({
+    lesson: one(lesson, {
+        fields: [event.lessonId],
+        references: [lesson.id],
+    }),
+    equipmentEvents: many(equipmentEvent),
+}));
+
+export const equipmentEventRelations = relations(equipmentEvent, ({ one }) => ({
+    equipment: one(equipment, {
+        fields: [equipmentEvent.equipmentId],
+        references: [equipment.id],
+    }),
+    event: one(event, {
+        fields: [equipmentEvent.eventId],
+        references: [event.id],
+    }),
+}));
+
+export const equipmentRelations = relations(equipment, ({ one, many }) => ({
+    school: one(school, {
+        fields: [equipment.schoolId],
+        references: [school.id],
+    }),
+    teacherEquipments: many(teacherEquipment),
+    equipmentEvents: many(equipmentEvent),
+}));
+
+export const teacherEquipmentRelations = relations(teacherEquipment, ({ one }) => ({
+    teacher: one(teacher, {
+        fields: [teacherEquipment.teacherId],
+        references: [teacher.id],
+    }),
+    equipment: one(equipment, {
+        fields: [teacherEquipment.equipmentId],
+        references: [equipment.id],
+    }),
+}));
+
+export const teacherRelations = relations(teacher, ({ one, many }) => ({
+    school: one(school, {
+        fields: [teacher.schoolId],
+        references: [school.id],
+    }),
+    commissions: many(teacherCommission),
+    lessons: many(lesson),
+    equipments: many(teacherEquipment),
+}));
+
+export const teacherCommissionRelations = relations(teacherCommission, ({ one, many }) => ({
+    teacher: one(teacher, {
+        fields: [teacherCommission.teacherId],
+        references: [teacher.id],
+    }),
+    lessons: many(lesson),
+}));
+
+export const studentLessonFeedbackRelations = relations(studentLessonFeedback, ({ one }) => ({
+    student: one(student, {
+        fields: [studentLessonFeedback.studentId],
+        references: [student.id],
+    }),
+    lesson: one(lesson, {
+        fields: [studentLessonFeedback.lessonId],
+        references: [lesson.id],
+    }),
+}));
+
+export const teacherLessonPaymentRelations = relations(teacherLessonPayment, ({ one }) => ({
+    lesson: one(lesson, {
+        fields: [teacherLessonPayment.lessonId],
+        references: [lesson.id],
     }),
 }));
