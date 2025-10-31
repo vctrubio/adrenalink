@@ -4,11 +4,9 @@ import { useState } from "react";
 import type { EntityConfig } from "@/config/entities";
 import { EntityCard } from "@/src/components/cards/EntityCard";
 
-export const BETA_ENTITY_IDS = ["student", "teacher", "commission", "schoolPackage", "booking", "equipment", "lesson", "event"] as const;
+type ViewMode = "entities" | "hidden";
 
-type ViewMode = "full" | "beta";
-
-type SerializableEntity = Omit<EntityConfig, "icon">;
+type SerializableEntity = Omit<EntityConfig, "icon"> & { isHidden: boolean };
 
 type TableClientProps = {
     entities: SerializableEntity[];
@@ -46,9 +44,11 @@ function CountDuration({ count = 4, duration = 16 }) {
 // Main TableClient
 // -------------------------
 export default function TableClient({ entities }: TableClientProps) {
-    const [mode, setMode] = useState<ViewMode>("beta");
+    const [mode, setMode] = useState<ViewMode>("entities");
 
-    const filteredEntities = mode === "beta" ? entities.filter((entity) => BETA_ENTITY_IDS.includes(entity.id as any)) : entities;
+    const filteredEntities = entities.filter(entity => {
+        return mode === 'hidden' ? entity.isHidden : !entity.isHidden;
+    });
 
     return (
         <div className="p-8">
@@ -58,11 +58,11 @@ export default function TableClient({ entities }: TableClientProps) {
 
                 {/* Mode Toggle */}
                 <div className="flex gap-2 bg-muted rounded-lg p-1">
-                    <button onClick={() => setMode("beta")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === "beta" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                        Beta
+                    <button onClick={() => setMode("entities")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === "entities" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                        Entities
                     </button>
-                    <button onClick={() => setMode("full")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === "full" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                        Full
+                    <button onClick={() => setMode("hidden")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === "hidden" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                        Hidden
                     </button>
                 </div>
             </div>

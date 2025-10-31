@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ENTITY_DATA } from "@/config/entities";
+import { TABLE_CONFIG } from "@/config/tables";
 import LabelTag from "@/src/components/tags/LabelTag";
 
 export type EntityCardProps = {
@@ -10,14 +10,14 @@ export type EntityCardProps = {
 };
 
 export function EntityCard({ entityId, count }: EntityCardProps) {
-    const entity = ENTITY_DATA.find((e) => e.id === entityId);
+    const entity = TABLE_CONFIG.find((e) => e.id === entityId);
 
     if (!entity) return null;
 
     const { name, icon: Icon, description, hoverColor, color, link, relations } = entity;
 
     // Get related entity data
-    const relatedEntities = relations.map((relId) => ENTITY_DATA.find((e) => e.id === relId)).filter(Boolean);
+    const relatedEntities = relations.map((relId) => TABLE_CONFIG.find((e) => e.id === relId)).filter(Boolean);
 
     return (
         <Link href={link} className="flex flex-col items-start w-full cursor-pointer">

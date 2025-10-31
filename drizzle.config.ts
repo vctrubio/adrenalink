@@ -8,7 +8,7 @@ export default {
     out: "./drizzle/migrations",
     dialect: "postgresql",
     dbCredentials: {
-        url: process.env.DATABASE_DIRECT_URL!,
+        url: process.env.DATABASE_URL!,
     },
     casing: "snake_case",
 } satisfies Config;

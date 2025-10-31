@@ -6,24 +6,49 @@ import {
     student,
     schoolPackage,
     studentPackage,
-    booking
+    booking,
+    teacher,
+    teacherCommission,
+    equipment,
+    lesson,
+    event,
+    schoolStudents,
+    referral,
+    bookingStudent,
+    equipmentEvent,
+    equipmentRepair,
+    studentLessonFeedback,
+    rental,
+    teacherEquipment,
+    teacherLessonPayment,
 } from "@/drizzle/schema";
 import { sql } from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 
 const ENTITY_TABLE_MAP: Record<string, PgTable<any> | null> = {
+    // From entities.ts
     "school": school,
     "student": student,
     "schoolPackage": schoolPackage,
     "studentPackage": studentPackage,
+    "teacher": teacher,
+    "commission": teacherCommission,
     "booking": booking,
-    "teacher": null,
-    "commission": null,
-    "equipment": null,
-    "userWallet": null,
-    "lesson": null,
-    "event": null,
-    "payment": null
+    "lesson": lesson,
+    "event": event,
+    "equipment": equipment,
+    "payment": teacherLessonPayment, // Updated from null
+    "student_lesson_feedback": studentLessonFeedback,
+    "userWallet": null, // No table in schema
+
+    // From tables.ts (the new "hidden" entities)
+    "school_students": schoolStudents,
+    "referral": referral,
+    "booking_student": bookingStudent,
+    "equipment_event": equipmentEvent,
+    "equipment_repair": equipmentRepair,
+    "rental": rental,
+    "teacher_equipment": teacherEquipment,
 };
 
 export async function getEntityCount(entityId: string): Promise<number> {

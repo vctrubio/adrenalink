@@ -57,7 +57,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "text-amber-500",
         bgColor: "bg-amber-300",
         hoverColor: "#fef9c3",
-        link: "/request",
+        link: "/requests",
         description: ["They request a package"],
         relations: ["student", "schoolPackage", "booking"],
     },
@@ -150,7 +150,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         relations: ["teacher", "lesson"],
     },
     {
-        id: "feedback",
+        id: "student_lesson_feedback",
         name: "Feedback",
         icon: VerifiedIcon,
         color: "text-sand-800",
