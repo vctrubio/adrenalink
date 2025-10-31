@@ -133,7 +133,7 @@ if (result) {
 ## Entity Configuration
 
 - **Entity icons and colors** - All entity visual configurations are defined in `config/entities.ts`
-- **ENTITY_DATA constant** - Contains icon, color, bgColor, hoverColor, link, and description for each entity
+- **ENTITY_DATA constant** - Contains icon, color, bgColor, link, description, and relations for each entity
 - **Always reference entities** - When working with entities, always get color, icon, and route information from `config/entities.ts`
 - **Consistent entity representation** - Use the same visual styling across all UI components by importing from the entities config
 
