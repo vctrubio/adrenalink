@@ -1,3 +1,5 @@
+import { RainbowHover } from "./RainbowHover";
+
 export type RainbowColor = "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey";
 export type RainbowShade = `${RainbowColor}-${number}`;
 
@@ -63,13 +65,16 @@ export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
     };
 
     return (
-        <div className="flex justify-center items-start py-12 w-full">
-            <svg width="1920" height="1200" viewBox="0 0 1920 1200" className="w-full h-auto border" xmlns="http://www.w3.org/2000/svg">
-                {allShades.map((shade, index) => {
-                    const radius = baseRadius + index * strokeWidth;
-                    return createArc(radius, shade, index);
-                })}
-            </svg>
-        </div>
+        <>
+            <div className="flex justify-center items-start py-12 w-full">
+                <svg width="1920" height="1200" viewBox="0 0 1920 1200" className="w-full h-auto border" xmlns="http://www.w3.org/2000/svg">
+                    {allShades.map((shade, index) => {
+                        const radius = baseRadius + index * strokeWidth;
+                        return createArc(radius, shade, index);
+                    })}
+                </svg>
+            </div>
+            <RainbowHover hoveredShade={hoveredShade} />
+        </>
     );
 };
