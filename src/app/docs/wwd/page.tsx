@@ -44,10 +44,34 @@ const getColorFromClass = (colorClass: string): string => {
     return colorMap[colorClass] || "59, 130, 246";
 };
 
+const FEATURES = [
+    {
+        title: "Lesson Management App",
+        accentColor: "rgb(59, 130, 246)",
+        items: ["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"],
+    },
+    {
+        title: "Equipment Tracking",
+        accentColor: "rgb(22, 163, 74)",
+        items: ["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"],
+    },
+    {
+        title: "Student Registration",
+        accentColor: "rgb(234, 179, 8)",
+        items: ["Students register to your school through custom URL", "Browse and pick packages that match their needs", "Submit a request for your approval", "One click to create the booking - it's that simple"],
+    },
+    {
+        title: "And! We Help Upscale Your Business",
+        accentColor: "rgb(255, 190, 165)",
+        items: ["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"],
+    },
+];
+
 export default function WhatWeDoPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [iconPositions, setIconPositions] = useState<Array<{ x: number; y: number; entityIndex: number; opacity: number }>>([]);
+    const [selectedFeature, setSelectedFeature] = useState<number | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -163,27 +187,63 @@ export default function WhatWeDoPage() {
             </section>
 
             {/* Content Sections */}
-            <div className="relative z-[2] max-w-5xl mx-auto px-6 py-16 space-y-16">
-                {/* Lesson Management App */}
-                <FeatureSection
-                    title="Lesson Management App"
-                    accentColor="rgb(59, 130, 246)"
-                    items={["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"]}
-                />
+            <div className="relative z-[2] max-w-5xl mx-auto px-6 py-16 pb-32">
+                {/* Feature Cards Stack */}
+                <div className="relative h-[600px]">
+                    {FEATURES.map((feature, index) => {
+                        const isSelected = selectedFeature === index;
+                        const baseOffset = FEATURES.length - 1 - index;
+                        const yOffset = isSelected ? -200 : baseOffset * 80;
 
-                {/* Equipment Tracking */}
-                <FeatureSection
-                    title="Equipment Tracking"
-                    accentColor="rgb(22, 163, 74)"
-                    items={["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"]}
-                />
+                        return (
+                            <div
+                                key={index}
+                                className="absolute bottom-0 left-0 right-0 cursor-pointer transition-all duration-500 ease-out"
+                                style={{
+                                    transform: `translateY(${yOffset}px)`,
+                                    zIndex: isSelected ? 10 : baseOffset,
+                                }}
+                                onClick={() => setSelectedFeature(isSelected ? null : index)}
+                            >
+                                <div
+                                    className="rounded-2xl p-8 backdrop-blur-xl border-2 shadow-2xl"
+                                    style={{
+                                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                        borderColor: feature.accentColor,
+                                        boxShadow: isSelected ? `0 20px 60px ${feature.accentColor}40` : "0 4px 12px rgba(0, 0, 0, 0.3)",
+                                    }}
+                                >
+                                    {/* Header Bar */}
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-3xl font-bold" style={{ color: feature.accentColor }}>
+                                            {feature.title}
+                                        </h2>
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center transition-transform"
+                                            style={{ backgroundColor: feature.accentColor, transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}
+                                        >
+                                            <span className="text-white text-xl">↓</span>
+                                        </div>
+                                    </div>
 
-                {/* Business Upscaling */}
-                <FeatureSection
-                    title="And! We Help Upscale Your Business"
-                    accentColor="rgb(255, 190, 165)"
-                    items={["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"]}
-                />
+                                    {/* Content - Only show when selected */}
+                                    {isSelected && (
+                                        <ul className="space-y-3 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                                            {feature.items.map((item, itemIndex) => (
+                                                <li key={itemIndex} className="flex items-start gap-3 text-lg text-white">
+                                                    <span className="text-2xl" style={{ color: feature.accentColor }}>
+                                                        •
+                                                    </span>
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

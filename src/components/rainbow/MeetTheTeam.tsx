@@ -3,6 +3,7 @@
 import { getEntityRainbowShade, colorLabels, rainbowBaseColors } from "@/config/rainbow";
 import { TABLE_CONFIG } from "@/config/tables";
 import type { RainbowShade, RainbowColor } from "./Rainbow";
+import { RainbowIdentity } from "./RainbowIdentity";
 
 interface MeetTheTeamProps {
 	hoveredShade: RainbowShade | null;
@@ -30,6 +31,7 @@ const Team = () => {
 
 export const MeetTheTeam = ({ hoveredShade }: MeetTheTeamProps) => {
 	let selectedEntity = null;
+	let selectedShade: RainbowShade | null = null;
 
 	if (hoveredShade) {
 		const selectedEntityId = Object.entries(TABLE_CONFIG).find(([_, entity]) => {
@@ -38,14 +40,20 @@ export const MeetTheTeam = ({ hoveredShade }: MeetTheTeamProps) => {
 		})?.[1];
 
 		selectedEntity = selectedEntityId;
+		selectedShade = hoveredShade;
 	}
 
 	return (
 		<div className="relative z-[2] py-16">
-			<h2 className="text-4xl md:text-5xl font-bold text-white text-center">
+			{/* Rainbow Spotlight Effect */}
+			<div className="absolute -top-20 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 opacity-50 blur-3xl pointer-events-none z-[3]" style={{ background: "radial-gradient(ellipse at top, rgba(168, 85, 247, 0.5), rgba(59, 130, 246, 0.4), rgba(34, 197, 94, 0.4), rgba(234, 179, 8, 0.4), rgba(249, 115, 22, 0.4), rgba(239, 68, 68, 0.4), transparent 70%)" }} />
+
+			<h2 className="text-4xl md:text-5xl font-bold text-white text-center relative z-[4]">
 				{selectedEntity ? `Team: ${selectedEntity.name}` : "Meet the Team"}
 			</h2>
-			{!selectedEntity && (
+			{selectedEntity && selectedShade ? (
+				<RainbowIdentity entity={selectedEntity} shade={selectedShade} />
+			) : (
 				<div
 					className="animate-in slide-in-from-bottom-8 fade-in duration-300"
 					style={{
