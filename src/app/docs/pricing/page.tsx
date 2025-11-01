@@ -9,11 +9,12 @@ const pricingTiers = [
     {
         name: "Blue",
         price: "50",
-        features: ["Cap of 3 teachers", "Unlimited lessons"],
+        features: ["Cap of 3 teachers", "Unlimited lessond + bookings", "As many packages and request as needed"],
         borderColor: "border-blue-500",
         priceTagBg: "bg-blue-500",
         dividerColor: "bg-blue-500",
-        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "lesson", "event"],
+        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event"],
+        allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event"],
         uniqueEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event"],
     },
     {
@@ -23,19 +24,21 @@ const pricingTiers = [
         borderColor: "border-gray-400",
         priceTagBg: "bg-gray-400",
         dividerColor: "bg-gray-400",
-        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "lesson", "event", "rental", "student_lesson_feedback"],
+        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback"],
+        allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "payment"],
         uniqueEntityIds: ["rental", "student_lesson_feedback", "payment"],
         includesFrom: "Blue",
     },
     {
         name: "Gold",
         price: "200",
-        features: ["Everything from Silver", "Equipment tracking"],
+        features: ["Everything from Silver", "Equipment tracking", "Know where your bookings originate from"],
         borderColor: "border-yellow-500",
         priceTagBg: "bg-yellow-500",
         dividerColor: "bg-yellow-500",
-        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "lesson", "event", "rental", "student_lesson_feedback", "equipment", "repairs"],
-        uniqueEntityIds: ["equipment", "repairs"],
+        entityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "equipment", "repairs", "referral"],
+        allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "payment", "equipment", "repairs", "referral"],
+        uniqueEntityIds: ["equipment", "repairs", "referral"],
         includesFrom: "Silver",
     },
 ];
@@ -61,6 +64,10 @@ const onboardingSteps = [
 function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
     const uniqueEntities = ENTITY_DATA.filter((entity) => tier.uniqueEntityIds.includes(entity.id));
 
+    // Get inherited entities (everything except unique ones)
+    const inheritedEntityIds = tier.allEntityIds.filter((id) => !tier.uniqueEntityIds.includes(id));
+    const inheritedEntities = ENTITY_DATA.filter((entity) => inheritedEntityIds.includes(entity.id));
+
     return (
         <div className={`relative bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 border-2 ${tier.borderColor} transition-all duration-300 hover:scale-105 flex flex-col overflow-hidden`}>
             {/* Price Tag - Top Right Corner */}
@@ -85,9 +92,23 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
                 </ul>
             </div>
 
-            {/* Entity Icons Footer - Shows only NEW icons this tier adds */}
+            {/* Entity Icons Footer */}
             <div className="pt-6 border-t border-white/10">
-                {tier.includesFrom && <p className="text-xs text-white/40 mb-3 text-center">+ Everything from {tier.includesFrom}</p>}
+                {/* Inherited icons - small, one line, no names */}
+                {inheritedEntities.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4 opacity-40 justify-center">
+                        {inheritedEntities.map((entity) => {
+                            const IconComponent = entity.icon;
+                            return (
+                                <div key={entity.id} className="w-6 h-6 flex items-center justify-center">
+                                    <IconComponent className={`w-5 h-5 ${entity.color}`} />
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Unique icons - BIG with names */}
                 <div className="grid grid-cols-3 gap-3 opacity-60">
                     {uniqueEntities.map((entity) => {
                         const IconComponent = entity.icon;
