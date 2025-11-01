@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { TABLE_CONFIG } from "@/config/tables";
 import { entityToRainbowColor } from "@/config/rainbow-mapping";
 import { rainbowBaseColors } from "@/config/rainbow";
@@ -7,6 +8,11 @@ import { RainbowColor, RainbowShade, getBaseColor, getShadeColor } from "./Rainb
 
 interface RainbowHoverProps {
     hoveredShade: RainbowShade | null;
+}
+
+interface MousePosition {
+    x: number;
+    y: number;
 }
 
 const colorLabels: Record<RainbowColor, { name: string; description: string }> = {
@@ -62,6 +68,19 @@ const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade
 };
 
 export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
+    const [mousePos, setMousePos] = useState<MousePosition>({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setMousePos({ x: e.clientX, y: e.clientY });
+        };
+
+        if (hoveredShade) {
+            window.addEventListener("mousemove", handleMouseMove);
+            return () => window.removeEventListener("mousemove", handleMouseMove);
+        }
+    }, [hoveredShade]);
+
     if (!hoveredShade) return null;
 
     const baseColor = getBaseColor(hoveredShade);
@@ -75,9 +94,11 @@ export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 
     return (
         <div
-            className="fixed bottom-6 left-6 z-50 backdrop-blur-md rounded-lg border border-white/20 overflow-hidden shadow-2xl max-w-sm transition-all duration-200 animate-in fade-in slide-in-from-bottom-4"
+            className="fixed z-50 backdrop-blur-md rounded-lg border border-white/20 overflow-hidden shadow-2xl max-w-sm transition-all duration-100 animate-in fade-in pointer-events-none"
             style={{
                 background: "rgba(15, 23, 42, 0.95)",
+                left: `${mousePos.x + 16}px`,
+                top: `${mousePos.y + 16}px`,
             }}
         >
             {/* Head */}
