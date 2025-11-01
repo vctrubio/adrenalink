@@ -49,7 +49,7 @@ export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
     };
 
     return (
-        <div className="flex justify-center items-start py-12 w-full">
+        <div className="flex justify-center items-start pt-8 w-full">
             <svg width="1920" height="800" viewBox="0 0 1920 800" className="w-full h-auto max-h-[50vh]" xmlns="http://www.w3.org/2000/svg">
                 {allShades.map((shade, index) => {
                     const radius = baseRadius + index * strokeWidth;
