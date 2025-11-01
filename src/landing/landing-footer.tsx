@@ -103,14 +103,6 @@ export function DevAboutMeFooter() {
                 }}
             />
 
-            {/* Gradient overlay - top blend with description section */}
-            <div
-                className="absolute inset-0 z-[1]"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 10%, rgba(0, 0, 0, 0.5) 20%, rgba(0, 0, 0, 0.5) 100%)",
-                }}
-            />
-
             <div className="relative z-10 h-full flex flex-col justify-between px-4 py-16 overflow-y-auto">
                 <div className="flex-1 flex flex-col items-center justify-center space-y-8">
                     <div className="max-w-4xl mx-auto text-center">

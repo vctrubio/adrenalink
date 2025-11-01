@@ -121,7 +121,7 @@ export default function WhatWeDoPage() {
     }, []);
 
     return (
-        <div className="min-h-screen relative">
+        <div className="relative">
             {/* Background Forest Image */}
             <div
                 className="fixed inset-0 z-0"
@@ -130,14 +130,6 @@ export default function WhatWeDoPage() {
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
-                }}
-            />
-
-            {/* Gradient Overlay */}
-            <div
-                className="fixed inset-0 z-[1]"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)",
                 }}
             />
 
@@ -176,35 +168,21 @@ export default function WhatWeDoPage() {
                 <FeatureSection
                     title="Lesson Management App"
                     accentColor="rgb(59, 130, 246)"
-                    items={[
-                        "Real time sync across all portals",
-                        "Proof of stake - transparency in what everyone is paying",
-                        "Confirmations and feedback from teachers and students",
-                        "Progress tracking and comprehensive data analytics",
-                    ]}
+                    items={["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"]}
                 />
 
                 {/* Equipment Tracking */}
                 <FeatureSection
                     title="Equipment Tracking"
                     accentColor="rgb(22, 163, 74)"
-                    items={[
-                        "Track which equipment, monitor number of flight hours",
-                        "Know what, when, and analyze condition over time",
-                        "Too good to sell? Set a timer to know when enough is enough",
-                    ]}
+                    items={["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"]}
                 />
 
                 {/* Business Upscaling */}
                 <FeatureSection
                     title="And! We Help Upscale Your Business"
                     accentColor="rgb(255, 190, 165)"
-                    items={[
-                        "Marketing tools with custom URLs for your school",
-                        "Showcase photos and banners - tell us why your school is the coolest",
-                        "World mapping to help students find your location",
-                        "Join one adrenaline community connecting schools globally",
-                    ]}
+                    items={["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"]}
                 />
             </div>
         </div>

@@ -24,7 +24,7 @@ const NAV_ITEMS = [
 export default function DocsLayout({ children }: { children: ReactNode }) {
     return (
         <div>
-            <PopoverNav items={NAV_ITEMS} />
+            {/* <PopoverNav items={NAV_ITEMS} /> */}
             <main>{children}</main>
         </div>
     );

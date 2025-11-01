@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { Rainbow, RainbowShade, ColorMapping } from "@/src/components/rainbow";
+import { Rainbow, RainbowShade, ColorMapping, MeetTheTeam } from "@/src/components/rainbow";
 
 // Introduction sub-component
 function Introduction() {
@@ -71,44 +71,36 @@ function Introduction() {
     );
 }
 
-// Rainbow visualization sub-component
-function RainbowVisualization() {
-    const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);
-
-    return (
-        <div className="space-y-8">
-            <Rainbow onShadeHover={setHoveredShade} hoveredShade={hoveredShade} />
-            <ColorMapping hoveredShade={hoveredShade} onShadeHover={setHoveredShade} />
-        </div>
-    );
-}
-
 export default function ManualPage() {
+    const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);
     return (
-        <div className="min-h-screen relative flex items-center justify-center py-12">
-            {/* Background Mountain Image */}
+        <div className="min-h-screen relative">
+            {/* Background Mountain Image - Fixed Position */}
             <div
-                className="fixed inset-0 z-0"
+                className="fixed inset-0 z-0 pointer-events-none"
                 style={{
                     backgroundImage: "url(/kritaps_ungurs_unplash/mountain.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
+                    backgroundSize: "100% 100%",
+                    backgroundPosition: "0 0",
                     backgroundRepeat: "no-repeat",
                 }}
             />
 
-            {/* Gradient Overlay */}
+            {/* Gradient Overlay - Fixed */}
             <div
-                className="fixed inset-0 z-[1]"
+                className="fixed inset-0 z-[1] pointer-events-none"
                 style={{
                     background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)",
                 }}
             />
 
-            {/* Content Card */}
-            <div className="relative z-[2] p-8 rounded-lg bg-card/80 backdrop-blur-md">
-                <RainbowVisualization />
-            </div>
+            {/* Hero Section with Rainbow */}
+            <section className="relative overflow-visible z-[2] py-4">
+                <Rainbow onShadeHover={setHoveredShade} hoveredShade={hoveredShade} />
+            </section>
+
+            {/* Meet the Team Section */}
+            <MeetTheTeam hoveredShade={hoveredShade} />
         </div>
     );
 }
