@@ -17,7 +17,7 @@ export const getShadeColor = (shade: RainbowShade | null): { fill: string; hover
     return shade && rainbowColors[shade] ? rainbowColors[shade] : rainbowColors["grey-0"];
 };
 
-const allShades: RainbowShade[] = ["purple-0", "purple-1", "blue-0", "blue-1", "blue-2", "green-0", "green-1", "yellow-0", "orange-0", "orange-1", "red-0", "grey-0", "grey-1"];
+const allShades = Object.keys(rainbowColors) as RainbowShade[];
 
 export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
     const centerX = 960;
