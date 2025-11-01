@@ -46,7 +46,7 @@ const getEntityRainbowShade = (entityId: string): RainbowShade | null => {
     return entityToRainbowColor[entityId] || null;
 };
 
-const colorLabels: Record<RainbowColor, { name: string; description: string }> = {
+export const colorLabels: Record<RainbowColor, { name: string; description: string }> = {
     purple: {
         name: "Equipment",
         description: "We add and track equipment activity throughout bookings.",

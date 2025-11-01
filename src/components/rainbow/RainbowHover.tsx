@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { TABLE_CONFIG } from "@/config/tables";
-import { entityToRainbowColor } from "@/config/rainbow-mapping";
 import { rainbowBaseColors } from "@/config/rainbow";
-import { RainbowColor, RainbowShade, getBaseColor, getShadeColor } from "./Rainbow";
+import { RainbowShade, getBaseColor, getShadeColor } from "./Rainbow";
+import { colorLabels } from "./ColorMapping";
+import { entityToRainbowColor } from "@/config/rainbow-mapping";
 
 interface RainbowHoverProps {
     hoveredShade: RainbowShade | null;
@@ -14,37 +15,6 @@ interface MousePosition {
     x: number;
     y: number;
 }
-
-const colorLabels: Record<RainbowColor, { name: string; description: string }> = {
-    purple: {
-        name: "Equipment",
-        description: "We add and track equipment activity throughout bookings.",
-    },
-    blue: {
-        name: "Booking",
-        description: "This is the base of the application. Everything in blue will relate to a booking, event, and lesson. More on that soon.",
-    },
-    green: {
-        name: "Teacher",
-        description: "Your teachers have commission based salaries. Either fixed per hour, or percentage per hour.",
-    },
-    yellow: {
-        name: "Students",
-        description: "Obviously this is clear. They register through your homepage, and can pick packages that are public.",
-    },
-    orange: {
-        name: "Packages",
-        description: "Where the math is done, you post your package (price, hours, capacity, equipment), and students make a request.",
-    },
-    red: {
-        name: "Rentals",
-        description: "Students that are independent can rent, we track equipment, duration and price of the event.",
-    },
-    grey: {
-        name: "School",
-        description: "This is your homebase, start by creating referral codes to know where each package request comes from. More on that here.",
-    },
-};
 
 const getEntityRainbowShade = (entityId: string): RainbowShade | null => {
     return entityToRainbowColor[entityId] || null;
