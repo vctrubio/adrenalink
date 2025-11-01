@@ -94,11 +94,12 @@ export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 
     return (
         <div
-            className="fixed z-50 backdrop-blur-md rounded-lg border border-white/20 overflow-hidden shadow-2xl max-w-sm transition-all duration-100 animate-in fade-in pointer-events-none"
+            className="fixed z-50 backdrop-blur-md rounded-lg border border-white/20 overflow-hidden shadow-2xl max-w-sm transition-transform duration-100 fade-in pointer-events-none"
             style={{
                 background: "rgba(15, 23, 42, 0.95)",
-                left: `${mousePos.x + 16}px`,
-                top: `${mousePos.y + 16}px`,
+                left: "0",
+                top: "0",
+                transform: `translate(${mousePos.x + 12}px, ${mousePos.y + 12}px)`,
             }}
         >
             {/* Head */}
