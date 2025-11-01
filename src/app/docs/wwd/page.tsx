@@ -8,59 +8,12 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 
-// Sub-component for feature sections
-function FeatureSection({ title, items, accentColor }: { title: string; items: string[]; accentColor: string }) {
-    return (
-        <div className="space-y-4">
-            <h2 className="text-3xl font-bold mb-6" style={{ color: accentColor }}>
-                {title}
-            </h2>
-            <ul className="space-y-3">
-                {items.map((item, index) => (
-                    <li key={index} className="flex items-start gap-3 text-lg">
-                        <span className="text-2xl" style={{ color: accentColor }}>
-                            •
-                        </span>
-                        <span>{item}</span>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
-
-// Extract RGB values from tailwind color classes
-const getColorFromClass = (colorClass: string): string => {
-    const colorMap: Record<string, string> = {
-        "text-indigo-500": "99, 102, 241",
-        "text-yellow-500": "234, 179, 8",
-        "text-amber-500": "245, 158, 11",
-        "text-orange-400": "251, 146, 60",
-        "text-green-500": "34, 197, 94",
-        "text-emerald-500": "16, 185, 129",
-        "text-blue-500": "59, 130, 246",
-        "text-metal-700": "63, 63, 70",
-        "text-cyan-500": "6, 182, 212",
-        "text-purple-500": "168, 85, 247",
-        "text-sand-600": "209, 130, 57",
-        "text-sand-800": "147, 82, 31",
-        "text-slate-500": "100, 116, 139",
-    };
-    return colorMap[colorClass] || "59, 130, 246";
-};
-
 const FEATURES = [
     {
-        title: "Lesson Management App",
-        accentColor: "rgb(59, 130, 246)",
-        icon: FlagIcon,
-        items: ["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"],
-    },
-    {
-        title: "Equipment Tracking",
-        accentColor: "rgb(168, 85, 247)",
-        icon: EquipmentIcon,
-        items: ["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"],
+        title: "And! We Help Upscale Your Business",
+        accentColor: "rgb(255, 190, 165)",
+        icon: AdminIcon,
+        items: ["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"],
     },
     {
         title: "Student Registration",
@@ -69,16 +22,22 @@ const FEATURES = [
         items: ["Students register to your school through custom URL", "Browse and pick packages that match their needs", "Submit a request for your approval", "One click to create the booking - it's that simple"],
     },
     {
-        title: "Teacher Management",
+        title: "Teacher Statistics",
         accentColor: "rgb(34, 197, 94)",
         icon: HeadsetIcon,
         items: ["Rank your teachers based on performance and reliability", "Receive direct feedback from students after each lesson", "Track teaching hours and commissions in real-time"],
     },
     {
-        title: "And! We Help Upscale Your Business",
-        accentColor: "rgb(255, 190, 165)",
-        icon: AdminIcon,
-        items: ["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"],
+        title: "Equipment Tracking",
+        accentColor: "rgb(168, 85, 247)",
+        icon: EquipmentIcon,
+        items: ["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"],
+    },
+    {
+        title: "Lesson Management",
+        accentColor: "rgb(59, 130, 246)",
+        icon: FlagIcon,
+        items: ["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"],
     },
 ];
 
@@ -182,6 +141,14 @@ export default function WhatWeDoPage() {
                 }}
             />
 
+            {/* Gradient Overlay - Fixed */}
+            <div
+                className="fixed inset-0 z-[1] pointer-events-none"
+                style={{
+                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)",
+                }}
+            />
+
             {/* Hero Section with Animated Background */}
             <section ref={containerRef} className="relative h-[40vh] flex items-center justify-center overflow-hidden z-[2]">
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
@@ -214,7 +181,7 @@ export default function WhatWeDoPage() {
             {/* Content Sections */}
             <div className="relative z-[2] max-w-5xl mx-auto px-6 py-16 pb-32">
                 {/* Feature Cards Stack */}
-                <div className="relative h-[600px]">
+                <div className="relative h-[300px]">
                     {cardOrder.map((featureIndex, stackPosition) => {
                         const feature = FEATURES[featureIndex];
                         const isSelected = selectedFeature === featureIndex;
@@ -226,7 +193,7 @@ export default function WhatWeDoPage() {
                         const handleClick = () => {
                             if (isSelected) {
                                 // Close: move this card to top of stack
-                                const newOrder = [featureIndex, ...cardOrder.filter(i => i !== featureIndex)];
+                                const newOrder = [featureIndex, ...cardOrder.filter((i) => i !== featureIndex)];
                                 setCardOrder(newOrder);
                                 setSelectedFeature(null);
                             } else {
@@ -259,10 +226,7 @@ export default function WhatWeDoPage() {
                                         <h2 className="text-3xl font-bold" style={{ color: feature.accentColor }}>
                                             {feature.title}
                                         </h2>
-                                        <div
-                                            className="w-10 h-10 rounded-full flex items-center justify-center transition-transform"
-                                            style={{ backgroundColor: feature.accentColor, transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}
-                                        >
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform" style={{ backgroundColor: feature.accentColor, transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}>
                                             <IconComponent className="w-6 h-6 text-white" />
                                         </div>
                                     </div>
