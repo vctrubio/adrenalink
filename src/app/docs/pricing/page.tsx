@@ -24,7 +24,7 @@ const pricingTiers = [
         priceTagBg: "bg-gray-400",
         dividerColor: "bg-gray-400",
         entityIds: ["student", "schoolPackage", "studentPackage", "booking", "lesson", "event", "rental", "student_lesson_feedback"],
-        uniqueEntityIds: ["rental", "student_lesson_feedback"],
+        uniqueEntityIds: ["rental", "student_lesson_feedback", "payment"],
         includesFrom: "Blue",
     },
     {
