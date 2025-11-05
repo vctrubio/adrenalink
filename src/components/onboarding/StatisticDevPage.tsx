@@ -2,13 +2,14 @@
 
 import { type EntityConfig } from "@/config/entities";
 import { GridEntityDev } from "./GridEntityDev";
-import { ChartColumnDecreasing, DollarSign } from "lucide-react";
+import { ChartColumnDecreasing } from "lucide-react";
+import LinkIcon from "@/public/appSvgs/LinkIcon.jsx";
 import BankIcon from "@/public/appSvgs/BankIcon.jsx";
 import CreditIcon from "@/public/appSvgs/CreditIcon.jsx";
 
 const entityBank: EntityConfig = {
     id: "bank",
-    name: "Bank",
+    name: "Revenue",
     icon: BankIcon,
     color: "text-blue-600",
     bgColor: "bg-blue-300",
@@ -28,15 +29,15 @@ const entityPayment: EntityConfig = {
     relations: ["teacher", "lesson"],
 };
 
-const entityRevenue: EntityConfig = {
-    id: "revenue",
-    name: "Revenue",
-    icon: DollarSign,
-    color: "text-green-600",
-    bgColor: "bg-green-300",
-    link: "/revenue",
-    description: ["Total school revenue.", "Package price minus commissions."],
-    relations: ["payment", "booking"],
+const entityRef: EntityConfig = {
+    id: "referral",
+    name: "Referrals",
+    icon: LinkIcon,
+    color: "text-gray-200",
+    bgColor: "bg-gray-100",
+    link: "/referrals",
+    description: ["Tracks referral codes and their associated commissions."],
+    relations: ["school", "student_package"],
 };
 
 export function StatisticDevPage() {
@@ -50,7 +51,7 @@ export function StatisticDevPage() {
                 <p className="text-muted-foreground text-lg">Revenue & Payments</p>
             </div>
 
-            <GridEntityDev entityA={entityBank} entityB={entityPayment} entityC={entityRevenue} description="See your money flow, who you have to pay = students package - teacher commission - referrals = revenue (our 3 pillars)." />
+            <GridEntityDev entityA={entityBank} entityB={entityRef} entityC={entityPayment} description="See your money flow, who you have to pay = students package - teacher commission - referrals = revenue (our 3 pillars)." />
         </div>
     );
 }

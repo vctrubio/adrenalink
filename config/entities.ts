@@ -104,7 +104,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         bgColor: "bg-sky-200",
         link: "/lessons",
         description: ["Assign a teacher to booking"],
-        relations: ["student", "teacher", "event"],
+        relations: ["student", "teacher", "event", "booking", "payment"],
     },
     {
         id: "event",

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import Link from "next/link";
 import { ENTITY_DATA } from "@/config/entities";
+import { OnboardingBook } from "./OnboardingBook";
 
 const pricingTiers = [
     {
@@ -40,24 +39,6 @@ const pricingTiers = [
         allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "payment", "equipment", "repairs", "referral"],
         uniqueEntityIds: ["equipment", "repairs", "referral"],
         includesFrom: "Silver",
-    },
-];
-
-const onboardingSteps = [
-    {
-        title: "1 week of 1-on-1s",
-        description: "Before we set you up, we feed you videos and unlimited 1-on-1 sessions to help you get started.",
-        icon: "💬",
-    },
-    {
-        title: "Integration support",
-        description: "Use the app fully during onboarding. Ask questions anytime as we help you integrate into your school.",
-        icon: "🔧",
-    },
-    {
-        title: "60 days free trial",
-        description: "Try Adrenalink completely free for 60 days. No credit card required. Cancel anytime.",
-        icon: "🎁",
     },
 ];
 
@@ -121,57 +102,6 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
                             </div>
                         );
                     })}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function OnboardingBook() {
-    const [activeStep, setActiveStep] = useState(0);
-
-    return (
-        <div className="max-w-6xl mx-auto">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-2 min-h-[600px]">
-                    {/* Left Side - Navigation */}
-                    <div className="bg-slate-100 dark:bg-slate-800 p-10 border-r border-slate-300 dark:border-slate-700">
-                        <div className="mb-8">
-                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Onboarding Process</h2>
-                        </div>
-
-                        <nav className="space-y-3">
-                            {onboardingSteps.map((step, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setActiveStep(index)}
-                                    className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${activeStep === index ? "bg-white dark:bg-slate-900 shadow-lg scale-105" : "hover:bg-slate-200 dark:hover:bg-slate-700"}`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-3xl">{step.icon}</span>
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${activeStep === index ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>{step.title}</h3>
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                        </nav>
-
-                        <div className="mt-8 pt-8 border-t border-slate-300 dark:border-slate-700">
-                            <p className="text-sm text-slate-600 dark:text-slate-400 italic">You may use the app fully during onboarding. It's meant for you to ask questions during this period.</p>
-                        </div>
-                    </div>
-
-                    {/* Right Side - Content */}
-                    <div className="bg-white dark:bg-slate-900 p-10">
-                        <div className="h-full flex flex-col">
-                            <div className="flex-1">
-                                <div className="text-6xl mb-6">{onboardingSteps[activeStep].icon}</div>
-                                <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-6">{onboardingSteps[activeStep].title}</h2>
-                                <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed">{onboardingSteps[activeStep].description}</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

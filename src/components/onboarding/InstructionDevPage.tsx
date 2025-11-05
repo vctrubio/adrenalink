@@ -36,7 +36,7 @@ export function InstructionDevPage() {
     };
 
     return (
-        <div>
+        <div className="y-overflow-y-auto space-y-8 ">
             <InstructionHeader icon={school!.icon} title="Sign Up" subtitle="Early Bird" bgColor="bg-indigo-50 dark:bg-indigo-950/20" iconColor="text-indigo-500" iconBgColor="bg-indigo-300">
                 <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
                     {school && (

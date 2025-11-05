@@ -5,7 +5,7 @@ import { GridEntityDev } from "./GridEntityDev";
 
 const entityEvent = ENTITY_DATA.find((e) => e.id === "event")!;
 const entityEquipment = ENTITY_DATA.find((e) => e.id === "equipment")!;
-const entityFeedback = ENTITY_DATA.find((e) => e.id === "feedback")!;
+const entityFeedback = ENTITY_DATA.find((e) => e.id === "student_lesson_feedback")!;
 
 export function EventDevPage() {
     return (
