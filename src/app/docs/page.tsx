@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FounderInfoCard } from "@/src/components/cards/FounderInfoCard";
 
 export default function DocsPage() {
     return (
@@ -17,26 +18,21 @@ export default function DocsPage() {
             />
 
             {/* Content */}
-            <div className="relative z-[2] max-w-4xl mx-auto px-6">
-                <div className="text-center p-12 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/20 space-y-8">
-                    <div className="text-xl md:text-2xl text-white leading-relaxed space-y-6">
-                        <p>Hi, I'm a software developer with 25 years experience of adrenaline venom.</p>
-                        <p>I want to create a community for aspiring junkies. The idea is to built a community that connects students with schools.</p>
-                        <p>This documentation section is aimed towards management teams that aim to boost their social activity, forget excel sheets, and make planning fun. For once.</p>
-                    </div>
+            <div className="relative z-[2] max-w-7xl mx-auto px-6 space-y-8">
+                {/* Founder Card */}
+                <FounderInfoCard accentColor="#3b82f6" className="max-w-3xl mx-auto" />
 
-                    {/* Links */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
-                        <Link href="/docs/manual" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium">
-                            Manual
-                        </Link>
-                        <Link href="/docs/wwd" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium">
-                            What We Do
-                        </Link>
-                        <Link href="/docs/pricing" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium">
-                            Pricing
-                        </Link>
-                    </div>
+                {/* Links */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Link href="/docs/manual" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium text-center backdrop-blur-xl bg-black/40">
+                        Manual
+                    </Link>
+                    <Link href="/docs/wwd" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium text-center backdrop-blur-xl bg-black/40">
+                        What We Do
+                    </Link>
+                    <Link href="/docs/pricing" className="py-4 px-6 rounded-lg border border-white/30 hover:border-white/60 hover:bg-white/5 transition-all text-white text-lg font-medium text-center backdrop-blur-xl bg-black/40">
+                        Pricing
+                    </Link>
                 </div>
             </div>
         </div>
