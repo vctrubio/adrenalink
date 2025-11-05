@@ -1,6 +1,11 @@
-import { Home, Globe, ArrowLeftRight, Package, CreditCard, MessageSquare } from "lucide-react";
+import { MessageSquare, BarChart3 } from "lucide-react";
 import { ENTITY_DATA } from "./entities";
-import HomeAdminIcon from "../public/appSvgs/HomeAdminIcon.jsx";
+import AdranlinkIcon from "../public/appSvgs/AdranlinkIcon.jsx";
+import AdminIcon from "../public/appSvgs/AdminIcon.jsx";
+import TransactionIcon from "../public/appSvgs/TransactionIcon.jsx";
+import HelmetIcon from "../public/appSvgs/HelmetIcon.jsx";
+import SubscriptionIcon from "../public/appSvgs/SubscriptionIcon.jsx";
+import A2Icon from "../public/appSvgs/A2Icon.jsx";
 
 export type AdminNavRoute = {
     name: string;
@@ -8,6 +13,7 @@ export type AdminNavRoute = {
     icon: React.ComponentType<{ className?: string; size?: number }>;
     children?: AdminNavRoute[];
     count?: number;
+    color?: string;
 };
 
 export type AdminNavSection = {
@@ -20,6 +26,7 @@ const getEntityByIds = (ids: string[]) => {
         name: entity.name,
         href: entity.link,
         icon: entity.icon,
+        color: entity.color,
     }));
 };
 
@@ -28,14 +35,19 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
         section: "head",
         routes: [
             {
-                name: "Home",
-                href: "/admin",
-                icon: Home,
-            },
-            {
                 name: "Domain",
                 href: "/admin/domain",
-                icon: Globe,
+                icon: AdranlinkIcon,
+            },
+            {
+                name: "Classboard",
+                href: "/admin",
+                icon: A2Icon,
+            },
+            {
+                name: "Stats",
+                href: "/stats",
+                icon: BarChart3,
             },
         ],
     },
@@ -45,18 +57,14 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
             {
                 name: "School",
                 href: "#",
-                icon: HomeAdminIcon,
-                children: [
-                    ...getEntityByIds(["student", "teacher", "event", "equipment", "repairs"]),
-                ],
+                icon: AdminIcon,
+                children: [...getEntityByIds(["student", "teacher", "booking", "equipment"])],
             },
             {
                 name: "Transaction",
                 href: "#",
-                icon: ArrowLeftRight,
-                children: [
-                    ...getEntityByIds(["studentPackage", "booking", "referral"]),
-                ],
+                icon: TransactionIcon,
+                children: [...getEntityByIds(["studentPackage", "rental", "referral", "payment"])],
             },
         ],
     },
@@ -64,18 +72,13 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
         section: "toes",
         routes: [
             {
-                name: "Rentals",
-                href: "/admin/rentals",
-                icon: Package,
-            },
-            {
                 name: "Subscription",
-                href: "/admin/subscription",
-                icon: CreditCard,
+                href: "/subscription",
+                icon: SubscriptionIcon,
             },
             {
                 name: "Feedback",
-                href: "/admin/feedback",
+                href: "/feedback",
                 icon: MessageSquare,
             },
         ],
