@@ -8,6 +8,7 @@ interface CardProps {
     stats?: Array<{
         icon: React.ComponentType<{ className?: string }>;
         value: string | number;
+        href?: string;
     }>;
     isActionable?: boolean;
 }
