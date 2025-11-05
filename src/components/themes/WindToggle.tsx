@@ -53,7 +53,7 @@ export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
     };
 
     return (
-        <div onClick={mounted ? handleToggle : undefined} className={`p-3 rounded-full bg-card border border-border transition-all duration-300 ${mounted ? "hover:bg-accent cursor-pointer hover:scale-105" : ""}`} title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}>
+        <div onClick={mounted ? handleToggle : undefined} className={`p-3 rounded-full bg-card border border-border transition-all duration-300 ${mounted ? "hover:bg-accent cursor-pointer" : ""}`} title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}>
             {mounted && isDarkMode ? <WindIcon className="w-6 h-6 text-foreground transition-all duration-300" /> : <NoWindIcon className="w-6 h-6 text-foreground transition-all duration-300" />}
         </div>
     );
