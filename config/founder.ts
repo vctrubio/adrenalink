@@ -1,6 +1,6 @@
 export const FOUNDER_DATA = {
     name: "Victor Rubio",
-    role: "Founder and CTO",
+    role: "Founder and Developer",
     email: "vctrubio@gmail.com",
     linkedin: "https://www.linkedin.com/in/vctrubio/",
     whatsapp: "+34686516248",
