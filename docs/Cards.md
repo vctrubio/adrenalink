@@ -138,6 +138,12 @@ export const MyCard = ({ name, status, fields, accentColor = "#6b7280" }) => {
 - Renders each field with consistent styling (label left, value right, border bottom)
 - NO manual styling needed - all handled internally
 
+**CardBody:**
+- `children` (ReactNode) - For fully custom content
+- `sections` (array) - Array of `{ label: string, value: string }` objects for description sections
+- When sections provided, renders label + paragraph pattern automatically
+- Text inherits white color from Card
+
 ### Card with Stats Badges and Field List
 
 ```tsx
@@ -174,14 +180,14 @@ export const EntityCard = ({ name, status, fields, accentColor = "#6b7280" }) =>
 
 **Note:** Set `isActionable={false}` for display-only stats (like EntityInfoCard). Set `isActionable={true}` for clickable stats (like FounderInfoCard with social links).
 
-### Card with Custom Body Content
+### Card with Sections (Description Paragraphs)
 
-For custom content (not a field list), use `CardBody`:
+For multi-paragraph descriptions, use `CardBody` with sections prop:
 
 ```tsx
 import { Card, CardHeader, CardBody } from "@/src/components/ui/card";
 
-export const CustomCard = ({ name, status, accentColor = "#6b7280" }) => {
+export const DescriptionCard = ({ name, status, accentColor = "#6b7280" }) => {
     const sections = [
         { label: "Description", value: "Some description..." },
         { label: "Vision", value: "Some vision..." },
@@ -190,18 +196,24 @@ export const CustomCard = ({ name, status, accentColor = "#6b7280" }) => {
     return (
         <Card accentColor={accentColor}>
             <CardHeader name={name} status={status} avatar={avatar} accentColor={accentColor} />
-
-            <CardBody>
-                {sections.map((section, index) => (
-                    <div key={index} className="py-3 border-b border-white/10 last:border-0">
-                        <div className="text-xs uppercase tracking-wider text-white/60 mb-2">{section.label}</div>
-                        <p className="text-sm text-white/80 leading-relaxed">{section.value}</p>
-                    </div>
-                ))}
-            </CardBody>
+            <CardBody sections={sections} />
         </Card>
     );
 };
+```
+
+**Note:** Text automatically inherits white color from Card. CardBody handles all styling internally.
+
+### Card with Fully Custom Content
+
+For completely custom layouts, pass children to CardBody:
+
+```tsx
+<CardBody>
+    <div className="custom-layout">
+        {/* Your custom content */}
+    </div>
+</CardBody>
 ```
 
 ### Getting Entity Color
@@ -223,15 +235,20 @@ const studentColor = rainbowBaseColors.yellow.fill; // Returns "#eab308"
 
 **Use CardList when:**
 - Displaying key-value pairs (e.g., Passport, Country, Phone)
-- Data follows label-value pattern
+- Data follows label-value pattern (label left, value right)
 - Want consistent styling without manual work
 - Example: EntityInfoCard
 
-**Use CardBody when:**
-- Custom content layout needed
+**Use CardBody with sections when:**
 - Multi-paragraph descriptions
+- Label + paragraph pattern (label top, paragraph below)
+- Description, Vision, About sections
+- Example: FounderInfoCard
+
+**Use CardBody with children when:**
+- Completely custom content layout needed
 - Mixed content types
-- Example: FounderInfoCard (Description, Vision, Adrenalink sections)
+- Non-standard patterns
 
 ## Example Implementations
 
@@ -252,29 +269,30 @@ Shows entity information with:
 </Card>
 ```
 
-### FounderInfoCard (Uses CardBody)
+### FounderInfoCard (Uses CardBody with sections)
 
 **Location:** `src/components/cards/FounderInfoCard.tsx`
 
 Shows founder information with:
 - Circular profile photo
 - Name and role
-- Social media icons as stats badges (clickable, `isActionable={true}`)
-- **CardBody for custom sections** - Descriptions with paragraphs
+- Social media icons as stats badges (clickable, `isActionable={true}` with hrefs)
+- **CardBody sections prop** - Clean, no manual styling
 
 ```tsx
+const sections = [
+    { label: "Description", value: FOUNDER_DATA.description },
+    { label: "Vision", value: FOUNDER_DATA.vision },
+    { label: "Adrenalink", value: FOUNDER_DATA.adrenalink },
+];
+
 <Card accentColor={accentColor} stats={socialIcons} isActionable={true}>
     <CardHeader name={name} status={role} avatar={avatar} accentColor={accentColor} />
-    <CardBody>
-        {sections.map((section) => (
-            <div>
-                <div className="text-xs uppercase tracking-wider text-white/60 mb-2">{section.label}</div>
-                <p className="text-sm text-white/80 leading-relaxed">{section.value}</p>
-            </div>
-        ))}
-    </CardBody>
+    <CardBody sections={sections} />
 </Card>
 ```
+
+**Note:** Text automatically inherits full white color from Card for clear reading.
 
 ## Styling Guidelines
 
@@ -420,9 +438,11 @@ The card component system provides a scalable, consistent foundation for display
 **Key Takeaways:**
 - **Modular architecture** - Separate files like the form system (`src/components/ui/card/`)
 - **Always dark background** - `bg-slate-900/80` set once in Card component
-- **Use CardList for field lists** - No manual styling, consistent appearance
-- **Use CardBody for custom content** - When you need custom layouts
+- **Use CardList for field lists** - Label-value pairs (label left, value right)
+- **Use CardBody sections for descriptions** - Label-paragraph pattern (label top, paragraph below)
+- **Use CardBody children for custom** - Fully custom layouts
 - **Default color is Grey** - `#6b7280` for School/Admin entities
 - **Two color systems** - `config/entities.ts` for entity-specific, `config/rainbow.ts` for grouping
-- **isActionable prop** - Controls whether stats are hoverable
-- **Text color inheritance** - `text-white` from Card, only specify opacity variants
+- **isActionable prop** - Controls whether stats are hoverable/clickable
+- **Stats with hrefs** - Add href to stats for clickable links (email, social, etc.)
+- **Text color inheritance** - Full white from Card, only specify opacity variants for muted text
