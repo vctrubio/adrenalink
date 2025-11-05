@@ -1,5 +1,3 @@
-"use client";
-
 import { Mail, Linkedin, Phone } from "lucide-react";
 import Image from "next/image";
 import { Card, CardHeader, CardBody } from "@/src/components/ui/card";
@@ -15,58 +13,46 @@ export const FounderInfoCard = ({ accentColor = "#3b82f6", className }: FounderI
         {
             icon: Mail,
             href: `mailto:${FOUNDER_DATA.email}`,
-            label: "Email",
+            value: "",
         },
         {
             icon: Linkedin,
             href: FOUNDER_DATA.linkedin,
-            label: "LinkedIn",
+            value: "",
         },
         {
             icon: Phone,
             href: `https://wa.me/${FOUNDER_DATA.whatsapp.replace(/[^0-9]/g, "")}`,
-            label: "WhatsApp",
+            value: "",
         },
     ];
 
     const sections = [
         {
-            label: "Description",
-            value: FOUNDER_DATA.description,
-        },
-        {
-            label: "Vision",
+            label: "My Vision",
             value: FOUNDER_DATA.vision,
         },
         {
-            label: "Adrenalink",
+            label: "About Adrenalink",
             value: FOUNDER_DATA.adrenalink,
         },
     ];
 
     const avatar = (
         <div
-            className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
+            className="w-32 h-32 rounded-2xl overflow-hidden flex items-center justify-center"
             style={{
                 border: `3px solid ${accentColor}`,
             }}
         >
-            <Image src="/pp.webp" alt={FOUNDER_DATA.name} width={80} height={80} className="object-cover w-full h-full" />
+            <Image src="/pp.webp" alt={FOUNDER_DATA.name} width={100} height={100} className="object-cover w-full h-full scale-140 translate-y-4 translate-x-1" />
         </div>
     );
 
     return (
-        <Card accentColor={accentColor} stats={socialIcons.map((social) => ({ icon: social.icon, value: "" }))} isActionable={true} className={className}>
-            <CardHeader name={FOUNDER_DATA.name} status={FOUNDER_DATA.role} avatar={avatar} accentColor={accentColor} />
-
-            <CardBody>
-                {sections.map((section, index) => (
-                    <div key={index} className="py-3 border-b border-white/10 last:border-0">
-                        <div className="text-xs uppercase tracking-wider text-white/60 mb-2">{section.label}</div>
-                        <p className="text-sm text-white/80 leading-relaxed">{section.value}</p>
-                    </div>
-                ))}
-            </CardBody>
+        <Card accentColor={accentColor} stats={socialIcons} isActionable={true} className={className}>
+            <CardHeader name={FOUNDER_DATA.name} status={FOUNDER_DATA.role} avatar={avatar} accentColor={accentColor} desc={FOUNDER_DATA.description} />
+            <CardBody sections={sections} />
         </Card>
     );
 };
