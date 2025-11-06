@@ -11,6 +11,7 @@ export const eventStatusEnum = pgEnum("event_status", ["planned", "tbc", "comple
 export const rentalStatusEnum = pgEnum("rental_status", ["planned", "completed", "cancelled"]);
 export const packageTypeEnum = pgEnum("package_type", ["rental", "lessons"]);
 export const languagesEnum = pgEnum("languages", ["Spanish", "French", "English", "German", "Italian"]);
+export const bookingStatusEnum = pgEnum("booking_status", ["active", "completed", "uncompleted"]);
 
 // 1. school
 export const school = pgTable("school", {
@@ -209,22 +210,15 @@ export const booking = pgTable(
     "booking",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        packageId: uuid("package_id")
-            .notNull()
-            .references(() => schoolPackage.id),
         dateStart: date("date_start").notNull(),
         dateEnd: date("date_end").notNull(),
         schoolId: uuid("school_id").references(() => school.id),
         studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
+        // status: bookingStatusEnum("status").notNull().default("active"), // TODO: Add via migration
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
     (table) => [
-        foreignKey({
-            columns: [table.packageId],
-            foreignColumns: [schoolPackage.id],
-            name: "booking_package_id_fk",
-        }),
         foreignKey({
             columns: [table.schoolId],
             foreignColumns: [school.id],
@@ -236,7 +230,6 @@ export const booking = pgTable(
             name: "booking_student_package_id_fk",
         }),
         index("booking_school_id_idx").on(table.schoolId),
-        index("booking_package_id_idx").on(table.packageId),
         index("booking_student_package_id_idx").on(table.studentPackageId),
     ],
 );

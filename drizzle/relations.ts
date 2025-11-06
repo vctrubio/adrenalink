@@ -30,7 +30,6 @@ export const schoolPackageRelations = relations(schoolPackage, ({ one, many }) =
         references: [school.id],
     }),
     studentPackages: many(studentPackage),
-    bookings: many(booking),
 }));
 
 export const studentPackageRelations = relations(studentPackage, ({ one, many }) => ({
@@ -46,10 +45,6 @@ export const studentPackageRelations = relations(studentPackage, ({ one, many })
 }));
 
 export const bookingRelations = relations(booking, ({ one, many }) => ({
-    schoolPackage: one(schoolPackage, {
-        fields: [booking.packageId],
-        references: [schoolPackage.id],
-    }),
     school: one(school, {
         fields: [booking.schoolId],
         references: [school.id],
@@ -59,6 +54,7 @@ export const bookingRelations = relations(booking, ({ one, many }) => ({
         references: [studentPackage.id],
     }),
     bookingStudents: many(bookingStudent),
+    lessons: many(lesson),
 }));
 
 export const bookingStudentRelations = relations(bookingStudent, ({ one }) => ({
