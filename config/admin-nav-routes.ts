@@ -36,12 +36,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
         routes: [
             {
                 name: "Domain",
-                href: "/admin/domain",
+                href: "/admin",
                 icon: AdranlinkIcon,
             },
             {
                 name: "Classboard",
-                href: "/admin",
+                href: "/classboard",
                 icon: A2Icon,
             },
             {
