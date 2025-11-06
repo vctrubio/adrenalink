@@ -9,3 +9,4 @@ export { createEquipmentModel, type EquipmentModel } from "./EquipmentModel";
 export { createTeacherModel, type TeacherModel } from "./TeacherModel";
 export { createCommissionModel, type CommissionModel } from "./CommissionModel";
 export { createEventModel, type EventModel } from "./EventModel";
+export { createClassboardModel, type ClassboardModel } from "./ClassboardModel";
