@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 type SidebarContextType = {
     collapsed: boolean;
@@ -58,7 +58,9 @@ export function AdminSidebar({ children, defaultCollapsed = false }: AdminSideba
                     className="absolute -right-3 top-20 z-20 flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-200"
                     aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    <div className={`transform transition-transform duration-300 ${collapsed ? "rotate-90" : "-rotate-90"}`}>
+                        <AdranlinkIcon size={14} className="text-white" />
+                    </div>
                 </button>
             </aside>
         </SidebarContext.Provider>
