@@ -1,24 +1,28 @@
 "use client";
 
-import { WindToggle } from "../../themes/WindToggle";
 import { useSidebar } from "./sidebar";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
-export function SidebarHeader() {
+interface SidebarHeaderProps {
+    schoolName?: string | null;
+}
+
+export function SidebarHeader({ schoolName }: SidebarHeaderProps) {
     const { collapsed } = useSidebar();
+
+    if (collapsed) return null;
 
     return (
         <div className="p-4 mb-4">
-            <div className="flex items-center justify-between">
-                {!collapsed && (
-                    <div className="flex-1">
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">
-                            Adrenalink
-                        </h1>
-                        <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+            <div className="flex items-center gap-6">
+                <AdranlinkIcon size={48} className="text-gray-500 animate-fade-in" />
+                <div className="animate-fade-in-delayed flex-1">
+                    <h3 className="text-3xl font-bold">Adrenalink</h3>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                        <span className="font-semibold">
+                            {schoolName === "SUDO" ? "beta 2026" : schoolName || "..."}
+                        </span>
                     </div>
-                )}
-                <div className={collapsed ? "mx-auto" : ""}>
-                    <WindToggle />
                 </div>
             </div>
         </div>
