@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Timesheet, TimesheetGroup, TimesheetEntry } from "../ui/timesheet";
+import { Timesheet, TimesheetGroup, TimesheetEntry } from "./ui/timesheet";
 
 type ViewMode = "daily" | "weekly" | "monthly";
 
@@ -136,10 +136,10 @@ export function TimesheetClient({ entries }: TimesheetClientProps) {
                         <input
                             type="text"
                             placeholder="What are you working on?"
-                            className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 bg-transparent border border-input rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         />
 
-                        <div className="inline-flex rounded-lg bg-slate-800 p-1">
+                        <div className="inline-flex rounded-lg bg-muted p-1">
                             {[
                                 { value: "daily" as ViewMode, label: "Daily" },
                                 { value: "weekly" as ViewMode, label: "Weekly" },
@@ -150,8 +150,8 @@ export function TimesheetClient({ entries }: TimesheetClientProps) {
                                     onClick={() => setViewMode(view.value)}
                                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                         viewMode === view.value
-                                            ? "bg-blue-500 text-white"
-                                            : "text-white/60 hover:text-white"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "text-muted-foreground hover:text-foreground"
                                     }`}
                                 >
                                     {view.label}

@@ -1,4 +1,4 @@
-import { TimesheetClient, type TimesheetEntryData } from "@/src/components/timesheet/timesheet-client";
+import { TimesheetClient, type TimesheetEntryData } from "@/src/components/Timesheet";
 
 // Simulate server-side data fetching
 async function getTimesheetEntries(): Promise<TimesheetEntryData[]> {
