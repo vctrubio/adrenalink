@@ -9,31 +9,34 @@ import { createBookingModel, type BookingModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const bookingWithRelations = {
-    schoolPackage: true,
-    school: true,
-    studentPackage: true,
+    school: true as const,
+    studentPackage: {
+        with: {
+            schoolPackage: true as const,
+        },
+    },
     bookingStudents: {
         with: {
-            student: true,
+            student: true as const,
         },
     },
     lessons: {
         with: {
-            teacher: true,
-            commission: true,
+            teacher: true as const,
+            commission: true as const,
             events: {
                 with: {
                     equipmentEvents: {
                         with: {
-                            equipment: true,
+                            equipment: true as const,
                         },
                     },
                 },
             },
-            payments: true,
+            payments: true as const,
         },
     },
-};
+} as const;
 
 // CREATE
 export async function createBooking(bookingSchema: BookingForm): Promise<ApiActionResponseModel<BookingType>> {
@@ -50,13 +53,13 @@ export async function createBooking(bookingSchema: BookingForm): Promise<ApiActi
 // READ
 export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolUsername = await getHeaderUsername();
         
         let result;
-        if (header) {
-            // Filter bookings by school username
+        if (schoolUsername) {
+            // School mode: Filter bookings by school username
             const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
+                where: eq(school.username, schoolUsername),
                 columns: { id: true }
             });
             
@@ -69,7 +72,7 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
                 result = [];
             }
         } else {
-            // Global query (admin mode)
+            // Sudo mode: Get ALL bookings (full privileges)
             result = await db.query.booking.findMany({
                 with: bookingWithRelations
             });
@@ -79,7 +82,7 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
         return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching bookings:", error);
-        return { success: false, error: "Failed to fetch bookings" };
+        return { success: false, error: `Failed to fetch bookings: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
 
@@ -118,12 +121,14 @@ export async function getBookingsBySchoolId(schoolId: string): Promise<ApiAction
 
 export async function getBookingsByPackageId(packageId: string): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
-        const result = await db.query.booking.findMany({
-            where: eq(booking.packageId, packageId),
+        // Get all bookings and filter by packageId through studentPackage
+        const allBookings = await db.query.booking.findMany({
             with: bookingWithRelations
         });
         
-        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
+        const bookings: BookingModel[] = allBookings
+            .filter(b => b.studentPackage?.packageId === packageId)
+            .map(bookingData => createBookingModel(bookingData));
         
         return { success: true, data: bookings };
     } catch (error) {
@@ -137,7 +142,7 @@ export async function updateBooking(id: string, bookingSchema: Partial<BookingFo
     try {
         const updateData = {
             ...bookingSchema,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date()
         };
         const result = await db.update(booking).set(updateData).where(eq(booking.id, id)).returning();
         revalidatePath("/bookings");
