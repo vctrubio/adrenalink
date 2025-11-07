@@ -1,7 +1,6 @@
 "use client";
 
 import { ENTITY_DATA } from "@/config/entities";
-import LabelTag from "@/src/components/tags/LabelTag";
 
 const tailwindColorMap: Record<string, string> = {
     "bg-indigo-300": "#e0e7ff",
@@ -43,12 +42,8 @@ export function EntityFlow({ entities, arrows = [] }: EntityFlowProps) {
 
                 return (
                     <div key={entityId} className="flex items-center gap-2">
-                        <LabelTag icon={entity.icon} name={entity.name} backgroundColor={bgColorHex} color={entity.color} link={entity.link} />
-                        {index < entities.length - 1 && (
-                            <span className="text-muted-foreground text-sm font-medium">
-                                {arrows[index] || "→"}
-                            </span>
-                        )}
+                        <>label was here</>
+                        {index < entities.length - 1 && <span className="text-muted-foreground text-sm font-medium">{arrows[index] || "→"}</span>}
                     </div>
                 );
             })}
