@@ -5,7 +5,7 @@ import { Row, type StatItem } from "@/src/components/ui/row";
 import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { ENTITY_DATA } from "@/config/entities";
-import { getStudentBookingsCount, getStudentEventsCount, getStudentTotalHours, getStudentRequestedPackagesCount, getStudentMoneyIn, getStudentMoneyOut } from "@/getters/students-getter";
+import { StudentStats, getStudentSchoolCount, getStudentUnfinishedRequests } from "@/getters/students-getter";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -20,13 +20,13 @@ export function calculateStudentGroupStats(students: StudentModel[]): StatItem[]
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
-    const totalRequestedPackages = students.reduce((sum, student) => sum + getStudentRequestedPackagesCount(student), 0);
-    const totalBookings = students.reduce((sum, student) => sum + getStudentBookingsCount(student), 0);
-    const totalEvents = students.reduce((sum, student) => sum + getStudentEventsCount(student), 0);
-    const totalHours = students.reduce((sum, student) => sum + getStudentTotalHours(student), 0);
+    const totalRequestedPackages = students.reduce((sum, student) => sum + StudentStats.getRequestedPackagesCount(student), 0);
+    const totalBookings = students.reduce((sum, student) => sum + StudentStats.getBookingsCount(student), 0);
+    const totalEvents = students.reduce((sum, student) => sum + StudentStats.getEventsCount(student), 0);
+    const totalHours = students.reduce((sum, student) => sum + StudentStats.getTotalHours(student), 0);
 
-    const totalMoneyIn = students.reduce((sum, student) => sum + getStudentMoneyIn(student), 0);
-    const totalMoneyOut = students.reduce((sum, student) => sum + getStudentMoneyOut(student), 0);
+    const totalMoneyIn = students.reduce((sum, student) => sum + StudentStats.getMoneyIn(student), 0);
+    const totalMoneyOut = students.reduce((sum, student) => sum + StudentStats.getMoneyOut(student), 0);
     const netMoney = totalMoneyIn - totalMoneyOut;
     const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
 
@@ -86,15 +86,15 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
         { label: "Joined", value: new Date(student.schema.createdAt).toLocaleDateString() },
     ];
 
-    const moneyIn = getStudentMoneyIn(student);
-    const moneyOut = getStudentMoneyOut(student);
+    const moneyIn = StudentStats.getMoneyIn(student);
+    const moneyOut = StudentStats.getMoneyOut(student);
     const netMoney = moneyIn - moneyOut;
     const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <BookingIcon className="w-5 h-5" />, value: getStudentBookingsCount(student), color: bookingEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: getStudentEventsCount(student), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getStudentTotalHours(student), color: "#4b5563" },
+        { icon: <BookingIcon className="w-5 h-5" />, value: StudentStats.getBookingsCount(student), color: bookingEntity.color },
+        { icon: <FlagIcon className="w-5 h-5" />, value: StudentStats.getEventsCount(student), color: eventEntity.color },
+        { icon: <DurationIcon className="w-5 h-5" />, value: StudentStats.getTotalHours(student), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
     ];
 

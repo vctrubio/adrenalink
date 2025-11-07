@@ -1,54 +1,20 @@
 import type { TeacherModel } from "@/backend/models";
 
-export function getTeacherLessonsCount(teacher: TeacherModel): number {
-    return teacher.relations?.lessons?.length || 0;
-}
+// ============ TEACHER STATS NAMESPACE ============
+// Reads from pre-calculated stats in databoard models
+// Falls back to relation traversal for non-databoard usage
 
-export function getTeacherEventsCount(teacher: TeacherModel): number {
-    const lessons = teacher.relations?.lessons || [];
-    let totalEvents = 0;
+export const TeacherStats = {
+    getMoneyIn: (teacher: TeacherModel): number => teacher.stats?.money_in || 0,
+    getMoneyOut: (teacher: TeacherModel): number => teacher.stats?.money_out || 0,
+    getEventsCount: (teacher: TeacherModel): number => teacher.stats?.events_count || 0,
+    getTotalHours: (teacher: TeacherModel): number => (teacher.stats?.total_duration_minutes || 0) / 60,
+    getLessonsCount: (teacher: TeacherModel): number => teacher.stats?.lessons_count || 0,
+    getMoneyEarned: (teacher: TeacherModel): number => TeacherStats.getMoneyIn(teacher) - TeacherStats.getMoneyOut(teacher),
+};
 
-    for (const lesson of lessons) {
-        totalEvents += lesson.events?.length || 0;
-    }
-
-    return totalEvents;
-}
-
-export function getTeacherTotalHours(teacher: TeacherModel): number {
-    const lessons = teacher.relations?.lessons || [];
-    let totalMinutes = 0;
-
-    for (const lesson of lessons) {
-        if (lesson.events) {
-            for (const event of lesson.events) {
-                totalMinutes += event.duration || 0;
-            }
-        }
-    }
-
-    return Math.round(totalMinutes / 60);
-}
-
-export function getTeacherMoneyEarned(teacher: TeacherModel): number {
-    const lessons = teacher.relations?.lessons || [];
-    let totalEarnings = 0;
-
-    for (const lesson of lessons) {
-        const commission = lesson.commission;
-        if (!commission) continue;
-
-        const cph = parseFloat(commission.cph.toString());
-        const events = lesson.events || [];
-
-        for (const event of events) {
-            const hours = event.duration / 60;
-            totalEarnings += hours * cph;
-        }
-    }
-
-    return Math.round(totalEarnings);
-}
+// ============ LEGACY RELATION-BASED GETTERS ============
+// Used for non-databoard contexts where stats aren't available
 
 export function getTeacherUnfinishedEvents(teacher: TeacherModel): Array<{ id: string; equipmentCategory: string | null }> {
     const lessons = teacher.relations?.lessons || [];

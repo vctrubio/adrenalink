@@ -5,15 +5,10 @@ import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
 import { ENTITY_DATA } from "@/config/entities";
 import {
+    EquipmentStats,
     getEquipmentName,
     getEquipmentTeachers,
     hasOpenRepair,
-    getEquipmentEventsCount,
-    getEquipmentEventsDuration,
-    getEquipmentRentalsCount,
-    getEquipmentMoneyIn,
-    getEquipmentMoneyOut,
-    getEquipmentRevenue,
 } from "@/getters/equipments-getter";
 import { formatDate } from "@/getters/date-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -28,12 +23,12 @@ export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): Stat
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
-    const totalEvents = equipments.reduce((sum, equipment) => sum + getEquipmentEventsCount(equipment), 0);
-    const totalHours = equipments.reduce((sum, equipment) => sum + getEquipmentEventsDuration(equipment), 0);
-    const totalRentals = equipments.reduce((sum, equipment) => sum + getEquipmentRentalsCount(equipment), 0);
+    const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentStats.getEventsCount(equipment), 0);
+    const totalHours = equipments.reduce((sum, equipment) => sum + EquipmentStats.getTotalHours(equipment), 0);
+    const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentStats.getRentalsCount(equipment), 0);
 
-    const totalMoneyIn = equipments.reduce((sum, equipment) => sum + getEquipmentMoneyIn(equipment), 0);
-    const totalMoneyOut = equipments.reduce((sum, equipment) => sum + getEquipmentMoneyOut(equipment), 0);
+    const totalMoneyIn = equipments.reduce((sum, equipment) => sum + EquipmentStats.getMoneyIn(equipment), 0);
+    const totalMoneyOut = equipments.reduce((sum, equipment) => sum + EquipmentStats.getMoneyOut(equipment), 0);
     const netRevenue = totalMoneyIn - totalMoneyOut;
     const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
 
@@ -94,13 +89,13 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
         { label: "Updated", value: formatDate(equipment.schema.updatedAt) },
     ];
 
-    const revenue = getEquipmentRevenue(equipment);
+    const revenue = EquipmentStats.getRevenue(equipment);
     const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <FlagIcon className="w-5 h-5" />, value: getEquipmentEventsCount(equipment), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: Math.round(getEquipmentEventsDuration(equipment)), color: "#4b5563" },
-        { icon: <HelmetIcon className="w-5 h-5" />, value: getEquipmentRentalsCount(equipment), color: "#ef4444" },
+        { icon: <FlagIcon className="w-5 h-5" />, value: EquipmentStats.getEventsCount(equipment), color: eventEntity.color },
+        { icon: <DurationIcon className="w-5 h-5" />, value: Math.round(EquipmentStats.getTotalHours(equipment)), color: "#4b5563" },
+        { icon: <HelmetIcon className="w-5 h-5" />, value: EquipmentStats.getRentalsCount(equipment), color: "#ef4444" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(revenue)), color: bankColor },
     ];
 

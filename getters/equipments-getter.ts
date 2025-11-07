@@ -1,5 +1,20 @@
 import type { EquipmentModel } from "@/backend/models";
 
+// ============ EQUIPMENT STATS NAMESPACE ============
+// Reads from pre-calculated stats in databoard models
+
+export const EquipmentStats = {
+    getEventsCount: (equipment: EquipmentModel): number => equipment.stats?.events_count || 0,
+    getTotalHours: (equipment: EquipmentModel): number => (equipment.stats?.total_duration_minutes || 0) / 60,
+    getRentalsCount: (equipment: EquipmentModel): number => equipment.stats?.rentals_count || 0,
+    getMoneyIn: (equipment: EquipmentModel): number => equipment.stats?.money_in || 0,
+    getMoneyOut: (equipment: EquipmentModel): number => equipment.stats?.money_out || 0,
+    getRevenue: (equipment: EquipmentModel): number => EquipmentStats.getMoneyIn(equipment) - EquipmentStats.getMoneyOut(equipment),
+};
+
+// ============ EQUIPMENT UTILITY FUNCTIONS ============
+// Helpers for equipment display and relation access
+
 // Get equipment name (model + size)
 export function getEquipmentName(equipment: EquipmentModel): string {
     const size = equipment.schema.size ? ` ${equipment.schema.size}m` : "";
@@ -26,35 +41,4 @@ export function getEquipmentTeachers(equipment: EquipmentModel): Array<{ teacher
 export function hasOpenRepair(equipment: EquipmentModel): boolean {
     const repairs = equipment.relations?.equipmentRepairs || [];
     return repairs.some((repair) => !repair.checkOut);
-}
-
-// Get count of events using this equipment (from pre-calculated stats)
-export function getEquipmentEventsCount(equipment: EquipmentModel): number {
-    return equipment.stats?.eventsCount || 0;
-}
-
-// Get total duration of all events using this equipment in hours (from pre-calculated stats)
-export function getEquipmentEventsDuration(equipment: EquipmentModel): number {
-    const totalMinutes = equipment.stats?.totalDurationMinutes || 0;
-    return totalMinutes / 60;
-}
-
-// Get count of rentals for this equipment (from pre-calculated stats)
-export function getEquipmentRentalsCount(equipment: EquipmentModel): number {
-    return equipment.stats?.rentalsCount || 0;
-}
-
-// Calculate money in (from pre-calculated stats)
-export function getEquipmentMoneyIn(equipment: EquipmentModel): number {
-    return equipment.stats?.moneyIn || 0;
-}
-
-// Calculate money out (from pre-calculated stats)
-export function getEquipmentMoneyOut(equipment: EquipmentModel): number {
-    return equipment.stats?.moneyOut || 0;
-}
-
-// Calculate net revenue (money in - money out)
-export function getEquipmentRevenue(equipment: EquipmentModel): number {
-    return getEquipmentMoneyIn(equipment) - getEquipmentMoneyOut(equipment);
 }

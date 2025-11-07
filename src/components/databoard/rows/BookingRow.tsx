@@ -4,7 +4,7 @@ import { Row, type StatItem } from "@/src/components/ui/row";
 import { TeacherBookingTag, TeacherBookingCreateTag } from "@/src/components/tags";
 import { BookingCompletionPopover } from "@/src/components/popover/BookingCompletionPopover";
 import { ENTITY_DATA } from "@/config/entities";
-import { getBookingEventsCount, getBookingDurationHours, getBookingMoneyIn, getBookingMoneyOut, getBookingRevenue } from "@/getters/bookings-getter";
+import { BookingStats, getBookingDurationHours } from "@/getters/bookings-getter";
 import { formatDate } from "@/getters/date-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -17,11 +17,11 @@ export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[]
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
-    const totalEvents = bookings.reduce((sum, booking) => sum + getBookingEventsCount(booking), 0);
-    const totalHours = bookings.reduce((sum, booking) => sum + getBookingDurationHours(booking), 0);
+    const totalEvents = bookings.reduce((sum, booking) => sum + BookingStats.getEventsCount(booking), 0);
+    const totalHours = bookings.reduce((sum, booking) => sum + BookingStats.getTotalHours(booking), 0);
 
-    const totalMoneyIn = bookings.reduce((sum, booking) => sum + getBookingMoneyIn(booking), 0);
-    const totalMoneyOut = bookings.reduce((sum, booking) => sum + getBookingMoneyOut(booking), 0);
+    const totalMoneyIn = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyIn(booking), 0);
+    const totalMoneyOut = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyOut(booking), 0);
     const netRevenue = totalMoneyIn - totalMoneyOut;
     const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
 
@@ -85,12 +85,12 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
         { label: "Package", value: packageDesc },
     ];
 
-    const revenue = getBookingRevenue(booking);
+    const revenue = BookingStats.getRevenue(booking);
     const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <FlagIcon className="w-5 h-5" />, value: getBookingEventsCount(booking), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getBookingDurationHours(booking), color: "#4b5563" },
+        { icon: <FlagIcon className="w-5 h-5" />, value: BookingStats.getEventsCount(booking), color: eventEntity.color },
+        { icon: <DurationIcon className="w-5 h-5" />, value: BookingStats.getTotalHours(booking), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
     ];
 

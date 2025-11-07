@@ -4,7 +4,7 @@ import { Row, type StatItem } from "@/src/components/ui/row";
 import { LessonTag, LessonCreateTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { ENTITY_DATA } from "@/config/entities";
-import { getTeacherLessonsCount, getTeacherEventsCount, getTeacherTotalHours, getTeacherMoneyEarned, isTeacherLessonReady } from "@/getters/teachers-getter";
+import { TeacherStats, isTeacherLessonReady } from "@/getters/teachers-getter";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -17,10 +17,10 @@ export function calculateTeacherGroupStats(teachers: TeacherModel[]): StatItem[]
     const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
-    const totalLessons = teachers.reduce((sum, teacher) => sum + getTeacherLessonsCount(teacher), 0);
-    const totalEvents = teachers.reduce((sum, teacher) => sum + getTeacherEventsCount(teacher), 0);
-    const totalHours = teachers.reduce((sum, teacher) => sum + getTeacherTotalHours(teacher), 0);
-    const totalMoneyEarned = teachers.reduce((sum, teacher) => sum + getTeacherMoneyEarned(teacher), 0);
+    const totalLessons = teachers.reduce((sum, teacher) => sum + TeacherStats.getLessonsCount(teacher), 0);
+    const totalEvents = teachers.reduce((sum, teacher) => sum + TeacherStats.getEventsCount(teacher), 0);
+    const totalHours = teachers.reduce((sum, teacher) => sum + TeacherStats.getTotalHours(teacher), 0);
+    const totalMoneyEarned = teachers.reduce((sum, teacher) => sum + TeacherStats.getMoneyEarned(teacher), 0);
     const bankColor = totalMoneyEarned >= 0 ? "#10b981" : "#ef4444";
 
     return [
@@ -83,13 +83,13 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
         { label: "Languages", value: teacher.schema.languages.join(", ") },
     ];
 
-    const moneyEarned = getTeacherMoneyEarned(teacher);
+    const moneyEarned = TeacherStats.getMoneyEarned(teacher);
     const bankColor = moneyEarned >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <LessonIcon className="w-5 h-5" />, value: getTeacherLessonsCount(teacher), color: lessonEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: getTeacherEventsCount(teacher), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getTeacherTotalHours(teacher), color: "#4b5563" },
+        { icon: <LessonIcon className="w-5 h-5" />, value: TeacherStats.getLessonsCount(teacher), color: lessonEntity.color },
+        { icon: <FlagIcon className="w-5 h-5" />, value: TeacherStats.getEventsCount(teacher), color: eventEntity.color },
+        { icon: <DurationIcon className="w-5 h-5" />, value: TeacherStats.getTotalHours(teacher), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(moneyEarned), color: bankColor },
     ];
 

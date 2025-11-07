@@ -1,5 +1,20 @@
 import type { BookingModel } from "@/backend/models";
 
+// ============ BOOKING STATS NAMESPACE ============
+// Reads from pre-calculated stats in databoard models
+// Falls back to relation traversal for non-databoard usage
+
+export const BookingStats = {
+    getMoneyIn: (booking: BookingModel): number => booking.stats?.money_in || 0,
+    getMoneyOut: (booking: BookingModel): number => booking.stats?.money_out || 0,
+    getEventsCount: (booking: BookingModel): number => booking.stats?.events_count || 0,
+    getTotalHours: (booking: BookingModel): number => (booking.stats?.total_duration_minutes || 0) / 60,
+    getRevenue: (booking: BookingModel): number => BookingStats.getMoneyIn(booking) - BookingStats.getMoneyOut(booking),
+};
+
+// ============ LEGACY RELATION-BASED GETTERS ============
+// Used for non-databoard contexts where stats aren't available
+
 export function getBookingDuration(booking: BookingModel): number {
     const lessons = booking.relations?.lessons || [];
     let totalMinutes = 0;

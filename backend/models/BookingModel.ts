@@ -1,8 +1,11 @@
 import type { BookingType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
+import type { DataboardStats } from "@/getters/databoard-sql-stats";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type BookingModel = AbstractModel<BookingType>;
+export type BookingModel = AbstractModel<BookingType> & {
+    stats?: DataboardStats;
+};
 
 export function createBookingModel(bookingData: any): BookingModel {
     const { school, schoolPackage, studentPackage, bookingStudents, lessons, ...pgTableSchema } = bookingData;

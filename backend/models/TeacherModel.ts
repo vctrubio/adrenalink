@@ -1,8 +1,11 @@
 import type { TeacherType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
+import type { DataboardStats } from "@/getters/databoard-sql-stats";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type TeacherModel = AbstractModel<TeacherType>;
+export type TeacherModel = AbstractModel<TeacherType> & {
+    stats?: DataboardStats;
+};
 
 export function createTeacherModel(teacherData: any): TeacherModel {
     const { school, commissions, lessons, equipments, ...pgTableSchema } = teacherData;

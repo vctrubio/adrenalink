@@ -1,14 +1,10 @@
 import type { EquipmentType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
+import type { DataboardStats } from "@/getters/databoard-sql-stats";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type EquipmentStats = {
+export type EquipmentStats = DataboardStats & {
     teacherHours: Record<string, number>;
-    eventsCount: number;
-    totalDurationMinutes: number;
-    rentalsCount: number;
-    moneyIn: number;
-    moneyOut: number;
 };
 
 export type EquipmentModel = AbstractModel<EquipmentType> & {
