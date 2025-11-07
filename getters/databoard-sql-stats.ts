@@ -184,6 +184,65 @@ export function buildSchoolPackageStatsQuery(schoolId?: string) {
     }
 }
 
+export function buildReferralStatsQuery(schoolId?: string) {
+    if (schoolId) {
+        return sql`
+            SELECT
+                ref.id as entity_id,
+                COUNT(DISTINCT sps.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM(
+                    CASE
+                        WHEN ref.commission_type = 'fixed' THEN ref.commission_value::integer
+                        WHEN ref.commission_type = 'percentage' THEN ((pkg.price_per_student * (ref.commission_value::decimal / 100)) * (e.duration::decimal / NULLIF(pkg.duration_minutes, 0)))::integer
+                        ELSE 0
+                    END
+                ), 0)::integer as money_out
+            FROM referral ref
+            LEFT JOIN student_package sp ON sp.referral_id = ref.id
+            LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
+            LEFT JOIN booking b ON b.student_package_id = sp.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            WHERE ref.school_id = ${schoolId}
+            GROUP BY ref.id
+        `;
+    } else {
+        return sql`
+            SELECT
+                ref.id as entity_id,
+                COUNT(DISTINCT sps.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM(
+                    CASE
+                        WHEN ref.commission_type = 'fixed' THEN ref.commission_value::integer
+                        WHEN ref.commission_type = 'percentage' THEN ((pkg.price_per_student * (ref.commission_value::decimal / 100)) * (e.duration::decimal / NULLIF(pkg.duration_minutes, 0)))::integer
+                        ELSE 0
+                    END
+                ), 0)::integer as money_out
+            FROM referral ref
+            LEFT JOIN student_package sp ON sp.referral_id = ref.id
+            LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
+            LEFT JOIN booking b ON b.student_package_id = sp.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            GROUP BY ref.id
+        `;
+    }
+}
+
 // ============ STATS MAP PARSER ============
 
 export type DataboardStats = {

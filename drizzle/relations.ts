@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { school, student, schoolStudents, schoolPackage, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment, studentBookingPayment, rental, equipmentRepair } from "./schema";
+import { school, student, schoolStudents, schoolPackage, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment, studentBookingPayment, rental, equipmentRepair, referral } from "./schema";
 
 export const schoolRelations = relations(school, ({ many }) => ({
     schoolStudents: many(schoolStudents),
@@ -37,6 +37,10 @@ export const studentPackageRelations = relations(studentPackage, ({ one, many })
     schoolPackage: one(schoolPackage, {
         fields: [studentPackage.packageId],
         references: [schoolPackage.id],
+    }),
+    referral: one(referral, {
+        fields: [studentPackage.referralId],
+        references: [referral.id],
     }),
     studentPackageStudents: many(studentPackageStudent),
     bookings: many(booking),
@@ -200,4 +204,12 @@ export const equipmentRepairRelations = relations(equipmentRepair, ({ one }) => 
         fields: [equipmentRepair.equipmentId],
         references: [equipment.id],
     }),
+}));
+
+export const referralRelations = relations(referral, ({ one, many }) => ({
+    school: one(school, {
+        fields: [referral.schoolId],
+        references: [school.id],
+    }),
+    studentPackages: many(studentPackage),
 }));
