@@ -1,18 +1,22 @@
 import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
 import { ENTITY_DATA } from "@/config/entities";
-import { mockStudents } from "@/drizzle/mocks/v1";
+import { mockStudents, mockBookings } from "@/drizzle/mocks/v1";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
+import BankIcon from "@/public/appSvgs/BankIcon";
+import { formatDate } from "@/getters/date-getter";
 
 export default function MockCardsPage() {
     // Get entity configs
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     // Get mock data
     const mockStudent = mockStudents[0];
+    const mockBooking = mockBookings[0];
 
     // Student stats (booking count, event count, event duration)
     const studentStats = [
@@ -74,11 +78,41 @@ export default function MockCardsPage() {
         { label: "Active Since", value: "Jan 2020" },
     ];
 
+    // Booking stats (events count, duration hours, revenue)
+    const bookingStats = [
+        {
+            icon: FlagIcon,
+            label: "Events",
+            value: 3,
+            color: "#10b981",
+        },
+        {
+            icon: DurationIcon,
+            label: "Hours",
+            value: 3,
+            color: "#4b5563",
+        },
+        {
+            icon: BankIcon,
+            label: "Revenue",
+            value: 250,
+            color: "#10b981",
+        },
+    ];
+
+    // Booking fields
+    const bookingFields = [
+        { label: "Status", value: mockBooking.status },
+        { label: "Start", value: formatDate(mockBooking.dateStart) },
+        { label: "End", value: formatDate(mockBooking.dateEnd) },
+        { label: "Created", value: formatDate(mockBooking.createdAt) },
+    ];
+
     return (
         <div className="min-h-screen p-8">
             <h1 className="text-4xl font-bold text-center mb-12">MockEntityCard Playground</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
                 {/* Student Card */}
                 <div>
                     <h2 className="text-2xl font-semibold mb-4 text-center">Student Example</h2>
@@ -112,6 +146,24 @@ export default function MockCardsPage() {
                         stats={teacherStats as [any, any, any]}
                         fields={teacherFields}
                         accentColor="#10b981"
+                    />
+                </div>
+
+                {/* Booking Card */}
+                <div>
+                    <h2 className="text-2xl font-semibold mb-4 text-center">Booking Example</h2>
+                    <EntityInfoCard
+                        entity={{
+                            id: bookingEntity.id,
+                            name: `Booking ${mockBooking.id.slice(0, 8)}`,
+                            icon: bookingEntity.icon,
+                            color: bookingEntity.color,
+                            bgColor: bookingEntity.bgColor,
+                        }}
+                        status={mockBooking.status}
+                        stats={bookingStats as [any, any, any]}
+                        fields={bookingFields}
+                        accentColor="#3b82f6"
                     />
                 </div>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { Tag } from "./tag";
+import { Tag } from "@/src/components/ui/tag/tag";
 import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
 

@@ -1,9 +1,8 @@
 import { type ReactNode, useState } from "react";
 import { RowStats, type StatItem } from "@/src/components/ui/row";
 import type { AbstractModel } from "@/backend/models";
-import { calculateStudentGroupStats } from "@/src/components/databoard/rows/StudentRow";
-import { calculateTeacherGroupStats } from "@/src/components/databoard/rows/TeacherRow";
-import type { StudentModel, TeacherModel } from "@/backend/models";
+import { calculateStudentGroupStats, calculateTeacherGroupStats, calculateBookingGroupStats } from "@/src/components/databoard/rows";
+import type { StudentModel, TeacherModel, BookingModel } from "@/backend/models";
 
 interface GroupDataRowsProps<T> {
     groupedData: Array<{
@@ -41,6 +40,8 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
             return calculateStudentGroupStats(data as StudentModel[]);
         } else if (entityId === "teacher") {
             return calculateTeacherGroupStats(data as TeacherModel[]);
+        } else if (entityId === "booking") {
+            return calculateBookingGroupStats(data as BookingModel[]);
         }
         return [];
     };

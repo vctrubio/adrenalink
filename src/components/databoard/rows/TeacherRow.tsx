@@ -1,8 +1,8 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
-import { LessonTag, LessonCreateTag } from "@/src/components/ui/tag";
-import { EventEquipmentPopover } from "@/src/components/popover/EventEquipmentPopover";
+import { LessonTag, LessonCreateTag } from "@/src/components/tags";
+import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { ENTITY_DATA } from "@/config/entities";
 import { getTeacherLessonsCount, getTeacherEventsCount, getTeacherTotalHours, getTeacherMoneyEarned, isTeacherLessonReady } from "@/getters/teachers-getter";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
@@ -96,7 +96,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     return (
         <Row
             id={teacher.schema.id}
-            entityName={teacherEntity.name}
+            entityData={teacher}
             entityBgColor={teacherEntity.bgColor}
             isExpanded={isExpanded}
             onToggle={onToggle}
@@ -114,7 +114,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                 items: strItems,
             }}
             action={<TeacherAction teacher={teacher} />}
-            popover={<EventEquipmentPopover teacher={teacher} />}
+            popover={<TeacherEventEquipmentPopover teacher={teacher} />}
             stats={stats}
         />
     );

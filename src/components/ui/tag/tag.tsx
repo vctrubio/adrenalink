@@ -25,8 +25,8 @@ export const Tag = ({ icon, name, bgColor, borderColorHex, color, link }: TagPro
 
     return (
         <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 border-2 min-w-20 ${link ? "cursor-pointer" : ""}`}
-            style={{ backgroundColor: bgColor, borderColor: borderColorHex }}
+            className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 border-2 min-w-20 ${link ? "cursor-pointer" : ""} bg-gray-200 dark:bg-gray-800`}
+            style={{ borderColor: borderColorHex } as React.CSSProperties}
             onClick={link ? handleClick : undefined}
         >
             <div style={{ color }}>{icon}</div>

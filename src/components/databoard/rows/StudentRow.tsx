@@ -1,7 +1,8 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
-import { BookingTag, BookingCreateTag } from "@/src/components/ui/tag";
+
+import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { ENTITY_DATA } from "@/config/entities";
 import { getStudentBookingsCount, getStudentEventsCount, getStudentTotalHours, getStudentRequestedPackagesCount, getStudentMoneyIn, getStudentMoneyOut } from "@/getters/students-getter";
@@ -41,12 +42,6 @@ export function calculateStudentGroupStats(students: StudentModel[]): StatItem[]
 
 const StudentAction = ({ student }: { student: StudentModel }) => {
     const bookingStudents = student.relations?.bookingStudents || [];
-    const moneyIn = getStudentMoneyIn(student);
-    const moneyOut = getStudentMoneyOut(student);
-    const netMoney = moneyIn - moneyOut;
-    const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
-
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     return (
         <div className="flex flex-wrap gap-2">
@@ -74,7 +69,6 @@ interface StudentRowProps {
 
 export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const requestEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
@@ -98,7 +92,6 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
     const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <RequestIcon className="w-5 h-5" />, value: getStudentRequestedPackagesCount(student), color: requestEntity.color },
         { icon: <BookingIcon className="w-5 h-5" />, value: getStudentBookingsCount(student), color: bookingEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: getStudentEventsCount(student), color: eventEntity.color },
         { icon: <DurationIcon className="w-5 h-5" />, value: getStudentTotalHours(student), color: "#4b5563" },
@@ -108,7 +101,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
     return (
         <Row
             id={student.schema.id}
-            entityName={studentEntity.name}
+            entityData={student}
             entityBgColor={studentEntity.bgColor}
             isExpanded={isExpanded}
             onToggle={onToggle}

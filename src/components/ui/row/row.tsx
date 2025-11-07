@@ -7,7 +7,7 @@ import { RowStats, type StatItem } from "./row-stats";
 
 interface RowProps {
     id: string;
-    entityName: string;
+    entityData: any;
     entityBgColor: string;
     isExpanded: boolean;
     onToggle: (id: string) => void;
@@ -28,7 +28,7 @@ interface RowProps {
     stats?: StatItem[];
 }
 
-export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
+export const Row = ({ id, entityData, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
     return (
         <div className="bg-card overflow-hidden">
             <div className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
@@ -66,7 +66,7 @@ export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head,
                 </div>
             </div>
 
-            <RowDropdownExpandable entityName={entityName} isExpanded={isExpanded} />
+            <RowDropdownExpandable entityData={entityData} isExpanded={isExpanded} />
         </div>
     );
 };

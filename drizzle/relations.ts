@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { school, student, schoolStudents, schoolPackage, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment, studentBookingPayment } from "./schema";
+import { school, student, schoolStudents, schoolPackage, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment, studentBookingPayment, rental, equipmentRepair } from "./schema";
 
 export const schoolRelations = relations(school, ({ many }) => ({
     schoolStudents: many(schoolStudents),
@@ -122,6 +122,8 @@ export const equipmentRelations = relations(equipment, ({ one, many }) => ({
     }),
     teacherEquipments: many(teacherEquipment),
     equipmentEvents: many(equipmentEvent),
+    equipmentRepairs: many(equipmentRepair),
+    rentals: many(rental),
 }));
 
 export const teacherEquipmentRelations = relations(teacherEquipment, ({ one }) => ({
@@ -179,5 +181,23 @@ export const studentBookingPaymentRelations = relations(studentBookingPayment, (
     student: one(student, {
         fields: [studentBookingPayment.studentId],
         references: [student.id],
+    }),
+}));
+
+export const rentalRelations = relations(rental, ({ one }) => ({
+    student: one(student, {
+        fields: [rental.studentId],
+        references: [student.id],
+    }),
+    equipment: one(equipment, {
+        fields: [rental.equipmentId],
+        references: [equipment.id],
+    }),
+}));
+
+export const equipmentRepairRelations = relations(equipmentRepair, ({ one }) => ({
+    equipment: one(equipment, {
+        fields: [equipmentRepair.equipmentId],
+        references: [equipment.id],
     }),
 }));

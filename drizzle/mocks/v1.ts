@@ -299,6 +299,53 @@ export const mockData = {
             "createdAt": "2025-10-17 10:52:55.558286",
             "updatedAt": "2025-10-17 10:52:55.558286"
         }
+    ],
+    "bookings": [
+        {
+            "id": "booking-001",
+            "dateStart": "2025-11-07T09:00:00.000Z",
+            "dateEnd": "2025-11-07T12:00:00.000Z",
+            "status": "completed",
+            "studentPackageId": "a05965b5-a4a7-4c4d-88e3-89d85cb0a622",
+            "createdAt": "2025-11-01T10:00:00.000Z",
+            "updatedAt": "2025-11-07T12:00:00.000Z"
+        },
+        {
+            "id": "booking-002",
+            "dateStart": "2025-11-07T14:00:00.000Z",
+            "dateEnd": "2025-11-07T16:00:00.000Z",
+            "status": "completed",
+            "studentPackageId": "75ace73f-1ba7-4421-9225-eea11aa110e4",
+            "createdAt": "2025-11-01T10:00:00.000Z",
+            "updatedAt": "2025-11-07T16:00:00.000Z"
+        },
+        {
+            "id": "booking-003",
+            "dateStart": "2025-11-08T10:00:00.000Z",
+            "dateEnd": "2025-11-08T14:00:00.000Z",
+            "status": "active",
+            "studentPackageId": "a544d192-31e9-4f5b-9f2b-e29b91bbf194",
+            "createdAt": "2025-11-01T10:00:00.000Z",
+            "updatedAt": "2025-11-01T10:00:00.000Z"
+        },
+        {
+            "id": "booking-004",
+            "dateStart": "2025-11-08T15:00:00.000Z",
+            "dateEnd": "2025-11-08T17:00:00.000Z",
+            "status": "active",
+            "studentPackageId": "f7177c07-29dd-4e03-bcda-f91a90cd8678",
+            "createdAt": "2025-11-01T10:00:00.000Z",
+            "updatedAt": "2025-11-01T10:00:00.000Z"
+        },
+        {
+            "id": "booking-005",
+            "dateStart": "2025-11-09T09:00:00.000Z",
+            "dateEnd": "2025-11-09T11:00:00.000Z",
+            "status": "active",
+            "studentPackageId": "5b3dafbf-1302-436c-a8d9-6dfe11328764",
+            "createdAt": "2025-11-01T10:00:00.000Z",
+            "updatedAt": "2025-11-01T10:00:00.000Z"
+        }
     ]
 };
 
@@ -307,3 +354,4 @@ export const mockSchools = mockData.schools;
 export const mockSchoolStudents = mockData.schoolStudents;
 export const mockSchoolPackages = mockData.schoolPackages;
 export const mockStudentPackages = mockData.studentPackages;
+export const mockBookings = mockData.bookings;

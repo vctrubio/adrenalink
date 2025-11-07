@@ -5,11 +5,11 @@ import { getTeacherUnfinishedEvents } from "@/getters/teachers-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { TeacherModel } from "@/backend/models";
 
-interface EventEquipmentPopoverProps {
+interface TeacherEventEquipmentPopoverProps {
     teacher: TeacherModel;
 }
 
-export const EventEquipmentPopover = ({ teacher }: EventEquipmentPopoverProps) => {
+export const TeacherEventEquipmentPopover = ({ teacher }: TeacherEventEquipmentPopoverProps) => {
     const unfinishedEvents = getTeacherUnfinishedEvents(teacher);
 
     const popoverItems: PopoverItem[] = unfinishedEvents.map((event) => {

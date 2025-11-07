@@ -58,14 +58,14 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
                 name: "School",
                 href: "#",
                 icon: AdminIcon,
-                children: [...getEntityByIds(["student", "teacher", "booking", "equipment"])],
+                children: [...getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage", "rental"])],
             },
-            {
-                name: "Transaction",
-                href: "#",
-                icon: TransactionIcon,
-                children: [...getEntityByIds(["studentPackage", "rental", "referral", "payment"])],
-            },
+            // {
+            //     name: "Transaction",
+            //     href: "#",
+            //     icon: TransactionIcon,
+            //     children: [...getEntityByIds(["studentPackage", "rental", "referral", "payment"])],
+            // },
         ],
     },
     {

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { Tag } from "./tag";
+import { Tag } from "@/src/components/ui/tag/tag";
 import { ENTITY_DATA } from "@/config/entities";
 
 interface BookingCreateTagProps {
@@ -25,9 +25,9 @@ export const BookingCreateTag = ({ icon, onClick }: BookingCreateTagProps) => {
             <Tag
                 icon={icon}
                 name="Create"
-                bgColor={bookingEntity.bgColor}
-                borderColorHex={bookingEntity.bgColor}
-                color={bookingEntity.color}
+                bgColor="#e5e7eb"
+                borderColorHex={bookingEntity.color}
+                color="#4b5563"
             />
         </div>
     );

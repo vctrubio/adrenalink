@@ -2,10 +2,21 @@ import type { EquipmentType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type EquipmentModel = AbstractModel<EquipmentType>;
+export type EquipmentStats = {
+    teacherHours: Record<string, number>;
+    eventsCount: number;
+    totalDurationMinutes: number;
+    rentalsCount: number;
+    moneyIn: number;
+    moneyOut: number;
+};
 
-export function createEquipmentModel(equipmentData: any): EquipmentModel {
-    const { school, teacherEquipments, equipmentEvents, ...pgTableSchema } = equipmentData;
+export type EquipmentModel = AbstractModel<EquipmentType> & {
+    stats?: EquipmentStats;
+};
+
+export function createEquipmentModel(equipmentData: any): Omit<EquipmentModel, "stats"> {
+    const { teacherEquipments, equipmentRepairs, ...pgTableSchema } = equipmentData;
 
     const entityConfig = ENTITY_DATA.find(e => e.id === "equipment")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
@@ -14,9 +25,8 @@ export function createEquipmentModel(equipmentData: any): EquipmentModel {
         entityConfig: serializableEntityConfig,
         schema: pgTableSchema,
         relations: {
-            school,
             teacherEquipments,
-            equipmentEvents,
+            equipmentRepairs,
         },
     };
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { ADMIN_NAV_SECTIONS } from "../../../config/admin-nav-routes";
-import { AdminSidebar, SidebarHeader,  SidebarMenu, SidebarMenuItem, SidebarSubmenu, SidebarFooter } from "./sidebar";
-import { WindToggle } from '../themes/WindToggle';
+import { AdminSidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarSubmenu, SidebarFooter } from "./sidebar";
+import { WindToggle } from "../themes/WindToggle";
 interface AdminSideBarProps {
     schoolName?: string | null;
 }
@@ -11,7 +11,6 @@ export function AdminSideBar({ schoolName }: AdminSideBarProps) {
     return (
         <AdminSidebar>
             <SidebarHeader schoolName={schoolName} />
-            {/* <SidebarSearch /> */}
             <SidebarMenu>
                 {ADMIN_NAV_SECTIONS.map((section) => (
                     <div key={section.section}>
@@ -31,7 +30,7 @@ export function AdminSideBar({ schoolName }: AdminSideBarProps) {
                     </div>
                 ))}
             </SidebarMenu>
-            <WindToggle/>
+            <WindToggle />
             {/* <SidebarFooter /> */}
         </AdminSidebar>
     );
