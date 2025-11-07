@@ -7,10 +7,8 @@ export const RowDropdownExpandable = ({ entityName, isExpanded }: RowDropdownExp
     if (!isExpanded) return null;
 
     return (
-        <div className="p-6 border-t border-border bg-muted/20">
-            <p className="text-sm text-muted-foreground">
-                Hello world, this is a dropdown component for {entityName}.
-            </p>
+        <div className="p-6 border-t border-border bg-background">
+            <p className="text-sm text-muted-foreground">Hello world, this is a dropdown component for {entityName}.</p>
         </div>
     );
 };

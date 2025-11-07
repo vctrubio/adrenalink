@@ -9,17 +9,19 @@ interface RowStrProps {
         label: string;
         value: string | number;
     }>;
+    entityColor: string;
 }
 
-export const RowStr = ({ label, items }: RowStrProps) => {
+export const RowStr = ({ label, items, entityColor }: RowStrProps) => {
     return (
         <Menu>
             {({ open }) => (
                 <>
                     <MenuButton
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors border-2 ${
                             open ? "bg-muted" : ""
                         } hover:bg-muted`}
+                        style={{ borderColor: entityColor }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <span>{label}</span>
@@ -32,12 +34,19 @@ export const RowStr = ({ label, items }: RowStrProps) => {
                         <div className="space-y-3">
                             {items.map((item, index) => (
                                 <MenuItem key={index}>
-                                    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                                        <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                                            {item.label}
-                                        </span>
-                                        <span className="text-sm font-medium">{item.value}</span>
-                                    </div>
+                                    {({ focus }) => (
+                                        <div
+                                            className="flex items-center justify-between py-2 border-b border-border last:border-0 rounded-md px-2 -mx-2 transition-colors"
+                                            style={{
+                                                backgroundColor: focus ? `${entityColor}40` : "transparent"
+                                            }}
+                                        >
+                                            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                                                {item.label}
+                                            </span>
+                                            <span className="text-sm font-medium">{item.value}</span>
+                                        </div>
+                                    )}
                                 </MenuItem>
                             ))}
                         </div>

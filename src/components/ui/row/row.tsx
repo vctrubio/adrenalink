@@ -8,6 +8,7 @@ import { RowStats, type StatItem } from "./row-stats";
 interface RowProps {
     id: string;
     entityName: string;
+    entityBgColor: string;
     isExpanded: boolean;
     onToggle: (id: string) => void;
     head: {
@@ -24,13 +25,12 @@ interface RowProps {
     };
     action?: ReactNode;
     stats?: StatItem[];
-    entityColor: string;
 }
 
-export const Row = ({ id, entityName, isExpanded, onToggle, head, str, action, stats, entityColor }: RowProps) => {
+export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head, str, action, stats }: RowProps) => {
     return (
         <div className="bg-card overflow-hidden">
-            <div className="p-4 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
+            <div className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
                     {/* Mobile/Tablet: Head and Stats Row, Desktop: Part of single row */}
                     <div className="flex items-center justify-between gap-4 lg:contents">
@@ -40,7 +40,7 @@ export const Row = ({ id, entityName, isExpanded, onToggle, head, str, action, s
 
                         {stats && (
                             <div className="flex-shrink-0 lg:ml-auto lg:order-last">
-                                <RowStats stats={stats} entityColor={entityColor} />
+                                <RowStats stats={stats} />
                             </div>
                         )}
                     </div>
@@ -49,7 +49,7 @@ export const Row = ({ id, entityName, isExpanded, onToggle, head, str, action, s
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:contents">
                         {str && (
                             <div className="flex-shrink-0">
-                                <RowStr label={str.label} items={str.items} />
+                                <RowStr label={str.label} items={str.items} entityColor={entityBgColor} />
                             </div>
                         )}
 
