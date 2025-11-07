@@ -6,13 +6,73 @@ import { db } from "@/drizzle/db";
 import { getHeaderUsername } from "@/types/headers";
 import { schoolPackage, school, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
 import { createSchoolPackageModel, type SchoolPackageModel } from "@/backend/models";
+import { buildSchoolPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const schoolPackageWithRelations = {
     school: true,
     studentPackages: true,
-    bookings: true
 };
+
+// GET SCHOOL PACKAGES WITH STATS
+export async function getSchoolPackagesWithStats(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
+    try {
+        const header = await getHeaderUsername();
+
+        let schoolId: string | undefined;
+        if (header) {
+            const schoolData = await db.query.school.findFirst({
+                where: eq(school.username, header),
+            });
+            if (!schoolData) {
+                return { success: true, data: [] };
+            }
+            schoolId = schoolData.id;
+        }
+
+        // 1. Fetch school packages with relations
+        let packagesResult;
+        try {
+            packagesResult = schoolId
+                ? await db.query.schoolPackage.findMany({
+                      where: eq(schoolPackage.schoolId, schoolId),
+                      with: schoolPackageWithRelations,
+                  })
+                : await db.query.schoolPackage.findMany({
+                      with: schoolPackageWithRelations,
+                  });
+        } catch (ormError) {
+            console.error("ORM Error:", ormError);
+            throw ormError;
+        }
+
+        // 2. Execute SQL stats
+        let statsResult;
+        try {
+            statsResult = await db.execute(buildSchoolPackageStatsQuery(schoolId));
+        } catch (sqlError) {
+            console.error("SQL Error:", sqlError);
+            throw sqlError;
+        }
+
+        // 3. Create stats map for quick lookup
+        const statsRows = Array.isArray(statsResult) ? statsResult : (statsResult as any).rows || [];
+        const statsMap = createStatsMap(statsRows);
+
+        // 4. Merge stats into models
+        const packages: SchoolPackageModel[] = packagesResult.map((packageData) => ({
+            ...createSchoolPackageModel(packageData),
+            stats: statsMap.get(packageData.id),
+        }));
+
+        console.log("getSchoolPackagesWithStats created packages:", packages);
+
+        return { success: true, data: packages };
+    } catch (error) {
+        console.error("Error fetching school packages with stats:", error);
+        return { success: false, error: `Failed to fetch school packages: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
 
 // CREATE
 export async function createPackage(packageSchema: SchoolPackageForm): Promise<ApiActionResponseModel<SchoolPackageType>> {

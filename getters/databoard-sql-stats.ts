@@ -98,6 +98,92 @@ export function buildEquipmentStatsQuery(schoolId?: string) {
     `;
 }
 
+export function buildStudentPackageStatsQuery(schoolId?: string) {
+    if (schoolId) {
+        return sql`
+            SELECT
+                sp.id as entity_id,
+                COUNT(DISTINCT sps.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM(
+                    CASE
+                        WHEN ref.commission_type = 'fixed' THEN ref.commission_value::integer
+                        WHEN ref.commission_type = 'percentage' THEN (pkg.price_per_student * (ref.commission_value::decimal / 100))::integer
+                        ELSE 0
+                    END
+                ), 0)::integer as money_out
+            FROM student_package sp
+            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
+            LEFT JOIN booking b ON b.student_package_id = sp.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN referral ref ON ref.id = sp.referral_id
+            WHERE pkg.school_id = ${schoolId}
+            GROUP BY sp.id
+        `;
+    } else {
+        return sql`
+            SELECT
+                sp.id as entity_id,
+                COUNT(DISTINCT sps.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM(
+                    CASE
+                        WHEN ref.commission_type = 'fixed' THEN ref.commission_value::integer
+                        WHEN ref.commission_type = 'percentage' THEN (pkg.price_per_student * (ref.commission_value::decimal / 100))::integer
+                        ELSE 0
+                    END
+                ), 0)::integer as money_out
+            FROM student_package sp
+            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
+            LEFT JOIN booking b ON b.student_package_id = sp.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN referral ref ON ref.id = sp.referral_id
+            GROUP BY sp.id
+        `;
+    }
+}
+
+export function buildSchoolPackageStatsQuery(schoolId?: string) {
+    if (schoolId) {
+        return sql`
+            SELECT
+                pkg.id as entity_id,
+                0::integer as student_count,
+                0::integer as events_count,
+                0::integer as total_duration_minutes,
+                0::integer as money_in,
+                0::integer as money_out
+            FROM school_package pkg
+            WHERE pkg.school_id = ${schoolId}
+        `;
+    } else {
+        return sql`
+            SELECT
+                pkg.id as entity_id,
+                0::integer as student_count,
+                0::integer as events_count,
+                0::integer as total_duration_minutes,
+                0::integer as money_in,
+                0::integer as money_out
+            FROM school_package pkg
+        `;
+    }
+}
+
 // ============ STATS MAP PARSER ============
 
 export type DataboardStats = {
@@ -106,6 +192,7 @@ export type DataboardStats = {
     events_count: number;
     total_duration_minutes: number;
     requested_packages_count?: number;
+    student_count?: number;
     rentals_count?: number;
     money_in: number;
     money_out: number;
@@ -120,6 +207,7 @@ export function createStatsMap(statsRows: any[]): Map<string, DataboardStats> {
             events_count: row.events_count || 0,
             total_duration_minutes: row.total_duration_minutes || 0,
             requested_packages_count: row.requested_packages_count || undefined,
+            student_count: row.student_count || undefined,
             rentals_count: row.rentals_count || undefined,
             money_in: row.money_in || 0,
             money_out: row.money_out || 0,

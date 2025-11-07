@@ -6,16 +6,80 @@ import { db } from "@/drizzle/db";
 import { getHeaderUsername } from "@/types/headers";
 import { studentPackage, student, schoolPackage, school, type StudentPackageForm } from "@/drizzle/schema";
 import { createStudentPackageModel, type StudentPackageModel } from "@/backend/models";
+import { buildStudentPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const studentPackageWithRelations = {
-    student: true,
     schoolPackage: {
         with: {
             school: true,
         },
     },
+    studentPackageStudents: {
+        with: {
+            student: true,
+        },
+    },
+    bookings: true,
 };
+
+// GET STUDENT PACKAGES WITH STATS
+export async function getStudentPackagesWithStats(): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
+    try {
+        const header = await getHeaderUsername();
+
+        let schoolId: string | undefined;
+        if (header) {
+            const schoolData = await db.query.school.findFirst({
+                where: eq(school.username, header),
+            });
+            if (!schoolData) {
+                return { success: true, data: [] };
+            }
+            schoolId = schoolData.id;
+        }
+
+        // 1. Fetch all student packages with relations
+        let packagesResult;
+        try {
+            packagesResult = await db.query.studentPackage.findMany({
+                with: studentPackageWithRelations,
+            });
+        } catch (ormError) {
+            console.error("ORM Error:", ormError);
+            throw ormError;
+        }
+
+        // 2. Filter by school if schoolId provided (since studentPackage doesn't have direct schoolId field)
+        const filteredPackages = schoolId
+            ? packagesResult.filter(pkg => pkg.schoolPackage?.school?.id === schoolId)
+            : packagesResult;
+
+        // 3. Execute SQL stats
+        let statsResult;
+        try {
+            statsResult = await db.execute(buildStudentPackageStatsQuery(schoolId));
+        } catch (sqlError) {
+            console.error("SQL Error:", sqlError);
+            throw sqlError;
+        }
+
+        // 4. Create stats map for quick lookup
+        const statsRows = Array.isArray(statsResult) ? statsResult : (statsResult as any).rows || [];
+        const statsMap = createStatsMap(statsRows);
+
+        // 5. Merge stats into models
+        const packages: StudentPackageModel[] = filteredPackages.map((packageData) => ({
+            ...createStudentPackageModel(packageData),
+            stats: statsMap.get(packageData.id),
+        }));
+
+        return { success: true, data: packages };
+    } catch (error) {
+        console.error("Error fetching student packages with stats:", error);
+        return { success: false, error: `Failed to fetch student packages: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
 
 // CREATE - Student requests a package
 export async function createStudentPackageRequest(requestData: StudentPackageForm): Promise<ApiActionResponseModel<StudentPackageModel>> {
@@ -152,14 +216,7 @@ export async function getStudentPackageById(id: string): Promise<ApiActionRespon
     try {
         const result = await db.query.studentPackage.findFirst({
             where: eq(studentPackage.id, id),
-            with: {
-                student: true,
-                schoolPackage: {
-                    with: {
-                        school: true,
-                    },
-                },
-            },
+            with: studentPackageWithRelations,
         });
 
         if (result) {
