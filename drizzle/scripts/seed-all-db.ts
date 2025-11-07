@@ -2,6 +2,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { config } from "dotenv";
+import { faker } from "@faker-js/faker";
 import {
     school,
     teacher,
@@ -10,6 +11,7 @@ import {
     equipment,
     schoolPackage,
     studentPackage,
+    studentPackageStudent,
     booking,
     bookingStudent,
     lesson,
@@ -17,14 +19,9 @@ import {
     rental,
     equipmentEvent,
     teacherEquipment,
-    equipmentCategoryEnum,
-    packageTypeEnum,
-    schoolStatusEnum,
-    lessonStatusEnum,
-    eventStatusEnum,
-    rentalStatusEnum,
     teacherCommission,
     teacherLessonPayment,
+    studentBookingPayment,
     equipmentRepair,
 } from "../schema.js"; // <-- your schema file
 
@@ -34,13 +31,8 @@ config({ path: ".env.local" });
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-// Helper: Random choice
-const randomChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
 const createTeacherCommissions = async (teacherId) => {
-    const commissions = [
-        { teacherId, commissionType: 'percentage', cph: '25.00', description: 'Standard 25% commission' },
-    ];
+    const commissions = [{ teacherId, commissionType: "percentage", cph: "25.00", description: "Standard 25% commission" }];
     const result = await db.insert(teacherCommission).values(commissions).returning();
     console.log(`Created 1 teacher commission for teacher ${teacherId}`);
     return result;
@@ -51,17 +43,17 @@ const createSchool = async () => {
     const [s] = await db
         .insert(school)
         .values({
-            name: "Kite Paradise School",
-            username: "kiteparadise",
-            country: "Portugal",
-            phone: "+351912345678",
+            name: faker.company.name() + " School",
+            username: faker.internet.username().toLowerCase(),
+            country: faker.location.country(),
+            phone: faker.string.numeric(10),
             status: "active",
-            latitude: "37.123456",
-            longitude: "-8.654321",
-            googlePlaceId: "ChIJ1234567890",
+            latitude: faker.location.latitude({ max: 90, min: -90, precision: 6 }).toFixed(6),
+            longitude: faker.location.longitude({ max: 180, min: -180, precision: 6 }).toFixed(6),
+            googlePlaceId: faker.string.uuid(),
             equipmentCategories: "kite,wing",
-            websiteUrl: "https://kiteparadise.com",
-            instagramUrl: "https://instagram.com/kiteparadise",
+            websiteUrl: faker.internet.url(),
+            instagramUrl: faker.internet.url(),
         })
         .returning();
     console.log("Created school:", s.id);
@@ -69,10 +61,16 @@ const createSchool = async () => {
 };
 
 const createTeachers = async (schoolId) => {
-    const teachers = [
-        { firstName: "Marco", lastName: "Silva", username: "marco", passport: "PT123456", country: "Portugal", phone: "+351911111111", schoolId, languages: ["Portuguese", "English"] },
-        { firstName: "Ana", lastName: "Costa", username: "ana", passport: "PT789012", country: "Portugal", phone: "+351922222222", schoolId, languages: ["Portuguese", "English", "Spanish"] },
-    ];
+    const teachers = Array.from({ length: 2 }, () => ({
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        username: faker.internet.username().toLowerCase(),
+        passport: faker.string.alphanumeric(10).toUpperCase(),
+        country: faker.location.country(),
+        phone: faker.string.numeric(10),
+        schoolId,
+        languages: [faker.helpers.arrayElement(["Portuguese", "English", "Spanish", "French", "German"])],
+    }));
 
     const result = await db.insert(teacher).values(teachers).returning();
     console.log(`Created ${result.length} teachers`);
@@ -80,18 +78,13 @@ const createTeachers = async (schoolId) => {
 };
 
 const createStudents = async (count = 8) => {
-    const firstNames = ["Liam", "Emma", "Noah", "Olivia", "Ava", "Isabella", "Sophia", "Mia"];
-    const lastNames = ["Garcia", "Martinez", "Lopez", "Wilson", "Brown", "Davis", "Taylor", "Clark"];
-    const countries = ["Spain", "France", "Germany", "UK", "USA", "Italy", "Netherlands", "Portugal"];
-    const languages = [["English"], ["Spanish", "English"], ["German"], ["French", "English"], ["Italian"], ["English", "Dutch"]];
-
-    const students = Array.from({ length: count }, (_, i) => ({
-        firstName: randomChoice(firstNames),
-        lastName: randomChoice(lastNames),
-        passport: `PASS${1000 + i}`,
-        country: randomChoice(countries),
-        phone: `+34${600000000 + i}`,
-        languages: randomChoice(languages),
+    const students = Array.from({ length: count }, () => ({
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        passport: faker.string.alphanumeric(10).toUpperCase(),
+        country: faker.location.country(),
+        phone: faker.string.numeric(10),
+        languages: [faker.helpers.arrayElement(["English", "Spanish", "German", "French", "Italian", "Dutch"])],
     }));
 
     const result = await db.insert(student).values(students).returning();
@@ -101,10 +94,10 @@ const createStudents = async (count = 8) => {
 
 const createEquipment = async (schoolId) => {
     const items = [
-        { sku: "KITE001", model: "Duotone Neo 9m", color: "Blue", size: 9, category: "kite", status: "rental" },
-        { sku: "KITE002", model: "North Carve 7m", color: "Red", size: 7, category: "kite", status: "rental" },
-        { sku: "WING001", model: "Duotone Echo 5m", color: "Green", size: 5, category: "wing", status: "rental" },
-        { sku: "WING002", model: "F-One Swing 4.2m", color: "Yellow", size: 4, category: "wing", status: "rental" },
+        { sku: `KITE001-${faker.string.uuid()}`, model: "Duotone Neo 9m", color: "Blue", size: 9, category: "kite", status: "rental" },
+        { sku: `KITE002-${faker.string.uuid()}`, model: "North Carve 7m", color: "Red", size: 7, category: "kite", status: "rental" },
+        { sku: `WING001-${faker.string.uuid()}`, model: "Duotone Echo 5m", color: "Green", size: 5, category: "wing", status: "rental" },
+        { sku: `WING002-${faker.string.uuid()}`, model: "F-One Swing 4.2m", color: "Yellow", size: 4, category: "wing", status: "rental" },
     ].map((item) => ({ ...item, schoolId }));
 
     const result = await db.insert(equipment).values(items).returning();
@@ -143,14 +136,13 @@ const main = async () => {
 
         // 3. Students
         const students = await createStudents(8);
-        const studentIds = students.map((s) => s.id);
 
         // Associate all students with the school
         console.log(`Associating all ${students.length} students with school ${schoolRecord.name}...`);
         const schoolStudentRelations = students.map((student) => ({
             schoolId: schoolId,
             studentId: student.id,
-            description: "Enrolled for lessons",
+            description: faker.lorem.sentence(),
         }));
         await db.insert(schoolStudents).values(schoolStudentRelations);
         console.log("✅ Students associated with school.");
@@ -164,10 +156,10 @@ const main = async () => {
         // Add a repair record for a kite
         await db.insert(equipmentRepair).values({
             equipmentId: kiteEquipment[0].id,
-            checkIn: "2025-05-20",
-            checkOut: "2025-05-25",
-            price: 50,
-            description: "Small tear in the canopy, patched and tested.",
+            checkIn: faker.date.past().toISOString().split("T")[0],
+            checkOut: faker.date.future().toISOString().split("T")[0],
+            price: faker.number.int({ min: 20, max: 100 }),
+            description: faker.lorem.sentence(),
         });
         console.log(`✅ Created equipment repair record for ${kiteEquipment[0].sku}`);
 
@@ -185,37 +177,48 @@ const main = async () => {
         // 7. Student makes package request → booking → lesson → event → equipment
         const student1 = students[0];
         const teacher1 = teachers[0];
-        const kiteLessonPkg = lessonPackages.find((p) => p.categoryEquipment === "kite");
-        const kiteEq = kiteEquipment[0];
+        const kiteLessonPkg = faker.helpers.arrayElement(lessonPackages.filter((p) => p.categoryEquipment === "kite"));
+        const kiteEq = faker.helpers.arrayElement(kiteEquipment);
 
-        // StudentPackage (request)
+        // StudentPackage (request) - walletId could be anyone (parent, student, school admin)
         const [studentPkg] = await db
             .insert(studentPackage)
             .values({
-                studentId: student1.id,
+                walletId: student1.id, // For this seed, using student1's id as the wallet creator
                 packageId: kiteLessonPkg.id,
-                requestedDateStart: "2025-06-15",
-                requestedDateEnd: "2025-06-15",
+                requestedDateStart: faker.date.future().toISOString().split("T")[0],
+                requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
             })
             .returning();
+
+        // Link student(s) to the package - respect package capacity
+        const studentsForPackage = students.slice(0, Math.min(kiteLessonPkg.capacityStudents, students.length));
+        await db.insert(studentPackageStudent).values(
+            studentsForPackage.map(s => ({
+                studentPackageId: studentPkg.id,
+                studentId: s.id,
+            }))
+        );
 
         // Booking
         const [bookingRecord] = await db
             .insert(booking)
             .values({
-                packageId: kiteLessonPkg.id,
-                dateStart: "2025-06-15",
-                dateEnd: "2025-06-15",
+                dateStart: faker.date.future().toISOString().split("T")[0],
+                dateEnd: faker.date.future().toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: studentPkg.id,
             })
             .returning();
 
-        await db.insert(bookingStudent).values({
-            bookingId: bookingRecord.id,
-            studentId: student1.id,
-        });
+        // Link all students from studentPackage to booking
+        await db.insert(bookingStudent).values(
+            studentsForPackage.map(s => ({
+                bookingId: bookingRecord.id,
+                studentId: s.id,
+            }))
+        );
 
         // Lesson
         const [lessonRecord] = await db
@@ -231,18 +234,28 @@ const main = async () => {
         // Add a payment for this lesson
         await db.insert(teacherLessonPayment).values({
             lessonId: lessonRecord.id,
-            amount: 90,
+            amount: faker.number.int({ min: 50, max: 150 }),
         });
         console.log(`✅ Created payment record for lesson ${lessonRecord.id}`);
+
+        // Add student booking payments for each student in the booking
+        for (const s of studentsForPackage) {
+            await db.insert(studentBookingPayment).values({
+                bookingId: bookingRecord.id,
+                studentId: s.id,
+                amount: faker.number.int({ min: 100, max: 500 }),
+            });
+        }
+        console.log(`✅ Created ${studentsForPackage.length} student payment(s) for booking ${bookingRecord.id}`);
 
         // Event
         const [eventRecord] = await db
             .insert(event)
             .values({
                 lessonId: lessonRecord.id,
-                date: new Date("2025-06-15T10:00:00Z"),
-                duration: 120,
-                location: "Lagos Beach",
+                date: faker.date.future(),
+                duration: faker.number.int({ min: 60, max: 180 }),
+                location: faker.location.city(),
                 status: "planned",
             })
             .returning();
@@ -255,74 +268,97 @@ const main = async () => {
 
         // 8. Rental example
         const student2 = students[1];
-        const rentalPkg = rentalPackages.find((p) => p.categoryEquipment === "wing");
-        const wingEq = wingEquipment[0];
+        const rentalPkg = faker.helpers.arrayElement(rentalPackages.filter((p) => p.categoryEquipment === "wing"));
+        const wingEq = faker.helpers.arrayElement(wingEquipment);
 
         const [rentalStudentPkg] = await db
             .insert(studentPackage)
             .values({
-                studentId: student2.id,
+                walletId: student2.id, // Using student2's id as the wallet creator
                 packageId: rentalPkg.id,
-                requestedDateStart: "2025-06-16",
-                requestedDateEnd: "2025-06-16",
+                requestedDateStart: faker.date.future().toISOString().split("T")[0],
+                requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
             })
             .returning();
 
+        // Link student(s) to rental package
+        const studentsForRental = [student2]; // Just one student for rental
+        await db.insert(studentPackageStudent).values(
+            studentsForRental.map(s => ({
+                studentPackageId: rentalStudentPkg.id,
+                studentId: s.id,
+            }))
+        );
+
         const [rentalBooking] = await db
             .insert(booking)
             .values({
-                packageId: rentalPkg.id,
-                dateStart: "2025-06-16",
-                dateEnd: "2025-06-16",
+                dateStart: faker.date.future().toISOString().split("T")[0],
+                dateEnd: faker.date.future().toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: rentalStudentPkg.id,
             })
             .returning();
 
-        await db.insert(bookingStudent).values({
-            bookingId: rentalBooking.id,
-            studentId: student2.id,
-        });
+        await db.insert(bookingStudent).values(
+            studentsForRental.map(s => ({
+                bookingId: rentalBooking.id,
+                studentId: s.id,
+            }))
+        );
 
         // Rental
         await db.insert(rental).values({
-            date: new Date("2025-06-16T14:00:00Z"),
+            date: faker.date.future(),
             duration: 180,
-            location: "Meia Praia",
+            location: faker.location.city(),
             status: "planned",
             studentId: student2.id,
             equipmentId: wingEq.id,
         });
 
-        // 9. More variety: another lesson + event
+        // 9. More variety: another lesson + event with multiple students
         const student3 = students[2];
-        const wingLessonPkg = lessonPackages.find((p) => p.categoryEquipment === "wing");
-        const wingEq2 = wingEquipment[1];
+        const wingLessonPkg = faker.helpers.arrayElement(lessonPackages.filter((p) => p.categoryEquipment === "wing"));
+        const wingEq2 = faker.helpers.arrayElement(wingEquipment);
 
         const [sp3] = await db
             .insert(studentPackage)
             .values({
-                studentId: student3.id,
+                walletId: student3.id, // Using student3's id as the wallet creator
                 packageId: wingLessonPkg.id,
-                requestedDateStart: "2025-06-17",
-                requestedDateEnd: "2025-06-17",
+                requestedDateStart: faker.date.future().toISOString().split("T")[0],
+                requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
             })
             .returning();
 
+        // Link multiple students based on package capacity
+        const studentsForWingLesson = students.slice(2, Math.min(2 + wingLessonPkg.capacityStudents, students.length));
+        await db.insert(studentPackageStudent).values(
+            studentsForWingLesson.map(s => ({
+                studentPackageId: sp3.id,
+                studentId: s.id,
+            }))
+        );
+
         const [b3] = await db
             .insert(booking)
             .values({
-                packageId: wingLessonPkg.id,
-                dateStart: "2025-06-17",
-                dateEnd: "2025-06-17",
+                dateStart: faker.date.future().toISOString().split("T")[0],
+                dateEnd: faker.date.future().toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: sp3.id,
             })
             .returning();
 
-        await db.insert(bookingStudent).values({ bookingId: b3.id, studentId: student3.id });
+        await db.insert(bookingStudent).values(
+            studentsForWingLesson.map(s => ({
+                bookingId: b3.id,
+                studentId: s.id,
+            }))
+        );
 
         const [l3] = await db
             .insert(lesson)
@@ -338,9 +374,9 @@ const main = async () => {
             .insert(event)
             .values({
                 lessonId: l3.id,
-                date: new Date("2025-06-17T09:00:00Z"),
+                date: faker.date.future(),
                 duration: 90,
-                location: "Praia da Luz",
+                location: faker.location.city(),
                 status: "planned",
             })
             .returning();

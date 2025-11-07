@@ -97,13 +97,11 @@ export const studentPackage = pgTable(
     "student_package",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        studentId: uuid("student_id")
-            .notNull()
-            .references(() => student.id),
         packageId: uuid("package_id")
             .notNull()
             .references(() => schoolPackage.id),
         referralId: uuid("referral_id").references(() => referral.id),
+        walletId: uuid("wallet_id").notNull(), // Who created this package request
         requestedDateStart: date("requested_date_start").notNull(),
         requestedDateEnd: date("requested_date_end").notNull(),
         status: studentPackageStatusEnum("status").notNull(),
@@ -111,11 +109,6 @@ export const studentPackage = pgTable(
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
     (table) => [
-        foreignKey({
-            columns: [table.studentId],
-            foreignColumns: [student.id],
-            name: "student_package_student_id_fk",
-        }),
         foreignKey({
             columns: [table.packageId],
             foreignColumns: [schoolPackage.id],
@@ -126,9 +119,39 @@ export const studentPackage = pgTable(
             foreignColumns: [referral.id],
             name: "student_package_referral_id_fk",
         }),
-        index("student_package_student_id_idx").on(table.studentId),
         index("student_package_package_id_idx").on(table.packageId),
         index("student_package_referral_id_idx").on(table.referralId),
+        index("student_package_wallet_id_idx").on(table.walletId),
+    ],
+);
+
+// 5b. student_package_student (many-to-many join table)
+export const studentPackageStudent = pgTable(
+    "student_package_student",
+    {
+        id: uuid("id").defaultRandom().primaryKey().notNull(),
+        studentPackageId: uuid("student_package_id")
+            .notNull()
+            .references(() => studentPackage.id),
+        studentId: uuid("student_id")
+            .notNull()
+            .references(() => student.id),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.studentPackageId],
+            foreignColumns: [studentPackage.id],
+            name: "student_package_student_package_id_fk",
+        }),
+        foreignKey({
+            columns: [table.studentId],
+            foreignColumns: [student.id],
+            name: "student_package_student_student_id_fk",
+        }),
+        unique("unique_student_package_student").on(table.studentPackageId, table.studentId),
+        index("student_package_student_package_id_idx").on(table.studentPackageId),
+        index("student_package_student_student_id_idx").on(table.studentId),
     ],
 );
 
@@ -214,7 +237,7 @@ export const booking = pgTable(
         dateEnd: date("date_end").notNull(),
         schoolId: uuid("school_id").references(() => school.id),
         studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
-        // status: bookingStatusEnum("status").notNull().default("active"), // TODO: Add via migration
+        status: bookingStatusEnum("status").notNull().default("active"), // TODO: Add via migration
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
@@ -429,6 +452,22 @@ export const teacherLessonPayment = pgTable(
     ],
 );
 
+// 20. student_booking_payment
+export const studentBookingPayment = pgTable(
+    "student_booking_payment",
+    {
+        id: uuid("id").defaultRandom().primaryKey().notNull(),
+        amount: integer("amount").notNull(),
+        bookingId: uuid("booking_id").notNull().references(() => booking.id),
+        studentId: uuid("student_id").notNull().references(() => student.id),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+    },
+    (table) => [
+        index("student_payment_booking_id_idx").on(table.bookingId),
+        index("student_payment_student_id_idx").on(table.studentId),
+    ],
+);
+
 export type StudentType = typeof student.$inferSelect;
 export type StudentForm = typeof student.$inferInsert;
 export type SchoolType = typeof school.$inferSelect;
@@ -461,9 +500,13 @@ export type EquipmentEventType = typeof equipmentEvent.$inferSelect;
 export type EquipmentEventForm = typeof equipmentEvent.$inferInsert;
 export type StudentPackageType = typeof studentPackage.$inferSelect;
 export type StudentPackageForm = typeof studentPackage.$inferInsert;
+export type StudentPackageStudentType = typeof studentPackageStudent.$inferSelect;
+export type StudentPackageStudentForm = typeof studentPackageStudent.$inferInsert;
 export type BookingType = typeof booking.$inferSelect;
 export type BookingForm = typeof booking.$inferInsert;
 export type BookingStudentType = typeof bookingStudent.$inferSelect;
 export type BookingStudentForm = typeof bookingStudent.$inferInsert;
 export type TeacherLessonPaymentType = typeof teacherLessonPayment.$inferSelect;
 export type TeacherLessonPaymentForm = typeof teacherLessonPayment.$inferInsert;
+export type StudentBookingPaymentType = typeof studentBookingPayment.$inferSelect;
+export type StudentBookingPaymentForm = typeof studentBookingPayment.$inferInsert;

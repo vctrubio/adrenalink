@@ -11,19 +11,22 @@ export const TABLES_TO_CLEAR = [
     "school_students",
     "school_package",
     "student_package",
+    "student_package_student",
     "booking",
     "booking_student",
+    "student_booking_payment",
     "equipment",
     "referral",
     "teacher",
     "teacher_commission",
+    "teacher_equipment",
     "lesson",
+    "teacher_lesson_payment",
     "event",
     "equipment_event",
     "equipment_repair",
     "student_lesson_feedback",
     "rental",
-    "teacher_equipment",
 ];
 export const ENUMS_TO_CLEAR = [
     "equipment_category",
@@ -36,6 +39,7 @@ export const ENUMS_TO_CLEAR = [
     "rental_status",
     "package_type",
     "languages",
+    "booking_status",
 ];
 
 export async function dropTable(tableName: string) {

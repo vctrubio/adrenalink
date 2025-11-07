@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { school, student, schoolStudents, schoolPackage, studentPackage, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment } from "./schema";
+import { school, student, schoolStudents, schoolPackage, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, event, equipment, equipmentEvent, teacher, teacherCommission, teacherEquipment, studentLessonFeedback, teacherLessonPayment, studentBookingPayment } from "./schema";
 
 export const schoolRelations = relations(school, ({ many }) => ({
     schoolStudents: many(schoolStudents),
@@ -9,8 +9,9 @@ export const schoolRelations = relations(school, ({ many }) => ({
 
 export const studentRelations = relations(student, ({ many }) => ({
     schoolStudents: many(schoolStudents),
-    studentPackages: many(studentPackage),
+    studentPackageStudents: many(studentPackageStudent),
     bookingStudents: many(bookingStudent),
+    bookingPayments: many(studentBookingPayment),
 }));
 
 export const schoolStudentsRelations = relations(schoolStudents, ({ one }) => ({
@@ -33,15 +34,23 @@ export const schoolPackageRelations = relations(schoolPackage, ({ one, many }) =
 }));
 
 export const studentPackageRelations = relations(studentPackage, ({ one, many }) => ({
-    student: one(student, {
-        fields: [studentPackage.studentId],
-        references: [student.id],
-    }),
     schoolPackage: one(schoolPackage, {
         fields: [studentPackage.packageId],
         references: [schoolPackage.id],
     }),
+    studentPackageStudents: many(studentPackageStudent),
     bookings: many(booking),
+}));
+
+export const studentPackageStudentRelations = relations(studentPackageStudent, ({ one }) => ({
+    studentPackage: one(studentPackage, {
+        fields: [studentPackageStudent.studentPackageId],
+        references: [studentPackage.id],
+    }),
+    student: one(student, {
+        fields: [studentPackageStudent.studentId],
+        references: [student.id],
+    }),
 }));
 
 export const bookingRelations = relations(booking, ({ one, many }) => ({
@@ -55,6 +64,7 @@ export const bookingRelations = relations(booking, ({ one, many }) => ({
     }),
     bookingStudents: many(bookingStudent),
     lessons: many(lesson),
+    studentPayments: many(studentBookingPayment),
 }));
 
 export const bookingStudentRelations = relations(bookingStudent, ({ one }) => ({
@@ -158,5 +168,16 @@ export const teacherLessonPaymentRelations = relations(teacherLessonPayment, ({ 
     lesson: one(lesson, {
         fields: [teacherLessonPayment.lessonId],
         references: [lesson.id],
+    }),
+}));
+
+export const studentBookingPaymentRelations = relations(studentBookingPayment, ({ one }) => ({
+    booking: one(booking, {
+        fields: [studentBookingPayment.bookingId],
+        references: [booking.id],
+    }),
+    student: one(student, {
+        fields: [studentBookingPayment.studentId],
+        references: [student.id],
     }),
 }));
