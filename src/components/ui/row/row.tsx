@@ -24,10 +24,11 @@ interface RowProps {
         }>;
     };
     action?: ReactNode;
+    popover?: ReactNode;
     stats?: StatItem[];
 }
 
-export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head, str, action, stats }: RowProps) => {
+export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
     return (
         <div className="bg-card overflow-hidden">
             <div className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
@@ -38,11 +39,14 @@ export const Row = ({ id, entityName, entityBgColor, isExpanded, onToggle, head,
                             <RowHead avatar={head.avatar} name={head.name} status={head.status} />
                         </div>
 
-                        {stats && (
-                            <div className="flex-shrink-0 lg:ml-auto lg:order-last">
-                                <RowStats stats={stats} />
-                            </div>
-                        )}
+                        <div className="flex items-center gap-4 flex-shrink-0 lg:ml-auto lg:order-last">
+                            {popover && <div className="flex-shrink-0">{popover}</div>}
+                            {stats && (
+                                <div className="flex-shrink-0">
+                                    <RowStats stats={stats} />
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Mobile: Stack Str and Action, Tablet: Side by side, Desktop: Part of single row */}

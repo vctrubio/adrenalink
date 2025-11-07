@@ -1,7 +1,8 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
-import { BookingTag, BookingCreateTag, BankCalculatorTag } from "@/src/components/ui/tag";
+import { BookingTag, BookingCreateTag } from "@/src/components/ui/tag";
+import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { ENTITY_DATA } from "@/config/entities";
 import { getStudentBookingsCount, getStudentEventsCount, getStudentTotalHours, getStudentRequestedPackagesCount, getStudentMoneyIn, getStudentMoneyOut } from "@/getters/students-getter";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
@@ -9,7 +10,34 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import type { StudentModel } from "@/backend/models";
+
+export function calculateStudentGroupStats(students: StudentModel[]): StatItem[] {
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const requestEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+
+    const totalRequestedPackages = students.reduce((sum, student) => sum + getStudentRequestedPackagesCount(student), 0);
+    const totalBookings = students.reduce((sum, student) => sum + getStudentBookingsCount(student), 0);
+    const totalEvents = students.reduce((sum, student) => sum + getStudentEventsCount(student), 0);
+    const totalHours = students.reduce((sum, student) => sum + getStudentTotalHours(student), 0);
+
+    const totalMoneyIn = students.reduce((sum, student) => sum + getStudentMoneyIn(student), 0);
+    const totalMoneyOut = students.reduce((sum, student) => sum + getStudentMoneyOut(student), 0);
+    const netMoney = totalMoneyIn - totalMoneyOut;
+    const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
+
+    return [
+        { icon: <HelmetIcon className="w-5 h-5" />, value: students.length, color: studentEntity.color },
+        { icon: <RequestIcon className="w-5 h-5" />, value: totalRequestedPackages, color: requestEntity.color },
+        { icon: <BookingIcon className="w-5 h-5" />, value: totalBookings, color: bookingEntity.color },
+        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
+        { icon: <DurationIcon className="w-5 h-5" />, value: totalHours, color: "#4b5563" },
+        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
+    ];
+}
 
 const StudentAction = ({ student }: { student: StudentModel }) => {
     const bookingStudents = student.relations?.bookingStudents || [];
@@ -18,39 +46,20 @@ const StudentAction = ({ student }: { student: StudentModel }) => {
     const netMoney = moneyIn - moneyOut;
     const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
 
-    const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     return (
         <div className="flex flex-wrap gap-2">
             {bookingStudents.length === 0 ? (
-                <BookingCreateTag
-                    icon={<BookingIcon className="w-3 h-3" />}
-                    onClick={() => console.log("Creating new booking...")}
-                />
+                <BookingCreateTag icon={<BookingIcon className="w-3 h-3" />} onClick={() => console.log("Creating new booking...")} />
             ) : (
                 <>
                     {bookingStudents.map((bookingStudent) => {
                         const booking = bookingStudent.booking;
                         if (!booking) return null;
 
-                        return (
-                            <BookingTag
-                                key={booking.id}
-                                icon={<BookingIcon className="w-3 h-3" />}
-                                dateStart={booking.dateStart}
-                                dateEnd={booking.dateEnd}
-                                status="active"
-                                link={`/bookings/${booking.id}`}
-                            />
-                        );
+                        return <BookingTag key={booking.id} icon={<BookingIcon className="w-3 h-3" />} dateStart={booking.dateStart} dateEnd={booking.dateEnd} status="active" link={`/bookings/${booking.id}`} />;
                     })}
-                    <BankCalculatorTag
-                        icon={<BankIcon className="w-3 h-3" />}
-                        moneyIn={moneyIn}
-                        moneyOut={moneyOut}
-                        bgColor={bookingEntity.bgColor}
-                        color={bankColor}
-                    />
                 </>
             )}
         </div>
@@ -58,12 +67,12 @@ const StudentAction = ({ student }: { student: StudentModel }) => {
 };
 
 interface StudentRowProps {
-    student: StudentModel;
+    item: StudentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
 }
 
-export const StudentRow = ({ student, isExpanded, onToggle }: StudentRowProps) => {
+export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const requestEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
@@ -93,7 +102,7 @@ export const StudentRow = ({ student, isExpanded, onToggle }: StudentRowProps) =
         { icon: <BookingIcon className="w-5 h-5" />, value: getStudentBookingsCount(student), color: bookingEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: getStudentEventsCount(student), color: eventEntity.color },
         { icon: <DurationIcon className="w-5 h-5" />, value: getStudentTotalHours(student), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: netMoney, color: bankColor },
+        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
     ];
 
     return (
@@ -117,6 +126,7 @@ export const StudentRow = ({ student, isExpanded, onToggle }: StudentRowProps) =
                 items: strItems,
             }}
             action={<StudentAction student={student} />}
+            popover={<StudentPackagePopover student={student} />}
             stats={stats}
         />
     );

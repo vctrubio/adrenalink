@@ -1,6 +1,9 @@
 import { type ReactNode, useState } from "react";
 import { RowStats, type StatItem } from "@/src/components/ui/row";
 import type { AbstractModel } from "@/backend/models";
+import { calculateStudentGroupStats } from "@/src/components/databoard/rows/StudentRow";
+import { calculateTeacherGroupStats } from "@/src/components/databoard/rows/TeacherRow";
+import type { StudentModel, TeacherModel } from "@/backend/models";
 
 interface GroupDataRowsProps<T> {
     groupedData: Array<{
@@ -10,11 +13,11 @@ interface GroupDataRowsProps<T> {
     renderRow: (item: AbstractModel<T>, isExpanded: boolean, onToggle: (id: string) => void) => ReactNode;
     expandedRow: string | null;
     setExpandedRow: (id: string | null) => void;
-    statsConfig?: (data: AbstractModel<T>[]) => StatItem[];
+    entityId: string;
     entityColor: string;
 }
 
-export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, statsConfig, entityColor }: GroupDataRowsProps<T>) => {
+export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, entityId, entityColor }: GroupDataRowsProps<T>) => {
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set(groupedData.map((_, index) => index)));
 
     const handleToggle = (id: string) => {
@@ -33,12 +36,21 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
         });
     };
 
+    const getGroupStats = (data: AbstractModel<T>[]): StatItem[] => {
+        if (entityId === "student") {
+            return calculateStudentGroupStats(data as StudentModel[]);
+        } else if (entityId === "teacher") {
+            return calculateTeacherGroupStats(data as TeacherModel[]);
+        }
+        return [];
+    };
+
     return (
         <div className="space-y-6">
             {groupedData.map((group, groupIndex) => {
                 const isGroupExpanded = expandedGroups.has(groupIndex);
                 return (
-                    <div key={groupIndex} className="flex flex-col gap:2 rounded-lg overflow-hidden border border-border ">
+                    <div key={groupIndex} className="flex flex-col gap-2 rounded-lg overflow-hidden border border-border">
                         {/* Group Header */}
                         <div
                             className="bg-muted/30 px-6 py-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors"
@@ -57,7 +69,7 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                                     <h3 className="text-lg font-semibold">{group.label}</h3>
                                 </div>
                                 <div className="flex items-center gap-6">
-                                    {statsConfig && <RowStats stats={statsConfig(group.data)} />}
+                                    <RowStats stats={getGroupStats(group.data)} />
                                 </div>
                             </div>
                         </div>

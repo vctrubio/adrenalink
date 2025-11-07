@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { Tag } from "./tag";
 import { ENTITY_DATA } from "@/config/entities";
+import { formatDate } from "@/getters/date-getter";
 
 interface LessonTagProps {
     icon: ReactNode;
@@ -10,11 +11,6 @@ interface LessonTagProps {
     status: "active" | "rest" | "completed" | "uncompleted";
     link?: string;
 }
-
-const formatDate = (date: string | Date): string => {
-    const d = new Date(date);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
 
 export const LessonTag = ({ icon, createdAt, status, link }: LessonTagProps) => {
     const lessonEntity = ENTITY_DATA.find(e => e.id === "lesson")!;

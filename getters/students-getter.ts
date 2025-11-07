@@ -1,10 +1,4 @@
-import type { StudentType } from "@/drizzle/schema";
 import type { StudentModel } from "@/backend/models";
-
-//this will be first_name + last_name later?
-export function getStudentName(student: StudentType): string {
-    return student.name;
-}
 
 export function getStudentSchoolCount(student: StudentModel): number {
     return student.relations?.schoolStudents?.length || 0;
@@ -85,4 +79,24 @@ export function getStudentMoneyOut(student: StudentModel): number {
     }
 
     return Math.round(totalCost);
+}
+
+export function getStudentUnfinishedRequests(student: StudentModel): Array<{ id: string; status: string; packageId: string }> {
+    const studentPackageStudents = student.relations?.studentPackageStudents || [];
+    const unfinishedRequests = [];
+
+    for (const sps of studentPackageStudents) {
+        const studentPackage = sps.studentPackage;
+        if (!studentPackage) continue;
+
+        if (studentPackage.status === "requested") {
+            unfinishedRequests.push({
+                id: studentPackage.id,
+                status: studentPackage.status,
+                packageId: studentPackage.packageId,
+            });
+        }
+    }
+
+    return unfinishedRequests;
 }

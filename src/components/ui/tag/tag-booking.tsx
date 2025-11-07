@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { Tag } from "./tag";
 import { ENTITY_DATA } from "@/config/entities";
+import { calculateDaysDifference, formatDate } from "@/getters/date-getter";
 
 interface BookingTagProps {
     icon: ReactNode;
@@ -11,24 +12,6 @@ interface BookingTagProps {
     status: "active" | "completed" | "uncompleted";
     link?: string;
 }
-
-const calculateDaysDifference = (start: string | Date, end: string | Date): number => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-
-    const diffTime = endDay.getTime() - startDay.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-};
-
-const formatDate = (date: string | Date): string => {
-    const d = new Date(date);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
 
 export const BookingTag = ({ icon, dateStart, dateEnd, status, link }: BookingTagProps) => {
     const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
