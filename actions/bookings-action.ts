@@ -103,40 +103,6 @@ export async function getBookingById(id: string): Promise<ApiActionResponseModel
     }
 }
 
-export async function getBookingsBySchoolId(schoolId: string): Promise<ApiActionResponseModel<BookingModel[]>> {
-    try {
-        const result = await db.query.booking.findMany({
-            where: eq(booking.schoolId, schoolId),
-            with: bookingWithRelations
-        });
-        
-        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
-        
-        return { success: true, data: bookings };
-    } catch (error) {
-        console.error("Error fetching bookings by school ID:", error);
-        return { success: false, error: "Failed to fetch bookings" };
-    }
-}
-
-export async function getBookingsByPackageId(packageId: string): Promise<ApiActionResponseModel<BookingModel[]>> {
-    try {
-        // Get all bookings and filter by packageId through studentPackage
-        const allBookings = await db.query.booking.findMany({
-            with: bookingWithRelations
-        });
-        
-        const bookings: BookingModel[] = allBookings
-            .filter(b => b.studentPackage?.packageId === packageId)
-            .map(bookingData => createBookingModel(bookingData));
-        
-        return { success: true, data: bookings };
-    } catch (error) {
-        console.error("Error fetching bookings by package ID:", error);
-        return { success: false, error: "Failed to fetch bookings" };
-    }
-}
-
 // UPDATE
 export async function updateBooking(id: string, bookingSchema: Partial<BookingForm>): Promise<ApiActionResponseModel<BookingType>> {
     try {

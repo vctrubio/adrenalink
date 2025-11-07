@@ -19,3 +19,7 @@ export function getRevenuePerHour(schoolPackage: SchoolPackageModel): number {
     const revenue = getRevenue(schoolPackage);
     return hours > 0 ? revenue / hours : 0;
 }
+
+export function getPricePerMinute(pricePerStudent: number, durationMinutes: number): number {
+    return durationMinutes > 0 ? pricePerStudent / durationMinutes : 0;
+}

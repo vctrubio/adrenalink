@@ -14,7 +14,11 @@ const studentWithRelations = {
             school: true,
         },
     },
-    studentPackages: true,
+    studentPackageStudents: {
+        with: {
+            studentPackage: true,
+        },
+    },
     bookingStudents: true,
 };
 
