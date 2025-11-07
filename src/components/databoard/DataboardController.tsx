@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useEffect, useState, ReactNode } from "react";
+import { useRef, useEffect, useState, ReactNode } from "react";
 import Image from "next/image";
 import { DATABOARD_DATE_FILTERS, DATABOARD_DATE_GROUPS } from "@/config/databoard";
 import type { DataboardFilterByDate, DataboardGroupByDate } from "@/types/databoard";
@@ -9,12 +9,10 @@ interface SearchInputProps {
     search: string;
     setSearch: (search: string) => void;
     icon: ReactNode;
-    studentCount: number;
     entityColor: string;
 }
 
-const SearchInput = ({ search, setSearch, icon, studentCount, entityColor }: SearchInputProps) => {
-    const focusRingColor = useMemo(() => entityColor.replace("text-", "ring-"), [entityColor]);
+const SearchInput = ({ search, setSearch, icon, entityColor }: SearchInputProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -41,7 +39,7 @@ const SearchInput = ({ search, setSearch, icon, studentCount, entityColor }: Sea
 
     return (
         <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: entityColor }}>
                 {icon}
             </div>
             <input
@@ -52,12 +50,9 @@ const SearchInput = ({ search, setSearch, icon, studentCount, entityColor }: Sea
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder="Search..."
-                className={`w-full h-10 rounded-md border border-input bg-background pl-11 pr-20 text-sm focus:outline-none focus:ring-2 ${focusRingColor} transition-colors`}
+                className="w-full h-10 rounded-md border border-input bg-background pl-11 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                <div className={`text-sm font-bold ${entityColor}`}>
-                    {studentCount}
-                </div>
                 {!isFocused && (
                     <Image
                         src="/hotkeys/CmdK.svg"
@@ -128,15 +123,14 @@ interface DataboardControllerProps {
     group: DataboardGroupByDate;
     setGroup: (group: DataboardGroupByDate) => void;
     icon: ReactNode;
-    studentCount: number;
     entityColor: string;
 }
 
-export const DataboardController = ({ search, setSearch, filter, setFilter, group, setGroup, icon, studentCount, entityColor }: DataboardControllerProps) => {
+export const DataboardController = ({ search, setSearch, filter, setFilter, group, setGroup, icon, entityColor }: DataboardControllerProps) => {
     return (
         <div className="lg:w-64 w-full p-4 border border-border rounded-md bg-muted/20">
             <div className="space-y-4">
-                <SearchInput search={search} setSearch={setSearch} icon={icon} studentCount={studentCount} entityColor={entityColor} />
+                <SearchInput search={search} setSearch={setSearch} icon={icon} entityColor={entityColor} />
 
                 <div className="border-t border-border pt-4 space-y-4">
                     <FilterSelect filter={filter} setFilter={setFilter} />

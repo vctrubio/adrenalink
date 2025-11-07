@@ -39,7 +39,7 @@ export const ClientDataHeader = <T,>({ entityId, status, data, rowComponent: Row
                 setFilter={setFilter}
                 group={group}
                 setGroup={setGroup}
-                icon={<Icon className={`w-6 h-6 ${entityColor}`} />}
+                icon={<Icon className="w-6 h-6" />}
                 studentCount={allFilteredStudents.length}
                 entityColor={entityColor}
             />
