@@ -1,25 +1,22 @@
 import type { SchoolPackageType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import type { DataboardStats } from "@/getters/databoard-sql-stats";
-import { ENTITY_DATA } from "@/config/entities";
 
 export type SchoolPackageModel = AbstractModel<SchoolPackageType> & {
     stats?: DataboardStats;
+    popoverType?: string;
 };
 
-export function createSchoolPackageModel(schoolPackageData: any): Omit<SchoolPackageModel, "stats"> {
+export function createSchoolPackageModel(schoolPackageData: any): SchoolPackageModel {
     const { school, studentPackages, ...pgTableSchema } = schoolPackageData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
-    const { icon, ...serializableEntityConfig } = entityConfig;
-
-    const model = {
-        entityConfig: serializableEntityConfig,
+    const model: SchoolPackageModel = {
         schema: pgTableSchema,
         relations: {
             school,
             studentPackages,
         },
+        popoverType: "school_package_details",
     };
 
     if (process.env.JSONIFY === "true") {

@@ -1,26 +1,22 @@
 import type { RentalType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
-import { ENTITY_DATA } from "@/config/entities";
+import type { DataboardStats } from "@/getters/databoard-sql-stats";
 
-export type RentalModel = AbstractModel<RentalType>;
+export type RentalModel = AbstractModel<RentalType> & {
+    stats?: DataboardStats;
+    popoverType?: string;
+};
 
 export function createRentalModel(rentalData: any): RentalModel {
     const { student, equipment, ...pgTableSchema } = rentalData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "rental");
-    if (!entityConfig) {
-        throw new Error("Rental entity config not found in ENTITY_DATA");
-    }
-
-    const { icon, ...serializableEntityConfig } = entityConfig;
-
-    const model = {
-        entityConfig: serializableEntityConfig,
+    const model: RentalModel = {
         schema: pgTableSchema,
         relations: {
             student,
             equipment,
         },
+        popoverType: "rental_details",
     };
 
     if (process.env.JSONIFY === "true") {

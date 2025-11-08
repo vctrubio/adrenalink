@@ -59,7 +59,7 @@ export const RentalRow = ({ item: rental, isExpanded, onToggle }: RentalRowProps
     return (
         <Row
             id={rental.schema.id}
-            entityData={rental}
+            entityData={rental.schema}
             entityBgColor={rentalEntity.bgColor}
             isExpanded={isExpanded}
             onToggle={onToggle}
