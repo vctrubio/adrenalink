@@ -76,7 +76,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     const packageDesc = schoolPackage?.description || "No package";
 
     const bookingStudents = booking.relations?.bookingStudents || [];
-    const studentNames = bookingStudents.map(bs => bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown").join(", ");
+    const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
 
     const strItems = [
         { label: "Students", value: studentNames || "No students" },

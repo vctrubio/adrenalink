@@ -41,16 +41,9 @@ const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
         <div className="flex flex-wrap gap-2">
             {lessons.length === 0 && !lessonReady ? null : (
                 <>
-                    {lessonReady && (
-                        <LessonCreateTag icon={<LessonIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />
-                    )}
+                    {lessonReady && <LessonCreateTag icon={<LessonIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />}
                     {lessons.map((lesson) => (
-                        <LessonTag
-                            key={lesson.id}
-                            icon={<LessonIcon className="w-3 h-3" />}
-                            createdAt={lesson.createdAt}
-                            status={lesson.status}
-                        />
+                        <LessonTag key={lesson.id} icon={<LessonIcon className="w-3 h-3" />} createdAt={lesson.createdAt} status={lesson.status} />
                     ))}
                 </>
             )}

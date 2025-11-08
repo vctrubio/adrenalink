@@ -1,20 +1,16 @@
 import type { BookingType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import type { DataboardStats } from "@/getters/databoard-sql-stats";
-import { ENTITY_DATA } from "@/config/entities";
 
 export type BookingModel = AbstractModel<BookingType> & {
     stats?: DataboardStats;
+    popoverType?: "booking_completion";
 };
 
 export function createBookingModel(bookingData: any): BookingModel {
     const { school, schoolPackage, studentPackage, bookingStudents, lessons, ...pgTableSchema } = bookingData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "booking")!;
-    const { icon, ...serializableEntityConfig } = entityConfig;
-
-    const model = {
-        entityConfig: serializableEntityConfig,
+    const model: BookingModel = {
         schema: pgTableSchema,
         relations: {
             school,

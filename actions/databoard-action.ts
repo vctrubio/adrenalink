@@ -208,10 +208,25 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
         const statsMap = createStatsMap(statsRows);
 
         // 4. Merge stats into models
-        const bookings: BookingModel[] = bookingsResult.map((bookingData) => ({
-            ...createBookingModel(bookingData),
-            stats: statsMap.get(bookingData.id),
-        }));
+        const bookings: BookingModel[] = bookingsResult.map((bookingData) => {
+            const baseModel = createBookingModel(bookingData);
+            const stats = statsMap.get(bookingData.id);
+
+            // Determine if popover should show (booking is complete)
+            let popoverType: "booking_completion" | undefined = undefined;
+            const actualMinutes = stats?.total_duration_minutes || 0;
+            const requiredMinutes = bookingData.studentPackage?.schoolPackage?.durationMinutes || 0;
+
+            if (requiredMinutes > 0 && actualMinutes >= requiredMinutes) {
+                popoverType = "booking_completion";
+            }
+
+            return {
+                ...baseModel,
+                stats,
+                popoverType,
+            };
+        });
 
         return { success: true, data: bookings };
     } catch (error) {

@@ -5,6 +5,9 @@ import SurfingIcon from "@/public/appSvgs/SurfingIcon";
 import SnowboardingIcon from "@/public/appSvgs/SnowboardingIcon";
 import { ComponentType } from "react";
 
+
+// to be discardfed.- use ./equipment.ts instead
+
 export type EquipmentCategory = "kite" | "wing" | "windsurf" | "surf" | "snowboard";
 
 export interface CategoryConfig {

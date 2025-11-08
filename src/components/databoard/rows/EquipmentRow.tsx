@@ -4,12 +4,8 @@ import { Row, type StatItem } from "@/src/components/ui/row";
 import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
 import { ENTITY_DATA } from "@/config/entities";
-import {
-    EquipmentStats,
-    getEquipmentName,
-    getEquipmentTeachers,
-    hasOpenRepair,
-} from "@/getters/equipments-getter";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EquipmentStats, getEquipmentName, getEquipmentTeachers, hasOpenRepair } from "@/getters/equipments-getter";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -17,7 +13,6 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import type { EquipmentModel } from "@/backend/models";
 
 export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): StatItem[] {
@@ -49,19 +44,9 @@ const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
     return (
         <div className="flex flex-wrap gap-2">
             {teachers.map(({ teacher, totalHours }) => (
-                <EquipmentTeacherTag
-                    key={teacher.id}
-                    icon={<HeadsetIcon className="w-3 h-3" />}
-                    username={teacher.username}
-                    hours={totalHours}
-                    link={`/teachers/${teacher.username}`}
-                />
+                <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.username}`} />
             ))}
-            {hasRepair && (
-                <div className="px-2 py-1 text-xs font-medium rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">
-                    In Repair
-                </div>
-            )}
+            {hasRepair && <div className="px-2 py-1 text-xs font-medium rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">In Repair</div>}
         </div>
     );
 };
@@ -76,9 +61,11 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
-    const EquipmentIconComponent = equipmentEntity.icon;
-    const entityColor = equipmentEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    // Get category-specific icon
+    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
+    const CategoryIcon = categoryConfig?.icon;
+    const categoryColor = categoryConfig?.color || equipmentEntity.color;
+    const iconColor = isExpanded ? categoryColor : "#9ca3af";
 
     const equipmentName = getEquipmentName(equipment);
     const status = equipment.schema.status || "unknown";
@@ -110,7 +97,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>
-                        <EquipmentIconComponent className="w-10 h-10" />
+                        {CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}
                     </div>
                 ),
                 name: equipmentName,

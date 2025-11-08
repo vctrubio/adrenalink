@@ -52,7 +52,7 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
     const schoolPackage = studentPackage.relations?.schoolPackage;
     const packageDesc = schoolPackage?.description || "No package";
     const isRequested = hasRequestedStatus(studentPackage);
-    const requestedBadge = isRequested ? "Requested" : (studentPackage.schema.status || "unknown");
+    const requestedBadge = isRequested ? "Requested" : studentPackage.schema.status || "unknown";
 
     const strItems = [
         { label: "Status", value: requestedBadge },
@@ -72,9 +72,7 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
     ];
 
-    const popoverItems = isRequested
-        ? [{ id: studentPackage.schema.id, icon: <RequestIcon className="w-4 h-4" />, color: packageEntity.color, label: "Requested" }]
-        : [];
+    const popoverItems = isRequested ? [{ id: studentPackage.schema.id, icon: <RequestIcon className="w-4 h-4" />, color: packageEntity.color, label: "Requested" }] : [];
 
     return (
         <Row
