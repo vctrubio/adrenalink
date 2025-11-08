@@ -2,74 +2,256 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/drizzle/db";
-import { student } from "@/drizzle/schema";
-import { createStudentModel, type StudentModel } from "@/backend/models";
-import { buildStudentStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
+import {
+    student,
+    teacher,
+    booking,
+    equipment,
+    studentPackage,
+    schoolPackage,
+    referral,
+    rental,
+} from "@/drizzle/schema";
+import {
+    createStudentModel,
+    createTeacherModel,
+    createBookingModel,
+    createEquipmentModel,
+    createStudentPackageModel,
+    createSchoolPackageModel,
+    createReferralModel,
+    createRentalModel,
+    type StudentModel,
+    type TeacherModel,
+    type BookingModel,
+    type EquipmentModel,
+    type StudentPackageModel,
+    type SchoolPackageModel,
+    type ReferralModel,
+    type RentalModel,
+} from "@/backend/models";
+import {
+    buildStudentStatsQuery,
+    buildTeacherStatsQuery,
+    buildBookingStatsQuery,
+    buildEquipmentStatsQuery,
+    buildStudentPackageStatsQuery,
+    buildSchoolPackageStatsQuery,
+    buildReferralStatsQuery,
+    createStatsMap,
+} from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
-// Student relations for detail page
-const studentWithRelations = {
-    schoolStudents: true,
-    studentPackageStudents: {
-        with: {
-            studentPackage: {
-                with: {
-                    schoolPackage: true,
-                },
-            },
-        },
-    },
-    bookingStudents: {
-        with: {
-            booking: {
-                with: {
-                    lessons: {
-                        with: {
-                            teacher: true,
-                            events: true,
-                        },
-                    },
-                    studentPackage: {
-                        with: {
-                            schoolPackage: true,
-                        },
+type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | StudentPackageModel | SchoolPackageModel | ReferralModel | RentalModel;
+
+// Entity relation configurations
+const entityRelations = {
+    student: {
+        schoolStudents: true,
+        studentPackageStudents: {
+            with: {
+                studentPackage: {
+                    with: {
+                        schoolPackage: true,
                     },
                 },
             },
         },
+        bookingStudents: {
+            with: {
+                booking: {
+                    with: {
+                        lessons: {
+                            with: {
+                                teacher: true,
+                                events: true,
+                            },
+                        },
+                        studentPackage: {
+                            with: {
+                                schoolPackage: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        bookingPayments: true,
     },
-    bookingPayments: true,
+    teacher: {
+        school: true,
+        lessons: {
+            with: {
+                events: true,
+                booking: true,
+            },
+        },
+        commissions: true,
+    },
+    booking: {
+        lessons: {
+            with: {
+                teacher: true,
+                events: true,
+            },
+        },
+        bookingStudents: {
+            with: {
+                student: true,
+            },
+        },
+        studentPackage: {
+            with: {
+                schoolPackage: true,
+            },
+        },
+    },
+    equipment: {
+        teacherEquipments: {
+            with: {
+                teacher: {
+                    with: {
+                        lessons: {
+                            with: {
+                                events: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        equipmentRepairs: true,
+    },
+    studentPackage: {
+        schoolPackage: true,
+        studentPackageStudents: {
+            with: {
+                student: true,
+            },
+        },
+        bookings: true,
+    },
+    schoolPackage: {
+        school: true,
+        studentPackages: true,
+    },
+    referral: {
+        school: true,
+        studentPackages: true,
+    },
+    rental: {
+        student: true,
+        equipment: true,
+    },
 };
 
-export async function getIdStudent(studentId: string): Promise<ApiActionResponseModel<StudentModel>> {
+export async function getEntityId(
+    entity: string,
+    id: string,
+): Promise<ApiActionResponseModel<EntityType>> {
     try {
-        // 1. Fetch student with full relations
-        const studentData = await db.query.student.findFirst({
-            where: eq(student.id, studentId),
-            with: studentWithRelations,
-        });
+        let entityData: any;
+        let statsQuery: any;
+        let createModel: (data: any) => EntityType;
 
-        if (!studentData) {
-            return { success: false, error: "Student not found" };
+        // 1. Fetch entity with appropriate relations
+        switch (entity) {
+            case "student":
+                entityData = await db.query.student.findFirst({
+                    where: eq(student.id, id),
+                    with: entityRelations.student,
+                });
+                statsQuery = buildStudentStatsQuery();
+                createModel = createStudentModel;
+                break;
+
+            case "teacher":
+                entityData = await db.query.teacher.findFirst({
+                    where: eq(teacher.id, id),
+                    with: entityRelations.teacher,
+                });
+                statsQuery = buildTeacherStatsQuery();
+                createModel = createTeacherModel;
+                break;
+
+            case "booking":
+                entityData = await db.query.booking.findFirst({
+                    where: eq(booking.id, id),
+                    with: entityRelations.booking,
+                });
+                statsQuery = buildBookingStatsQuery();
+                createModel = createBookingModel;
+                break;
+
+            case "equipment":
+                entityData = await db.query.equipment.findFirst({
+                    where: eq(equipment.id, id),
+                    with: entityRelations.equipment,
+                });
+                statsQuery = buildEquipmentStatsQuery();
+                createModel = createEquipmentModel;
+                break;
+
+            case "studentPackage":
+                entityData = await db.query.studentPackage.findFirst({
+                    where: eq(studentPackage.id, id),
+                    with: entityRelations.studentPackage,
+                });
+                statsQuery = buildStudentPackageStatsQuery();
+                createModel = createStudentPackageModel;
+                break;
+
+            case "schoolPackage":
+                entityData = await db.query.schoolPackage.findFirst({
+                    where: eq(schoolPackage.id, id),
+                    with: entityRelations.schoolPackage,
+                });
+                statsQuery = buildSchoolPackageStatsQuery();
+                createModel = createSchoolPackageModel;
+                break;
+
+            case "referral":
+                entityData = await db.query.referral.findFirst({
+                    where: eq(referral.id, id),
+                    with: entityRelations.referral,
+                });
+                statsQuery = buildReferralStatsQuery();
+                createModel = createReferralModel;
+                break;
+
+            case "rental":
+                entityData = await db.query.rental.findFirst({
+                    where: eq(rental.id, id),
+                    with: entityRelations.rental,
+                });
+                statsQuery = buildEquipmentStatsQuery();
+                createModel = createRentalModel;
+                break;
+
+            default:
+                return { success: false, error: `Unknown entity type: ${entity}` };
         }
 
-        // 2. Fetch stats for this student
-        const statsQuery = db.execute(buildStudentStatsQuery());
-        const statsResult = await statsQuery;
+        if (!entityData) {
+            return { success: false, error: `${entity} not found` };
+        }
+
+        // 2. Fetch stats
+        const statsResult = await db.execute(statsQuery);
 
         // 3. Create stats map
         const statsRows = Array.isArray(statsResult) ? statsResult : (statsResult as any).rows || [];
         const statsMap = createStatsMap(statsRows);
 
         // 4. Create model with stats
-        const studentModel: StudentModel = {
-            ...createStudentModel(studentData),
-            stats: statsMap.get(studentId),
+        const model: EntityType = {
+            ...createModel(entityData),
+            stats: statsMap.get(id),
         };
 
-        return { success: true, data: studentModel };
+        return { success: true, data: model };
     } catch (error) {
-        console.error("Error fetching student:", error);
-        return { success: false, error: "Failed to fetch student" };
+        console.error(`Error fetching ${entity}:`, error);
+        return { success: false, error: `Failed to fetch ${entity}` };
     }
 }

@@ -1,29 +1,21 @@
-
-import { StatsClient } from "@/src/components/stats/StatsClient";
-import { getBookings, getStudents, getTeachers, getEquipments } from "@/actions/databoard-action";
+import { ActiveBookingStatsList } from "@/src/components/booking/ActiveBookingStatsList";
+import { getActiveBookingsWithStats } from "@/getters/booking-stats-sql";
 
 export default async function StatsPage() {
-    // Fetch all entity data
-    const [bookingsResult, studentsResult, teachersResult, equipmentsResult] = await Promise.all([
-        getBookings(),
-        getStudents(),
-        getTeachers(),
-        getEquipments(),
-    ]);
+	const activeBookings = await getActiveBookingsWithStats();
 
-    const bookings = bookingsResult.success ? bookingsResult.data : [];
-    const students = studentsResult.success ? studentsResult.data : [];
-    const teachers = teachersResult.success ? teachersResult.data : [];
-    const equipments = equipmentsResult.success ? equipmentsResult.data : [];
+	return (
+		<div className="px-4 py-6">
+			{/* Page Header */}
+			<div className="mb-6">
+				<h1 className="text-3xl font-bold text-foreground mb-2">
+					Active Bookings <span className="text-muted-foreground text-2xl">({activeBookings.length})</span>
+				</h1>
+				<p className="text-muted-foreground">Monitor active bookings, student progress, and teacher assignments</p>
+			</div>
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <StatsClient
-                bookings={bookings}
-                students={students}
-                teachers={teachers}
-                equipments={equipments}
-            />
-        </div>
-    );
+			{/* Active Bookings List */}
+			<ActiveBookingStatsList bookings={activeBookings} />
+		</div>
+	);
 }

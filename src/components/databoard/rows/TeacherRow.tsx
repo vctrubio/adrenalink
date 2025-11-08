@@ -90,6 +90,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     return (
         <Row
             id={teacher.schema.id}
+            entity="teachers"
             entityData={teacher}
             entityBgColor={teacherEntity.bgColor}
             isExpanded={isExpanded}

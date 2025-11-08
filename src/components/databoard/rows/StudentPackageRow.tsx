@@ -77,6 +77,7 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
     return (
         <Row
             id={studentPackage.schema.id}
+            entity="requests"
             entityData={studentPackage.schema}
             entityBgColor={packageEntity.bgColor}
             isExpanded={isExpanded}

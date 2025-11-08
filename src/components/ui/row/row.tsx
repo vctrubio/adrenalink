@@ -7,6 +7,7 @@ import { RowStats, type StatItem } from "./row-stats";
 
 interface RowProps {
     id: string;
+    entity?: string;
     entityData: any;
     entityBgColor: string;
     isExpanded: boolean;
@@ -15,6 +16,8 @@ interface RowProps {
         avatar: ReactNode;
         name: string;
         status: string;
+        statusOptions?: string[];
+        onStatusChange?: (newStatus: string) => void;
     };
     str?: {
         label: string;
@@ -28,7 +31,7 @@ interface RowProps {
     stats?: StatItem[];
 }
 
-export const Row = ({ id, entityData, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
+export const Row = ({ id, entity, entityData, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
     return (
         <div className="bg-card overflow-hidden">
             <div className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
@@ -36,7 +39,15 @@ export const Row = ({ id, entityData, entityBgColor, isExpanded, onToggle, head,
                     {/* Mobile/Tablet: Head and Stats Row, Desktop: Part of single row */}
                     <div className="flex items-center justify-between gap-4 lg:contents">
                         <div className="flex-shrink-0">
-                            <RowHead avatar={head.avatar} name={head.name} status={head.status} />
+                            <RowHead
+                                avatar={head.avatar}
+                                name={head.name}
+                                status={head.status}
+                                statusOptions={head.statusOptions}
+                                onStatusChange={head.onStatusChange}
+                                id={id}
+                                entity={entity}
+                            />
                         </div>
 
                         <div className="flex items-center gap-4 flex-shrink-0 lg:ml-auto lg:order-last">

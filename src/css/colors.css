@@ -27,6 +27,11 @@
         --destructive: 255 59 48; /* Apple's system red */
         --warning: 255 149 0; /* light orange for warnings */
 
+        /* Subscription Status Colors */
+        --subscription-default: 148 163 184; /* slate-400 - default/grey */
+        --subscription-blue: 59 130 246; /* blue-500 - requested/blue */
+        --subscription-gold: 217 119 6; /* amber-600 - premium/gold */
+
         /* Border and Ring - Enhanced contrast for definition */
         --border: 203 213 225; /* slate-300 */
         --input: 203 213 225; /* slate-300 */
@@ -59,6 +64,11 @@
 
         --destructive: 255 69 58; /* Apple red dark mode */
         --warning: 255 159 10; /* light orange for warnings dark mode */
+
+        /* Subscription Status Colors - Dark Mode */
+        --subscription-default: 100 116 139; /* slate-500 - default/grey */
+        --subscription-blue: 96 165 250; /* blue-400 - requested/blue */
+        --subscription-gold: 251 146 60; /* orange-400 - premium/gold */
 
         /* Border and Ring */
         --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
@@ -704,3 +714,16 @@
 .text-warm-800 { color: rgb(var(--warm-800)); }
 .text-warm-900 { color: rgb(var(--warm-900)); }
 .text-warm-950 { color: rgb(var(--warm-950)); }
+
+/* Subscription Status Color Utility Classes */
+.bg-subscription-default { background-color: rgb(var(--subscription-default)); }
+.bg-subscription-blue { background-color: rgb(var(--subscription-blue)); }
+.bg-subscription-gold { background-color: rgb(var(--subscription-gold)); }
+
+.text-subscription-default { color: rgb(var(--subscription-default)); }
+.text-subscription-blue { color: rgb(var(--subscription-blue)); }
+.text-subscription-gold { color: rgb(var(--subscription-gold)); }
+
+.border-subscription-default { border-color: rgb(var(--subscription-default)); }
+.border-subscription-blue { border-color: rgb(var(--subscription-blue)); }
+.border-subscription-gold { border-color: rgb(var(--subscription-gold)); }
