@@ -5,6 +5,7 @@ import { LessonTag, LessonCreateTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { ENTITY_DATA } from "@/config/entities";
 import { TeacherStats, isTeacherLessonReady } from "@/getters/teachers-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -19,7 +20,7 @@ export function calculateTeacherGroupStats(teachers: TeacherModel[]): StatItem[]
 
     const totalLessons = teachers.reduce((sum, teacher) => sum + TeacherStats.getLessonsCount(teacher), 0);
     const totalEvents = teachers.reduce((sum, teacher) => sum + TeacherStats.getEventsCount(teacher), 0);
-    const totalHours = teachers.reduce((sum, teacher) => sum + TeacherStats.getTotalHours(teacher), 0);
+    const totalMinutes = teachers.reduce((sum, teacher) => sum + (teacher.stats?.total_duration_minutes || 0), 0);
     const totalMoneyEarned = teachers.reduce((sum, teacher) => sum + TeacherStats.getMoneyEarned(teacher), 0);
     const bankColor = totalMoneyEarned >= 0 ? "#10b981" : "#ef4444";
 
@@ -27,7 +28,7 @@ export function calculateTeacherGroupStats(teachers: TeacherModel[]): StatItem[]
         { icon: <HeadsetIcon className="w-5 h-5" />, value: teachers.length, color: teacherEntity.color },
         { icon: <LessonIcon className="w-5 h-5" />, value: totalLessons, color: lessonEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: totalHours, color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(totalMoneyEarned), color: bankColor },
     ];
 }
@@ -89,7 +90,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     const stats: StatItem[] = [
         { icon: <LessonIcon className="w-5 h-5" />, value: TeacherStats.getLessonsCount(teacher), color: lessonEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: TeacherStats.getEventsCount(teacher), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: TeacherStats.getTotalHours(teacher), color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(teacher.stats?.total_duration_minutes || 0), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(moneyEarned), color: bankColor },
     ];
 

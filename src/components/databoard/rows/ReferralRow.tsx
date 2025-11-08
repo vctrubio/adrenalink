@@ -3,6 +3,7 @@
 import { Row, type StatItem } from "@/src/components/ui/row";
 import { ENTITY_DATA } from "@/config/entities";
 import { ReferralStats, getReferralCode, getReferralCommissionValue } from "@/getters/referrals-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import type { ReferralModel } from "@/backend/models";
 
 interface ReferralRowProps {
@@ -29,7 +30,7 @@ export const ReferralRow = ({ item: referral, isExpanded, onToggle }: ReferralRo
     const stats: StatItem[] = [
         { value: ReferralStats.getStudentCount(referral), label: "Students" },
         { value: ReferralStats.getEventsCount(referral), label: "Events" },
-        { value: ReferralStats.getTotalHours(referral).toFixed(1), label: "Hours" },
+        { value: getPrettyDuration(referral.stats?.total_duration_minutes || 0), label: "Duration" },
         { value: `$${ReferralStats.getMoneyIn(referral)}`, label: "Income" },
         { value: `$${ReferralStats.getMoneyOut(referral)}`, label: "Commission" },
         { value: `$${ReferralStats.getRevenue(referral)}`, label: "Revenue" },

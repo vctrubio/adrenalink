@@ -6,6 +6,7 @@ import { BookingCompletionPopover } from "@/src/components/popover/BookingComple
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingStats, getBookingDurationHours } from "@/getters/bookings-getter";
 import { formatDate } from "@/getters/date-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -18,7 +19,7 @@ export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[]
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     const totalEvents = bookings.reduce((sum, booking) => sum + BookingStats.getEventsCount(booking), 0);
-    const totalHours = bookings.reduce((sum, booking) => sum + BookingStats.getTotalHours(booking), 0);
+    const totalMinutes = bookings.reduce((sum, booking) => sum + (booking.stats?.total_duration_minutes || 0), 0);
 
     const totalMoneyIn = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyIn(booking), 0);
     const totalMoneyOut = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyOut(booking), 0);
@@ -28,7 +29,7 @@ export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[]
     return [
         { icon: <BookingIcon className="w-5 h-5" />, value: bookings.length, color: bookingEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: totalHours, color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netRevenue), color: bankColor },
     ];
 }
@@ -90,7 +91,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
 
     const stats: StatItem[] = [
         { icon: <FlagIcon className="w-5 h-5" />, value: BookingStats.getEventsCount(booking), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: BookingStats.getTotalHours(booking), color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(booking.stats?.total_duration_minutes || 0), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
     ];
 

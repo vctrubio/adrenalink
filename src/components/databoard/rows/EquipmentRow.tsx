@@ -11,6 +11,7 @@ import {
     hasOpenRepair,
 } from "@/getters/equipments-getter";
 import { formatDate } from "@/getters/date-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -24,7 +25,7 @@ export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): Stat
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentStats.getEventsCount(equipment), 0);
-    const totalHours = equipments.reduce((sum, equipment) => sum + EquipmentStats.getTotalHours(equipment), 0);
+    const totalMinutes = equipments.reduce((sum, equipment) => sum + (equipment.stats?.total_duration_minutes || 0), 0);
     const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentStats.getRentalsCount(equipment), 0);
 
     const totalMoneyIn = equipments.reduce((sum, equipment) => sum + EquipmentStats.getMoneyIn(equipment), 0);
@@ -35,7 +36,7 @@ export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): Stat
     return [
         { icon: <EquipmentIcon className="w-5 h-5" />, value: equipments.length, color: equipmentEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: Math.round(totalHours), color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <HelmetIcon className="w-5 h-5" />, value: totalRentals, color: "#ef4444" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(netRevenue)), color: bankColor },
     ];
@@ -94,7 +95,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
 
     const stats: StatItem[] = [
         { icon: <FlagIcon className="w-5 h-5" />, value: EquipmentStats.getEventsCount(equipment), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: Math.round(EquipmentStats.getTotalHours(equipment)), color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(equipment.stats?.total_duration_minutes || 0), color: "#4b5563" },
         { icon: <HelmetIcon className="w-5 h-5" />, value: EquipmentStats.getRentalsCount(equipment), color: "#ef4444" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(revenue)), color: bankColor },
     ];

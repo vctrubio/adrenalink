@@ -11,7 +11,12 @@ interface RowStatsProps {
 }
 
 export const RowStats = ({ stats }: RowStatsProps) => {
-    const filteredStats = stats.filter(stat => stat.value > 0);
+    const filteredStats = stats.filter(stat => {
+        if (typeof stat.value === "string") {
+            return stat.value.length > 0 && stat.value !== "0 mins";
+        }
+        return stat.value > 0;
+    });
 
     if (filteredStats.length === 0) {
         return null;

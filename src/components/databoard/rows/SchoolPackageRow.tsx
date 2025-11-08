@@ -3,6 +3,7 @@
 import { Row, type StatItem } from "@/src/components/ui/row";
 import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
@@ -15,14 +16,14 @@ export function calculateSchoolPackageGroupStats(packages: SchoolPackageModel[])
 
     const totalStudents = packages.reduce((sum, pkg) => sum + (pkg.stats?.student_count || 0), 0);
     const totalEvents = packages.reduce((sum, pkg) => sum + (pkg.stats?.events_count || 0), 0);
-    const totalHours = packages.reduce((sum, pkg) => sum + ((pkg.stats?.total_duration_minutes || 0) / 60), 0);
+    const totalMinutes = packages.reduce((sum, pkg) => sum + (pkg.stats?.total_duration_minutes || 0), 0);
     const totalRevenue = packages.reduce((sum, pkg) => sum + (pkg.stats?.money_in || 0), 0);
 
     return [
         { icon: <HelmetIcon className="w-5 h-5" />, value: packages.length, color: packageEntity.color },
         { icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents, color: "#9ca3af" },
         { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: totalHours, color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: totalRevenue, color: "#10b981" },
     ];
 }
@@ -58,12 +59,12 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
     const revenue = schoolPackage.stats?.money_in || 0;
     const studentCount = schoolPackage.stats?.student_count || 0;
     const eventCount = schoolPackage.stats?.events_count || 0;
-    const totalHours = (schoolPackage.stats?.total_duration_minutes || 0) / 60;
+    const totalMinutes = schoolPackage.stats?.total_duration_minutes || 0;
 
     const stats: StatItem[] = [
         { icon: <HelmetIcon className="w-5 h-5" />, value: studentCount, color: "#9ca3af" },
         { icon: <FlagIcon className="w-5 h-5" />, value: eventCount, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: totalHours, color: "#4b5563" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: revenue, color: "#10b981" },
     ];
 

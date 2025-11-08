@@ -3,6 +3,7 @@
 import { Row, type StatItem } from "@/src/components/ui/row";
 import { ENTITY_DATA } from "@/config/entities";
 import { RentalStats, getStudentName, getRentalDateString, getRentalLocation, getRentalStatus, getEquipmentInfo } from "@/getters/rentals-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
 import type { RentalModel } from "@/backend/models";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
@@ -33,7 +34,7 @@ export const RentalRow = ({ item: rental, isExpanded, onToggle }: RentalRowProps
     const EquipmentIcon = equipmentEntity.icon;
 
     const stats: StatItem[] = [
-        { icon: <DurationIcon className="w-5 h-5" />, value: RentalStats.getDuration(rental), label: "Minutes" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(RentalStats.getDuration(rental)), label: "Duration" },
         { icon: <BankIcon className="w-5 h-5" />, value: `$${RentalStats.getRevenue(rental)}`, label: "Revenue" },
     ];
 
