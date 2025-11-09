@@ -45,6 +45,27 @@ const BookingProgressBar = ({ completedMinutes, events, booking }: { completedMi
 	);
 };
 
+// Student name link with colored hover
+const StudentNameLink = ({ student, studentColor }: { student: { id: string; firstName: string; lastName: string }; studentColor?: string }) => {
+	return (
+		<Link
+			href={`/students/${student.id}`}
+			className="px-2 py-1 rounded text-foreground font-medium transition-colors"
+			style={{
+				backgroundColor: "transparent",
+			}}
+			onMouseEnter={(e) => {
+				e.currentTarget.style.backgroundColor = studentColor ? `${studentColor}20` : "var(--color-accent-20)";
+			}}
+			onMouseLeave={(e) => {
+				e.currentTarget.style.backgroundColor = "transparent";
+			}}
+		>
+			{student.firstName} {student.lastName}
+		</Link>
+	);
+};
+
 export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 	// Get equipment icon and color based on category
 	const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === booking.package.categoryEquipment);
@@ -109,13 +130,7 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 				{/* Student Names - full width below head on mobile */}
 				<div className="mt-3 text-xs flex flex-wrap gap-1.5">
 					{booking.students.map((student) => (
-						<Link
-							key={student.id}
-							href={`/students/${student.id}`}
-							className="px-2 py-1 rounded text-foreground font-medium hover:bg-accent/40 transition-colors"
-						>
-							{student.firstName} {student.lastName}
-						</Link>
+						<StudentNameLink key={student.id} student={student} studentColor={studentColor} />
 					))}
 				</div>
 
