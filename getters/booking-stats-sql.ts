@@ -36,6 +36,16 @@ export async function getActiveBookingsWithStats() {
 
 		// Build ActiveBookingModel instances
 		const activeBookingModels: ActiveBookingModel[] = activeBookings.map((b) => {
+			// Validate required relations exist
+			if (!b.studentPackage) {
+				throw new Error(`Booking ${b.id} missing required studentPackage relation`);
+			}
+			if (!b.studentPackage.schoolPackage) {
+				throw new Error(`Booking ${b.id} missing required schoolPackage relation on studentPackage`);
+			}
+
+			const schoolPackage = b.studentPackage.schoolPackage;
+
 			// Extract students from bookingStudents relation
 			const students = b.bookingStudents.map((bs) => ({
 				id: bs.student.id,
@@ -67,7 +77,7 @@ export async function getActiveBookingsWithStats() {
 				}));
 			});
 
-			const packageDuration = b.studentPackage?.schoolPackage?.durationMinutes || 0;
+			const packageDuration = schoolPackage.durationMinutes;
 			const completionPercentage =
 				packageDuration > 0 ? (totalEventDuration / packageDuration) * 100 : 0;
 
@@ -77,13 +87,12 @@ export async function getActiveBookingsWithStats() {
 				dateStart: b.dateStart,
 				dateEnd: b.dateEnd,
 				package: {
-					id: b.studentPackage?.schoolPackage?.id || "",
-					description: b.studentPackage?.schoolPackage?.description || null,
+					id: schoolPackage.id,
+					description: schoolPackage.description,
 					durationMinutes: packageDuration,
-					pricePerStudent: b.studentPackage?.schoolPackage?.pricePerStudent || 0,
-					capacityStudents: b.studentPackage?.schoolPackage?.capacityStudents || 0,
-					categoryEquipment: (b.studentPackage?.schoolPackage?.categoryEquipment ||
-						"kite") as "kite" | "wing" | "windsurf",
+					pricePerStudent: schoolPackage.pricePerStudent,
+					capacityStudents: schoolPackage.capacityStudents,
+					categoryEquipment: schoolPackage.categoryEquipment,
 				},
 				students,
 				events,

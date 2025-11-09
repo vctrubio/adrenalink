@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { getProgressBarColor } from "@/types/status";
 import { TLETab } from "./TLETab";
 import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
 
@@ -15,34 +15,16 @@ interface ActiveBookingTabProps {
 }
 
 // Progress bar sub-component
-// Note: Progress bar color reflects event status colors (grey=planned, purple=tbc, green=completed, orange=uncompleted)
-// The dominant status color is determined by the most recent or primary event status
-const BookingProgressBar = ({ completedMinutes, totalMinutes, totalRevenue, events }: { completedMinutes: number; totalMinutes: number; totalRevenue: number; events?: any[] }) => {
-	const progressPercent = Math.min((completedMinutes / totalMinutes) * 100, 100);
-
-	// Determine progress bar color based on event statuses
-	// Priority: completed > tbc > uncompleted > planned
-	let progressColor = "bg-primary"; // default primary color
-	if (events && events.length > 0) {
-		const statusPriority = { completed: 4, tbc: 3, uncompleted: 2, planned: 1 };
-		const dominantStatus = events.reduce((max, evt) => {
-			const maxPriority = statusPriority[max.status as keyof typeof statusPriority] || 0;
-			const evtPriority = statusPriority[evt.status as keyof typeof statusPriority] || 0;
-			return evtPriority > maxPriority ? evt : max;
-		}).status;
-
-		const statusColorMap = {
-			planned: "#9ca3af",
-			tbc: "#a855f7",
-			completed: "#86efac",
-			uncompleted: "#fbbf24",
-		};
-		progressColor = statusColorMap[dominantStatus as keyof typeof statusColorMap] || "bg-primary";
-	}
+const BookingProgressBar = ({ completedMinutes, events, booking }: { completedMinutes: number; events: any[]; booking: ActiveBookingModel }) => {
+	const progressPercent = Math.min((completedMinutes / booking.package.durationMinutes) * 100, 100);
+	const progressColor = getProgressBarColor(events);
+	const packageEntityConfig = ENTITY_DATA.find((e) => e.id === "schoolPackage");
+	const packageColor = packageEntityConfig?.color;
+	const totalRevenue = booking.package.pricePerStudent * booking.students.length;
 
 	return (
 		<div className="flex items-center gap-3 flex-1">
-			<div className="h-2 bg-muted rounded-full overflow-hidden flex-1 relative">
+			<div className="h-3 bg-muted rounded-full overflow-hidden flex-1 relative">
 				<div
 					className="h-full transition-all duration-300"
 					style={{ width: `${progressPercent}%`, backgroundColor: progressColor }}
@@ -52,7 +34,10 @@ const BookingProgressBar = ({ completedMinutes, totalMinutes, totalRevenue, even
 				</div>
 			</div>
 			<div className="flex items-center gap-1">
-				<div className="text-xs font-semibold text-foreground">{getPrettyDuration(totalMinutes)}</div>
+				<div style={{ color: packageColor }}>
+					<PackageIcon size={16} />
+				</div>
+				<div className="text-xs font-semibold text-foreground">{getPrettyDuration(booking.package.durationMinutes)}</div>
 				<div className="text-xs text-muted-foreground">/</div>
 				<div className="text-xs font-semibold text-foreground">${Math.round(totalRevenue * 100) / 100}</div>
 			</div>
@@ -61,13 +46,12 @@ const BookingProgressBar = ({ completedMinutes, totalMinutes, totalRevenue, even
 };
 
 export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
-	const [isExpanded, setIsExpanded] = useState(false);
-
-	// Get equipment icon based on category
+	// Get equipment icon and color based on category
 	const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === booking.package.categoryEquipment);
 	const EquipmentIcon = equipmentConfig?.icon;
+	const equipmentColor = equipmentConfig?.color;
 
-	// Get student entity config for styling
+	// Get entity colors for styling
 	const studentEntityConfig = ENTITY_DATA.find((e) => e.id === "student");
 	const studentColor = studentEntityConfig?.color;
 
@@ -89,10 +73,7 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 	const studentCount = booking.students.length;
 	const helmets = Array.from({ length: studentCapacity }, (_, i) => i < studentCount);
 
-	// Progress data
 	const completedMinutes = booking.totalEventDuration;
-	const totalMinutes = booking.package.durationMinutes;
-	const totalRevenue = booking.package.pricePerStudent * booking.students.length;
 
 	return (
 		<div className="space-y-3">
@@ -102,7 +83,7 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 					{/* Left Section: Head Structure with Equipment Icon and Dates */}
 					<div className="flex items-center gap-4 flex-shrink-0">
 						{/* Equipment Avatar/Icon */}
-						<div className="flex-shrink-0">
+						<div className="flex-shrink-0 p-2 border border-border rounded-lg" style={{ color: equipmentColor }}>
 							{EquipmentIcon && <EquipmentIcon width={32} height={32} />}
 						</div>
 
@@ -113,24 +94,15 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 								{dateStart} - {dateEnd}
 							</div>
 
-							{/* Large Helmet Icon below dates - to match teacher size */}
-							<div className="mt-2">
-								<HelmetIcon size={22} />
+							{/* Helmet Icons - student capacity indicator */}
+							<div className="mt-2 flex gap-1">
+								{helmets.map((isFilled, index) => (
+									<div key={index} style={{ color: isFilled ? studentColor : "#d1d5db" }} className="opacity-70 hover:opacity-100 transition-opacity">
+										<HelmetIcon size={16} />
+									</div>
+								))}
 							</div>
 						</div>
-					</div>
-
-					{/* Right Section: Teacher/Event Toggle Button - moved up for mobile */}
-					<div className="flex-shrink-0 lg:order-last">
-						<button
-							onClick={() => setIsExpanded(!isExpanded)}
-							className="flex flex-col items-center gap-2 px-3 py-2 rounded-lg bg-accent/20 hover:bg-accent/40 transition-colors cursor-pointer h-fit w-full lg:w-auto justify-center"
-						>
-							<HeadsetIcon size={22} />
-							<span className="text-xs font-semibold text-foreground">
-								{booking.uniqueTeacherCount}
-							</span>
-						</button>
 					</div>
 				</div>
 
@@ -149,15 +121,13 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 
 				{/* Progress Bar - full width */}
 				<div className="mt-3 lg:mt-0">
-					<BookingProgressBar completedMinutes={completedMinutes} totalMinutes={totalMinutes} totalRevenue={totalRevenue} events={booking.events} />
+					<BookingProgressBar completedMinutes={completedMinutes} events={booking.events} booking={booking} />
 				</div>
 			</div>
 
-			{/* Expandable Lesson/Event Section */}
-			{isExpanded && booking.events.length > 0 && (
-				<div className="bg-card border border-border rounded-lg p-4 ml-0 lg:ml-4">
-					<TLETab booking={booking} isCollapsed={false} />
-				</div>
+			{/* Teachers List - each teacher has collapsible events */}
+			{booking.events.length > 0 && (
+				<TLETab booking={booking} isCollapsed={false} />
 			)}
 		</div>
 	);
