@@ -32,7 +32,9 @@ export const RainbowIdentity = ({ entity, shade }: RainbowIdentityProps) => {
                     {/* Top Section - Icon and Name */}
                     <div className="flex items-center gap-6 mb-6">
                         <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${bgColor}20`, border: `3px solid ${bgColor}` }}>
-                            <Icon className={`w-10 h-10 ${entity.color}`} />
+                            <div style={{ color: entity.color }}>
+                                <Icon className="w-10 h-10" />
+                            </div>
                         </div>
                         <div>
                             <div className="text-xs uppercase tracking-wider text-white/60 mb-1">Entity:{colorInfo.name}</div>

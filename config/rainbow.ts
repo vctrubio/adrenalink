@@ -1,27 +1,4 @@
-import { TABLE_CONFIG } from "@/config/tables";
 import type { RainbowColor, RainbowShade } from "@/src/components/rainbow/Rainbow";
-
-// Maps entity colors (from entities.ts) to rainbow base colors
-// export const entityColorToRainbow: Record<string, RainbowColor> = {
-//     "text-purple-500": "purple",
-//     "text-pink-500": "purple",
-//     "text-blue-500": "blue",
-//     "text-cyan-500": "blue",
-//     "text-foreground": "blue",
-//     "text-green-500": "green",
-//     "text-emerald-500": "green",
-//     "text-yellow-500": "yellow",
-//     "text-amber-500": "yellow",
-//     "text-amber-600": "yellow",
-//     "text-orange-400": "orange",
-//     "text-orange-500": "orange",
-//     "text-red-500": "red",
-//     "text-gray-500": "grey",
-//     "text-slate-500": "grey",
-//     "text-indigo-500": "grey",
-//     "text-sand-600": "grey",
-//     "text-sand-800": "grey",
-// };
 
 // Base colors for the rainbow arcs
 export const rainbowBaseColors: Record<RainbowColor, { fill: string; hoverFill: string }> = {
@@ -104,28 +81,3 @@ export const colorLabels: Record<RainbowColor, { name: string; description: stri
         description: "This is your homebase, start by creating referral codes to know where each package request comes from. More on that here.",
     },
 };
-
-// Build color groups from table config
-// export const getColorGroups = (hoveredShade: RainbowShade | null) => {
-//     const colorGroups: Record<RainbowColor, Array<{ entity: (typeof TABLE_CONFIG)[0]; shade: RainbowShade }>> = {
-//         purple: [],
-//         blue: [],
-//         green: [],
-//         yellow: [],
-//         orange: [],
-//         red: [],
-//         grey: [],
-//     };
-//
-//     TABLE_CONFIG.forEach((entity) => {
-//         const shade = getEntityRainbowShade(entity.id);
-//         if (shade) {
-//             const baseColor = shade.split("-")[0] as RainbowColor;
-//             if (colorGroups[baseColor]) {
-//                 colorGroups[baseColor].push({ entity, shade });
-//             }
-//         }
-//     });
-//
-//     return colorGroups;
-// };

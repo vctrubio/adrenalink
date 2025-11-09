@@ -166,9 +166,10 @@ export default function WhatWeDoPage() {
                                 top: `${pos.y}px`,
                                 transform: "translate(-50%, -50%)",
                                 opacity: pos.opacity,
+                                color: entity.color,
                             }}
                         >
-                            <IconComponent className={`w-6 h-6 ${entity.color}`} />
+                            <IconComponent className="w-6 h-6" />
                         </div>
                     );
                 })}
@@ -227,7 +228,7 @@ export default function WhatWeDoPage() {
                                             {feature.title}
                                         </h2>
                                         <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform" style={{ backgroundColor: feature.accentColor, transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}>
-                                            <IconComponent className="w-6 h-6 text-white" />
+                                            <IconComponent className="w-6 h-6 text-black" />
                                         </div>
                                     </div>
 
