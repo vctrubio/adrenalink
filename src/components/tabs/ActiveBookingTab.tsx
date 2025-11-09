@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -8,6 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getProgressBarColor } from "@/types/status";
 import { TLETab } from "./TLETab";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
 
 interface ActiveBookingTabProps {
@@ -40,26 +40,6 @@ const BookingProgressBar = ({ completedMinutes, events, booking }: { completedMi
     );
 };
 
-// Student name link with colored hover
-const StudentNameLink = ({ student, studentColor }: { student: { id: string; firstName: string; lastName: string }; studentColor?: string }) => {
-    return (
-        <Link
-            href={`/students/${student.id}`}
-            className="px-2 py-1 rounded text-foreground font-medium transition-colors"
-            style={{
-                backgroundColor: "transparent",
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = studentColor ? `${studentColor}20` : "var(--color-accent-20)";
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-            }}
-        >
-            {student.firstName} {student.lastName}
-        </Link>
-    );
-};
 
 export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
     // Get equipment icon and color based on category
@@ -68,8 +48,8 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
     const equipmentColor = equipmentConfig?.color;
 
     // Get entity colors for styling
-    const studentEntityConfig = ENTITY_DATA.find((e) => e.id === "student");
-    const studentColor = studentEntityConfig?.color;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const studentColor = studentEntity.color;
 
     // Format dates
     const dateStart = new Date(booking.dateStart).toLocaleDateString("en-US", {
@@ -123,9 +103,11 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
                 </div>
 
                 {/* Student Names - full width below head on mobile */}
-                <div className="mt-3 text-xs flex flex-wrap gap-1.5">
+                <div className="mt-3 text-base flex flex-wrap gap-1.5">
                     {booking.students.map((student) => (
-                        <StudentNameLink key={student.id} student={student} studentColor={studentColor} />
+                        <HoverToEntity key={student.id} entity={studentEntity} id={student.id} className="font-semibold">
+                            {student.firstName} {student.lastName}
+                        </HoverToEntity>
                     ))}
                 </div>
 

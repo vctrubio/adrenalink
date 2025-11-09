@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { ReferralStats, getReferralCode, getReferralCommissionValue } from "@/getters/referrals-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -39,7 +40,6 @@ export const ReferralRow = ({ item: referral, isExpanded, onToggle }: ReferralRo
     return (
         <Row
             id={referral.schema.id}
-            entity="referrals"
             entityData={referral.schema}
             entityBgColor={referralEntity.bgColor}
             isExpanded={isExpanded}
@@ -50,7 +50,11 @@ export const ReferralRow = ({ item: referral, isExpanded, onToggle }: ReferralRo
                         <ReferralIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: getReferralCode(referral),
+                name: (
+                    <HoverToEntity entity={referralEntity} id={referral.schema.id}>
+                        {getReferralCode(referral)}
+                    </HoverToEntity>
+                ),
                 status,
             }}
             str={{

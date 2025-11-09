@@ -1,9 +1,13 @@
 import { getEntityId } from "@/actions/id-actions";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
 import { ENTITY_DATA } from "@/config/entities";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { BookingModel } from "@/backend/models";
+import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 export default async function BookingDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("booking", params.id);
@@ -18,55 +22,95 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
 
     const booking = result.data as BookingModel;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const BookingIcon = bookingEntity.icon;
 
     const bookingStudents = booking.relations?.bookingStudents || [];
     const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
-    const packageDesc = booking.relations?.studentPackage?.schoolPackage?.description || "No package";
+    const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
+    const packageDesc = schoolPackage?.description || "No package";
+
+    // Get equipment category icon and color
+    const equipmentCategory = schoolPackage?.categoryEquipment;
+    const equipmentConfig = equipmentCategory ? EQUIPMENT_CATEGORIES.find((cat) => cat.id === equipmentCategory) : null;
+    const EquipmentIcon = equipmentConfig?.icon;
+    const equipmentColor = equipmentConfig?.color || bookingEntity.color;
+
+    // Format dates for status line
+    const dateStart = formatDate(booking.schema.dateStart);
+    const dateEnd = formatDate(booking.schema.dateEnd);
 
     return (
         <EntityDetailLayout
             leftColumn={
                 <>
-                    {/* Header */}
-                    <div className="border-b border-border pb-6">
-                        <div className="flex items-start gap-4">
-                            <div style={{ color: bookingEntity.color }}>
-                                <BookingIcon className="w-16 h-16" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold text-foreground">Booking {booking.schema.id.slice(0, 8)}</h1>
-                                <p className="text-lg text-muted-foreground mt-2">{studentNames || "No students"}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Booking Info Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status</span>
-                                <span className="font-medium text-foreground">{booking.schema.status || "Active"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Package</span>
-                                <span className="font-medium text-foreground text-sm">{packageDesc}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Start Date</span>
-                                <span className="font-medium text-foreground">{formatDate(booking.schema.dateStart)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">End Date</span>
-                                <span className="font-medium text-foreground">{formatDate(booking.schema.dateEnd)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Created</span>
-                                <span className="font-medium text-foreground">{formatDate(booking.schema.createdAt)}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <EntityInfoCard
+                        entity={{
+                            id: bookingEntity.id,
+                            name: `Booking ${booking.schema.id.slice(0, 8)}`,
+                            icon: bookingEntity.icon,
+                            color: bookingEntity.color,
+                            bgColor: bookingEntity.bgColor,
+                        }}
+                        status={`${dateStart} - ${dateEnd}`}
+                        stats={[
+                            {
+                                icon: DurationIcon,
+                                label: "Duration",
+                                value: getPrettyDuration(schoolPackage?.durationMinutes || 0),
+                                color: "#f59e0b",
+                            },
+                            {
+                                icon: HelmetIcon,
+                                label: "Students",
+                                value: schoolPackage?.capacityStudents || 0,
+                                color: "#eab308",
+                            },
+                            {
+                                icon: EquipmentIcon || bookingEntity.icon,
+                                label: "Equipment",
+                                value: schoolPackage?.capacityEquipment || 0,
+                                color: equipmentColor,
+                            },
+                        ]}
+                        fields={[
+                            {
+                                label: "Status",
+                                value: booking.schema.status || "Active",
+                            },
+                            {
+                                label: "Package",
+                                value: packageDesc,
+                            },
+                            {
+                                label: "Equipment Type",
+                                value: equipmentCategory || "Unknown",
+                            },
+                            {
+                                label: "Price Per Student",
+                                value: schoolPackage?.pricePerStudent ? `$${schoolPackage.pricePerStudent}` : "N/A",
+                            },
+                            {
+                                label: "Students",
+                                value: studentNames || "No students",
+                            },
+                            {
+                                label: "Start Date",
+                                value: dateStart,
+                            },
+                            {
+                                label: "End Date",
+                                value: dateEnd,
+                            },
+                            {
+                                label: "Created",
+                                value: formatDate(booking.schema.createdAt),
+                            },
+                            {
+                                label: "Last Updated",
+                                value: formatDate(booking.schema.updatedAt),
+                            },
+                        ]}
+                        accentColor={bookingEntity.color}
+                    />
 
                     {/* Students */}
                     {bookingStudents.length > 0 && (

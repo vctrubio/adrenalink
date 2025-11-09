@@ -35,7 +35,9 @@ export const EntityInfoCard = ({ entity, status = "Entity", stats, fields, accen
                 border: `3px solid ${accentColor}`,
             }}
         >
-            <Icon className={`w-10 h-10 ${entity.color}`} />
+            <div style={{ color: entity.color }}>
+                <Icon className="w-10 h-10" />
+            </div>
         </div>
     );
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -71,7 +72,6 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
     return (
         <Row
             id={schoolPackage.schema.id}
-            entity="packages"
             entityData={schoolPackage.schema}
             entityBgColor={packageEntity.bgColor}
             isExpanded={isExpanded}
@@ -82,7 +82,11 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
                         <PackageIconComponent className="w-10 h-10" />
                     </div>
                 ),
-                name: `Package ${schoolPackage.schema.id.slice(0, 8)}`,
+                name: (
+                    <HoverToEntity entity={packageEntity} id={schoolPackage.schema.id}>
+                        {`Package ${schoolPackage.schema.id.slice(0, 8)}`}
+                    </HoverToEntity>
+                ),
                 status: `Status: ${activeStatus}`,
             }}
             str={{

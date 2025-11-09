@@ -12,12 +12,12 @@ export function EntityDetailLayout({ leftColumn, rightColumn }: EntityDetailLayo
         <div className="p-8">
             <div className="grid grid-cols-12 gap-8">
                 {/* Left Column - Main Info */}
-                <div className="col-span-8">
+                <div className="col-span-4">
                     <div className="space-y-6">{leftColumn}</div>
                 </div>
 
                 {/* Right Column - Context/Actions */}
-                <div className="col-span-4">
+                <div className="col-span-8">
                     <div className="space-y-6 sticky top-8">{rightColumn}</div>
                 </div>
             </div>

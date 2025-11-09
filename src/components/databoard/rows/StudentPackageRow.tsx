@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { RowPopover } from "@/src/components/ui/row/row-popover";
 import { ENTITY_DATA } from "@/config/entities";
 import { StudentPackageStats, hasRequestedStatus } from "@/getters/student-packages-getter";
@@ -77,7 +78,6 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
     return (
         <Row
             id={studentPackage.schema.id}
-            entity="requests"
             entityData={studentPackage.schema}
             entityBgColor={packageEntity.bgColor}
             isExpanded={isExpanded}
@@ -88,7 +88,11 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
                         <PackageIconComponent className="w-10 h-10" />
                     </div>
                 ),
-                name: `Package ${studentPackage.schema.id.slice(0, 8)}`,
+                name: (
+                    <HoverToEntity entity={packageEntity} id={studentPackage.schema.id}>
+                        {`Package ${studentPackage.schema.id.slice(0, 8)}`}
+                    </HoverToEntity>
+                ),
                 status: `Status: ${requestedBadge}`,
             }}
             str={{

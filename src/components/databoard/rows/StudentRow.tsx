@@ -1,11 +1,11 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
-
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { ENTITY_DATA } from "@/config/entities";
-import { StudentStats, getStudentSchoolCount, getStudentUnfinishedRequests } from "@/getters/students-getter";
+import { StudentStats } from "@/getters/students-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
@@ -113,7 +113,11 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
                         <StudentIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: fullName,
+                name: (
+                    <HoverToEntity entity={studentEntity} id={student.schema.id}>
+                        {fullName}
+                    </HoverToEntity>
+                ),
                 status: "Active Student",
             }}
             str={{

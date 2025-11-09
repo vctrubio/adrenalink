@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
 import { ENTITY_DATA } from "@/config/entities";
@@ -90,7 +91,6 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
     return (
         <Row
             id={equipment.schema.id}
-            entity="equipments"
             entityData={equipment}
             entityBgColor={equipmentEntity.bgColor}
             isExpanded={isExpanded}
@@ -101,7 +101,11 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
                         {CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}
                     </div>
                 ),
-                name: equipmentName,
+                name: (
+                    <HoverToEntity entity={equipmentEntity} id={equipment.schema.id}>
+                        {equipmentName}
+                    </HoverToEntity>
+                ),
                 status: `Status: ${status}`,
             }}
             str={{

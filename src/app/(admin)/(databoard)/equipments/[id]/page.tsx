@@ -5,6 +5,10 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { EquipmentModel } from "@/backend/models";
+import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
+import RepairIcon from "@/public/appSvgs/RepairIcon";
 
 export default async function EquipmentDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("equipment", params.id);
@@ -19,54 +23,86 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
 
     const equipment = result.data as EquipmentModel;
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-    const EquipmentIcon = equipmentEntity.icon;
 
     const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
-    const CategoryIcon = categoryConfig?.icon;
+    const CategoryIcon = categoryConfig?.icon || equipmentEntity.icon;
     const categoryColor = categoryConfig?.color || equipmentEntity.color;
+
+    // Equipment name (model + size)
+    const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
+
+    // Count repairs
+    const repairCount = equipment.relations?.equipmentRepairs?.length || 0;
 
     return (
         <EntityDetailLayout
             leftColumn={
                 <>
-                    {/* Header */}
-                    <div className="border-b border-border pb-6">
-                        <div className="flex items-start gap-4">
-                            <div style={{ color: categoryColor }}>
-                                {CategoryIcon ? <CategoryIcon className="w-16 h-16" /> : <EquipmentIcon className="w-16 h-16" />}
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold text-foreground">{equipment.schema.name}</h1>
-                                <p className="text-lg text-muted-foreground mt-2">{equipment.schema.sku}</p>
-                                {equipment.schema.color && (
-                                    <p className="text-sm text-muted-foreground mt-1">Color: {equipment.schema.color}</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Equipment Info Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Equipment Details</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Category</span>
-                                <span className="font-medium text-foreground">{equipment.schema.category}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status</span>
-                                <span className="font-medium text-foreground">{equipment.schema.status || "Active"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Created</span>
-                                <span className="font-medium text-foreground">{formatDate(equipment.schema.createdAt)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Last Updated</span>
-                                <span className="font-medium text-foreground">{formatDate(equipment.schema.updatedAt)}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <EntityInfoCard
+                        entity={{
+                            id: equipmentEntity.id,
+                            name: equipmentName,
+                            icon: CategoryIcon,
+                            color: categoryColor,
+                            bgColor: categoryConfig?.bgColor || equipmentEntity.bgColor,
+                        }}
+                        status={`${equipment.schema.sku} • ${equipment.schema.category}`}
+                        stats={[
+                            {
+                                icon: FlagIcon,
+                                label: "Events",
+                                value: equipment.stats?.events_count || 0,
+                                color: "#10b981",
+                            },
+                            {
+                                icon: DurationIcon,
+                                label: "Hours",
+                                value: getPrettyDuration(equipment.stats?.total_duration_minutes || 0),
+                                color: "#f59e0b",
+                            },
+                            {
+                                icon: RepairIcon,
+                                label: "Repairs",
+                                value: repairCount,
+                                color: "#ef4444",
+                            },
+                        ]}
+                        fields={[
+                            {
+                                label: "SKU",
+                                value: equipment.schema.sku,
+                            },
+                            {
+                                label: "Model",
+                                value: equipment.schema.model,
+                            },
+                            {
+                                label: "Size",
+                                value: equipment.schema.size ? `${equipment.schema.size}m` : "N/A",
+                            },
+                            {
+                                label: "Color",
+                                value: equipment.schema.color || "N/A",
+                            },
+                            {
+                                label: "Category",
+                                value: equipment.schema.category,
+                            },
+                            {
+                                label: "Status",
+                                value: equipment.schema.status || "Unknown",
+                            },
+                            {
+                                label: "Created",
+                                value: formatDate(equipment.schema.createdAt),
+                            },
+                            {
+                                label: "Last Updated",
+                                value: formatDate(equipment.schema.updatedAt),
+                            },
+                        ]}
+                        accentColor={categoryColor}
+                    />
 
                     {/* Equipment Teachers */}
                     {equipment.relations?.teacherEquipments && equipment.relations.teacherEquipments.length > 0 && (

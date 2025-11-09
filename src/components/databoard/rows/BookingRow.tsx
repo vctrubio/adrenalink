@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { TeacherBookingTag, TeacherBookingCreateTag } from "@/src/components/tags";
 import { BookingCompletionPopover } from "@/src/components/popover/BookingCompletionPopover";
 import { ENTITY_DATA } from "@/config/entities";
@@ -98,7 +99,6 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     return (
         <Row
             id={booking.schema.id}
-            entity="bookings"
             entityData={booking}
             entityBgColor={bookingEntity.bgColor}
             isExpanded={isExpanded}
@@ -109,7 +109,11 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                         <BookingIconComponent className="w-10 h-10" />
                     </div>
                 ),
-                name: `Booking ${booking.schema.id.slice(0, 8)}`,
+                name: (
+                    <HoverToEntity entity={bookingEntity} id={booking.schema.id}>
+                        {`Booking ${booking.schema.id.slice(0, 8)}`}
+                    </HoverToEntity>
+                ),
                 status: `Status: ${booking.schema.status}`,
             }}
             str={{

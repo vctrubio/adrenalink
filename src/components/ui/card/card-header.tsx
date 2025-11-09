@@ -14,10 +14,10 @@ export const CardHeader = ({ name, status, avatar, accentColor = "#3b82f6", desc
             <div className="flex items-center gap-6">
                 {avatar}
                 <div>
-                    <h3 className="text-3xl font-bold">{name}</h3>
-                    <div className="text-xs uppercase tracking-wider text-white/60">{status}</div>
+                    <h3 className="text-3xl font-bold text-foreground">{name}</h3>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">{status}</div>
                     {desc && (
-                        <div className="mt-1 text-white/60">
+                        <div className="mt-1 text-muted-foreground">
                             <p className="text-base leading-relaxed">{desc}</p>
                         </div>
                     )}

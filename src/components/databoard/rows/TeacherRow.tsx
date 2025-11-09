@@ -1,6 +1,7 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { LessonTag, LessonCreateTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { ENTITY_DATA } from "@/config/entities";
@@ -90,7 +91,6 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     return (
         <Row
             id={teacher.schema.id}
-            entity="teachers"
             entityData={teacher}
             entityBgColor={teacherEntity.bgColor}
             isExpanded={isExpanded}
@@ -101,7 +101,11 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                         <TeacherIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: teacher.schema.username,
+                name: (
+                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
+                        {teacher.schema.username}
+                    </HoverToEntity>
+                ),
                 status,
             }}
             str={{

@@ -4,6 +4,10 @@ import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { StudentModel } from "@/backend/models";
+import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("student", params.id);
@@ -26,40 +30,71 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         <EntityDetailLayout
             leftColumn={
                 <>
-                    {/* Header */}
-                    <div className="border-b border-border pb-6">
-                        <div className="flex items-start gap-4">
-                            <div style={{ color: studentEntity.color }}>
-                                <StudentIcon className="w-16 h-16" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold text-foreground">{studentName}</h1>
-                                <p className="text-lg text-muted-foreground mt-2">{student.schema.email}</p>
-                                {student.schema.phone && (
-                                    <p className="text-sm text-muted-foreground mt-1">{student.schema.phone}</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Student Info Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Student Information</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status</span>
-                                <span className="font-medium text-foreground">{student.schema.status || "Active"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Created</span>
-                                <span className="font-medium text-foreground">{formatDate(student.schema.createdAt)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Last Updated</span>
-                                <span className="font-medium text-foreground">{formatDate(student.schema.updatedAt)}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <EntityInfoCard
+                        entity={{
+                            id: studentEntity.id,
+                            name: studentName,
+                            icon: studentEntity.icon,
+                            color: studentEntity.color,
+                            bgColor: studentEntity.bgColor,
+                        }}
+                        status={`${student.schema.passport} • ${student.schema.country}`}
+                        stats={[
+                            {
+                                icon: BookingIcon,
+                                label: "Bookings",
+                                value: student.stats?.bookings_count || 0,
+                                color: "#3b82f6",
+                            },
+                            {
+                                icon: FlagIcon,
+                                label: "Events",
+                                value: student.stats?.events_count || 0,
+                                color: "#10b981",
+                            },
+                            {
+                                icon: DurationIcon,
+                                label: "Hours",
+                                value: getPrettyDuration(student.stats?.total_duration_minutes || 0),
+                                color: "#f59e0b",
+                            },
+                        ]}
+                        fields={[
+                            {
+                                label: "First Name",
+                                value: student.schema.firstName,
+                            },
+                            {
+                                label: "Last Name",
+                                value: student.schema.lastName,
+                            },
+                            {
+                                label: "Passport",
+                                value: student.schema.passport,
+                            },
+                            {
+                                label: "Country",
+                                value: student.schema.country,
+                            },
+                            {
+                                label: "Phone",
+                                value: student.schema.phone,
+                            },
+                            {
+                                label: "Languages",
+                                value: student.schema.languages.join(", "),
+                            },
+                            {
+                                label: "Created",
+                                value: formatDate(student.schema.createdAt),
+                            },
+                            {
+                                label: "Last Updated",
+                                value: formatDate(student.schema.updatedAt),
+                            },
+                        ]}
+                        accentColor={studentEntity.color}
+                    />
 
                     {/* School Relationships */}
                     {student.relations?.schoolStudents && student.relations.schoolStudents.length > 0 && (
@@ -68,7 +103,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                             <div className="space-y-2">
                                 {student.relations.schoolStudents.map((schoolStudent) => (
                                     <div key={schoolStudent.id} className="text-sm text-muted-foreground">
-                                        School ID: {schoolStudent.schoolId.slice(0, 8)}...
+                                        {schoolStudent.school.username}
                                     </div>
                                 ))}
                             </div>
@@ -82,12 +117,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                             <div className="space-y-3">
                                 {student.relations.studentPackageStudents.map((sps) => (
                                     <div key={sps.id} className="border-l-2 border-primary pl-3">
-                                        <p className="font-medium text-foreground text-sm">
-                                            {sps.studentPackage?.schoolPackage?.description || "Package"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Status: {sps.studentPackage?.status || "Unknown"}
-                                        </p>
+                                        <p className="font-medium text-foreground text-sm">{sps.studentPackage?.schoolPackage?.description || "Package"}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">Status: {sps.studentPackage?.status || "Unknown"}</p>
                                     </div>
                                 ))}
                             </div>
@@ -107,15 +138,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Total Duration</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {getPrettyDuration(student.stats?.total_duration_minutes || 0)}
-                                </p>
+                                <p className="text-2xl font-bold text-foreground">{getPrettyDuration(student.stats?.total_duration_minutes || 0)}</p>
                             </div>
                             <div className="border-t border-border pt-4">
                                 <p className="text-sm text-muted-foreground">Bookings</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {student.stats?.bookings_count || 0}
-                                </p>
+                                <p className="text-2xl font-bold text-foreground">{student.stats?.bookings_count || 0}</p>
                             </div>
                         </div>
                     </div>
@@ -145,9 +172,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                     {(student.stats?.requested_packages_count || 0) > 0 && (
                         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
                             <h2 className="text-lg font-semibold text-amber-900 dark:text-amber-200 mb-2">Pending Requests</h2>
-                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                                {student.stats?.requested_packages_count}
-                            </p>
+                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{student.stats?.requested_packages_count}</p>
                             <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Package request(s) awaiting approval</p>
                         </div>
                     )}

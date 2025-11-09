@@ -7,17 +7,14 @@ import { RowStats, type StatItem } from "./row-stats";
 
 interface RowProps {
     id: string;
-    entity?: string;
     entityData: any;
     entityBgColor: string;
     isExpanded: boolean;
     onToggle: (id: string) => void;
     head: {
         avatar: ReactNode;
-        name: string;
+        name: string | ReactNode;
         status: string;
-        statusOptions?: string[];
-        onStatusChange?: (newStatus: string) => void;
     };
     str?: {
         label: string;
@@ -31,7 +28,7 @@ interface RowProps {
     stats?: StatItem[];
 }
 
-export const Row = ({ id, entity, entityData, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
+export const Row = ({ id, entityData, entityBgColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
     return (
         <div className="bg-card overflow-hidden">
             <div className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onToggle(id)}>
@@ -43,10 +40,6 @@ export const Row = ({ id, entity, entityData, entityBgColor, isExpanded, onToggl
                                 avatar={head.avatar}
                                 name={head.name}
                                 status={head.status}
-                                statusOptions={head.statusOptions}
-                                onStatusChange={head.onStatusChange}
-                                id={id}
-                                entity={entity}
                             />
                         </div>
 

@@ -47,7 +47,11 @@ type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | 
 // Entity relation configurations
 const entityRelations = {
     student: {
-        schoolStudents: true,
+        schoolStudents: {
+            with: {
+                school: true,
+            },
+        },
         studentPackageStudents: {
             with: {
                 studentPackage: {

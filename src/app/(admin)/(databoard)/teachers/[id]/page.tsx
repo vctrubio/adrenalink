@@ -4,6 +4,10 @@ import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { TeacherModel } from "@/backend/models";
+import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import LessonIcon from "@/public/appSvgs/LessonIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
 
 export default async function TeacherDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("teacher", params.id);
@@ -26,40 +30,79 @@ export default async function TeacherDetailPage({ params }: { params: { id: stri
         <EntityDetailLayout
             leftColumn={
                 <>
-                    {/* Header */}
-                    <div className="border-b border-border pb-6">
-                        <div className="flex items-start gap-4">
-                            <div style={{ color: teacherEntity.color }}>
-                                <TeacherIcon className="w-16 h-16" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold text-foreground">{teacherName}</h1>
-                                <p className="text-lg text-muted-foreground mt-2">{teacher.schema.email}</p>
-                                {teacher.schema.phone && (
-                                    <p className="text-sm text-muted-foreground mt-1">{teacher.schema.phone}</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Teacher Info Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Teacher Information</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status</span>
-                                <span className="font-medium text-foreground">{teacher.schema.status || "Active"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Created</span>
-                                <span className="font-medium text-foreground">{formatDate(teacher.schema.createdAt)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Last Updated</span>
-                                <span className="font-medium text-foreground">{formatDate(teacher.schema.updatedAt)}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <EntityInfoCard
+                        entity={{
+                            id: teacherEntity.id,
+                            name: teacher.schema.username,
+                            icon: teacherEntity.icon,
+                            color: teacherEntity.color,
+                            bgColor: teacherEntity.bgColor,
+                        }}
+                        status={`${teacherName} • ${teacher.schema.passport}`}
+                        stats={[
+                            {
+                                icon: LessonIcon,
+                                label: "Lessons",
+                                value: teacher.stats?.lessons_count || 0,
+                                color: "#7dd3fc",
+                            },
+                            {
+                                icon: FlagIcon,
+                                label: "Events",
+                                value: teacher.stats?.events_count || 0,
+                                color: "#10b981",
+                            },
+                            {
+                                icon: DurationIcon,
+                                label: "Hours",
+                                value: getPrettyDuration(teacher.stats?.total_duration_minutes || 0),
+                                color: "#f59e0b",
+                            },
+                        ]}
+                        fields={[
+                            {
+                                label: "First Name",
+                                value: teacher.schema.firstName,
+                            },
+                            {
+                                label: "Last Name",
+                                value: teacher.schema.lastName,
+                            },
+                            {
+                                label: "Username",
+                                value: teacher.schema.username,
+                            },
+                            {
+                                label: "Passport",
+                                value: teacher.schema.passport,
+                            },
+                            {
+                                label: "Country",
+                                value: teacher.schema.country,
+                            },
+                            {
+                                label: "Phone",
+                                value: teacher.schema.phone,
+                            },
+                            {
+                                label: "Languages",
+                                value: teacher.schema.languages.join(", "),
+                            },
+                            {
+                                label: "Active",
+                                value: teacher.schema.active ? "Yes" : "No",
+                            },
+                            {
+                                label: "Created",
+                                value: formatDate(teacher.schema.createdAt),
+                            },
+                            {
+                                label: "Last Updated",
+                                value: formatDate(teacher.schema.updatedAt),
+                            },
+                        ]}
+                        accentColor={teacherEntity.color}
+                    />
 
                     {/* Lessons */}
                     {teacher.relations?.lessons && teacher.relations.lessons.length > 0 && (
