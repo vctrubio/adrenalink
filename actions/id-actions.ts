@@ -137,7 +137,19 @@ const entityRelations = {
     },
     schoolPackage: {
         school: true,
-        studentPackages: true,
+        studentPackages: {
+            with: {
+                bookings: {
+                    with: {
+                        lessons: {
+                            with: {
+                                events: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
     },
     referral: {
         school: true,

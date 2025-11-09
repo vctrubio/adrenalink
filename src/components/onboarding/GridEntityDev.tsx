@@ -29,7 +29,7 @@ export function GridEntityDev({ entityA, entityB, entityC, description }: GridEn
                     {!flippedA ? (
                         <div onClick={() => setFlippedA(true)} className={`border-4 ${entityA.color} p-8 rounded-xl border-current flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-105 h-full justify-center bg-slate-800`}>
                             <entityA.icon className={`${entityA.color} w-16 h-16`} size={64} />
-                            <h3 className={`text-xl font-bold text-white`}>{entityA.name}</h3>
+                            <h3 className={"text-xl font-bold text-white"}>{entityA.name}</h3>
                         </div>
                     ) : (
                         <DevBackCard entity={entityA} onClick={() => setFlippedA(false)} />
@@ -49,7 +49,7 @@ export function GridEntityDev({ entityA, entityB, entityC, description }: GridEn
                     {!flippedB ? (
                         <div onClick={() => setFlippedB(true)} className={`border-4 ${entityB.color} p-8 rounded-xl border-current flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-105 h-full justify-center bg-slate-800`}>
                             <entityB.icon className={`${entityB.color} w-16 h-16`} size={64} />
-                            <h3 className={`text-xl font-bold text-white`}>{entityB.name}</h3>
+                            <h3 className={"text-xl font-bold text-white"}>{entityB.name}</h3>
                         </div>
                     ) : (
                         <DevBackCard entity={entityB} onClick={() => setFlippedB(false)} />
@@ -61,7 +61,7 @@ export function GridEntityDev({ entityA, entityB, entityC, description }: GridEn
                     {!flippedC ? (
                         <div onClick={() => setFlippedC(true)} className={`border-4 ${entityC.color} p-8 rounded-xl border-current flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-105 h-full justify-center bg-slate-800`}>
                             <entityC.icon className={`${entityC.color} w-16 h-16`} size={64} />
-                            <h3 className={`text-xl font-bold text-white`}>{entityC.name}</h3>
+                            <h3 className={"text-xl font-bold text-white"}>{entityC.name}</h3>
                         </div>
                     ) : (
                         <DevBackCard entity={entityC} onClick={() => setFlippedC(false)} />

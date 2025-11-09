@@ -92,7 +92,6 @@ const EventItem = ({ event, statusColor, statusLabel }: { event: ActiveBookingMo
 const TeacherHeader = ({
     teacher,
     isExpanded,
-    onClick,
     teacherColor,
     commission,
     commissionColor,
@@ -100,14 +99,13 @@ const TeacherHeader = ({
 }: {
     teacher?: { id: string; firstName: string; lastName: string };
     isExpanded: boolean;
-    onClick: () => void;
     teacherColor?: string;
     commission: ReturnType<typeof getTeacherLessonCommission>;
     commissionColor?: string;
     packageColor?: string;
 }) => {
     return (
-        <button onClick={onClick} className="flex items-center justify-between gap-3 px-4 py-2 transition-colors cursor-pointer hover:opacity-80">
+        <div className="flex items-center justify-between gap-3 px-4 py-2">
             <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 rounded-lg flex-shrink-0" style={{ color: teacherColor, backgroundColor: `${teacherColor}15` }}>
                     <HeadsetIcon size={16} />
@@ -117,7 +115,7 @@ const TeacherHeader = ({
                 </div>
             </div>
             {isExpanded && <CommissionTable commission={commission} commissionColor={commissionColor} packageColor={packageColor} />}
-        </button>
+        </div>
     );
 };
 
@@ -160,7 +158,7 @@ export const TLETab = ({ booking, teacherId }: TLETabProps) => {
     );
 
     return (
-        <div className="space-y-3">
+        <div className="flex flex-wrap gap-3">
             {Object.entries(eventsByTeacher).map(([teacherKey, { teacher, events }]) => {
                 const isExpanded = expandedTeacherId === teacherKey;
 
@@ -176,13 +174,15 @@ export const TLETab = ({ booking, teacherId }: TLETabProps) => {
                 return (
                     <div
                         key={teacherKey}
-                        className="border rounded-xl overflow-hidden transition-colors"
+                        className="border rounded-xl overflow-hidden transition-colors cursor-pointer hover:opacity-80 flex-shrink-0"
                         style={{
                             borderColor: teacherColor,
                             backgroundColor: isExpanded ? `${teacherColor}20` : "transparent",
+                            width: isExpanded ? "auto" : "fit-content",
                         }}
+                        onClick={() => setExpandedTeacherId(isExpanded ? null : teacherKey)}
                     >
-                        <TeacherHeader teacher={teacher} isExpanded={isExpanded} onClick={() => setExpandedTeacherId(isExpanded ? null : teacherKey)} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} packageColor={packageColor} />
+                        <TeacherHeader teacher={teacher} isExpanded={isExpanded} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} packageColor={packageColor} />
 
                         {isExpanded && (
                             <div className="space-y-2 pl-4 py-2 px-4 border-t" style={{ borderColor: teacherColor }}>

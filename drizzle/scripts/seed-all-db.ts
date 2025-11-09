@@ -201,12 +201,17 @@ const main = async () => {
             }))
         );
 
-        // Booking
+        // Booking - date span 2-6 days apart
+        const bookingStartDate = new Date();
+        bookingStartDate.setDate(bookingStartDate.getDate() + faker.number.int({ min: 1, max: 5 }));
+        const bookingEndDate = new Date(bookingStartDate);
+        bookingEndDate.setDate(bookingEndDate.getDate() + faker.number.int({ min: 2, max: 6 }));
+
         const [bookingRecord] = await db
             .insert(booking)
             .values({
-                dateStart: faker.date.future().toISOString().split("T")[0],
-                dateEnd: faker.date.future().toISOString().split("T")[0],
+                dateStart: bookingStartDate.toISOString().split("T")[0],
+                dateEnd: bookingEndDate.toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: studentPkg.id,
             })
@@ -220,24 +225,6 @@ const main = async () => {
             }))
         );
 
-        // Lesson
-        const [lessonRecord] = await db
-            .insert(lesson)
-            .values({
-                teacherId: teacher1.id,
-                bookingId: bookingRecord.id,
-                commissionId: commission1.id,
-                status: "active",
-            })
-            .returning();
-
-        // Add a payment for this lesson
-        await db.insert(teacherLessonPayment).values({
-            lessonId: lessonRecord.id,
-            amount: faker.number.int({ min: 50, max: 150 }),
-        });
-        console.log(`✅ Created payment record for lesson ${lessonRecord.id}`);
-
         // Add student booking payments for each student in the booking
         for (const s of studentsForPackage) {
             await db.insert(studentBookingPayment).values({
@@ -248,23 +235,61 @@ const main = async () => {
         }
         console.log(`✅ Created ${studentsForPackage.length} student payment(s) for booking ${bookingRecord.id}`);
 
-        // Event
-        const [eventRecord] = await db
-            .insert(event)
-            .values({
-                lessonId: lessonRecord.id,
-                date: faker.date.future(),
-                duration: faker.number.int({ min: 60, max: 180 }),
-                location: faker.location.city(),
-                status: "planned",
-            })
-            .returning();
+        // Create 2 lessons for this booking
+        const lessonsToCreate = 2;
+        let totalEvents = 0;
 
-        // Assign equipment to event
-        await db.insert(equipmentEvent).values({
-            equipmentId: kiteEq.id,
-            eventId: eventRecord.id,
-        });
+        for (let i = 0; i < lessonsToCreate; i++) {
+            const selectedTeacher = i === 0 ? teachers[0] : teachers[1];
+            const selectedCommission = i === 0 ? commission1 : commission2;
+
+            const [lessonRecord] = await db
+                .insert(lesson)
+                .values({
+                    teacherId: selectedTeacher.id,
+                    bookingId: bookingRecord.id,
+                    commissionId: selectedCommission.id,
+                    status: "active",
+                })
+                .returning();
+
+            // Add a payment for this lesson
+            await db.insert(teacherLessonPayment).values({
+                lessonId: lessonRecord.id,
+                amount: faker.number.int({ min: 50, max: 150 }),
+            });
+            console.log(`✅ Created payment record for lesson ${lessonRecord.id}`);
+
+            // Create 4 events per lesson
+            const eventsPerLesson = 4;
+            for (let j = 0; j < eventsPerLesson; j++) {
+                // Space out events across the booking date range
+                const eventDate = new Date(bookingStartDate);
+                const dayOffset = Math.floor((j / eventsPerLesson) * (bookingEndDate.getTime() - bookingStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                eventDate.setDate(eventDate.getDate() + dayOffset);
+
+                const [eventRecord] = await db
+                    .insert(event)
+                    .values({
+                        lessonId: lessonRecord.id,
+                        date: eventDate,
+                        duration: faker.number.int({ min: 60, max: 180 }),
+                        location: faker.location.city(),
+                        status: faker.helpers.arrayElement(["planned", "completed", "tbc"]),
+                    })
+                    .returning();
+
+                // Assign equipment to event
+                await db.insert(equipmentEvent).values({
+                    equipmentId: kiteEq.id,
+                    eventId: eventRecord.id,
+                });
+
+                totalEvents++;
+            }
+        }
+
+        console.log(`✅ Created ${lessonsToCreate} lessons with ${totalEvents} total events for booking ${bookingRecord.id}`);
 
         // 8. Rental example
         const student2 = students[1];
@@ -343,11 +368,17 @@ const main = async () => {
             }))
         );
 
+        // Booking 3 - date span 2-6 days apart
+        const booking3StartDate = new Date();
+        booking3StartDate.setDate(booking3StartDate.getDate() + faker.number.int({ min: 7, max: 14 }));
+        const booking3EndDate = new Date(booking3StartDate);
+        booking3EndDate.setDate(booking3EndDate.getDate() + faker.number.int({ min: 2, max: 6 }));
+
         const [b3] = await db
             .insert(booking)
             .values({
-                dateStart: faker.date.future().toISOString().split("T")[0],
-                dateEnd: faker.date.future().toISOString().split("T")[0],
+                dateStart: booking3StartDate.toISOString().split("T")[0],
+                dateEnd: booking3EndDate.toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: sp3.id,
             })
@@ -360,38 +391,68 @@ const main = async () => {
             }))
         );
 
-        const [l3] = await db
-            .insert(lesson)
-            .values({
-                teacherId: teacherIds[1],
-                bookingId: b3.id,
-                commissionId: commission2.id,
-                status: "active",
-            })
-            .returning();
+        // Create 2 lessons for booking 3
+        let totalEventsB3 = 0;
+        for (let i = 0; i < 2; i++) {
+            const selectedTeacher = teachers[i % teachers.length];
+            const selectedCommission = i === 0 ? commission1 : commission2;
 
-        const [e3] = await db
-            .insert(event)
-            .values({
+            const [l3] = await db
+                .insert(lesson)
+                .values({
+                    teacherId: selectedTeacher.id,
+                    bookingId: b3.id,
+                    commissionId: selectedCommission.id,
+                    status: "active",
+                })
+                .returning();
+
+            // Add payment for this lesson
+            await db.insert(teacherLessonPayment).values({
                 lessonId: l3.id,
-                date: faker.date.future(),
-                duration: 90,
-                location: faker.location.city(),
-                status: "planned",
-            })
-            .returning();
+                amount: faker.number.int({ min: 50, max: 150 }),
+            });
 
-        await db.insert(equipmentEvent).values({
-            equipmentId: wingEq2.id,
-            eventId: e3.id,
-        });
+            // Create 4 events per lesson
+            for (let j = 0; j < 4; j++) {
+                const eventDate = new Date(booking3StartDate);
+                const dayOffset = Math.floor((j / 4) * (booking3EndDate.getTime() - booking3StartDate.getTime()) / (1000 * 60 * 60 * 24));
+                eventDate.setDate(eventDate.getDate() + dayOffset);
+
+                const [e3] = await db
+                    .insert(event)
+                    .values({
+                        lessonId: l3.id,
+                        date: eventDate,
+                        duration: faker.number.int({ min: 60, max: 180 }),
+                        location: faker.location.city(),
+                        status: faker.helpers.arrayElement(["planned", "completed", "tbc"]),
+                    })
+                    .returning();
+
+                await db.insert(equipmentEvent).values({
+                    equipmentId: wingEq2.id,
+                    eventId: e3.id,
+                });
+
+                totalEventsB3++;
+            }
+        }
+
+        console.log(`✅ Created 2 lessons with ${totalEventsB3} total events for booking ${b3.id}`);
 
         console.log("Seed completed successfully!");
         console.log(`
       School: ${schoolRecord.name}
       Students: ${students.length}
-      Bookings with full chain: 2 (lesson + rental)
-      Events with equipment: 2
+      Teachers: ${teachers.length}
+      Equipment: ${equipments.length}
+      Packages: ${packages.length}
+      Bookings: 3 (2 lesson bookings + 1 rental)
+      Lessons per booking: 2
+      Events per lesson: 4
+      Total events: ~16 events
+      Date span per booking: 2-6 days
     `);
     } catch (error) {
         console.error("Seed failed:", error);

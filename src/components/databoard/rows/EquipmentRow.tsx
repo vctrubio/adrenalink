@@ -14,6 +14,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import type { EquipmentModel } from "@/backend/models";
 
 export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): StatItem[] {

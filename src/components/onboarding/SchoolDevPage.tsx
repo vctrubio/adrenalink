@@ -27,10 +27,12 @@ const entitySubdomain: EntityConfig = {
     relations: ["school"],
 };
 
+const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
+
 const entityPackage: EntityConfig = {
     id: "schoolPackage",
     name: "Packages",
-    icon: ENTITY_DATA.find((e) => e.id === "schoolPackage")?.icon!,
+    icon: packageEntity ? packageEntity.icon : (() => null),
     color: "text-orange-400",
     bgColor: "bg-orange-200",
     link: "/packages",

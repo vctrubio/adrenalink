@@ -24,9 +24,8 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     const bookingStudents = booking.relations?.bookingStudents || [];
-    const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
     const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
-    const packageDesc = schoolPackage?.description || "No package";
+    const referral = booking.relations?.studentPackage?.referral;
 
     // Get equipment category icon and color
     const equipmentCategory = schoolPackage?.categoryEquipment;
@@ -73,40 +72,16 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
                         ]}
                         fields={[
                             {
+                                label: "Referral",
+                                value: referral?.code || "Nobody",
+                            },
+                            {
                                 label: "Status",
                                 value: booking.schema.status || "Active",
                             },
                             {
-                                label: "Package",
-                                value: packageDesc,
-                            },
-                            {
-                                label: "Equipment Type",
-                                value: equipmentCategory || "Unknown",
-                            },
-                            {
-                                label: "Price Per Student",
-                                value: schoolPackage?.pricePerStudent ? `$${schoolPackage.pricePerStudent}` : "N/A",
-                            },
-                            {
-                                label: "Students",
-                                value: studentNames || "No students",
-                            },
-                            {
-                                label: "Start Date",
-                                value: dateStart,
-                            },
-                            {
-                                label: "End Date",
-                                value: dateEnd,
-                            },
-                            {
                                 label: "Created",
                                 value: formatDate(booking.schema.createdAt),
-                            },
-                            {
-                                label: "Last Updated",
-                                value: formatDate(booking.schema.updatedAt),
                             },
                         ]}
                         accentColor={bookingEntity.color}

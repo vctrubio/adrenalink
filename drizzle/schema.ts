@@ -237,7 +237,7 @@ export const booking = pgTable(
         dateEnd: date("date_end").notNull(),
         schoolId: uuid("school_id").references(() => school.id),
         studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
-        status: bookingStatusEnum("status").notNull().default("active"), // TODO: Add via migration
+        status: bookingStatusEnum("status").notNull().default("active"),
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },
@@ -444,12 +444,12 @@ export const teacherLessonPayment = pgTable(
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
         amount: integer("amount").notNull(),
-        lessonId: uuid("lesson_id").notNull().references(() => lesson.id),
+        lessonId: uuid("lesson_id")
+            .notNull()
+            .references(() => lesson.id),
         createdAt: timestamp("created_at").defaultNow().notNull(),
     },
-    (table) => [
-        index("payment_lesson_id_idx").on(table.lessonId),
-    ],
+    (table) => [index("payment_lesson_id_idx").on(table.lessonId)],
 );
 
 // 20. student_booking_payment
@@ -458,14 +458,15 @@ export const studentBookingPayment = pgTable(
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
         amount: integer("amount").notNull(),
-        bookingId: uuid("booking_id").notNull().references(() => booking.id),
-        studentId: uuid("student_id").notNull().references(() => student.id),
+        bookingId: uuid("booking_id")
+            .notNull()
+            .references(() => booking.id),
+        studentId: uuid("student_id")
+            .notNull()
+            .references(() => student.id),
         createdAt: timestamp("created_at").defaultNow().notNull(),
     },
-    (table) => [
-        index("student_payment_booking_id_idx").on(table.bookingId),
-        index("student_payment_student_id_idx").on(table.studentId),
-    ],
+    (table) => [index("student_payment_booking_id_idx").on(table.bookingId), index("student_payment_student_id_idx").on(table.studentId)],
 );
 
 export type StudentType = typeof student.$inferSelect;
