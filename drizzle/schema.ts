@@ -23,12 +23,13 @@ export const school = pgTable("school", {
     status: schoolStatusEnum("status").notNull().default("pending"),
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 10, scale: 8 }),
+    timezone: varchar("timezone", { length: 50 }),
     googlePlaceId: varchar("google_place_id", { length: 255 }),
     equipmentCategories: text("equipment_categories"),
     websiteUrl: varchar("website_url", { length: 255 }),
     instagramUrl: varchar("instagram_url", { length: 255 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 2. school_package
@@ -37,7 +38,7 @@ export const schoolPackage = pgTable(
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
         durationMinutes: integer("duration_minutes").notNull(),
-        description: text("description"),
+        description: text("description").notNull(),
         pricePerStudent: integer("price_per_student").notNull(),
         capacityStudents: integer("capacity_students").notNull(),
         capacityEquipment: integer("capacity_equipment").notNull().default(1),
@@ -73,8 +74,8 @@ export const equipment = pgTable(
             .notNull()
             .references(() => school.id),
         category: equipmentCategoryEnum("category").notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [index("equipment_school_id_idx").on(table.schoolId), index("equipment_category_idx").on(table.category)],
 );
@@ -88,8 +89,8 @@ export const student = pgTable("student", {
     country: varchar("country", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }).notNull(),
     languages: text("languages").array().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 5. student_package
@@ -97,7 +98,7 @@ export const studentPackage = pgTable(
     "student_package",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        packageId: uuid("package_id")
+        schoolPackageId: uuid("school_package_id")
             .notNull()
             .references(() => schoolPackage.id),
         referralId: uuid("referral_id").references(() => referral.id),
@@ -105,27 +106,29 @@ export const studentPackage = pgTable(
         requestedDateStart: date("requested_date_start").notNull(),
         requestedDateEnd: date("requested_date_end").notNull(),
         status: studentPackageStatusEnum("status").notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
         foreignKey({
-            columns: [table.packageId],
+            columns: [table.schoolPackageId],
             foreignColumns: [schoolPackage.id],
-            name: "student_package_package_id_fk",
+            name: "student_package_school_package_id_fk",
         }),
         foreignKey({
             columns: [table.referralId],
             foreignColumns: [referral.id],
             name: "student_package_referral_id_fk",
         }),
-        index("student_package_package_id_idx").on(table.packageId),
+        index("student_package_school_package_id_idx").on(table.schoolPackageId),
         index("student_package_referral_id_idx").on(table.referralId),
         index("student_package_wallet_id_idx").on(table.walletId),
     ],
 );
 
 // 5b. student_package_student (many-to-many join table)
+// Links students to studentPackage requests
+// Note: Referral tracking is handled in studentPackage.referralId, not here
 export const studentPackageStudent = pgTable(
     "student_package_student",
     {
@@ -136,7 +139,7 @@ export const studentPackageStudent = pgTable(
         studentId: uuid("student_id")
             .notNull()
             .references(() => student.id),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
         foreignKey({
@@ -169,8 +172,8 @@ export const schoolStudents = pgTable(
         description: text("description"),
         active: boolean("active").default(true).notNull(),
         rental: boolean("rental").default(false).notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => ({
         uniqueStudentSchool: unique("unique_student_school").on(table.studentId, table.schoolId),
@@ -188,8 +191,8 @@ export const referral = pgTable("referral", {
     commissionType: commissionTypeEnum("commission_type").notNull().default("fixed"),
     commissionValue: decimal("commission_value", { precision: 10, scale: 2 }).notNull(),
     active: boolean("active").default(true).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 8. teacher
@@ -208,8 +211,8 @@ export const teacher = pgTable(
             .notNull()
             .references(() => school.id),
         active: boolean("active").default(true).notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [unique("unique_teacher_username_school").on(table.schoolId, table.username)],
 );
@@ -224,8 +227,8 @@ export const teacherCommission = pgTable("teacher_commission", {
     description: text("description"),
     cph: decimal("cph", { precision: 10, scale: 2 }).notNull(),
     active: boolean("active").default(true).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 10. booking
@@ -235,11 +238,15 @@ export const booking = pgTable(
         id: uuid("id").defaultRandom().primaryKey().notNull(),
         dateStart: date("date_start").notNull(),
         dateEnd: date("date_end").notNull(),
-        schoolId: uuid("school_id").references(() => school.id),
-        studentPackageId: uuid("student_package_id").references(() => studentPackage.id),
+        schoolId: uuid("school_id")
+            .notNull()
+            .references(() => school.id),
+        studentPackageId: uuid("student_package_id")
+            .notNull()
+            .references(() => studentPackage.id),
         status: bookingStatusEnum("status").notNull().default("active"),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
         foreignKey({
@@ -291,6 +298,8 @@ export const lesson = pgTable(
     "lesson",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
+        schoolId: uuid("school_id")
+            .references(() => school.id),
         teacherId: uuid("teacher_id")
             .notNull()
             .references(() => teacher.id),
@@ -301,9 +310,14 @@ export const lesson = pgTable(
             .notNull()
             .references(() => teacherCommission.id),
         status: lessonStatusEnum("status").notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
+        foreignKey({
+            columns: [table.schoolId],
+            foreignColumns: [school.id],
+            name: "lesson_school_id_fk",
+        }),
         foreignKey({
             columns: [table.teacherId],
             foreignColumns: [teacher.id],
@@ -319,6 +333,7 @@ export const lesson = pgTable(
             foreignColumns: [teacherCommission.id],
             name: "lesson_commission_id_fk",
         }),
+        index("lesson_school_id_idx").on(table.schoolId),
         index("lesson_teacher_booking_id_idx").on(table.teacherId, table.bookingId),
     ],
 );
@@ -328,22 +343,30 @@ export const event = pgTable(
     "event",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
+        schoolId: uuid("school_id")
+            .references(() => school.id),
         lessonId: uuid("lesson_id")
             .notNull()
             .references(() => lesson.id),
-        date: timestamp("date").notNull(),
+        date: timestamp("date", { withTimezone: true }).notNull(),
         duration: integer("duration").notNull(),
         location: varchar("location", { length: 100 }),
         status: eventStatusEnum("status").notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
+        foreignKey({
+            columns: [table.schoolId],
+            foreignColumns: [school.id],
+            name: "event_school_id_fk",
+        }),
         foreignKey({
             columns: [table.lessonId],
             foreignColumns: [lesson.id],
             name: "event_lesson_id_fk",
         }),
+        index("event_school_id_idx").on(table.schoolId),
         index("event_lesson_id_idx").on(table.lessonId),
     ],
 );
@@ -359,7 +382,7 @@ export const equipmentEvent = pgTable(
         eventId: uuid("event_id")
             .notNull()
             .references(() => event.id),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [unique("unique_equipment_event").on(table.equipmentId, table.eventId), index("equipment_event_equipment_id_idx").on(table.equipmentId), index("equipment_event_event_id_idx").on(table.eventId)],
 );
@@ -376,8 +399,8 @@ export const equipmentRepair = pgTable(
         checkOut: date("check_out"),
         price: integer("price").notNull(),
         description: text("description"),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [index("equipment_repair_equipment_id_idx").on(table.equipmentId)],
 );
@@ -394,8 +417,8 @@ export const studentLessonFeedback = pgTable(
             .notNull()
             .references(() => lesson.id),
         description: text("description"),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [unique("unique_student_lesson_feedback").on(table.studentId, table.lessonId)],
 );
@@ -405,7 +428,7 @@ export const rental = pgTable(
     "rental",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        date: timestamp("date").notNull(),
+        date: timestamp("date", { withTimezone: true }).notNull(),
         duration: integer("duration").notNull(),
         location: varchar("location", { length: 255 }).notNull(),
         status: rentalStatusEnum("status").notNull(),
@@ -415,8 +438,8 @@ export const rental = pgTable(
         equipmentId: uuid("equipment_id")
             .notNull()
             .references(() => equipment.id),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [index("rental_student_id_idx").on(table.studentId), index("rental_equipment_id_idx").on(table.equipmentId)],
 );
@@ -433,7 +456,7 @@ export const teacherEquipment = pgTable(
             .notNull()
             .references(() => equipment.id),
         active: boolean("active").default(true).notNull(),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [unique("unique_teacher_equipment").on(table.teacherId, table.equipmentId)],
 );
@@ -447,7 +470,7 @@ export const teacherLessonPayment = pgTable(
         lessonId: uuid("lesson_id")
             .notNull()
             .references(() => lesson.id),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [index("payment_lesson_id_idx").on(table.lessonId)],
 );
@@ -464,7 +487,7 @@ export const studentBookingPayment = pgTable(
         studentId: uuid("student_id")
             .notNull()
             .references(() => student.id),
-        createdAt: timestamp("created_at").defaultNow().notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [index("student_payment_booking_id_idx").on(table.bookingId), index("student_payment_student_id_idx").on(table.studentId)],
 );

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getEntityId } from "@/actions/id-actions";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
 import { ENTITY_DATA } from "@/config/entities";
@@ -8,6 +9,7 @@ import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
+import { ExternalLink } from "lucide-react";
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("student", params.id);
@@ -95,6 +97,16 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                         ]}
                         accentColor={studentEntity.color}
                     />
+
+                    <Link href={`/student/${params.id}`} className="block">
+                        <div className="bg-card border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors group">
+                            <div className="flex items-center justify-between">
+                                <span className="font-medium text-foreground">View Portal</span>
+                                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">See student dashboard with real-time events</p>
+                        </div>
+                    </Link>
 
                     {/* School Relationships */}
                     {student.relations?.schoolStudents && student.relations.schoolStudents.length > 0 && (

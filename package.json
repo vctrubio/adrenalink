@@ -15,12 +15,16 @@
         "db:test-connection": "bun run drizzle/scripts/test-db-connection.ts",
         "db:seed": "bun run drizzle/scripts/students-seed.ts",
         "db:seed-all": "bun run drizzle/scripts/seed-all-db.ts",
+        "db:seed-booking-student": "bun run drizzle/scripts/seed-booking-student.ts",
         "db:get-seeds": "bun run drizzle/scripts/get-seeds.ts",
         "db:clear": "bun run drizzle/scripts/clear.ts",
         "db:clear-meta": "bun run drizzle/scripts/clear-meta.ts",
-        "db:workflow": "bun run db:generate && bun run db:migrate && bun run db:push",
-        "db:reset": "bun run db:clear && bun run db:push",
-        "db:fresh": "bun run db:clear-meta && bun run db:push",
+        "db:workflow": "bun run db:generate && bun run db:migrate && bun run db:push && bun run db:alter-listen",
+        "db:reset": "bun run db:clear && bun run db:push && bun run db:alter-listen",
+        "db:fresh": "bun run db:clear-meta && bun run db:push && bun run db:alter-listen",
+        "db:alter-listen": "bun run drizzle/scripts/alter-listen.ts",
+        "db:complete-setup": "bun run db:workflow && bun run rev10",
+        "rev10": "bun run drizzle/scripts/seed-rev10.ts",
         "cf:get-admin": "bun run cloudflare/get-admin-bucket.ts",
         "cf:rm": "bun run cloudflare/rm-bucket.ts",
         "cf:seed-admin": "bun run cloudflare/seed-admin-bucket.ts"
@@ -45,6 +49,7 @@
         "react-country-flag": "^3.1.0",
         "react-dom": "19.1.0",
         "react-hook-form": "^7.65.0",
+        "sonner": "^1.2.0",
         "zod": "^4.1.12"
     },
     "devDependencies": {
