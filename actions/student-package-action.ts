@@ -84,22 +84,18 @@ export async function getStudentPackagesWithStats(): Promise<ApiActionResponseMo
 // CREATE - Student requests a package
 export async function createStudentPackageRequest(requestData: StudentPackageForm): Promise<ApiActionResponseModel<StudentPackageModel>> {
     try {
-        // Validate that the student and package exist
-        const [studentExists, packageExists] = await Promise.all([db.select({ id: student.id }).from(student).where(eq(student.id, requestData.studentId)), db.select({ id: schoolPackage.id }).from(schoolPackage).where(eq(schoolPackage.id, requestData.packageId))]);
-
-        if (studentExists.length === 0) {
-            return { success: false, error: "Student not found" };
-        }
+        // Validate that the package exists
+        const [packageExists] = await Promise.all([db.select({ id: schoolPackage.id }).from(schoolPackage).where(eq(schoolPackage.id, requestData.schoolPackageId))]);
 
         if (packageExists.length === 0) {
             return { success: false, error: "Package not found" };
         }
 
-        // Check if student already has a request for this package
+        // Check if wallet already has a request for this package
         const existingRequest = await db
             .select()
             .from(studentPackage)
-            .where(and(eq(studentPackage.studentId, requestData.studentId), eq(studentPackage.packageId, requestData.packageId)));
+            .where(and(eq(studentPackage.walletId, requestData.walletId), eq(studentPackage.schoolPackageId, requestData.schoolPackageId)));
 
         if (existingRequest.length > 0) {
             return { success: false, error: "Student already has a request for this package" };

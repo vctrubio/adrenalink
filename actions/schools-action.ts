@@ -19,7 +19,12 @@ const schoolWithRelations = {
         with: {
             studentPackage: {
                 with: {
-                    student: true,
+                    schoolPackage: true,
+                    studentPackageStudents: {
+                        with: {
+                            student: true,
+                        },
+                    },
                 },
             },
         },
