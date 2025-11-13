@@ -1,5 +1,5 @@
 {
-  "id": "e8d41d5f-d646-445d-b0f8-3c6fb9b0a2e1",
+  "id": "4919b922-52ec-4ff1-9c4a-980a865f7bcf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -31,13 +31,13 @@
           "name": "school_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "student_package_id": {
           "name": "student_package_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "status": {
           "name": "status",
@@ -49,14 +49,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -336,14 +336,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -427,7 +427,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -551,14 +551,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -613,6 +613,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "school_id": {
+          "name": "school_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "lesson_id": {
           "name": "lesson_id",
           "type": "uuid",
@@ -621,7 +627,7 @@
         },
         "date": {
           "name": "date",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
@@ -646,20 +652,35 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
+        "event_school_id_idx": {
+          "name": "event_school_id_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "event_lesson_id_idx": {
           "name": "event_lesson_id_idx",
           "columns": [
@@ -677,12 +698,38 @@
         }
       },
       "foreignKeys": {
+        "event_school_id_school_id_fk": {
+          "name": "event_school_id_school_id_fk",
+          "tableFrom": "event",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "event_lesson_id_lesson_id_fk": {
           "name": "event_lesson_id_lesson_id_fk",
           "tableFrom": "event",
           "tableTo": "lesson",
           "columnsFrom": [
             "lesson_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_school_id_fk": {
+          "name": "event_school_id_fk",
+          "tableFrom": "event",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
           ],
           "columnsTo": [
             "id"
@@ -721,6 +768,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "school_id": {
+          "name": "school_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "teacher_id": {
           "name": "teacher_id",
           "type": "uuid",
@@ -748,13 +801,28 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
+        "lesson_school_id_idx": {
+          "name": "lesson_school_id_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "lesson_teacher_booking_id_idx": {
           "name": "lesson_teacher_booking_id_idx",
           "columns": [
@@ -778,6 +846,19 @@
         }
       },
       "foreignKeys": {
+        "lesson_school_id_school_id_fk": {
+          "name": "lesson_school_id_school_id_fk",
+          "tableFrom": "lesson",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "lesson_teacher_id_teacher_id_fk": {
           "name": "lesson_teacher_id_teacher_id_fk",
           "tableFrom": "lesson",
@@ -810,6 +891,19 @@
           "tableTo": "teacher_commission",
           "columnsFrom": [
             "commission_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lesson_school_id_fk": {
+          "name": "lesson_school_id_fk",
+          "tableFrom": "lesson",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
           ],
           "columnsTo": [
             "id"
@@ -915,14 +1009,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -971,7 +1065,7 @@
         },
         "date": {
           "name": "date",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
@@ -1008,14 +1102,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1142,6 +1236,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "timezone": {
+          "name": "timezone",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "google_place_id": {
           "name": "google_place_id",
           "type": "varchar(255)",
@@ -1168,14 +1268,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1218,7 +1318,7 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "price_per_student": {
           "name": "price_per_student",
@@ -1384,14 +1484,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1490,14 +1590,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1550,7 +1650,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1653,14 +1753,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -1721,8 +1821,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "package_id": {
-          "name": "package_id",
+        "school_package_id": {
+          "name": "school_package_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1760,25 +1860,25 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
-        "student_package_package_id_idx": {
-          "name": "student_package_package_id_idx",
+        "student_package_school_package_id_idx": {
+          "name": "student_package_school_package_id_idx",
           "columns": [
             {
-              "expression": "package_id",
+              "expression": "school_package_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1821,12 +1921,12 @@
         }
       },
       "foreignKeys": {
-        "student_package_package_id_school_package_id_fk": {
-          "name": "student_package_package_id_school_package_id_fk",
+        "student_package_school_package_id_school_package_id_fk": {
+          "name": "student_package_school_package_id_school_package_id_fk",
           "tableFrom": "student_package",
           "tableTo": "school_package",
           "columnsFrom": [
-            "package_id"
+            "school_package_id"
           ],
           "columnsTo": [
             "id"
@@ -1847,12 +1947,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "student_package_package_id_fk": {
-          "name": "student_package_package_id_fk",
+        "student_package_school_package_id_fk": {
+          "name": "student_package_school_package_id_fk",
           "tableFrom": "student_package",
           "tableTo": "school_package",
           "columnsFrom": [
-            "package_id"
+            "school_package_id"
           ],
           "columnsTo": [
             "id"
@@ -1905,7 +2005,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -2080,14 +2180,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -2176,14 +2276,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -2243,7 +2343,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -2318,7 +2418,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
