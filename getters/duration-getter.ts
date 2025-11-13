@@ -3,7 +3,6 @@
 // Never shows float numbers, always uses H:MM format
 
 export function getPrettyDuration(durationMinutes: number): string {
-    // Round to nearest minute to avoid floats
     const totalMinutes = Math.round(durationMinutes);
 
     if (totalMinutes === 0) {
@@ -18,4 +17,32 @@ export function getPrettyDuration(durationMinutes: number): string {
     }
 
     return `${hours}:${minutes.toString().padStart(2, "0")} hrs`;
+}
+
+// ============ DURATION CONSTANTS ============
+export const MIN_DURATION = 60;
+export const MAX_DURATION = 360;
+export const DURATION_INCREMENT = 30;
+
+export const DEFAULT_DURATION_CAP_ONE = 120;
+export const DEFAULT_DURATION_CAP_TWO = 180;
+export const DEFAULT_DURATION_CAP_THREE = 240;
+
+// ============ DURATION UTILITIES ============
+export function minutesToHours(minutes: number): number {
+    return Math.round((minutes / 60) * 10) / 10;
+}
+
+export function hoursToMinutes(hours: number): number {
+    return Math.round(hours * 60);
+}
+
+export function adjustDuration(currentDuration: number, increment: number): number {
+    return Math.max(MIN_DURATION, Math.min(MAX_DURATION, currentDuration + increment));
+}
+
+export function getDurationByStudentCount(studentCount: number, capOne: number, capTwo: number, capThree: number): number {
+    if (studentCount === 1) return capOne;
+    if (studentCount === 2) return capTwo;
+    return capThree;
 }

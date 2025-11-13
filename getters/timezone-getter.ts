@@ -1,4 +1,9 @@
 /**
+ * Timezone utilities for handling timezone conversions and lookups
+ * All date formatting logic should be in date-getter.ts
+ */
+
+/**
  * Get timezone from latitude and longitude coordinates
  * Returns timezone string or null if coordinates are invalid
  */
@@ -57,7 +62,7 @@ export function getTimeZoneLatLong(latitude?: number, longitude?: number): strin
 }
 
 /**
- * Get timezone abbreviation from coordinates  
+ * Get timezone abbreviation from coordinates
  * Returns timezone abbreviation string or null if coordinates are invalid
  */
 export function getTimezoneAbbreviation(latitude?: number, longitude?: number): string | null {
@@ -66,10 +71,10 @@ export function getTimezoneAbbreviation(latitude?: number, longitude?: number): 
     }
 
     const timezoneOffset = Math.round(longitude / 15);
-    
+
     const abbreviationMap: Record<string, string> = {
         "-8": "PST",
-        "-7": "MST", 
+        "-7": "MST",
         "-6": "CST",
         "-5": "EST",
         "-4": "AST",
@@ -90,4 +95,53 @@ export function getTimezoneAbbreviation(latitude?: number, longitude?: number): 
     };
 
     return abbreviationMap[timezoneOffset.toString()] || `UTC${timezoneOffset >= 0 ? "+" : ""}${timezoneOffset}`;
+}
+
+// ============ TIME UTILITIES ============
+export function getTodayDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+export function timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+}
+
+export function minutesToTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+}
+
+export function addMinutesToTime(time: string, minutesToAdd: number): string {
+    const totalMinutes = timeToMinutes(time) + minutesToAdd;
+    const normalizedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+    return minutesToTime(normalizedMinutes);
+}
+
+export function isDateInRange(dateStr: string, startDate: string, endDate: string): boolean {
+    const date = new Date(dateStr);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    date.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    return date >= start && date <= end;
+}
+
+export function formatDateToISO(date: Date, time: string): string {
+    const [hours, minutes] = time.split(":").map(Number);
+    const dateStr = date.toISOString().split("T")[0];
+    return `${dateStr}T${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:00`;
+}
+
+export function getTimeFromISO(isoString: string): string {
+    const date = new Date(isoString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
