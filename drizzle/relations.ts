@@ -35,7 +35,7 @@ export const schoolPackageRelations = relations(schoolPackage, ({ one, many }) =
 
 export const studentPackageRelations = relations(studentPackage, ({ one, many }) => ({
     schoolPackage: one(schoolPackage, {
-        fields: [studentPackage.packageId],
+        fields: [studentPackage.schoolPackageId],
         references: [schoolPackage.id],
     }),
     referral: one(referral, {

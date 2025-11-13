@@ -43,20 +43,20 @@ const createSchool = async () => {
     const [s] = await db
         .insert(school)
         .values({
-            name: faker.company.name() + " School",
-            username: faker.internet.username().toLowerCase(),
+            name: "Reva Kite School",
+            username: "reva10",
             country: faker.location.country(),
             phone: faker.string.numeric(10),
             status: "active",
-            latitude: faker.location.latitude({ max: 90, min: -90, precision: 6 }).toFixed(6),
-            longitude: faker.location.longitude({ max: 180, min: -180, precision: 6 }).toFixed(6),
+            latitude: (Math.random() * 180 - 90).toFixed(8),
+            longitude: (Math.random() * 360 - 180).toFixed(8),
             googlePlaceId: faker.string.uuid(),
             equipmentCategories: "kite,wing",
             websiteUrl: faker.internet.url(),
             instagramUrl: faker.internet.url(),
         })
         .returning();
-    console.log("Created school:", s.id);
+    console.log("Created school:", s.id, "Username: reva10");
     return s;
 };
 
@@ -185,7 +185,7 @@ const main = async () => {
             .insert(studentPackage)
             .values({
                 walletId: student1.id, // For this seed, using student1's id as the wallet creator
-                packageId: kiteLessonPkg.id,
+                schoolPackageId: kiteLessonPkg.id,
                 requestedDateStart: faker.date.future().toISOString().split("T")[0],
                 requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
@@ -201,11 +201,10 @@ const main = async () => {
             }))
         );
 
-        // Booking - date span 2-6 days apart
+        // Booking - starts today, ends in 7 days for testing
         const bookingStartDate = new Date();
-        bookingStartDate.setDate(bookingStartDate.getDate() + faker.number.int({ min: 1, max: 5 }));
-        const bookingEndDate = new Date(bookingStartDate);
-        bookingEndDate.setDate(bookingEndDate.getDate() + faker.number.int({ min: 2, max: 6 }));
+        const bookingEndDate = new Date();
+        bookingEndDate.setDate(bookingEndDate.getDate() + 7);
 
         const [bookingRecord] = await db
             .insert(booking)
@@ -300,7 +299,7 @@ const main = async () => {
             .insert(studentPackage)
             .values({
                 walletId: student2.id, // Using student2's id as the wallet creator
-                packageId: rentalPkg.id,
+                schoolPackageId: rentalPkg.id,
                 requestedDateStart: faker.date.future().toISOString().split("T")[0],
                 requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
@@ -316,11 +315,16 @@ const main = async () => {
             }))
         );
 
+        const rentalBookingStartDate = new Date();
+        rentalBookingStartDate.setDate(rentalBookingStartDate.getDate() + 2);
+        const rentalBookingEndDate = new Date(rentalBookingStartDate);
+        rentalBookingEndDate.setDate(rentalBookingEndDate.getDate() + 7);
+
         const [rentalBooking] = await db
             .insert(booking)
             .values({
-                dateStart: faker.date.future().toISOString().split("T")[0],
-                dateEnd: faker.date.future().toISOString().split("T")[0],
+                dateStart: rentalBookingStartDate.toISOString().split("T")[0],
+                dateEnd: rentalBookingEndDate.toISOString().split("T")[0],
                 schoolId,
                 studentPackageId: rentalStudentPkg.id,
             })
@@ -352,7 +356,7 @@ const main = async () => {
             .insert(studentPackage)
             .values({
                 walletId: student3.id, // Using student3's id as the wallet creator
-                packageId: wingLessonPkg.id,
+                schoolPackageId: wingLessonPkg.id,
                 requestedDateStart: faker.date.future().toISOString().split("T")[0],
                 requestedDateEnd: faker.date.future().toISOString().split("T")[0],
                 status: "accepted",
@@ -368,11 +372,11 @@ const main = async () => {
             }))
         );
 
-        // Booking 3 - date span 2-6 days apart
+        // Booking 3 - starts in 4 days, ends in 11 days
         const booking3StartDate = new Date();
-        booking3StartDate.setDate(booking3StartDate.getDate() + faker.number.int({ min: 7, max: 14 }));
+        booking3StartDate.setDate(booking3StartDate.getDate() + 4);
         const booking3EndDate = new Date(booking3StartDate);
-        booking3EndDate.setDate(booking3EndDate.getDate() + faker.number.int({ min: 2, max: 6 }));
+        booking3EndDate.setDate(booking3EndDate.getDate() + 7);
 
         const [b3] = await db
             .insert(booking)

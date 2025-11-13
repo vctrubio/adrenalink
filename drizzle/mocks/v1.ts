@@ -1,350 +1,308 @@
 // Generated mock data from seeded database
-// Generated on: 2025-10-17T10:53:39.860Z
+// Generated on: 2025-11-13T09:43:00.912Z
 
 export const mockData = {
     "students": [
         {
-            "id": "26b5da53-cddc-4216-b1ef-8951bd27ac83",
-            "name": "Adrienne Jerde",
-            "passport": "JJPZ5IYQ",
-            "country": "Canada",
-            "phone": "+19747657618",
-            "createdAt": "2025-10-17T10:50:15.413Z",
-            "updatedAt": "2025-10-17T10:50:15.413Z"
+            "id": "c647b0cd-08da-4adb-9af8-8175954c0a4b",
+            "firstName": "Bonnie",
+            "lastName": "Purdy",
+            "passport": "KEU87BJAYY",
+            "country": "Saint Martin",
+            "phone": "7174181932",
+            "languages": [
+                "Spanish"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
         },
         {
-            "id": "7d6464b9-45fa-40a0-9747-155038df2df2",
-            "name": "Rosemarie Brakus",
-            "passport": "P3P4CKCM",
-            "country": "France",
-            "phone": "+334883243735",
-            "createdAt": "2025-10-17T10:50:15.833Z",
-            "updatedAt": "2025-10-17T10:50:15.833Z"
+            "id": "2a926172-86f1-4240-8540-33d94f309c37",
+            "firstName": "Sienna",
+            "lastName": "Rodriguez",
+            "passport": "RHPWIHAMQU",
+            "country": "Zambia",
+            "phone": "5591182123",
+            "languages": [
+                "Italian"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
         },
         {
-            "id": "8164a8c6-57e3-48d5-8b81-f1d0e1709888",
-            "name": "Guadalupe McCullough",
-            "passport": "BRKKFP6H",
-            "country": "Spain",
-            "phone": "+347994474270",
-            "createdAt": "2025-10-17T10:50:15.997Z",
-            "updatedAt": "2025-10-17T10:50:15.997Z"
+            "id": "64b56f27-5fde-41d9-b8fa-2bdffbaed874",
+            "firstName": "Manuela",
+            "lastName": "Pollich",
+            "passport": "FAYQBOU6SQ",
+            "country": "American Samoa",
+            "phone": "0879088580",
+            "languages": [
+                "Spanish"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
         },
         {
-            "id": "6d5d907a-fa3a-4746-b2e4-e923474d2057",
-            "name": "Megan Flatley MD",
-            "passport": "2EYPBH05",
-            "country": "Spain",
-            "phone": "+342636170931",
-            "createdAt": "2025-10-17T10:50:16.149Z",
-            "updatedAt": "2025-10-17T10:50:16.149Z"
+            "id": "c92b07b3-3284-4d35-9286-6142e0fa6a31",
+            "firstName": "Zane",
+            "lastName": "Graham",
+            "passport": "TNPQ3YLIUI",
+            "country": "United States of America",
+            "phone": "0687392398",
+            "languages": [
+                "French"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
         },
         {
-            "id": "da654895-075c-4edb-9cfa-1a96d903c36f",
-            "name": "Garry Bechtelar",
-            "passport": "YAOLVL3K",
-            "country": "Australia",
-            "phone": "+614026569758",
-            "createdAt": "2025-10-17T10:50:16.301Z",
-            "updatedAt": "2025-10-17T10:50:16.301Z"
+            "id": "2d425f47-e1cb-4adf-b8ab-d72e163c0e63",
+            "firstName": "Joshuah",
+            "lastName": "Lemke",
+            "passport": "TQ6NKJPBKG",
+            "country": "Sudan",
+            "phone": "2902780412",
+            "languages": [
+                "German"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
+        },
+        {
+            "id": "5ec6605c-816a-4df0-b1fc-56b71ce19288",
+            "firstName": "Yoshiko",
+            "lastName": "Kshlerin",
+            "passport": "JHO50BG8B7",
+            "country": "Hong Kong",
+            "phone": "1620106928",
+            "languages": [
+                "Dutch"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
+        },
+        {
+            "id": "4892ba54-4a88-4c94-a985-8c31feac2abd",
+            "firstName": "Jaqueline",
+            "lastName": "Krajcik",
+            "passport": "CK4RNZG7AX",
+            "country": "Rwanda",
+            "phone": "9458445914",
+            "languages": [
+                "Spanish"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
+        },
+        {
+            "id": "07f47875-3ac7-484e-a8c8-9fe931f98b7b",
+            "firstName": "Foster",
+            "lastName": "Predovic",
+            "passport": "CK3R9LPRJO",
+            "country": "Mozambique",
+            "phone": "6316949339",
+            "languages": [
+                "Italian"
+            ],
+            "createdAt": "2025-11-13T09:42:28.258Z",
+            "updatedAt": "2025-11-13T09:42:28.258Z"
         }
     ],
     "schools": [
         {
-            "id": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "name": "Thiel Inc College",
-            "username": "thielinccollege607",
-            "country": "United States",
-            "phone": "+15253545744",
-            "createdAt": "2025-10-17T10:50:16.773Z",
-            "updatedAt": "2025-10-17T10:50:16.773Z"
-        },
-        {
-            "id": "40e121d3-e8bf-4938-b787-e27ab329ae2e",
-            "name": "Dickens Group University",
-            "username": "dickensgroupuniversi284",
-            "country": "Australia",
-            "phone": "+614726951838",
-            "createdAt": "2025-10-17T10:50:16.926Z",
-            "updatedAt": "2025-10-17T10:50:16.926Z"
-        },
-        {
-            "id": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
-            "name": "Wunsch - Pouros Institute",
-            "username": "wunschpourosinstitut733",
-            "country": "United States",
-            "phone": "+15685808392",
-            "createdAt": "2025-10-17T10:50:17.081Z",
-            "updatedAt": "2025-10-17T10:50:17.081Z"
+            "id": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "name": "Reva Kite School",
+            "username": "reva10",
+            "country": "Peru",
+            "phone": "6621130844",
+            "status": "active",
+            "latitude": "35.81302160",
+            "longitude": "57.58118633",
+            "googlePlaceId": "e5a09e55-de7d-4707-8e6e-7ae21188aa93",
+            "equipmentCategories": "kite,wing",
+            "websiteUrl": "https://hollow-embossing.biz/",
+            "instagramUrl": "https://everlasting-ribbon.org",
+            "createdAt": "2025-11-13T09:42:27.304Z",
+            "updatedAt": "2025-11-13T09:42:27.304Z"
         }
     ],
     "schoolStudents": [
         {
-            "id": "51b1e928-6ce9-4576-af9b-5ef2b6dfa94a",
-            "schoolId": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "studentId": "26b5da53-cddc-4216-b1ef-8951bd27ac83",
-            "description": "Graduate student",
+            "id": "b46ad523-89ef-48f9-8b17-20afd1c9f534",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "c647b0cd-08da-4adb-9af8-8175954c0a4b",
+            "description": "Undique viscus consequuntur temporibus adfero tamquam aduro quasi solio.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:17.289Z",
-            "updatedAt": "2025-10-17T10:50:17.289Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "b390e256-5151-4709-b5eb-37a8f2ba376d",
-            "schoolId": "40e121d3-e8bf-4938-b787-e27ab329ae2e",
-            "studentId": "7d6464b9-45fa-40a0-9747-155038df2df2",
-            "description": "Graduate student",
+            "id": "a77b4de4-4e8d-4e77-91e8-2591757cad3b",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "2a926172-86f1-4240-8540-33d94f309c37",
+            "description": "Absque beatus eaque volva benigne cupressus tamdiu.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:17.737Z",
-            "updatedAt": "2025-10-17T10:50:17.737Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "3367943e-a12b-4d03-8aff-49836ab8d764",
-            "schoolId": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "studentId": "7d6464b9-45fa-40a0-9747-155038df2df2",
-            "description": "Visiting student",
+            "id": "956a7f65-43f9-43a7-9bbf-d965f549fd41",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "64b56f27-5fde-41d9-b8fa-2bdffbaed874",
+            "description": "Confero summisse quo.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:17.897Z",
-            "updatedAt": "2025-10-17T10:50:17.897Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "195d28bd-915c-4455-8568-bfe038bbecef",
-            "schoolId": "40e121d3-e8bf-4938-b787-e27ab329ae2e",
-            "studentId": "8164a8c6-57e3-48d5-8b81-f1d0e1709888",
-            "description": "Graduate student",
+            "id": "d0bf9378-670c-4941-99af-b63aef9f1a1a",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "c92b07b3-3284-4d35-9286-6142e0fa6a31",
+            "description": "Certus adnuo trucido vere.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:18.049Z",
-            "updatedAt": "2025-10-17T10:50:18.049Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "b4f68c03-93da-4d9f-bf22-678269f9ab33",
-            "schoolId": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
-            "studentId": "8164a8c6-57e3-48d5-8b81-f1d0e1709888",
-            "description": "Graduate student",
+            "id": "e5d9acbb-03f3-4229-9445-b17a727ccc19",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "2d425f47-e1cb-4adf-b8ab-d72e163c0e63",
+            "description": "Ancilla thema tandem cras.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:18.197Z",
-            "updatedAt": "2025-10-17T10:50:18.197Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "4a10d1da-241e-4830-b3b5-7df28f8cdfb3",
-            "schoolId": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
-            "studentId": "6d5d907a-fa3a-4746-b2e4-e923474d2057",
-            "description": "Full-time student",
+            "id": "deb7dbe0-ea48-44b1-b47d-e3e5d5af14c4",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "5ec6605c-816a-4df0-b1fc-56b71ce19288",
+            "description": "Consequuntur vestigium vinitor velit aestivus thalassinus vetus tamdiu aeger.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:18.621Z",
-            "updatedAt": "2025-10-17T10:50:18.621Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "f4ed1773-0886-435d-a449-cc74c5499385",
-            "schoolId": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "studentId": "da654895-075c-4edb-9cfa-1a96d903c36f",
-            "description": "Part-time student",
+            "id": "907d8e1f-dda1-4c77-9cbe-4e335a07c36f",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "4892ba54-4a88-4c94-a985-8c31feac2abd",
+            "description": "Qui terra adipiscor caelestis.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:18.781Z",
-            "updatedAt": "2025-10-17T10:50:18.781Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         },
         {
-            "id": "c764dac2-f23e-43a0-b6f5-6c1ef497b011",
-            "schoolId": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
-            "studentId": "da654895-075c-4edb-9cfa-1a96d903c36f",
-            "description": "Full-time student",
+            "id": "d5bfa8d6-ae8d-4d41-8667-36e59097671e",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "studentId": "07f47875-3ac7-484e-a8c8-9fe931f98b7b",
+            "description": "Crudelis angelus ancilla denuncio volubilis.",
             "active": true,
-            "createdAt": "2025-10-17T10:50:18.945Z",
-            "updatedAt": "2025-10-17T10:50:18.945Z"
+            "rental": false,
+            "createdAt": "2025-11-13T09:42:28.464Z",
+            "updatedAt": "2025-11-13T09:42:28.464Z"
         }
     ],
     "schoolPackages": [
         {
-            "id": "f8045f0c-18ac-44f9-a036-88eb81292190",
-            "durationMinutes": 180,
-            "description": "Surfboard rental for experienced surfers",
-            "pricePerStudent": 31,
-            "capacityStudents": 11,
-            "capacityEquipment": 13,
-            "categoryEquipment": "surf",
-            "schoolId": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "isPublic": true,
-            "active": true,
-            "createdAt": "2025-10-17T10:51:45.220Z",
-            "updatedAt": "2025-10-17T10:51:45.220Z"
-        },
-        {
-            "id": "2decfc33-371c-4e2f-8489-c1f5940934c9",
+            "id": "b838aeba-e5b9-48ff-a3c8-bbb2719eb58d",
             "durationMinutes": 120,
-            "description": "Practice in the terrain park",
-            "pricePerStudent": 75,
-            "capacityStudents": 9,
-            "capacityEquipment": 14,
-            "categoryEquipment": "snowboard",
-            "schoolId": "e69e5aa7-061e-46b1-b41c-c4351d6f300b",
-            "isPublic": true,
-            "active": true,
-            "createdAt": "2025-10-17T10:51:45.388Z",
-            "updatedAt": "2025-10-17T10:51:45.388Z"
-        },
-        {
-            "id": "9e39186a-457f-4f51-a114-79f842c22183",
-            "durationMinutes": 90,
-            "description": "Learn the fundamentals of wing foiling",
-            "pricePerStudent": 93,
-            "capacityStudents": 7,
-            "capacityEquipment": 15,
-            "categoryEquipment": "wing",
-            "schoolId": "40e121d3-e8bf-4938-b787-e27ab329ae2e",
-            "isPublic": false,
-            "active": true,
-            "createdAt": "2025-10-17T10:51:45.556Z",
-            "updatedAt": "2025-10-17T10:51:45.556Z"
-        },
-        {
-            "id": "b3ad2016-8dac-4039-9544-606f05f653d1",
-            "durationMinutes": 240,
-            "description": "Full day kite equipment rental with supervision",
-            "pricePerStudent": 56,
-            "capacityStudents": 5,
-            "capacityEquipment": 12,
+            "description": "Private Kite Lesson",
+            "pricePerStudent": 120,
+            "capacityStudents": 1,
+            "capacityEquipment": 1,
             "categoryEquipment": "kite",
-            "schoolId": "40e121d3-e8bf-4938-b787-e27ab329ae2e",
+            "packageType": "lessons",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
             "isPublic": true,
             "active": true,
-            "createdAt": "2025-10-17T10:51:45.712Z",
-            "updatedAt": "2025-10-17T10:51:45.712Z"
+            "createdAt": "2025-11-13T09:42:29.033Z",
+            "updatedAt": "2025-11-13T09:42:29.033Z"
         },
         {
-            "id": "75667c20-2bfb-4715-b02f-f9d34a089d5d",
-            "durationMinutes": 240,
-            "description": "Full day windsurf board and sail rental",
-            "pricePerStudent": 60,
-            "capacityStudents": 12,
-            "capacityEquipment": 14,
-            "categoryEquipment": "windsurf",
-            "schoolId": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
-            "isPublic": false,
-            "active": true,
-            "createdAt": "2025-10-17T10:51:45.872Z",
-            "updatedAt": "2025-10-17T10:51:45.872Z"
-        },
-        {
-            "id": "f8079fa7-6654-4fa1-9220-21e1130dca02",
-            "durationMinutes": 120,
-            "description": "Improve your surfing technique",
-            "pricePerStudent": 92,
-            "capacityStudents": 12,
-            "capacityEquipment": 6,
-            "categoryEquipment": "surf",
-            "schoolId": "4e2e4a54-2bee-416f-8df5-d3893133c4d8",
+            "id": "23babce6-f83f-43a9-8791-ae22b6133475",
+            "durationMinutes": 90,
+            "description": "Private Wing Lesson",
+            "pricePerStudent": 90,
+            "capacityStudents": 1,
+            "capacityEquipment": 1,
+            "categoryEquipment": "wing",
+            "packageType": "lessons",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
             "isPublic": true,
             "active": true,
-            "createdAt": "2025-10-17T10:51:46.032Z",
-            "updatedAt": "2025-10-17T10:51:46.032Z"
+            "createdAt": "2025-11-13T09:42:29.033Z",
+            "updatedAt": "2025-11-13T09:42:29.033Z"
+        },
+        {
+            "id": "83dda3d1-510e-4ab6-95ea-8a6aaeabac46",
+            "durationMinutes": 180,
+            "description": "3h Kite Rental",
+            "pricePerStudent": 80,
+            "capacityStudents": 1,
+            "capacityEquipment": 1,
+            "categoryEquipment": "kite",
+            "packageType": "rental",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "isPublic": true,
+            "active": true,
+            "createdAt": "2025-11-13T09:42:29.033Z",
+            "updatedAt": "2025-11-13T09:42:29.033Z"
+        },
+        {
+            "id": "8ae770d9-b04a-4308-aa9a-468b6719bd1a",
+            "durationMinutes": 180,
+            "description": "3h Wing Rental",
+            "pricePerStudent": 70,
+            "capacityStudents": 1,
+            "capacityEquipment": 1,
+            "categoryEquipment": "wing",
+            "packageType": "rental",
+            "schoolId": "aeb8566a-ac3f-4d29-94f5-efa73de9a1bc",
+            "isPublic": true,
+            "active": true,
+            "createdAt": "2025-11-13T09:42:29.033Z",
+            "updatedAt": "2025-11-13T09:42:29.033Z"
         }
     ],
     "studentPackages": [
         {
-            "id": "a05965b5-a4a7-4c4d-88e3-89d85cb0a622",
-            "studentId": "26b5da53-cddc-4216-b1ef-8951bd27ac83",
-            "packageId": "2decfc33-371c-4e2f-8489-c1f5940934c9",
-            "requestedDateStart": "2026-03-14 07:39:59.68",
-            "requestedDateEnd": "2026-03-14 09:39:59.68",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:54.394823",
-            "updatedAt": "2025-10-17 10:52:54.394823"
+            "id": "1aebba00-0593-4d68-828c-e42970d74f0b",
+            "schoolPackageId": "b838aeba-e5b9-48ff-a3c8-bbb2719eb58d",
+            "referralId": null,
+            "walletId": "c647b0cd-08da-4adb-9af8-8175954c0a4b",
+            "requestedDateStart": "2026-01-14",
+            "requestedDateEnd": "2026-10-13",
+            "status": "accepted",
+            "createdAt": "2025-11-13T09:42:29.436Z",
+            "updatedAt": "2025-11-13T09:42:29.436Z"
         },
         {
-            "id": "a544d192-31e9-4f5b-9f2b-e29b91bbf194",
-            "studentId": "26b5da53-cddc-4216-b1ef-8951bd27ac83",
-            "packageId": "b3ad2016-8dac-4039-9544-606f05f653d1",
-            "requestedDateStart": "2025-10-27 13:00:20.546",
-            "requestedDateEnd": "2025-10-27 17:00:20.546",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:54.598814",
-            "updatedAt": "2025-10-17 10:52:54.598814"
+            "id": "5c2d7140-0847-4882-9796-8854b6565f1c",
+            "schoolPackageId": "8ae770d9-b04a-4308-aa9a-468b6719bd1a",
+            "referralId": null,
+            "walletId": "2a926172-86f1-4240-8540-33d94f309c37",
+            "requestedDateStart": "2026-05-21",
+            "requestedDateEnd": "2026-01-18",
+            "status": "accepted",
+            "createdAt": "2025-11-13T09:42:34.812Z",
+            "updatedAt": "2025-11-13T09:42:34.812Z"
         },
         {
-            "id": "75ace73f-1ba7-4421-9225-eea11aa110e4",
-            "studentId": "7d6464b9-45fa-40a0-9747-155038df2df2",
-            "packageId": "9e39186a-457f-4f51-a114-79f842c22183",
-            "requestedDateStart": "2026-07-23 17:47:55.044",
-            "requestedDateEnd": "2026-07-23 18:47:55.044",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:54.768828",
-            "updatedAt": "2025-10-17 10:52:54.768828"
-        },
-        {
-            "id": "e3d5e87d-011a-4f39-80da-5bc1e1cb21cd",
-            "studentId": "7d6464b9-45fa-40a0-9747-155038df2df2",
-            "packageId": "b3ad2016-8dac-4039-9544-606f05f653d1",
-            "requestedDateStart": "2025-12-04 18:33:35.649",
-            "requestedDateEnd": "2025-12-04 22:33:35.649",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:54.952872",
-            "updatedAt": "2025-10-17 10:52:54.952872"
-        },
-        {
-            "id": "f7177c07-29dd-4e03-bcda-f91a90cd8678",
-            "studentId": "8164a8c6-57e3-48d5-8b81-f1d0e1709888",
-            "packageId": "2decfc33-371c-4e2f-8489-c1f5940934c9",
-            "requestedDateStart": "2026-01-27 19:28:01.541",
-            "requestedDateEnd": "2026-01-27 21:28:01.541",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:55.412931",
-            "updatedAt": "2025-10-17 10:52:55.412931"
-        },
-        {
-            "id": "5b3dafbf-1302-436c-a8d9-6dfe11328764",
-            "studentId": "8164a8c6-57e3-48d5-8b81-f1d0e1709888",
-            "packageId": "b3ad2016-8dac-4039-9544-606f05f653d1",
-            "requestedDateStart": "2026-02-11 15:22:34.662",
-            "requestedDateEnd": "2026-02-11 19:22:34.662",
-            "status": "requested",
-            "createdAt": "2025-10-17 10:52:55.558286",
-            "updatedAt": "2025-10-17 10:52:55.558286"
-        }
-    ],
-    "bookings": [
-        {
-            "id": "booking-001",
-            "dateStart": "2025-11-07T09:00:00.000Z",
-            "dateEnd": "2025-11-07T12:00:00.000Z",
-            "status": "completed",
-            "studentPackageId": "a05965b5-a4a7-4c4d-88e3-89d85cb0a622",
-            "createdAt": "2025-11-01T10:00:00.000Z",
-            "updatedAt": "2025-11-07T12:00:00.000Z"
-        },
-        {
-            "id": "booking-002",
-            "dateStart": "2025-11-07T14:00:00.000Z",
-            "dateEnd": "2025-11-07T16:00:00.000Z",
-            "status": "completed",
-            "studentPackageId": "75ace73f-1ba7-4421-9225-eea11aa110e4",
-            "createdAt": "2025-11-01T10:00:00.000Z",
-            "updatedAt": "2025-11-07T16:00:00.000Z"
-        },
-        {
-            "id": "booking-003",
-            "dateStart": "2025-11-08T10:00:00.000Z",
-            "dateEnd": "2025-11-08T14:00:00.000Z",
-            "status": "active",
-            "studentPackageId": "a544d192-31e9-4f5b-9f2b-e29b91bbf194",
-            "createdAt": "2025-11-01T10:00:00.000Z",
-            "updatedAt": "2025-11-01T10:00:00.000Z"
-        },
-        {
-            "id": "booking-004",
-            "dateStart": "2025-11-08T15:00:00.000Z",
-            "dateEnd": "2025-11-08T17:00:00.000Z",
-            "status": "active",
-            "studentPackageId": "f7177c07-29dd-4e03-bcda-f91a90cd8678",
-            "createdAt": "2025-11-01T10:00:00.000Z",
-            "updatedAt": "2025-11-01T10:00:00.000Z"
-        },
-        {
-            "id": "booking-005",
-            "dateStart": "2025-11-09T09:00:00.000Z",
-            "dateEnd": "2025-11-09T11:00:00.000Z",
-            "status": "active",
-            "studentPackageId": "5b3dafbf-1302-436c-a8d9-6dfe11328764",
-            "createdAt": "2025-11-01T10:00:00.000Z",
-            "updatedAt": "2025-11-01T10:00:00.000Z"
+            "id": "6cc5540f-83a4-466e-a806-bc7bdb6e8724",
+            "schoolPackageId": "23babce6-f83f-43a9-8791-ae22b6133475",
+            "referralId": null,
+            "walletId": "64b56f27-5fde-41d9-b8fa-2bdffbaed874",
+            "requestedDateStart": "2026-11-10",
+            "requestedDateEnd": "2026-08-11",
+            "status": "accepted",
+            "createdAt": "2025-11-13T09:42:35.764Z",
+            "updatedAt": "2025-11-13T09:42:35.764Z"
         }
     ]
 };
@@ -354,4 +312,3 @@ export const mockSchools = mockData.schools;
 export const mockSchoolStudents = mockData.schoolStudents;
 export const mockSchoolPackages = mockData.schoolPackages;
 export const mockStudentPackages = mockData.studentPackages;
-export const mockBookings = mockData.bookings;

@@ -18,6 +18,11 @@ async function extractSeededData() {
         const schools = await db.select().from(school);
         console.log(`✅ Found ${schools.length} schools`);
 
+        // Show school usernames
+        schools.forEach(s => {
+            console.log(`   📍 School: ${s.name} (username: ${s.username})`);
+        });
+
         // Get all school-student relationships
         const relationships = await db.select().from(schoolStudents);
         console.log(`✅ Found ${relationships.length} school-student relationships`);
