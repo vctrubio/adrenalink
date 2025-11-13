@@ -26,7 +26,7 @@ export function buildStudentStatsQuery(schoolId?: string) {
         LEFT JOIN student_package_student sps ON sps.student_id = s.id
         LEFT JOIN student_package sp ON sp.id = sps.student_package_id
         LEFT JOIN school_package school_pkg ON school_pkg.id = b.student_package_id
-        ${schoolId ? sql`WHERE s.school_id = ${schoolId}` : sql``}
+        ${schoolId ? sql`WHERE b.school_id = ${schoolId}` : sql``}
         GROUP BY s.id
     `;
 }
@@ -66,7 +66,7 @@ export function buildBookingStatsQuery(schoolId?: string) {
         LEFT JOIN event e ON e.lesson_id = l.id
         LEFT JOIN teacher_commission tc ON tc.id = l.commission_id
         LEFT JOIN student_package stp ON stp.id = b.student_package_id
-        LEFT JOIN school_package sp ON sp.id = stp.package_id
+        LEFT JOIN school_package sp ON sp.id = stp.school_package_id
         ${schoolId ? sql`WHERE b.school_id = ${schoolId}` : sql``}
         GROUP BY b.id
     `;
@@ -90,7 +90,7 @@ export function buildEquipmentStatsQuery(schoolId?: string) {
         LEFT JOIN lesson l ON l.id = ev.lesson_id
         LEFT JOIN booking b ON b.id = l.booking_id
         LEFT JOIN student_package stp ON stp.id = b.student_package_id
-        LEFT JOIN school_package sp ON sp.id = stp.package_id
+        LEFT JOIN school_package sp ON sp.id = stp.school_package_id
         LEFT JOIN rental r ON r.equipment_id = e.id
         LEFT JOIN equipment_repair er ON er.equipment_id = e.id
         ${schoolId ? sql`WHERE e.school_id = ${schoolId}` : sql``}
@@ -118,7 +118,7 @@ export function buildStudentPackageStatsQuery(schoolId?: string) {
                     END
                 ), 0)::integer as money_out
             FROM student_package sp
-            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN school_package pkg ON pkg.id = sp.school_package_id
             LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
             LEFT JOIN booking b ON b.student_package_id = sp.id
             LEFT JOIN lesson l ON l.booking_id = b.id
@@ -146,7 +146,7 @@ export function buildStudentPackageStatsQuery(schoolId?: string) {
                     END
                 ), 0)::integer as money_out
             FROM student_package sp
-            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN school_package pkg ON pkg.id = sp.school_package_id
             LEFT JOIN student_package_student sps ON sps.student_package_id = sp.id
             LEFT JOIN booking b ON b.student_package_id = sp.id
             LEFT JOIN lesson l ON l.booking_id = b.id
@@ -209,7 +209,7 @@ export function buildReferralStatsQuery(schoolId?: string) {
             LEFT JOIN booking b ON b.student_package_id = sp.id
             LEFT JOIN lesson l ON l.booking_id = b.id
             LEFT JOIN event e ON e.lesson_id = l.id
-            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN school_package pkg ON pkg.id = sp.school_package_id
             WHERE ref.school_id = ${schoolId}
             GROUP BY ref.id
         `;
@@ -237,7 +237,7 @@ export function buildReferralStatsQuery(schoolId?: string) {
             LEFT JOIN booking b ON b.student_package_id = sp.id
             LEFT JOIN lesson l ON l.booking_id = b.id
             LEFT JOIN event e ON e.lesson_id = l.id
-            LEFT JOIN school_package pkg ON pkg.id = sp.package_id
+            LEFT JOIN school_package pkg ON pkg.id = sp.school_package_id
             GROUP BY ref.id
         `;
     }
