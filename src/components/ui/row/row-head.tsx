@@ -4,12 +4,16 @@ interface RowHeadProps {
     avatar: ReactNode;
     name: string | ReactNode;
     status: string;
+    entityBgColor?: string;
+    isExpanded?: boolean;
 }
 
-export const RowHead = ({ avatar, name, status }: RowHeadProps) => {
+export const RowHead = ({ avatar, name, status, entityBgColor, isExpanded }: RowHeadProps) => {
     return (
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0">{avatar}</div>
+            <div className="flex-shrink-0 avatar-wrapper">
+                {avatar}
+            </div>
             <div>
                 <div className="text-base font-semibold text-foreground">{name}</div>
                 <div className="bg-muted px-3 text-sm rounded-2xl text-center">active</div>
