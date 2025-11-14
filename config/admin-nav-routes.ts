@@ -36,7 +36,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
         routes: [
             {
                 name: "Domain",
-                href: "/admin",
+                href: "/domain", // get school icon: from headers if posisble 
                 icon: AdranlinkIcon,
             },
             {
