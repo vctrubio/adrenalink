@@ -1,9 +1,65 @@
 import { calculateCommission, calculateLessonRevenue, calculateSchoolProfit } from "@/getters/commission-calculator";
 import type { EventNode } from "@/backend/TeacherQueue";
 import type { TeacherStats } from "@/backend/ClassboardStats";
+import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 export function getStudentCountFromEvent(eventNode: EventNode): number {
-    return eventNode.studentNames.length;
+    return eventNode.studentData.length;
+}
+
+/**
+ * Transforms raw database booking data into ClassboardModel format
+ * This is a pure data transformation function - belongs in getters
+ */
+export function createClassboardModel(bookingsData: any[]): ClassboardModel {
+    const result: ClassboardModel = {};
+
+    for (const bookingData of bookingsData) {
+        const { id, dateStart, dateEnd, schoolId, studentPackage, bookingStudents, lessons } = bookingData;
+
+        result[id] = {
+            booking: {
+                dateStart,
+                dateEnd,
+                schoolId,
+            },
+            schoolPackage: studentPackage.schoolPackage,
+            bookingStudents: bookingStudents.map((bs: any) => ({
+                student: {
+                    id: bs.student.id,
+                    firstName: bs.student.firstName,
+                    lastName: bs.student.lastName,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                },
+            })),
+            lessons: lessons.map((lesson: any) => ({
+                id: lesson.id,
+                teacher: {
+                    username: lesson.teacher.username,
+                    firstName: lesson.teacher.firstName,
+                    lastName: lesson.teacher.lastName,
+                },
+                status: lesson.status,
+                commission: {
+                    id: lesson.commission.id,
+                    type: lesson.commission.commissionType as "fixed" | "percentage",
+                    cph: lesson.commission.cph,
+                    description: lesson.commission.description,
+                },
+                events: lesson.events.map((event: any) => ({
+                    id: event.id,
+                    date: event.date,
+                    duration: event.duration,
+                    location: event.location,
+                    status: event.status,
+                })),
+            })),
+        };
+    }
+
+    return result;
 }
 
 export function calculateTeacherStatsFromEvents(
@@ -24,17 +80,17 @@ export function calculateTeacherStatsFromEvents(
             studentCount += studentCountForEvent;
 
             const lessonRevenue = calculateLessonRevenue(
-                eventNode.packagePricePerStudent,
+                eventNode.packageData.pricePerStudent,
                 studentCountForEvent,
                 eventNode.eventData.duration,
-                eventNode.packageDurationMinutes
+                eventNode.packageData.durationMinutes
             );
 
             const commissionCalc = calculateCommission(
                 eventNode.eventData.duration,
                 eventNode.commission,
                 lessonRevenue,
-                eventNode.packageDurationMinutes
+                eventNode.packageData.durationMinutes
             );
             teacherEarnings += commissionCalc.earned;
 

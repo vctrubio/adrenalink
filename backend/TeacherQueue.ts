@@ -19,10 +19,28 @@ export interface DraggableBooking {
     }>;
 }
 
+export interface StudentData {
+    id: string;
+    firstName: string;
+    lastName: string;
+    passport: string;
+    country: string;
+    phone: string;
+}
+
+export interface PackageData {
+    pricePerStudent: number;
+    durationMinutes: number;
+    description: string;
+    categoryEquipment: string;
+    capacityEquipment: number;
+}
+
 export interface EventNode {
     id: string | null;
     lessonId: string;
     bookingId: string;
+    commission: CommissionInfo;
     eventData: {
         id?: string;
         date: string;
@@ -30,15 +48,13 @@ export interface EventNode {
         location: string;
         status: string;
     };
-    studentNames: string[];
-    commission: CommissionInfo;
-    packagePricePerStudent: number;
-    packageDurationMinutes: number;
+    studentData: StudentData[];
+    packageData: PackageData;
     next: EventNode | null;
 }
 
 export function getStudentCount(eventNode: EventNode): number {
-    return eventNode.studentNames.length;
+    return eventNode.studentData.length;
 }
 
 export interface TeacherInfo {

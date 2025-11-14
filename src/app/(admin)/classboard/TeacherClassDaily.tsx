@@ -15,7 +15,6 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import { createTeacherStatsDisplay } from "@/types/stats-classboard";
 import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { findLessonForTeacher, calculateEventTime, createEventForLesson } from "@/getters/classboard-event-getter";
 
 type TeacherViewMode = "view" | "edit" | "queue";
 
@@ -322,7 +321,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             const booking: DraggableBooking = JSON.parse(data);
 
             // Find the lesson for this teacher
-            const lesson = findLessonForTeacher({ booking, teacherUsername });
+            const lesson = booking.lessons.find((l) => l.teacherUsername === teacherUsername);
 
             if (!lesson) {
                 return;
@@ -331,21 +330,24 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             // Get next available slot from teacher queue
             const nextSlot = queue.getNextAvailableSlot(controller);
 
-            // Calculate event date/time and duration
-            const { eventDate, duration } = calculateEventTime({
-                booking,
-                nextSlot,
-                selectedDate,
-                controller,
-            });
+            // Calculate event date/time
+            const dateObj = new Date(selectedDate);
+            const [hours, minutes] = nextSlot.split(":").map(Number);
+            dateObj.setHours(hours, minutes, 0, 0);
+            const eventDate = dateObj.toISOString();
+
+            // Calculate duration based on capacity
+            let duration: number;
+            if (booking.capacityStudents === 1) {
+                duration = controller.durationCapOne;
+            } else if (booking.capacityStudents <= 3) {
+                duration = controller.durationCapTwo;
+            } else {
+                duration = controller.durationCapThree;
+            }
 
             // Create the event
-            await createEventForLesson({
-                lessonId: lesson.id,
-                eventDate,
-                duration,
-                location: controller.location,
-            });
+            await createClassboardEvent(lesson.id, eventDate, duration, controller.location);
         } catch (error) {
             console.error("Error handling drop:", error);
         }

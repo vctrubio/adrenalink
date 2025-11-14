@@ -5,7 +5,8 @@ import { db } from "@/drizzle/db";
 import { revalidatePath } from "next/cache";
 import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
 import { booking, school, event } from "@/drizzle/schema";
-import { createClassboardModel, type ClassboardModel } from "@/backend/models";
+import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const classboardWithRelations = {
@@ -98,6 +99,16 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                 dateEnd: b.dateEnd,
                 lessonCount: b.lessons.length,
                 schoolPackage: b.studentPackage.schoolPackage,
+                bookingStudents: b.bookingStudents.map((bs) => ({
+                    student: {
+                        id: bs.student.id,
+                        firstName: bs.student.firstName,
+                        lastName: bs.student.lastName,
+                        passport: bs.student.passport,
+                        country: bs.student.country,
+                        phone: bs.student.phone,
+                    }
+                })),
                 lessons: b.lessons.map((lesson) => ({
                     id: lesson.id,
                     teacherUsername: lesson.teacher.username,
@@ -113,6 +124,16 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
         const bookings: ClassboardModel = createClassboardModel(result);
         console.log("DEV: [classboard-action] ✅ Created ClassboardModel with:", Object.keys(bookings).length, "bookings");
+
+        // Debug: Check student data in created model
+        Object.entries(bookings).forEach(([bookingId, bookingData]) => {
+            console.log(`DEV: [classboard-action] Model booking ${bookingId} students:`, JSON.stringify(
+                bookingData.bookingStudents.map((bs) => bs.student),
+                null,
+                2
+            ));
+        });
+
         return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching classboard bookings:", error);

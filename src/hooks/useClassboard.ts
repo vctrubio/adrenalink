@@ -218,12 +218,23 @@ export function useClassboard(initialData: ClassboardModel) {
                 lesson.events.forEach((event) => {
                     const eventDate = new Date(event.date).toISOString().split("T")[0];
                     if (eventDate === selectedDate) {
-                        const studentNames = booking.bookingStudents.map((bs) => `${bs.student.firstName} ${bs.student.lastName}`);
+                        const studentData = booking.bookingStudents.map((bs) => ({
+                            id: bs.student.id,
+                            firstName: bs.student.firstName,
+                            lastName: bs.student.lastName,
+                            passport: bs.student.passport || "",
+                            country: bs.student.country || "",
+                            phone: bs.student.phone || "",
+                        }));
 
                         const eventNode: EventNode = {
                             id: event.id,
                             lessonId: lesson.id,
                             bookingId: booking.booking.id,
+                            commission: {
+                                type: lesson.commission.type as "fixed" | "percentage",
+                                cph: parseFloat(lesson.commission.cph),
+                            },
                             eventData: {
                                 id: event.id,
                                 date: event.date.toISOString(),
@@ -231,13 +242,14 @@ export function useClassboard(initialData: ClassboardModel) {
                                 location: event.location || "",
                                 status: event.status,
                             },
-                            studentNames,
-                            commission: {
-                                type: lesson.commission.type as "fixed" | "percentage",
-                                cph: parseFloat(lesson.commission.cph),
+                            studentData,
+                            packageData: {
+                                pricePerStudent: booking.schoolPackage.pricePerStudent,
+                                durationMinutes: booking.schoolPackage.durationMinutes,
+                                description: booking.schoolPackage.description,
+                                categoryEquipment: booking.schoolPackage.categoryEquipment,
+                                capacityEquipment: booking.schoolPackage.capacityEquipment,
                             },
-                            packagePricePerStudent: booking.schoolPackage.pricePerStudent,
-                            packageDurationMinutes: booking.schoolPackage.durationMinutes,
                             next: null,
                         };
 

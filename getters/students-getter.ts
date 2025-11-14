@@ -17,6 +17,10 @@ export const StudentStats = {
 // ============ LEGACY RELATION-BASED GETTERS ============
 // Used for non-databoard contexts where stats aren't available
 
+export function getStudentName(student: StudentModel | { firstName: string; lastName: string }): string {
+    return `${student.firstName} ${student.lastName}`;
+}
+
 export function getStudentSchoolCount(student: StudentModel): number {
     return student.relations?.schoolStudents?.length || 0;
 }

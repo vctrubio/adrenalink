@@ -1,19 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, MapPin, Trash2, ArrowRight, X } from "lucide-react";
+import Link from "next/link";
+import { Menu } from "@headlessui/react";
+import { ChevronDown, Trash2, Bell } from "lucide-react";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/timezone-getter";
+import { getEventStatusColor, type EventStatus } from "@/types/status";
 import type { EventNode } from "@/backend/TeacherQueue";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
-
-const STATUS_COLORS = {
-    planned: "bg-blue-500",
-    tbc: "bg-purple-500",
-    completed: "bg-green-500",
-    uncompleted: "bg-orange-500",
-} as const;
 
 interface EventCardProps {
     event: EventNode;
@@ -21,226 +18,162 @@ interface EventCardProps {
     onDeleteComplete?: () => void;
 }
 
-// Sub-components
-const StudentsDisplay = ({ students }: { students: string[] }) => {
-    const handleStudentClick = (studentName: string) => {
-        const message = `Hi ${studentName}! This is regarding your kite lesson.`;
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, "_blank");
-    };
+export default function EventCard({ event, hasNextEvent = false, onDeleteComplete }: EventCardProps) {
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    return (
-        <div className="flex items-center gap-2 text-sm">
-            {students.length > 0 ? (
-                <>
-                    {students.map((_, index) => (
-                        <HelmetIcon key={index} className="w-3 h-3 text-yellow-500" />
-                    ))}
-                    <div className="flex gap-0.5 flex-wrap">
-                        {students.map((studentName, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleStudentClick(studentName.trim())}
-                                className="text-foreground font-medium hover:underline hover:text-blue-600 text-xs"
-                                title={`Contact ${studentName.trim()} via WhatsApp`}
-                            >
-                                {studentName.trim()}
-                                {index < students.length - 1 && ","}
-                            </button>
-                        ))}
-                    </div>
-                </>
-            ) : (
-                <span className="text-muted-foreground text-xs">No students</span>
-            )}
-        </div>
-    );
-};
-
-const TimeDisplay = ({ event }: { event: EventNode }) => {
     const startTime = getTimeFromISO(event.eventData.date);
+    const duration = event.eventData.duration;
+    const students = event.studentData || [];
+    const status = event.eventData.status as EventStatus;
+    const location = event.eventData.location;
+    const eventId = event.eventData.id || event.id;
 
-    return (
-        <div className="flex items-center gap-2 text-sm">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">{startTime}</span>
-            <span className="px-2 py-0.5 text-xs font-semibold bg-muted text-foreground rounded-full">
-                {getPrettyDuration(event.eventData.duration)}
-            </span>
-        </div>
-    );
-};
-
-const LocationDisplay = ({ location }: { location: string }) => (
-    <div className="flex items-center gap-2 text-sm">
-        <MapPin className="w-4 h-4 text-muted-foreground" />
-        <span className="text-foreground">{location}</span>
-    </div>
-);
-
-const DeleteDropdown = ({
-    eventId,
-    onDeleteComplete,
-    hasNextEvent,
-}: {
-    eventId: string;
-    onDeleteComplete: () => void;
-    hasNextEvent: boolean;
-}) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const statusColor = getEventStatusColor(status);
 
     const handleDelete = async (cascade: boolean) => {
-        if (!eventId) return;
+        if (!eventId || isDeleting) return;
 
-        setIsLoading(true);
+        setIsDeleting(true);
         try {
-            console.log(`🗑️ Deleting event: ${eventId}, cascade: ${cascade}`);
-
             const result = await deleteClassboardEvent(eventId, cascade);
 
             if (!result.success) {
-                console.error("❌ Delete failed:", result.error);
-                setIsLoading(false);
+                console.error("Delete failed:", result.error);
+                setIsDeleting(false);
                 return;
             }
 
-            console.log("✅ Event deleted successfully");
-            onDeleteComplete();
+            onDeleteComplete?.();
         } catch (error) {
-            console.error("🔥 Error during delete operation:", error);
-        } finally {
-            setIsLoading(false);
+            console.error("Error deleting event:", error);
+            setIsDeleting(false);
         }
     };
 
-    return (
-        <div className="mt-1 border-t border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
-            <div className="pt-3 px-3 pb-3">
-                <div className="flex items-center gap-2 mb-3">
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800 dark:text-red-200">
-                        Delete Event?
-                    </span>
-                </div>
+    const handleNotify = () => {
+        // Create event as text readable
+        const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
+        const message = `Event Details:\nTime: ${startTime}\nDuration: ${getPrettyDuration(duration)}\nLocation: ${location}\nStudents: ${studentNames}\nStatus: ${status}`;
 
-                {hasNextEvent ? (
-                    <div className="space-y-3">
-                        <p className="text-xs text-red-700 dark:text-red-300 mb-3">
-                            There&apos;s a lesson scheduled after this one. What should happen to it?
-                        </p>
-                        <div className="space-y-2">
-                            <button
-                                onClick={() => handleDelete(true)}
-                                disabled={isLoading}
-                                className="w-full flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 text-left transition-colors duration-150 disabled:opacity-50"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <ArrowRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                                    <span className="text-xs text-blue-800 dark:text-blue-200">
-                                        Move next lesson here
-                                    </span>
-                                </div>
-                                {isLoading && (
-                                    <div className="w-3 h-3 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
-                                )}
-                            </button>
-                            <button
-                                onClick={() => handleDelete(false)}
-                                disabled={isLoading}
-                                className="w-full flex items-center justify-between p-2 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded hover:bg-red-150 dark:hover:bg-red-900/50 text-left transition-colors duration-150 disabled:opacity-50"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
-                                    <span className="text-xs text-red-800 dark:text-red-200">
-                                        Just delete (keep gap)
-                                    </span>
-                                </div>
-                                {isLoading && (
-                                    <div className="w-3 h-3 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin" />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <button
-                        onClick={() => handleDelete(false)}
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 p-2 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded hover:bg-red-150 dark:hover:bg-red-900/50 text-left transition-colors duration-150 disabled:opacity-50"
-                    >
-                        {isLoading ? (
-                            <>
-                                <div className="w-3 h-3 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin" />
-                                <span className="text-xs text-red-800 dark:text-red-200">Deleting...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
-                                <span className="text-xs text-red-800 dark:text-red-200">Yes, delete event</span>
-                            </>
-                        )}
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-};
+        console.log("📢 Notify Event:\n", message);
 
-export default function EventCard({ event, hasNextEvent = false, onDeleteComplete }: EventCardProps) {
-    const [showDeleteDropdown, setShowDeleteDropdown] = useState(false);
-
-    const statusColor = STATUS_COLORS[event.eventData.status as keyof typeof STATUS_COLORS] || "bg-gray-500";
-    const eventId = event.eventData.id || event.id;
-
-    const handleDeleteComplete = () => {
-        setShowDeleteDropdown(false);
-        onDeleteComplete?.();
+        // For now, just log the text. Later this can be integrated with actual notification system
+        alert(message);
     };
 
     return (
-        <div className="space-y-0">
-            {/* Main Event Card */}
-            <div className="flex bg-card border border-border rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
-                {/* Status Sidebar */}
-                <div className={`w-2 ${statusColor}`} />
-
-                {/* Card Content */}
-                <div className="flex-1 p-3">
-                    {/* Students Display */}
-                    <div className="mb-2">
-                        <StudentsDisplay students={event.studentNames} />
+        <div
+            style={{ width: "269px" }}
+            className="bg-background dark:bg-card border border-border rounded-lg overflow-hidden relative"
+        >
+            <div className="overflow-hidden">
+                {/* First Row: Flag + Time + Duration + Dropdown Menu */}
+                <div className="flex items-center gap-2 p-4 border-b-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div style={{ color: statusColor }}>
+                        <FlagIcon className="w-10 h-10" size={40} />
                     </div>
-
-                    {/* Event Details */}
-                    <div className="space-y-1.5">
-                        <TimeDisplay event={event} />
-                        <LocationDisplay location={event.eventData.location} />
+                    <div className="flex flex-col">
+                        <span className="font-bold text-2xl">{startTime}</span>
                     </div>
+                    <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
+                        +{getPrettyDuration(duration)}
+                    </span>
 
-                    {/* Delete Control */}
-                    <div className="mt-2 pt-2 border-t border-border">
-                        <button
-                            onClick={() => setShowDeleteDropdown(!showDeleteDropdown)}
-                            className="p-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
-                            title="Delete Event"
-                        >
-                            {showDeleteDropdown ? (
-                                <X className="w-3 h-3" />
-                            ) : (
-                                <Trash2 className="w-3 h-3" />
-                            )}
-                        </button>
-                    </div>
+                    {/* Headless UI Menu */}
+                    <Menu as="div" className="relative ml-auto">
+                        <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground">
+                            <ChevronDown className="w-5 h-5" />
+                        </Menu.Button>
+
+                        <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
+                            <div className="p-1">
+                                <Menu.Item>
+                                    {({ active }) => (
+                                        <button
+                                            onClick={handleNotify}
+                                            className={`${
+                                                active ? "bg-muted/50" : ""
+                                            } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                        >
+                                            <Bell className="w-4 h-4" />
+                                            Notify
+                                        </button>
+                                    )}
+                                </Menu.Item>
+
+                                {hasNextEvent ? (
+                                    <>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={() => handleDelete(true)}
+                                                    disabled={isDeleting}
+                                                    className={`${
+                                                        active ? "bg-blue-50 dark:bg-blue-950/30" : ""
+                                                    } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    {isDeleting ? "Deleting..." : "Delete & Move Next"}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={() => handleDelete(false)}
+                                                    disabled={isDeleting}
+                                                    className={`${
+                                                        active ? "bg-red-50 dark:bg-red-950/30" : ""
+                                                    } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    </>
+                                ) : (
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={() => handleDelete(false)}
+                                                disabled={isDeleting}
+                                                className={`${
+                                                    active ? "bg-red-50 dark:bg-red-950/30" : ""
+                                                } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                {isDeleting ? "Deleting..." : "Delete Event"}
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                )}
+                            </div>
+                        </Menu.Items>
+                    </Menu>
                 </div>
-            </div>
 
-            {/* Delete Dropdown - Outside main card border */}
-            {showDeleteDropdown && (
-                <DeleteDropdown
-                    eventId={eventId}
-                    onDeleteComplete={handleDeleteComplete}
-                    hasNextEvent={hasNextEvent}
-                />
-            )}
+                {/* Students Rows */}
+                {students.length > 0 ? (
+                    students.map((student, index) => (
+                        <div key={student.id || index} className="flex items-center gap-3 px-6 py-2">
+                            <HelmetIcon className="w-8 h-8 text-yellow-500" />
+                            <div className="overflow-x-auto flex-1">
+                                <Link
+                                    href={`/students/${student.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-base font-medium text-foreground whitespace-nowrap hover:underline"
+                                >
+                                    {student.firstName} {student.lastName}
+                                </Link>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="px-6 py-2 text-sm text-muted-foreground">No students</div>
+                )}
+            </div>
         </div>
     );
 }
