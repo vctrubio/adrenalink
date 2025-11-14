@@ -292,13 +292,17 @@ export class TeacherQueue {
     }
 
     adjustLessonTime(lessonId: string, increment: boolean): void {
+        console.log(`[DEBUG-TeacherQueue] adjustLessonTime called: lessonId=${lessonId}, increment=${increment}`);
         let current = this.head;
         while (current) {
             if (current.lessonId === lessonId) {
                 const change = increment ? 30 : -30;
+                console.log(`[DEBUG-TeacherQueue] Found event, before: ${current.eventData.date}, change: ${change}min`);
                 this.updateEventDateTime(current, change);
+                console.log(`[DEBUG-TeacherQueue] After updateEventDateTime: ${current.eventData.date}`);
 
                 if (current.next) {
+                    console.log(`[DEBUG-TeacherQueue] Cascading to next event with change: ${change}min`);
                     this.cascadeTimeAdjustment(current.next, change);
                 }
                 break;
