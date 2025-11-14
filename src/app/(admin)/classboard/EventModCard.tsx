@@ -35,7 +35,7 @@ interface EventModCardProps {
 }
 
 // Sub-components
-const StudentGrid = ({ students }: { students: string[] }) => {
+const StudentGrid = ({ students }: { students: any[] }) => {
   const studentCount = students.length;
 
   return (
@@ -281,7 +281,8 @@ export default function EventModCard({
   onRemoveGap,
 }: EventModCardProps) {
   const eventId = event.eventData.id || event.id;
-  const studentNames = event.studentNames.join(", ");
+  const students = event.studentData || [];
+  const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 
   const getBgColor = () => {
     if (!hasGap || isFirst) return "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600";
@@ -295,7 +296,7 @@ export default function EventModCard({
     >
       {/* Header: Students, names, controls */}
       <div className="flex items-center justify-between mb-3 w-full">
-        <StudentGrid students={event.studentNames} />
+        <StudentGrid students={students} />
         <div className="flex-1 mx-2 flex flex-wrap gap-1 items-center">
           <span className="text-base font-medium text-gray-900 dark:text-white">
             {studentNames}

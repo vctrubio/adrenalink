@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherQueueEditor from "./TeacherQueueEditor";
@@ -14,7 +14,7 @@ import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { createTeacherStatsDisplay } from "@/types/stats-classboard";
 import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Eye, EyeOff } from "lucide-react";
 
 type TeacherViewMode = "view" | "edit" | "queue";
 
@@ -23,11 +23,40 @@ interface ParentTime {
     globalTime: string | null;
 }
 
-function TeacherHeader({ username }: { username: string }) {
+function TeacherHeader({
+    username,
+    columnViewMode,
+    inGlobalAdjustmentMode,
+    isOptedOutOfGlobalUpdate,
+    onIconClick,
+}: {
+    username: string;
+    columnViewMode: "view" | "queue";
+    inGlobalAdjustmentMode: boolean;
+    isOptedOutOfGlobalUpdate: boolean;
+    onIconClick: () => void;
+}) {
     return (
         <div className="flex items-center gap-4">
             <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
             <div className="text-xl font-bold text-foreground truncate">{username}</div>
+            <button
+                onClick={onIconClick}
+                className="ml-auto p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0"
+                title={inGlobalAdjustmentMode ? (isOptedOutOfGlobalUpdate ? "Opted out - click to sync with global time" : "Opted in - click to use custom time") : columnViewMode === "view" ? "View mode - click to edit" : "Edit mode - click to view"}
+            >
+                {inGlobalAdjustmentMode ? (
+                    isOptedOutOfGlobalUpdate ? (
+                        <EyeOff className="w-5 h-5 text-orange-500" />
+                    ) : (
+                        <Eye className="w-5 h-5 text-green-500" />
+                    )
+                ) : columnViewMode === "view" ? (
+                    <Eye className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                    <EyeOff className="w-5 h-5 text-muted-foreground" />
+                )}
+            </button>
         </div>
     );
 }
@@ -90,19 +119,8 @@ function calculateGaps(events: EventNode[]): Map<string, { hasGap: boolean; gapD
 function TeacherEventQueue({ events, viewMode, onRemoveEvent, onAdjustDuration, onAdjustTime, onMoveUp, onMoveDown, onRemoveGap, onDragOver, onDragEnter, onDragLeave, onDrop, isDragOver, dragCompatibility }: TeacherEventQueueProps) {
     const gapInfo = calculateGaps(events);
 
-    const getDragOverBg = () => {
-        if (!isDragOver) return "";
-        if (dragCompatibility === "compatible") return "bg-green-50/50 dark:bg-green-950/50";
-        if (dragCompatibility === "incompatible") return "bg-orange-50/50 dark:bg-orange-950/50";
-        return "bg-blue-50/50 dark:bg-blue-950/50";
-    };
-
-    const handleDragOverLocal = (e: React.DragEvent) => {
-        onDragOver?.(e);
-    };
-
     return (
-        <div className={`flex flex-col gap-3 flex-1 transition-colors ${getDragOverBg()}`} onDragOver={handleDragOverLocal} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
+        <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
             {events.length > 0 ? (
                 events.map((event, index) => {
                     const gap = gapInfo.get(event.id) || { hasGap: false, gapDuration: 0 };
@@ -164,11 +182,48 @@ function TeacherColumn({
     const events = queue.getAllEvents();
     const earliestTime = queue.getEarliestEventTime();
 
+    // Auto-switch to queue/edit mode when in global time adjustment (unless opted out)
+    useEffect(() => {
+        if (parentTime.adjustmentMode && !isOptedOutOfGlobalUpdate) {
+            setColumnViewMode("queue");
+            // If global time is set, apply it to the queue's earliest event
+            if (parentTime.globalTime && events.length > 0) {
+                const globalTimeMinutes = timeToMinutes(parentTime.globalTime);
+                const firstEvent = events[0];
+                const currentTimeMinutes = timeToMinutes(firstEvent.eventData.date);
+                const diff = globalTimeMinutes - currentTimeMinutes;
+
+                if (diff !== 0) {
+                    // Adjust the first event to match global time, which shifts all subsequent events
+                    queue.adjustLessonTime(firstEvent.lessonId, diff > 0);
+                    setRefreshKey((prev) => prev + 1);
+                }
+            }
+        } else if (!parentTime.adjustmentMode) {
+            // Return to view mode when exiting adjustment mode
+            setColumnViewMode("view");
+        }
+    }, [parentTime.adjustmentMode, parentTime.globalTime, isOptedOutOfGlobalUpdate]);
+
+    const handleIconClick = () => {
+        if (parentTime.adjustmentMode) {
+            // In global mode: toggle opt in/out
+            if (isOptedOutOfGlobalUpdate) {
+                onOptIn(queue.teacher.username);
+            } else {
+                onOptOut(queue.teacher.username);
+            }
+        } else {
+            // Not in global mode: toggle view/queue mode
+            setColumnViewMode(columnViewMode === "view" ? "queue" : "view");
+        }
+    };
+
     const getBorderColor = () => {
-        if (dragOverTeacher !== queue.teacher.username) return "border-border";
-        if (dragCompatibility === "compatible") return "border-green-400 bg-green-50/50 dark:bg-green-950/50";
-        if (dragCompatibility === "incompatible") return "border-orange-400 bg-orange-50/50 dark:bg-orange-950/50";
-        return "border-blue-400 bg-blue-50/50 dark:bg-blue-950/50";
+        if (dragOverTeacher !== queue.teacher.username) return "border-transparent";
+        if (dragCompatibility === "compatible") return "border-green-400";
+        if (dragCompatibility === "incompatible") return "border-orange-400";
+        return "border-transparent";
     };
 
     const handleFlagClick = () => {
@@ -179,13 +234,6 @@ function TeacherColumn({
         setRefreshKey((prev) => prev + 1);
     };
 
-    const getDragOverBg = () => {
-        if (dragOverTeacher !== queue.teacher.username) return "border-border";
-        if (dragCompatibility === "compatible") return "border-green-400 bg-green-50/50 dark:bg-green-950/50";
-        if (dragCompatibility === "incompatible") return "border-orange-400 bg-orange-50/50 dark:bg-orange-950/50";
-        return "border-blue-400 bg-blue-50/50 dark:bg-blue-950/50";
-    };
-
     return (
         <div
             key={refreshKey}
@@ -193,7 +241,7 @@ function TeacherColumn({
             onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
-            className={`flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col transition-colors border-r ${getDragOverBg()} last:border-r-0`}
+            className="flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col border-r border-border last:border-r-0"
         >
             {/* <div className="p-3 border-b border-border"> */}
             {/*     <TeacherFlagUpdate */}
@@ -213,10 +261,16 @@ function TeacherColumn({
             {/**/}
 
             <div className="py-4 px-5.5 border-b border-border">
-                <TeacherHeader username={queue.teacher.username} />
+                <TeacherHeader
+                    username={queue.teacher.username}
+                    columnViewMode={columnViewMode}
+                    inGlobalAdjustmentMode={parentTime.adjustmentMode}
+                    isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate}
+                    onIconClick={handleIconClick}
+                />
             </div>
 
-            <div className="px-3 py-3 flex-1 overflow-y-auto">
+            <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${getBorderColor()}`}>
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         events={events}
@@ -257,6 +311,9 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     });
     const [optedOutTeachers, setOptedOutTeachers] = useState<Set<string>>(new Set());
 
+    // Debug log
+    console.log(`TeacherClassDaily state: dragOverTeacher=${dragOverTeacher}, dragCompatibility=${dragCompatibility}`);
+
     // Calculate global earliest time across all teacher queues
     const globalEarliestTime = useMemo(() => {
         const allEarliestTimes = teacherQueues.map((queue) => queue.getEarliestEventTime()).filter((time) => time !== null) as string[];
@@ -275,25 +332,32 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
+        console.log("handleDragOver fired");
     };
 
     const handleDragEnter = (e: React.DragEvent, teacherUsername: string) => {
         e.preventDefault();
+        console.log(`handleDragEnter: ${teacherUsername}`);
         setDragOverTeacher(teacherUsername);
 
         if (draggedBooking) {
             const isValid = isLessonTeacher(draggedBooking.bookingId, teacherUsername);
             const compatibility = isValid ? "compatible" : "incompatible";
+            console.log(`draggedBooking found, compatibility: ${compatibility}`);
             setDragCompatibility(compatibility);
         }
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
+        console.log("handleDragLeave, relatedTarget:", e.relatedTarget);
         const relatedTarget = e.relatedTarget as Node;
         if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+            console.log("clearing drag state because relatedTarget is not contained");
             setDragOverTeacher(null);
             setDragCompatibility(null);
+        } else {
+            console.log("NOT clearing - relatedTarget is contained in currentTarget");
         }
     };
 
@@ -405,9 +469,9 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     return (
-        <div className="space-y-4 flex flex-col">
+        <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col">
             {/* Header */}
-            <div className="space-y-4 pb-4 border-b border-border px-6 pt-4">
+            <div className="space-y-4 pb-4 border-b border-border">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg text-foreground">Teachers</h3>
@@ -445,14 +509,14 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
             {/* Content */}
             {teacherQueues.length === 0 ? (
-                <div className="min-h-[500px] flex items-center justify-center border border-border rounded-lg">
+                <div className="min-h-[500px] flex items-center justify-center">
                     <div className="text-center">
                         <div className="text-muted-foreground text-sm mb-2">No teachers found</div>
                         <p className="text-xs text-muted-foreground/70">Assign teachers to bookings to see them here</p>
                     </div>
                 </div>
             ) : (
-                <div className="min-h-[500px] flex flex-wrap overflow-x-auto border border-border rounded-lg bg-card">
+                <div className="min-h-[500px] flex flex-wrap overflow-x-auto">
                     {teacherQueues.map((queue) => {
                         const stats = classboardStats.getTeacherStats(queue.teacher.username);
                         if (!stats) return null;
