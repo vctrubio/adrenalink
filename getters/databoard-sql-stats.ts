@@ -25,7 +25,8 @@ export function buildStudentStatsQuery(schoolId?: string) {
         LEFT JOIN student_booking_payment sbp ON sbp.student_id = s.id
         LEFT JOIN student_package_student sps ON sps.student_id = s.id
         LEFT JOIN student_package sp ON sp.id = sps.student_package_id
-        LEFT JOIN school_package school_pkg ON school_pkg.id = b.student_package_id
+        LEFT JOIN student_package stp ON stp.id = b.student_package_id
+        LEFT JOIN school_package school_pkg ON school_pkg.id = stp.school_package_id
         ${schoolId ? sql`WHERE b.school_id = ${schoolId}` : sql``}
         GROUP BY s.id
     `;
@@ -162,24 +163,44 @@ export function buildSchoolPackageStatsQuery(schoolId?: string) {
         return sql`
             SELECT
                 pkg.id as entity_id,
-                0::integer as student_count,
-                0::integer as events_count,
-                0::integer as total_duration_minutes,
-                0::integer as money_in,
-                0::integer as money_out
+                COUNT(DISTINCT bs.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM((e.duration::decimal / 60) * tc.cph), 0)::integer as money_out
             FROM school_package pkg
+            LEFT JOIN student_package stp ON stp.school_package_id = pkg.id
+            LEFT JOIN booking b ON b.student_package_id = stp.id
+            LEFT JOIN booking_student bs ON bs.booking_id = b.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN teacher_commission tc ON tc.id = l.commission_id
             WHERE pkg.school_id = ${schoolId}
+            GROUP BY pkg.id
         `;
     } else {
         return sql`
             SELECT
                 pkg.id as entity_id,
-                0::integer as student_count,
-                0::integer as events_count,
-                0::integer as total_duration_minutes,
-                0::integer as money_in,
-                0::integer as money_out
+                COUNT(DISTINCT bs.student_id)::integer as student_count,
+                COUNT(DISTINCT e.id)::integer as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                COALESCE(SUM(
+                    (pkg.price_per_student * pkg.capacity_students) *
+                    (e.duration::decimal / NULLIF(pkg.duration_minutes, 0))
+                ), 0)::integer as money_in,
+                COALESCE(SUM((e.duration::decimal / 60) * tc.cph), 0)::integer as money_out
             FROM school_package pkg
+            LEFT JOIN student_package stp ON stp.school_package_id = pkg.id
+            LEFT JOIN booking b ON b.student_package_id = stp.id
+            LEFT JOIN booking_student bs ON bs.booking_id = b.id
+            LEFT JOIN lesson l ON l.booking_id = b.id
+            LEFT JOIN event e ON e.lesson_id = l.id
+            LEFT JOIN teacher_commission tc ON tc.id = l.commission_id
+            GROUP BY pkg.id
         `;
     }
 }
