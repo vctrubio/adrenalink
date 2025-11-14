@@ -95,3 +95,30 @@ export function getTimezoneOffset(isoDate: string): string {
         return "+00:00";
     }
 }
+
+/**
+ * Get today's date as YYYY-MM-DD string
+ * @returns Today's date string
+ */
+export function getTodayDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * Check if a date is within a range (inclusive)
+ * @param date Date to check (YYYY-MM-DD string)
+ * @param startDate Range start (ISO string or YYYY-MM-DD)
+ * @param endDate Range end (ISO string or YYYY-MM-DD)
+ * @returns True if date is within range
+ */
+export function isDateInRange(date: string, startDate: string | Date, endDate: string | Date): boolean {
+    const checkDate = new Date(date);
+    const start = typeof startDate === "string" ? new Date(startDate) : startDate;
+    const end = typeof endDate === "string" ? new Date(endDate) : endDate;
+
+    return checkDate >= start && checkDate <= end;
+}
