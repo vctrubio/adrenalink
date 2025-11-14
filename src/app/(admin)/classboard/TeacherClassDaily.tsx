@@ -25,9 +25,9 @@ interface ParentTime {
 
 function TeacherHeader({ username }: { username: string }) {
     return (
-        <div className="flex items-center gap-3 pb-3 border-b border-border">
+        <div className="flex items-center gap-4">
             <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-            <div className="text-lg font-bold text-foreground truncate">{username}</div>
+            <div className="text-xl font-bold text-foreground truncate">{username}</div>
         </div>
     );
 }
@@ -36,11 +36,11 @@ function TeacherStatsGrid({ stats }: { stats: TeacherStats }) {
     const statsDisplay = createTeacherStatsDisplay(stats.eventCount, stats.totalDuration, stats.earnings.teacher, stats.earnings.school, getPrettyDuration);
 
     return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
             {statsDisplay.items.map((item) => (
-                <div key={item.label} className={`rounded-lg p-3 text-center ${item.bgColor}`}>
-                    <div className={`font-semibold text-sm ${item.color}`}>{item.value}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{item.label}</div>
+                <div key={item.label} className={"flex items-center justify-between px-2 py-1.5 text-sm"}>
+                    <div className="text-muted-foreground">{item.label}</div>
+                    <div className={`font-semibold ${item.color}`}>{item.value}</div>
                 </div>
             ))}
         </div>
@@ -87,22 +87,7 @@ function calculateGaps(events: EventNode[]): Map<string, { hasGap: boolean; gapD
     return gapInfo;
 }
 
-function TeacherEventQueue({
-    events,
-    viewMode,
-    onRemoveEvent,
-    onAdjustDuration,
-    onAdjustTime,
-    onMoveUp,
-    onMoveDown,
-    onRemoveGap,
-    onDragOver,
-    onDragEnter,
-    onDragLeave,
-    onDrop,
-    isDragOver,
-    dragCompatibility,
-}: TeacherEventQueueProps) {
+function TeacherEventQueue({ events, viewMode, onRemoveEvent, onAdjustDuration, onAdjustTime, onMoveUp, onMoveDown, onRemoveGap, onDragOver, onDragEnter, onDragLeave, onDrop, isDragOver, dragCompatibility }: TeacherEventQueueProps) {
     const gapInfo = calculateGaps(events);
 
     const getDragOverBg = () => {
@@ -117,13 +102,7 @@ function TeacherEventQueue({
     };
 
     return (
-        <div
-            className={`space-y-2 flex-1 rounded-lg transition-colors ${getDragOverBg()}`}
-            onDragOver={handleDragOverLocal}
-            onDragEnter={onDragEnter}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
-        >
+        <div className={`flex flex-col gap-3 flex-1 transition-colors ${getDragOverBg()}`} onDragOver={handleDragOverLocal} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
             {events.length > 0 ? (
                 events.map((event, index) => {
                     const gap = gapInfo.get(event.id) || { hasGap: false, gapDuration: 0 };
@@ -140,9 +119,7 @@ function TeacherEventQueue({
                     );
                 })
             ) : (
-                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                    No events
-                </div>
+                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No events</div>
             )}
         </div>
     );
@@ -202,42 +179,60 @@ function TeacherColumn({
         setRefreshKey((prev) => prev + 1);
     };
 
+    const getDragOverBg = () => {
+        if (dragOverTeacher !== queue.teacher.username) return "border-border";
+        if (dragCompatibility === "compatible") return "border-green-400 bg-green-50/50 dark:bg-green-950/50";
+        if (dragCompatibility === "incompatible") return "border-orange-400 bg-orange-50/50 dark:bg-orange-950/50";
+        return "border-blue-400 bg-blue-50/50 dark:bg-blue-950/50";
+    };
+
     return (
         <div
             key={refreshKey}
-            style={{ width: "269px" }}
             onDragOver={onDragOver}
             onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
-            className={`bg-card border-2 rounded-lg p-4 space-y-4 min-h-[300px] flex flex-col transition-colors ${getBorderColor()}`}
+            className={`flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col transition-colors border-r ${getDragOverBg()} last:border-r-0`}
         >
-            <TeacherFlagUpdate
-                teacherUsername={queue.teacher.username}
-                earliestTime={earliestTime}
-                inGlobalAdjustmentMode={parentTime.adjustmentMode}
-                isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate}
-                onFlagClick={handleFlagClick}
-                onOptOut={onOptOut}
-                onOptIn={onOptIn}
-            />
-            <TeacherStatsGrid stats={stats} />
-            <TeacherHeader username={queue.teacher.username} />
-            {columnViewMode === "view" ? (
-                <TeacherEventQueue
-                    events={events}
-                    viewMode={viewMode}
-                    onDragOver={onDragOver}
-                    onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
-                    onDragLeave={onDragLeave}
-                    onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
-                    isDragOver={dragOverTeacher === queue.teacher.username}
-                    dragCompatibility={dragCompatibility}
-                    onRemoveEvent={(eventId) => onEventDeleted?.(eventId)}
-                />
-            ) : (
-                <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} />
-            )}
+            {/* <div className="p-3 border-b border-border"> */}
+            {/*     <TeacherFlagUpdate */}
+            {/*         teacherUsername={queue.teacher.username} */}
+            {/*         earliestTime={earliestTime} */}
+            {/*         inGlobalAdjustmentMode={parentTime.adjustmentMode} */}
+            {/*         isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate} */}
+            {/*         onFlagClick={handleFlagClick} */}
+            {/*         onOptOut={onOptOut} */}
+            {/*         onOptIn={onOptIn} */}
+            {/*     /> */}
+            {/* </div> */}
+
+            {/* <div className="px-3 py-2 border-b border-border"> */}
+            {/*     <TeacherStatsGrid stats={stats} /> */}
+            {/* </div> */}
+            {/**/}
+
+            <div className="py-4 px-5.5 border-b border-border">
+                <TeacherHeader username={queue.teacher.username} />
+            </div>
+
+            <div className="px-3 py-3 flex-1 overflow-y-auto">
+                {columnViewMode === "view" ? (
+                    <TeacherEventQueue
+                        events={events}
+                        viewMode={viewMode}
+                        onDragOver={onDragOver}
+                        onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
+                        onDragLeave={onDragLeave}
+                        onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
+                        isDragOver={dragOverTeacher === queue.teacher.username}
+                        dragCompatibility={dragCompatibility}
+                        onRemoveEvent={(eventId) => onEventDeleted?.(eventId)}
+                    />
+                ) : (
+                    <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} />
+                )}
+            </div>
         </div>
     );
 }
@@ -264,9 +259,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
     // Calculate global earliest time across all teacher queues
     const globalEarliestTime = useMemo(() => {
-        const allEarliestTimes = teacherQueues
-            .map((queue) => queue.getEarliestEventTime())
-            .filter((time) => time !== null) as string[];
+        const allEarliestTimes = teacherQueues.map((queue) => queue.getEarliestEventTime()).filter((time) => time !== null) as string[];
 
         if (allEarliestTimes.length === 0) return null;
 
@@ -353,13 +346,6 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         }
     };
 
-    const getBorderColor = (teacherUsername: string) => {
-        if (dragOverTeacher !== teacherUsername) return "border-border";
-        if (dragCompatibility === "compatible") return "border-green-400 bg-green-50/50 dark:bg-green-950/50";
-        if (dragCompatibility === "incompatible") return "border-orange-400 bg-orange-50/50 dark:bg-orange-950/50";
-        return "border-blue-400 bg-blue-50/50 dark:bg-blue-950/50";
-    };
-
     const handleOptOut = (teacherUsername: string) => {
         setOptedOutTeachers((prev) => new Set(prev).add(teacherUsername));
     };
@@ -419,9 +405,9 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     return (
-        <div className="space-y-4 bg-card border border-border rounded-lg p-6">
+        <div className="space-y-4 flex flex-col">
             {/* Header */}
-            <div className="space-y-4 pb-4 border-b border-border">
+            <div className="space-y-4 pb-4 border-b border-border px-6 pt-4">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg text-foreground">Teachers</h3>
@@ -459,12 +445,14 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
             {/* Content */}
             {teacherQueues.length === 0 ? (
-                <div className="py-16 text-center">
-                    <div className="text-muted-foreground text-sm mb-2">No teachers found</div>
-                    <p className="text-xs text-muted-foreground/70">Assign teachers to bookings to see them here</p>
+                <div className="min-h-[500px] flex items-center justify-center border border-border rounded-lg">
+                    <div className="text-center">
+                        <div className="text-muted-foreground text-sm mb-2">No teachers found</div>
+                        <p className="text-xs text-muted-foreground/70">Assign teachers to bookings to see them here</p>
+                    </div>
                 </div>
             ) : (
-                <div className="flex flex-wrap gap-4">
+                <div className="min-h-[500px] flex flex-wrap overflow-x-auto border border-border rounded-lg bg-card">
                     {teacherQueues.map((queue) => {
                         const stats = classboardStats.getTeacherStats(queue.teacher.username);
                         if (!stats) return null;

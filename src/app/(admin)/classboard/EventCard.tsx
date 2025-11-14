@@ -62,39 +62,29 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
     };
 
     return (
-        <div
-            style={{ width: "269px" }}
-            className="bg-background dark:bg-card border border-border rounded-lg overflow-hidden relative"
-        >
-            <div className="overflow-hidden">
+        <div className="w-full bg-background dark:bg-card border border-border rounded-lg overflow-visible relative">
+            <div className="overflow-visible">
                 {/* First Row: Flag + Time + Duration + Dropdown Menu */}
-                <div className="flex items-center gap-2 p-4 border-b-2 border-dashed border-gray-300 dark:border-gray-600">
+                <div className="flex items-center gap-2 px-2 py-4 border-b-2 border-dashed border-gray-300 dark:border-gray-600 relative">
                     <div style={{ color: statusColor }}>
-                        <FlagIcon className="w-10 h-10" size={40} />
+                        <FlagIcon className="w-8 h-8" size={34} />
                     </div>
                     <div className="flex flex-col">
                         <span className="font-bold text-2xl">{startTime}</span>
                     </div>
-                    <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
-                        +{getPrettyDuration(duration)}
-                    </span>
+                    <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">+{getPrettyDuration(duration)}</span>
 
                     {/* Headless UI Menu */}
                     <Menu as="div" className="relative ml-auto">
-                        <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground">
+                        <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
                             <ChevronDown className="w-5 h-5" />
                         </Menu.Button>
 
-                        <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
+                        <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
                             <div className="p-1">
                                 <Menu.Item>
                                     {({ active }) => (
-                                        <button
-                                            onClick={handleNotify}
-                                            className={`${
-                                                active ? "bg-muted/50" : ""
-                                            } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                        >
+                                        <button onClick={handleNotify} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
                                             <Bell className="w-4 h-4" />
                                             Notify
                                         </button>
@@ -108,9 +98,7 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
                                                 <button
                                                     onClick={() => handleDelete(true)}
                                                     disabled={isDeleting}
-                                                    className={`${
-                                                        active ? "bg-blue-50 dark:bg-blue-950/30" : ""
-                                                    } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
+                                                    className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                     {isDeleting ? "Deleting..." : "Delete & Move Next"}
@@ -122,9 +110,7 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
                                                 <button
                                                     onClick={() => handleDelete(false)}
                                                     disabled={isDeleting}
-                                                    className={`${
-                                                        active ? "bg-red-50 dark:bg-red-950/30" : ""
-                                                    } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                                    className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                     {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
@@ -138,9 +124,7 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
                                             <button
                                                 onClick={() => handleDelete(false)}
                                                 disabled={isDeleting}
-                                                className={`${
-                                                    active ? "bg-red-50 dark:bg-red-950/30" : ""
-                                                } group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                                className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                                 {isDeleting ? "Deleting..." : "Delete Event"}
@@ -156,15 +140,10 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
                 {/* Students Rows */}
                 {students.length > 0 ? (
                     students.map((student, index) => (
-                        <div key={student.id || index} className="flex items-center gap-3 px-6 py-2">
-                            <HelmetIcon className="w-8 h-8 text-yellow-500" />
+                        <div key={student.id || index} className="flex items-center gap-3 px-3 py-2">
+                            <HelmetIcon className="w-6 h-6 text-yellow-500" />
                             <div className="overflow-x-auto flex-1">
-                                <Link
-                                    href={`/students/${student.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-base font-medium text-foreground whitespace-nowrap hover:underline"
-                                >
+                                <Link href={`/students/${student.id}`} target="_blank" rel="noopener noreferrer" className="text-base font-medium text-foreground whitespace-nowrap hover:underline">
                                     {student.firstName} {student.lastName}
                                 </Link>
                             </div>
