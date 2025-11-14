@@ -49,10 +49,10 @@ const rowClassName = "grid grid-cols-[24px_1fr_24px] items-center gap-2 py-1";
 const DropdownRow = ({ items, children }: { items?: Array<{ value: string }>; children?: React.ReactNode }) => {
     if (items && items.length > 0) {
         return (
-            <div className="pl-4 pr-2 pb-2 bg-muted/20">
-                <div className="space-y-3">
+            <div className="pl-4 pr-2 pb-2">
+                <div className="divide-y divide-muted/20">
                     {items.map((item, index) => (
-                        <div key={index} className="py-2">
+                        <div key={index} className="py-3">
                             <span className="text-sm font-medium text-foreground">{item.value}</span>
                         </div>
                     ))}
@@ -60,7 +60,7 @@ const DropdownRow = ({ items, children }: { items?: Array<{ value: string }>; ch
             </div>
         );
     }
-    return <div className="pb-2 space-y-1 bg-muted/20">{children}</div>;
+    return <div className="pb-2 space-y-1">{children}</div>;
 };
 
 // Subcomponents
@@ -93,8 +93,11 @@ const BookingRow = ({ start, end, selectedDate, expandedRow, setExpandedRow, boo
         }
     }
 
+    const isExpanded = expandedRow === "booking";
+    const bgStyle = isExpanded && bookingEntity?.bgColor ? { backgroundColor: bookingEntity.bgColor + "20" } : {};
+
     return (
-        <div>
+        <div style={bgStyle}>
             <div className={`${rowClassName} px-2 rounded-t-lg border-b border-blue-400`}>
                 <div className="w-6 h-6 flex items-center justify-center">
                     <EntityIcon entityId="booking" />
@@ -110,7 +113,7 @@ const BookingRow = ({ start, end, selectedDate, expandedRow, setExpandedRow, boo
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setExpandedRow(expandedRow === "booking" ? null : "booking");
+                            setExpandedRow(isExpanded ? null : "booking");
                         }}
                         onMouseDown={(e) => {
                             e.stopPropagation();
@@ -118,11 +121,11 @@ const BookingRow = ({ start, end, selectedDate, expandedRow, setExpandedRow, boo
                         }}
                         className="p-0"
                     >
-                        <ChevronDown className={`w-4 h-4 transition-transform ${expandedRow === "booking" ? "transform rotate-180" : ""}`} style={{ color: bookingEntity?.color }} />
+                        <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "transform rotate-180" : ""}`} style={{ color: bookingEntity?.color }} />
                     </button>
                 </div>
             </div>
-            {expandedRow === "booking" && <BookingDropdownRow />}
+            {isExpanded && <BookingDropdownRow />}
         </div>
     );
 };
@@ -130,33 +133,38 @@ const BookingRow = ({ start, end, selectedDate, expandedRow, setExpandedRow, boo
 const StudentRow = ({ students, expandedRow, setExpandedRow, studentEntity }: { students: StudentInfo[]; expandedRow: string | null; setExpandedRow: (id: string | null) => void; studentEntity: Entity | undefined }) => (
     <div className="px-2">
         {students.length > 0 ? (
-            students.map((student, i) => (
-                <div key={i}>
-                    <div className={rowClassName}>
-                        <div className="w-6 h-6 flex items-center justify-center">
-                            <EntityIcon entityId="student" />
+            students.map((student, i) => {
+                const isExpanded = expandedRow === `student-${i}`;
+                const bgStyle = isExpanded && studentEntity?.bgColor ? { backgroundColor: studentEntity.bgColor + "20" } : {};
+
+                return (
+                    <div key={i} style={bgStyle}>
+                        <div className={rowClassName}>
+                            <div className="w-6 h-6 flex items-center justify-center">
+                                <EntityIcon entityId="student" />
+                            </div>
+                            <div className="text-sm text-foreground">{student.name}</div>
+                            <div className="w-6 h-6 flex items-center justify-center">
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setExpandedRow(isExpanded ? null : `student-${i}`);
+                                    }}
+                                    onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                    }}
+                                    className="p-0"
+                                >
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "transform rotate-180" : ""}`} style={{ color: studentEntity?.color }} />
+                                </button>
+                            </div>
                         </div>
-                        <div className="text-sm text-foreground">{student.name}</div>
-                        <div className="w-6 h-6 flex items-center justify-center">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setExpandedRow(expandedRow === `student-${i}` ? null : `student-${i}`);
-                                }}
-                                onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                }}
-                                className="p-0"
-                            >
-                                <ChevronDown className={`w-4 h-4 transition-transform ${expandedRow === `student-${i}` ? "transform rotate-180" : ""}`} style={{ color: studentEntity?.color }} />
-                            </button>
-                        </div>
+                        {isExpanded && <StudentDropdownRow student={student} />}
                     </div>
-                    {expandedRow === `student-${i}` && <StudentDropdownRow student={student} />}
-                </div>
-            ))
+                );
+            })
         ) : (
             <div className="text-sm text-muted-foreground py-1">No students</div>
         )}
@@ -216,9 +224,9 @@ const TeacherDropdownRow = ({ lesson }: { lesson: DraggableBooking["lessons"][0]
 
     return (
         <div className="pl-4 pr-2 pb-2 bg-muted/20">
-            <div className="space-y-3">
+            <div className="divide-y divide-muted/20">
                 {lesson.events.map((event) => (
-                    <div key={event.id} className="py-2 flex items-center gap-2">
+                    <div key={event.id} className="py-3 flex items-center gap-2">
                         <FlagIcon className="w-3 h-3 text-muted-foreground" />
                         <span className="text-sm font-medium text-foreground">
                             {formatDate(event.date)} • {getPrettyDuration(event.duration)}
@@ -243,54 +251,95 @@ const PackageDetailsDropdown = ({ packageData }: { packageData: SchoolPackageTyp
     const CategoryIcon = categoryConfig?.icon;
 
     return (
-        <div className="p-4 bg-muted/5 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span className="text-muted-foreground">Description:</span>
-                    <p className="font-medium">{packageData.description || "No description"}</p>
-                </div>
-                <div>
-                    <span className="text-muted-foreground">Duration:</span>
-                    <p className="font-medium">{getPrettyDuration(packageData.durationMinutes)}</p>
-                </div>
-                <div>
-                    <span className="text-muted-foreground">Price per Student:</span>
-                    <p className="font-medium">€{packageData.pricePerStudent}</p>
-                </div>
-                <div>
-                    <span className="text-muted-foreground">Price per Hour/Student:</span>
-                    <p className="font-medium">€{Math.round(pricePerHourPerStudent * 100) / 100}/h</p>
-                </div>
-                <div>
-                    <span className="text-muted-foreground">Capacity:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                        {/* Equipment icons */}
-                        {categoryConfig && CategoryIcon && (
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: packageData.capacityEquipment }).map((_, i) => (
-                                    <span
-                                        key={`equipment-${i}`}
-                                        style={{ color: categoryConfig.color }}
-                                        className="inline-flex items-center justify-center"
-                                    >
-                                        <CategoryIcon className="w-4 h-4" />
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                        <span className="text-muted-foreground">/</span>
-                        {/* Student icons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+                <span className="text-muted-foreground">Description:</span>
+                <p className="font-medium">{packageData.description || "No description"}</p>
+            </div>
+            <div>
+                <span className="text-muted-foreground">Duration:</span>
+                <p className="font-medium">{getPrettyDuration(packageData.durationMinutes)}</p>
+            </div>
+            <div>
+                <span className="text-muted-foreground">Price per Student:</span>
+                <p className="font-medium">€{packageData.pricePerStudent}</p>
+            </div>
+            <div>
+                <span className="text-muted-foreground">Price per Hour/Student:</span>
+                <p className="font-medium">€{Math.round(pricePerHourPerStudent * 100) / 100}/h</p>
+            </div>
+            <div>
+                <span className="text-muted-foreground">Capacity:</span>
+                <div className="flex items-center gap-2 mt-1">
+                    {/* Equipment icons */}
+                    {categoryConfig && CategoryIcon && (
                         <div className="flex items-center gap-1">
-                            {Array.from({ length: packageData.capacityStudents }).map((_, i) => (
-                                <EntityIcon key={`student-${i}`} entityId="student" className="w-4 h-4" />
+                            {Array.from({ length: packageData.capacityEquipment }).map((_, i) => (
+                                <span
+                                    key={`equipment-${i}`}
+                                    style={{ color: categoryConfig.color }}
+                                    className="inline-flex items-center justify-center"
+                                >
+                                    <CategoryIcon className="w-4 h-4" />
+                                </span>
                             ))}
                         </div>
+                    )}
+                    <span className="text-muted-foreground">/</span>
+                    {/* Student icons */}
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: packageData.capacityStudents }).map((_, i) => (
+                            <EntityIcon key={`student-${i}`} entityId="student" className="w-4 h-4" />
+                        ))}
                     </div>
                 </div>
-                <div>
-                    <span className="text-muted-foreground">Expected Total:</span>
-                    <p className="font-medium text-green-600">€{totalPrice.toFixed(2)}</p>
+            </div>
+            <div>
+                <span className="text-muted-foreground">Expected Total:</span>
+                <p className="font-medium text-green-600">€{totalPrice.toFixed(2)}</p>
+            </div>
+        </div>
+    );
+};
+
+const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }: { packageData?: SchoolPackageType; expandedRow: string | null; setExpandedRow: (id: string | null) => void; packageEntity: Entity | undefined }) => {
+    if (!packageData) {
+        return null;
+    }
+
+    const isExpanded = expandedRow === "package";
+    const bgStyle = isExpanded && packageEntity?.bgColor ? { backgroundColor: packageEntity.bgColor + "20" } : {};
+
+    return (
+        <div className="px-2">
+            <div style={bgStyle}>
+                <div className={rowClassName}>
+                    <div className="w-6 h-6 flex items-center justify-center">
+                        <EntityIcon entityId="schoolPackage" />
+                    </div>
+                    <div className="text-sm text-foreground">{packageData.name || packageData.description || "Package"}</div>
+                    <div className="w-6 h-6 flex items-center justify-center">
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setExpandedRow(isExpanded ? null : "package");
+                            }}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                            }}
+                            className="p-0"
+                        >
+                            <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "transform rotate-180" : ""}`} style={{ color: packageEntity?.color }} />
+                        </button>
+                    </div>
                 </div>
+                {isExpanded && (
+                    <div className="p-4">
+                        <PackageDetailsDropdown packageData={packageData} />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -298,47 +347,14 @@ const PackageDetailsDropdown = ({ packageData }: { packageData: SchoolPackageTyp
 
 // Footer Component
 const CardFooter = ({
-    packageData,
-    packageEntity,
     onAssignTeacher,
 }: {
-    packageData?: SchoolPackageType;
-    packageEntity: Entity | undefined;
     onAssignTeacher: () => void;
 }) => {
-    const [isPackageDetailsOpen, setIsPackageDetailsOpen] = useState(false);
-
-    // Calculate price per hour
-    const pricePerHour = packageData
-        ? packageData.durationMinutes > 0
-            ? Math.round((packageData.pricePerStudent / (packageData.durationMinutes / 60)) * 100) / 100
-            : 0
-        : 0;
-
     return (
         <div className="-mx-0">
             {/* Footer Icons Bar */}
-            <div className="flex flex-wrap items-center justify-between p-3 bg-muted/10 gap-y-3">
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsPackageDetailsOpen(!isPackageDetailsOpen);
-                    }}
-                    onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                    }}
-                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    {isPackageDetailsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    <div className="flex items-center gap-2">
-                        {packageEntity && <EntityIcon entityId="schoolPackage" className="w-4 h-4" style={{ color: packageEntity.color }} />}
-                        <span className="text-sm">
-                            {pricePerHour > 0 ? `€${pricePerHour}/hr` : "Package Details"}
-                        </span>
-                    </div>
-                </button>
+            <div className="flex flex-wrap items-center justify-end p-3 bg-muted/10 gap-y-3">
                 <div className="flex flex-wrap items-center gap-3 px-2">
                     <button
                         onClick={(e) => {
@@ -357,8 +373,6 @@ const CardFooter = ({
                     </button>
                 </div>
             </div>
-            {/* Package Details Dropdown */}
-            {isPackageDetailsOpen && packageData && <PackageDetailsDropdown packageData={packageData} />}
         </div>
     );
 };
@@ -438,8 +452,10 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
                 <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
 
                 <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
+
+                <PackageRow packageData={packageData} expandedRow={expandedRow} setExpandedRow={setExpandedRow} packageEntity={packageEntity} />
             </div>
-            <CardFooter packageData={packageData} packageEntity={packageEntity} onAssignTeacher={handleAssignTeacher} />
+            <CardFooter onAssignTeacher={handleAssignTeacher} />
         </div>
     );
 }
