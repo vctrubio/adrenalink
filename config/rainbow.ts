@@ -1,5 +1,7 @@
 import type { RainbowColor, RainbowShade } from "@/src/components/rainbow/Rainbow";
 
+export type { RainbowColor, RainbowShade };
+
 // Base colors for the rainbow arcs
 export const rainbowBaseColors: Record<RainbowColor, { fill: string; hoverFill: string }> = {
     purple: { fill: "#a855f7", hoverFill: "#d946ef" },
