@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+const BLUE_BG_GO = "bg-slate-900"; // Dark mode background color - #0F172A
+
 export function LandingHero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -91,7 +93,7 @@ export function LandingHero() {
     }, []);
 
     return (
-        <section className="h-screen snap-start relative w-full flex items-center justify-center bg-sky-900">
+        <section className={`h-screen snap-start relative w-full flex items-center justify-center ${BLUE_BG_GO}`}>
             {/* Animated Background Canvas */}
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 

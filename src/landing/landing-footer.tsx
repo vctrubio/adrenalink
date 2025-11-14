@@ -3,6 +3,8 @@ import { WindToggle } from "@/src/components/themes/WindToggle";
 import LightSwitch from "@/src/components/themes/LightSwitch";
 import Link from "next/link";
 
+const GREEN_GO = "bg-green-600 hover:bg-green-700";
+
 interface DevAboutMeFooterProps {
     onThemeChange?: () => void;
 }
@@ -15,7 +17,9 @@ function HeroSection() {
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white animate-in slide-in-from-bottom-4 duration-1000">Transform Your School</h1>
                 <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-200">First come, first served</p>
             </div>
-            <div className="text-3xl md:text-4xl font-mono text-primary animate-in slide-in-from-bottom-4 duration-1000 delay-300">your_school.adrenalink.tech</div>
+            <div className="inline-block bg-black/30 backdrop-blur-md rounded-lg px-6 py-3 animate-in slide-in-from-bottom-4 duration-1000 delay-300">
+                <div className="text-3xl md:text-4xl font-mono text-green-400">your_school.adrenalink.tech</div>
+            </div>
         </div>
     );
 }
@@ -27,7 +31,7 @@ function CTAButtons() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
                     href="/welcome"
-                    className="group bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-left-4 duration-1000 delay-500"
+                    className={`group ${GREEN_GO} text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-left-4 duration-1000 delay-500`}
                 >
                     Sign Up (Early Bird)
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -100,6 +104,14 @@ export function DevAboutMeFooter() {
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                     transform: "rotate(180deg)",
+                }}
+            />
+
+            {/* Gradient Overlay for better text readability */}
+            <div
+                className="absolute inset-0 z-[1]"
+                style={{
+                    background: "linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 25%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.5) 75%, rgba(0, 0, 0, 0.8) 100%)",
                 }}
             />
 
