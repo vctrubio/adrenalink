@@ -1,6 +1,6 @@
 import ColorsDemo from "../../../components/colors-demo";
 import { ENTITY_DATA } from "../../../../config/entities";
-import { entityToRainbowColor, colorLabels, type RainbowColor } from "../../../../config/rainbow";
+import { entityToRainbowColor, colorLabels, rainbowBaseColors, type RainbowColor } from "../../../../config/rainbow";
 
 export default function ColorsPage() {
     const rainbowGroups: Record<RainbowColor, typeof ENTITY_DATA> = {
@@ -24,13 +24,13 @@ export default function ColorsPage() {
     });
 
     const colorMapping: Record<RainbowColor, { bg: string; text: string; hex: string }> = {
-        purple: { bg: "bg-purple-500", text: "text-purple-500", hex: "#a855f7" },
-        blue: { bg: "bg-blue-500", text: "text-blue-500", hex: "#3b82f6" },
-        green: { bg: "bg-green-500", text: "text-green-500", hex: "#22c55e" },
-        yellow: { bg: "bg-yellow-500", text: "text-yellow-500", hex: "#eab308" },
-        orange: { bg: "bg-orange-500", text: "text-orange-500", hex: "#f97316" },
-        red: { bg: "bg-red-500", text: "text-red-500", hex: "#ef4444" },
-        grey: { bg: "bg-gray-500", text: "text-gray-500", hex: "#6b7280" },
+        purple: { bg: "bg-purple-500", text: "text-purple-500", hex: rainbowBaseColors.purple.fill },
+        blue: { bg: "bg-blue-500", text: "text-blue-500", hex: rainbowBaseColors.blue.fill },
+        green: { bg: "bg-green-500", text: "text-green-500", hex: rainbowBaseColors.green.fill },
+        yellow: { bg: "bg-yellow-500", text: "text-yellow-500", hex: rainbowBaseColors.yellow.fill },
+        orange: { bg: "bg-orange-500", text: "text-orange-500", hex: rainbowBaseColors.orange.fill },
+        red: { bg: "bg-red-500", text: "text-red-500", hex: rainbowBaseColors.red.fill },
+        grey: { bg: "bg-gray-500", text: "text-gray-500", hex: rainbowBaseColors.grey.fill },
     };
 
     return (

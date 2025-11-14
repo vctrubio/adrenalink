@@ -18,14 +18,19 @@
         --accent-foreground: 30 41 59; /* slate-800 */
 
         /* Primary Colors - Green as main interactive color */
-        --primary: 22 163 74; /* green-600 */
+        --primary: 22 97 14; /* #16610E - deep forest green */
+        --primary-foreground: 248 250 252; /* slate-50 */
         --secondary: 59 130 246; /* blue-500 - the blue accent */
-        --tertiary: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
-        --fourth: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
-        --fifth: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
+        --secondary-foreground: 248 250 252; /* slate-50 */
+        --tertiary: 251 146 60; /* #fb923c - orange accent */
+        --tertiary-foreground: 248 250 252; /* slate-50 */
+        --fourth: 51 65 85; /* slate-700 - background accent */
+        --fourth-foreground: 248 250 252; /* slate-50 */
 
         --destructive: 255 59 48; /* Apple's system red */
+        --destructive-foreground: 248 250 252; /* slate-50 */
         --warning: 255 149 0; /* light orange for warnings */
+        --warning-foreground: 248 250 252; /* slate-50 */
 
         /* Subscription Status Colors */
         --subscription-default: 148 163 184; /* slate-400 - default/grey */
@@ -55,15 +60,20 @@
         --accent: 51 65 85; /* slate-700 */
         --accent-foreground: 248 250 252; /* slate-50 */
 
-        /* Primary Colors - Same as light mode for consistency */
-        --primary: 22 163 74; /* green-600 */
+        /* Primary Colors - Swapped in dark mode */
+        --primary: 251 146 60; /* #fb923c - orange accent (swapped with tertiary) */
+        --primary-foreground: 15 23 42; /* slate-900 */
         --secondary: 59 130 246; /* blue-500 - the blue accent */
-        --tertiary: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
-        --fourth: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
-        --fifth: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
+        --secondary-foreground: 248 250 252; /* slate-50 */
+        --tertiary: 22 97 14; /* #16610E - swapped with primary */
+        --tertiary-foreground: 248 250 252; /* slate-50 */
+        --fourth: 71 85 105; /* slate-600 - lighter in dark mode */
+        --fourth-foreground: 248 250 252; /* slate-50 */
 
         --destructive: 255 69 58; /* Apple red dark mode */
+        --destructive-foreground: 248 250 252; /* slate-50 */
         --warning: 255 159 10; /* light orange for warnings dark mode */
+        --warning-foreground: 15 23 42; /* slate-900 */
 
         /* Subscription Status Colors - Dark Mode */
         --subscription-default: 100 116 139; /* slate-500 - default/grey */
@@ -74,130 +84,6 @@
         --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
         --input: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
         --ring: 96 165 250; /* blue-400 */
-    }
-
-    /* Pantone Color Palette */
-    :root {
-        /* Primary Pantone Colors */
-        --pantone-ultra-violet: 95 57 129; /* PANTONE 18-3838 TCX Ultra Violet */
-        --pantone-living-coral: 255 108 122; /* PANTONE 16-1546 TCX Living Coral */
-        --pantone-greenery: 136 176 75; /* PANTONE 15-0343 TCX Greenery */
-        --pantone-classic-blue: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
-        --pantone-serenity: 145 168 208; /* PANTONE 15-3919 TPG Serenity */
-        --pantone-marsala: 149 82 81; /* PANTONE 18-1438 TCX Marsala */
-        
-        /* Secondary Pantone Colors */
-        --pantone-rose-quartz: 247 202 201; /* PANTONE PQ-13-1520TCX Rose Quartz */
-        --pantone-mocha-mousse: 171 133 115; /* PANTONE 17-1230 TCX Mocha Mousse */
-        --pantone-illuminating: 245 223 77; /* PANTONE 13-0647 TCX Illuminating */
-        --pantone-ultimate-gray: 147 149 151; /* PANTONE 17-5104 TCX Ultimate Gray */
-        --pantone-peach-fuzz: 255 190 165; /* PANTONE 13-1023 TCX Peach Fuzz */
-        --pantone-very-peri: 102 103 171; /* PANTONE 17-3938 TCX Very Peri */
-        --pantone-viva-magenta: 190 36 105; /* PANTONE 18-1750 TCX Viva Magenta */
-
-        /* Paper Scale - Professional warm paper tones */
-        --paper-50: 255 254 251; /* lightest cream */
-        --paper-100: 254 252 246; /* soft ivory */
-        --paper-200: 252 248 237; /* warm white */
-        --paper-300: 249 241 220; /* light parchment */
-        --paper-400: 245 231 195; /* aged paper */
-        --paper-500: 238 217 166; /* vintage paper */
-        --paper-600: 227 197 128; /* old document */
-        --paper-700: 210 174 96; /* antique paper */
-        --paper-800: 189 150 73; /* weathered parchment */
-        --paper-900: 165 125 56; /* aged manuscript */
-        --paper-950: 139 103 42; /* ancient paper */
-
-        /* Stone Scale - Professional natural stone tones */
-        --stone-50: 250 250 249; /* limestone white */
-        --stone-100: 245 245 244; /* marble white */
-        --stone-200: 231 229 228; /* light sandstone */
-        --stone-300: 214 211 209; /* travertine */
-        --stone-400: 168 162 158; /* limestone gray */
-        --stone-500: 120 113 108; /* granite gray */
-        --stone-600: 87 83 81; /* basalt */
-        --stone-700: 68 64 60; /* slate gray */
-        --stone-800: 41 37 36; /* charcoal stone */
-        --stone-900: 28 25 23; /* obsidian */
-        --stone-950: 12 10 9; /* volcanic black */
-
-        /* Ocean Scale - Professional ocean and water tones */
-        --ocean-50: 248 252 255; /* sea foam */
-        --ocean-100: 235 248 255; /* shallow water */
-        --ocean-200: 206 237 255; /* crystal blue */
-        --ocean-300: 147 213 255; /* lagoon */
-        --ocean-400: 56 178 255; /* tropical water */
-        --ocean-500: 14 134 212; /* ocean blue */
-        --ocean-600: 8 107 181; /* deep sea */
-        --ocean-700: 12 84 147; /* navy water */
-        --ocean-800: 20 66 114; /* midnight ocean */
-        --ocean-900: 23 51 86; /* abyss */
-        --ocean-950: 15 32 56; /* deep trench */
-
-        /* Forest Scale - Professional woodland and nature tones */
-        --forest-50: 247 254 247; /* morning dew */
-        --forest-100: 236 251 237; /* fresh leaves */
-        --forest-200: 209 245 212; /* spring green */
-        --forest-300: 167 230 172; /* meadow */
-        --forest-400: 104 201 115; /* forest green */
-        --forest-500: 54 158 69; /* pine */
-        --forest-600: 34 128 52; /* evergreen */
-        --forest-700: 22 102 38; /* deep woods */
-        --forest-800: 20 82 34; /* forest floor */
-        --forest-900: 18 67 29; /* ancient oak */
-        --forest-950: 12 45 20; /* shadow woods */
-
-        /* Sand Scale - Professional desert and earth tones */
-        --sand-50: 254 252 248; /* white sand */
-        --sand-100: 253 248 237; /* beach sand */
-        --sand-200: 251 240 218; /* dune */
-        --sand-300: 247 225 184; /* desert sand */
-        --sand-400: 240 198 137; /* golden sand */
-        --sand-500: 227 160 84; /* canyon */
-        --sand-600: 209 130 57; /* terracotta */
-        --sand-700: 180 104 39; /* adobe */
-        --sand-800: 147 82 31; /* earth */
-        --sand-900: 120 66 25; /* clay */
-        --sand-950: 92 50 19; /* burnt earth */
-
-        /* Sky Scale - Professional atmospheric and cloud tones */
-        --sky-50: 248 250 252; /* high clouds */
-        --sky-100: 241 245 249; /* morning sky */
-        --sky-200: 226 232 240; /* overcast */
-        --sky-300: 203 213 225; /* storm clouds */
-        --sky-400: 148 163 184; /* gray sky */
-        --sky-500: 100 116 139; /* twilight */
-        --sky-600: 71 85 105; /* evening */
-        --sky-700: 51 65 85; /* dusk */
-        --sky-800: 30 41 59; /* night sky */
-        --sky-900: 15 23 42; /* midnight */
-        --sky-950: 2 6 23; /* deep space */
-
-        /* Metal Scale - Professional industrial and metallic tones */
-        --metal-50: 250 250 251; /* polished steel */
-        --metal-100: 244 244 245; /* brushed aluminum */
-        --metal-200: 228 228 231; /* silver */
-        --metal-300: 212 212 216; /* chrome */
-        --metal-400: 161 161 170; /* pewter */
-        --metal-500: 113 113 122; /* gunmetal */
-        --metal-600: 82 82 91; /* iron */
-        --metal-700: 63 63 70; /* steel gray */
-        --metal-800: 39 39 42; /* dark steel */
-        --metal-900: 24 24 27; /* carbon */
-        --metal-950: 9 9 11; /* black metal */
-
-        /* Warm Scale - Professional warm and cozy tones */
-        --warm-50: 255 251 248; /* cream */
-        --warm-100: 254 245 237; /* warm white */
-        --warm-200: 253 230 214; /* peach cream */
-        --warm-300: 251 207 180; /* apricot */
-        --warm-400: 247 162 120; /* sunset */
-        --warm-500: 240 114 71; /* orange */
-        --warm-600: 229 78 33; /* burnt orange */
-        --warm-700: 194 65 28; /* rust */
-        --warm-800: 154 52 23; /* copper */
-        --warm-900: 124 42 19; /* bronze */
-        --warm-950: 92 31 14; /* mahogany */
     }
 }
 
@@ -514,206 +400,6 @@
 .text-pantone-viva-magenta {
     color: rgb(var(--pantone-viva-magenta));
 }
-
-/* Paper Scale Utility Classes */
-.bg-paper-50 { background-color: rgb(var(--paper-50)); }
-.bg-paper-100 { background-color: rgb(var(--paper-100)); }
-.bg-paper-200 { background-color: rgb(var(--paper-200)); }
-.bg-paper-300 { background-color: rgb(var(--paper-300)); }
-.bg-paper-400 { background-color: rgb(var(--paper-400)); }
-.bg-paper-500 { background-color: rgb(var(--paper-500)); }
-.bg-paper-600 { background-color: rgb(var(--paper-600)); }
-.bg-paper-700 { background-color: rgb(var(--paper-700)); }
-.bg-paper-800 { background-color: rgb(var(--paper-800)); }
-.bg-paper-900 { background-color: rgb(var(--paper-900)); }
-.bg-paper-950 { background-color: rgb(var(--paper-950)); }
-
-.text-paper-50 { color: rgb(var(--paper-50)); }
-.text-paper-100 { color: rgb(var(--paper-100)); }
-.text-paper-200 { color: rgb(var(--paper-200)); }
-.text-paper-300 { color: rgb(var(--paper-300)); }
-.text-paper-400 { color: rgb(var(--paper-400)); }
-.text-paper-500 { color: rgb(var(--paper-500)); }
-.text-paper-600 { color: rgb(var(--paper-600)); }
-.text-paper-700 { color: rgb(var(--paper-700)); }
-.text-paper-800 { color: rgb(var(--paper-800)); }
-.text-paper-900 { color: rgb(var(--paper-900)); }
-.text-paper-950 { color: rgb(var(--paper-950)); }
-
-/* Stone Scale Utility Classes */
-.bg-stone-50 { background-color: rgb(var(--stone-50)); }
-.bg-stone-100 { background-color: rgb(var(--stone-100)); }
-.bg-stone-200 { background-color: rgb(var(--stone-200)); }
-.bg-stone-300 { background-color: rgb(var(--stone-300)); }
-.bg-stone-400 { background-color: rgb(var(--stone-400)); }
-.bg-stone-500 { background-color: rgb(var(--stone-500)); }
-.bg-stone-600 { background-color: rgb(var(--stone-600)); }
-.bg-stone-700 { background-color: rgb(var(--stone-700)); }
-.bg-stone-800 { background-color: rgb(var(--stone-800)); }
-.bg-stone-900 { background-color: rgb(var(--stone-900)); }
-.bg-stone-950 { background-color: rgb(var(--stone-950)); }
-
-.text-stone-50 { color: rgb(var(--stone-50)); }
-.text-stone-100 { color: rgb(var(--stone-100)); }
-.text-stone-200 { color: rgb(var(--stone-200)); }
-.text-stone-300 { color: rgb(var(--stone-300)); }
-.text-stone-400 { color: rgb(var(--stone-400)); }
-.text-stone-500 { color: rgb(var(--stone-500)); }
-.text-stone-600 { color: rgb(var(--stone-600)); }
-.text-stone-700 { color: rgb(var(--stone-700)); }
-.text-stone-800 { color: rgb(var(--stone-800)); }
-.text-stone-900 { color: rgb(var(--stone-900)); }
-.text-stone-950 { color: rgb(var(--stone-950)); }
-
-/* Ocean Scale Utility Classes */
-.bg-ocean-50 { background-color: rgb(var(--ocean-50)); }
-.bg-ocean-100 { background-color: rgb(var(--ocean-100)); }
-.bg-ocean-200 { background-color: rgb(var(--ocean-200)); }
-.bg-ocean-300 { background-color: rgb(var(--ocean-300)); }
-.bg-ocean-400 { background-color: rgb(var(--ocean-400)); }
-.bg-ocean-500 { background-color: rgb(var(--ocean-500)); }
-.bg-ocean-600 { background-color: rgb(var(--ocean-600)); }
-.bg-ocean-700 { background-color: rgb(var(--ocean-700)); }
-.bg-ocean-800 { background-color: rgb(var(--ocean-800)); }
-.bg-ocean-900 { background-color: rgb(var(--ocean-900)); }
-.bg-ocean-950 { background-color: rgb(var(--ocean-950)); }
-
-.text-ocean-50 { color: rgb(var(--ocean-50)); }
-.text-ocean-100 { color: rgb(var(--ocean-100)); }
-.text-ocean-200 { color: rgb(var(--ocean-200)); }
-.text-ocean-300 { color: rgb(var(--ocean-300)); }
-.text-ocean-400 { color: rgb(var(--ocean-400)); }
-.text-ocean-500 { color: rgb(var(--ocean-500)); }
-.text-ocean-600 { color: rgb(var(--ocean-600)); }
-.text-ocean-700 { color: rgb(var(--ocean-700)); }
-.text-ocean-800 { color: rgb(var(--ocean-800)); }
-.text-ocean-900 { color: rgb(var(--ocean-900)); }
-.text-ocean-950 { color: rgb(var(--ocean-950)); }
-
-/* Forest Scale Utility Classes */
-.bg-forest-50 { background-color: rgb(var(--forest-50)); }
-.bg-forest-100 { background-color: rgb(var(--forest-100)); }
-.bg-forest-200 { background-color: rgb(var(--forest-200)); }
-.bg-forest-300 { background-color: rgb(var(--forest-300)); }
-.bg-forest-400 { background-color: rgb(var(--forest-400)); }
-.bg-forest-500 { background-color: rgb(var(--forest-500)); }
-.bg-forest-600 { background-color: rgb(var(--forest-600)); }
-.bg-forest-700 { background-color: rgb(var(--forest-700)); }
-.bg-forest-800 { background-color: rgb(var(--forest-800)); }
-.bg-forest-900 { background-color: rgb(var(--forest-900)); }
-.bg-forest-950 { background-color: rgb(var(--forest-950)); }
-
-.text-forest-50 { color: rgb(var(--forest-50)); }
-.text-forest-100 { color: rgb(var(--forest-100)); }
-.text-forest-200 { color: rgb(var(--forest-200)); }
-.text-forest-300 { color: rgb(var(--forest-300)); }
-.text-forest-400 { color: rgb(var(--forest-400)); }
-.text-forest-500 { color: rgb(var(--forest-500)); }
-.text-forest-600 { color: rgb(var(--forest-600)); }
-.text-forest-700 { color: rgb(var(--forest-700)); }
-.text-forest-800 { color: rgb(var(--forest-800)); }
-.text-forest-900 { color: rgb(var(--forest-900)); }
-.text-forest-950 { color: rgb(var(--forest-950)); }
-
-/* Sand Scale Utility Classes */
-.bg-sand-50 { background-color: rgb(var(--sand-50)); }
-.bg-sand-100 { background-color: rgb(var(--sand-100)); }
-.bg-sand-200 { background-color: rgb(var(--sand-200)); }
-.bg-sand-300 { background-color: rgb(var(--sand-300)); }
-.bg-sand-400 { background-color: rgb(var(--sand-400)); }
-.bg-sand-500 { background-color: rgb(var(--sand-500)); }
-.bg-sand-600 { background-color: rgb(var(--sand-600)); }
-.bg-sand-700 { background-color: rgb(var(--sand-700)); }
-.bg-sand-800 { background-color: rgb(var(--sand-800)); }
-.bg-sand-900 { background-color: rgb(var(--sand-900)); }
-.bg-sand-950 { background-color: rgb(var(--sand-950)); }
-
-.text-sand-50 { color: rgb(var(--sand-50)); }
-.text-sand-100 { color: rgb(var(--sand-100)); }
-.text-sand-200 { color: rgb(var(--sand-200)); }
-.text-sand-300 { color: rgb(var(--sand-300)); }
-.text-sand-400 { color: rgb(var(--sand-400)); }
-.text-sand-500 { color: rgb(var(--sand-500)); }
-.text-sand-600 { color: rgb(var(--sand-600)); }
-.text-sand-700 { color: rgb(var(--sand-700)); }
-.text-sand-800 { color: rgb(var(--sand-800)); }
-.text-sand-900 { color: rgb(var(--sand-900)); }
-.text-sand-950 { color: rgb(var(--sand-950)); }
-
-/* Sky Scale Utility Classes */
-.bg-sky-50 { background-color: rgb(var(--sky-50)); }
-.bg-sky-100 { background-color: rgb(var(--sky-100)); }
-.bg-sky-200 { background-color: rgb(var(--sky-200)); }
-.bg-sky-300 { background-color: rgb(var(--sky-300)); }
-.bg-sky-400 { background-color: rgb(var(--sky-400)); }
-.bg-sky-500 { background-color: rgb(var(--sky-500)); }
-.bg-sky-600 { background-color: rgb(var(--sky-600)); }
-.bg-sky-700 { background-color: rgb(var(--sky-700)); }
-.bg-sky-800 { background-color: rgb(var(--sky-800)); }
-.bg-sky-900 { background-color: rgb(var(--sky-900)); }
-.bg-sky-950 { background-color: rgb(var(--sky-950)); }
-
-.text-sky-50 { color: rgb(var(--sky-50)); }
-.text-sky-100 { color: rgb(var(--sky-100)); }
-.text-sky-200 { color: rgb(var(--sky-200)); }
-.text-sky-300 { color: rgb(var(--sky-300)); }
-.text-sky-400 { color: rgb(var(--sky-400)); }
-.text-sky-500 { color: rgb(var(--sky-500)); }
-.text-sky-600 { color: rgb(var(--sky-600)); }
-.text-sky-700 { color: rgb(var(--sky-700)); }
-.text-sky-800 { color: rgb(var(--sky-800)); }
-.text-sky-900 { color: rgb(var(--sky-900)); }
-.text-sky-950 { color: rgb(var(--sky-950)); }
-
-/* Metal Scale Utility Classes */
-.bg-metal-50 { background-color: rgb(var(--metal-50)); }
-.bg-metal-100 { background-color: rgb(var(--metal-100)); }
-.bg-metal-200 { background-color: rgb(var(--metal-200)); }
-.bg-metal-300 { background-color: rgb(var(--metal-300)); }
-.bg-metal-400 { background-color: rgb(var(--metal-400)); }
-.bg-metal-500 { background-color: rgb(var(--metal-500)); }
-.bg-metal-600 { background-color: rgb(var(--metal-600)); }
-.bg-metal-700 { background-color: rgb(var(--metal-700)); }
-.bg-metal-800 { background-color: rgb(var(--metal-800)); }
-.bg-metal-900 { background-color: rgb(var(--metal-900)); }
-.bg-metal-950 { background-color: rgb(var(--metal-950)); }
-
-.text-metal-50 { color: rgb(var(--metal-50)); }
-.text-metal-100 { color: rgb(var(--metal-100)); }
-.text-metal-200 { color: rgb(var(--metal-200)); }
-.text-metal-300 { color: rgb(var(--metal-300)); }
-.text-metal-400 { color: rgb(var(--metal-400)); }
-.text-metal-500 { color: rgb(var(--metal-500)); }
-.text-metal-600 { color: rgb(var(--metal-600)); }
-.text-metal-700 { color: rgb(var(--metal-700)); }
-.text-metal-800 { color: rgb(var(--metal-800)); }
-.text-metal-900 { color: rgb(var(--metal-900)); }
-.text-metal-950 { color: rgb(var(--metal-950)); }
-
-/* Warm Scale Utility Classes */
-.bg-warm-50 { background-color: rgb(var(--warm-50)); }
-.bg-warm-100 { background-color: rgb(var(--warm-100)); }
-.bg-warm-200 { background-color: rgb(var(--warm-200)); }
-.bg-warm-300 { background-color: rgb(var(--warm-300)); }
-.bg-warm-400 { background-color: rgb(var(--warm-400)); }
-.bg-warm-500 { background-color: rgb(var(--warm-500)); }
-.bg-warm-600 { background-color: rgb(var(--warm-600)); }
-.bg-warm-700 { background-color: rgb(var(--warm-700)); }
-.bg-warm-800 { background-color: rgb(var(--warm-800)); }
-.bg-warm-900 { background-color: rgb(var(--warm-900)); }
-.bg-warm-950 { background-color: rgb(var(--warm-950)); }
-
-.text-warm-50 { color: rgb(var(--warm-50)); }
-.text-warm-100 { color: rgb(var(--warm-100)); }
-.text-warm-200 { color: rgb(var(--warm-200)); }
-.text-warm-300 { color: rgb(var(--warm-300)); }
-.text-warm-400 { color: rgb(var(--warm-400)); }
-.text-warm-500 { color: rgb(var(--warm-500)); }
-.text-warm-600 { color: rgb(var(--warm-600)); }
-.text-warm-700 { color: rgb(var(--warm-700)); }
-.text-warm-800 { color: rgb(var(--warm-800)); }
-.text-warm-900 { color: rgb(var(--warm-900)); }
-.text-warm-950 { color: rgb(var(--warm-950)); }
 
 /* Subscription Status Color Utility Classes */
 .bg-subscription-default { background-color: rgb(var(--subscription-default)); }
