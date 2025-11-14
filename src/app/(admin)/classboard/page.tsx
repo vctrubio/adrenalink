@@ -1,8 +1,8 @@
 import { getClassboardBookings } from "@/actions/classboard-action";
+import ClientClassboard from "./ClientClassboard";
 
 export default async function ClassBoardPage() {
     const result = await getClassboardBookings();
-    const showJson = process.env.JSONIFY === "true";
 
     if (!result.success) {
         return (
@@ -13,14 +13,5 @@ export default async function ClassBoardPage() {
         );
     }
 
-    return (
-        <div>
-            <h1>Class Board - Bookings</h1>
-            {showJson ? (
-                <pre>{JSON.stringify(result.data, null, 2)}</pre>
-            ) : (
-                <p>Total Bookings: {result.data?.length ?? 0}</p>
-            )}
-        </div>
-    );
+    return <ClientClassboard data={result.data} />;
 }

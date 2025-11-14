@@ -1,6 +1,6 @@
 import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
 import { ENTITY_DATA } from "@/config/entities";
-import { mockStudents, mockBookings } from "@/drizzle/mocks/v1";
+import { mockStudents } from "@/drizzle/mocks/v1";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -16,7 +16,6 @@ export default function MockCardsPage() {
 
     // Get mock data
     const mockStudent = mockStudents[0];
-    const mockBooking = mockBookings[0];
 
     // Student stats (booking count, event count, event duration)
     const studentStats = [
@@ -100,12 +99,12 @@ export default function MockCardsPage() {
         },
     ];
 
-    // Booking fields
+    // Booking fields - disabled since mockBooking not available
     const bookingFields = [
-        { label: "Status", value: mockBooking.status },
-        { label: "Start", value: formatDate(mockBooking.dateStart) },
-        { label: "End", value: formatDate(mockBooking.dateEnd) },
-        { label: "Created", value: formatDate(mockBooking.createdAt) },
+        { label: "Status", value: "pending" },
+        { label: "Start", value: "N/A" },
+        { label: "End", value: "N/A" },
+        { label: "Created", value: "N/A" },
     ];
 
     return (
@@ -155,12 +154,12 @@ export default function MockCardsPage() {
                     <EntityInfoCard
                         entity={{
                             id: bookingEntity.id,
-                            name: `Booking ${mockBooking.id.slice(0, 8)}`,
+                            name: "Booking abc12345",
                             icon: bookingEntity.icon,
                             color: bookingEntity.color,
                             bgColor: bookingEntity.bgColor,
                         }}
-                        status={mockBooking.status}
+                        status="pending"
                         stats={bookingStats as [any, any, any]}
                         fields={bookingFields}
                         accentColor="#3b82f6"

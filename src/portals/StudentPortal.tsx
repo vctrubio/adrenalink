@@ -169,8 +169,8 @@ export function StudentPortal({ studentId, schoolId, data, onDataUpdate }: Stude
 
                             <div className="text-xs text-muted-foreground border-t pt-4">
                                 <p>
-                                    Booking: {new Date(lesson.booking.dateStart).toLocaleDateString('en-US')} -{" "}
-                                    {new Date(lesson.booking.dateEnd).toLocaleDateString('en-US')}
+                                    Booking: {new Date(lesson.booking.dateStart).toLocaleDateString("en-US")} -{" "}
+                                    {new Date(lesson.booking.dateEnd).toLocaleDateString("en-US")}
                                 </p>
                             </div>
                         </div>
