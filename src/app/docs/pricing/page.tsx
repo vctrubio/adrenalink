@@ -77,12 +77,12 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
             <div className="pt-6 border-t border-white/10">
                 {/* Inherited icons - small, one line, no names */}
                 {inheritedEntities.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4 opacity-40 justify-center">
+                    <div className="flex flex-wrap gap-2 mb-4 justify-center">
                         {inheritedEntities.map((entity) => {
                             const IconComponent = entity.icon;
                             return (
-                                <div key={entity.id} className="w-6 h-6 flex items-center justify-center">
-                                    <IconComponent className={`w-5 h-5 ${entity.color}`} />
+                                <div key={entity.id} className="w-6 h-6 flex items-center justify-center" style={{ color: entity.color }}>
+                                    <IconComponent className="w-5 h-5" />
                                 </div>
                             );
                         })}
@@ -90,13 +90,13 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
                 )}
 
                 {/* Unique icons - BIG with names */}
-                <div className="grid grid-cols-3 gap-3 opacity-60">
+                <div className="grid grid-cols-3 gap-3">
                     {uniqueEntities.map((entity) => {
                         const IconComponent = entity.icon;
                         return (
                             <div key={entity.id} className="flex flex-col items-center gap-1">
-                                <div className="w-10 h-10 flex items-center justify-center">
-                                    <IconComponent className={`w-8 h-8 ${entity.color}`} />
+                                <div className="w-10 h-10 flex items-center justify-center" style={{ color: entity.color }}>
+                                    <IconComponent className="w-8 h-8" />
                                 </div>
                                 <span className="text-[10px] text-center text-white/60 leading-tight">{entity.name}</span>
                             </div>

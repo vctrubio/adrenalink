@@ -21,7 +21,7 @@ const onboardingSteps = [
         title: "Introduction",
         subtitle: "Sign up",
         icon: OpenBookIcon,
-        iconColor: "text-blue-500",
+        iconColor: "#3b82f6",
         iconBgColor: "bg-blue-100",
         component: InstructionDevPage,
     },
@@ -30,7 +30,7 @@ const onboardingSteps = [
         title: "Schools",
         subtitle: "Setting up",
         icon: AdminIcon,
-        iconColor: "text-indigo-500",
+        iconColor: "#6366f1",
         iconBgColor: "bg-indigo-100",
         component: SchoolDevPage,
     },
@@ -39,7 +39,7 @@ const onboardingSteps = [
         title: "Teachers",
         subtitle: "Define your team",
         icon: HeadsetIcon,
-        iconColor: "text-green-500",
+        iconColor: "#22c55e",
         iconBgColor: "bg-green-100",
         component: TeachersDevPage,
     },
@@ -48,7 +48,7 @@ const onboardingSteps = [
         title: "Students",
         subtitle: "Registrations & requests",
         icon: HelmetIcon,
-        iconColor: "text-yellow-500",
+        iconColor: "#eab308",
         iconBgColor: "bg-yellow-100",
         component: StudentDevPage,
     },
@@ -57,7 +57,7 @@ const onboardingSteps = [
         title: "Events",
         subtitle: "Create lessons with ease",
         icon: Calendar,
-        iconColor: "text-purple-500",
+        iconColor: "#a855f7",
         iconBgColor: "bg-purple-100",
         component: EventDevPage,
     },
@@ -66,7 +66,7 @@ const onboardingSteps = [
         title: "Revenue",
         subtitle: "Monitor performance",
         icon: ChartColumnDecreasing,
-        iconColor: "text-sand-500",
+        iconColor: "#d97706",
         iconBgColor: "bg-sand-100",
         component: StatisticDevPage,
     },
@@ -75,7 +75,7 @@ const onboardingSteps = [
         title: "All Entities",
         subtitle: "Recap of everything",
         icon: PyramidIcon,
-        iconColor: "text-gray-500",
+        iconColor: "#6b7280",
         iconBgColor: "bg-gray-100",
         component: EntityDevPage,
     },
@@ -103,8 +103,8 @@ export function OnboardingBook() {
                                 return (
                                     <button key={index} onClick={() => setActiveStep(index)} className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${activeStep === index ? "bg-slate-900 shadow-lg scale-105" : "hover:bg-slate-700"}`}>
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step.iconBgColor}`}>
-                                                <StepIcon className={`w-6 h-6 ${step.iconColor}`} />
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step.iconBgColor}`} style={{ color: step.iconColor }}>
+                                                <StepIcon className="w-6 h-6" />
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className={`font-semibold ${activeStep === index ? "text-white" : "text-slate-300"}`}>{step.title}</h3>
