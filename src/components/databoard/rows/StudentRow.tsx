@@ -105,6 +105,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
             entity="students"
             entityData={student}
             entityBgColor={studentEntity.bgColor}
+            entityColor={studentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

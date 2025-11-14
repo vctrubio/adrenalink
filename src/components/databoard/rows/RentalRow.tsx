@@ -62,6 +62,7 @@ export const RentalRow = ({ item: rental, isExpanded, onToggle }: RentalRowProps
             id={rental.schema.id}
             entityData={rental.schema}
             entityBgColor={rentalEntity.bgColor}
+            entityColor={rentalEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

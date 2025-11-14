@@ -17,6 +17,7 @@ import type { StudentPackageModel } from "@/backend/models";
 export function calculateStudentPackageGroupStats(packages: StudentPackageModel[]): StatItem[] {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const totalStudents = packages.reduce((sum, pkg) => sum + StudentPackageStats.getStudentCount(pkg), 0);
     const totalEvents = packages.reduce((sum, pkg) => sum + StudentPackageStats.getEventsCount(pkg), 0);
@@ -29,7 +30,7 @@ export function calculateStudentPackageGroupStats(packages: StudentPackageModel[
 
     return [
         { icon: <HelmetIcon className="w-5 h-5" />, value: packages.length, color: packageEntity.color },
-        { icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents, color: "#9ca3af" },
+        { icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents, color: studentEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
         { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netRevenue), color: bankColor },
@@ -45,6 +46,7 @@ interface StudentPackageRowProps {
 export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }: StudentPackageRowProps) => {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const PackageIconComponent = packageEntity.icon;
     const entityColor = packageEntity.color;
@@ -67,7 +69,7 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
     const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
 
     const stats: StatItem[] = [
-        { icon: <HelmetIcon className="w-5 h-5" />, value: StudentPackageStats.getStudentCount(studentPackage), color: "#9ca3af" },
+        { icon: <HelmetIcon className="w-5 h-5" />, value: StudentPackageStats.getStudentCount(studentPackage), color: studentEntity.color },
         { icon: <FlagIcon className="w-5 h-5" />, value: StudentPackageStats.getEventsCount(studentPackage), color: eventEntity.color },
         { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(studentPackage.stats?.total_duration_minutes || 0), color: "#4b5563" },
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
@@ -80,6 +82,7 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
             id={studentPackage.schema.id}
             entityData={studentPackage.schema}
             entityBgColor={packageEntity.bgColor}
+            entityColor={packageEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

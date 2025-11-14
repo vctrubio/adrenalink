@@ -99,8 +99,9 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     return (
         <Row
             id={booking.schema.id}
-            entityData={booking}
+            entityData={booking.schema}
             entityBgColor={bookingEntity.bgColor}
+            entityColor={bookingEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

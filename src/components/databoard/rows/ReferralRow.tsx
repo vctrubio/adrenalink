@@ -42,6 +42,7 @@ export const ReferralRow = ({ item: referral, isExpanded, onToggle }: ReferralRo
             id={referral.schema.id}
             entityData={referral.schema}
             entityBgColor={referralEntity.bgColor}
+            entityColor={referralEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

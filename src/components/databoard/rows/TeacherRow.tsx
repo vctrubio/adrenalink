@@ -91,8 +91,9 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     return (
         <Row
             id={teacher.schema.id}
-            entityData={teacher}
+            entityData={teacher.schema}
             entityBgColor={teacherEntity.bgColor}
+            entityColor={teacherEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{

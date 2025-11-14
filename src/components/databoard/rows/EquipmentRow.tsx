@@ -92,8 +92,9 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
     return (
         <Row
             id={equipment.schema.id}
-            entityData={equipment}
+            entityData={equipment.schema}
             entityBgColor={equipmentEntity.bgColor}
+            entityColor={equipmentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
             head={{
