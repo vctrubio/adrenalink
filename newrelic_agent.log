@@ -903,3 +903,4 @@
 {"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":25217,"time":"2025-11-14T16:58:52.505Z","msg":"Merging 2 of 2 events into TransactionEventAggregator for next harvest","component":"event_aggregator"}
 {"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":25217,"time":"2025-11-14T16:59:00.182Z","msg":"Merging 3 of 3 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
 {"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":25217,"time":"2025-11-14T16:59:13.252Z","msg":"Merging 2 of 2 events into TransactionEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":25217,"time":"2025-11-14T19:21:44.625Z","msg":"Merging 1 of 1 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
