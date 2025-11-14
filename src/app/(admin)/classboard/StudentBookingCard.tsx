@@ -37,13 +37,12 @@ type Entity = {
 };
 
 /*
-prompt: 
-can u add in the dropdown, if i do open, first some seperator like before on each list, and then a bg for the whole thing of the entity bg please. 
+prompt:
+can u add in the dropdown, if i do open, first some seperator like before on each list, and then a bg for the whole thing of the entity bg please.
 */
 
-
 // Common constants
-const rowClassName = "grid grid-cols-[24px_1fr_24px] items-center gap-2 py-1";
+const rowClassName = "grid grid-cols-[20px_1fr_20px] items-center gap-2 py-1";
 
 // Reusable DropdownRow component
 const DropdownRow = ({ items, children }: { items?: Array<{ value: string }>; children?: React.ReactNode }) => {
@@ -52,7 +51,7 @@ const DropdownRow = ({ items, children }: { items?: Array<{ value: string }>; ch
             <div className="pl-4 pr-2 pb-2">
                 <div className="divide-y divide-muted/20">
                     {items.map((item, index) => (
-                        <div key={index} className="py-3">
+                        <div key={index}>
                             <span className="text-sm font-medium text-foreground">{item.value}</span>
                         </div>
                     ))}
@@ -97,7 +96,7 @@ const BookingRow = ({ start, end, selectedDate, expandedRow, setExpandedRow, boo
     const bgStyle = isExpanded && bookingEntity?.bgColor ? { backgroundColor: bookingEntity.bgColor + "20" } : {};
 
     return (
-        <div style={bgStyle}>
+        <div style={bgStyle} className={isExpanded ? "rounded-lg" : ""}>
             <div className={`${rowClassName} px-2 rounded-t-lg border-b border-blue-400`}>
                 <div className="w-6 h-6 flex items-center justify-center">
                     <EntityIcon entityId="booking" />
@@ -138,7 +137,7 @@ const StudentRow = ({ students, expandedRow, setExpandedRow, studentEntity }: { 
                 const bgStyle = isExpanded && studentEntity?.bgColor ? { backgroundColor: studentEntity.bgColor + "20" } : {};
 
                 return (
-                    <div key={i} style={bgStyle}>
+                    <div key={i} style={bgStyle} className={isExpanded ? "rounded-lg" : ""}>
                         <div className={rowClassName}>
                             <div className="w-6 h-6 flex items-center justify-center">
                                 <EntityIcon entityId="student" />
@@ -171,13 +170,7 @@ const StudentRow = ({ students, expandedRow, setExpandedRow, studentEntity }: { 
     </div>
 );
 
-const TeachersRow = ({
-    lessons,
-    commissionEntity,
-}: {
-    lessons: DraggableBooking["lessons"];
-    commissionEntity: Entity | undefined;
-}) => (
+const TeachersRow = ({ lessons, commissionEntity }: { lessons: DraggableBooking["lessons"]; commissionEntity: Entity | undefined }) => (
     <div className="px-2">
         {lessons.length > 0 ? (
             lessons.map((lesson) => (
@@ -186,9 +179,7 @@ const TeachersRow = ({
                         <div className="w-6 h-6 flex items-center justify-center">
                             <EntityIcon entityId="teacher" />
                         </div>
-                        <div className="text-sm text-foreground">
-                            {lesson.teacherUsername}
-                        </div>
+                        <div className="text-sm text-foreground">{lesson.teacherUsername}</div>
                         <div className="w-6 h-6 flex items-center justify-center">
                             <span
                                 className="rounded px-2 py-0.5 text-xs font-medium"
@@ -197,7 +188,7 @@ const TeachersRow = ({
                                     color: commissionEntity?.color,
                                     borderColor: commissionEntity?.color,
                                     borderWidth: "1px",
-                                    borderStyle: "solid"
+                                    borderStyle: "solid",
                                 }}
                             >
                                 {lesson.commissionType === "fixed" ? `€${lesson.commissionCph}` : `${lesson.commissionCph}%`}
@@ -275,11 +266,7 @@ const PackageDetailsDropdown = ({ packageData }: { packageData: SchoolPackageTyp
                     {categoryConfig && CategoryIcon && (
                         <div className="flex items-center gap-1">
                             {Array.from({ length: packageData.capacityEquipment }).map((_, i) => (
-                                <span
-                                    key={`equipment-${i}`}
-                                    style={{ color: categoryConfig.color }}
-                                    className="inline-flex items-center justify-center"
-                                >
+                                <span key={`equipment-${i}`} style={{ color: categoryConfig.color }} className="inline-flex items-center justify-center">
                                     <CategoryIcon className="w-4 h-4" />
                                 </span>
                             ))}
@@ -312,7 +299,7 @@ const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }:
 
     return (
         <div className="px-2">
-            <div style={bgStyle}>
+            <div style={bgStyle} className={isExpanded ? "rounded-lg" : ""}>
                 <div className={rowClassName}>
                     <div className="w-6 h-6 flex items-center justify-center">
                         <EntityIcon entityId="schoolPackage" />
@@ -346,15 +333,11 @@ const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }:
 };
 
 // Footer Component
-const CardFooter = ({
-    onAssignTeacher,
-}: {
-    onAssignTeacher: () => void;
-}) => {
+const CardFooter = ({ onAssignTeacher }: { onAssignTeacher: () => void }) => {
     return (
         <div className="-mx-0">
             {/* Footer Icons Bar */}
-            <div className="flex flex-wrap items-center justify-end p-3 bg-muted/10 gap-y-3">
+            <div className="flex flex-wrap items-center justify-end p-3 gap-y-3">
                 <div className="flex flex-wrap items-center gap-3 px-2">
                     <button
                         onClick={(e) => {
@@ -376,7 +359,6 @@ const CardFooter = ({
         </div>
     );
 };
-
 
 const StudentDropdownRow = ({ student }: { student: StudentInfo }) => {
     const hasDescription = student.description && student.description.trim().length > 0;
@@ -446,16 +428,18 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
     // Render
     return (
         <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card rounded-lg border border-blue-400 transition-shadow cursor-grab hover:shadow-md active:cursor-grabbing active:opacity-50 p-0">
-            <div className="grid gap-0">
+            <div className="grid gap-1">
                 <BookingRow start={dateStart} end={dateEnd} selectedDate={selectedClientDate} expandedRow={expandedRow} setExpandedRow={setExpandedRow} bookingEntity={bookingEntity} />
 
-                <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
-
-                <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
-
                 <PackageRow packageData={packageData} expandedRow={expandedRow} setExpandedRow={setExpandedRow} packageEntity={packageEntity} />
+
+                <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
             </div>
-            <CardFooter onAssignTeacher={handleAssignTeacher} />
+
+            <div className="bg-muted/10 rounded-b-lg">
+                <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
+                <CardFooter onAssignTeacher={handleAssignTeacher} />
+            </div>
         </div>
     );
 }
