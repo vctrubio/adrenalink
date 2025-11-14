@@ -8,6 +8,7 @@ import { getTimeFromISO } from "@/getters/timezone-getter";
 import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
 import type { EventNode } from "@/backend/TeacherQueue";
 import { LOCATION_OPTIONS } from "./EventSettingController";
+import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
 
 interface EventModCardProps {
     event: EventNode;
@@ -35,7 +36,7 @@ const StudentGrid = ({ students }: { students: any[] }) => {
     return (
         <div className={`flex-shrink-0 ${studentCount === 4 ? "grid grid-cols-2 gap-1" : "flex gap-1"}`}>
             {students.map((_, index) => (
-                <HelmetIcon key={index} className="w-7 h-7 text-yellow-500" />
+                <HelmetIcon key={index} className="w-8 h-8 text-yellow-500" />
             ))}
         </div>
     );
@@ -43,16 +44,13 @@ const StudentGrid = ({ students }: { students: any[] }) => {
 
 const QueueControls = ({ isFirst, isLast, eventId, onMoveUp, onMoveDown, onRemove }: { isFirst: boolean; isLast: boolean; eventId: string; onMoveUp: (eventId: string) => void; onMoveDown: (eventId: string) => void; onRemove: (eventId: string) => Promise<void> }) => {
     const handleRemoveClick = async () => {
-        console.log(`🗑️ [EventModCard] Removing event`, { eventId, received: eventId });
-        if (!eventId || eventId === 'null' || eventId === '') {
-            console.error(`❌ [EventModCard] Invalid eventId:`, eventId);
+        if (!eventId || eventId === "null" || eventId === "") {
             return;
         }
         try {
             await onRemove(eventId);
-            console.log(`✅ [EventModCard] Event ${eventId} removed successfully`);
         } catch (error) {
-            console.error(`❌ [EventModCard] Failed to remove event ${eventId}:`, error);
+            console.error("Failed to remove event:", error);
         }
     };
 
@@ -81,13 +79,23 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
     const endTimeMinutes = timeToMinutes(startTime) + durationMinutes;
     const endTime = minutesToTime(endTimeMinutes);
 
+    const handleEarlier = () => {
+        console.log(`[DEBUG-TimeControls] Earlier clicked, eventId: ${eventId}, increment: false`);
+        onAdjustTime(eventId, false);
+    };
+
+    const handleLater = () => {
+        console.log(`[DEBUG-TimeControls] Later clicked, eventId: ${eventId}, increment: true`);
+        onAdjustTime(eventId, true);
+    };
+
     return (
         <div className="flex-grow min-w-0">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-600 dark:text-gray-400">Start</span>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => onAdjustTime(eventId, false)}
+                        onClick={handleEarlier}
                         disabled={!canMoveEarlier}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveEarlier ? "30 minutes earlier" : "Cannot move earlier - would overlap"}
@@ -95,7 +103,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
                         <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={() => onAdjustTime(eventId, true)}
+                        onClick={handleLater}
                         disabled={!canMoveLater}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveLater ? "30 minutes later" : "Cannot move later - would exceed 23:00"}
@@ -153,7 +161,7 @@ const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes
     return (
         <button
             onClick={() => onRemoveGap?.(eventId)}
-            className={`flex items-center justify-center gap-1 mt-2 text-xs ${textColor} ${bgColor} p-2 rounded border ${borderColor} ${hoverColor} transition-colors cursor-pointer w-full`}
+            className={`flex items-center justify-center gap-1 text-xs ${textColor} ${bgColor} p-2 rounded border ${borderColor} ${hoverColor} transition-colors cursor-pointer w-full`}
             title={isBlue ? "Gap meets requirements" : "Click to remove gap"}
         >
             {!isBlue && <AlertTriangle className="w-3 h-3 flex-shrink-0" />}
@@ -168,7 +176,6 @@ const LocationDropdown = ({ eventId, currentLocation, onLocationChange }: { even
     const [isOpen, setIsOpen] = useState(false);
 
     const handleLocationSelect = (location: string) => {
-        console.log(`📍 [LocationDropdown] Changing location from ${currentLocation} to ${location}`);
         onLocationChange?.(eventId, location);
         setIsOpen(false);
     };
@@ -210,7 +217,7 @@ const PackageInfo = ({ location, durationMinutes, eventDuration, eventId, onLoca
     const remainingMinutes = durationMinutes - eventDuration;
 
     return (
-        <div className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center flex items-center justify-center gap-2">
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-2">
             <LocationDropdown eventId={eventId} currentLocation={location} onLocationChange={onLocationChange} />
             <span>•</span>
             <span className={remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400 font-medium" : ""}>
@@ -240,46 +247,43 @@ export default function EventModCard({
     onLocationChange,
 }: EventModCardProps) {
     const eventId = event.eventData.id || event.id;
-    console.log(`📋 [EventModCard] Initialized with:`, {
-        eventDataId: event.eventData.id,
-        eventNodeId: event.id,
-        finalEventId: eventId,
-    });
     const students = event.studentData || [];
     const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 
+    // Return early if no valid eventId
+    if (!eventId) return null;
+
     const getBgColor = () => {
-        if (!hasGap || isFirst) return "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600";
+        if (!hasGap || isFirst) return "bg-background dark:bg-card border-border";
         if (gapMeetsRequirement) return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
         return "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
     };
 
     return (
-        <div className={`w-full p-4 rounded-lg border ${getBgColor()}`}>
-            {/* Header: Students, names, controls */}
-            <div className="flex items-center justify-between mb-3 w-full">
+        <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${!hasGap || isFirst ? "" : getBgColor()}`}>
+            <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <StudentGrid students={students} />
-                <div className="flex-1 mx-2 flex flex-wrap gap-1 items-center">
-                    <span className="text-base font-medium text-gray-900 dark:text-white">{studentNames}</span>
+                <div className="flex-1 overflow-x-auto">
+                    <span className="text-base font-medium text-foreground whitespace-nowrap">{studentNames}</span>
                 </div>
                 <QueueControls isFirst={isFirst} isLast={isLast} eventId={eventId} onMoveUp={onMoveUp} onMoveDown={onMoveDown} onRemove={onRemove} />
             </div>
 
-            {/* Time and Duration Controls - Side by Side */}
-            <div className="flex gap-4">
+            <div className={`flex gap-4 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} onAdjustTime={onAdjustTime} />
-
-                {/* Separator */}
                 <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
-
                 <DurationControls duration={event.eventData.duration} eventId={eventId} onAdjustDuration={onAdjustDuration} />
             </div>
 
-            {/* Package Info: Location + Remaining Minutes */}
-            <PackageInfo eventId={eventId} location={event.eventData.location} durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} onLocationChange={onLocationChange} />
+            <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
+                <PackageInfo eventId={eventId} location={event.eventData.location} durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} onLocationChange={onLocationChange} />
+            </div>
 
-            {/* Gap warning - only show if not first and has gap */}
-            {!isFirst && hasGap && <GapWarning gapDuration={gapDuration} eventId={eventId} meetsRequirement={gapMeetsRequirement} requiredGapMinutes={requiredGapMinutes} onRemoveGap={onRemoveGap} />}
+            {!isFirst && hasGap && (
+                <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
+                    <GapWarning gapDuration={gapDuration} eventId={eventId} meetsRequirement={gapMeetsRequirement} requiredGapMinutes={requiredGapMinutes} onRemoveGap={onRemoveGap} />
+                </div>
+            )}
         </div>
     );
 }

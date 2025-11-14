@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import EventCard from "./EventCard";
-import EventModCard from "./EventModCard";
-import TeacherQueueEditor from "./TeacherQueueEditor";
+import TeacherEventQueue from "./TeacherEventQueue";
+import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
 import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
 import { batchUpdateClassboardEvents } from "@/actions/classboard-action";
@@ -19,77 +18,9 @@ interface ParentTime {
     globalTime: string | null;
 }
 
-interface TeacherEventQueueProps {
-    events: EventNode[];
-    viewMode: TeacherViewMode;
-    onRemoveEvent?: (eventId: string) => Promise<void>;
-    onAdjustDuration?: (eventId: string, increment: boolean) => void;
-    onAdjustTime?: (eventId: string, increment: boolean) => void;
-    onMoveUp?: (eventId: string) => void;
-    onMoveDown?: (eventId: string) => void;
-    onRemoveGap?: (eventId: string) => void;
-    onDragOver?: (e: React.DragEvent) => void;
-    onDragEnter?: (e: React.DragEvent) => void;
-    onDragLeave?: (e: React.DragEvent) => void;
-    onDrop?: (e: React.DragEvent) => void;
-    isDragOver?: boolean;
-    dragCompatibility?: "compatible" | "incompatible" | null;
-}
-
-function calculateGaps(events: EventNode[]): Map<string, { hasGap: boolean; gapDuration: number }> {
-    const gapInfo = new Map<string, { hasGap: boolean; gapDuration: number }>();
-
-    events.forEach((event, index) => {
-        if (index === 0) {
-            gapInfo.set(event.id, { hasGap: false, gapDuration: 0 });
-            return;
-        }
-
-        const previousEvent = events[index - 1];
-        const previousEndTime = timeToMinutes(previousEvent.eventData.date) + previousEvent.eventData.duration;
-        const currentStartTime = timeToMinutes(event.eventData.date);
-        const gapMinutes = currentStartTime - previousEndTime;
-
-        gapInfo.set(event.id, {
-            hasGap: gapMinutes > 0,
-            gapDuration: Math.max(0, gapMinutes),
-        });
-    });
-
-    return gapInfo;
-}
-
-function TeacherEventQueue({ events, viewMode, onRemoveEvent, onAdjustDuration, onAdjustTime, onMoveUp, onMoveDown, onRemoveGap, onDragOver, onDragEnter, onDragLeave, onDrop, isDragOver, dragCompatibility }: TeacherEventQueueProps) {
-    const gapInfo = calculateGaps(events);
-
-    return (
-        <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
-            {events.length > 0 ? (
-                events.map((event, index) => {
-                    const gap = gapInfo.get(event.id) || { hasGap: false, gapDuration: 0 };
-
-                    return (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            hasNextEvent={index < events.length - 1}
-                            onDeleteComplete={async () => {
-                                await onRemoveEvent?.(event.id);
-                            }}
-                        />
-                    );
-                })
-            ) : (
-                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No events</div>
-            )}
-        </div>
-    );
-}
-
 function TeacherColumn({
     queue,
     stats,
-    viewMode,
     dragOverTeacher,
     dragCompatibility,
     onDragOver,
@@ -105,7 +36,6 @@ function TeacherColumn({
 }: {
     queue: TeacherQueue;
     stats: TeacherStats;
-    viewMode: TeacherViewMode;
     dragOverTeacher: string | null;
     dragCompatibility: "compatible" | "incompatible" | null;
     onDragOver: (e: React.DragEvent) => void;
@@ -242,16 +172,6 @@ function TeacherColumn({
         return "border-transparent";
     };
 
-    const handleFlagClick = () => {
-        // Exit edit mode if queue is empty
-        if (columnViewMode === "queue" && events.length === 0) {
-            console.log(`📊 No events in queue, exiting edit mode`);
-            setColumnViewMode("view");
-            return;
-        }
-        setColumnViewMode(columnViewMode === "view" ? "queue" : "view");
-    };
-
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
     };
@@ -262,7 +182,7 @@ function TeacherColumn({
             onDragOver={onDragOver}
             onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
             onDragLeave={onDragLeave}
-            onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
+            onDrop={(e) => onDrop(e, queue.teacher.username)}
             className="flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col border-r border-border last:border-r-0"
         >
             {/* <div className="p-3 border-b border-border"> */}
@@ -300,14 +220,13 @@ function TeacherColumn({
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         events={events}
-                        viewMode={viewMode}
                         onDragOver={onDragOver}
                         onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
                         onDragLeave={onDragLeave}
-                        onDrop={(e) => onDrop(e, queue.teacher.username, queue)}
-                        isDragOver={dragOverTeacher === queue.teacher.username}
-                        dragCompatibility={dragCompatibility}
-                        onRemoveEvent={(eventId) => onEventDeleted?.(eventId)}
+                        onDrop={(e) => onDrop(e, queue.teacher.username)}
+                        onRemoveEvent={async (eventId) => {
+                            await onEventDeleted?.(eventId);
+                        }}
                     />
                 ) : (
                     <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} onEventDeleted={onEventDeleted} />
@@ -328,7 +247,7 @@ interface TeacherClassDailyProps {
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, selectedDate, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
     const [viewMode, setViewMode] = useState<TeacherViewMode>("view");
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<"compatible" | "incompatible" | null>(null);
@@ -379,7 +298,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         }
     };
 
-    const handleDrop = async (e: React.DragEvent, teacherUsername: string, queue: TeacherQueue) => {
+    const handleDrop = async (e: React.DragEvent, teacherUsername: string) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -527,13 +446,12 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                 key={queue.teacher.username}
                                 queue={queue}
                                 stats={stats}
-                                viewMode={viewMode}
                                 dragOverTeacher={dragOverTeacher}
                                 dragCompatibility={dragCompatibility}
                                 onDragOver={handleDragOver}
                                 onDragEnter={handleDragEnter}
                                 onDragLeave={handleDragLeave}
-                                onDrop={(e) => handleDrop(e, queue.teacher.username, queue)}
+                                onDrop={(e) => handleDrop(e, queue.teacher.username)}
                                 parentTime={parentTime}
                                 isOptedOutOfGlobalUpdate={optedOutTeachers.has(queue.teacher.username)}
                                 onOptOut={handleOptOut}
