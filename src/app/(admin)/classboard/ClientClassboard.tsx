@@ -27,26 +27,26 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             const lesson = booking.lessons.find((l) => l.teacherUsername === teacherUsername);
             if (!lesson) return;
 
-            // Get next available slot from teacher queue
-            const nextSlot = queue.getNextAvailableSlot(controller);
-
-            // Calculate event date/time
-            const dateObj = new Date(selectedDate);
-            const [hours, minutes] = nextSlot.split(":").map(Number);
-            dateObj.setHours(hours, minutes, 0, 0);
-            const eventDate = dateObj.toISOString();
-
-            // Calculate duration based on capacity
+            // Calculate duration based on capacity (1 = private, 2 = semi-private, 3+ = group)
             let duration: number;
             if (booking.capacityStudents === 1) {
                 duration = controller.durationCapOne;
-            } else if (booking.capacityStudents <= 3) {
+            } else if (booking.capacityStudents === 2) {
                 duration = controller.durationCapTwo;
             } else {
                 duration = controller.durationCapThree;
             }
 
-            // Create the event
+            // Get smart insertion info (checks submitTime first, then determines if should go to head or tail)
+            const insertionInfo = queue.getSmartInsertionInfo(controller.submitTime, duration, controller.gapMinutes);
+
+            // Calculate event date/time
+            const dateObj = new Date(selectedDate);
+            const [hours, minutes] = insertionInfo.time.split(":").map(Number);
+            dateObj.setHours(hours, minutes, 0, 0);
+            const eventDate = dateObj.toISOString();
+
+            // Create the event (will be added to queue by listener based on event time)
             await createClassboardEvent(lesson.id, eventDate, duration, controller.location);
         } catch (error) {
             console.error("Error adding lesson event:", error);
@@ -93,7 +93,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     setOnNewBooking={setOnNewBooking}
                 />
 
-                <TeacherClassDaily teacherQueues={teacherQueues} draggedBooking={draggedBooking} isLessonTeacher={isLessonTeacher} classboardStats={classboardStats} controller={controller} selectedDate={selectedDate} onEventDeleted={handleEventDeleted} />
+                <TeacherClassDaily teacherQueues={teacherQueues} draggedBooking={draggedBooking} isLessonTeacher={isLessonTeacher} classboardStats={classboardStats} controller={controller} selectedDate={selectedDate} onEventDeleted={handleEventDeleted} onAddLessonEvent={handleAddLessonEvent} />
             </div>
         </div>
     );

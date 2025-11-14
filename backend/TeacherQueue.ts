@@ -170,6 +170,106 @@ export class TeacherQueue {
         return this.getEarliestEventTime();
     }
 
+    /**
+     * Check if a time slot (start time + duration) overlaps with any existing event
+     */
+    hasEventAtTime(startTimeMinutes: number, durationMinutes: number): boolean {
+        let current = this.head;
+
+        while (current) {
+            const eventStartMinutes = this.getStartTimeMinutes(current);
+            const eventEndMinutes = eventStartMinutes + current.eventData.duration;
+
+            // Check if new event overlaps with this event
+            const newEventEndMinutes = startTimeMinutes + durationMinutes;
+
+            // Overlap occurs if: new start is before event end AND new end is after event start
+            if (startTimeMinutes < eventEndMinutes && newEventEndMinutes > eventStartMinutes) {
+                return true;
+            }
+
+            current = current.next;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get smart insertion info that includes position (head or tail)
+     * Returns: { time, shouldUseHead }
+     * - time: The insertion time
+     * - shouldUseHead: Whether to add to head (true) or tail (false) of queue
+     */
+    getSmartInsertionInfo(controllerFlagTime: string, eventDurationMinutes: number, gapMinutes: number): { time: string; shouldUseHead: boolean } {
+        const flagTimeMinutes = timeToMinutes(controllerFlagTime);
+
+        // If no events, use controller flag time
+        if (!this.head) {
+            return { time: controllerFlagTime, shouldUseHead: false };
+        }
+
+        // Check if controller flag time is available
+        const timeIsAvailable = !this.hasEventAtTime(flagTimeMinutes, eventDurationMinutes);
+
+        if (timeIsAvailable) {
+            // Flag time is available, check if it's before first event
+            const firstEventStartMinutes = this.getStartTimeMinutes(this.head);
+            const flagIsBeforeFirst = flagTimeMinutes < firstEventStartMinutes;
+
+            if (flagIsBeforeFirst) {
+                // Can potentially add to head, check gap requirement
+                const flagEndMinutes = flagTimeMinutes + eventDurationMinutes;
+                const gap = firstEventStartMinutes - flagEndMinutes;
+
+                if (gap >= gapMinutes) {
+                    // Can add to head with proper gap
+                    return { time: controllerFlagTime, shouldUseHead: true };
+                } else {
+                    // Flag time is before first but gap too small, schedule after last event
+                    const lastEvent = this.getLastEvent();
+                    if (!lastEvent) return { time: controllerFlagTime, shouldUseHead: false };
+                    const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
+                    const nextSlotMinutes = lastEventEndMinutes + gapMinutes;
+                    const nextSlotTime = minutesToTime(nextSlotMinutes);
+                    return { time: nextSlotTime, shouldUseHead: false };
+                }
+            }
+
+            // Flag time is available but comes AFTER first event
+            // Check if it's actually after the last event with proper gap
+            const lastEvent = this.getLastEvent();
+            if (lastEvent) {
+                const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
+                const flagEndMinutes = flagTimeMinutes + eventDurationMinutes;
+
+                if (flagTimeMinutes >= lastEventEndMinutes + gapMinutes && flagEndMinutes <= 1440) {
+                    // Flag time is after all events with proper gap - use it
+                    return { time: controllerFlagTime, shouldUseHead: false };
+                }
+            }
+
+            // Flag time is in the middle, schedule after last event instead
+            const lastEventForScheduling = this.getLastEvent();
+            if (!lastEventForScheduling) return { time: controllerFlagTime, shouldUseHead: false };
+
+            const lastEventEndMinutes = this.getStartTimeMinutes(lastEventForScheduling) + lastEventForScheduling.eventData.duration;
+            const nextSlotMinutes = lastEventEndMinutes + gapMinutes;
+            const nextSlotTime = minutesToTime(nextSlotMinutes);
+            return { time: nextSlotTime, shouldUseHead: false };
+        }
+
+        // Flag time is occupied, return next available after last event
+        const lastEvent = this.getLastEvent();
+        if (!lastEvent) {
+            return { time: controllerFlagTime, shouldUseHead: false };
+        }
+
+        const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
+        const nextSlotMinutes = lastEventEndMinutes + gapMinutes;
+        const nextSlotTime = minutesToTime(nextSlotMinutes);
+        return { time: nextSlotTime, shouldUseHead: false };
+    }
+
     // ============ QUEUE MODIFICATION ============
 
     adjustLessonDuration(lessonId: string, increment: boolean): void {

@@ -215,7 +215,10 @@ export function useClassboard(initialData: ClassboardModel) {
 
                 const queue = teacherMap.get(teacherUsername)!;
 
-                lesson.events.forEach((event) => {
+                // Sort events by date before adding to queue (earliest first = head of queue)
+                const sortedEvents = [...lesson.events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                sortedEvents.forEach((event) => {
                     const eventDate = new Date(event.date).toISOString().split("T")[0];
                     if (eventDate === selectedDate) {
                         const studentData = booking.bookingStudents.map((bs) => ({

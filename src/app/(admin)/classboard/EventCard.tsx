@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu } from "@headlessui/react";
-import { ChevronDown, Trash2, Bell } from "lucide-react";
+import { ChevronDown, Trash2, Bell, MapPin } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -64,18 +64,19 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
     return (
         <div className="w-full bg-background dark:bg-card border border-border rounded-lg overflow-visible relative">
             <div className="overflow-visible">
-                {/* First Row: Flag + Time + Duration + Dropdown Menu */}
-                <div className="flex items-center gap-2 px-2 py-4 border-b-2 border-dashed border-gray-300 dark:border-gray-600 relative">
-                    <div style={{ color: statusColor }}>
-                        <FlagIcon className="w-8 h-8" size={34} />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="font-bold text-2xl">{startTime}</span>
-                    </div>
-                    <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">+{getPrettyDuration(duration)}</span>
+                {/* First Row: Flag + Time + Duration + Location + Dropdown Menu */}
+                <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="flex items-center gap-2 px-2 py-4 relative">
+                        <div style={{ color: statusColor }}>
+                            <FlagIcon className="w-8 h-8" size={34} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-2xl">{startTime}</span>
+                        </div>
+                        <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">+{getPrettyDuration(duration)}</span>
 
-                    {/* Headless UI Menu */}
-                    <Menu as="div" className="relative ml-auto">
+                        {/* Headless UI Menu */}
+                        <Menu as="div" className="relative ml-auto">
                         <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
                             <ChevronDown className="w-5 h-5" />
                         </Menu.Button>
@@ -135,6 +136,13 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
                             </div>
                         </Menu.Items>
                     </Menu>
+                    </div>
+
+                    {/* Location Row - Part of header div */}
+                    <div className="flex items-center gap-2 px-2 py-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">{location}</span>
+                    </div>
                 </div>
 
                 {/* Students Rows */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { timeToMinutes } from "@/getters/timezone-getter";
+import { deleteClassboardEvent, updateClassboardEventLocation } from "@/actions/classboard-action";
 import EventModCard from "./EventModCard";
 import type { EventNode, TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
 
@@ -9,6 +10,7 @@ interface TeacherQueueEditorProps {
     teacherQueue: TeacherQueue;
     onRefresh: () => void;
     controller: ControllerSettings;
+    onEventDeleted?: (eventId: string) => void;
 }
 
 function detectGapBefore(
@@ -37,6 +39,7 @@ export default function TeacherQueueEditor({
     teacherQueue,
     onRefresh,
     controller,
+    onEventDeleted,
 }: TeacherQueueEditorProps) {
     return (
         <div className="space-y-2 flex-1">
@@ -54,15 +57,19 @@ export default function TeacherQueueEditor({
                         hasGap={gap.hasGap}
                         gapDuration={gap.gapDuration}
                         gapMeetsRequirement={gap.meetsRequirement}
+                        requiredGapMinutes={controller.gapMinutes}
                         isFirst={isFirst}
                         isLast={isLast}
                         canMoveEarlier={canMoveEarlier}
                         canMoveLater={canMoveLater}
                         onRemove={async (eventId) => {
-                            const lessonId = events.find((e) => e.id === eventId)?.lessonId;
-                            if (lessonId) {
-                                // TODO: Call delete action
-                                onRefresh();
+                            console.log(`🗑️ [TeacherQueueEditor] onRemove called for event ${eventId}`);
+                            const result = await deleteClassboardEvent(eventId, false);
+                            if (result.success) {
+                                console.log(`✅ [TeacherQueueEditor] Event deleted, calling onEventDeleted...`);
+                                onEventDeleted?.(eventId);
+                            } else {
+                                console.error("❌ [TeacherQueueEditor] Failed to delete event:", result.error);
                             }
                         }}
                         onAdjustDuration={(eventId, increment) => {
@@ -98,6 +105,16 @@ export default function TeacherQueueEditor({
                             if (lessonId) {
                                 teacherQueue.removeGap(lessonId);
                                 onRefresh();
+                            }
+                        }}
+                        onLocationChange={async (eventId, location) => {
+                            console.log(`📍 [TeacherQueueEditor] onLocationChange called for event ${eventId} -> ${location}`);
+                            const result = await updateClassboardEventLocation(eventId, location);
+                            if (result.success) {
+                                console.log(`✅ [TeacherQueueEditor] Location updated, calling onRefresh()`);
+                                onRefresh();
+                            } else {
+                                console.error("❌ [TeacherQueueEditor] Failed to update location:", result.error);
                             }
                         }}
                     />

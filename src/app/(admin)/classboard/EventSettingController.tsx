@@ -6,7 +6,7 @@ import { addMinutesToTime } from "@/getters/timezone-getter";
 import { getPrettyDuration, adjustDuration, DURATION_INCREMENT } from "@/getters/duration-getter";
 import type { ControllerSettings as ControllerSettingsType } from "@/backend/TeacherQueue";
 
-const LOCATION_OPTIONS = ["Beach", "Lagoon", "Bay", "Ocean"];
+export const LOCATION_OPTIONS = ["Beach", "Lagoon", "Bay", "Ocean"];
 
 interface ControllerSettingsProps {
     controller: ControllerSettingsType;

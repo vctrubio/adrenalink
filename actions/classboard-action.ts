@@ -2,11 +2,11 @@
 
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/drizzle/db";
-import { revalidatePath } from "next/cache";
 import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
 import { booking, school, event } from "@/drizzle/schema";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { createClassboardModel } from "@/getters/classboard-getter";
+import { parseDate } from "@/src/getters/timezone-getter";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const classboardWithRelations = {
@@ -72,7 +72,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
         const schoolWithUsername = await db.query.school.findFirst({
             where: eq(school.username, schoolUsername),
-            columns: { id: true }
+            columns: { id: true },
         });
 
         if (!schoolWithUsername) {
@@ -82,7 +82,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
         const result = await db.query.booking.findMany({
             where: eq(booking.schoolId, schoolWithUsername.id),
             with: classboardWithRelations,
-            orderBy: [desc(booking.createdAt)]
+            orderBy: [desc(booking.createdAt)],
         });
 
         console.log("DEV: [classboard-action] Fetched bookings from DB:", result.length);
@@ -94,32 +94,39 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                 throw new Error(`❌ Booking ${b.id} - studentPackage missing schoolPackage - this should not happen!`);
             }
 
-            console.log(`DEV: [classboard-action] Booking ${idx} (${b.id}):`, JSON.stringify({
-                dateStart: b.dateStart,
-                dateEnd: b.dateEnd,
-                lessonCount: b.lessons.length,
-                schoolPackage: b.studentPackage.schoolPackage,
-                bookingStudents: b.bookingStudents.map((bs) => ({
-                    student: {
-                        id: bs.student.id,
-                        firstName: bs.student.firstName,
-                        lastName: bs.student.lastName,
-                        passport: bs.student.passport,
-                        country: bs.student.country,
-                        phone: bs.student.phone,
-                    }
-                })),
-                lessons: b.lessons.map((lesson) => ({
-                    id: lesson.id,
-                    teacherUsername: lesson.teacher.username,
-                    events: lesson.events.map((e) => ({
-                        date: e.date,
-                        duration: e.duration,
-                        location: e.location,
-                        status: e.status,
-                    })),
-                })),
-            }, null, 2));
+            console.log(
+                `DEV: [classboard-action] Booking ${idx} (${b.id}):`,
+                JSON.stringify(
+                    {
+                        dateStart: b.dateStart,
+                        dateEnd: b.dateEnd,
+                        lessonCount: b.lessons.length,
+                        schoolPackage: b.studentPackage.schoolPackage,
+                        bookingStudents: b.bookingStudents.map((bs) => ({
+                            student: {
+                                id: bs.student.id,
+                                firstName: bs.student.firstName,
+                                lastName: bs.student.lastName,
+                                passport: bs.student.passport,
+                                country: bs.student.country,
+                                phone: bs.student.phone,
+                            },
+                        })),
+                        lessons: b.lessons.map((lesson) => ({
+                            id: lesson.id,
+                            teacherUsername: lesson.teacher.username,
+                            events: lesson.events.map((e) => ({
+                                date: e.date,
+                                duration: e.duration,
+                                location: e.location,
+                                status: e.status,
+                            })),
+                        })),
+                    },
+                    null,
+                    2,
+                ),
+            );
         });
 
         const bookings: ClassboardModel = createClassboardModel(result);
@@ -127,11 +134,14 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
         // Debug: Check student data in created model
         Object.entries(bookings).forEach(([bookingId, bookingData]) => {
-            console.log(`DEV: [classboard-action] Model booking ${bookingId} students:`, JSON.stringify(
-                bookingData.bookingStudents.map((bs) => bs.student),
-                null,
-                2
-            ));
+            console.log(
+                `DEV: [classboard-action] Model booking ${bookingId} students:`,
+                JSON.stringify(
+                    bookingData.bookingStudents.map((bs) => bs.student),
+                    null,
+                    2,
+                ),
+            );
         });
 
         return { success: true, data: bookings };
@@ -141,12 +151,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
     }
 }
 
-export async function createClassboardEvent(
-    lessonId: string,
-    eventDate: string,
-    duration: number,
-    location: string
-): Promise<ApiActionResponseModel<{ id: string; date: string; duration: number; location: string; status: string }>> {
+export async function createClassboardEvent(lessonId: string, eventDate: string, duration: number, location: string): Promise<ApiActionResponseModel<{ id: string; date: string; duration: number; location: string; status: string }>> {
     try {
         console.log(`📝 [classboard-action] Creating event for lesson ${lessonId.substring(0, 8)}`);
 
@@ -160,7 +165,7 @@ export async function createClassboardEvent(
         // The eventDate is expected to be an ISO string that includes timezone info
         const eventDateTime = new Date(eventDate);
 
-        console.log(`📍 [classboard-action] Event timezone info:`, {
+        console.log("📍 [classboard-action] Event timezone info:", {
             inputDate: eventDate,
             parsedDate: eventDateTime.toISOString(),
             timezoneOffset: eventDateTime.getTimezoneOffset(),
@@ -183,7 +188,7 @@ export async function createClassboardEvent(
         }
 
         const createdEvent = result[0];
-        console.log(`✅ [classboard-action] Event created with timezone:`, {
+        console.log("✅ [classboard-action] Event created with timezone:", {
             id: createdEvent.id.substring(0, 8),
             date: createdEvent.date.toISOString(),
             duration: createdEvent.duration,
@@ -201,15 +206,12 @@ export async function createClassboardEvent(
             },
         };
     } catch (error) {
-        console.error(`❌ [classboard-action] Error creating event:`, error);
+        console.error("❌ [classboard-action] Error creating event:", error);
         return { success: false, error: `Failed to create event: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
 
-export async function deleteClassboardEvent(
-    eventId: string,
-    cascade: boolean = false
-): Promise<ApiActionResponseModel<{ success: boolean }>> {
+export async function deleteClassboardEvent(eventId: string, cascade: boolean = false): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
         console.log(`🗑️ [classboard-action] Deleting event ${eventId}, cascade: ${cascade}`);
 
@@ -237,14 +239,67 @@ export async function deleteClassboardEvent(
         // For now, this is a basic delete. Cascade logic would be implemented
         // in the frontend and batch updated via a separate action
         if (cascade) {
-            console.log(`📝 [classboard-action] Cascade flag set - frontend should handle shifting subsequent events`);
+            console.log("📝 [classboard-action] Cascade flag set - frontend should handle shifting subsequent events");
         }
 
-        revalidatePath("/classboard");
+        // No revalidatePath needed - real-time listener handles updates
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error(`❌ [classboard-action] Error deleting event:`, error);
+        console.error("❌ [classboard-action] Error deleting event:", error);
         return { success: false, error: `Failed to delete event: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
+
+interface EventUpdate {
+    id: string;
+    date: string;
+    duration: number;
+}
+
+export async function batchUpdateClassboardEvents(updates: EventUpdate[]): Promise<ApiActionResponseModel<{ success: boolean; updatedCount: number }>> {
+    try {
+        console.log(`📝 [classboard-action] Batch updating ${updates.length} events`);
+
+        // Update each event
+        let updatedCount = 0;
+        for (const update of updates) {
+            await db
+                .update(event)
+                .set({
+                    date: parseDate(update.date),
+                    duration: update.duration,
+                })
+                .where(eq(event.id, update.id));
+            updatedCount++;
+        }
+
+        console.log(`✅ [classboard-action] Batch update complete: ${updatedCount} events updated`);
+
+        // No revalidatePath needed - real-time listener handles updates
+
+        return { success: true, data: { success: true, updatedCount } };
+    } catch (error) {
+        console.error("❌ [classboard-action] Error batch updating events:", error);
+        return { success: false, error: `Failed to batch update events: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
+
+export async function updateClassboardEventLocation(eventId: string, location: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
+    try {
+        console.log(`📍 [classboard-action] Updating event ${eventId} location to ${location}`);
+
+        const result = await db.update(event).set({ location }).where(eq(event.id, eventId)).returning();
+
+        if (!result || result.length === 0) {
+            return { success: false, error: "Event not found" };
+        }
+
+        console.log(`✅ [classboard-action] Event location updated: ${eventId} -> ${location}`);
+
+        return { success: true, data: { success: true } };
+    } catch (error) {
+        console.error("❌ [classboard-action] Error updating event location:", error);
+        return { success: false, error: `Failed to update event location: ${error instanceof Error ? error.message : String(error)}` };
     }
 }

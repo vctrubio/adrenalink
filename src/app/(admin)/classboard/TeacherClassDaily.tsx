@@ -1,79 +1,22 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherQueueEditor from "./TeacherQueueEditor";
-import TeacherFlagUpdate from "./TeacherFlagUpdate";
+import TeacherColumnController from "./TeacherColumnController";
 import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
-import { createClassboardEvent } from "@/actions/classboard-action";
+import { batchUpdateClassboardEvents } from "@/actions/classboard-action";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/src/hooks/useClassboard";
 import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
-import { getPrettyDuration } from "@/getters/duration-getter";
-import { createTeacherStatsDisplay } from "@/types/stats-classboard";
 import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
-import { ChevronLeft, ChevronRight, X, Eye, EyeOff } from "lucide-react";
 
 type TeacherViewMode = "view" | "edit" | "queue";
 
 interface ParentTime {
     adjustmentMode: boolean;
     globalTime: string | null;
-}
-
-function TeacherHeader({
-    username,
-    columnViewMode,
-    inGlobalAdjustmentMode,
-    isOptedOutOfGlobalUpdate,
-    onIconClick,
-}: {
-    username: string;
-    columnViewMode: "view" | "queue";
-    inGlobalAdjustmentMode: boolean;
-    isOptedOutOfGlobalUpdate: boolean;
-    onIconClick: () => void;
-}) {
-    return (
-        <div className="flex items-center gap-4">
-            <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-            <div className="text-xl font-bold text-foreground truncate">{username}</div>
-            <button
-                onClick={onIconClick}
-                className="ml-auto p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0"
-                title={inGlobalAdjustmentMode ? (isOptedOutOfGlobalUpdate ? "Opted out - click to sync with global time" : "Opted in - click to use custom time") : columnViewMode === "view" ? "View mode - click to edit" : "Edit mode - click to view"}
-            >
-                {inGlobalAdjustmentMode ? (
-                    isOptedOutOfGlobalUpdate ? (
-                        <EyeOff className="w-5 h-5 text-orange-500" />
-                    ) : (
-                        <Eye className="w-5 h-5 text-green-500" />
-                    )
-                ) : columnViewMode === "view" ? (
-                    <Eye className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                    <EyeOff className="w-5 h-5 text-muted-foreground" />
-                )}
-            </button>
-        </div>
-    );
-}
-
-function TeacherStatsGrid({ stats }: { stats: TeacherStats }) {
-    const statsDisplay = createTeacherStatsDisplay(stats.eventCount, stats.totalDuration, stats.earnings.teacher, stats.earnings.school, getPrettyDuration);
-
-    return (
-        <div className="flex flex-col gap-2">
-            {statsDisplay.items.map((item) => (
-                <div key={item.label} className={"flex items-center justify-between px-2 py-1.5 text-sm"}>
-                    <div className="text-muted-foreground">{item.label}</div>
-                    <div className={`font-semibold ${item.color}`}>{item.value}</div>
-                </div>
-            ))}
-        </div>
-    );
 }
 
 interface TeacherEventQueueProps {
@@ -182,6 +125,23 @@ function TeacherColumn({
     const events = queue.getAllEvents();
     const earliestTime = queue.getEarliestEventTime();
 
+    // Store original queue state for reset functionality
+    const originalQueueState = useRef<EventNode[]>([]);
+
+    // Store original state when entering edit mode
+    useEffect(() => {
+        if (columnViewMode === "queue" && originalQueueState.current.length === 0) {
+            originalQueueState.current = events.map((event) => ({
+                ...event,
+                eventData: { ...event.eventData },
+            }));
+        }
+        // Clear original state when exiting edit mode
+        if (columnViewMode === "view") {
+            originalQueueState.current = [];
+        }
+    }, [columnViewMode, events]);
+
     // Auto-switch to queue/edit mode when in global time adjustment (unless opted out)
     useEffect(() => {
         if (parentTime.adjustmentMode && !isOptedOutOfGlobalUpdate) {
@@ -219,6 +179,62 @@ function TeacherColumn({
         }
     };
 
+    const handleEditSchedule = () => {
+        setColumnViewMode("queue");
+    };
+
+    const handleSubmit = async () => {
+        try {
+            // Build array of event updates
+            const updates = events
+                .filter((event) => event.eventData.id) // Only include events that exist in DB
+                .map((event) => ({
+                    id: event.eventData.id!,
+                    date: event.eventData.date,
+                    duration: event.eventData.duration,
+                }));
+
+            if (updates.length > 0) {
+                console.log(`📤 Submitting ${updates.length} event updates for ${queue.teacher.username}`);
+                const result = await batchUpdateClassboardEvents(updates);
+
+                if (!result.success) {
+                    console.error("Failed to update events:", result.error);
+                    return;
+                }
+
+                console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
+            }
+
+            // Clear original state and exit edit mode
+            setColumnViewMode("view");
+            originalQueueState.current = [];
+        } catch (error) {
+            console.error("Error submitting queue changes:", error);
+        }
+    };
+
+    const handleReset = () => {
+        // Restore original queue state
+        if (originalQueueState.current.length > 0) {
+            originalQueueState.current.forEach((originalEvent, index) => {
+                const currentEvent = events[index];
+                if (currentEvent) {
+                    currentEvent.eventData.date = originalEvent.eventData.date;
+                    currentEvent.eventData.duration = originalEvent.eventData.duration;
+                }
+            });
+            setRefreshKey((prev) => prev + 1);
+        }
+    };
+
+    const handleCancel = () => {
+        // Discard changes and return to view mode
+        handleReset();
+        setColumnViewMode("view");
+        originalQueueState.current = [];
+    };
+
     const getBorderColor = () => {
         if (dragOverTeacher !== queue.teacher.username) return "border-transparent";
         if (dragCompatibility === "compatible") return "border-green-400";
@@ -227,6 +243,12 @@ function TeacherColumn({
     };
 
     const handleFlagClick = () => {
+        // Exit edit mode if queue is empty
+        if (columnViewMode === "queue" && events.length === 0) {
+            console.log(`📊 No events in queue, exiting edit mode`);
+            setColumnViewMode("view");
+            return;
+        }
         setColumnViewMode(columnViewMode === "view" ? "queue" : "view");
     };
 
@@ -260,15 +282,19 @@ function TeacherColumn({
             {/* </div> */}
             {/**/}
 
-            <div className="py-4 px-5.5 border-b border-border">
-                <TeacherHeader
-                    username={queue.teacher.username}
-                    columnViewMode={columnViewMode}
-                    inGlobalAdjustmentMode={parentTime.adjustmentMode}
-                    isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate}
-                    onIconClick={handleIconClick}
-                />
-            </div>
+            <TeacherColumnController
+                username={queue.teacher.username}
+                stats={stats}
+                columnViewMode={columnViewMode}
+                inGlobalAdjustmentMode={parentTime.adjustmentMode}
+                isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate}
+                earliestTime={earliestTime}
+                onIconClick={handleIconClick}
+                onEditSchedule={handleEditSchedule}
+                onSubmit={handleSubmit}
+                onReset={handleReset}
+                onCancel={handleCancel}
+            />
 
             <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${getBorderColor()}`}>
                 {columnViewMode === "view" ? (
@@ -284,7 +310,7 @@ function TeacherColumn({
                         onRemoveEvent={(eventId) => onEventDeleted?.(eventId)}
                     />
                 ) : (
-                    <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} />
+                    <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} onEventDeleted={onEventDeleted} />
                 )}
             </div>
         </div>
@@ -299,9 +325,10 @@ interface TeacherClassDailyProps {
     controller: ControllerSettings;
     selectedDate: string;
     onEventDeleted?: (eventId: string) => void;
+    onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, selectedDate, onEventDeleted }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, selectedDate, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
     const [viewMode, setViewMode] = useState<TeacherViewMode>("view");
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<"compatible" | "incompatible" | null>(null);
@@ -311,8 +338,6 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     });
     const [optedOutTeachers, setOptedOutTeachers] = useState<Set<string>>(new Set());
 
-    // Debug log
-    console.log(`TeacherClassDaily state: dragOverTeacher=${dragOverTeacher}, dragCompatibility=${dragCompatibility}`);
 
     // Calculate global earliest time across all teacher queues
     const globalEarliestTime = useMemo(() => {
@@ -332,32 +357,25 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
-        console.log("handleDragOver fired");
     };
 
     const handleDragEnter = (e: React.DragEvent, teacherUsername: string) => {
         e.preventDefault();
-        console.log(`handleDragEnter: ${teacherUsername}`);
         setDragOverTeacher(teacherUsername);
 
         if (draggedBooking) {
             const isValid = isLessonTeacher(draggedBooking.bookingId, teacherUsername);
             const compatibility = isValid ? "compatible" : "incompatible";
-            console.log(`draggedBooking found, compatibility: ${compatibility}`);
             setDragCompatibility(compatibility);
         }
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
-        console.log("handleDragLeave, relatedTarget:", e.relatedTarget);
         const relatedTarget = e.relatedTarget as Node;
         if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
-            console.log("clearing drag state because relatedTarget is not contained");
             setDragOverTeacher(null);
             setDragCompatibility(null);
-        } else {
-            console.log("NOT clearing - relatedTarget is contained in currentTarget");
         }
     };
 
@@ -384,27 +402,10 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                 return;
             }
 
-            // Get next available slot from teacher queue
-            const nextSlot = queue.getNextAvailableSlot(controller);
-
-            // Calculate event date/time
-            const dateObj = new Date(selectedDate);
-            const [hours, minutes] = nextSlot.split(":").map(Number);
-            dateObj.setHours(hours, minutes, 0, 0);
-            const eventDate = dateObj.toISOString();
-
-            // Calculate duration based on capacity
-            let duration: number;
-            if (booking.capacityStudents === 1) {
-                duration = controller.durationCapOne;
-            } else if (booking.capacityStudents <= 3) {
-                duration = controller.durationCapTwo;
-            } else {
-                duration = controller.durationCapThree;
+            // Call the smart insertion handler
+            if (onAddLessonEvent) {
+                await onAddLessonEvent(booking, teacherUsername);
             }
-
-            // Create the event
-            await createClassboardEvent(lesson.id, eventDate, duration, controller.location);
         } catch (error) {
             console.error("Error handling drop:", error);
         }
