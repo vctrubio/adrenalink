@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Plus, ChevronUp } from "lucide-react";
+import { Menu } from "@headlessui/react";
+import { ChevronDown, Plus, Loader2 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { DraggableBooking } from "@/src/hooks/useClassboard";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -35,11 +36,6 @@ type Entity = {
     bgColor: string;
     icon: ComponentType<{ className?: string }>;
 };
-
-/*
-prompt:
-can u add in the dropdown, if i do open, first some seperator like before on each list, and then a bg for the whole thing of the entity bg please.
-*/
 
 // Common constants
 const rowClassName = "grid grid-cols-[20px_1fr_20px] items-center gap-2 py-1";
@@ -171,16 +167,16 @@ const StudentRow = ({ students, expandedRow, setExpandedRow, studentEntity }: { 
 );
 
 const TeachersRow = ({ lessons, commissionEntity }: { lessons: DraggableBooking["lessons"]; commissionEntity: Entity | undefined }) => (
-    <div className="px-2">
+    <div className="px-2 pb-2">
         {lessons.length > 0 ? (
             lessons.map((lesson) => (
-                <div key={lesson.id}>
+                <div key={lesson.id} className="mb-1 last:mb-0">
                     <div className={rowClassName}>
                         <div className="w-6 h-6 flex items-center justify-center">
                             <EntityIcon entityId="teacher" />
                         </div>
                         <div className="text-sm text-foreground">{lesson.teacherUsername}</div>
-                        <div className="w-6 h-6 flex items-center justify-center">
+                        <div className="w-6 h-6 flex items-center justify-end pr-1.5">
                             <span
                                 className="rounded px-2 py-0.5 text-xs font-medium"
                                 style={{
@@ -206,21 +202,17 @@ const TeachersRow = ({ lessons, commissionEntity }: { lessons: DraggableBooking[
 
 const TeacherDropdownRow = ({ lesson }: { lesson: DraggableBooking["lessons"][0] }) => {
     if (!lesson.events || lesson.events.length === 0) {
-        return (
-            <DropdownRow>
-                <div className="text-sm text-muted-foreground py-1">No events scheduled</div>
-            </DropdownRow>
-        );
+        return null;
     }
 
     return (
-        <div className="pl-4 pr-2 pb-2 bg-muted/20">
-            <div className="divide-y divide-muted/20">
+        <div className="pl-4 pr-2 pb-1">
+            <div className="space-y-1">
                 {lesson.events.map((event) => (
-                    <div key={event.id} className="py-3 flex items-center gap-2">
+                    <div key={event.id} className="flex items-center gap-2 py-0.5">
                         <FlagIcon className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">
-                            {formatDate(event.date)} • {getPrettyDuration(event.duration)}
+                        <span className="text-xs text-foreground">
+                            {getPrettyDuration(event.duration)} | {formatDate(event.date)}
                         </span>
                     </div>
                 ))}
@@ -323,7 +315,7 @@ const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }:
                     </div>
                 </div>
                 {isExpanded && (
-                    <div className="p-4">
+                    <div className="px-4 pb-2">
                         <PackageDetailsDropdown packageData={packageData} />
                     </div>
                 )}
@@ -333,11 +325,61 @@ const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }:
 };
 
 // Footer Component
-const CardFooter = ({ onAssignTeacher }: { onAssignTeacher: () => void }) => {
+const CardFooter = ({ availableTeachers, onAddLessonEvent, onAssignTeacher, loadingLessonId }: { availableTeachers: string[]; onAddLessonEvent: (teacherUsername: string) => void; onAssignTeacher: () => void; loadingLessonId: string | null }) => {
     return (
-        <div className="-mx-0">
+        <div className="-mx-0 bg-gradient-to-b from-transparent to-muted/30 border-t border-muted/40 rounded-b-lg">
             {/* Footer Icons Bar */}
-            <div className="flex flex-wrap items-center justify-end p-3 gap-y-3">
+            <div className="flex flex-wrap items-center justify-between p-3 gap-y-3">
+                <div className="flex flex-wrap items-center gap-3 px-2">
+                    <Menu as="div" className="relative">
+                        <Menu.Button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                            }}
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:scale-105 transition-transform"
+                            disabled={loadingLessonId !== null}
+                        >
+                            {loadingLessonId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            <span className="text-xs">Add Lesson Event</span>
+                        </Menu.Button>
+
+                        <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
+                            <div className="p-1">
+                                {availableTeachers.length > 0 ? (
+                                    availableTeachers.map((teacherUsername) => (
+                                        <Menu.Item key={teacherUsername}>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        onAddLessonEvent(teacherUsername);
+                                                    }}
+                                                    onMouseDown={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                    }}
+                                                    className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                                >
+                                                    <EntityIcon entityId="teacher" className="w-4 h-4" />
+                                                    {teacherUsername}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    ))
+                                ) : (
+                                    <div className="px-3 py-2 text-sm text-muted-foreground">No teachers assigned</div>
+                                )}
+                            </div>
+                        </Menu.Items>
+                    </Menu>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-3 px-2">
                     <button
                         onClick={(e) => {
@@ -349,7 +391,7 @@ const CardFooter = ({ onAssignTeacher }: { onAssignTeacher: () => void }) => {
                             e.stopPropagation();
                             e.preventDefault();
                         }}
-                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:scale-105 transition-transform"
                     >
                         <Plus className="w-4 h-4" />
                         <span className="text-xs">Assign Teacher</span>
@@ -395,6 +437,7 @@ const BookingDropdownRow = () => {
 export default function StudentBookingCard({ booking, students: studentsProp, dateStart, dateEnd, package: packageData, selectedClientDate, onDragStart, onDragEnd, onAddLessonEvent }: StudentBookingCardProps) {
     // local state
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
 
     // derived values
     const students = studentsProp ?? [];
@@ -408,6 +451,13 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
 
     // event handlers
     const handleDragStart = (e: React.DragEvent) => {
+        // Prevent drag if clicking on interactive elements
+        const target = e.target as HTMLElement;
+        if (target.closest("button") || target.closest("[role=\"button\"]")) {
+            e.preventDefault();
+            return;
+        }
+
         const bookingJson = JSON.stringify(booking);
         try {
             e.dataTransfer.setData("application/json", bookingJson);
@@ -421,13 +471,28 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
 
     const handleDragEnd = () => onDragEnd?.();
 
+    const handleAddLessonEvent = async (teacherUsername: string) => {
+        const lesson = booking.lessons.find((l) => l.teacherUsername === teacherUsername);
+        if (!lesson) return;
+
+        setLoadingLessonId(lesson.id);
+        try {
+            await onAddLessonEvent?.(teacherUsername);
+        } finally {
+            setLoadingLessonId(null);
+        }
+    };
+
     const handleAssignTeacher = () => {
         console.log("Assign teacher clicked for booking:", booking.bookingId);
     };
 
+    // Get available teachers (all teachers assigned to this booking)
+    const availableTeachers = booking.lessons.map((lesson) => lesson.teacherUsername);
+
     // Render
     return (
-        <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card rounded-lg border border-blue-400 transition-shadow cursor-grab hover:shadow-md active:cursor-grabbing active:opacity-50 p-0">
+        <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card rounded-lg border border-blue-400 transition-shadow cursor-grab hover:shadow-md active:cursor-grabbing p-0">
             <div className="grid gap-1">
                 <BookingRow start={dateStart} end={dateEnd} selectedDate={selectedClientDate} expandedRow={expandedRow} setExpandedRow={setExpandedRow} bookingEntity={bookingEntity} />
 
@@ -436,9 +501,9 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
                 <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
             </div>
 
-            <div className="bg-muted/10 rounded-b-lg">
+            <div className="bg-muted/10 rounded-b-lg" draggable={false} onDragStart={(e) => e.preventDefault()}>
                 <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
-                <CardFooter onAssignTeacher={handleAssignTeacher} />
+                <CardFooter availableTeachers={availableTeachers} onAddLessonEvent={handleAddLessonEvent} onAssignTeacher={handleAssignTeacher} loadingLessonId={loadingLessonId} />
             </div>
         </div>
     );
