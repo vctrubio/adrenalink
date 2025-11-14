@@ -195,9 +195,51 @@ We will consolidate logic into appropriate layers and eliminate duplicate/irrele
 
 ---
 
+## CRITICAL BUG: Timezone Handling
+
+### Issue
+Time adjustments in EventModCard are not working correctly due to timezone mismatch:
+- **Database stores:** `2025-11-14 11:30:00+00` (UTC)
+- **Classboard displays:** `12:30` (Local time, e.g., UTC+1)
+- **Problem:** When adjusting time, we're mixing UTC database times with local display times, causing incorrect calculations
+
+### Root Cause
+- Event times are stored as TIMESTAMPTZ in Supabase (UTC)
+- When creating events in `classboard-action.ts`, we use `new Date()` which creates UTC, but doesn't account for user's local timezone
+- When displaying times in components, we extract HH:MM without converting from UTC to local timezone
+- Time adjustments in TeacherQueue work on the UTC value, causing display inconsistencies
+
+### Solution (Next Token Budget)
+1. **In `classboard-action.ts`:**
+   - When creating event times, convert local time to UTC properly
+   - Use `parseDate()` from timezone-getter which should handle this, but verify it's working correctly
+   - Ensure ISO strings include proper timezone offset
+
+2. **In components (EventModCard, TimeControls):**
+   - When displaying times, convert from UTC to user's local timezone
+   - Use consistent timezone conversion utility across all time displays
+
+3. **In `TeacherQueue.ts`:**
+   - Ensure all time calculations work in a single timezone (preferably UTC)
+   - Convert to local for display only at the UI layer
+
+4. **Create/Update `getters/timezone-getter.ts`:**
+   - Add function: `convertUTCToLocal(isoString: string): string`
+   - Add function: `convertLocalToUTC(localTime: string): string`
+   - Ensure all classboard components use these consistently
+
+### Testing
+After fix, verify:
+- Create event at 12:30 local time → Database stores correct UTC time
+- Adjust time +30 min → Displays 13:00, not going backward
+- Multiple adjustments work correctly without time jumping
+
+---
+
 ## Notes
 
 - All changes must maintain backward compatibility with existing features
 - Real-time listeners should continue to work without modification
 - Drag-drop functionality must remain intact
 - Edit mode (queue editor) must remain functional
+- Timezone bug is blocking reliable time adjustments - fix in next token budget
