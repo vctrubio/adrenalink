@@ -87,29 +87,6 @@ function TeacherColumn({
         }
     }, [columnViewMode, events]);
 
-    // Auto-switch to queue/edit mode when in global time adjustment (unless opted out)
-    useEffect(() => {
-        if (parentTime.adjustmentMode && !isOptedOutOfGlobalUpdate) {
-            setColumnViewMode("queue");
-            // If global time is set, apply it to the queue's earliest event
-            if (parentTime.globalTime && events.length > 0) {
-                const globalTimeMinutes = timeToMinutes(parentTime.globalTime);
-                const firstEvent = events[0];
-                const currentTimeMinutes = timeToMinutes(firstEvent.eventData.date);
-                const diff = globalTimeMinutes - currentTimeMinutes;
-
-                if (diff !== 0) {
-                    // Adjust the first event to match global time, which shifts all subsequent events
-                    queue.adjustLessonTime(firstEvent.lessonId, diff > 0);
-                    setRefreshKey((prev) => prev + 1);
-                }
-            }
-        } else if (!parentTime.adjustmentMode) {
-            // Return to view mode when exiting adjustment mode
-            setColumnViewMode("view");
-        }
-    }, [parentTime.adjustmentMode, parentTime.globalTime, isOptedOutOfGlobalUpdate]);
-
     const handleIconClick = () => {
         if (parentTime.adjustmentMode) {
             // In global mode: toggle opt in/out
@@ -272,7 +249,6 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     });
     const [optedOutTeachers, setOptedOutTeachers] = useState<Set<string>>(new Set());
 
-
     // Calculate global earliest time across all teacher queues
     const globalEarliestTime = useMemo(() => {
         const allEarliestTimes = teacherQueues.map((queue) => queue.getEarliestEventTime()).filter((time) => time !== null) as string[];
@@ -417,15 +393,17 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                     <div className="flex gap-2 bg-muted rounded-lg p-1.5">
                         <button
                             onClick={() => setViewMode("view")}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${viewMode === "view" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                                }`}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
+                                viewMode === "view" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                            }`}
                         >
                             View
                         </button>
                         <button
                             onClick={() => setViewMode("edit")}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${viewMode === "edit" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                                }`}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
+                                viewMode === "edit" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                            }`}
                         >
                             Edit
                         </button>

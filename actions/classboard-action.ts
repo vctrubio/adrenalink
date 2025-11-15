@@ -269,29 +269,6 @@ export async function deleteClassboardEvent(eventId: string, cascade: boolean = 
         // If cascade is enabled, shift all subsequent events backwards by deleted event duration
         if (cascade) {
             console.log(`📝 [classboard-action] Cascade: Shifting events backwards by ${eventToDelete.duration} minutes`);
-
-            // Get all events from the same lesson that come after the deleted one
-            const lessonEvents = await db.query.event.findMany({
-                where: eq(event.lessonId, eventToDelete.lessonId),
-                columns: {
-                    id: true,
-                    date: true,
-                },
-            });
-
-            // Filter events that come after the deleted one (chronologically)
-            const deletedDateMs = new Date(eventToDelete.date).getTime();
-            const subsequentEvents = lessonEvents.filter((e) => new Date(e.date).getTime() > deletedDateMs);
-
-            if (subsequentEvents.length > 0) {
-                // Shift all subsequent events backwards by deleted event's duration
-                const shiftMs = eventToDelete.duration * 60 * 1000;
-                for (const e of subsequentEvents) {
-                    const newDate = new Date(new Date(e.date).getTime() - shiftMs);
-                    await db.update(event).set({ date: newDate }).where(eq(event.id, e.id));
-                }
-                console.log(`✅ [classboard-action] Shifted ${subsequentEvents.length} events backwards`);
-            }
         }
 
         // No revalidatePath needed - real-time listener handles updates
@@ -336,7 +313,6 @@ export async function batchUpdateClassboardEvents(updates: EventUpdate[]): Promi
         return { success: false, error: `Failed to batch update events: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
-
 
 export async function updateClassboardEventLocation(eventId: string, location: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
