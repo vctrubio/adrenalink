@@ -74,7 +74,12 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
                     <ArrowDown className="w-3 h-3" />
                 </button>
             )}
-            <button onClick={handleDelete} disabled={isDeleting} className={`p-1 rounded transition-opacity ${isDeleting ? "opacity-50 cursor-not-allowed text-red-400" : "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"}`} title={isDeleting ? "Deleting..." : "Delete event"}>
+            <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className={`p-1 rounded transition-opacity ${isDeleting ? "opacity-50 cursor-not-allowed text-red-400" : "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"}`}
+                title={isDeleting ? "Deleting..." : "Delete event"}
+            >
                 <X className="w-4 h-4" />
             </button>
         </div>
@@ -147,24 +152,45 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     );
 };
 
-const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes, queueController }: { gapDuration: number; eventId: string; meetsRequirement?: boolean; requiredGapMinutes?: number; queueController: QueueController }) => {
+const GapWarning = ({ gapDuration, eventId, requiredGapMinutes, queueController }: { gapDuration: number; eventId: string; requiredGapMinutes?: number; queueController: QueueController }) => {
     if (!gapDuration || gapDuration <= 0) return null;
 
-    const isBlue = meetsRequirement;
-    const bgColor = isBlue ? "bg-blue-50 dark:bg-blue-900/20" : "bg-orange-50 dark:bg-orange-900/20";
-    const borderColor = isBlue ? "border-blue-200 dark:border-blue-800" : "border-orange-200 dark:border-orange-800";
-    const textColor = isBlue ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400";
-    const hoverColor = isBlue ? "hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700" : "hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:border-orange-300 dark:hover:border-orange-700";
+    // Don't show if gap exactly equals requirement (no offset needed)
+    if (gapDuration === requiredGapMinutes) return null;
+
+    const gapDeficit = (requiredGapMinutes || 0) - gapDuration;
+    const needsMore = gapDeficit > 0;
+
+    if (!needsMore) {
+        // Gap is more than required - show blue button to remove gap
+        const excess = gapDuration - (requiredGapMinutes || 0);
+        return (
+            <button
+                onClick={() => queueController.removeGap(eventId)}
+                className="flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer w-full"
+                title={`Click to remove ${getPrettyDuration(excess)}`}
+            >
+                <span className="flex-1">
+                    {getPrettyDuration(gapDuration)} gap (requires {requiredGapMinutes}min) — RESPECTING GAP
+                    <span className="block text-xs opacity-75">−{getPrettyDuration(excess)} excess</span>
+                </span>
+            </button>
+        );
+    }
+
+    // Gap is less than required - show orange warning to add gap
+    const title = `Click to add gap (requires +${getPrettyDuration(gapDeficit)})`;
 
     return (
         <button
-            onClick={() => queueController.removeGap(eventId)}
-            className={`flex items-center justify-center gap-1 text-xs ${textColor} ${bgColor} p-2 rounded border ${borderColor} ${hoverColor} transition-colors cursor-pointer w-full`}
-            title={isBlue ? "Gap meets requirements" : "Click to remove gap"}
+            onClick={() => queueController.addGap(eventId)}
+            className="flex items-center justify-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded border border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:border-orange-300 dark:hover:border-orange-700 transition-colors cursor-pointer w-full"
+            title={title}
         >
-            {!isBlue && <AlertTriangle className="w-3 h-3 flex-shrink-0" />}
-            <span>
-                {getPrettyDuration(gapDuration)} gap {requiredGapMinutes ? `(requires ${requiredGapMinutes}min)` : ""}
+            <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+            <span className="flex-1">
+                {getPrettyDuration(gapDuration)} gap (requires {requiredGapMinutes}min) — NOT RESPECTING GAP
+                <span className="block text-xs opacity-75">+{getPrettyDuration(gapDeficit)} needed</span>
             </span>
         </button>
     );
@@ -257,7 +283,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
             {!isFirst && gap.hasGap && (
                 <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                    <GapWarning gapDuration={gap.gapDuration} eventId={eventId} meetsRequirement={gap.meetsRequirement} requiredGapMinutes={queueController.getSettings().gapMinutes} queueController={queueController} />
+                    <GapWarning gapDuration={gap.gapDuration} eventId={eventId} requiredGapMinutes={queueController.getSettings().gapMinutes} queueController={queueController} />
                 </div>
             )}
         </div>
