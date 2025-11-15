@@ -2,7 +2,7 @@
 
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
-import { DoubleDatePicker, type DateRange } from "../../../components/pickers";
+import { DoubleDatePicker, type DateRange } from "../../../../components/pickers";
 
 interface DateSectionProps {
   dateRange: DateRange;
