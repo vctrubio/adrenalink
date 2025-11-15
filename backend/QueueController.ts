@@ -205,14 +205,52 @@ export class QueueController {
 
         if (gapMinutes <= 0) return;
 
-        this.updateEventDateTime(currentEvent, -gapMinutes);
+        // Calculate offset to move event to match gap requirement
+        const gapOffset = gapMinutes - this.settings.gapMinutes;
+
+        this.updateEventDateTime(currentEvent, -gapOffset);
 
         if (currentEvent.next) {
             const newCurrentEndTime = getMinutesFromISO(currentEvent.eventData.date) + currentEvent.eventData.duration;
             const nextStartTime = getMinutesFromISO(currentEvent.next.eventData.date);
 
             if (newCurrentEndTime === nextStartTime) {
-                this.cascadeTimeAdjustment(currentEvent.next, -gapMinutes);
+                this.cascadeTimeAdjustment(currentEvent.next, -gapOffset);
+            }
+        }
+
+        this.onRefresh();
+    }
+
+    /**
+     * Add gap before event by moving it later to create required gap
+     */
+    addGap(eventId: string): void {
+        const events = this.queue.getAllEvents();
+        const currentEvent = events.find((e) => e.id === eventId);
+        if (!currentEvent) return;
+
+        const currentIndex = events.indexOf(currentEvent);
+        if (currentIndex <= 0) return;
+
+        const previousEvent = events[currentIndex - 1];
+        const previousEndTime = getMinutesFromISO(previousEvent.eventData.date) + previousEvent.eventData.duration;
+        const currentStartTime = getMinutesFromISO(currentEvent.eventData.date);
+        const gapMinutes = currentStartTime - previousEndTime;
+
+        // Calculate offset to move event to match gap requirement
+        const gapOffset = this.settings.gapMinutes - gapMinutes;
+
+        if (gapOffset <= 0) return;
+
+        this.updateEventDateTime(currentEvent, gapOffset);
+
+        if (currentEvent.next) {
+            const newCurrentEndTime = getMinutesFromISO(currentEvent.eventData.date) + currentEvent.eventData.duration;
+            const nextStartTime = getMinutesFromISO(currentEvent.next.eventData.date);
+
+            if (newCurrentEndTime === nextStartTime) {
+                this.cascadeTimeAdjustment(currentEvent.next, gapOffset);
             }
         }
 
