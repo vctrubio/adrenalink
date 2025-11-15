@@ -19,12 +19,18 @@ export class QueueController {
 
     /**
      * Get complete card props - all info needed to render EventModCard
+     * Searches by queue node ID first, falls back to database event ID
      */
     getEventModCardProps(eventId: string | null) {
         if (!eventId) return null;
 
         const events = this.queue.getAllEvents();
-        const index = events.findIndex((e) => e.id === eventId);
+        let index = events.findIndex((e) => e.id === eventId);
+
+        // Fallback: search by database event ID if queue node ID not found
+        if (index === -1) {
+            index = events.findIndex((e) => e.eventData.id === eventId);
+        }
 
         if (index === -1) return null;
 
