@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import EventCard from "./EventCard";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
@@ -23,6 +24,8 @@ export default function TeacherEventQueue({
     onDrop,
 }: TeacherEventQueueProps) {
     const events = queue.getAllEvents();
+    const [processingEventId, setProcessingEventId] = useState<string | null>(null);
+
     // Handler for cascade delete: delete event then shift subsequent events forward
     const handleDeleteWithCascade = async (
         eventId: string,
@@ -30,10 +33,13 @@ export default function TeacherEventQueue({
         subsequentEventIds: string[],
     ) => {
         try {
+            setProcessingEventId(eventId);
+
             // First, delete the event
             const deleteResult = await deleteClassboardEvent(eventId);
             if (!deleteResult.success) {
                 console.error("❌ Delete failed:", deleteResult.error);
+                setProcessingEventId(null);
                 return;
             }
 
@@ -51,27 +57,32 @@ export default function TeacherEventQueue({
 
                 if (!shiftResult.success) {
                     console.error("❌ Cascade shift failed:", shiftResult.error);
+                    setProcessingEventId(null);
                     return;
                 }
                 console.log(`✅ Shifted ${shiftResult.data?.shiftedCount} events backward`);
             }
 
             console.log("✅ Cascade delete complete");
+            setProcessingEventId(null);
             await onRemoveEvent?.(eventId);
         } catch (error) {
             console.error("🔥 Error in cascade delete:", error);
+            setProcessingEventId(null);
         }
     };
     return (
         <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
             {events.length > 0 ? (
                 events.map((event, index) => {
+                    const isProcessing = processingEventId === event.id;
                     return (
                         <EventCard
                             key={event.id}
                             event={event}
                             queue={queue}
                             hasNextEvent={index < events.length - 1}
+                            isProcessing={isProcessing}
                             onDeleteWithCascade={handleDeleteWithCascade}
                             onDeleteComplete={async () => {
                                 if (event.id) {
