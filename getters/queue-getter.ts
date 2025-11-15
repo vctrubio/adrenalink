@@ -70,10 +70,13 @@ export function detectGapBefore(
     const currentStartTime = getMinutesFromISO(currentEvent.eventData.date);
     const gapMinutes = currentStartTime - previousEndTime;
 
+    const meetsRequirement = gapMinutes >= requiredGapMinutes;
+    const hasGap = gapMinutes > 0 || requiredGapMinutes > 0;
+
     return {
-        hasGap: gapMinutes > 0,
+        hasGap,
         gapDuration: Math.max(0, gapMinutes),
-        meetsRequirement: gapMinutes >= requiredGapMinutes,
+        meetsRequirement,
     };
 }
 
