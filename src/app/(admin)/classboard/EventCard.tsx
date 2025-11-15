@@ -278,7 +278,8 @@ export default function EventCard({ event, queue, queueController, hasNextEvent 
     const [isDeleting, setIsDeleting] = useState(false);
     const [isGapAdjusting, setIsGapAdjusting] = useState(false);
 
-    const eventId = event.eventData.id || event.id;
+    const queueNodeId = event.id;
+    const databaseEventId = event.eventData.id;
     const startTime = getTimeFromISO(event.eventData.date);
     const duration = event.eventData.duration;
     const students = event.studentData || [];
@@ -288,17 +289,17 @@ export default function EventCard({ event, queue, queueController, hasNextEvent 
     const capacityEquipment = event.packageData?.capacityEquipment || 0;
     const statusColor = getEventStatusColor(status);
 
-    const gap = queueController?.getEventModCardProps(eventId)?.gap || { hasGap: false, gapDuration: 0, meetsRequirement: true };
+    const gap = queueController?.getEventModCardProps(queueNodeId)?.gap || { hasGap: false, gapDuration: 0, meetsRequirement: true };
     const isLoading = isDeleting || isGapAdjusting;
 
     const handleDelete = async (cascade: boolean) => {
-        if (!eventId || isDeleting) return;
+        if (!databaseEventId || isDeleting) return;
 
         setIsDeleting(true);
         try {
             if (cascade && onDeleteWithCascade && queue) {
                 const allEvents = queue.getAllEvents();
-                const currentEventIndex = allEvents.findIndex((e: any) => e.eventData.id === eventId);
+                const currentEventIndex = allEvents.findIndex((e: any) => e.eventData.id === databaseEventId);
 
                 if (currentEventIndex !== -1) {
                     const subsequentEventIds = allEvents
@@ -306,13 +307,13 @@ export default function EventCard({ event, queue, queueController, hasNextEvent 
                         .map((e: any) => e.eventData.id)
                         .filter((id: string) => id);
 
-                    await onDeleteWithCascade(eventId, duration, subsequentEventIds);
+                    await onDeleteWithCascade(databaseEventId, duration, subsequentEventIds);
                     onDeleteComplete?.();
                     return;
                 }
             }
 
-            const result = await deleteClassboardEvent(eventId);
+            const result = await deleteClassboardEvent(databaseEventId);
             if (!result.success) {
                 console.error("Delete failed:", result.error);
                 setIsDeleting(false);
@@ -343,7 +344,7 @@ export default function EventCard({ event, queue, queueController, hasNextEvent 
                 categoryEquipment={categoryEquipment}
                 capacityEquipment={capacityEquipment}
                 gap={gap}
-                eventId={eventId}
+                eventId={queueNodeId}
                 queueController={queueController}
                 hasNextEvent={hasNextEvent}
                 isDeleting={isDeleting}
