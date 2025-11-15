@@ -121,7 +121,7 @@ export class TeacherQueue {
         const submitTimeMinutes = parseInt(submitTime.split(":")[0]) * 60 + parseInt(submitTime.split(":")[1]);
         const submitEndMinutes = submitTimeMinutes + duration;
 
-        // Check if submitTime fits at the head (before first event)
+        // PRIORITY 1: Check if submitTime fits at the head (before first event)
         const firstEventStartMinutes = this.getStartTimeMinutes(events[0]);
         if (submitTimeMinutes < firstEventStartMinutes) {
             if (submitEndMinutes + controller.gapMinutes <= firstEventStartMinutes && submitEndMinutes <= 1440) {
@@ -129,7 +129,7 @@ export class TeacherQueue {
             }
         }
 
-        // Check if submitTime fits in any gap between events
+        // PRIORITY 2: Check if submitTime fits in any gap between events
         for (let i = 0; i < events.length - 1; i++) {
             const currentEventEndMinutes = this.getStartTimeMinutes(events[i]) + events[i].eventData.duration;
             const nextEventStartMinutes = this.getStartTimeMinutes(events[i + 1]);
@@ -140,12 +140,18 @@ export class TeacherQueue {
             }
         }
 
-        // If submitTime doesn't fit anywhere, use next available slot after last event
+        // PRIORITY 3: If submitTime is after all events, use it (respects controller time preference)
         const lastEventEndMinutes = this.getStartTimeMinutes(events[events.length - 1]) + events[events.length - 1].eventData.duration;
-        const nextAvailableMinutes = lastEventEndMinutes + controller.gapMinutes;
+        const requiredGapStartMinutes = lastEventEndMinutes + controller.gapMinutes;
 
-        if (nextAvailableMinutes + duration <= 1440) {
-            return { time: minutesToTime(nextAvailableMinutes), duration };
+        // If controller submitTime is after the queue's last event with required gap, use it
+        if (submitTimeMinutes >= requiredGapStartMinutes && submitEndMinutes <= 1440) {
+            return { time: submitTime, duration };
+        }
+
+        // FALLBACK: Use next available slot after last event
+        if (requiredGapStartMinutes + duration <= 1440) {
+            return { time: minutesToTime(requiredGapStartMinutes), duration };
         }
 
         // If even the next available slot exceeds 24 hours, return submitTime anyway (let validation handle it)
