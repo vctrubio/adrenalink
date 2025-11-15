@@ -8,41 +8,59 @@ import { getSchoolIdFromHeader } from "@/types/headers";
 
 /**
  * Bulk update event dates (preserves existing status)
+ * Optionally delete specified events after updating
+ * Priority: UPDATE first, then DELETE
  */
 export async function bulkUpdateClassboardEvents(
-    updates: Array<{ id: string; date: string }>
-): Promise<ApiActionResponseModel<{ updatedCount: number }>> {
+    updates: Array<{ id: string; date: string }>,
+    toDelete?: string[]
+): Promise<ApiActionResponseModel<{ updatedCount: number; deletedCount: number }>> {
     try {
-        if (updates.length === 0) {
+        if (updates.length === 0 && (!toDelete || toDelete.length === 0)) {
             return { success: false, error: "No events provided" };
         }
 
-        console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates`);
-
         let updatedCount = 0;
-        for (const update of updates) {
-            const result = await db
-                .update(event)
-                .set({ date: new Date(update.date) })
-                .where(eq(event.id, update.id))
-                .returning({ id: event.id });
+        let deletedCount = 0;
 
-            if (result.length > 0) {
-                updatedCount++;
+        // PRIORITY 1: Update events first
+        if (updates.length > 0) {
+            console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates`);
+
+            for (const update of updates) {
+                const result = await db
+                    .update(event)
+                    .set({ date: new Date(update.date) })
+                    .where(eq(event.id, update.id))
+                    .returning({ id: event.id });
+
+                if (result.length > 0) {
+                    updatedCount++;
+                }
             }
+
+            console.log(`✅ [classboard-bulk-action] Updated ${updatedCount} events`);
         }
 
-        console.log(`✅ [classboard-bulk-action] Updated ${updatedCount} events`);
+        // PRIORITY 2: Delete events after updating
+        if (toDelete && toDelete.length > 0) {
+            console.log(`🗑️ [classboard-bulk-action] Deleting ${toDelete.length} events after update`);
+
+            const deleteResult = await db.delete(event).where(inArray(event.id, toDelete)).returning({ id: event.id });
+
+            deletedCount = deleteResult.length;
+            console.log(`✅ [classboard-bulk-action] Deleted ${deletedCount} events`);
+        }
 
         return {
             success: true,
-            data: { updatedCount },
+            data: { updatedCount, deletedCount },
         };
     } catch (error) {
-        console.error(`❌ [classboard-bulk-action] Error updating events:`, error);
+        console.error("❌ [classboard-bulk-action] Error in bulk operation:", error);
         return {
             success: false,
-            error: `Failed to update events: ${error instanceof Error ? error.message : String(error)}`,
+            error: `Failed to process events: ${error instanceof Error ? error.message : String(error)}`,
         };
     }
 }
@@ -50,9 +68,7 @@ export async function bulkUpdateClassboardEvents(
 /**
  * Bulk delete events
  */
-export async function bulkDeleteClassboardEvents(
-    eventIds: string[]
-): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
+export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
         if (eventIds.length === 0) {
             return { success: false, error: "No events provided" };
@@ -60,10 +76,7 @@ export async function bulkDeleteClassboardEvents(
 
         console.log(`🗑️ [classboard-bulk-action] Deleting ${eventIds.length} events`);
 
-        const result = await db
-            .delete(event)
-            .where(inArray(event.id, eventIds))
-            .returning({ id: event.id });
+        const result = await db.delete(event).where(inArray(event.id, eventIds)).returning({ id: event.id });
 
         console.log(`✅ [classboard-bulk-action] Deleted ${result.length} events`);
 
@@ -72,7 +85,7 @@ export async function bulkDeleteClassboardEvents(
             data: { deletedCount: result.length },
         };
     } catch (error) {
-        console.error(`❌ [classboard-bulk-action] Error deleting events:`, error);
+        console.error("❌ [classboard-bulk-action] Error deleting events:", error);
         return {
             success: false,
             error: `Failed to delete events: ${error instanceof Error ? error.message : String(error)}`,
@@ -83,9 +96,7 @@ export async function bulkDeleteClassboardEvents(
 /**
  * Delete all events for selected date
  */
-export async function deleteAllClassboardEvents(
-    selectedDate: string
-): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
+export async function deleteAllClassboardEvents(selectedDate: string): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
         const schoolId = await getSchoolIdFromHeader();
         if (!schoolId) {
@@ -107,7 +118,7 @@ export async function deleteAllClassboardEvents(
                     eq(event.schoolId, schoolId),
                     // Date is within the selected day
                     // Note: This assumes dates are stored as timestamps
-                )
+                ),
             )
             .returning({ id: event.id });
 
@@ -118,7 +129,7 @@ export async function deleteAllClassboardEvents(
             data: { deletedCount: result.length },
         };
     } catch (error) {
-        console.error(`❌ [classboard-bulk-action] Error deleting all events:`, error);
+        console.error("❌ [classboard-bulk-action] Error deleting all events:", error);
         return {
             success: false,
             error: `Failed to delete all events: ${error instanceof Error ? error.message : String(error)}`,
@@ -129,9 +140,7 @@ export async function deleteAllClassboardEvents(
 /**
  * Delete all uncompleted events (planned + tbc)
  */
-export async function deleteUncompletedClassboardEvents(
-    eventIds: string[]
-): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
+export async function deleteUncompletedClassboardEvents(eventIds: string[]): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
         if (eventIds.length === 0) {
             return { success: false, error: "No events provided" };
@@ -141,12 +150,7 @@ export async function deleteUncompletedClassboardEvents(
 
         const result = await db
             .delete(event)
-            .where(
-                and(
-                    inArray(event.id, eventIds),
-                    ne(event.status, "completed")
-                )
-            )
+            .where(and(inArray(event.id, eventIds), ne(event.status, "completed")))
             .returning({ id: event.id });
 
         console.log(`✅ [classboard-bulk-action] Deleted ${result.length} uncompleted events`);
@@ -156,7 +160,7 @@ export async function deleteUncompletedClassboardEvents(
             data: { deletedCount: result.length },
         };
     } catch (error) {
-        console.error(`❌ [classboard-bulk-action] Error deleting uncompleted events:`, error);
+        console.error("❌ [classboard-bulk-action] Error deleting uncompleted events:", error);
         return {
             success: false,
             error: `Failed to delete uncompleted events: ${error instanceof Error ? error.message : String(error)}`,
@@ -169,10 +173,7 @@ export async function deleteUncompletedClassboardEvents(
  * Called after a delete with "shift queue" option to fill the gap left by the deleted event
  * Event listener handles UI updates, so no revalidatePath needed
  */
-export async function cascadeDeleteWithShift(
-    eventIds: string[],
-    minutesToShift: number
-): Promise<ApiActionResponseModel<{ shiftedCount: number }>> {
+export async function cascadeDeleteWithShift(eventIds: string[], minutesToShift: number): Promise<ApiActionResponseModel<{ shiftedCount: number }>> {
     try {
         if (eventIds.length === 0) {
             return { success: true, data: { shiftedCount: 0 } };
@@ -194,10 +195,7 @@ export async function cascadeDeleteWithShift(
             const currentDate = new Date(evt.date);
             currentDate.setMinutes(currentDate.getMinutes() - SHIFT_DURATION_MINUTES);
 
-            await db
-                .update(event)
-                .set({ date: currentDate })
-                .where(eq(event.id, evt.id));
+            await db.update(event).set({ date: currentDate }).where(eq(event.id, evt.id));
 
             shiftedCount++;
         }
@@ -209,7 +207,7 @@ export async function cascadeDeleteWithShift(
             data: { shiftedCount },
         };
     } catch (error) {
-        console.error(`❌ [classboard-bulk-action] Error cascading delete:`, error);
+        console.error("❌ [classboard-bulk-action] Error cascading delete:", error);
         return {
             success: false,
             error: `Failed to cascade delete: ${error instanceof Error ? error.message : String(error)}`,
