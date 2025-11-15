@@ -13,7 +13,5 @@ export default async function ClassBoardPage() {
         );
     }
 
-    console.log("DEV: CLASSBOPARD PAGE RENDERING WITH DATA:", result.data);
-
     return <ClientClassboard data={result.data} />;
 }

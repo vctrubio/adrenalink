@@ -17,29 +17,30 @@
 
 ```typescript
 // 1. Single variable declaration for condition
-const header = headers().get('x-school-username');
+const header = headers().get("x-school-username");
 
 // 2. Conditional data fetching with shared relations
 let result;
 if (header) {
-    result = await db.query.entity.findMany({
-        where: eq(table.field, header),
-        with: sharedRelations
-    });
+  result = await db.query.entity.findMany({
+    where: eq(table.field, header),
+    with: sharedRelations,
+  });
 } else {
-    result = await db.query.entity.findMany({
-        with: sharedRelations
-    });
+  result = await db.query.entity.findMany({
+    with: sharedRelations,
+  });
 }
 
 // 3. Single processing/mapping block
 if (result) {
-    const entities = result.map(data => createEntityModel(data));
-    return entities;
+  const entities = result.map((data) => createEntityModel(data));
+  return entities;
 }
 ```
 
 **Benefits:**
+
 - **DRY Relations**: Same `with` clause used in both queries
 - **Single Mapping**: One processing block instead of duplication
 - **Clear Separation**: Query logic separate from processing logic
@@ -164,23 +165,35 @@ if (result) {
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { entityTable, type EntityForm, type EntityType } from "@/drizzle/schema";
+import {
+  entityTable,
+  type EntityForm,
+  type EntityType,
+} from "@/drizzle/schema";
 import { createEntityModel, type EntityModel } from "@/backend/models";
-import type { ApiActionResponseModelArray, ApiActionResponseModel } from "@/types/actions";
+import type {
+  ApiActionResponseModelArray,
+  ApiActionResponseModel,
+} from "@/types/actions";
 
 // DRY Relations constant
 const entityWithRelations = {
   entityRelations: {
     with: {
-      relatedEntity: true
-    }
-  }
+      relatedEntity: true,
+    },
+  },
 };
 
 // CREATE - Returns data directly or { error: string }
-export async function createEntity(entitySchema: EntityForm): Promise<ApiActionResponseModel<EntityType>> {
+export async function createEntity(
+  entitySchema: EntityForm,
+): Promise<ApiActionResponseModel<EntityType>> {
   try {
-    const result = await db.insert(entityTable).values(entitySchema).returning();
+    const result = await db
+      .insert(entityTable)
+      .values(entitySchema)
+      .returning();
     revalidatePath("/entities");
     // Return the data directly (AbstractModel type instance)
     return createEntityModel(result[0]);
@@ -192,14 +205,18 @@ export async function createEntity(entitySchema: EntityForm): Promise<ApiActionR
 }
 
 // READ - Returns array directly or { error: string }
-export async function getEntities(): Promise<ApiActionResponseModelArray<EntityType>> {
+export async function getEntities(): Promise<
+  ApiActionResponseModelArray<EntityType>
+> {
   try {
     const result = await db.query.entityTable.findMany({
-      with: entityWithRelations
+      with: entityWithRelations,
     });
-    
-    const entities: EntityModel[] = result.map(entityData => createEntityModel(entityData));
-    
+
+    const entities: EntityModel[] = result.map((entityData) =>
+      createEntityModel(entityData),
+    );
+
     // Return the array directly
     return entities;
   } catch (error) {
@@ -220,6 +237,7 @@ if (!result.success) {
 ```
 
 **CRITICAL MODEL TYPE PATTERN**: All `getEntities()` functions MUST return model instances that conform to `AbstractModel<T>` type. This ensures:
+
 - **Schema purity**: `.schema` contains ONLY database table fields
 - **Relations separation**: Relations stored in separate `.relations` property
 - **Consistent data structure** across all entity pages
@@ -256,18 +274,112 @@ if (!result.success) {
 - **Headless UI compatibility** - Check component documentation for current API patterns. Some components like Tab may have newer APIs that replace deprecated patterns
 - **Component deprecation** - Always use the latest recommended patterns from component libraries to avoid deprecation warnings
 
+## File Organization & Layer Responsibilities
+
+### File Layer Structure
+
+**CRITICAL: Understand the purpose of each directory - this determines WHERE code goes:**
+
+1. **actions/** - Server Actions for database operations ONLY
+   - ONLY: Database queries, mutations, authentication checks
+   - NOT: Business logic, calculations, transformations
+   - NOT: Client-side functionality
+   - Use: `getSchoolIdFromHeader()` to get context from `x-school-username` header
+   - Pattern: `async function actionName(params): Promise<ApiActionResponseModel<T>>`
+
+2. **getters/** - Pure utility functions and business logic
+   - ONLY: Data transformation, calculations, formatting
+   - ONLY: Pure functions with no side effects
+   - NOT: React hooks (these go in hooks/)
+   - NOT: Database operations (these go in actions/)
+   - Pattern: `export function getEntityName(data): string`
+   - Can be imported in both server and client code
+
+3. **hooks/** - React hooks for state management
+   - ONLY: `useCallback`, `useMemo`, `useState`, `useEffect`, custom hooks
+   - ONLY: Client-side state and side effects
+   - NOT: Database operations (use actions)
+   - NOT: Pure calculations (use getters)
+   - Pattern: `export function useEntityName(): T { ... }`
+
+4. **backend/** - Type definitions and class implementations
+   - ONLY: TypeScript types, interfaces, classes
+   - ONLY: Business logic models (e.g., `TeacherQueue`)
+   - NOT: React components
+   - NOT: Database operations (use actions)
+   - NOT: UI concerns
+
+5. **src/app/** - React components and pages
+   - ONLY: Rendering and user interactions
+   - NOT: Database operations (use actions)
+   - NOT: Business calculations (use getters)
+   - NOT: State management logic (use hooks or pass via props)
+
+### Header Context Pattern
+
+**CRITICAL: Use x-school-username header for context in server actions:**
+
+```typescript
+import { getHeaderUsername, getSchoolIdFromHeader, getSchoolTimezoneFromHeader } from "@/types/headers";
+
+export async function myAction(): Promise<...> {
+  // Get school context from header
+  const schoolId = await getSchoolIdFromHeader();
+  const username = await getHeaderUsername();
+  const timezone = await getSchoolTimezoneFromHeader();
+
+  if (!schoolId) {
+    return { success: false, error: "School not found" };
+  }
+
+  // Use schoolId in database queries
+  const result = await db.query.entity.findMany({
+    where: eq(table.schoolId, schoolId)
+  });
+}
+```
+
+### Import Path Patterns
+
+**CRITICAL: Know when to use @/ vs @/src:**
+
+```typescript
+// Backend utilities and types (root level)
+import { TeacherQueue, type EventNode } from "@/backend/TeacherQueue";
+import { getEventCardProps } from "@/getters/event-getter";
+
+// Src-level utilities (use @/src)
+import { getTimeFromISO } from "@/src/components";
+
+// Actions (always root level)
+import { createClassboardEvent } from "@/actions/classboard-action";
+
+// Types and headers (always root level)
+import { getSchoolIdFromHeader } from "@/types/headers";
+
+// Components (always from src)
+import EventCard from "@/src/app/(admin)/classboard/EventCard";
+```
+
+**Rule of thumb:**
+
+- If file is at project root (`getters/`, `backend/`, `actions/`) → use `@/`
+- If file is under `src/` → use `@/src/`
+
 ## Project Directory Structure
 
 For detailed project structure, see `docs/structure.md`
 
 ### Key Directories:
 
-- **actions/** - API call functions and server actions
+- **actions/** - Server Actions for database operations ONLY
 - **ai/** - Cloud-related files and generated markdown content
 - **backend/** - Backend type definitions and logic declarations
   - **models/** - Entity model types and create functions based on AbstractModel type
 - **config/** - Tenant-specific configuration files (includes entities.ts for entity visual config)
 - **docs/** - Application documentation for Adrenalink
 - **drizzle/** - ORM configuration and database schema definitions
-- **getters/** - Entity getter functions and computed values (replaces lambda functions from models)
-- **src/** - Main application source code (Next.js app)
+- **getters/** - Pure utility functions, business logic, and computed values (NO React hooks)
+- **hooks/** - React hooks for state management and side effects
+- **src/** - Main application source code (Next.js app, React components)
+- **getters/** - Getter helper functions for models/actions/routes

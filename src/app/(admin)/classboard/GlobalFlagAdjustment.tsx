@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Flag, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
+import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
 interface GlobalFlagAdjustmentProps {
     globalEarliestTime: string | null;

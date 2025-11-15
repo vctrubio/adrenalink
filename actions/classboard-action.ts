@@ -1,12 +1,12 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolFromHeader } from "@/types/headers";
 import { booking, school, event } from "@/drizzle/schema";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { createClassboardModel } from "@/getters/classboard-getter";
-import { parseDate } from "@/src/getters/timezone-getter";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const classboardWithRelations = {
@@ -27,7 +27,25 @@ const classboardWithRelations = {
     },
     bookingStudents: {
         with: {
-            student: true as const,
+            student: {
+                columns: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    passport: true,
+                    country: true,
+                    phone: true,
+                    languages: true,
+                },
+                with: {
+                    schoolStudents: {
+                        columns: {
+                            description: true,
+                            schoolId: true,
+                        },
+                    },
+                },
+            },
         },
     },
     lessons: {
@@ -64,28 +82,19 @@ const classboardWithRelations = {
 
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const schoolUsername = await getHeaderUsername();
-
-        if (!schoolUsername) {
-            return { success: false, error: "School context not found" };
-        }
-
-        const schoolWithUsername = await db.query.school.findFirst({
-            where: eq(school.username, schoolUsername),
-            columns: { id: true },
-        });
-
-        if (!schoolWithUsername) {
-            return { success: false, error: "School not found" };
+        // Get complete school data from x-school-username header (cached)
+        const schoolData = await getSchoolFromHeader();
+        if (!schoolData) {
+            return { success: false, error: "School not found in headers" };
         }
 
         const result = await db.query.booking.findMany({
-            where: eq(booking.schoolId, schoolWithUsername.id),
+            where: eq(booking.schoolId, schoolData.id),
             with: classboardWithRelations,
             orderBy: [desc(booking.createdAt)],
         });
 
-        console.log("DEV: [classboard-action] Fetched bookings from DB:", result.length);
+        // console.log("DEV: [classboard-action] Fetched bookings from DB:", result.length);
         result.forEach((b, idx) => {
             if (!b.studentPackage) {
                 throw new Error(`❌ Booking ${b.id} MISSING studentPackage - this should not happen!`);
@@ -95,31 +104,31 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
             }
 
             console.log(
-                `DEV: [classboard-action] Booking ${idx} (${b.id}):`,
+                // `DEV: [classboard-action] Booking ${idx} (${b.id}):`,
                 JSON.stringify(
                     {
-                        dateStart: b.dateStart,
-                        dateEnd: b.dateEnd,
-                        lessonCount: b.lessons.length,
-                        schoolPackage: b.studentPackage.schoolPackage,
-                        bookingStudents: b.bookingStudents.map((bs) => ({
-                            student: {
-                                id: bs.student.id,
-                                firstName: bs.student.firstName,
-                                lastName: bs.student.lastName,
-                                passport: bs.student.passport,
-                                country: bs.student.country,
-                                phone: bs.student.phone,
-                            },
-                        })),
+                        // dateStart: b.dateStart,
+                        // dateEnd: b.dateEnd,
+                        // lessonCount: b.lessons.length,
+                        // schoolPackage: b.studentPackage.schoolPackage,
+                        // bookingStudents: b.bookingStudents.map((bs) => ({
+                        //     student: {
+                        //         id: bs.student.id,
+                        //         firstName: bs.student.firstName,
+                        //         lastName: bs.student.lastName,
+                        //         passport: bs.student.passport,
+                        //         country: bs.student.country,
+                        //         phone: bs.student.phone,
+                        //     },
+                        // })),
                         lessons: b.lessons.map((lesson) => ({
-                            id: lesson.id,
+                            // id: lesson.id,
                             teacherUsername: lesson.teacher.username,
                             events: lesson.events.map((e) => ({
                                 date: e.date,
                                 duration: e.duration,
-                                location: e.location,
-                                status: e.status,
+                                // location: e.location,
+                                // status: e.status,
                             })),
                         })),
                     },
@@ -130,19 +139,19 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
         });
 
         const bookings: ClassboardModel = createClassboardModel(result);
-        console.log("DEV: [classboard-action] ✅ Created ClassboardModel with:", Object.keys(bookings).length, "bookings");
 
-        // Debug: Check student data in created model
-        Object.entries(bookings).forEach(([bookingId, bookingData]) => {
-            console.log(
-                `DEV: [classboard-action] Model booking ${bookingId} students:`,
-                JSON.stringify(
-                    bookingData.bookingStudents.map((bs) => bs.student),
-                    null,
-                    2,
-                ),
-            );
-        });
+        // Convert all event times from UTC to school's local timezone for display
+        if (schoolData.timezone) {
+            Object.values(bookings).forEach((bookingData) => {
+                bookingData.lessons?.forEach((lesson) => {
+                    lesson.events?.forEach((event) => {
+                        // Convert UTC time to school timezone
+                        const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), schoolData.timezone);
+                        event.date = convertedDate.toISOString();
+                    });
+                });
+            });
+        }
 
         return { success: true, data: bookings };
     } catch (error) {
@@ -153,30 +162,54 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
 export async function createClassboardEvent(lessonId: string, eventDate: string, duration: number, location: string): Promise<ApiActionResponseModel<{ id: string; date: string; duration: number; location: string; status: string }>> {
     try {
-        console.log(`📝 [classboard-action] Creating event for lesson ${lessonId.substring(0, 8)}`);
-
-        // Get school_id from headers for Realtime filtering
-        const schoolId = await getSchoolIdFromHeader();
-        if (!schoolId) {
-            return { success: false, error: "School not found in headers" };
+        // Get school data from header (has timezone)
+        const schoolData = await getSchoolFromHeader();
+        if (!schoolData?.timezone) {
+            return { success: false, error: "School timezone not configured" };
         }
 
-        // Parse the eventDate with timezone information
-        // The eventDate is expected to be an ISO string that includes timezone info
-        const eventDateTime = new Date(eventDate);
+        // Parse input: "2025-11-14T14:00:00"
+        const dateMatch = eventDate.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
+        if (!dateMatch) {
+            return { success: false, error: "Invalid event date format" };
+        }
 
-        console.log("📍 [classboard-action] Event timezone info:", {
-            inputDate: eventDate,
-            parsedDate: eventDateTime.toISOString(),
-            timezoneOffset: eventDateTime.getTimezoneOffset(),
+        const [, year, month, day, hours, minutes] = dateMatch;
+        const dateStr = `${year}-${month}-${day}`;
+        const timeStr = `${hours}:${minutes}:00`;
+
+        // Calculate UTC time from school local time
+        // Input is school's local time, need to convert to UTC for storage
+        const midnightUtc = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0));
+
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: schoolData.timezone,
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
         });
 
+        const displayedTime = formatter.format(midnightUtc);
+        const [displayHours, displayMinutes] = displayedTime.split(":").map(Number);
+
+        // Calculate offset: how many minutes ahead is the school's midnight vs UTC midnight
+        const offsetTotalMinutes = displayHours * 60 + displayMinutes;
+
+        // Convert school time to UTC by subtracting the offset
+        const schoolTotalMinutes = parseInt(hours) * 60 + parseInt(minutes);
+        const utcTotalMinutes = schoolTotalMinutes - offsetTotalMinutes;
+
+        const utcHours = Math.floor(utcTotalMinutes / 60) % 24;
+        const utcMins = utcTotalMinutes % 60;
+        const utcTimeStr = `${String(utcHours).padStart(2, "0")}:${String(utcMins).padStart(2, "0")}:00`;
+
+        // Store as UTC in database
         const result = await db
             .insert(event)
             .values({
                 lessonId,
-                schoolId,
-                date: eventDateTime,
+                schoolId: schoolData.id,
+                date: new Date(`${dateStr}T${utcTimeStr}Z`), // Store as UTC
                 duration,
                 location,
                 status: "planned",
@@ -187,22 +220,20 @@ export async function createClassboardEvent(lessonId: string, eventDate: string,
             return { success: false, error: "Failed to create event" };
         }
 
-        const createdEvent = result[0];
-        console.log("✅ [classboard-action] Event created with timezone:", {
-            id: createdEvent.id.substring(0, 8),
-            date: createdEvent.date.toISOString(),
-            duration: createdEvent.duration,
-            location: createdEvent.location,
+        console.log("✅ [Event Created]", {
+            schoolTime: timeStr,
+            utcTime: utcTimeStr,
+            timezone: schoolData.timezone,
         });
 
         return {
             success: true,
             data: {
-                id: createdEvent.id,
-                date: createdEvent.date.toISOString(),
-                duration: createdEvent.duration,
-                location: createdEvent.location,
-                status: createdEvent.status,
+                id: result[0].id,
+                date: result[0].date.toISOString(),
+                duration: result[0].duration,
+                location: result[0].location,
+                status: result[0].status,
             },
         };
     } catch (error) {
@@ -267,7 +298,7 @@ export async function batchUpdateClassboardEvents(updates: EventUpdate[]): Promi
             await db
                 .update(event)
                 .set({
-                    date: parseDate(update.date),
+                    date: new Date(update.date),
                     duration: update.duration,
                 })
                 .where(eq(event.id, update.id));

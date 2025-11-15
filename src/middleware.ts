@@ -10,9 +10,9 @@ export function middleware(request: NextRequest) {
 
     // Check for subdomain using domain utilities
     const subdomainInfo = detectSubdomain(hostname);
-    
+
     if (subdomainInfo) {
-        printf("SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
+        // printf("DEV: SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
 
         // Create response with school context header for all routes
         const response = NextResponse.next();
@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
             return rewriteResponse;
         }
 
-        printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
+        // printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
         return response;
     }
 
@@ -39,7 +39,5 @@ export function middleware(request: NextRequest) {
 
 // Only run middleware on page routes, not static assets
 export const config = {
-    matcher: [
-        "/((?!_next/static|_next/image|favicon.ico).*)",
-    ],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

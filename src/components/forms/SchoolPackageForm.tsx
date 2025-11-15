@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormField, FormInput, FormSelect, FormSubmit } from "@/src/components/ui/form";
 import { createPackage } from "@/actions/packages-action";
-import { EQUIPMENT_CATEGORIES } from "@/config/categories";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 const schoolPackageSchema = z.object({
     durationMinutes: z.number().min(1, "Duration is required"),

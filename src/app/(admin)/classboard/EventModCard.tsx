@@ -4,8 +4,7 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, AlertTriangle, ArrowUp, ArrowDown, MapPin } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import { getTimeFromISO } from "@/getters/timezone-getter";
-import { timeToMinutes, minutesToTime } from "@/getters/timezone-getter";
+import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { EventNode } from "@/backend/TeacherQueue";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
@@ -80,12 +79,10 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
     const endTime = minutesToTime(endTimeMinutes);
 
     const handleEarlier = () => {
-        console.log(`[DEBUG-TimeControls] Earlier clicked, eventId: ${eventId}, increment: false`);
         onAdjustTime(eventId, false);
     };
 
     const handleLater = () => {
-        console.log(`[DEBUG-TimeControls] Later clicked, eventId: ${eventId}, increment: true`);
         onAdjustTime(eventId, true);
     };
 
@@ -182,11 +179,7 @@ const LocationDropdown = ({ eventId, currentLocation, onLocationChange }: { even
 
     return (
         <div className="relative inline-block">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1 px-2 py-1 rounded hover:bg-muted/50 transition-colors"
-                title="Change location"
-            >
+            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-1 px-2 py-1 rounded hover:bg-muted/50 transition-colors" title="Change location">
                 <MapPin className="w-3 h-3" />
                 <span className="text-xs font-medium">{currentLocation}</span>
                 <ChevronDown className="w-3 h-3 text-muted-foreground" />
@@ -195,15 +188,7 @@ const LocationDropdown = ({ eventId, currentLocation, onLocationChange }: { even
             {isOpen && (
                 <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 min-w-[140px]">
                     {LOCATION_OPTIONS.map((location) => (
-                        <button
-                            key={location}
-                            onClick={() => handleLocationSelect(location)}
-                            className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                                location === currentLocation
-                                    ? "bg-primary text-primary-foreground"
-                                    : "hover:bg-muted/50"
-                            }`}
-                        >
+                        <button key={location} onClick={() => handleLocationSelect(location)} className={`w-full text-left px-3 py-2 text-xs transition-colors ${location === currentLocation ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"}`}>
                             {location}
                         </button>
                     ))}

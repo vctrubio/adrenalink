@@ -18,14 +18,21 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     const globalStats = classboardStats.getGlobalStats();
 
     const handleAddLessonEvent = async (booking: DraggableBooking, teacherUsername: string) => {
+        console.log("📍 [ClientClassboard] handleAddLessonEvent called:", { booking: booking.bookingId, teacherUsername, selectedDate });
         try {
             // Find the teacher's queue
             const queue = teacherQueues.find((q) => q.teacher.username === teacherUsername);
-            if (!queue) return;
+            if (!queue) {
+                console.warn("❌ [ClientClassboard] Queue not found for teacher:", teacherUsername);
+                return;
+            }
 
             // Find the lesson for this teacher
             const lesson = booking.lessons.find((l) => l.teacherUsername === teacherUsername);
-            if (!lesson) return;
+            if (!lesson) {
+                console.warn("❌ [ClientClassboard] Lesson not found for teacher:", teacherUsername);
+                return;
+            }
 
             // Calculate duration based on capacity (1 = private, 2 = semi-private, 3+ = group)
             let duration: number;
@@ -37,19 +44,32 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 duration = controller.durationCapThree;
             }
 
+            console.log("📍 [ClientClassboard] Duration calculated:", { capacity: booking.capacityStudents, duration });
+
             // Get smart insertion info (checks submitTime first, then determines if should go to head or tail)
             const insertionInfo = queue.getSmartInsertionInfo(controller.submitTime, duration, controller.gapMinutes);
+            console.log("📍 [ClientClassboard] Smart insertion info:", insertionInfo);
 
             // Calculate event date/time
+            // CRITICAL: Create ISO string with LOCAL time, NOT UTC
             const dateObj = new Date(selectedDate);
             const [hours, minutes] = insertionInfo.time.split(":").map(Number);
-            dateObj.setHours(hours, minutes, 0, 0);
-            const eventDate = dateObj.toISOString();
+
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const day = String(dateObj.getDate()).padStart(2, "0");
+            const hoursStr = String(hours).padStart(2, "0");
+            const minutesStr = String(minutes).padStart(2, "0");
+            const eventDate = `${year}-${month}-${day}T${hoursStr}:${minutesStr}:00`;
+
+            console.log("📍 [ClientClassboard] Event date calculated:", { selectedDate, insertionTime: insertionInfo.time, eventDate });
 
             // Create the event (will be added to queue by listener based on event time)
+            console.log("📍 [ClientClassboard] Calling createClassboardEvent...");
             await createClassboardEvent(lesson.id, eventDate, duration, controller.location);
+            console.log("✅ [ClientClassboard] createClassboardEvent completed");
         } catch (error) {
-            console.error("Error adding lesson event:", error);
+            console.error("❌ [ClientClassboard] Error adding lesson event:", error);
         }
     };
 

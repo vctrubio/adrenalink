@@ -164,19 +164,21 @@ export default function StudentClassDaily({
                 <div className="flex flex-wrap gap-4">
                     {filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];
-                        const studentNames = bookingData?.bookingStudents.map(
-                            (bs) => `${bs.student.firstName} ${bs.student.lastName}`
-                        );
+                        const students = bookingData?.bookingStudents.map((bs) => ({
+                            name: `${bs.student.firstName} ${bs.student.lastName}`,
+                            description: bs.student.description || null,
+                            languages: bs.student.languages || [],
+                        })) || [];
 
                         return (
                             <div key={booking.bookingId} style={{ width: "269px" }}>
                                 <StudentBookingCard
                                     booking={booking}
-                                    studentNames={studentNames}
+                                    students={students}
                                     dateStart={bookingData?.booking.dateStart}
                                     dateEnd={bookingData?.booking.dateEnd}
-                                    packageDurationMinutes={bookingData?.schoolPackage.durationMinutes}
-                                    packagePricePerStudent={bookingData?.schoolPackage.pricePerStudent}
+                                    package={bookingData?.schoolPackage}
+                                    selectedClientDate={selectedDate}
                                     onDragStart={() => onDragStart(booking)}
                                     onDragEnd={onDragEnd}
                                     onAddLessonEvent={(teacherUsername) => onAddLessonEvent?.(booking, teacherUsername)}

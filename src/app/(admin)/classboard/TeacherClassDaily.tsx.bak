@@ -52,8 +52,8 @@ function TeacherColumn({
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
 
-    const events = useMemo(() => queue.getAllEvents(), [queue, refreshKey]);
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey]);
+    const events = queue.getAllEvents();
+    const earliestTime = queue.getEarliestEventTime();
 
     // Store original queue state for reset functionality
     const originalQueueState = useRef<EventNode[]>([]);

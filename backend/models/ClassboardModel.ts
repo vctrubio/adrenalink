@@ -8,10 +8,12 @@ export type ClassboardBooking = {
 
 export type ClassboardSchoolPackage = SchoolPackageType;
 
-export type ClassboardStudent = Pick<StudentType, "id" | "firstName" | "lastName" | "passport" | "country" | "phone">;
+export type ClassboardStudent = Pick<StudentType, "id" | "firstName" | "lastName" | "passport" | "country" | "phone" | "languages">;
 
 export type ClassboardBookingStudent = {
-    student: ClassboardStudent;
+    student: ClassboardStudent & {
+        description?: string | null; // from schoolStudents
+    };
 };
 
 export type ClassboardTeacher = {

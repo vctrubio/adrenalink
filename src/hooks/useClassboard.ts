@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { TeacherQueue, type EventNode, type ControllerSettings } from "@/backend/TeacherQueue";
 import { ClassboardStats } from "@/backend/ClassboardStats";
-import { getTodayDateString, isDateInRange } from "@/getters/timezone-getter";
+import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/src/supabase/subscribe";
@@ -165,7 +165,7 @@ export function useClassboard(initialData: ClassboardModel) {
                 commissionCph: parseFloat(lesson.commission.cph),
                 events: lesson.events.map((event) => ({
                     id: event.id,
-                    date: event.date.toISOString(),
+                    date: event.date,
                     duration: event.duration,
                     location: event.location || "",
                     status: event.status,
@@ -240,7 +240,7 @@ export function useClassboard(initialData: ClassboardModel) {
                             },
                             eventData: {
                                 id: event.id,
-                                date: event.date.toISOString(),
+                                date: event.date,
                                 duration: event.duration,
                                 location: event.location || "",
                                 status: event.status,
@@ -256,7 +256,7 @@ export function useClassboard(initialData: ClassboardModel) {
                             next: null,
                         };
 
-                        queue.addToQueue(eventNode);
+                        queue.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
                     }
                 });
             });

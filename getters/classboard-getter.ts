@@ -24,16 +24,26 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                 schoolId,
             },
             schoolPackage: studentPackage.schoolPackage,
-            bookingStudents: bookingStudents.map((bs: any) => ({
-                student: {
-                    id: bs.student.id,
-                    firstName: bs.student.firstName,
-                    lastName: bs.student.lastName,
-                    passport: bs.student.passport || "",
-                    country: bs.student.country || "",
-                    phone: bs.student.phone || "",
-                },
-            })),
+            bookingStudents: bookingStudents.map((bs: any) => {
+                // Find the schoolStudent entry for this school
+                const schoolStudentsArray = bs.student.schoolStudents || [];
+                const schoolStudent = schoolStudentsArray.find(
+                    (ss: any) => ss.schoolId === schoolId
+                );
+                
+                return {
+                    student: {
+                        id: bs.student.id,
+                        firstName: bs.student.firstName,
+                        lastName: bs.student.lastName,
+                        passport: bs.student.passport || "",
+                        country: bs.student.country || "",
+                        phone: bs.student.phone || "",
+                        languages: bs.student.languages || [],
+                        description: schoolStudent?.description || null,
+                    },
+                };
+            }),
             lessons: lessons.map((lesson: any) => ({
                 id: lesson.id,
                 teacher: {

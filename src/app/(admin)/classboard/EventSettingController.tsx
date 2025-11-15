@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ChevronDown, ChevronUp, Timer, MapPin, Flag } from "lucide-react";
-import { addMinutesToTime } from "@/getters/timezone-getter";
+import { addMinutesToTime } from "@/getters/queue-getter";
 import { getPrettyDuration, adjustDuration, DURATION_INCREMENT } from "@/getters/duration-getter";
 import type { ControllerSettings as ControllerSettingsType } from "@/backend/TeacherQueue";
 

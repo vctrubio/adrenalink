@@ -42,7 +42,6 @@ import { student, schoolStudents, teacher, schoolPackage, teacherCommission, stu
 import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm } from "@/drizzle/schema";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
-import { parseDate } from "@/src/getters/timezone-getter";
 
 
 /**
@@ -611,9 +610,9 @@ export async function masterBookingAdd(
             return { success: false, error: "Commission ID is required when teacher is provided" };
         }
 
-        // Parse and convert to full timestamps with timezone support
-        const dateStartTimestamp = parseDate(dateStart);
-        const dateEndTimestamp = parseDate(dateEnd);
+        // Convert to Date objects for database storage
+        const dateStartTimestamp = new Date(dateStart);
+        const dateEndTimestamp = new Date(dateEnd);
 
         console.log("🎫 [masterBookingAdd] Converted timestamps:", {
             dateStartInput: dateStart,

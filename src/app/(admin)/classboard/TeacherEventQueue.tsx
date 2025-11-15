@@ -12,13 +12,13 @@ interface TeacherEventQueueProps {
     onDrop?: (e: React.DragEvent) => void;
 }
 
-export default function TeacherEventQueue({ 
-    events, 
-    onRemoveEvent, 
-    onDragOver, 
-    onDragEnter, 
-    onDragLeave, 
-    onDrop, 
+export default function TeacherEventQueue({
+    events,
+    onRemoveEvent,
+    onDragOver,
+    onDragEnter,
+    onDragLeave,
+    onDrop,
 }: TeacherEventQueueProps) {
     return (
         <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>

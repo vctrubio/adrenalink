@@ -5,7 +5,7 @@ import { Menu } from "@headlessui/react";
 import { ChevronDown, Trash2, Bell, MapPin } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import { getTimeFromISO } from "@/getters/timezone-getter";
+import { getTimeFromISO } from "@/getters/queue-getter";
 import { getEventStatusColor, type EventStatus } from "@/types/status";
 import type { EventNode } from "@/backend/TeacherQueue";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
