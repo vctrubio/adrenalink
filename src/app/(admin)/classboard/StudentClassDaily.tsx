@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import StudentBookingCard from "./StudentBookingCard";
-import type { DraggableBooking } from "@/src/hooks/useClassboard";
+import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { showEntityToast } from "@/src/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
@@ -19,15 +19,7 @@ interface StudentClassDailyProps {
 
 type StudentBookingFilter = "available" | "onboard";
 
-export default function StudentClassDaily({
-    bookings,
-    classboardData,
-    selectedDate,
-    onDragStart,
-    onDragEnd,
-    onAddLessonEvent,
-    setOnNewBooking,
-}: StudentClassDailyProps) {
+export default function StudentClassDaily({ bookings, classboardData, selectedDate, onDragStart, onDragEnd, onAddLessonEvent, setOnNewBooking }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
 
     // Track last shown booking toast to prevent duplicates
@@ -42,7 +34,6 @@ export default function StudentClassDaily({
 
             // Check if we already showed a toast for this booking
             if (newestBooking && lastToastBookingIdRef.current !== newestBooking.bookingId) {
-
                 // Get booking data for date span
                 const bookingData = classboardData[newestBooking.bookingId];
                 const dateStart = bookingData?.booking.dateStart || "";
@@ -133,22 +124,10 @@ export default function StudentClassDaily({
                         <button
                             key={id}
                             onClick={() => setFilter(id)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-                                filter === id
-                                    ? "bg-background text-foreground shadow-md border border-border"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                            }`}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${filter === id ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
                         >
                             {label}
-                            <span
-                                className={`ml-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold ${
-                                    filter === id
-                                        ? "bg-primary/15 text-primary"
-                                        : "bg-background/50 text-muted-foreground"
-                                }`}
-                            >
-                                {count}
-                            </span>
+                            <span className={`ml-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold ${filter === id ? "bg-primary/15 text-primary" : "bg-background/50 text-muted-foreground"}`}>{count}</span>
                         </button>
                     ))}
                 </div>
@@ -164,11 +143,12 @@ export default function StudentClassDaily({
                 <div className="flex flex-wrap gap-4">
                     {filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];
-                        const students = bookingData?.bookingStudents.map((bs) => ({
-                            name: `${bs.student.firstName} ${bs.student.lastName}`,
-                            description: bs.student.description || null,
-                            languages: bs.student.languages || [],
-                        })) || [];
+                        const students =
+                            bookingData?.bookingStudents.map((bs) => ({
+                                name: `${bs.student.firstName} ${bs.student.lastName}`,
+                                description: bs.student.description || null,
+                                languages: bs.student.languages || [],
+                            })) || [];
 
                         return (
                             <div key={booking.bookingId} style={{ width: "269px" }}>

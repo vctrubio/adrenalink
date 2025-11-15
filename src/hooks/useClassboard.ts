@@ -1,30 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { TeacherQueue, type EventNode, type ControllerSettings } from "@/backend/TeacherQueue";
+import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { ClassboardStats } from "@/backend/ClassboardStats";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/src/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
-
-export interface DraggableBooking {
-    bookingId: string;
-    capacityStudents: number;
-    lessons: Array<{
-        id: string;
-        teacherUsername: string;
-        commissionType: "fixed" | "percentage";
-        commissionCph: number;
-        events: Array<{
-            id: string;
-            date: string;
-            duration: number;
-            location: string;
-            status: string;
-        }>;
-    }>;
-}
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
 const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
@@ -36,6 +19,7 @@ const DEFAULT_CONTROLLER: ControllerSettings = {
     durationCapTwo: DEFAULT_DURATION_CAP_TWO,
     durationCapThree: DEFAULT_DURATION_CAP_THREE,
     gapMinutes: 0,
+    stepDuration: 30,
 };
 
 export function useClassboard(initialData: ClassboardModel) {

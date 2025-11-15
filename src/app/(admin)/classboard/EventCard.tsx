@@ -96,7 +96,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                                             className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
                                         >
                                             <Trash2 className="w-4 h-4" />
-                                            {isDeleting ? "Deleting..." : "Delete & Move Next"}
+                                            {isDeleting ? "Deleting..." : "Delete & Shift Queue"}
                                         </button>
                                     )}
                                 </Menu.Item>

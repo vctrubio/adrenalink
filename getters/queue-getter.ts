@@ -3,6 +3,8 @@
  * All time manipulation and ISO parsing for queue event management
  */
 
+import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
+
 export function timeToMinutes(time: string): number {
     const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
@@ -44,3 +46,34 @@ export function addMinutesToTime(time: string, minutesToAdd: number): string {
     const normalizedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
     return minutesToTime(normalizedMinutes);
 }
+
+/**
+ * Detect gap before an event in the queue
+ * Uses getMinutesFromISO() for ISO string parsing
+ *
+ * @param currentEvent - The event to check for gap before
+ * @param events - All events in the queue
+ * @param index - Index of current event in the queue
+ * @param requiredGapMinutes - Minimum gap required between events
+ * @returns Gap information { hasGap, gapDuration, meetsRequirement }
+ */
+export function detectGapBefore(
+    currentEvent: EventNode,
+    events: EventNode[],
+    index: number,
+    requiredGapMinutes: number
+): { hasGap: boolean; gapDuration: number; meetsRequirement: boolean } {
+    if (index === 0) return { hasGap: false, gapDuration: 0, meetsRequirement: true };
+
+    const previousEvent = events[index - 1];
+    const previousEndTime = getMinutesFromISO(previousEvent.eventData.date) + previousEvent.eventData.duration;
+    const currentStartTime = getMinutesFromISO(currentEvent.eventData.date);
+    const gapMinutes = currentStartTime - previousEndTime;
+
+    return {
+        hasGap: gapMinutes > 0,
+        gapDuration: Math.max(0, gapMinutes),
+        meetsRequirement: gapMinutes >= requiredGapMinutes,
+    };
+}
+

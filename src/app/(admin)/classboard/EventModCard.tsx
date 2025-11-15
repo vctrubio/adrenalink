@@ -6,26 +6,15 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { EventNode } from "@/backend/TeacherQueue";
+import type { QueueController } from "@/backend/QueueController";
+import { showEntityToast } from "@/src/getters/toast-getter";
+import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
 
 interface EventModCardProps {
-    event: EventNode;
-    gapDuration?: number;
-    hasGap?: boolean;
-    gapMeetsRequirement?: boolean;
-    requiredGapMinutes?: number;
-    isFirst: boolean;
-    isLast: boolean;
-    canMoveEarlier: boolean;
-    canMoveLater?: boolean;
-    onRemove: (eventId: string) => Promise<void>;
-    onAdjustDuration: (eventId: string, increment: boolean) => void;
-    onAdjustTime: (eventId: string, increment: boolean) => void;
-    onMoveUp: (eventId: string) => void;
-    onMoveDown: (eventId: string) => void;
-    onRemoveGap?: (eventId: string) => void;
-    onLocationChange?: (eventId: string, location: string) => void;
+    eventId: string;
+    queueController: QueueController;
 }
 
 // Sub-components
@@ -41,50 +30,62 @@ const StudentGrid = ({ students }: { students: any[] }) => {
     );
 };
 
-const QueueControls = ({ isFirst, isLast, eventId, onMoveUp, onMoveDown, onRemove }: { isFirst: boolean; isLast: boolean; eventId: string; onMoveUp: (eventId: string) => void; onMoveDown: (eventId: string) => void; onRemove: (eventId: string) => Promise<void> }) => {
-    const handleRemoveClick = async () => {
-        if (!eventId || eventId === "null" || eventId === "") {
-            return;
-        }
+const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController }) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const databaseEventId = event.eventData.id;
+
+    const handleDelete = async () => {
+        if (!databaseEventId || isDeleting) return;
+
+        setIsDeleting(true);
         try {
-            await onRemove(eventId);
+            const result = await deleteClassboardEvent(databaseEventId, false);
+
+            if (!result.success) {
+                console.error("Delete failed:", result.error);
+                showEntityToast("event", {
+                    title: "Delete Failed",
+                    description: result.error || "Failed to delete event",
+                    duration: 4000,
+                });
+                setIsDeleting(false);
+                return;
+            }
         } catch (error) {
-            console.error("Failed to remove event:", error);
+            console.error("Error deleting event:", error);
+            showEntityToast("event", {
+                title: "Delete Failed",
+                description: error instanceof Error ? error.message : "Failed to delete event",
+                duration: 4000,
+            });
+            setIsDeleting(false);
         }
     };
 
     return (
         <div className="flex items-center gap-1 flex-shrink-0">
             {!isFirst && (
-                <button onClick={() => onMoveUp(eventId)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded" title="Move front in queue">
+                <button onClick={() => queueController.moveUp(eventId)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded" title="Move front in queue">
                     <ArrowUp className="w-3 h-3" />
                 </button>
             )}
             {!isLast && (
-                <button onClick={() => onMoveDown(eventId)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded" title="Move back in queue">
+                <button onClick={() => queueController.moveDown(eventId)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded" title="Move back in queue">
                     <ArrowDown className="w-3 h-3" />
                 </button>
             )}
-            <button onClick={handleRemoveClick} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 rounded" title="Remove from queue">
+            <button onClick={handleDelete} disabled={isDeleting} className={`p-1 rounded transition-opacity ${isDeleting ? "opacity-50 cursor-not-allowed text-red-400" : "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"}`} title={isDeleting ? "Deleting..." : "Delete event"}>
                 <X className="w-4 h-4" />
             </button>
         </div>
     );
 };
 
-const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onAdjustTime }: { event: EventNode; canMoveEarlier: boolean; canMoveLater?: boolean; eventId: string; onAdjustTime: (eventId: string, increment: boolean) => void }) => {
+const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueController }) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const durationMinutes = event.eventData.duration;
     const endTimeMinutes = timeToMinutes(startTime) + durationMinutes;
     const endTime = minutesToTime(endTimeMinutes);
-
-    const handleEarlier = () => {
-        onAdjustTime(eventId, false);
-    };
-
-    const handleLater = () => {
-        onAdjustTime(eventId, true);
-    };
 
     return (
         <div className="flex-grow min-w-0">
@@ -92,7 +93,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
                 <span className="text-xs text-gray-600 dark:text-gray-400">Start</span>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={handleEarlier}
+                        onClick={() => queueController.adjustTime(eventId, false)}
                         disabled={!canMoveEarlier}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveEarlier ? "30 minutes earlier" : "Cannot move earlier - would overlap"}
@@ -100,7 +101,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
                         <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={handleLater}
+                        onClick={() => queueController.adjustTime(eventId, true)}
                         disabled={!canMoveLater}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveLater ? "30 minutes later" : "Cannot move later - would exceed 23:00"}
@@ -119,11 +120,11 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater = true, eventId, onA
     );
 };
 
-const DurationControls = ({ duration, eventId, onAdjustDuration }: { duration: number; eventId: string; onAdjustDuration: (eventId: string, increment: boolean) => void }) => {
+const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueController }) => {
     const handleDurationAdjustment = (increment: boolean) => {
         const newDuration = increment ? duration + 30 : duration - 30;
         if (newDuration < 60) return;
-        onAdjustDuration(eventId, increment);
+        queueController.adjustDuration(eventId, increment);
     };
 
     return (
@@ -146,7 +147,7 @@ const DurationControls = ({ duration, eventId, onAdjustDuration }: { duration: n
     );
 };
 
-const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes, onRemoveGap }: { gapDuration: number; eventId: string; meetsRequirement?: boolean; requiredGapMinutes?: number; onRemoveGap?: (eventId: string) => void }) => {
+const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes, queueController }: { gapDuration: number; eventId: string; meetsRequirement?: boolean; requiredGapMinutes?: number; queueController: QueueController }) => {
     if (!gapDuration || gapDuration <= 0) return null;
 
     const isBlue = meetsRequirement;
@@ -157,7 +158,7 @@ const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes
 
     return (
         <button
-            onClick={() => onRemoveGap?.(eventId)}
+            onClick={() => queueController.removeGap(eventId)}
             className={`flex items-center justify-center gap-1 text-xs ${textColor} ${bgColor} p-2 rounded border ${borderColor} ${hoverColor} transition-colors cursor-pointer w-full`}
             title={isBlue ? "Gap meets requirements" : "Click to remove gap"}
         >
@@ -169,11 +170,11 @@ const GapWarning = ({ gapDuration, eventId, meetsRequirement, requiredGapMinutes
     );
 };
 
-const LocationDropdown = ({ eventId, currentLocation, onLocationChange }: { eventId: string; currentLocation: string; onLocationChange?: (eventId: string, location: string) => void }) => {
+const LocationDropdown = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleLocationSelect = (location: string) => {
-        onLocationChange?.(eventId, location);
+    const handleLocationSelect = async (location: string) => {
+        await queueController.updateLocation(eventId, location);
         setIsOpen(false);
     };
 
@@ -198,12 +199,12 @@ const LocationDropdown = ({ eventId, currentLocation, onLocationChange }: { even
     );
 };
 
-const PackageInfo = ({ location, durationMinutes, eventDuration, eventId, onLocationChange }: { eventId: string; location: string; durationMinutes: number; eventDuration: number; onLocationChange?: (eventId: string, location: string) => void }) => {
+const PackageInfo = ({ location, durationMinutes, eventDuration, eventId, queueController }: { eventId: string; location: string; durationMinutes: number; eventDuration: number; queueController: QueueController }) => {
     const remainingMinutes = durationMinutes - eventDuration;
 
     return (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-2">
-            <LocationDropdown eventId={eventId} currentLocation={location} onLocationChange={onLocationChange} />
+            <LocationDropdown eventId={eventId} currentLocation={location} queueController={queueController} />
             <span>•</span>
             <span className={remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400 font-medium" : ""}>
                 {getPrettyDuration(Math.abs(remainingMinutes))} {remainingMinutes < 0 ? "over limit" : "remaining"}
@@ -213,60 +214,50 @@ const PackageInfo = ({ location, durationMinutes, eventDuration, eventId, onLoca
     );
 };
 
-export default function EventModCard({
-    event,
-    gapDuration = 0,
-    hasGap = false,
-    gapMeetsRequirement = false,
-    requiredGapMinutes,
-    isFirst,
-    isLast,
-    canMoveEarlier,
-    canMoveLater = true,
-    onRemove,
-    onAdjustDuration,
-    onAdjustTime,
-    onMoveUp,
-    onMoveDown,
-    onRemoveGap,
-    onLocationChange,
-}: EventModCardProps) {
-    const eventId = event.eventData.id || event.id;
+export default function EventModCard({ eventId, queueController }: EventModCardProps) {
+    const cardProps = queueController.getEventModCardProps(eventId);
+
+    // Return early if invalid eventId or can't get props
+    if (!cardProps || !eventId) {
+        console.log(`[EventModCard] Event ${eventId} not found in queue - event was deleted`);
+        return null;
+    }
+
+    console.log(`[EventModCard] Rendering event: ${eventId}`);
+
+    const { event, gap, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
     const students = event.studentData || [];
     const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 
-    // Return early if no valid eventId
-    if (!eventId) return null;
-
     const getBgColor = () => {
-        if (!hasGap || isFirst) return "bg-background dark:bg-card border-border";
-        if (gapMeetsRequirement) return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
+        if (!gap.hasGap || isFirst) return "bg-background dark:bg-card border-border";
+        if (gap.meetsRequirement) return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
         return "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
     };
 
     return (
-        <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${!hasGap || isFirst ? "" : getBgColor()}`}>
+        <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${!gap.hasGap || isFirst ? "" : getBgColor()}`}>
             <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <StudentGrid students={students} />
                 <div className="flex-1 overflow-x-auto">
                     <span className="text-base font-medium text-foreground whitespace-nowrap">{studentNames}</span>
                 </div>
-                <QueueControls isFirst={isFirst} isLast={isLast} eventId={eventId} onMoveUp={onMoveUp} onMoveDown={onMoveDown} onRemove={onRemove} />
+                <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
             </div>
 
             <div className={`flex gap-4 ${ROW_MARGIN} ${ROW_PADDING}`}>
-                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} onAdjustTime={onAdjustTime} />
+                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
                 <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
-                <DurationControls duration={event.eventData.duration} eventId={eventId} onAdjustDuration={onAdjustDuration} />
+                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
             </div>
 
             <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                <PackageInfo eventId={eventId} location={event.eventData.location} durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} onLocationChange={onLocationChange} />
+                <PackageInfo eventId={eventId} location={event.eventData.location} durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} queueController={queueController} />
             </div>
 
-            {!isFirst && hasGap && (
+            {!isFirst && gap.hasGap && (
                 <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                    <GapWarning gapDuration={gapDuration} eventId={eventId} meetsRequirement={gapMeetsRequirement} requiredGapMinutes={requiredGapMinutes} onRemoveGap={onRemoveGap} />
+                    <GapWarning gapDuration={gap.gapDuration} eventId={eventId} meetsRequirement={gap.meetsRequirement} requiredGapMinutes={queueController.getSettings().gapMinutes} queueController={queueController} />
                 </div>
             )}
         </div>

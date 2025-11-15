@@ -7,7 +7,7 @@ import TeacherColumnController from "./TeacherColumnController";
 import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
 import { batchUpdateClassboardEvents } from "@/actions/classboard-action";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
-import type { DraggableBooking } from "@/src/hooks/useClassboard";
+import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
@@ -51,6 +51,21 @@ function TeacherColumn({
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
+
+    // Force refresh when queue updates (from real-time listener)
+    useEffect(() => {
+        console.log(`[TeacherColumn] Queue updated for ${queue.teacher.username}, forcing refresh`);
+        setRefreshKey((prev) => prev + 1);
+    }, [queue]);
+
+    // Exit queue editor mode if queue becomes empty
+    useEffect(() => {
+        const allEvents = queue.getAllEvents();
+        if (allEvents.length === 0 && columnViewMode === "queue") {
+            console.log(`[TeacherColumn] Queue is empty for ${queue.teacher.username}, exiting queue mode`);
+            setColumnViewMode("view");
+        }
+    }, [queue]);
 
     const events = useMemo(() => queue.getAllEvents(), [queue, refreshKey]);
     const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey]);

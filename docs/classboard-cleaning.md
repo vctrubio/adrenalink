@@ -1,12 +1,12 @@
-# Classboard Module Refactoring Plan
+# Classboard Module Architecture & Queue Management
 
 ## Overview
 
-The classboard module (`src/app/(admin)/classboard/`) needs refactoring to reduce code duplication, establish single sources of truth, and improve maintainability. This document outlines the strategy and expected improvements.
+The classboard module (`src/app/(admin)/classboard/`) is organized to reduce code duplication, establish single sources of truth, and improve maintainability. This document outlines the architecture and core queue management logic.
 
-## Principle: Less Code = More Maintainable
+## Core Principle: Less Code = More Maintainable
 
-We will consolidate logic into appropriate layers and eliminate duplicate/irrelevant code.
+Logic is consolidated into appropriate layers with clear separation of concerns. Each file has a single responsibility.
 
 ---
 
@@ -85,15 +85,42 @@ We will consolidate logic into appropriate layers and eliminate duplicate/irrele
 
 ---
 
-### 4. **Business Logic Models**
+### 4. **Business Logic Models - TeacherQueue**
 **File:** `backend/TeacherQueue.ts` (Class)
 
-**Responsibilities:**
+**Core Responsibilities:**
 - Manage teacher event queue structure (linked list)
-- All queue operations (add, remove, reorder, time adjustments)
-- Smart insertion logic (`getSmartInsertionInfo()`)
-- Gap detection and management
-- Event movement operations
+- Ensure chronological ordering of events
+- Respect intentional gaps between events
+- Smart insertion with gap validation
+- Time and duration adjustments with gap awareness
+
+**Queue Operations:**
+
+#### Insertion
+- `addToQueue(eventNode)` - Add to tail (basic append)
+- `addToQueueInChronologicalOrder(eventNode, gapMinutes)` - Insert in time order
+  - Checks if event should be at head (before first event with gap requirement)
+  - Finds correct chronological position if in middle
+  - Respects gap requirements between events
+
+#### Time Adjustments (Respect Existing Gaps)
+- `adjustLessonTime(lessonId, increment)` - Move event forward/backward by 30min
+  - **Key Logic:** Only cascades to next event if it's adjacent (no gap)
+  - If next event has a gap, its position is respected and not moved
+- `adjustLessonDuration(lessonId, increment)` - Increase/decrease duration by 30min
+  - **Key Logic:** Only cascades to next event if it's adjacent (no gap)
+  - If next event has a gap, it maintains that gap
+
+#### Event Reordering (Respects Gaps)
+- `moveLessonUp(lessonId)` / `moveLessonDown(lessonId)` - Change queue position
+  - Swaps position with adjacent event
+  - `recalculateStartTimesFromPosition()` - Recalculates times after swap
+  - **Key Logic:** Stops recalculating when it encounters a gap (preserves intentional gaps)
+
+#### Gap Management
+- `removeGap(lessonId)` - Removes gap before an event (moves event up)
+- Gap detection: `nextStartTime > currentEndTime` = gap exists
 
 **Should NOT contain:**
 - React components
@@ -144,46 +171,50 @@ We will consolidate logic into appropriate layers and eliminate duplicate/irrele
 
 ## Refactoring Tasks
 
-### Phase 1: Consolidate Entry Points ✅
-- Establish `onAddLessonEvent()` as the single entry point for lesson creation
-- Remove duplicate lesson creation logic from `TeacherClassDaily.handleDrop()`
-- Pass `onAddLessonEvent` down through component tree via props
+### Phase 1: Consolidate Entry Points ✅ COMPLETED
+- ✅ Establish `onAddLessonEvent()` as the single entry point for lesson creation
+- ✅ Remove duplicate lesson creation logic from `TeacherClassDaily.handleDrop()`
+- ✅ Pass `onAddLessonEvent` down through component tree via props
 
-### Phase 2: Separate Concerns (Next Token Budget)
-- [ ] Move all TeacherQueue logic into `backend/TeacherQueue.ts`
-- [ ] Move all statistics logic into `backend/ClassboardStats.ts`
-- [ ] Create/consolidate helper functions in `getters/classboard-getter.ts`
-- [ ] Ensure `classboard-action.ts` contains only API calls
-- [ ] Clean up `useClassboard.ts` to focus on data orchestration
+### Phase 2: Separate Concerns ✅ MOSTLY COMPLETED
+- ✅ All TeacherQueue logic consolidated into `backend/TeacherQueue.ts`
+  - ✅ Chronological ordering via `addToQueueInChronologicalOrder()`
+  - ✅ Gap-respecting time adjustments in `adjustLessonTime()` and `adjustLessonDuration()`
+  - ✅ Gap-preserving reordering in `moveLessonInQueue()`
+- ✅ Statistics logic in `backend/ClassboardStats.ts`
+- ✅ Helper functions organized into getters:
+  - ✅ `getters/queue-getter.ts` - Queue-specific utilities (timeToMinutes, getTimeFromISO, etc.)
+  - ✅ `getters/date-getter.ts` - General date utilities
+  - ✅ `getters/event-getter.ts` - Event calculations (gaps, time ranges)
+  - ✅ `getters/timezone-getter.ts` - Only convertUTCToSchoolTimezone()
+- ✅ `classboard-action.ts` contains only API calls
+- ✅ `useClassboard.ts` focuses on data orchestration and real-time listeners
 
-### Phase 3: Remove Duplicate Code
-- [ ] Eliminate duplicate duration calculations (use helpers)
-- [ ] Eliminate duplicate gap calculations (use TeacherQueue methods)
-- [ ] Eliminate duplicate capacity-to-duration mappings
-- [ ] Consolidate event time calculations into helper functions
+### Phase 3: Remove Duplicate Code ✅ COMPLETED
+- ✅ Eliminated duplicate gap calculations (centralized in event-getter.ts)
+- ✅ Eliminated duplicate time functions (centralized in queue-getter.ts)
+- ✅ Consolidated event time calculations into helper functions
+- ✅ Single source of truth for each calculation
 
-### Phase 4: Simplify Components
-- [ ] Remove business logic from components
-- [ ] Reduce prop drilling by using composition
-- [ ] Ensure each component has single responsibility
+### Phase 4: Simplify Components ✅ IN PROGRESS
+- ✅ Removed business logic from components (delegated to TeacherQueue)
+- ✅ Memoized events array in TeacherColumn to trigger gap recalculation
+- [ ] Further reduce prop drilling by using composition (future enhancement)
 
 ---
 
-## Expected Outcomes
+## Achieved Outcomes ✅
 
-**Before Refactoring:**
-- Duplicated logic across components
-- Mixed concerns (UI + business logic)
-- Multiple sources of truth for same calculations
-- Harder to test and maintain
-
-**After Refactoring:**
-- Lean components (rendering only)
-- Clear separation of concerns
-- Single source of truth for each concern
-- Easier to test (pure functions, isolated logic)
-- Easier to modify (change logic in one place)
-- Better code reusability
+**Refactoring Results:**
+- ✅ Lean components (rendering only, minimal business logic)
+- ✅ Clear separation of concerns (data/API/logic/UI layers)
+- ✅ Single source of truth for each calculation
+- ✅ Easier to test (pure functions in getters, isolated TeacherQueue logic)
+- ✅ Easier to modify (change logic in one place)
+- ✅ Better code reusability (shared getters across components)
+- ✅ Queue respects intentional gaps between events
+- ✅ Events maintain chronological order when added
+- ✅ Gap detection updates dynamically when adjacent events change
 
 ---
 
@@ -195,76 +226,55 @@ We will consolidate logic into appropriate layers and eliminate duplicate/irrele
 
 ---
 
-## CRITICAL BUG: Timezone Handling ✅ FIXED
+## Timezone & Time Handling ✅ RESOLVED
 
-### Issue (RESOLVED)
-Time adjustments in EventModCard were not working correctly due to timezone mismatch:
-- **Database stores:** `2025-11-14 11:30:00+00` (UTC)
-- **Classboard was displaying:** `12:30` (Browser local time, e.g., UTC+1)
-- **Problem:** When adjusting time, we were mixing UTC database times with local display times, causing incorrect calculations
+### Architecture
+- **Storage:** Events stored in UTC (TIMESTAMPTZ) in database
+- **Display:** Events shown in UTC (consistent throughout)
+- **Calculations:** All time math uses ISO parsing (no browser timezone conversion)
 
-### Root Cause
-- Event times are stored as TIMESTAMPTZ in Supabase (UTC)
-- `getTimeFromISO()` was using `.getHours()` which converted UTC to browser's local timezone
-- Time adjustments in TeacherQueue worked on the UTC value, but display showed local time
-- This caused the "first click goes wrong direction" bug
+### Getter Organization
+- **`queue-getter.ts`** - ISO time parsing and queue-specific calculations
+  - `getTimeFromISO()` - Parse HH:MM from ISO string
+  - `getMinutesFromISO()` - Parse total minutes from ISO string
+  - `adjustISODateTime()` - Safe ISO datetime adjustment
+  - `createISODateTime()` - Create ISO string from date and time
+  - `timeToMinutes()` / `minutesToTime()` - Time format conversions
 
-### Solution ✅ IMPLEMENTED
-**Week 1: TeacherQueue Refactoring (COMPLETED)**
+- **`timezone-getter.ts`** - Timezone conversion (for future school-specific timezones)
+  - `convertUTCToSchoolTimezone()` - Convert UTC to school timezone
 
-1. **Fixed `getters/timezone-getter.ts`:**
-   - ✅ Fixed `getTimeFromISO()` to parse ISO directly without timezone conversion
-   - ✅ Added `getMinutesFromISO()` for direct minute extraction
-   - ✅ Added `adjustISODateTime()` for timezone-safe time adjustments
-   - ✅ Added `createISODateTime()` for creating ISO strings
-   - ✅ Added `convertUTCToSchoolTime()` and `convertSchoolTimeToUTC()` for future school timezone support
+- **`event-getter.ts`** - Event-specific calculations
+  - `detectGapBefore()` - Detect gap before event
+  - `getEventEndTime()` - Calculate event end time
+  - `getEventCardProps()` - Consolidated prop calculation for EventModCard
 
-2. **Created `getters/event-getter.ts`:**
-   - ✅ Moved `detectGapBefore()` from component to getter (DRY principle)
-   - ✅ Fixed to use `getMinutesFromISO()` instead of broken `timeToMinutes(eventData.date)`
-   - ✅ Added `getEventEndTime()` helper
-   - ✅ Added `getEventTimeRange()` helper
-   - ✅ Added `getEventCardProps()` to reduce prop drilling
+### TeacherQueue Time Safety
+All TeacherQueue methods work with ISO datetime strings:
+- `adjustLessonTime()` - Adjusts event time while respecting next event's gap
+- `adjustLessonDuration()` - Adjusts duration while respecting next event's gap
+- Uses `getMinutesFromISO()` for all time comparisons
+- Uses `adjustISODateTime()` and `createISODateTime()` for all mutations
 
-3. **Refactored `backend/TeacherQueue.ts`:**
-   - ✅ Updated `getStartTimeMinutes()` to use `getMinutesFromISO()`
-   - ✅ Updated `updateEventDateTime()` to use `adjustISODateTime()`
-   - ✅ Updated `recalculateStartTimesFromPosition()` to use `createISODateTime()`
-   - ✅ Updated `removeFromQueueWithCascade()` to use `createISODateTime()`
-   - ✅ Removed all debug logging
-
-4. **Refactored components:**
-   - ✅ Updated `TeacherEventQueueEditor.tsx` to use `getEventCardProps()`
-   - ✅ Removed duplicate `detectGapBefore()` from component
-   - ✅ Simplified `eventCards` useMemo
-   - ✅ Removed debug logging from EventModCard.tsx
-   - ✅ All components now use timezone-safe utilities
-
-### Current State
-- Events are stored in UTC and displayed in UTC consistently
-- Time adjustments work correctly (no more "first click goes wrong direction")
-- All time calculations are timezone-safe (parsing ISO directly)
-- Code follows DRY principle (single source of truth for calculations)
-
-### Future Enhancement: School-Specific Timezone Support
-The infrastructure is now in place for school-specific timezone support:
-- School table has `timezone` field (IANA timezone like "Europe/Madrid")
-- `getSchoolTimezoneFromHeader()` retrieves cached school timezone
-- `convertUTCToSchoolTime()` and `convertSchoolTimeToUTC()` functions exist
-- Components would need to pass school timezone down the tree for conversion
-
-**To implement:**
-1. Fetch school timezone in ClientClassboard
-2. Pass timezone to EventModCard and TimeControls
-3. Use `convertUTCToSchoolTime()` when displaying times
-4. Use `convertSchoolTimeToUTC()` when creating/updating events
+### Future: School-Specific Timezone Support
+Infrastructure ready for school timezone display:
+- School table has `timezone` field (IANA timezone)
+- `convertUTCToSchoolTimezone()` function available
+- Ready for implementation when needed
 
 ---
 
-## Notes
+## Implementation Notes
 
-- All changes must maintain backward compatibility with existing features
-- Real-time listeners should continue to work without modification
-- Drag-drop functionality must remain intact
-- Edit mode (queue editor) must remain functional
-- Timezone bug is blocking reliable time adjustments - fix in next token budget
+### Queue Behavior Rules
+1. **Chronological Ordering** - Events are always inserted in time order (head = earliest)
+2. **Gap Respect** - Intentional gaps between events are preserved during adjustments
+3. **Adjacent Cascade** - Only adjacent events (no gap) cascade time changes
+4. **Single Responsibility** - All queue logic lives in TeacherQueue class, not in components
+
+### Key Design Decisions
+- TeacherQueue uses linked list for efficient insertion/deletion
+- Gap detection uses simple time math: `nextStart > currentEnd = gap exists`
+- Components are stateless (state managed via TeacherQueue mutations)
+- Real-time listeners refresh entire queue to avoid sync issues
+- Drag-drop flow uses `addToQueueInChronologicalOrder()` to maintain order

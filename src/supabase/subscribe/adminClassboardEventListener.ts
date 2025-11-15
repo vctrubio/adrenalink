@@ -20,16 +20,24 @@ export function useAdminClassboardEventListener({ schoolId, onEventDetected }: A
             const supabase = createClient();
 
             const handleEventChange = (payload: any) => {
+                console.log("[EVENT-LISTENER] 📢 Event detected:", {
+                    event: payload.eventType,
+                    table: payload.table,
+                    new: payload.new,
+                    old: payload.old,
+                });
+
                 getClassboardBookings()
                     .then((result) => {
                         if (result.success && result.data) {
+                            console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
                             onEventDetected(result.data);
                         } else {
-                            console.error("[EVENT-LISTENER] Refetch failed:", result.error);
+                            console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
                         }
                     })
                     .catch((err) => {
-                        console.error("[EVENT-LISTENER] Exception during refetch:", err);
+                        console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
                     });
             };
 
@@ -43,7 +51,10 @@ export function useAdminClassboardEventListener({ schoolId, onEventDetected }: A
                         table: "event",
                         filter: `school_id=eq.${schoolId}`,
                     },
-                    handleEventChange,
+                    (payload) => {
+                        console.log("[EVENT-LISTENER] 📥 INSERT event received");
+                        handleEventChange(payload);
+                    },
                 )
                 .on(
                     "postgres_changes",
@@ -51,17 +62,20 @@ export function useAdminClassboardEventListener({ schoolId, onEventDetected }: A
                         event: "DELETE",
                         schema: "public",
                         table: "event",
-                        filter: `school_id=eq.${schoolId}`,
                     },
-                    handleEventChange,
+                    (payload) => {
+                        console.log("[EVENT-LISTENER] 🗑️ DELETE event received", payload);
+                        handleEventChange(payload);
+                    },
                 )
                 .subscribe((status) => {
+                    console.log(`[EVENT-LISTENER] Subscription status: ${status}`);
                     if (status === "SUBSCRIBED") {
-                        console.log("✅ [EVENT-LISTENER] SUBSCRIBED");
+                        console.log("✅ [EVENT-LISTENER] Successfully subscribed to event changes");
                     } else if (status === "CHANNEL_ERROR") {
-                        console.error("[EVENT-LISTENER] CHANNEL_ERROR occurred");
+                        console.error("❌ [EVENT-LISTENER] CHANNEL_ERROR occurred");
                     } else if (status === "TIMED_OUT") {
-                        console.error("[EVENT-LISTENER] TIMED_OUT waiting for subscription");
+                        console.error("❌ [EVENT-LISTENER] TIMED_OUT waiting for subscription");
                     }
                 });
 
