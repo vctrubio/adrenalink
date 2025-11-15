@@ -73,17 +73,31 @@ const GapWarning = ({
     const handleRemoveGap = async () => {
         setIsAdjusting(true);
         onGapAdjustingChange?.(true);
-        queueController.removeGap(eventId);
-        setIsAdjusting(false);
-        onGapAdjustingChange?.(false);
+        try {
+            queueController.removeGap(eventId);
+            // Wait for Supabase listener to sync the changes
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+            console.error("Error removing gap:", error);
+        } finally {
+            setIsAdjusting(false);
+            onGapAdjustingChange?.(false);
+        }
     };
 
     const handleAddGap = async () => {
         setIsAdjusting(true);
         onGapAdjustingChange?.(true);
-        queueController.addGap(eventId);
-        setIsAdjusting(false);
-        onGapAdjustingChange?.(false);
+        try {
+            queueController.addGap(eventId);
+            // Wait for Supabase listener to sync the changes
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+            console.error("Error adding gap:", error);
+        } finally {
+            setIsAdjusting(false);
+            onGapAdjustingChange?.(false);
+        }
     };
 
     if (!needsMore) {
