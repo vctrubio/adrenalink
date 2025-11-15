@@ -100,7 +100,8 @@ export class TeacherQueue {
 
     /**
      * Get insertion time based on capacity and controller settings
-     * Calculates duration from capacity, tries submitTime first, then falls back to next available slot
+     * Tries to fit submitTime in queue, checking head and gaps between events
+     * Falls back to next available slot if submitTime doesn't fit anywhere
      * Returns object with time string (HH:MM format) and duration in minutes
      */
     getInsertionTime(submitTime: string, capacityStudents: number, controller: ControllerSettings): { time: string; duration: number } {
@@ -118,14 +119,37 @@ export class TeacherQueue {
         if (!events.length) return { time: submitTime, duration };
 
         const submitTimeMinutes = parseInt(submitTime.split(":")[0]) * 60 + parseInt(submitTime.split(":")[1]);
+        const submitEndMinutes = submitTimeMinutes + duration;
+
+        // Check if submitTime fits at the head (before first event)
+        const firstEventStartMinutes = this.getStartTimeMinutes(events[0]);
+        if (submitTimeMinutes < firstEventStartMinutes) {
+            if (submitEndMinutes + controller.gapMinutes <= firstEventStartMinutes && submitEndMinutes <= 1440) {
+                return { time: submitTime, duration };
+            }
+        }
+
+        // Check if submitTime fits in any gap between events
+        for (let i = 0; i < events.length - 1; i++) {
+            const currentEventEndMinutes = this.getStartTimeMinutes(events[i]) + events[i].eventData.duration;
+            const nextEventStartMinutes = this.getStartTimeMinutes(events[i + 1]);
+            const gapStartMinutes = currentEventEndMinutes + controller.gapMinutes;
+
+            if (submitTimeMinutes >= gapStartMinutes && submitEndMinutes + controller.gapMinutes <= nextEventStartMinutes && submitEndMinutes <= 1440) {
+                return { time: submitTime, duration };
+            }
+        }
+
+        // If submitTime doesn't fit anywhere, use next available slot after last event
         const lastEventEndMinutes = this.getStartTimeMinutes(events[events.length - 1]) + events[events.length - 1].eventData.duration;
         const nextAvailableMinutes = lastEventEndMinutes + controller.gapMinutes;
 
-        if (submitTimeMinutes >= nextAvailableMinutes && submitTimeMinutes + duration <= 1440) {
-            return { time: submitTime, duration };
+        if (nextAvailableMinutes + duration <= 1440) {
+            return { time: minutesToTime(nextAvailableMinutes), duration };
         }
 
-        return { time: minutesToTime(nextAvailableMinutes), duration };
+        // If even the next available slot exceeds 24 hours, return submitTime anyway (let validation handle it)
+        return { time: submitTime, duration };
     }
 
 
