@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { EventNode, TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import { QueueController } from "@/backend/QueueController";
 import EventCard from "./EventCard";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { cascadeDeleteWithShift } from "@/actions/classboard-bulk-action";
@@ -27,6 +28,12 @@ export default function TeacherEventQueue({
 }: TeacherEventQueueProps) {
     const events = queue.getAllEvents();
     const [processingEventId, setProcessingEventId] = useState<string | null>(null);
+
+    // Create QueueController for gap calculations (like EventModCard)
+    const queueController = useMemo(
+        () => new QueueController(queue, controller, () => {}),
+        [queue, controller]
+    );
 
     // Handler for cascade delete: delete event then shift subsequent events forward
     const handleDeleteWithCascade = async (
@@ -83,9 +90,9 @@ export default function TeacherEventQueue({
                             key={event.id}
                             event={event}
                             queue={queue}
+                            queueController={queueController}
                             hasNextEvent={index < events.length - 1}
                             isProcessing={isProcessing}
-                            requiredGapMinutes={controller.gapMinutes}
                             onDeleteWithCascade={handleDeleteWithCascade}
                             onDeleteComplete={async () => {
                                 if (event.id) {
