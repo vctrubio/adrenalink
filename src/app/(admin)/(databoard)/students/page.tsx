@@ -1,6 +1,7 @@
 import { getStudents } from "@/actions/databoard-action";
-import { ClientDataHeader } from "@/src/components/databoard/ClientDataHeader";
+import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
+import type { StudentType } from "@/drizzle/schema";
 
 export default async function StudentsPage() {
     const result = await getStudents();
@@ -9,11 +10,11 @@ export default async function StudentsPage() {
         return <div>Error loading students: {result.error}</div>;
     }
 
-    console.log("StudentsPage rendered with data:", result.data);
-
     return (
-        <div className="p-8">
-            <ClientDataHeader entityId="student" data={result.data} rowComponent={StudentRow} />
-        </div>
+        <DataboardRowsSection<StudentType>
+            entityId="student"
+            data={result.data}
+            rowComponent={StudentRow}
+        />
     );
 }

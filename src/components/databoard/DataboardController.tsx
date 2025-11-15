@@ -128,8 +128,8 @@ interface DataboardControllerProps {
 
 export const DataboardController = ({ search, setSearch, filter, setFilter, group, setGroup, icon, entityColor }: DataboardControllerProps) => {
     return (
-        <div className="lg:w-64 w-full p-4 border border-border rounded-md bg-muted/20">
-            <div className="space-y-4">
+        <div className="bg-card">
+            <div className="p-6 space-y-6">
                 <SearchInput search={search} setSearch={setSearch} icon={icon} entityColor={entityColor} />
 
                 <div className="border-t border-border pt-4 space-y-4">

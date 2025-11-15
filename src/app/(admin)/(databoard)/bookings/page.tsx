@@ -1,5 +1,5 @@
 import { getBookings } from "@/actions/databoard-action";
-import { ClientDataHeader } from "@/src/components/databoard/ClientDataHeader";
+import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
 import { BookingRow } from "@/src/components/databoard/rows/BookingRow";
 
 export default async function BookingsPage() {
@@ -12,8 +12,8 @@ export default async function BookingsPage() {
     console.log("BookingsPage rendered with data:", result.data);
 
     return (
-        <div className="p-8">
-            <ClientDataHeader entityId="booking" data={result.data} rowComponent={BookingRow} />
+        <div>
+            <DataboardRowsSection entityId="booking" data={result.data} rowComponent={BookingRow} />
         </div>
     );
 }
