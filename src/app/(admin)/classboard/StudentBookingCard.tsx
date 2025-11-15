@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Menu } from "@headlessui/react";
 import { ChevronDown, Plus, Loader2 } from "lucide-react";
 import type { ComponentType } from "react";
-import type { DraggableBooking } from "@/src/hooks/useClassboard";
+import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { formatDate } from "@/getters/date-getter";
@@ -326,17 +326,22 @@ const PackageRow = ({ packageData, expandedRow, setExpandedRow, packageEntity }:
 
 // Footer Component
 const CardFooter = ({ availableTeachers, onAddLessonEvent, onAssignTeacher, loadingLessonId }: { availableTeachers: string[]; onAddLessonEvent: (teacherUsername: string) => void; onAssignTeacher: () => void; loadingLessonId: string | null }) => {
+    const handleAddLessonClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (availableTeachers.length === 1) {
+            onAddLessonEvent(availableTeachers[0]);
+        }
+    };
+
     return (
         <div className="-mx-0 bg-gradient-to-b from-transparent to-muted/30 border-t border-muted/40 rounded-b-lg">
             {/* Footer Icons Bar */}
             <div className="flex flex-wrap items-center justify-between p-3 gap-y-3">
                 <div className="flex flex-wrap items-center gap-3 px-2">
-                    <Menu as="div" className="relative">
-                        <Menu.Button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
+                    {availableTeachers.length === 1 ? (
+                        <button
+                            onClick={handleAddLessonClick}
                             onMouseDown={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
@@ -346,38 +351,56 @@ const CardFooter = ({ availableTeachers, onAddLessonEvent, onAssignTeacher, load
                         >
                             {loadingLessonId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                             <span className="text-xs">Add Lesson Event</span>
-                        </Menu.Button>
+                        </button>
+                    ) : (
+                        <Menu as="div" className="relative">
+                            <Menu.Button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                }}
+                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:scale-105 transition-transform"
+                                disabled={loadingLessonId !== null}
+                            >
+                                {loadingLessonId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                <span className="text-xs">Add Lesson Event</span>
+                            </Menu.Button>
 
-                        <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
-                            <div className="p-1">
-                                {availableTeachers.length > 0 ? (
-                                    availableTeachers.map((teacherUsername) => (
-                                        <Menu.Item key={teacherUsername}>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        onAddLessonEvent(teacherUsername);
-                                                    }}
-                                                    onMouseDown={(e) => {
-                                                        e.stopPropagation();
-                                                        e.preventDefault();
-                                                    }}
-                                                    className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                                >
-                                                    <EntityIcon entityId="teacher" className="w-4 h-4" />
-                                                    {teacherUsername}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    ))
-                                ) : (
-                                    <div className="px-3 py-2 text-sm text-muted-foreground">No teachers assigned</div>
-                                )}
-                            </div>
-                        </Menu.Items>
-                    </Menu>
+                            <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
+                                <div className="p-1">
+                                    {availableTeachers.length > 0 ? (
+                                        availableTeachers.map((teacherUsername) => (
+                                            <Menu.Item key={teacherUsername}>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            onAddLessonEvent(teacherUsername);
+                                                        }}
+                                                        onMouseDown={(e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+                                                        }}
+                                                        className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                                    >
+                                                        <EntityIcon entityId="teacher" className="w-4 h-4" />
+                                                        {teacherUsername}
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        ))
+                                    ) : (
+                                        <div className="px-3 py-2 text-sm text-muted-foreground">No teachers assigned</div>
+                                    )}
+                                </div>
+                            </Menu.Items>
+                        </Menu>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 px-2">
