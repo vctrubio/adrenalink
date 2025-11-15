@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
+import type { EventNode, TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
 import EventCard from "./EventCard";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { cascadeDeleteWithShift } from "@/actions/classboard-bulk-action";
 
 interface TeacherEventQueueProps {
     queue: TeacherQueue;
+    controller: ControllerSettings;
     onRemoveEvent?: (eventId: string) => Promise<void>;
     onDragOver?: (e: React.DragEvent) => void;
     onDragEnter?: (e: React.DragEvent) => void;
@@ -17,6 +18,7 @@ interface TeacherEventQueueProps {
 
 export default function TeacherEventQueue({
     queue,
+    controller,
     onRemoveEvent,
     onDragOver,
     onDragEnter,
@@ -83,6 +85,7 @@ export default function TeacherEventQueue({
                             queue={queue}
                             hasNextEvent={index < events.length - 1}
                             isProcessing={isProcessing}
+                            requiredGapMinutes={controller.gapMinutes}
                             onDeleteWithCascade={handleDeleteWithCascade}
                             onDeleteComplete={async () => {
                                 if (event.id) {

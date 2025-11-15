@@ -22,6 +22,7 @@ interface EventCardProps {
     queue?: TeacherQueue;
     hasNextEvent?: boolean;
     isProcessing?: boolean;
+    requiredGapMinutes?: number;
     onDeleteComplete?: () => void;
     onDeleteWithCascade?: (eventId: string, minutesToShift: number, subsequentEventIds: string[]) => Promise<void>;
 }
@@ -34,6 +35,7 @@ interface HeaderRowProps {
     categoryEquipment: string;
     capacityEquipment: number;
     gapBefore: number;
+    meetsGapRequirement: boolean;
     hasNextEvent: boolean;
     isDeleting: boolean;
     isProcessing?: boolean;
@@ -45,7 +47,7 @@ interface StudentRowProps {
     student: { id: string; firstName: string; lastName: string };
 }
 
-const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipment, capacityEquipment, gapBefore, hasNextEvent, isDeleting, isProcessing = false, onDelete, onNotify }: HeaderRowProps) => {
+const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipment, capacityEquipment, gapBefore, meetsGapRequirement, hasNextEvent, isDeleting, isProcessing = false, onDelete, onNotify }: HeaderRowProps) => {
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
     // Use secondary blue when processing, otherwise use status color
@@ -75,7 +77,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                         )}
                         <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 mr-0.5" />
                         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{location}</span>
-                        {gapBefore > 0 && <span className="text-xs px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-orange-700 dark:text-orange-400 whitespace-nowrap">+ {getPrettyDuration(gapBefore)}</span>}
+                        {gapBefore > 0 && !meetsGapRequirement && <span className="text-xs px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-orange-700 dark:text-orange-400 whitespace-nowrap">gap: {getPrettyDuration(gapBefore)}</span>}
                     </div>
                 </div>
 
@@ -166,7 +168,7 @@ const StudentRow = ({ student }: StudentRowProps) => {
     );
 };
 
-export default function EventCard({ event, queue, hasNextEvent = false, isProcessing = false, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
+export default function EventCard({ event, queue, hasNextEvent = false, isProcessing = false, requiredGapMinutes = 0, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const startTime = getTimeFromISO(event.eventData.date);
@@ -199,6 +201,7 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
     };
 
     const gapBefore = calculateGapBefore();
+    const meetsGapRequirement = gapBefore >= requiredGapMinutes;
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
@@ -265,6 +268,7 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
                 categoryEquipment={categoryEquipment}
                 capacityEquipment={capacityEquipment}
                 gapBefore={gapBefore}
+                meetsGapRequirement={meetsGapRequirement}
                 hasNextEvent={hasNextEvent}
                 isDeleting={isDeleting}
                 onDelete={handleDelete}

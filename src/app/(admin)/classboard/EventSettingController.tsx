@@ -80,6 +80,24 @@ export default function ControllerSettings({
         [controller.gapMinutes, updateController]
     );
 
+    const adjustStepUp = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            const newStep = Math.min(60, (controller.stepDuration || 30) + 15);
+            updateController({ stepDuration: newStep });
+        },
+        [controller.stepDuration, updateController]
+    );
+
+    const adjustStepDown = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            const newStep = Math.max(15, (controller.stepDuration || 30) - 15);
+            updateController({ stepDuration: newStep });
+        },
+        [controller.stepDuration, updateController]
+    );
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -160,6 +178,10 @@ export default function ControllerSettings({
                             Gap:{" "}
                             <strong>{controller.gapMinutes || 0}min</strong>
                         </div>
+                        <div>
+                            Step:{" "}
+                            <strong>{controller.stepDuration || 30}min</strong>
+                        </div>
                     </div>
                 </div>
 
@@ -206,6 +228,32 @@ export default function ControllerSettings({
                                         </span>
                                         <button
                                             onClick={adjustGapUp}
+                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs font-mono text-muted-foreground w-6">
+                                            ±
+                                        </span>
+                                        <span className="text-sm font-medium">Time/Duration Step</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={adjustStepDown}
+                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                        </button>
+                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
+                                            {controller.stepDuration || 30}min
+                                        </span>
+                                        <button
+                                            onClick={adjustStepUp}
                                             className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <ChevronUp className="w-4 h-4 text-muted-foreground" />

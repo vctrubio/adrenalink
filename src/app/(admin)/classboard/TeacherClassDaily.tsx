@@ -212,6 +212,7 @@ function TeacherColumn({
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         queue={queue}
+                        controller={controller}
                         onDragOver={onDragOver}
                         onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
                         onDragLeave={onDragLeave}
