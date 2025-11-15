@@ -3,37 +3,40 @@
 import { db } from "@/drizzle/db";
 import { event } from "@/drizzle/schema";
 import { inArray, eq, and, ne } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getSchoolIdFromHeader } from "@/types/headers";
 
 /**
- * Bulk update events status
+ * Bulk update event dates (preserves existing status)
  */
 export async function bulkUpdateClassboardEvents(
-    eventIds: string[],
-    status: "planned" | "tbc" | "completed" | "uncompleted"
+    updates: Array<{ id: string; date: string }>
 ): Promise<ApiActionResponseModel<{ updatedCount: number }>> {
     try {
-        if (eventIds.length === 0) {
+        if (updates.length === 0) {
             return { success: false, error: "No events provided" };
         }
 
-        console.log(`📝 [classboard-bulk-action] Updating ${eventIds.length} events to status: ${status}`);
+        console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates`);
 
-        const result = await db
-            .update(event)
-            .set({ status })
-            .where(inArray(event.id, eventIds))
-            .returning({ id: event.id });
+        let updatedCount = 0;
+        for (const update of updates) {
+            const result = await db
+                .update(event)
+                .set({ date: new Date(update.date) })
+                .where(eq(event.id, update.id))
+                .returning({ id: event.id });
 
-        revalidatePath("/classboard");
+            if (result.length > 0) {
+                updatedCount++;
+            }
+        }
 
-        console.log(`✅ [classboard-bulk-action] Updated ${result.length} events to ${status}`);
+        console.log(`✅ [classboard-bulk-action] Updated ${updatedCount} events`);
 
         return {
             success: true,
-            data: { updatedCount: result.length },
+            data: { updatedCount },
         };
     } catch (error) {
         console.error(`❌ [classboard-bulk-action] Error updating events:`, error);
@@ -61,8 +64,6 @@ export async function bulkDeleteClassboardEvents(
             .delete(event)
             .where(inArray(event.id, eventIds))
             .returning({ id: event.id });
-
-        revalidatePath("/classboard");
 
         console.log(`✅ [classboard-bulk-action] Deleted ${result.length} events`);
 
@@ -110,8 +111,6 @@ export async function deleteAllClassboardEvents(
             )
             .returning({ id: event.id });
 
-        revalidatePath("/classboard");
-
         console.log(`✅ [classboard-bulk-action] Deleted ${result.length} events`);
 
         return {
@@ -150,8 +149,6 @@ export async function deleteUncompletedClassboardEvents(
             )
             .returning({ id: event.id });
 
-        revalidatePath("/classboard");
-
         console.log(`✅ [classboard-bulk-action] Deleted ${result.length} uncompleted events`);
 
         return {
@@ -163,6 +160,59 @@ export async function deleteUncompletedClassboardEvents(
         return {
             success: false,
             error: `Failed to delete uncompleted events: ${error instanceof Error ? error.message : String(error)}`,
+        };
+    }
+}
+
+/**
+ * Cascade delete: Shift all subsequent events backward (earlier) by the deleted event's duration
+ * Called after a delete with "shift queue" option to fill the gap left by the deleted event
+ * Event listener handles UI updates, so no revalidatePath needed
+ */
+export async function cascadeDeleteWithShift(
+    eventIds: string[],
+    minutesToShift: number
+): Promise<ApiActionResponseModel<{ shiftedCount: number }>> {
+    try {
+        if (eventIds.length === 0) {
+            return { success: true, data: { shiftedCount: 0 } };
+        }
+
+        // Store the minutes to shift as const for clarity
+        const SHIFT_DURATION_MINUTES = minutesToShift;
+
+        console.log(`⏭️ [classboard-bulk-action] Cascading delete: shifting ${eventIds.length} events forward by ${SHIFT_DURATION_MINUTES} minutes`);
+
+        // Fetch all events to be shifted
+        const eventsToShift = await db.query.event.findMany({
+            where: inArray(event.id, eventIds),
+        });
+
+        // Update each event by shifting its time backward (earlier) to fill the gap
+        let shiftedCount = 0;
+        for (const evt of eventsToShift) {
+            const currentDate = new Date(evt.date);
+            currentDate.setMinutes(currentDate.getMinutes() - SHIFT_DURATION_MINUTES);
+
+            await db
+                .update(event)
+                .set({ date: currentDate })
+                .where(eq(event.id, evt.id));
+
+            shiftedCount++;
+        }
+
+        console.log(`✅ [classboard-bulk-action] Cascade complete: shifted ${shiftedCount} events backward (${SHIFT_DURATION_MINUTES} min earlier)`);
+
+        return {
+            success: true,
+            data: { shiftedCount },
+        };
+    } catch (error) {
+        console.error(`❌ [classboard-bulk-action] Error cascading delete:`, error);
+        return {
+            success: false,
+            error: `Failed to cascade delete: ${error instanceof Error ? error.message : String(error)}`,
         };
     }
 }

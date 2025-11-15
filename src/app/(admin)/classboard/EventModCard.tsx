@@ -7,7 +7,7 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { EventNode } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
-import { showEntityToast } from "@/src/getters/toast-getter";
+import { showEntityToast } from "@/getters/toast-getter";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { masterBookingAdd } from "@/actions/register-action";
-import { showEntityToast } from "@/src/getters/toast-getter";
+import { showEntityToast } from "@/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
 import RegisterController from "./RegisterController";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";

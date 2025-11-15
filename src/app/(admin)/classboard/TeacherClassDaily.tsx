@@ -211,7 +211,7 @@ function TeacherColumn({
             <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${getBorderColor()}`}>
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
-                        events={events}
+                        queue={queue}
                         onDragOver={onDragOver}
                         onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
                         onDragLeave={onDragLeave}

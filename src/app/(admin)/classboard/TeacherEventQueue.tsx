@@ -1,10 +1,12 @@
 "use client";
 
-import type { EventNode } from "@/backend/TeacherQueue";
+import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import EventCard from "./EventCard";
+import { deleteClassboardEvent } from "@/actions/classboard-action";
+import { cascadeDeleteWithShift } from "@/actions/classboard-bulk-action";
 
 interface TeacherEventQueueProps {
-    events: EventNode[];
+    queue: TeacherQueue;
     onRemoveEvent?: (eventId: string) => Promise<void>;
     onDragOver?: (e: React.DragEvent) => void;
     onDragEnter?: (e: React.DragEvent) => void;
@@ -13,13 +15,53 @@ interface TeacherEventQueueProps {
 }
 
 export default function TeacherEventQueue({
-    events,
+    queue,
     onRemoveEvent,
     onDragOver,
     onDragEnter,
     onDragLeave,
     onDrop,
 }: TeacherEventQueueProps) {
+    const events = queue.getAllEvents();
+    // Handler for cascade delete: delete event then shift subsequent events forward
+    const handleDeleteWithCascade = async (
+        eventId: string,
+        minutesToShift: number,
+        subsequentEventIds: string[],
+    ) => {
+        try {
+            // First, delete the event
+            const deleteResult = await deleteClassboardEvent(eventId);
+            if (!deleteResult.success) {
+                console.error("❌ Delete failed:", deleteResult.error);
+                return;
+            }
+
+            console.log("✅ Event deleted");
+
+            // Then shift all subsequent events backward (earlier) to fill the gap
+            if (subsequentEventIds.length > 0) {
+                console.log(
+                    `⏪ [TeacherEventQueue] Shifting ${subsequentEventIds.length} events backward by ${minutesToShift} minutes to fill gap`,
+                );
+                const shiftResult = await cascadeDeleteWithShift(
+                    subsequentEventIds,
+                    minutesToShift,
+                );
+
+                if (!shiftResult.success) {
+                    console.error("❌ Cascade shift failed:", shiftResult.error);
+                    return;
+                }
+                console.log(`✅ Shifted ${shiftResult.data?.shiftedCount} events backward`);
+            }
+
+            console.log("✅ Cascade delete complete");
+            await onRemoveEvent?.(eventId);
+        } catch (error) {
+            console.error("🔥 Error in cascade delete:", error);
+        }
+    };
     return (
         <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
             {events.length > 0 ? (
@@ -28,7 +70,9 @@ export default function TeacherEventQueue({
                         <EventCard
                             key={event.id}
                             event={event}
+                            queue={queue}
                             hasNextEvent={index < events.length - 1}
+                            onDeleteWithCascade={handleDeleteWithCascade}
                             onDeleteComplete={async () => {
                                 if (event.id) {
                                     await onRemoveEvent?.(event.id);

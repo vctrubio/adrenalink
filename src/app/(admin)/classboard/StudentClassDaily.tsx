@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import StudentBookingCard from "./StudentBookingCard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { showEntityToast } from "@/src/getters/toast-getter";
+import { showEntityToast } from "@/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
 
 interface StudentClassDailyProps {

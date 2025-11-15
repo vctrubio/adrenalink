@@ -242,18 +242,15 @@ export async function createClassboardEvent(lessonId: string, eventDate: string,
     }
 }
 
-export async function deleteClassboardEvent(eventId: string, cascade: boolean = false): Promise<ApiActionResponseModel<{ success: boolean }>> {
+export async function deleteClassboardEvent(eventId: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`🗑️ [classboard-action] Deleting event ${eventId}, cascade: ${cascade}`);
+        console.log(`🗑️ [classboard-action] Deleting event ${eventId}`);
 
-        // Find the event to get its details
+        // Find the event to verify it exists
         const eventToDelete = await db.query.event.findFirst({
             where: eq(event.id, eventId),
             columns: {
                 id: true,
-                date: true,
-                duration: true,
-                lessonId: true,
             },
         });
 
@@ -265,11 +262,6 @@ export async function deleteClassboardEvent(eventId: string, cascade: boolean = 
         await db.delete(event).where(eq(event.id, eventId));
 
         console.log(`✅ [classboard-action] Event deleted: ${eventId}`);
-
-        // If cascade is enabled, shift all subsequent events backwards by deleted event duration
-        if (cascade) {
-            console.log(`📝 [classboard-action] Cascade: Shifting events backwards by ${eventToDelete.duration} minutes`);
-        }
 
         // No revalidatePath needed - real-time listener handles updates
 

@@ -7,7 +7,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { getEventStatusColor, type EventStatus } from "@/types/status";
-import type { EventNode } from "@/backend/TeacherQueue";
+import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
@@ -19,8 +19,10 @@ export const HEADING_PADDING = "py-1.5";
 
 interface EventCardProps {
     event: EventNode;
+    queue?: TeacherQueue;
     hasNextEvent?: boolean;
     onDeleteComplete?: () => void;
+    onDeleteWithCascade?: (eventId: string, minutesToShift: number, subsequentEventIds: string[]) => Promise<void>;
 }
 
 interface HeaderRowProps {
@@ -157,7 +159,7 @@ const StudentRow = ({ student }: StudentRowProps) => {
     );
 };
 
-export default function EventCard({ event, hasNextEvent = false, onDeleteComplete }: EventCardProps) {
+export default function EventCard({ event, queue, hasNextEvent = false, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const startTime = getTimeFromISO(event.eventData.date);
@@ -175,7 +177,40 @@ export default function EventCard({ event, hasNextEvent = false, onDeleteComplet
 
         setIsDeleting(true);
         try {
-            const result = await deleteClassboardEvent(eventId, cascade);
+            if (cascade && onDeleteWithCascade && queue) {
+                // Store duration to shift as const for clarity
+                const DURATION_TO_SHIFT = duration;
+
+                console.log(
+                    `🔄 [EventCard] Cascade delete: shifting subsequent events backward by ${DURATION_TO_SHIFT} minutes to fill gap`,
+                );
+
+                // Find all subsequent event IDs from the queue
+                const allEvents = queue.getAllEvents();
+                const currentEventIndex = allEvents.findIndex(
+                    (e: any) => e.eventData.id === eventId,
+                );
+
+                if (currentEventIndex !== -1) {
+                    // Get all events after the current one
+                    const subsequentEventIds = allEvents
+                        .slice(currentEventIndex + 1)
+                        .map((e: any) => e.eventData.id)
+                        .filter((id: string) => id); // Only include events that exist in DB
+
+                    console.log(
+                        `📋 Found ${subsequentEventIds.length} subsequent events to shift`,
+                    );
+
+                    // Call the cascade delete handler
+                    await onDeleteWithCascade(eventId, DURATION_TO_SHIFT, subsequentEventIds);
+                    onDeleteComplete?.();
+                    return;
+                }
+            }
+
+            // Standard delete (without cascade)
+            const result = await deleteClassboardEvent(eventId);
 
             if (!result.success) {
                 console.error("Delete failed:", result.error);
