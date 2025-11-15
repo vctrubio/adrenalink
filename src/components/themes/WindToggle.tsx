@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { useSidebar } from "../navigations/sidebar";
 
 interface WindToggleProps {
     onThemeChange?: () => void;
@@ -37,6 +38,7 @@ const WindIcon = ({ className }: { className?: string }) => (
 export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { collapsed } = useSidebar();
 
     useEffect(() => {
         setMounted(true);
@@ -53,8 +55,21 @@ export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
     };
 
     return (
-        <div onClick={mounted ? handleToggle : undefined} className={`p-3 rounded-full bg-card border border-border transition-all duration-300 ${mounted ? "hover:bg-accent cursor-pointer" : ""}`} title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}>
-            {mounted && isDarkMode ? <WindIcon className="w-6 h-6 text-foreground transition-all duration-300" /> : <NoWindIcon className="w-6 h-6 text-foreground transition-all duration-300" />}
+        <div className="mt-auto border-t border-border/30 p-3">
+            <button
+                onClick={mounted ? handleToggle : undefined}
+                className={`flex items-center justify-center w-full p-2 rounded-lg transition-colors ${
+                    mounted ? "hover:bg-accent cursor-pointer" : ""
+                } ${collapsed ? "justify-center" : ""}`}
+                title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
+            >
+                {mounted && isDarkMode ? (
+                    <WindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                ) : (
+                    <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                )}
+                {!collapsed && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
+            </button>
         </div>
     );
 }
