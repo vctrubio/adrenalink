@@ -8,6 +8,7 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { getEventStatusColor, type EventStatus } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
+import type { QueueController } from "@/backend/QueueController";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
@@ -20,43 +21,142 @@ export const HEADING_PADDING = "py-1.5";
 interface EventCardProps {
     event: EventNode;
     queue?: TeacherQueue;
+    queueController?: QueueController;
     hasNextEvent?: boolean;
     isProcessing?: boolean;
-    requiredGapMinutes?: number;
     onDeleteComplete?: () => void;
     onDeleteWithCascade?: (eventId: string, minutesToShift: number, subsequentEventIds: string[]) => Promise<void>;
 }
 
-interface HeaderRowProps {
+const EquipmentDisplay = ({ categoryEquipment, capacityEquipment }: { categoryEquipment: string; capacityEquipment: number }) => {
+    if (!categoryEquipment || capacityEquipment <= 0) return null;
+
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
+    const EquipmentIcon = equipmentConfig?.icon;
+
+    if (!EquipmentIcon) return null;
+
+    return (
+        <div className="flex items-center justify-center gap-0.5 mr-1">
+            {Array.from({ length: capacityEquipment }).map((_, i) => (
+                <EquipmentIcon key={i} className="w-3 h-3 mt-1" style={{ color: equipmentConfig?.color }} />
+            ))}
+        </div>
+    );
+};
+
+const GapWarning = ({
+    gapDuration,
+    eventId,
+    requiredGapMinutes,
+    queueController,
+    isProcessing,
+    onGapAdjustingChange,
+}: {
+    gapDuration: number;
+    eventId: string;
+    requiredGapMinutes?: number;
+    queueController?: QueueController;
+    isProcessing?: boolean;
+    onGapAdjustingChange?: (adjusting: boolean) => void;
+}) => {
+    const [isAdjusting, setIsAdjusting] = useState(false);
+
+    if (!gapDuration || gapDuration <= 0 || !queueController) return null;
+
+    if (gapDuration === requiredGapMinutes) return null;
+
+    const gapDeficit = (requiredGapMinutes || 0) - gapDuration;
+    const needsMore = gapDeficit > 0;
+    const isLoading = isAdjusting || isProcessing;
+
+    const handleRemoveGap = async () => {
+        setIsAdjusting(true);
+        onGapAdjustingChange?.(true);
+        queueController.removeGap(eventId);
+        setIsAdjusting(false);
+        onGapAdjustingChange?.(false);
+    };
+
+    const handleAddGap = async () => {
+        setIsAdjusting(true);
+        onGapAdjustingChange?.(true);
+        queueController.addGap(eventId);
+        setIsAdjusting(false);
+        onGapAdjustingChange?.(false);
+    };
+
+    if (!needsMore) {
+        const excess = gapDuration - (requiredGapMinutes || 0);
+        return (
+            <button
+                onClick={handleRemoveGap}
+                disabled={isLoading}
+                className={`text-xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                    isLoading
+                        ? "bg-orange-100 dark:bg-orange-900/20 text-orange-400 border-orange-200 dark:border-orange-800 opacity-50"
+                        : "bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-200 dark:hover:bg-orange-900/30"
+                }`}
+                title={`Click to remove ${getPrettyDuration(excess)}`}
+            >
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <span>+{getPrettyDuration(excess)} gap</span>}
+            </button>
+        );
+    }
+
+    return (
+        <button
+            onClick={handleAddGap}
+            disabled={isLoading}
+            className={`text-xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                isLoading
+                    ? "bg-blue-100 dark:bg-blue-900/20 text-blue-400 border-blue-200 dark:border-blue-800 opacity-50"
+                    : "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/30"
+            }`}
+            title={`Click to add gap (requires +${getPrettyDuration(gapDeficit)})`}
+        >
+            {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : `−${getPrettyDuration(gapDeficit)} overdue`}
+        </button>
+    );
+};
+
+const HeaderRow = ({
+    startTime,
+    duration,
+    statusColor,
+    location,
+    categoryEquipment,
+    capacityEquipment,
+    gap,
+    eventId,
+    queueController,
+    hasNextEvent,
+    isDeleting,
+    isProcessing,
+    onDelete,
+    onNotify,
+    onGapAdjustingChange,
+}: {
     startTime: string;
     duration: number;
     statusColor: string;
     location: string;
     categoryEquipment: string;
     capacityEquipment: number;
-    gapBefore: number;
-    meetsGapRequirement: boolean;
+    gap: { hasGap: boolean; gapDuration: number; meetsRequirement: boolean };
+    eventId: string;
+    queueController?: QueueController;
     hasNextEvent: boolean;
     isDeleting: boolean;
     isProcessing?: boolean;
     onDelete: (cascade: boolean) => void;
     onNotify: () => void;
-}
-
-interface StudentRowProps {
-    student: { id: string; firstName: string; lastName: string };
-}
-
-const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipment, capacityEquipment, gapBefore, meetsGapRequirement, hasNextEvent, isDeleting, isProcessing = false, onDelete, onNotify }: HeaderRowProps) => {
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
-    const EquipmentIcon = equipmentConfig?.icon;
-    // Use secondary blue when processing, otherwise use status color
-    const displayColor = isProcessing ? "rgb(59 130 246)" : statusColor;
-
+    onGapAdjustingChange?: (adjusting: boolean) => void;
+}) => {
     return (
         <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600 ">
             <div className={`flex items-center gap-2 relative mb-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
-                <div style={{ color: displayColor }}>
+                <div style={{ color: statusColor }}>
                     <FlagIcon className="w-8 h-8" size={34} />
                 </div>
                 <div className="flex flex-col relative mb-1">
@@ -68,16 +168,12 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                         </span>
                     </div>
                     <div className="flex items-center gap-1 absolute top-full">
-                        {EquipmentIcon && capacityEquipment > 0 && (
-                            <div className="flex items-center justify-center gap-0.5 mr-1">
-                                {Array.from({ length: capacityEquipment }).map((_, i) => (
-                                    <EquipmentIcon key={i} className="w-3 h-3 mt-1" style={{ color: equipmentConfig?.color }} />
-                                ))}
-                            </div>
-                        )}
+                        <EquipmentDisplay categoryEquipment={categoryEquipment} capacityEquipment={capacityEquipment} />
                         <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 mr-0.5" />
                         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{location}</span>
-                        {gapBefore > 0 && !meetsGapRequirement && <span className="text-xs px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-orange-700 dark:text-orange-400 whitespace-nowrap">gap: {getPrettyDuration(gapBefore)}</span>}
+                        {gap.hasGap && (
+                            <GapWarning gapDuration={gap.gapDuration} eventId={eventId} requiredGapMinutes={queueController?.getSettings().gapMinutes} queueController={queueController} isProcessing={isProcessing} onGapAdjustingChange={onGapAdjustingChange} />
+                        )}
                     </div>
                 </div>
 
@@ -90,7 +186,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                         <div className="p-1">
                             <Menu.Item>
                                 {({ active }) => (
-                                    <button onClick={onNotify} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
+                                    <button onClick={onNotify} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
                                         <Bell className="w-4 h-4" />
                                         Notify
                                     </button>
@@ -104,7 +200,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                                             <button
                                                 onClick={() => onDelete(true)}
                                                 disabled={isDeleting}
-                                                className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
+                                                className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                                 {isDeleting ? "Deleting..." : "Delete & Shift Queue"}
@@ -116,7 +212,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                                             <button
                                                 onClick={() => onDelete(false)}
                                                 disabled={isDeleting}
-                                                className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                                className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                                 {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
@@ -130,7 +226,7 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
                                         <button
                                             onClick={() => onDelete(false)}
                                             disabled={isDeleting}
-                                            className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                            className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
                                         >
                                             <Trash2 className="w-4 h-4" />
                                             {isDeleting ? "Deleting..." : "Delete Event"}
@@ -146,17 +242,13 @@ const HeaderRow = ({ startTime, duration, statusColor, location, categoryEquipme
     );
 };
 
-const StudentRow = ({ student }: StudentRowProps) => {
+const StudentRow = ({ student }: { student: { id: string; firstName: string; lastName: string } }) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     if (!studentEntity) return null;
 
-    const StudentIcon = studentEntity.icon;
-
     return (
         <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
-            <div style={{ color: studentEntity.color }}>
-                <StudentIcon className="w-8 h-8" />
-            </div>
+            <div style={{ color: studentEntity.color }}>{studentEntity.icon && <studentEntity.icon className="w-8 h-8" />}</div>
             <div className="flex-1">
                 <HoverToEntity entity={studentEntity} id={student.id}>
                     <span className="text-base font-medium whitespace-nowrap">
@@ -168,9 +260,11 @@ const StudentRow = ({ student }: StudentRowProps) => {
     );
 };
 
-export default function EventCard({ event, queue, hasNextEvent = false, isProcessing = false, requiredGapMinutes = 0, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
+export default function EventCard({ event, queue, queueController, hasNextEvent = false, isProcessing = false, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isGapAdjusting, setIsGapAdjusting] = useState(false);
 
+    const eventId = event.eventData.id || event.id;
     const startTime = getTimeFromISO(event.eventData.date);
     const duration = event.eventData.duration;
     const students = event.studentData || [];
@@ -178,30 +272,10 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
     const location = event.eventData.location;
     const categoryEquipment = event.packageData?.categoryEquipment || "";
     const capacityEquipment = event.packageData?.capacityEquipment || 0;
-    const eventId = event.eventData.id || event.id;
     const statusColor = getEventStatusColor(status);
 
-    // Calculate gap before this event (from previous event)
-    const calculateGapBefore = () => {
-        if (!queue) return 0;
-
-        const allEvents = queue.getAllEvents();
-        const currentIndex = allEvents.findIndex((e: any) => e.eventData.id === eventId);
-
-        if (currentIndex <= 0) return 0;
-
-        const previousEvent = allEvents[currentIndex - 1];
-        const previousEndTime = new Date(previousEvent.eventData.date);
-        previousEndTime.setMinutes(previousEndTime.getMinutes() + previousEvent.eventData.duration);
-
-        const currentStartTime = new Date(event.eventData.date);
-        const gapMinutes = Math.floor((currentStartTime.getTime() - previousEndTime.getTime()) / (1000 * 60));
-
-        return Math.max(0, gapMinutes);
-    };
-
-    const gapBefore = calculateGapBefore();
-    const meetsGapRequirement = gapBefore >= requiredGapMinutes;
+    const gap = queueController?.getEventModCardProps(eventId)?.gap || { hasGap: false, gapDuration: 0, meetsRequirement: true };
+    const isLoading = isDeleting || isGapAdjusting;
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
@@ -209,34 +283,22 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
         setIsDeleting(true);
         try {
             if (cascade && onDeleteWithCascade && queue) {
-                // Store duration to shift as const for clarity
-                const DURATION_TO_SHIFT = duration;
-
-                console.log(`🔄 [EventCard] Cascade delete: shifting subsequent events backward by ${DURATION_TO_SHIFT} minutes to fill gap`);
-
-                // Find all subsequent event IDs from the queue
                 const allEvents = queue.getAllEvents();
                 const currentEventIndex = allEvents.findIndex((e: any) => e.eventData.id === eventId);
 
                 if (currentEventIndex !== -1) {
-                    // Get all events after the current one
                     const subsequentEventIds = allEvents
                         .slice(currentEventIndex + 1)
                         .map((e: any) => e.eventData.id)
-                        .filter((id: string) => id); // Only include events that exist in DB
+                        .filter((id: string) => id);
 
-                    console.log(`📋 Found ${subsequentEventIds.length} subsequent events to shift`);
-
-                    // Call the cascade delete handler
-                    await onDeleteWithCascade(eventId, DURATION_TO_SHIFT, subsequentEventIds);
+                    await onDeleteWithCascade(eventId, duration, subsequentEventIds);
                     onDeleteComplete?.();
                     return;
                 }
             }
 
-            // Standard delete (without cascade)
             const result = await deleteClassboardEvent(eventId);
-
             if (!result.success) {
                 console.error("Delete failed:", result.error);
                 setIsDeleting(false);
@@ -253,7 +315,6 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
     const handleNotify = () => {
         const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
         const message = `Event Details:\nTime: ${startTime}\nDuration: ${getPrettyDuration(duration)}\nLocation: ${location}\nStudents: ${studentNames}\nStatus: ${status}`;
-
         console.log("📢 Notify Event:\n", message);
         alert(message);
     };
@@ -267,17 +328,20 @@ export default function EventCard({ event, queue, hasNextEvent = false, isProces
                 location={location}
                 categoryEquipment={categoryEquipment}
                 capacityEquipment={capacityEquipment}
-                gapBefore={gapBefore}
-                meetsGapRequirement={meetsGapRequirement}
+                gap={gap}
+                eventId={eventId}
+                queueController={queueController}
                 hasNextEvent={hasNextEvent}
                 isDeleting={isDeleting}
+                isProcessing={isProcessing}
                 onDelete={handleDelete}
                 onNotify={handleNotify}
+                onGapAdjustingChange={setIsGapAdjusting}
             />
 
             {students.length > 0 ? students.map((student, index) => <StudentRow key={student.id || index} student={student} />) : <div className={`${ROW_MARGIN} ${ROW_PADDING} text-sm text-muted-foreground`}>No students</div>}
 
-            {isProcessing && (
+            {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/50 dark:bg-card/50 rounded-lg">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
