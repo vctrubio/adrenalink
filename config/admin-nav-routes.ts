@@ -1,8 +1,6 @@
-import { MessageSquare, BarChart3 } from "lucide-react";
+import { MessageSquare, BarChart3, FormInputIcon, PartyPopperIcon } from "lucide-react";
 import { ENTITY_DATA } from "./entities";
 import AdranlinkIcon from "../public/appSvgs/AdranlinkIcon.jsx";
-import AdminIcon from "../public/appSvgs/AdminIcon.jsx";
-import TransactionIcon from "../public/appSvgs/TransactionIcon.jsx";
 import HelmetIcon from "../public/appSvgs/HelmetIcon.jsx";
 import SubscriptionIcon from "../public/appSvgs/SubscriptionIcon.jsx";
 import A2Icon from "../public/appSvgs/A2Icon.jsx";
@@ -11,14 +9,19 @@ export type AdminNavRoute = {
     name: string;
     href: string;
     icon: React.ComponentType<{ className?: string; size?: number }>;
-    children?: AdminNavRoute[];
     count?: number;
     color?: string;
 };
 
-export type AdminNavSection = {
-    section: "head" | "middle" | "toes";
+export type AdminNavGroup = {
+    groupLabel: string;
     routes: AdminNavRoute[];
+};
+
+export type AdminNavSection = {
+    section: "main" | "groups" | "settings" | "support";
+    routes?: AdminNavRoute[]; // For main section (no group label)
+    groups?: AdminNavGroup[]; // For grouped sections
 };
 
 const getEntityByIds = (ids: string[]) => {
@@ -31,55 +34,78 @@ const getEntityByIds = (ids: string[]) => {
 };
 
 export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
+    // MAIN - Domain and Check-in
     {
-        section: "head",
+        section: "main",
         routes: [
             {
                 name: "Domain",
-                href: "/domain", // get school icon: from headers if posisble 
+                href: "/domain",
                 icon: AdranlinkIcon,
             },
+            { name: "Check-in", href: "/register", icon: FormInputIcon },
+        ],
+    },
+    // OPERATIONS - Classboard and Stats
+    {
+        section: "groups",
+        groups: [
             {
-                name: "Classboard",
-                href: "/classboard",
-                icon: A2Icon,
+                groupLabel: "OPERATIONS",
+                routes: [
+                    {
+                        name: "Classboard",
+                        href: "/classboard",
+                        icon: A2Icon,
+                    },
+                    {
+                        name: "Stats",
+                        href: "/stats",
+                        icon: BarChart3,
+                    },
+                ],
             },
+            // TABLES - Entity management
             {
-                name: "Stats",
-                href: "/stats",
-                icon: BarChart3,
+                groupLabel: "TABLES",
+                routes: getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage", "rental", "studentPackage", "referral"]),
             },
         ],
     },
+    // SETTINGS - Subscription and Users
     {
-        section: "middle",
-        routes: [
+        section: "settings",
+        groups: [
             {
-                name: "School",
-                href: "#",
-                icon: AdminIcon,
-                children: [...getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage", "rental", "studentPackage", "referral"])],
+                groupLabel: "SETTINGS",
+                routes: [
+                    {
+                        name: "Subscription",
+                        href: "/subscription",
+                        icon: SubscriptionIcon,
+                    },
+                    {
+                        name: "Invitations",
+                        href: "/invitations",
+                        icon: PartyPopperIcon,
+                    },
+                ],
             },
-            // {
-            //     name: "Transaction",
-            //     href: "#",
-            //     icon: TransactionIcon,
-            //     children: [...getEntityByIds(["studentPackage", "rental", "referral", "payment"])],
-            // },
         ],
     },
+    // SUPPORT - Feedback
     {
-        section: "toes",
-        routes: [
+        section: "support",
+        groups: [
             {
-                name: "Subscription",
-                href: "/subscription",
-                icon: SubscriptionIcon,
-            },
-            {
-                name: "Feedback",
-                href: "/feedback",
-                icon: MessageSquare,
+                groupLabel: "SUPPORT",
+                routes: [
+                    {
+                        name: "Feedback",
+                        href: "/feedback",
+                        icon: MessageSquare,
+                    },
+                ],
             },
         ],
     },
