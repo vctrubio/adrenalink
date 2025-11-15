@@ -1,37 +1,84 @@
 "use client";
 
 import { ADMIN_NAV_SECTIONS } from "../../../config/admin-nav-routes";
-import { AdminSidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarSubmenu, SidebarFooter } from "./sidebar";
+import { AdminSidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, useSidebar } from "./sidebar";
 import { WindToggle } from "../themes/WindToggle";
+
 interface AdminSideBarProps {
     schoolName?: string | null;
+}
+
+function AdminSideBarContent({ schoolName }: AdminSideBarProps) {
+    const { collapsed } = useSidebar();
+
+    return (
+        <>
+            <SidebarHeader schoolName={schoolName} />
+            <SidebarMenu>
+                {ADMIN_NAV_SECTIONS.map((section) => {
+                    // MAIN section - Direct routes without grouping
+                    if (section.section === "main" && section.routes) {
+                        return (
+                            <div key={section.section}>
+                                {section.routes.map((route) => (
+                                    <SidebarMenuItem
+                                        key={route.href}
+                                        href={route.href}
+                                        icon={route.icon}
+                                        label={route.name}
+                                        count={route.count}
+                                    />
+                                ))}
+                            </div>
+                        );
+                    }
+
+                    // GROUPED sections - Operations, Tables, Settings, Support
+                    if (section.section !== "main" && section.groups) {
+                        return (
+                            <div key={section.section}>
+                                {section.groups.map((group) => (
+                                    <div key={group.groupLabel} className="py-2">
+                                        {collapsed ? (
+                                            // Show separator when collapsed
+                                            <div className="h-px bg-border/30 my-2" />
+                                        ) : (
+                                            // Show header when expanded
+                                            <h3 className="px-3 py-1 text-xs font-semibold text-foreground/70 uppercase tracking-wider">
+                                                {group.groupLabel}
+                                            </h3>
+                                        )}
+                                        <ul className="space-y-0.5">
+                                            {group.routes.map((route) => (
+                                                <SidebarMenuItem
+                                                    key={route.href}
+                                                    href={route.href}
+                                                    icon={route.icon}
+                                                    label={route.name}
+                                                    count={route.count}
+                                                    iconColor={route.color}
+                                                />
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    }
+
+                    return null;
+                })}
+            </SidebarMenu>
+            <WindToggle />
+            {/* <SidebarFooter /> */}
+        </>
+    );
 }
 
 export function AdminSideBar({ schoolName }: AdminSideBarProps) {
     return (
         <AdminSidebar>
-            <SidebarHeader schoolName={schoolName} />
-            <SidebarMenu>
-                {ADMIN_NAV_SECTIONS.map((section) => (
-                    <div key={section.section}>
-                        {section.routes.map((route) => {
-                            if (route.children) {
-                                return (
-                                    <SidebarSubmenu key={route.name} label={route.name} icon={route.icon} iconColor={route.color}>
-                                        {route.children.map((child) => (
-                                            <SidebarMenuItem key={child.href} href={child.href} icon={child.icon} label={child.name} count={child.count} iconColor={child.color} />
-                                        ))}
-                                    </SidebarSubmenu>
-                                );
-                            }
-
-                            return <SidebarMenuItem key={route.href} href={route.href} icon={route.icon} label={route.name} count={route.count} />;
-                        })}
-                    </div>
-                ))}
-            </SidebarMenu>
-            <WindToggle />
-            {/* <SidebarFooter /> */}
+            <AdminSideBarContent schoolName={schoolName} />
         </AdminSidebar>
     );
 }
