@@ -19,7 +19,7 @@ interface StatsWithBulkProps {
 export default function StatsWithBulk({ stats, teacherQueues }: StatsWithBulkProps) {
     // Collect all event IDs from teacher queues
     const allEvents = teacherQueues.flatMap((queue) => queue.getAllEvents());
-    const allEventIds = allEvents.map((e) => e.eventData.id).filter((id): id is string => id !== null);
+    const allEventIds = allEvents.map((e) => e.id).filter((id): id is string => id !== null);
 
     const eventsByStatus = {
         planned: allEvents.filter((e) => e.eventData.status === "planned"),
@@ -56,7 +56,7 @@ export default function StatsWithBulk({ stats, teacherQueues }: StatsWithBulkPro
                     }
                     break;
                 case "delete-uncompleted":
-                    const uncompletedIds = eventsByStatus.uncompleted.map((e) => e.eventData.id).filter((id): id is string => id !== null);
+                    const uncompletedIds = eventsByStatus.uncompleted.map((e) => e.id).filter((id): id is string => id !== null);
                     const deleteUncompletedResult = await deleteUncompletedClassboardEvents(uncompletedIds);
                     if (deleteUncompletedResult.success) {
                         console.log(`✅ Deleted ${deleteUncompletedResult.data.deletedCount} uncompleted events`);

@@ -5,7 +5,7 @@ import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
 import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
-import { batchUpdateClassboardEvents } from "@/actions/classboard-action";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
@@ -107,18 +107,35 @@ function TeacherColumn({
 
     const handleSubmit = async () => {
         try {
-            // Build array of event updates
+            // Only submit events that have actually changed
             const updates = events
-                .filter((event) => event.eventData.id) // Only include events that exist in DB
+                .filter((event) => event.id) // Only include events that exist in DB
+                .filter((currentEvent) => {
+                    // Find the original version of this event
+                    const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
+                    if (!originalEvent) return true; // New event, include it
+
+                    // Check if date or duration changed
+                    const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+                    const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+
+                    return dateChanged || durationChanged;
+                })
                 .map((event) => ({
-                    id: event.eventData.id!,
+                    id: event.id,
                     date: event.eventData.date,
                     duration: event.eventData.duration,
                 }));
 
             if (updates.length > 0) {
-                console.log(`📤 Submitting ${updates.length} event updates for ${queue.teacher.username}`);
-                const result = await batchUpdateClassboardEvents(updates);
+                console.log(`📤 Submitting ${updates.length} changed event updates for ${queue.teacher.username}`, {
+                    changes: updates.map(u => ({
+                        id: u.id,
+                        newDate: u.date,
+                        newDuration: u.duration,
+                    })),
+                });
+                const result = await bulkUpdateClassboardEvents(updates);
 
                 if (!result.success) {
                     console.error("Failed to update events:", result.error);
@@ -126,6 +143,8 @@ function TeacherColumn({
                 }
 
                 console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
+            } else {
+                console.log(`ℹ️ No events were changed, skipping submission`);
             }
 
             // Clear original state and exit edit mode

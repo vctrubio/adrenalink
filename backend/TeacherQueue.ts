@@ -8,10 +8,6 @@ import type { EventNode, TeacherInfo, ControllerSettings } from "@/types/classbo
 
 export { type EventNode, type TeacherInfo, type ControllerSettings } from "@/types/classboard-teacher-queue";
 
-export function getStudentCount(eventNode: EventNode): number {
-    return eventNode.studentData.length;
-}
-
 export class TeacherQueue {
     private head: EventNode | null = null;
     public teacher: TeacherInfo;
@@ -22,40 +18,26 @@ export class TeacherQueue {
 
     // ============ QUEUE OPERATIONS ============
 
-    addToQueue(eventNode: EventNode): void {
-        if (!this.head) {
-            this.head = eventNode;
-        } else {
-            let current = this.head;
-            while (current.next) {
-                current = current.next;
-            }
-            current.next = eventNode;
-        }
-    }
-
     /**
-     * Insert event in chronological order
-     * Places event at head if before first event with sufficient gap, otherwise finds correct position
+     * Insert event in chronological order by start time
      */
     addToQueueInChronologicalOrder(eventNode: EventNode, gapMinutes: number = 0): void {
         const eventStartMinutes = this.getStartTimeMinutes(eventNode);
-        const eventEndMinutes = eventStartMinutes + eventNode.eventData.duration;
 
         if (!this.head) {
             this.head = eventNode;
             return;
         }
 
+        // Check if event should be at head (before first event chronologically)
         const firstEventStartMinutes = this.getStartTimeMinutes(this.head);
         if (eventStartMinutes < firstEventStartMinutes) {
-            if (firstEventStartMinutes - eventEndMinutes >= gapMinutes) {
-                eventNode.next = this.head;
-                this.head = eventNode;
-                return;
-            }
+            eventNode.next = this.head;
+            this.head = eventNode;
+            return;
         }
 
+        // Find correct position in chronological order
         let current = this.head;
         while (current.next) {
             const nextEventStartMinutes = this.getStartTimeMinutes(current.next);
@@ -67,6 +49,7 @@ export class TeacherQueue {
             current = current.next;
         }
 
+        // Add at end
         current.next = eventNode;
     }
 
@@ -82,13 +65,20 @@ export class TeacherQueue {
 
     /**
      * Rebuild the linked list from an array of events
-     * Used when events are reordered (e.g., move up/down operations)
      */
     rebuildQueue(events: EventNode[]): void {
         this.head = null;
         events.forEach((event) => {
             event.next = null;
-            this.addToQueue(event);
+            if (!this.head) {
+                this.head = event;
+            } else {
+                let current = this.head;
+                while (current.next) {
+                    current = current.next;
+                }
+                current.next = event;
+            }
         });
     }
 

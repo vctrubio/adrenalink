@@ -59,6 +59,25 @@ export function useAdminClassboardEventListener({ schoolId, onEventDetected }: A
                 .on(
                     "postgres_changes",
                     {
+                        event: "UPDATE",
+                        schema: "public",
+                        table: "event",
+                        filter: `school_id=eq.${schoolId}`,
+                    },
+                    (payload) => {
+                        console.log("[EVENT-LISTENER] ✏️ UPDATE event received", {
+                            eventId: payload.new?.id,
+                            oldDate: payload.old?.date,
+                            newDate: payload.new?.date,
+                            oldDuration: payload.old?.duration,
+                            newDuration: payload.new?.duration,
+                        });
+                        handleEventChange(payload);
+                    },
+                )
+                .on(
+                    "postgres_changes",
+                    {
                         event: "DELETE",
                         schema: "public",
                         table: "event",

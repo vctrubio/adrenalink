@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, AlertTriangle, ArrowUp, ArrowDown, MapPin } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
@@ -11,6 +11,7 @@ import { showEntityToast } from "@/getters/toast-getter";
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
+import EventGapDetection from "./EventGapDetection";
 
 interface EventModCardProps {
     eventId: string;
@@ -32,14 +33,13 @@ const StudentGrid = ({ students }: { students: any[] }) => {
 
 const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController }) => {
     const [isDeleting, setIsDeleting] = useState(false);
-    const databaseEventId = event.eventData.id;
 
     const handleDelete = async () => {
-        if (!databaseEventId || isDeleting) return;
+        if (!eventId || isDeleting) return;
 
         setIsDeleting(true);
         try {
-            const result = await deleteClassboardEvent(databaseEventId, false);
+            const result = await deleteClassboardEvent(eventId);
 
             if (!result.success) {
                 console.error("Delete failed:", result.error);
@@ -117,8 +117,8 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
             </div>
             <div className="flex items-center gap-2 justify-end">
                 <div className="flex flex-col text-center">
-                    <div className="text-base font-semibold text-green-600 dark:text-green-400">{startTime}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{endTime}</div>
+                    <div className="text-lg font-semibold text-green-600 dark:text-green-400">{startTime}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{endTime}</div>
                 </div>
             </div>
         </div>
@@ -135,68 +135,24 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     return (
         <div className="flex gap-2 justify-center w-16 min-w-[4rem]">
             <div className="flex flex-col">
-                <button onClick={() => handleDurationAdjustment(true)} className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="30 minutes more">
-                    <ChevronUp className="w-4 h-4" />
+                <button onClick={() => handleDurationAdjustment(true)} className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-center" title="30 minutes more">
+                    <ChevronUp className="w-4 h-4 mx-auto" />
                 </button>
                 <div className="text-base font-semibold text-gray-900 dark:text-white my-1">+{getPrettyDuration(duration)}</div>
                 <button
                     onClick={() => handleDurationAdjustment(false)}
                     disabled={duration <= 60}
-                    className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
                     title="30 minutes less (minimum 60 minutes)"
                 >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-4 h-4 mx-auto" />
                 </button>
             </div>
         </div>
     );
 };
 
-const GapWarning = ({ gapDuration, eventId, requiredGapMinutes, queueController }: { gapDuration: number; eventId: string; requiredGapMinutes?: number; queueController: QueueController }) => {
-    if (!gapDuration || gapDuration <= 0) return null;
-
-    // Don't show if gap exactly equals requirement (no offset needed)
-    if (gapDuration === requiredGapMinutes) return null;
-
-    const gapDeficit = (requiredGapMinutes || 0) - gapDuration;
-    const needsMore = gapDeficit > 0;
-
-    if (!needsMore) {
-        // Gap is more than required - show blue button to remove gap
-        const excess = gapDuration - (requiredGapMinutes || 0);
-        return (
-            <button
-                onClick={() => queueController.removeGap(eventId)}
-                className="flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer w-full"
-                title={`Click to remove ${getPrettyDuration(excess)}`}
-            >
-                <span className="flex-1">
-                    {getPrettyDuration(gapDuration)} gap (requires {requiredGapMinutes}min) — RESPECTING GAP
-                    <span className="block text-xs opacity-75">−{getPrettyDuration(excess)} excess</span>
-                </span>
-            </button>
-        );
-    }
-
-    // Gap is less than required - show orange warning to add gap
-    const title = `Click to add gap (requires +${getPrettyDuration(gapDeficit)})`;
-
-    return (
-        <button
-            onClick={() => queueController.addGap(eventId)}
-            className="flex items-center justify-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded border border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:border-orange-300 dark:hover:border-orange-700 transition-colors cursor-pointer w-full"
-            title={title}
-        >
-            <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-            <span className="flex-1">
-                {getPrettyDuration(gapDuration)} gap (requires {requiredGapMinutes}min) — NOT RESPECTING GAP
-                <span className="block text-xs opacity-75">+{getPrettyDuration(gapDeficit)} needed</span>
-            </span>
-        </button>
-    );
-};
-
-const LocationDropdown = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
+const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleLocationSelect = async (location: string) => {
@@ -205,64 +161,74 @@ const LocationDropdown = ({ eventId, currentLocation, queueController }: { event
     };
 
     return (
-        <div className="relative inline-block">
-            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-1 px-2 py-1 rounded hover:bg-muted/50 transition-colors" title="Change location">
-                <MapPin className="w-3 h-3" />
-                <span className="text-xs font-medium">{currentLocation}</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
+        <div className="flex-grow min-w-0 flex justify-center">
+            <div className="relative">
+                <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-muted/50 transition-colors" title="Change location">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm font-medium">{currentLocation}</span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
 
-            {isOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 min-w-[140px]">
-                    {LOCATION_OPTIONS.map((location) => (
-                        <button key={location} onClick={() => handleLocationSelect(location)} className={`w-full text-left px-3 py-2 text-xs transition-colors ${location === currentLocation ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"}`}>
-                            {location}
-                        </button>
-                    ))}
-                </div>
-            )}
+                {isOpen && (
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background border border-border rounded-md shadow-lg z-50 min-w-[140px]">
+                        {LOCATION_OPTIONS.map((location) => (
+                            <button key={location} onClick={() => handleLocationSelect(location)} className={`w-full text-left px-3 py-2 text-xs transition-colors ${location === currentLocation ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"}`}>
+                                {location}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
-const PackageInfo = ({ location, durationMinutes, eventDuration, eventId, queueController }: { eventId: string; location: string; durationMinutes: number; eventDuration: number; queueController: QueueController }) => {
+const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinutes: number; eventDuration: number }) => {
     const remainingMinutes = durationMinutes - eventDuration;
 
     return (
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-2">
-            <LocationDropdown eventId={eventId} currentLocation={location} queueController={queueController} />
-            <span>•</span>
-            <span className={remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400 font-medium" : ""}>
-                {getPrettyDuration(Math.abs(remainingMinutes))} {remainingMinutes < 0 ? "over limit" : "remaining"}
-            </span>
-            {remainingMinutes < 0 && <AlertTriangle className="w-3 h-3 text-orange-600 dark:text-orange-400" />}
+        <div className="flex gap-2 justify-center w-16 min-w-[4rem]">
+            <div className="flex flex-col text-center">
+                <span className={`text-base font-semibold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{getPrettyDuration(Math.abs(remainingMinutes))}</span>
+                <span className={`text-xs ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-gray-600 dark:text-gray-400"}`}>{remainingMinutes < 0 ? "over limit" : "remaining"}</span>
+            </div>
         </div>
     );
 };
 
 export default function EventModCard({ eventId, queueController }: EventModCardProps) {
+    const [refreshKey, setRefreshKey] = useState(0);
+
     const cardProps = queueController.getEventModCardProps(eventId);
 
     // Return early if invalid eventId or can't get props
     if (!cardProps || !eventId) {
-        console.log(`[EventModCard] Event ${eventId} not found in queue - event was deleted`);
-        return null;
+            return null;
     }
 
-    console.log(`[EventModCard] Rendering event: ${eventId}`);
 
-    const { event, gap, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
+    const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
+
+    const handleRefresh = useCallback(() => {
+        setRefreshKey((prev) => prev + 1);
+    }, []);
     const students = event.studentData || [];
     const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 
-    const getBgColor = () => {
-        if (!gap.hasGap || isFirst) return "bg-background dark:bg-card border-border";
-        if (gap.meetsRequirement) return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
-        return "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
-    };
+    // Get previous event for gap detection
+    let previousEvent: EventNode | undefined;
+    const queue = queueController.getQueue();
+    if (queue && eventId) {
+        const allEvents = queue.getAllEvents();
+        const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
+        if (currentEventIndex > 0) {
+            previousEvent = allEvents[currentEventIndex - 1];
+        }
+    }
 
     return (
-        <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${!gap.hasGap || isFirst ? "" : getBgColor()}`}>
+        <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative`}>
+            {/* Student Names and Queue Controls */}
             <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <StudentGrid students={students} />
                 <div className="flex-1 overflow-x-auto">
@@ -271,21 +237,37 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
                 <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
             </div>
 
+            {/* Time and Duration Controls (Row 1) */}
             <div className={`flex gap-4 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
                 <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
                 <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
             </div>
 
-            <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                <PackageInfo eventId={eventId} location={event.eventData.location} durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} queueController={queueController} />
+            {/* Location and Gap Detection + Remaining Time (Row 2 - aligned below) */}
+            <div className={`flex gap-6 items-center ${ROW_MARGIN} ${ROW_PADDING}`}>
+                <div className="flex-grow" />
+                <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
+                {!isFirst && previousEvent && (
+                    <EventGapDetection
+                        currentEvent={event}
+                        previousEvent={previousEvent}
+                        requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
+                        updateMode="updateOnSave"
+                        onGapAdjust={(callback) => {
+                            callback();
+                            queueController.addGap(eventId);
+                            handleRefresh();
+                        }}
+                    />
+                )}
+                <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
             </div>
 
-            {!isFirst && gap.hasGap && (
-                <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                    <GapWarning gapDuration={gap.gapDuration} eventId={eventId} requiredGapMinutes={queueController.getSettings().gapMinutes} queueController={queueController} />
-                </div>
-            )}
+            {/* Location on its own row */}
+            <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
+                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
+            </div>
         </div>
     );
 }

@@ -29,7 +29,23 @@ export default function TeacherEventQueue({
     const events = queue.getAllEvents();
     const [processingEventId, setProcessingEventId] = useState<string | null>(null);
 
-    // Create QueueController for gap calculations (like EventModCard)
+    // Debug: Log queue details
+    console.log(`📋 [TeacherEventQueue] Teacher: ${queue.teacher.name} (${queue.teacher.username})`, {
+        totalEvents: events.length,
+        events: events.map((e, idx) => ({
+            index: idx,
+            id: e.id,
+            time: e.eventData.date,
+            duration: e.eventData.duration,
+            startMinutes: parseInt(e.eventData.date.split("T")[1]?.split(":")[0] || "0") * 60 + parseInt(e.eventData.date.split("T")[1]?.split(":")[1] || "0"),
+            location: e.eventData.location,
+            status: e.eventData.status,
+            students: e.studentData.length,
+            next: e.next ? "has next" : "no next",
+        })),
+    });
+
+    // Create QueueController for gap calculations
     const queueController = useMemo(
         () => new QueueController(queue, controller, () => {}),
         [queue, controller]
@@ -81,7 +97,25 @@ export default function TeacherEventQueue({
         }
     };
     return (
-        <div className="flex flex-col gap-3 flex-1" onDragOver={onDragOver} onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDrop={onDrop}>
+        <div
+            className="flex flex-col gap-3 flex-1 pointer-events-auto"
+            onDragOver={(e) => {
+                e.stopPropagation();
+                onDragOver?.(e);
+            }}
+            onDragEnter={(e) => {
+                e.stopPropagation();
+                onDragEnter?.(e);
+            }}
+            onDragLeave={(e) => {
+                e.stopPropagation();
+                onDragLeave?.(e);
+            }}
+            onDrop={(e) => {
+                e.stopPropagation();
+                onDrop?.(e);
+            }}
+        >
             {events.length > 0 ? (
                 events.map((event, index) => {
                     const isProcessing = processingEventId === event.id;

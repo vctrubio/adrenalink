@@ -23,12 +23,11 @@ export interface PackageData {
 }
 
 export interface EventNode {
-    id: string | null;
+    id: string;
     lessonId: string;
     bookingId: string;
     commission: CommissionInfo;
     eventData: {
-        id?: string;
         date: string;
         duration: number;
         location: string;

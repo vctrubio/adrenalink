@@ -193,17 +193,23 @@ export function useClassboard(initialData: ClassboardModel) {
                 const teacherName = `${lesson.teacher.firstName} ${lesson.teacher.lastName}`;
 
                 if (!teacherMap.has(teacherUsername)) {
-                    const queue = new TeacherQueue({ username: teacherUsername, name: teacherName }, selectedDate);
+                    const queue = new TeacherQueue({ username: teacherUsername, name: teacherName });
                     teacherMap.set(teacherUsername, queue);
                 }
 
                 const queue = teacherMap.get(teacherUsername)!;
 
-                // Sort events by date before adding to queue (earliest first = head of queue)
-                const sortedEvents = [...lesson.events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                // Collect all events for this date
+                const eventsForDate: EventNode[] = [];
 
-                sortedEvents.forEach((event) => {
-                    const eventDate = new Date(event.date).toISOString().split("T")[0];
+                lesson.events.forEach((event) => {
+                    // Convert UTC to local timezone and extract date (YYYY-MM-DD)
+                    const eventDateObj = new Date(event.date);
+                    const year = eventDateObj.getFullYear();
+                    const month = String(eventDateObj.getMonth() + 1).padStart(2, "0");
+                    const day = String(eventDateObj.getDate()).padStart(2, "0");
+                    const eventDate = `${year}-${month}-${day}`;
+
                     if (eventDate === selectedDate) {
                         const studentData = booking.bookingStudents.map((bs) => ({
                             id: bs.student.id,
@@ -223,7 +229,6 @@ export function useClassboard(initialData: ClassboardModel) {
                                 cph: parseFloat(lesson.commission.cph),
                             },
                             eventData: {
-                                id: event.id,
                                 date: event.date,
                                 duration: event.duration,
                                 location: event.location || "",
@@ -240,8 +245,14 @@ export function useClassboard(initialData: ClassboardModel) {
                             next: null,
                         };
 
-                        queue.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
+                        eventsForDate.push(eventNode);
                     }
+                });
+
+                // Sort events by date and rebuild queue to ensure chronological order
+                eventsForDate.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
+                eventsForDate.forEach((eventNode) => {
+                    queue.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
                 });
             });
         });

@@ -272,40 +272,6 @@ export async function deleteClassboardEvent(eventId: string): Promise<ApiActionR
     }
 }
 
-interface EventUpdate {
-    id: string;
-    date: string;
-    duration: number;
-}
-
-export async function batchUpdateClassboardEvents(updates: EventUpdate[]): Promise<ApiActionResponseModel<{ success: boolean; updatedCount: number }>> {
-    try {
-        console.log(`📝 [classboard-action] Batch updating ${updates.length} events`);
-
-        // Update each event
-        let updatedCount = 0;
-        for (const update of updates) {
-            await db
-                .update(event)
-                .set({
-                    date: new Date(update.date),
-                    duration: update.duration,
-                })
-                .where(eq(event.id, update.id));
-            updatedCount++;
-        }
-
-        console.log(`✅ [classboard-action] Batch update complete: ${updatedCount} events updated`);
-
-        // No revalidatePath needed - real-time listener handles updates
-
-        return { success: true, data: { success: true, updatedCount } };
-    } catch (error) {
-        console.error("❌ [classboard-action] Error batch updating events:", error);
-        return { success: false, error: `Failed to batch update events: ${error instanceof Error ? error.message : String(error)}` };
-    }
-}
-
 export async function updateClassboardEventLocation(eventId: string, location: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
         console.log(`📍 [classboard-action] Updating event ${eventId} location to ${location}`);
@@ -322,5 +288,27 @@ export async function updateClassboardEventLocation(eventId: string, location: s
     } catch (error) {
         console.error("❌ [classboard-action] Error updating event location:", error);
         return { success: false, error: `Failed to update event location: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
+
+/**
+ * Update event start time (used by EventCard for immediate gap corrections)
+ */
+export async function updateEventStartTime(eventId: string, newDate: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
+    try {
+        console.log(`⏰ [classboard-action] Updating event ${eventId} start time to ${newDate}`);
+
+        const result = await db.update(event).set({ date: new Date(newDate) }).where(eq(event.id, eventId)).returning();
+
+        if (!result || result.length === 0) {
+            return { success: false, error: "Event not found" };
+        }
+
+        console.log(`✅ [classboard-action] Event start time updated: ${eventId} -> ${newDate}`);
+
+        return { success: true, data: { success: true } };
+    } catch (error) {
+        console.error("❌ [classboard-action] Error updating event start time:", error);
+        return { success: false, error: `Failed to update event start time: ${error instanceof Error ? error.message : String(error)}` };
     }
 }

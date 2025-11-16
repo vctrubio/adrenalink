@@ -19,18 +19,12 @@ export class QueueController {
 
     /**
      * Get complete card props - all info needed to render EventModCard
-     * Searches by queue node ID first, falls back to database event ID
      */
     getEventModCardProps(eventId: string | null) {
         if (!eventId) return null;
 
         const events = this.queue.getAllEvents();
-        let index = events.findIndex((e) => e.id === eventId);
-
-        // Fallback: search by database event ID if queue node ID not found
-        if (index === -1) {
-            index = events.findIndex((e) => e.eventData.id === eventId);
-        }
+        const index = events.findIndex((e) => e.id === eventId);
 
         if (index === -1) return null;
 
@@ -86,22 +80,6 @@ export class QueueController {
         const event = this.queue.getAllEvents().find((e) => e.id === eventId);
         if (!event) return false;
         return getMinutesFromISO(event.eventData.date) < 1380;
-    }
-
-    /**
-     * Check if event is first in queue
-     */
-    isFirst(eventId: string): boolean {
-        const events = this.queue.getAllEvents();
-        return events.length > 0 && events[0].id === eventId;
-    }
-
-    /**
-     * Check if event is last in queue
-     */
-    isLast(eventId: string): boolean {
-        const events = this.queue.getAllEvents();
-        return events.length > 0 && events[events.length - 1].id === eventId;
     }
 
     /**
@@ -278,17 +256,14 @@ export class QueueController {
     }
 
     /**
-     * Get read-only access to underlying queue
-     */
-    getQueue(): TeacherQueue {
-        return this.queue;
-    }
-
-    /**
-     * Get read-only access to controller settings
+     * Get controller settings (for gap requirement calculations)
      */
     getSettings(): ControllerSettings {
         return this.settings;
+    }
+
+    getQueue(): TeacherQueue {
+        return this.queue;
     }
 
     // ============ PRIVATE HELPERS ============
