@@ -79,11 +79,7 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
                     {hasNextEvent && (
                         <Menu.Item>
                             {({ active }) => (
-                                <button
-                                    onClick={() => onDelete(false)}
-                                    disabled={isDeleting}
-                                    className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
-                                >
+                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}>
                                     <Trash2 className="w-4 h-4" />
                                     {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
                                 </button>
@@ -126,7 +122,7 @@ const HeaderRow = ({
     settingsDropdown?: React.ReactNode;
 }) => {
     return (
-        <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600 pointer-events-auto">
+        <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600 pointer-events-auto pb-1">
             <div className={`flex items-center gap-2 relative mb-3 ${ROW_MARGIN} ${ROW_PADDING} pointer-events-auto`}>
                 <div style={{ color: statusColor }}>
                     <FlagIcon className="w-8 h-8" size={34} />
@@ -139,10 +135,12 @@ const HeaderRow = ({
                             {getPrettyDuration(duration)}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1 absolute top-full left-0">
+                    <div className="flex items-center gap-1 absolute top-full left-0 pt-0.5">
                         <EquipmentDisplay categoryEquipment={categoryEquipment} capacityEquipment={capacityEquipment} />
-                        <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 mr-0.5" />
-                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{location}</span>
+                        <div className="flex items-center pt-0.5">
+                            <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 mr-0.5" />
+                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{location}</span>
+                        </div>
                         {children}
                     </div>
                 </div>
