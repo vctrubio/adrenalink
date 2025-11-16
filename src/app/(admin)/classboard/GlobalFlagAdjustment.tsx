@@ -4,37 +4,25 @@ import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
 interface GlobalFlagAdjustmentProps {
-    globalEarliestTime: string | null;
-    isAdjustmentMode: boolean;
+    globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
-    pendingParentUpdateTeachers: Set<string>;
-    queueEditRefreshKey: number;
-    controller: ControllerSettings;
-    isAdjustmentLocked: boolean;
-    onEnterAdjustmentMode: () => void;
-    onExitAdjustmentMode: () => void;
-    onTimeAdjustment: (newTime: string) => void;
-    onAdapt: () => void;
     onSubmit: () => Promise<void>;
 }
 
 export default function GlobalFlagAdjustment({
-    globalEarliestTime,
-    isAdjustmentMode,
+    globalFlag,
     teacherQueues,
-    pendingParentUpdateTeachers,
-    queueEditRefreshKey,
-    controller,
-    isAdjustmentLocked,
-    onEnterAdjustmentMode,
-    onExitAdjustmentMode,
-    onTimeAdjustment,
-    onAdapt,
     onSubmit,
 }: GlobalFlagAdjustmentProps) {
+    const globalEarliestTime = globalFlag.getGlobalEarliestTime();
+    const isAdjustmentMode = globalFlag.isAdjustmentMode();
+    const pendingParentUpdateTeachers = globalFlag.getPendingTeachers();
+    const queueEditRefreshKey = globalFlag.getRefreshKey();
+    const isAdjustmentLocked = globalFlag.isAdjustmentLocked();
     const [adjustmentTime, setAdjustmentTime] = useState(globalEarliestTime);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -102,14 +90,14 @@ export default function GlobalFlagAdjustment({
         if (!adjustmentTime) return;
 
         const currentMinutes = timeToMinutes(adjustmentTime);
-        const step = controller.stepDuration || 30;
+        const step = 30; // Default step duration
         const newMinutes = increment ? currentMinutes + step : currentMinutes - step;
 
         if (newMinutes < 0 || newMinutes > 1380) return;
 
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
-        onTimeAdjustment(newTime);
+        globalFlag.adjustTime(newTime);
     };
 
     const handleSubmit = async () => {
@@ -123,19 +111,11 @@ export default function GlobalFlagAdjustment({
 
     const handleCancel = () => {
         setAdjustmentTime(currentEarliestFromPending);
-        onExitAdjustmentMode();
+        globalFlag.exitAdjustmentMode();
     };
 
     const handleLockToggle = () => {
-        if (!isAdjustmentLocked) {
-            // Unlocked → Lock: sync all pending teachers to adjustmentTime first
-            onAdapt();
-        } else {
-            // Locked → Unlock: just toggle lock (parent will handle unlock)
-            // For now, we'll need parent to expose an unlock handler
-            // Alternative: call onAdapt which toggles lock state in parent
-            onAdapt();
-        }
+        globalFlag.adapt();
     };
 
     if (!globalEarliestTime) return null;
@@ -207,7 +187,7 @@ export default function GlobalFlagAdjustment({
     return (
         <div className="flex items-center gap-6">
             <button
-                onClick={onEnterAdjustmentMode}
+                onClick={() => globalFlag.enterAdjustmentMode()}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-lg transition-colors flex-1"
                 title="Click to adjust all event times globally"
             >

@@ -11,7 +11,6 @@ interface TeacherQueueEditorProps {
     onRefresh: () => void;
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
-    onPendingTeacherQueueEdit?: () => void;
 }
 
 export default function TeacherQueueEditor({
@@ -19,7 +18,6 @@ export default function TeacherQueueEditor({
     teacherQueue,
     onRefresh,
     controller,
-    onPendingTeacherQueueEdit,
 }: TeacherQueueEditorProps) {
     // Create a single QueueController for all events
     // Include events in deps so controller updates when events change (including global adjustments)
@@ -35,7 +33,6 @@ export default function TeacherQueueEditor({
                     key={event.id}
                     eventId={event.id}
                     queueController={queueController}
-                    onPendingTeacherQueueEdit={onPendingTeacherQueueEdit}
                 />
             ))}
         </div>
