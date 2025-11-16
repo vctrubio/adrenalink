@@ -5,17 +5,12 @@ import { Menu } from "@headlessui/react";
 import { Settings, Bell, Printer, Trash2 } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import type { TeacherStats } from "@/backend/ClassboardStats";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface TeacherColumnControllerProps {
-    username: string;
-    stats: TeacherStats;
     columnViewMode: "view" | "queue";
-    queue?: TeacherQueue;
-    eventIds?: string[];
-    earliestTime: string | null;
+    queue: TeacherQueue;
     onEditSchedule: () => void;
     onSubmit: () => void;
     onReset: () => void;
@@ -24,18 +19,15 @@ interface TeacherColumnControllerProps {
 }
 
 export default function TeacherColumnController({
-    username,
-    stats,
     columnViewMode,
     queue,
-    eventIds,
-    earliestTime,
     onEditSchedule,
     onSubmit,
     onReset,
     onCancel,
     onDeleteComplete,
 }: TeacherColumnControllerProps) {
+    const stats = queue.getStats();
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleNotify = () => {
@@ -51,7 +43,8 @@ export default function TeacherColumnController({
     };
 
     const handleDeleteAll = async () => {
-        if (!eventIds || eventIds.length === 0) return;
+        const eventIds = queue.getAllEvents().map((e) => e.id);
+        if (eventIds.length === 0) return;
 
         setIsDeleting(true);
         try {
@@ -70,67 +63,66 @@ export default function TeacherColumnController({
         }
     };
 
+    const hasEvents = queue.getAllEvents().length > 0;
+
     return (
         <div className="p-4 border-b border-border space-y-3">
-            {/* Header: Teacher Name + Settings Icon */}
+            {/* Header: Teacher Name + Settings Icon (only if has events) */}
             <div className="flex items-center gap-4">
                 <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                <div className="text-xl font-bold text-foreground truncate">{username}</div>
-                <Menu as="div" className="relative ml-auto">
-                    <Menu.Button className="p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0">
-                        <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                    </Menu.Button>
+                <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
+                <div className="ml-auto w-10 h-10 flex-shrink-0">
+                    {hasEvents && (
+                        <Menu as="div" className="relative">
+                            <Menu.Button className="p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0">
+                                <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                            </Menu.Button>
 
-                    <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
-                        <div className="p-1">
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={handleNotify}
-                                        className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                    >
-                                        <Bell className="w-4 h-4" />
-                                        Notify
-                                    </button>
-                                )}
-                            </Menu.Item>
+                            <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
+                                <div className="p-1">
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={handleNotify}
+                                                className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                            >
+                                                <Bell className="w-4 h-4" />
+                                                Notify
+                                            </button>
+                                        )}
+                                    </Menu.Item>
 
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={handlePrint}
-                                        className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                    >
-                                        <Printer className="w-4 h-4" />
-                                        Print
-                                    </button>
-                                )}
-                            </Menu.Item>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={handlePrint}
+                                                className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                            >
+                                                <Printer className="w-4 h-4" />
+                                                Print
+                                            </button>
+                                        )}
+                                    </Menu.Item>
 
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={handleDeleteAll}
-                                        disabled={isDeleting || !eventIds || eventIds.length === 0}
-                                        className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        {isDeleting ? "Deleting..." : "Delete All"}
-                                    </button>
-                                )}
-                            </Menu.Item>
-                        </div>
-                    </Menu.Items>
-                </Menu>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={handleDeleteAll}
+                                                disabled={isDeleting}
+                                                className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                {isDeleting ? "Deleting..." : "Delete All"}
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                            </Menu.Items>
+                        </Menu>
+                    )}
+                </div>
             </div>
 
-            {/* Time Flag Display */}
-            {earliestTime && (
-                <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Earliest:</span>
-                    <span className="font-mono font-semibold text-foreground">{earliestTime}</span>
-                </div>
-            )}
 
             {/* Statistics Panel */}
             <div className="grid grid-cols-2 gap-2 text-sm">

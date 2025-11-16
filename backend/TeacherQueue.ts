@@ -4,7 +4,9 @@
  */
 
 import { minutesToTime, getMinutesFromISO, adjustISODateTime, createISODateTime } from "@/getters/queue-getter";
+import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import type { EventNode, TeacherInfo, ControllerSettings } from "@/types/classboard-teacher-queue";
+import type { TeacherStats } from "./ClassboardStats";
 
 export { type EventNode, type TeacherInfo, type ControllerSettings } from "@/types/classboard-teacher-queue";
 
@@ -86,6 +88,14 @@ export class TeacherQueue {
         if (!this.head) return null;
         const startMinutes = this.getStartTimeMinutes(this.head);
         return minutesToTime(startMinutes);
+    }
+
+    /**
+     * Get teacher stats calculated from current queue events
+     */
+    getStats(): TeacherStats {
+        const events = this.getAllEvents();
+        return calculateTeacherStatsFromEvents(this.teacher.username, events, 0);
     }
 
     /**

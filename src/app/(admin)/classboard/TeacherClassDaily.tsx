@@ -8,6 +8,8 @@ import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+import type { DragState } from "@/types/drag-state";
+import { getDragOverTeacherColumnColor } from "@/types/drag-state";
 import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
@@ -21,12 +23,7 @@ interface ParentTime {
 function TeacherColumn({
     queue,
     stats,
-    dragOverTeacher,
-    dragCompatibility,
-    onDragOver,
-    onDragEnter,
-    onDragLeave,
-    onDrop,
+    dragState,
     parentTime,
     isOptedOutOfGlobalUpdate,
     onOptOut,
@@ -36,12 +33,7 @@ function TeacherColumn({
 }: {
     queue: TeacherQueue;
     stats: TeacherStats;
-    dragOverTeacher: string | null;
-    dragCompatibility: "compatible" | "incompatible" | null;
-    onDragOver: (e: React.DragEvent) => void;
-    onDragEnter: (e: React.DragEvent, username: string) => void;
-    onDragLeave: (e: React.DragEvent) => void;
-    onDrop: (e: React.DragEvent, username: string) => void;
+    dragState: DragState;
     parentTime: ParentTime;
     isOptedOutOfGlobalUpdate: boolean;
     onOptOut: (teacherUsername: string) => void;
@@ -129,7 +121,7 @@ function TeacherColumn({
 
             if (updates.length > 0) {
                 console.log(`📤 Submitting ${updates.length} changed event updates for ${queue.teacher.username}`, {
-                    changes: updates.map(u => ({
+                    changes: updates.map((u) => ({
                         id: u.id,
                         newDate: u.date,
                         newDuration: u.duration,
@@ -144,7 +136,7 @@ function TeacherColumn({
 
                 console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
             } else {
-                console.log(`ℹ️ No events were changed, skipping submission`);
+                console.log("ℹ️ No events were changed, skipping submission");
             }
 
             // Clear original state and exit edit mode
@@ -176,12 +168,6 @@ function TeacherColumn({
         originalQueueState.current = [];
     };
 
-    const getBorderColor = () => {
-        if (dragOverTeacher !== queue.teacher.username) return "border-transparent";
-        if (dragCompatibility === "compatible") return "border-green-400";
-        if (dragCompatibility === "incompatible") return "border-orange-400";
-        return "border-transparent";
-    };
 
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
@@ -196,52 +182,23 @@ function TeacherColumn({
     return (
         <div
             key={refreshKey}
-            onDragOver={onDragOver}
-            onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
-            onDragLeave={onDragLeave}
-            onDrop={(e) => onDrop(e, queue.teacher.username)}
+            onDragOver={dragState.onDragOver}
+            onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
+            onDragLeave={dragState.onDragLeave}
+            onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
             className="flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col border-r border-border last:border-r-0"
         >
-            {/* <div className="p-3 border-b border-border"> */}
-            {/*     <TeacherFlagUpdate */}
-            {/*         teacherUsername={queue.teacher.username} */}
-            {/*         earliestTime={earliestTime} */}
-            {/*         inGlobalAdjustmentMode={parentTime.adjustmentMode} */}
-            {/*         isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate} */}
-            {/*         onFlagClick={handleFlagClick} */}
-            {/*         onOptOut={onOptOut} */}
-            {/*         onOptIn={onOptIn} */}
-            {/*     /> */}
-            {/* </div> */}
+            <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 
-            {/* <div className="px-3 py-2 border-b border-border"> */}
-            {/*     <TeacherStatsGrid stats={stats} /> */}
-            {/* </div> */}
-            {/**/}
-
-            <TeacherColumnController
-                username={queue.teacher.username}
-                stats={stats}
-                columnViewMode={columnViewMode}
-                queue={queue}
-                eventIds={events.map((e) => e.id)}
-                earliestTime={earliestTime}
-                onEditSchedule={handleEditSchedule}
-                onSubmit={handleSubmit}
-                onReset={handleReset}
-                onCancel={handleCancel}
-                onDeleteComplete={handleDeleteComplete}
-            />
-
-            <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${getBorderColor()}`}>
+            <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         queue={queue}
                         controller={controller}
-                        onDragOver={onDragOver}
-                        onDragEnter={(e) => onDragEnter(e, queue.teacher.username)}
-                        onDragLeave={onDragLeave}
-                        onDrop={(e) => onDrop(e, queue.teacher.username)}
+                        onDragOver={dragState.onDragOver}
+                        onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
+                        onDragLeave={dragState.onDragLeave}
+                        onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
                         onRemoveEvent={async (eventId) => {
                             await onEventDeleted?.(eventId);
                         }}
@@ -465,12 +422,16 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                 key={queue.teacher.username}
                                 queue={queue}
                                 stats={stats}
-                                dragOverTeacher={dragOverTeacher}
-                                dragCompatibility={dragCompatibility}
-                                onDragOver={handleDragOver}
-                                onDragEnter={handleDragEnter}
-                                onDragLeave={handleDragLeave}
-                                onDrop={(e) => handleDrop(e, queue.teacher.username)}
+                                dragState={{
+                                    dragOverTeacher,
+                                    dragCompatibility,
+                                    onDragOver: handleDragOver,
+                                    onDragEnter: handleDragEnter,
+                                    onDragLeave: handleDragLeave,
+                                    onDrop: (e, username) => handleDrop(e, username),
+                                    dragOverTeacherColumn: (teacherUsername) =>
+                                        getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
+                                }}
                                 parentTime={parentTime}
                                 isOptedOutOfGlobalUpdate={optedOutTeachers.has(queue.teacher.username)}
                                 onOptOut={handleOptOut}
