@@ -414,7 +414,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                 }
             });
         } else {
-            // Unlocked mode: global time is just an offset applied to each queue's current time
+            // Unlocked mode: only cascade to teachers whose earliest time <= adjustmentTime
+            // Teachers starting after adjustmentTime wait for global time to catch up
             if (!parentTime.globalTime) return;
 
             const currentMinutes = timeToMinutes(parentTime.globalTime);
@@ -423,17 +424,26 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
             teacherQueues.forEach((queue) => {
                 if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
-                    const events = queue.getAllEvents();
-                    events.forEach((event) => {
-                        const currentDate = event.eventData.date;
-                        if (currentDate.includes("T")) {
-                            const [datePart, timePart] = currentDate.split("T");
-                            const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                            const newEventMinutes = currentEventMinutes + offsetMinutes;
-                            const newEventTime = minutesToTime(newEventMinutes);
-                            event.eventData.date = `${datePart}T${newEventTime}:00`;
+                    const earliestTime = queue.getEarliestEventTime();
+                    if (earliestTime) {
+                        const queueMinutes = timeToMinutes(earliestTime);
+
+                        // Only cascade to teachers whose earliest time < adjustment time
+                        if (queueMinutes < newMinutes) {
+                            const events = queue.getAllEvents();
+                            events.forEach((event) => {
+                                const currentDate = event.eventData.date;
+                                if (currentDate.includes("T")) {
+                                    const [datePart, timePart] = currentDate.split("T");
+                                    const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
+                                    const newEventMinutes = currentEventMinutes + offsetMinutes;
+                                    const newEventTime = minutesToTime(newEventMinutes);
+                                    event.eventData.date = `${datePart}T${newEventTime}:00`;
+                                }
+                            });
                         }
-                    });
+                        // If queueMinutes > newMinutes, do nothing (teacher waits for global time to catch up)
+                    }
                 }
             });
         }
@@ -443,6 +453,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             adjustmentMode: true,
             globalTime: newTime,
         });
+        // Trigger refresh so lock button reflects current adapted count
+        setQueueEditRefreshKey((prev) => prev + 1);
     };
 
     const handleAdapt = () => {
