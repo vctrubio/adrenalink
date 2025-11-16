@@ -12,20 +12,30 @@ import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
 import EventGapDetection from "./EventGapDetection";
+import type { ControllerSettings } from "@/backend/TeacherQueue";
+import { ENTITY_DATA } from "@/config/entities";
 
 interface EventModCardProps {
     eventId: string;
     queueController: QueueController;
 }
 
+// Constants
+const STUDENT_ICON_SIZE = "w-8 h-8";
+
 // Sub-components
 const StudentGrid = ({ students }: { students: any[] }) => {
     const studentCount = students.length;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
+
+    if (!studentEntity) return null;
 
     return (
         <div className={`flex-shrink-0 ${studentCount === 4 ? "grid grid-cols-2 gap-1" : "flex gap-1"}`}>
             {students.map((_, index) => (
-                <HelmetIcon key={index} className="w-8 h-8 text-yellow-500" />
+                <div key={index} style={{ color: studentEntity.color }}>
+                    <HelmetIcon className={STUDENT_ICON_SIZE} />
+                </div>
             ))}
         </div>
     );
@@ -129,25 +139,28 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
     );
 };
 
-const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueController }) => {
+const DurationControls = ({ duration, eventId, queueController, controller }: { duration: number; eventId: string; queueController: QueueController; controller: ControllerSettings }) => {
+    const stepDuration = controller.stepDuration || 30;
+    const minDuration = controller.minDuration || 60;
+
     const handleDurationAdjustment = (increment: boolean) => {
-        const newDuration = increment ? duration + 30 : duration - 30;
-        if (newDuration < 60) return;
+        const newDuration = increment ? duration + stepDuration : duration - stepDuration;
+        if (newDuration < minDuration) return;
         queueController.adjustDuration(eventId, increment);
     };
 
     return (
         <div className="flex gap-2 justify-center w-16 min-w-[4rem]">
             <div className="flex flex-col">
-                <button onClick={() => handleDurationAdjustment(true)} className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-center" title="30 minutes more">
+                <button onClick={() => handleDurationAdjustment(true)} className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-center" title={`${stepDuration} minutes more`}>
                     <ChevronUp className="w-4 h-4 mx-auto" />
                 </button>
                 <div className="text-base font-semibold text-gray-900 dark:text-white my-1">+{getPrettyDuration(duration)}</div>
                 <button
                     onClick={() => handleDurationAdjustment(false)}
-                    disabled={duration <= 60}
+                    disabled={duration <= minDuration}
                     className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
-                    title="30 minutes less (minimum 60 minutes)"
+                    title={`${stepDuration} minutes less (minimum ${minDuration} minutes)`}
                 >
                     <ChevronDown className="w-4 h-4 mx-auto" />
                 </button>
@@ -245,7 +258,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
             <div className={`flex gap-4 ${ROW_MARGIN} ${ROW_PADDING}`}>
                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
                 <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
-                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
+                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} controller={queueController.getSettings()} />
             </div>
 
             {/* Location and Gap Detection + Remaining Time (Row 2 - aligned below) */}

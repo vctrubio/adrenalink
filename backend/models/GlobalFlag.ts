@@ -4,7 +4,7 @@
  */
 
 import { QueueController } from "../QueueController";
-import type { TeacherQueue, ControllerSettings } from "../TeacherQueue";
+import type { TeacherQueue, ControllerSettings, EventNode } from "../TeacherQueue";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
 export class GlobalFlag {
@@ -13,6 +13,7 @@ export class GlobalFlag {
     private pendingTeachers: Set<string> = new Set();
     private isLocked: boolean = false;
     private refreshKey: number = 0;
+    private originalQueueStates: Map<string, EventNode[]> = new Map();
 
     constructor(
         private teacherQueues: TeacherQueue[],
@@ -30,8 +31,8 @@ export class GlobalFlag {
         return this.globalTime;
     }
 
-    getPendingTeachers(): Set<string> {
-        return this.pendingTeachers;
+    getPendingTeachers(): ReadonlySet<string> {
+        return this.pendingTeachers as ReadonlySet<string>;
     }
 
     isAdjustmentLocked(): boolean {
@@ -40,6 +41,10 @@ export class GlobalFlag {
 
     getRefreshKey(): number {
         return this.refreshKey;
+    }
+
+    getController(): ControllerSettings {
+        return this.controller;
     }
 
     /**
@@ -61,6 +66,7 @@ export class GlobalFlag {
     /**
      * Enter global adjustment mode
      * Initializes pending teachers with all teachers that have events
+     * Stores original queue state for change detection
      */
     enterAdjustmentMode(): void {
         const teachersWithEvents = this.teacherQueues
@@ -70,18 +76,35 @@ export class GlobalFlag {
         this.pendingTeachers = new Set(teachersWithEvents);
         this.adjustmentMode = true;
         this.globalTime = this.getGlobalEarliestTime();
+
+        // Store original state for each teacher
+        this.originalQueueStates.clear();
+        this.teacherQueues.forEach((queue) => {
+            if (this.pendingTeachers.has(queue.teacher.username)) {
+                const events = queue.getAllEvents();
+                this.originalQueueStates.set(
+                    queue.teacher.username,
+                    events.map((event) => ({
+                        ...event,
+                        eventData: { ...event.eventData },
+                    }))
+                );
+            }
+        });
+
         this.onRefresh();
     }
 
     /**
      * Exit global adjustment mode
-     * Clears pending teachers and resets lock
+     * Clears pending teachers, resets lock, and clears original state
      */
     exitAdjustmentMode(): void {
         this.adjustmentMode = false;
         this.globalTime = null;
         this.pendingTeachers.clear();
         this.isLocked = false;
+        this.originalQueueStates.clear();
         this.onRefresh();
     }
 
@@ -232,6 +255,42 @@ export class GlobalFlag {
                 }
             }
         });
+    }
+
+    /**
+     * Collect all changed events from pending teachers
+     * Compares current state against original state to find changes
+     */
+    collectChanges(): Array<{ id: string; date: string; duration: number }> {
+        const allUpdates: Array<{ id: string; date: string; duration: number }> = [];
+
+        this.teacherQueues.forEach((queue) => {
+            if (!this.pendingTeachers.has(queue.teacher.username)) {
+                return;
+            }
+
+            const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
+            const currentEvents = queue.getAllEvents();
+
+            currentEvents.forEach((currentEvent) => {
+                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
+                if (!originalEvent) return; // New event
+
+                // Check if date or duration changed
+                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+
+                if (dateChanged || durationChanged) {
+                    allUpdates.push({
+                        id: currentEvent.id,
+                        date: currentEvent.eventData.date,
+                        duration: currentEvent.eventData.duration,
+                    });
+                }
+            });
+        });
+
+        return allUpdates;
     }
 
     /**

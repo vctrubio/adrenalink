@@ -51,6 +51,8 @@ export interface ControllerSettings {
     durationCapThree: number;
     gapMinutes: number;
     stepDuration: number;
+    minDuration: number;
+    maxDuration: number;
 }
 
 /**

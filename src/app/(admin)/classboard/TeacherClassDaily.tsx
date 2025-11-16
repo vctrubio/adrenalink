@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
@@ -9,13 +9,12 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import type { DragState } from "@/types/drag-state";
+import type { DragState, DragCompatibility } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
-import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
+import type { ClassboardStats } from "@/backend/ClassboardStats";
 
 function TeacherColumn({
     queue,
-    stats,
     dragState,
     globalFlag,
     isPendingParentUpdate,
@@ -23,7 +22,6 @@ function TeacherColumn({
     onEventDeleted,
 }: {
     queue: TeacherQueue;
-    stats: TeacherStats;
     dragState: DragState;
     globalFlag: GlobalFlag;
     isPendingParentUpdate: boolean;
@@ -41,15 +39,17 @@ function TeacherColumn({
 
     // Auto-enter queue mode when global adjustment mode is active
     useEffect(() => {
-        if (globalFlag.isAdjustmentMode() && isPendingParentUpdate) {
+        const isInAdjustmentMode = globalFlag.isAdjustmentMode();
+
+        if (isInAdjustmentMode && isPendingParentUpdate) {
             setColumnViewMode("queue");
-        } else if (!globalFlag.isAdjustmentMode() && columnViewMode === "queue") {
+        } else if (!isInAdjustmentMode && columnViewMode === "queue") {
             // Exit queue mode when global adjustment mode is deactivated
             handleReset();
             setColumnViewMode("view");
             originalQueueState.current = [];
         }
-    }, [globalFlag.isAdjustmentMode(), isPendingParentUpdate]);
+    }, [globalFlag, isPendingParentUpdate, columnViewMode]);
 
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
@@ -61,15 +61,8 @@ function TeacherColumn({
     }, [queue]);
 
     const events = useMemo(() => {
-        // Only include globalTime in deps if in edit mode
-        // This ensures event cards only update in editor view
         return queue.getAllEvents();
-    }, [queue, refreshKey, columnViewMode === "queue" ? globalFlag.getGlobalTime() : null]);
-
-    const earliestTime = useMemo(() => {
-        // Only recalculate in edit mode
-        return queue.getEarliestEventTime();
-    }, [queue, refreshKey, columnViewMode === "queue" ? globalFlag.getGlobalTime() : null]);
+    }, [queue, refreshKey, columnViewMode]);
 
     // Store original queue state for reset functionality
     const originalQueueState = useRef<EventNode[]>([]);
@@ -87,20 +80,6 @@ function TeacherColumn({
             originalQueueState.current = [];
         }
     }, [columnViewMode, events]);
-
-    const handleIconClick = () => {
-        if (globalFlag.isAdjustmentMode()) {
-            // In global mode: toggle opt in/out
-            if (!isPendingParentUpdate) {
-                globalFlag.optIn(queue.teacher.username);
-            } else {
-                globalFlag.optOut(queue.teacher.username);
-            }
-        } else {
-            // Not in global mode: toggle view/queue mode
-            setColumnViewMode(columnViewMode === "view" ? "queue" : "view");
-        }
-    };
 
     const handleEditSchedule = () => {
         setColumnViewMode("queue");
@@ -231,21 +210,20 @@ interface TeacherClassDailyProps {
     isLessonTeacher: (bookingId: string, teacherUsername: string) => boolean;
     classboardStats: ClassboardStats;
     controller: ControllerSettings;
-    selectedDate: string;
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, selectedDate, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
-    const [dragCompatibility, setDragCompatibility] = useState<"compatible" | "incompatible" | null>(null);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [dragCompatibility, setDragCompatibility] = useState<DragCompatibility>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Create GlobalFlag instance
     const globalFlag = useMemo(
         () =>
             new GlobalFlag(teacherQueues, controller, () => {
-                setRefreshTrigger((prev) => prev + 1);
+                setRefreshKey((prev) => prev + 1);
             }),
         [teacherQueues, controller]
     );
@@ -315,68 +293,9 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             console.error("Error handling drop:", error);
         }
     };
-
-
-    // Store original state for each teacher queue when entering adjustment mode
-    const originalQueueStates = useRef<Map<string, EventNode[]>>(new Map());
-
-    useEffect(() => {
-        if (globalFlag.isAdjustmentMode()) {
-            // Store original state when entering adjustment mode
-            teacherQueues.forEach((queue) => {
-                if (globalFlag.getPendingTeachers().has(queue.teacher.username)) {
-                    const events = queue.getAllEvents();
-                    originalQueueStates.current.set(
-                        queue.teacher.username,
-                        events.map((event) => ({
-                            ...event,
-                            eventData: { ...event.eventData },
-                        }))
-                    );
-                }
-            });
-        } else {
-            // Clear original state when exiting adjustment mode
-            originalQueueStates.current.clear();
-        }
-    }, [globalFlag.isAdjustmentMode(), teacherQueues, globalFlag.getPendingTeachers()]);
-
-    const handleCollectGlobalUpdates = (teacherUsername: string): Array<{ id: string; date: string; duration: number }> => {
-        const queue = teacherQueues.find((q) => q.teacher.username === teacherUsername);
-        if (!queue) return [];
-
-        const originalEvents = originalQueueStates.current.get(teacherUsername) || [];
-        const currentEvents = queue.getAllEvents();
-
-        return currentEvents
-            .filter((currentEvent) => {
-                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
-                if (!originalEvent) return true; // New event
-
-                // Check if date or duration changed
-                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
-                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
-
-                return dateChanged || durationChanged;
-            })
-            .map((event) => ({
-                id: event.id,
-                date: event.eventData.date,
-                duration: event.eventData.duration,
-            }));
-    };
-
     const handleGlobalSubmit = async () => {
         try {
-            const allUpdates: Array<{ id: string; date: string; duration: number }> = [];
-
-            // Collect only changed events from each teacher queue
-            teacherQueues.forEach((queue) => {
-                if (globalFlag.getPendingTeachers().has(queue.teacher.username)) {
-                    const changedEvents = handleCollectGlobalUpdates(queue.teacher.username);
-                    allUpdates.push(...changedEvents);
-                }
-            });
+            const allUpdates = globalFlag.collectChanges();
 
             if (allUpdates.length > 0) {
                 console.log(`📤 Submitting ${allUpdates.length} changed events from global adjustment`);
@@ -400,7 +319,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     return (
         <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col">
             {/* Global Flag Adjustment */}
-            <GlobalFlagAdjustment globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+            <GlobalFlagAdjustment key={refreshKey} globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
 
             {/* Content */}
             {teacherQueues.length === 0 ? (

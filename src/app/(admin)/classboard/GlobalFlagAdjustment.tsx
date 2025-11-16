@@ -7,6 +7,10 @@ import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
+// Constants for time boundaries (in minutes from 00:00)
+const MIN_TIME_MINUTES = 0; // 00:00
+const MAX_TIME_MINUTES = 1380; // 23:00
+
 interface GlobalFlagAdjustmentProps {
     globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
@@ -18,20 +22,32 @@ export default function GlobalFlagAdjustment({
     teacherQueues,
     onSubmit,
 }: GlobalFlagAdjustmentProps) {
+    const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Get current state from globalFlag
     const globalEarliestTime = globalFlag.getGlobalEarliestTime();
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
-    const pendingParentUpdateTeachers = globalFlag.getPendingTeachers();
-    const queueEditRefreshKey = globalFlag.getRefreshKey();
     const isAdjustmentLocked = globalFlag.isAdjustmentLocked();
-    const [adjustmentTime, setAdjustmentTime] = useState(globalEarliestTime);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const stepDuration = globalFlag.getController().stepDuration || 30;
+
+    // Sync adjustmentTime when globalFlag time changes
+    useEffect(() => {
+        const newTime = globalFlag.getGlobalTime();
+        if (newTime) {
+            setAdjustmentTime(newTime);
+        }
+    }, [globalFlag]);
 
     // Calculate the current earliest time from all pending teacher queues
     // This updates in real-time when pending teachers edit their queues
     const currentEarliestFromPending = useMemo(() => {
         const pendingTimes: string[] = [];
+        const pendingTeachers = globalFlag.getPendingTeachers();
+        const globalEarliestTime = globalFlag.getGlobalEarliestTime();
+
         teacherQueues.forEach((queue) => {
-            if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
+            if (pendingTeachers.has(queue.teacher.username)) {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
                     pendingTimes.push(earliestTime);
@@ -44,36 +60,30 @@ export default function GlobalFlagAdjustment({
         // Return the earliest time from pending teachers
         const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
         return minutesToTime(minTimeInMinutes);
-    }, [teacherQueues, pendingParentUpdateTeachers, queueEditRefreshKey, globalEarliestTime]);
-
-    // Sync adjustmentTime with currentEarliestFromPending when queue edits change
-    // This keeps the display up-to-date while allowing the arrows to modify adjustmentTime
-    useEffect(() => {
-        if (currentEarliestFromPending) {
-            setAdjustmentTime(currentEarliestFromPending);
-        }
-    }, [currentEarliestFromPending]);
+    }, [teacherQueues, globalFlag]);
 
     // Calculate adapted count for ADJUSTMENT MODE
     // Only count teachers in the pending parent update set
     const { adaptedCount, totalTeachers, needsAdaptation } = useMemo(() => {
+        const pendingTeachers = globalFlag.getPendingTeachers();
         const adapted = teacherQueues.filter((queue) => {
-            if (!pendingParentUpdateTeachers.has(queue.teacher.username)) return false;
+            if (!pendingTeachers.has(queue.teacher.username)) return false;
             const earliestTime = queue.getEarliestEventTime();
             return earliestTime === currentEarliestFromPending;
         }).length;
 
-        const total = pendingParentUpdateTeachers.size;
+        const total = pendingTeachers.size;
         return {
             adaptedCount: adapted,
             totalTeachers: total,
             needsAdaptation: adapted < total,
         };
-    }, [teacherQueues, pendingParentUpdateTeachers, currentEarliestFromPending, queueEditRefreshKey]);
+    }, [teacherQueues, globalFlag, currentEarliestFromPending]);
 
     // Calculate adapted count for NORMAL MODE
     // Count all teachers with events, not just pending ones
     const { adaptedCount: globalAdaptedCount, totalTeachers: globalTotalTeachers } = useMemo(() => {
+        const globalEarliestTime = globalFlag.getGlobalEarliestTime();
         const teachersWithEvents = teacherQueues.filter((queue) => queue.getAllEvents().length > 0);
         const adapted = teachersWithEvents.filter((queue) => {
             const earliestTime = queue.getEarliestEventTime();
@@ -84,16 +94,15 @@ export default function GlobalFlagAdjustment({
             adaptedCount: adapted,
             totalTeachers: teachersWithEvents.length,
         };
-    }, [teacherQueues, globalEarliestTime]);
+    }, [teacherQueues, globalFlag]);
 
     const handleAdjustTime = (increment: boolean) => {
         if (!adjustmentTime) return;
 
         const currentMinutes = timeToMinutes(adjustmentTime);
-        const step = 30; // Default step duration
-        const newMinutes = increment ? currentMinutes + step : currentMinutes - step;
+        const newMinutes = increment ? currentMinutes + stepDuration : currentMinutes - stepDuration;
 
-        if (newMinutes < 0 || newMinutes > 1380) return;
+        if (newMinutes < MIN_TIME_MINUTES || newMinutes > MAX_TIME_MINUTES) return;
 
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
@@ -128,7 +137,7 @@ export default function GlobalFlagAdjustment({
                 <button
                     onClick={() => handleAdjustTime(false)}
                     className="p-2 rounded hover:bg-muted transition-colors"
-                    title="30 minutes earlier"
+                    title={`${stepDuration} minutes earlier`}
                 >
                     <ChevronLeft className="w-5 h-5 text-foreground" />
                 </button>
@@ -140,7 +149,7 @@ export default function GlobalFlagAdjustment({
                 <button
                     onClick={() => handleAdjustTime(true)}
                     className="p-2 rounded hover:bg-muted transition-colors"
-                    title="30 minutes later"
+                    title={`${stepDuration} minutes later`}
                 >
                     <ChevronRight className="w-5 h-5 text-foreground" />
                 </button>
@@ -188,7 +197,7 @@ export default function GlobalFlagAdjustment({
         <div className="flex items-center gap-6">
             <button
                 onClick={() => globalFlag.enterAdjustmentMode()}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-lg transition-colors flex-1"
+                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted rounded-lg transition-colors flex-1"
                 title="Click to adjust all event times globally"
             >
                 <FlagIcon className="w-7 h-7 text-foreground flex-shrink-0" />
