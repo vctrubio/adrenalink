@@ -151,6 +151,27 @@ export class QueueController {
     }
 
     /**
+     * Adjust first event by arbitrary offset (for global time adjustments)
+     * Respects existing gaps - only cascades if next event is adjacent
+     */
+    adjustFirstEventByOffset(offsetMinutes: number): void {
+        const firstEvent = this.queue.getAllEvents()[0];
+        if (!firstEvent || offsetMinutes === 0) return;
+
+        const oldEndMinutes = getMinutesFromISO(firstEvent.eventData.date) + firstEvent.eventData.duration;
+        this.updateEventDateTime(firstEvent, offsetMinutes);
+
+        if (firstEvent.next) {
+            const nextStartMinutes = getMinutesFromISO(firstEvent.next.eventData.date);
+            if (nextStartMinutes === oldEndMinutes) {
+                this.cascadeTimeAdjustment(firstEvent.next, offsetMinutes);
+            }
+        }
+
+        this.onRefresh();
+    }
+
+    /**
      * Move event forward in queue (earlier position)
      */
     moveUp(eventId: string): void {

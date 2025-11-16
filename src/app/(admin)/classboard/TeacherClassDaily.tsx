@@ -6,6 +6,7 @@ import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
 import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { QueueController } from "@/backend/QueueController";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState } from "@/types/drag-state";
@@ -399,22 +400,16 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                         const targetMinutes = timeToMinutes(newTime);
                         const offsetMinutes = targetMinutes - currentMinutes;
 
-                        const events = queue.getAllEvents();
-                        events.forEach((event) => {
-                            const currentDate = event.eventData.date;
-                            if (currentDate.includes("T")) {
-                                const [datePart, timePart] = currentDate.split("T");
-                                const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                                const newEventMinutes = currentEventMinutes + offsetMinutes;
-                                const newEventTime = minutesToTime(newEventMinutes);
-                                event.eventData.date = `${datePart}T${newEventTime}:00`;
-                            }
+                        // Use QueueController to adjust first event while respecting gaps
+                        const queueController = new QueueController(queue, controller, () => {
+                            setQueueEditRefreshKey((prev) => prev + 1);
                         });
+                        queueController.adjustFirstEventByOffset(offsetMinutes);
                     }
                 }
             });
         } else {
-            // Unlocked mode: only cascade to teachers whose earliest time <= adjustmentTime
+            // Unlocked mode: only cascade to teachers whose earliest time < adjustmentTime
             // Teachers starting after adjustmentTime wait for global time to catch up
             if (!parentTime.globalTime) return;
 
@@ -430,17 +425,11 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
                         // Only cascade to teachers whose earliest time < adjustment time
                         if (queueMinutes < newMinutes) {
-                            const events = queue.getAllEvents();
-                            events.forEach((event) => {
-                                const currentDate = event.eventData.date;
-                                if (currentDate.includes("T")) {
-                                    const [datePart, timePart] = currentDate.split("T");
-                                    const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                                    const newEventMinutes = currentEventMinutes + offsetMinutes;
-                                    const newEventTime = minutesToTime(newEventMinutes);
-                                    event.eventData.date = `${datePart}T${newEventTime}:00`;
-                                }
+                            // Use QueueController to adjust first event while respecting gaps
+                            const queueController = new QueueController(queue, controller, () => {
+                                setQueueEditRefreshKey((prev) => prev + 1);
                             });
+                            queueController.adjustFirstEventByOffset(offsetMinutes);
                         }
                         // If queueMinutes > newMinutes, do nothing (teacher waits for global time to catch up)
                     }
@@ -464,9 +453,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             // Trigger refresh so UI updates
             setQueueEditRefreshKey((prev) => prev + 1);
         } else {
-            // Not locked: sync all pending teachers to adjustmentTime and lock
-            // Need to get the current adjustmentTime from GlobalFlagAdjustment's calculation
-            // For now, we'll sync to the earliest time from pending teachers
+            // Not locked: sync all pending teachers to earliest time and lock
             // Get the earliest time from all pending teacher queues
             const pendingTimes: string[] = [];
             teacherQueues.forEach((queue) => {
@@ -484,7 +471,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
             const syncTargetTime = minutesToTime(minTimeInMinutes);
 
-            // Sync all pending teachers to this time
+            // Sync all pending teachers to this time using QueueController
             teacherQueues.forEach((queue) => {
                 if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                     const earliestTime = queue.getEarliestEventTime();
@@ -493,17 +480,11 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                         const targetMinutes = timeToMinutes(syncTargetTime);
                         const offsetMinutes = targetMinutes - currentMinutes;
 
-                        const events = queue.getAllEvents();
-                        events.forEach((event) => {
-                            const currentDate = event.eventData.date;
-                            if (currentDate.includes("T")) {
-                                const [datePart, timePart] = currentDate.split("T");
-                                const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                                const newEventMinutes = currentEventMinutes + offsetMinutes;
-                                const newEventTime = minutesToTime(newEventMinutes);
-                                event.eventData.date = `${datePart}T${newEventTime}:00`;
-                            }
+                        // Use QueueController to adjust first event while respecting gaps
+                        const queueController = new QueueController(queue, controller, () => {
+                            setQueueEditRefreshKey((prev) => prev + 1);
                         });
+                        queueController.adjustFirstEventByOffset(offsetMinutes);
                     }
                 }
             });
