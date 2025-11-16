@@ -187,6 +187,12 @@ function TeacherColumn({
         setRefreshKey((prev) => prev + 1);
     };
 
+    const handleDeleteComplete = () => {
+        setColumnViewMode("view");
+        setRefreshKey((prev) => prev + 1);
+        onEventDeleted?.("all");
+    };
+
     return (
         <div
             key={refreshKey}
@@ -217,14 +223,14 @@ function TeacherColumn({
                 username={queue.teacher.username}
                 stats={stats}
                 columnViewMode={columnViewMode}
-                inGlobalAdjustmentMode={parentTime.adjustmentMode}
-                isOptedOutOfGlobalUpdate={isOptedOutOfGlobalUpdate}
+                queue={queue}
+                eventIds={events.map((e) => e.id)}
                 earliestTime={earliestTime}
-                onIconClick={handleIconClick}
                 onEditSchedule={handleEditSchedule}
                 onSubmit={handleSubmit}
                 onReset={handleReset}
                 onCancel={handleCancel}
+                onDeleteComplete={handleDeleteComplete}
             />
 
             <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${getBorderColor()}`}>

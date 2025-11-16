@@ -1,68 +1,127 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { Menu } from "@headlessui/react";
+import { Settings, Bell, Printer, Trash2 } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { TeacherStats } from "@/backend/ClassboardStats";
+import type { TeacherQueue } from "@/backend/TeacherQueue";
+import { bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface TeacherColumnControllerProps {
     username: string;
     stats: TeacherStats;
     columnViewMode: "view" | "queue";
-    inGlobalAdjustmentMode: boolean;
-    isOptedOutOfGlobalUpdate: boolean;
+    queue?: TeacherQueue;
+    eventIds?: string[];
     earliestTime: string | null;
-    onIconClick: () => void;
     onEditSchedule: () => void;
     onSubmit: () => void;
     onReset: () => void;
     onCancel: () => void;
+    onDeleteComplete?: () => void;
 }
 
 export default function TeacherColumnController({
     username,
     stats,
     columnViewMode,
-    inGlobalAdjustmentMode,
-    isOptedOutOfGlobalUpdate,
+    queue,
+    eventIds,
     earliestTime,
-    onIconClick,
     onEditSchedule,
     onSubmit,
     onReset,
     onCancel,
+    onDeleteComplete,
 }: TeacherColumnControllerProps) {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleNotify = () => {
+        if (queue) {
+            queue.printTeacherSchedule();
+        }
+    };
+
+    const handlePrint = () => {
+        if (queue) {
+            queue.printTeacherSchedule();
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        if (!eventIds || eventIds.length === 0) return;
+
+        setIsDeleting(true);
+        try {
+            const result = await bulkDeleteClassboardEvents(eventIds);
+
+            if (!result.success) {
+                console.error("Delete failed:", result.error);
+                setIsDeleting(false);
+                return;
+            }
+
+            onDeleteComplete?.();
+        } catch (error) {
+            console.error("Error deleting events:", error);
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="p-4 border-b border-border space-y-3">
-            {/* Header: Teacher Name + Eye Icon */}
+            {/* Header: Teacher Name + Settings Icon */}
             <div className="flex items-center gap-4">
                 <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div className="text-xl font-bold text-foreground truncate">{username}</div>
-                <button
-                    onClick={onIconClick}
-                    className="ml-auto p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0"
-                    title={
-                        inGlobalAdjustmentMode
-                            ? isOptedOutOfGlobalUpdate
-                                ? "Opted out - click to sync with global time"
-                                : "Opted in - click to use custom time"
-                            : columnViewMode === "view"
-                            ? "View mode - click to edit"
-                            : "Edit mode - click to view"
-                    }
-                >
-                    {inGlobalAdjustmentMode ? (
-                        isOptedOutOfGlobalUpdate ? (
-                            <EyeOff className="w-5 h-5 text-orange-500" />
-                        ) : (
-                            <Eye className="w-5 h-5 text-green-500" />
-                        )
-                    ) : columnViewMode === "view" ? (
-                        <Eye className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                        <EyeOff className="w-5 h-5 text-muted-foreground" />
-                    )}
-                </button>
+                <Menu as="div" className="relative ml-auto">
+                    <Menu.Button className="p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0">
+                        <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                    </Menu.Button>
+
+                    <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
+                        <div className="p-1">
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <button
+                                        onClick={handleNotify}
+                                        className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                    >
+                                        <Bell className="w-4 h-4" />
+                                        Notify
+                                    </button>
+                                )}
+                            </Menu.Item>
+
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <button
+                                        onClick={handlePrint}
+                                        className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                    >
+                                        <Printer className="w-4 h-4" />
+                                        Print
+                                    </button>
+                                )}
+                            </Menu.Item>
+
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <button
+                                        onClick={handleDeleteAll}
+                                        disabled={isDeleting || !eventIds || eventIds.length === 0}
+                                        className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        {isDeleting ? "Deleting..." : "Delete All"}
+                                    </button>
+                                )}
+                            </Menu.Item>
+                        </div>
+                    </Menu.Items>
+                </Menu>
             </div>
 
             {/* Time Flag Display */}

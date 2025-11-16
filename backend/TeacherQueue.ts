@@ -89,6 +89,32 @@ export class TeacherQueue {
     }
 
     /**
+     * Print teacher schedule in console with formatted event details
+     */
+    printTeacherSchedule(): void {
+        console.log("\n" + "=".repeat(60));
+        console.log(`📅 SCHEDULE FOR: ${this.teacher.name}`);
+        console.log("=".repeat(60));
+
+        const events = this.getAllEvents();
+        if (events.length === 0) {
+            console.log("No events scheduled");
+            console.log("=".repeat(60) + "\n");
+            return;
+        }
+
+        events.forEach((event, index) => {
+            const startTime = minutesToTime(this.getStartTimeMinutes(event));
+            const duration = event.eventData.duration;
+            const studentNames = event.studentData.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
+
+            console.log(`\n${index + 1}. ${startTime} (+${Math.floor(duration / 60)}h ${duration % 60}m) - ${studentNames}`);
+        });
+
+        console.log("\n" + "=".repeat(60) + "\n");
+    }
+
+    /**
      * Get insertion time based on capacity and controller settings
      * Tries to fit submitTime in queue, checking head and gaps between events
      * Falls back to next available slot if submitTime doesn't fit anywhere
