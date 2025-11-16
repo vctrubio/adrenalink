@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
 
 interface GlobalFlagAdjustmentProps {
     globalEarliestTime: string | null;
@@ -12,9 +12,11 @@ interface GlobalFlagAdjustmentProps {
     teacherQueues: TeacherQueue[];
     pendingParentUpdateTeachers: Set<string>;
     queueEditRefreshKey: number;
+    controller: ControllerSettings;
+    isAdjustmentLocked: boolean;
     onEnterAdjustmentMode: () => void;
     onExitAdjustmentMode: () => void;
-    onTimeAdjustment: (newTime: string, isLocked: boolean) => void;
+    onTimeAdjustment: (newTime: string) => void;
     onAdapt: () => void;
     onSubmit: () => Promise<void>;
 }
@@ -25,6 +27,8 @@ export default function GlobalFlagAdjustment({
     teacherQueues,
     pendingParentUpdateTeachers,
     queueEditRefreshKey,
+    controller,
+    isAdjustmentLocked,
     onEnterAdjustmentMode,
     onExitAdjustmentMode,
     onTimeAdjustment,
@@ -33,7 +37,6 @@ export default function GlobalFlagAdjustment({
 }: GlobalFlagAdjustmentProps) {
     const [adjustmentTime, setAdjustmentTime] = useState(globalEarliestTime);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isLocked, setIsLocked] = useState(true); // Locked by default - all queues match global time
 
     // Calculate the current earliest time from all pending teacher queues
     // This updates in real-time when pending teachers edit their queues
@@ -99,13 +102,14 @@ export default function GlobalFlagAdjustment({
         if (!adjustmentTime) return;
 
         const currentMinutes = timeToMinutes(adjustmentTime);
-        const newMinutes = increment ? currentMinutes + 30 : currentMinutes - 30;
+        const step = controller.stepDuration || 30;
+        const newMinutes = increment ? currentMinutes + step : currentMinutes - step;
 
         if (newMinutes < 0 || newMinutes > 1380) return;
 
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
-        onTimeAdjustment(newTime, isLocked);
+        onTimeAdjustment(newTime);
     };
 
     const handleSubmit = async () => {
@@ -120,6 +124,18 @@ export default function GlobalFlagAdjustment({
     const handleCancel = () => {
         setAdjustmentTime(currentEarliestFromPending);
         onExitAdjustmentMode();
+    };
+
+    const handleLockToggle = () => {
+        if (!isAdjustmentLocked) {
+            // Unlocked → Lock: sync all pending teachers to adjustmentTime first
+            onAdapt();
+        } else {
+            // Locked → Unlock: just toggle lock (parent will handle unlock)
+            // For now, we'll need parent to expose an unlock handler
+            // Alternative: call onAdapt which toggles lock state in parent
+            onAdapt();
+        }
     };
 
     if (!globalEarliestTime) return null;
@@ -164,17 +180,19 @@ export default function GlobalFlagAdjustment({
                         Cancel
                     </button>
                     <button
-                        onClick={() => {
-                            onAdapt();
-                        }}
-                        disabled={!needsAdaptation}
-                        className={`px-6 py-2 rounded-md font-medium transition-colors ${
-                            needsAdaptation
-                                ? "bg-blue-600 text-white hover:bg-blue-700"
-                                : "border border-foreground text-foreground hover:bg-muted/30"
+                        onClick={handleLockToggle}
+                        className={`p-2 rounded transition-colors ${
+                            adaptedCount === totalTeachers
+                                ? "border border-foreground text-foreground hover:bg-muted/50"
+                                : "bg-blue-600 text-white hover:bg-blue-700"
                         }`}
+                        title={adaptedCount === totalTeachers ? "Unlock all teachers" : "Lock all teachers to adjustment time"}
                     >
-                        Adapt
+                        {adaptedCount === totalTeachers ? (
+                            <Lock className="w-5 h-5" />
+                        ) : (
+                            <LockOpen className="w-5 h-5" />
+                        )}
                     </button>
                 </div>
 

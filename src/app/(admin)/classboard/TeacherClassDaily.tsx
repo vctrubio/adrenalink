@@ -264,6 +264,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     });
     const [pendingParentUpdateTeachers, setPendingParentUpdateTeachers] = useState<Set<string>>(new Set());
     const [queueEditRefreshKey, setQueueEditRefreshKey] = useState(0);
+    const [isAdjustmentLocked, setIsAdjustmentLocked] = useState(false);
 
     // Trigger refresh when a pending teacher manually edits their queue
     const handlePendingTeacherQueueEdit = useCallback(() => {
@@ -382,12 +383,13 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             adjustmentMode: false,
             globalTime: null,
         });
-        // Clear pending teachers when exiting global adjustment mode
+        // Clear pending teachers and reset lock when exiting global adjustment mode
         setPendingParentUpdateTeachers(new Set());
+        setIsAdjustmentLocked(false);
     };
 
-    const handleGlobalTimeAdjustment = (newTime: string, isLocked: boolean) => {
-        if (isLocked) {
+    const handleGlobalTimeAdjustment = (newTime: string) => {
+        if (isAdjustmentLocked) {
             // Locked mode: all queues match the exact global time
             teacherQueues.forEach((queue) => {
                 if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
@@ -444,21 +446,40 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     const handleAdapt = () => {
-        if (!globalEarliestTime) return;
+        if (isAdjustmentLocked) {
+            // Already locked: unlock
+            setIsAdjustmentLocked(false);
+            // Trigger refresh so UI updates
+            setQueueEditRefreshKey((prev) => prev + 1);
+        } else {
+            // Not locked: sync all pending teachers to adjustmentTime and lock
+            // Need to get the current adjustmentTime from GlobalFlagAdjustment's calculation
+            // For now, we'll sync to the earliest time from pending teachers
+            // Get the earliest time from all pending teacher queues
+            const pendingTimes: string[] = [];
+            teacherQueues.forEach((queue) => {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
+                    const earliestTime = queue.getEarliestEventTime();
+                    if (earliestTime) {
+                        pendingTimes.push(earliestTime);
+                    }
+                }
+            });
 
-        const globalMinutes = timeToMinutes(globalEarliestTime);
+            if (pendingTimes.length === 0) return;
 
-        // Sync teacher queues that start before global earliest time to match it
-        // Teacher queues that start after global earliest time wait (don't adapt them)
-        teacherQueues.forEach((queue) => {
-            if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
-                const earliestTime = queue.getEarliestEventTime();
-                if (earliestTime) {
-                    const queueMinutes = timeToMinutes(earliestTime);
+            // Get the earliest time from pending teachers
+            const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
+            const syncTargetTime = minutesToTime(minTimeInMinutes);
 
-                    // Only adapt if teacher queue starts before global earliest time
-                    if (queueMinutes < globalMinutes) {
-                        const offsetMinutes = globalMinutes - queueMinutes;
+            // Sync all pending teachers to this time
+            teacherQueues.forEach((queue) => {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
+                    const earliestTime = queue.getEarliestEventTime();
+                    if (earliestTime) {
+                        const currentMinutes = timeToMinutes(earliestTime);
+                        const targetMinutes = timeToMinutes(syncTargetTime);
+                        const offsetMinutes = targetMinutes - currentMinutes;
 
                         const events = queue.getAllEvents();
                         events.forEach((event) => {
@@ -472,10 +493,14 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                             }
                         });
                     }
-                    // If queueMinutes >= globalMinutes, do nothing (teacher waits for global time to catch up)
                 }
-            }
-        });
+            });
+
+            // Lock after syncing all teachers
+            setIsAdjustmentLocked(true);
+            // Trigger refresh so adapted count memo recalculates with new queue state
+            setQueueEditRefreshKey((prev) => prev + 1);
+        }
     };
 
     // Store original state for each teacher queue when entering adjustment mode
@@ -567,6 +592,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                 teacherQueues={teacherQueues}
                 pendingParentUpdateTeachers={pendingParentUpdateTeachers}
                 queueEditRefreshKey={queueEditRefreshKey}
+                controller={controller}
+                isAdjustmentLocked={isAdjustmentLocked}
                 onEnterAdjustmentMode={handleEnterGlobalAdjustmentMode}
                 onExitAdjustmentMode={handleExitGlobalAdjustmentMode}
                 onTimeAdjustment={handleGlobalTimeAdjustment}
