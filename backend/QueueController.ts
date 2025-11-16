@@ -83,6 +83,25 @@ export class QueueController {
     }
 
     /**
+     * Check if next event starts immediately after this one (no gap)
+     * Returns true only if the next event's start time equals this event's end time
+     */
+    canShiftQueue(eventId: string): boolean {
+        const events = this.queue.getAllEvents();
+        const index = events.findIndex((e) => e.id === eventId);
+
+        if (index === -1 || index === events.length - 1) return false;
+
+        const currentEvent = events[index];
+        const nextEvent = events[index + 1];
+
+        const currentEndMinutes = getMinutesFromISO(currentEvent.eventData.date) + currentEvent.eventData.duration;
+        const nextStartMinutes = getMinutesFromISO(nextEvent.eventData.date);
+
+        return currentEndMinutes === nextStartMinutes;
+    }
+
+    /**
      * Adjust event duration by stepDuration
      * increment: true = +stepDuration, false = -stepDuration
      * Respects existing gaps - only cascades if next event is adjacent

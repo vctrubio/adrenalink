@@ -44,7 +44,7 @@ const EquipmentDisplay = ({ categoryEquipment, capacityEquipment }: { categoryEq
     );
 };
 
-const SettingDropdown = ({ isDeleting, hasNextEvent, onDelete, onNotify }: { isDeleting: boolean; hasNextEvent: boolean; onDelete: (cascade: boolean) => void; onNotify: () => void }) => {
+const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, onNotify }: { isDeleting: boolean; hasNextEvent: boolean; canShiftQueue: boolean; onDelete: (cascade: boolean) => void; onNotify: () => void }) => {
     return (
         <Menu as="div" className="relative ml-auto">
             <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
@@ -62,34 +62,35 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, onDelete, onNotify }: { isD
                         )}
                     </Menu.Item>
 
-                    {hasNextEvent ? (
-                        <>
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={() => onDelete(true)}
-                                        disabled={isDeleting}
-                                        className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        {isDeleting ? "Deleting..." : "Delete & Shift Queue"}
-                                    </button>
-                                )}
-                            </Menu.Item>
-                            <Menu.Item>
-                                {({ active }) => (
-                                    <button
-                                        onClick={() => onDelete(false)}
-                                        disabled={isDeleting}
-                                        className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
-                                    </button>
-                                )}
-                            </Menu.Item>
-                        </>
-                    ) : (
+                    {canShiftQueue && (
+                        <Menu.Item>
+                            {({ active }) => (
+                                <button
+                                    onClick={() => onDelete(true)}
+                                    disabled={isDeleting}
+                                    className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    {isDeleting ? "Deleting..." : "Delete & Shift Queue"}
+                                </button>
+                            )}
+                        </Menu.Item>
+                    )}
+                    {hasNextEvent && (
+                        <Menu.Item>
+                            {({ active }) => (
+                                <button
+                                    onClick={() => onDelete(false)}
+                                    disabled={isDeleting}
+                                    className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
+                                </button>
+                            )}
+                        </Menu.Item>
+                    )}
+                    {!hasNextEvent && (
                         <Menu.Item>
                             {({ active }) => (
                                 <button onClick={() => onDelete(false)} disabled={isDeleting} className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}>
@@ -187,13 +188,20 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const hasNextEvent = cardProps?.isLast === false;
 
     let previousEvent: EventNode | undefined;
+    let nextEvent: EventNode | undefined;
+
     if (queue && eventId) {
         const allEvents = queue.getAllEvents();
         const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
         if (currentEventIndex > 0) {
             previousEvent = allEvents[currentEventIndex - 1];
         }
+        if (currentEventIndex !== -1 && currentEventIndex < allEvents.length - 1) {
+            nextEvent = allEvents[currentEventIndex + 1];
+        }
     }
+
+    const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
@@ -246,7 +254,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 location={location}
                 categoryEquipment={categoryEquipment}
                 capacityEquipment={capacityEquipment}
-                settingsDropdown={<SettingDropdown isDeleting={isDeleting} hasNextEvent={hasNextEvent} onDelete={handleDelete} onNotify={handleNotify} />}
+                settingsDropdown={<SettingDropdown isDeleting={isDeleting} hasNextEvent={hasNextEvent} canShiftQueue={canShiftQueue} onDelete={handleDelete} onNotify={handleNotify} />}
             >
                 {previousEvent && <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} updateMode="updateNow" />}
             </HeaderRow>
