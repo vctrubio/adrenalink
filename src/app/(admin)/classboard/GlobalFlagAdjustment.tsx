@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
@@ -13,6 +13,7 @@ interface GlobalFlagAdjustmentProps {
     onEnterAdjustmentMode: () => void;
     onExitAdjustmentMode: () => void;
     onTimeAdjustment: (newTime: string, isLocked: boolean) => void;
+    onAdapt: () => void;
     onSubmit: () => Promise<void>;
 }
 
@@ -30,7 +31,15 @@ export default function GlobalFlagAdjustment({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLocked, setIsLocked] = useState(true); // Locked by default - all queues match global time
 
+    // Sync adjustmentTime with globalEarliestTime when entering adjustment mode or globalEarliestTime changes
+    useEffect(() => {
+        if (isAdjustmentMode && globalEarliestTime) {
+            setAdjustmentTime(globalEarliestTime);
+        }
+    }, [isAdjustmentMode, globalEarliestTime]);
+
     // Recalculate adapted count whenever adjustmentTime or teacherQueues changes
+    // A teacher is "adapted" only if their earliest event matches the global earliest time
     const adaptedCount = teacherQueues.filter((queue) => {
         const earliestTime = queue.getEarliestEventTime();
         return earliestTime === adjustmentTime;
@@ -71,7 +80,7 @@ export default function GlobalFlagAdjustment({
     if (isAdjustmentMode) {
         return (
             <div className="flex items-center gap-3">
-                <FlagIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                <FlagIcon className="w-7 h-7 text-foreground flex-shrink-0" />
 
                 <button
                     onClick={() => handleAdjustTime(false)}
@@ -108,7 +117,12 @@ export default function GlobalFlagAdjustment({
                         Cancel
                     </button>
                     <button
-                        onClick={onAdapt}
+                        onClick={() => {
+                            onAdapt();
+                            // Sync adjustment time to global earliest after adaptation
+                            setAdjustmentTime(globalEarliestTime);
+                            onTimeAdjustment(globalEarliestTime || "", isLocked);
+                        }}
                         disabled={!needsAdaptation}
                         className={`px-6 py-2 rounded-md font-medium transition-colors ${
                             needsAdaptation
@@ -135,7 +149,7 @@ export default function GlobalFlagAdjustment({
                 className="flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-lg transition-colors flex-1"
                 title="Click to adjust all event times globally"
             >
-                <FlagIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                <FlagIcon className="w-7 h-7 text-foreground flex-shrink-0" />
                 <div>
                     <div className="text-sm font-semibold text-foreground">{globalEarliestTime}</div>
                     <div className="text-xs text-muted-foreground">Global Earliest</div>

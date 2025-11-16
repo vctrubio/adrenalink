@@ -364,6 +364,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             adjustmentMode: false,
             globalTime: null,
         });
+        // Reset opted-out teachers when exiting global adjustment mode
+        setOptedOutTeachers(new Set());
     };
 
     const handleGlobalTimeAdjustment = (newTime: string, isLocked: boolean) => {
@@ -426,26 +428,33 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     const handleAdapt = () => {
         if (!globalEarliestTime) return;
 
-        // Sync all teacher queues' start times to match the global earliest time
+        const globalMinutes = timeToMinutes(globalEarliestTime);
+
+        // Sync teacher queues that start before global earliest time to match it
+        // Teacher queues that start after global earliest time wait (don't adapt them)
         teacherQueues.forEach((queue) => {
             if (!optedOutTeachers.has(queue.teacher.username)) {
                 const earliestTime = queue.getEarliestEventTime();
-                if (earliestTime && earliestTime !== globalEarliestTime) {
-                    const currentMinutes = timeToMinutes(earliestTime);
-                    const targetMinutes = timeToMinutes(globalEarliestTime);
-                    const offsetMinutes = targetMinutes - currentMinutes;
+                if (earliestTime) {
+                    const queueMinutes = timeToMinutes(earliestTime);
 
-                    const events = queue.getAllEvents();
-                    events.forEach((event) => {
-                        const currentDate = event.eventData.date;
-                        if (currentDate.includes("T")) {
-                            const [datePart, timePart] = currentDate.split("T");
-                            const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                            const newEventMinutes = currentEventMinutes + offsetMinutes;
-                            const newEventTime = minutesToTime(newEventMinutes);
-                            event.eventData.date = `${datePart}T${newEventTime}:00`;
-                        }
-                    });
+                    // Only adapt if teacher queue starts before global earliest time
+                    if (queueMinutes < globalMinutes) {
+                        const offsetMinutes = globalMinutes - queueMinutes;
+
+                        const events = queue.getAllEvents();
+                        events.forEach((event) => {
+                            const currentDate = event.eventData.date;
+                            if (currentDate.includes("T")) {
+                                const [datePart, timePart] = currentDate.split("T");
+                                const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
+                                const newEventMinutes = currentEventMinutes + offsetMinutes;
+                                const newEventTime = minutesToTime(newEventMinutes);
+                                event.eventData.date = `${datePart}T${newEventTime}:00`;
+                            }
+                        });
+                    }
+                    // If queueMinutes >= globalMinutes, do nothing (teacher waits for global time to catch up)
                 }
             }
         });
