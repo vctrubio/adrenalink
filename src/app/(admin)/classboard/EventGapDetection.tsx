@@ -14,7 +14,7 @@ interface EventGapDetectionProps {
     requiredGapMinutes: number;
     updateMode: "updateNow" | "updateOnSave";
     onStateChange?: (state: GapDetectionState, duration: number) => void;
-    onGapAdjust?: (callback: () => void) => void;
+    onGapAdjust?: () => void;
 }
 
 export default function EventGapDetection({
@@ -60,10 +60,8 @@ export default function EventGapDetection({
                 console.error("Error updating event:", error);
             }
         } else {
-            if (onGapAdjust) {
-                currentEvent.eventData.date = newDate;
-                onGapAdjust(() => {});
-            }
+            currentEvent.eventData.date = newDate;
+            onGapAdjust?.();
         }
     };
 

@@ -254,8 +254,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
                         previousEvent={previousEvent}
                         requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
                         updateMode="updateOnSave"
-                        onGapAdjust={(callback) => {
-                            callback();
+                        onGapAdjust={() => {
                             queueController.addGap(eventId);
                             handleRefresh();
                         }}
