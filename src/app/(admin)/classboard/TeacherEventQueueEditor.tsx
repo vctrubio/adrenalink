@@ -20,9 +20,10 @@ export default function TeacherQueueEditor({
     controller,
 }: TeacherQueueEditorProps) {
     // Create a single QueueController for all events
+    // Include events in deps so controller updates when events change (including global adjustments)
     const queueController = useMemo(
         () => new QueueController(teacherQueue, controller, onRefresh),
-        [teacherQueue, controller, onRefresh]
+        [teacherQueue, controller, onRefresh, events]
     );
 
     return (

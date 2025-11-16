@@ -1,25 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { Flag, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, LockOpen } from "lucide-react";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
+import type { TeacherQueue } from "@/backend/TeacherQueue";
 
 interface GlobalFlagAdjustmentProps {
     globalEarliestTime: string | null;
     isAdjustmentMode: boolean;
+    teacherQueues: TeacherQueue[];
     onEnterAdjustmentMode: () => void;
     onExitAdjustmentMode: () => void;
-    onTimeAdjustment: (newTime: string) => void;
+    onTimeAdjustment: (newTime: string, isLocked: boolean) => void;
+    onSubmit: () => Promise<void>;
 }
 
 export default function GlobalFlagAdjustment({
     globalEarliestTime,
     isAdjustmentMode,
+    teacherQueues,
     onEnterAdjustmentMode,
     onExitAdjustmentMode,
     onTimeAdjustment,
+    onAdapt,
+    onSubmit,
 }: GlobalFlagAdjustmentProps) {
     const [adjustmentTime, setAdjustmentTime] = useState(globalEarliestTime);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLocked, setIsLocked] = useState(true); // Locked by default - all queues match global time
+
+    // Recalculate adapted count whenever adjustmentTime or teacherQueues changes
+    const adaptedCount = teacherQueues.filter((queue) => {
+        const earliestTime = queue.getEarliestEventTime();
+        return earliestTime === adjustmentTime;
+    }).length;
+
+    const totalTeachers = teacherQueues.length;
+    const needsAdaptation = adaptedCount < totalTeachers;
 
     const handleAdjustTime = (increment: boolean) => {
         if (!adjustmentTime) return;
@@ -31,10 +49,19 @@ export default function GlobalFlagAdjustment({
 
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
-        onTimeAdjustment(newTime);
+        onTimeAdjustment(newTime, isLocked);
     };
 
-    const handleExit = () => {
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            await onSubmit();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleCancel = () => {
         setAdjustmentTime(globalEarliestTime);
         onExitAdjustmentMode();
     };
@@ -43,55 +70,82 @@ export default function GlobalFlagAdjustment({
 
     if (isAdjustmentMode) {
         return (
-            <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <Flag className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">Global Time Adjustment</span>
+            <div className="flex items-center gap-3">
+                <FlagIcon className="w-5 h-5 text-foreground flex-shrink-0" />
 
-                <div className="flex items-center gap-2 ml-auto">
+                <button
+                    onClick={() => handleAdjustTime(false)}
+                    className="p-2 rounded hover:bg-muted transition-colors"
+                    title="30 minutes earlier"
+                >
+                    <ChevronLeft className="w-5 h-5 text-foreground" />
+                </button>
+
+                <div className="text-center min-w-[60px]">
+                    <div className="text-sm font-semibold text-foreground">{adjustmentTime}</div>
+                </div>
+
+                <button
+                    onClick={() => handleAdjustTime(true)}
+                    className="p-2 rounded hover:bg-muted transition-colors"
+                    title="30 minutes later"
+                >
+                    <ChevronRight className="w-5 h-5 text-foreground" />
+                </button>
+
+                <div className="flex gap-2">
                     <button
-                        onClick={() => handleAdjustTime(false)}
-                        className="p-1.5 border border-blue-300 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                        title="30 minutes earlier"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <ChevronLeft className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        {isSubmitting ? "Saving..." : "Submit"}
                     </button>
-
-                    <div className="text-center min-w-[60px]">
-                        <div className="text-base font-bold text-blue-600 dark:text-blue-400">
-                            {adjustmentTime}
-                        </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400">earliest</div>
-                    </div>
-
                     <button
-                        onClick={() => handleAdjustTime(true)}
-                        className="p-1.5 border border-blue-300 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                        title="30 minutes later"
+                        onClick={handleCancel}
+                        className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
                     >
-                        <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        Cancel
                     </button>
-
                     <button
-                        onClick={handleExit}
-                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors ml-2"
-                        title="Exit adjustment mode"
+                        onClick={onAdapt}
+                        disabled={!needsAdaptation}
+                        className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                            needsAdaptation
+                                ? "bg-blue-600 text-white hover:bg-blue-700"
+                                : "border border-foreground text-foreground hover:bg-muted/30"
+                        }`}
                     >
-                        <X className="w-4 h-4" />
+                        Adapt
                     </button>
+                </div>
+
+                <div className="text-center">
+                    <div className="text-sm font-semibold text-foreground">{adaptedCount}/{totalTeachers}</div>
+                    <div className="text-xs text-muted-foreground">Adapted</div>
                 </div>
             </div>
         );
     }
 
     return (
-        <button
-            onClick={onEnterAdjustmentMode}
-            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-transparent hover:border-border"
-            title="Click to adjust all event times globally"
-        >
-            <Flag className="w-4 h-4" />
-            <span className="text-sm font-semibold">{globalEarliestTime}</span>
-            <span className="text-xs text-muted-foreground">Global Earliest</span>
-        </button>
+        <div className="flex items-center gap-6">
+            <button
+                onClick={onEnterAdjustmentMode}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-lg transition-colors flex-1"
+                title="Click to adjust all event times globally"
+            >
+                <FlagIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                <div>
+                    <div className="text-sm font-semibold text-foreground">{globalEarliestTime}</div>
+                    <div className="text-xs text-muted-foreground">Global Earliest</div>
+                </div>
+            </button>
+
+            <div className="text-center">
+                <div className="text-sm font-semibold text-foreground">{adaptedCount}/{totalTeachers}</div>
+                <div className="text-xs text-muted-foreground">Adapted</div>
+            </div>
+        </div>
     );
 }

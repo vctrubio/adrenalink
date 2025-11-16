@@ -10,10 +10,8 @@ import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/Teac
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
-import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
+import type { ClassboardStats } from "@/backend/ClassboardStats";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-
-type TeacherViewMode = "view" | "edit" | "queue";
 
 interface ParentTime {
     adjustmentMode: boolean;
@@ -30,6 +28,8 @@ function TeacherColumn({
     onOptIn,
     controller,
     onEventDeleted,
+    onExitGlobalAdjustment,
+    onCollectGlobalUpdates,
 }: {
     queue: TeacherQueue;
     stats: TeacherStats;
@@ -40,6 +40,8 @@ function TeacherColumn({
     onOptIn: (teacherUsername: string) => void;
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
+    onExitGlobalAdjustment?: () => void;
+    onCollectGlobalUpdates?: (teacherUsername: string) => Array<{ id: string; date: string; duration: number }>;
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -50,6 +52,18 @@ function TeacherColumn({
         setRefreshKey((prev) => prev + 1);
     }, [queue]);
 
+    // Auto-enter queue mode when global adjustment mode is active
+    useEffect(() => {
+        if (parentTime.adjustmentMode && !isOptedOutOfGlobalUpdate) {
+            setColumnViewMode("queue");
+        } else if (!parentTime.adjustmentMode && columnViewMode === "queue") {
+            // Exit queue mode when global adjustment mode is deactivated
+            handleReset();
+            setColumnViewMode("view");
+            originalQueueState.current = [];
+        }
+    }, [parentTime.adjustmentMode, isOptedOutOfGlobalUpdate]);
+
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
         const allEvents = queue.getAllEvents();
@@ -59,8 +73,8 @@ function TeacherColumn({
         }
     }, [queue]);
 
-    const events = useMemo(() => queue.getAllEvents(), [queue, refreshKey]);
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey]);
+    const events = useMemo(() => queue.getAllEvents(), [queue, refreshKey, parentTime.globalTime]);
+    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey, parentTime.globalTime]);
 
     // Store original queue state for reset functionality
     const originalQueueState = useRef<EventNode[]>([]);
@@ -166,6 +180,11 @@ function TeacherColumn({
         handleReset();
         setColumnViewMode("view");
         originalQueueState.current = [];
+
+        // If in global adjustment mode, exit it
+        if (parentTime.adjustmentMode) {
+            onExitGlobalAdjustment?.();
+        }
     };
 
 
@@ -223,7 +242,6 @@ interface TeacherClassDailyProps {
 }
 
 export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, selectedDate, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
-    const [viewMode, setViewMode] = useState<TeacherViewMode>("view");
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<"compatible" | "incompatible" | null>(null);
     const [parentTime, setParentTime] = useState<ParentTime>({
@@ -330,30 +348,55 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         });
     };
 
-    const handleGlobalTimeAdjustment = (newTime: string) => {
-        if (!parentTime.globalTime) return;
+    const handleGlobalTimeAdjustment = (newTime: string, isLocked: boolean) => {
+        if (isLocked) {
+            // Locked mode: all queues match the exact global time
+            teacherQueues.forEach((queue) => {
+                if (!optedOutTeachers.has(queue.teacher.username)) {
+                    const earliestTime = queue.getEarliestEventTime();
+                    if (earliestTime) {
+                        const currentMinutes = timeToMinutes(earliestTime);
+                        const targetMinutes = timeToMinutes(newTime);
+                        const offsetMinutes = targetMinutes - currentMinutes;
 
-        const currentMinutes = timeToMinutes(parentTime.globalTime);
-        const newMinutes = timeToMinutes(newTime);
-        const offsetMinutes = newMinutes - currentMinutes;
-
-        // Apply adjustment to all non-opted-out teachers
-        teacherQueues.forEach((queue) => {
-            if (!optedOutTeachers.has(queue.teacher.username)) {
-                const events = queue.getAllEvents();
-                events.forEach((event) => {
-                    // Update event date/time by offset
-                    const currentDate = event.eventData.date;
-                    if (currentDate.includes("T")) {
-                        const [datePart, timePart] = currentDate.split("T");
-                        const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
-                        const newEventMinutes = currentEventMinutes + offsetMinutes;
-                        const newEventTime = minutesToTime(newEventMinutes);
-                        event.eventData.date = `${datePart}T${newEventTime}:00`;
+                        const events = queue.getAllEvents();
+                        events.forEach((event) => {
+                            const currentDate = event.eventData.date;
+                            if (currentDate.includes("T")) {
+                                const [datePart, timePart] = currentDate.split("T");
+                                const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
+                                const newEventMinutes = currentEventMinutes + offsetMinutes;
+                                const newEventTime = minutesToTime(newEventMinutes);
+                                event.eventData.date = `${datePart}T${newEventTime}:00`;
+                            }
+                        });
                     }
-                });
-            }
-        });
+                }
+            });
+        } else {
+            // Unlocked mode: global time is just an offset applied to each queue's current time
+            if (!parentTime.globalTime) return;
+
+            const currentMinutes = timeToMinutes(parentTime.globalTime);
+            const newMinutes = timeToMinutes(newTime);
+            const offsetMinutes = newMinutes - currentMinutes;
+
+            teacherQueues.forEach((queue) => {
+                if (!optedOutTeachers.has(queue.teacher.username)) {
+                    const events = queue.getAllEvents();
+                    events.forEach((event) => {
+                        const currentDate = event.eventData.date;
+                        if (currentDate.includes("T")) {
+                            const [datePart, timePart] = currentDate.split("T");
+                            const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
+                            const newEventMinutes = currentEventMinutes + offsetMinutes;
+                            const newEventTime = minutesToTime(newEventMinutes);
+                            event.eventData.date = `${datePart}T${newEventTime}:00`;
+                        }
+                    });
+                }
+            });
+        }
 
         // Update parent time
         setParentTime({
@@ -362,46 +405,127 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         });
     };
 
+    const handleAdapt = () => {
+        if (!globalEarliestTime) return;
+
+        // Sync all teacher queues' start times to match the global earliest time
+        teacherQueues.forEach((queue) => {
+            if (!optedOutTeachers.has(queue.teacher.username)) {
+                const earliestTime = queue.getEarliestEventTime();
+                if (earliestTime && earliestTime !== globalEarliestTime) {
+                    const currentMinutes = timeToMinutes(earliestTime);
+                    const targetMinutes = timeToMinutes(globalEarliestTime);
+                    const offsetMinutes = targetMinutes - currentMinutes;
+
+                    const events = queue.getAllEvents();
+                    events.forEach((event) => {
+                        const currentDate = event.eventData.date;
+                        if (currentDate.includes("T")) {
+                            const [datePart, timePart] = currentDate.split("T");
+                            const currentEventMinutes = timeToMinutes(timePart.substring(0, 5));
+                            const newEventMinutes = currentEventMinutes + offsetMinutes;
+                            const newEventTime = minutesToTime(newEventMinutes);
+                            event.eventData.date = `${datePart}T${newEventTime}:00`;
+                        }
+                    });
+                }
+            }
+        });
+    };
+
+    // Store original state for each teacher queue when entering adjustment mode
+    const originalQueueStates = useRef<Map<string, EventNode[]>>(new Map());
+
+    useEffect(() => {
+        if (parentTime.adjustmentMode) {
+            // Store original state when entering adjustment mode
+            teacherQueues.forEach((queue) => {
+                if (!optedOutTeachers.has(queue.teacher.username)) {
+                    const events = queue.getAllEvents();
+                    originalQueueStates.current.set(
+                        queue.teacher.username,
+                        events.map((event) => ({
+                            ...event,
+                            eventData: { ...event.eventData },
+                        }))
+                    );
+                }
+            });
+        } else {
+            // Clear original state when exiting adjustment mode
+            originalQueueStates.current.clear();
+        }
+    }, [parentTime.adjustmentMode, teacherQueues, optedOutTeachers]);
+
+    const handleCollectGlobalUpdates = (teacherUsername: string): Array<{ id: string; date: string; duration: number }> => {
+        const queue = teacherQueues.find((q) => q.teacher.username === teacherUsername);
+        if (!queue) return [];
+
+        const originalEvents = originalQueueStates.current.get(teacherUsername) || [];
+        const currentEvents = queue.getAllEvents();
+
+        return currentEvents
+            .filter((currentEvent) => {
+                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
+                if (!originalEvent) return true; // New event
+
+                // Check if date or duration changed
+                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+
+                return dateChanged || durationChanged;
+            })
+            .map((event) => ({
+                id: event.id,
+                date: event.eventData.date,
+                duration: event.eventData.duration,
+            }));
+    };
+
+    const handleGlobalSubmit = async () => {
+        try {
+            const allUpdates: Array<{ id: string; date: string; duration: number }> = [];
+
+            // Collect only changed events from each teacher queue
+            teacherQueues.forEach((queue) => {
+                if (!optedOutTeachers.has(queue.teacher.username)) {
+                    const changedEvents = handleCollectGlobalUpdates(queue.teacher.username);
+                    allUpdates.push(...changedEvents);
+                }
+            });
+
+            if (allUpdates.length > 0) {
+                console.log(`📤 Submitting ${allUpdates.length} changed events from global adjustment`);
+                const result = await bulkUpdateClassboardEvents(allUpdates);
+
+                if (!result.success) {
+                    console.error("Failed to update events:", result.error);
+                    return;
+                }
+
+                console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
+            }
+
+            // Exit adjustment mode after successful submit
+            handleExitGlobalAdjustmentMode();
+        } catch (error) {
+            console.error("Error submitting global updates:", error);
+        }
+    };
+
     return (
         <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col">
-            {/* Header */}
-            <div className="space-y-4 pb-4 border-b border-border">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg text-foreground">Teachers</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Manage and assign lessons to teachers</p>
-                    </div>
-
-                    {/* View/Edit Toggle */}
-                    <div className="flex gap-2 bg-muted rounded-lg p-1.5">
-                        <button
-                            onClick={() => setViewMode("view")}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-                                viewMode === "view" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                            }`}
-                        >
-                            View
-                        </button>
-                        <button
-                            onClick={() => setViewMode("edit")}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-                                viewMode === "edit" ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                            }`}
-                        >
-                            Edit
-                        </button>
-                    </div>
-                </div>
-
-                {/* Global Flag Adjustment */}
-                <GlobalFlagAdjustment
-                    globalEarliestTime={globalEarliestTime}
-                    isAdjustmentMode={parentTime.adjustmentMode}
-                    onEnterAdjustmentMode={handleEnterGlobalAdjustmentMode}
-                    onExitAdjustmentMode={handleExitGlobalAdjustmentMode}
-                    onTimeAdjustment={handleGlobalTimeAdjustment}
-                />
-            </div>
+            {/* Global Flag Adjustment */}
+            <GlobalFlagAdjustment
+                globalEarliestTime={globalEarliestTime}
+                isAdjustmentMode={parentTime.adjustmentMode}
+                teacherQueues={teacherQueues}
+                onEnterAdjustmentMode={handleEnterGlobalAdjustmentMode}
+                onExitAdjustmentMode={handleExitGlobalAdjustmentMode}
+                onTimeAdjustment={handleGlobalTimeAdjustment}
+                onAdapt={handleAdapt}
+                onSubmit={handleGlobalSubmit}
+            />
 
             {/* Content */}
             {teacherQueues.length === 0 ? (
@@ -438,6 +562,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                 onOptIn={handleOptIn}
                                 controller={controller}
                                 onEventDeleted={onEventDeleted}
+                                onExitGlobalAdjustment={handleExitGlobalAdjustmentMode}
+                                onCollectGlobalUpdates={handleCollectGlobalUpdates}
                             />
                         );
                     })}
