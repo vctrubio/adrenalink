@@ -73,8 +73,16 @@ function TeacherColumn({
         }
     }, [queue]);
 
-    const events = useMemo(() => queue.getAllEvents(), [queue, refreshKey, parentTime.globalTime]);
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey, parentTime.globalTime]);
+    const events = useMemo(() => {
+        // Only include parentTime.globalTime in deps if in edit mode
+        // This ensures event cards only update in editor view
+        return queue.getAllEvents();
+    }, [queue, refreshKey, columnViewMode === "queue" ? parentTime.globalTime : null]);
+
+    const earliestTime = useMemo(() => {
+        // Only recalculate in edit mode
+        return queue.getEarliestEventTime();
+    }, [queue, refreshKey, columnViewMode === "queue" ? parentTime.globalTime : null]);
 
     // Store original queue state for reset functionality
     const originalQueueState = useRef<EventNode[]>([]);
@@ -181,9 +189,9 @@ function TeacherColumn({
         setColumnViewMode("view");
         originalQueueState.current = [];
 
-        // If in global adjustment mode, exit it
+        // If in global adjustment mode, opt this teacher out so they're not affected by further changes
         if (parentTime.adjustmentMode) {
-            onExitGlobalAdjustment?.();
+            onOptOut(queue.teacher.username);
         }
     };
 
@@ -323,7 +331,17 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     const handleOptOut = (teacherUsername: string) => {
-        setOptedOutTeachers((prev) => new Set(prev).add(teacherUsername));
+        setOptedOutTeachers((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(teacherUsername);
+
+            // If all teachers are opted out, exit global adjustment mode
+            if (newSet.size === teacherQueues.length) {
+                handleExitGlobalAdjustmentMode();
+            }
+
+            return newSet;
+        });
     };
 
     const handleOptIn = (teacherUsername: string) => {

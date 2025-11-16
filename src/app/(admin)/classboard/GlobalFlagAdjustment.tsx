@@ -81,8 +81,8 @@ export default function GlobalFlagAdjustment({
                     <ChevronLeft className="w-5 h-5 text-foreground" />
                 </button>
 
-                <div className="text-center min-w-[60px]">
-                    <div className="text-sm font-semibold text-foreground">{adjustmentTime}</div>
+                <div className="text-center min-w-[70px]">
+                    <div className="text-sm font-semibold text-foreground">{adjustmentTime || globalEarliestTime}</div>
                 </div>
 
                 <button
