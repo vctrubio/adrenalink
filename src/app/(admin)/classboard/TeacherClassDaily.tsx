@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
@@ -10,7 +10,7 @@ import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/Teac
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
-import type { ClassboardStats } from "@/backend/ClassboardStats";
+import type { ClassboardStats, TeacherStats } from "@/backend/ClassboardStats";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
 interface ParentTime {
@@ -23,25 +23,27 @@ function TeacherColumn({
     stats,
     dragState,
     parentTime,
-    isOptedOutOfGlobalUpdate,
+    isPendingParentUpdate,
     onOptOut,
     onOptIn,
     controller,
     onEventDeleted,
     onExitGlobalAdjustment,
     onCollectGlobalUpdates,
+    onPendingTeacherQueueEdit,
 }: {
     queue: TeacherQueue;
     stats: TeacherStats;
     dragState: DragState;
     parentTime: ParentTime;
-    isOptedOutOfGlobalUpdate: boolean;
+    isPendingParentUpdate: boolean;
     onOptOut: (teacherUsername: string) => void;
     onOptIn: (teacherUsername: string) => void;
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onExitGlobalAdjustment?: () => void;
     onCollectGlobalUpdates?: (teacherUsername: string) => Array<{ id: string; date: string; duration: number }>;
+    onPendingTeacherQueueEdit?: () => void;
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -50,11 +52,15 @@ function TeacherColumn({
     useEffect(() => {
         console.log(`[TeacherColumn] Queue updated for ${queue.teacher.username}, forcing refresh`);
         setRefreshKey((prev) => prev + 1);
-    }, [queue]);
+        // Signal pending teacher queue edits for real-time Adapt button updates
+        if (isPendingParentUpdate && columnViewMode === "queue") {
+            onPendingTeacherQueueEdit?.();
+        }
+    }, [queue, isPendingParentUpdate, columnViewMode, onPendingTeacherQueueEdit]);
 
     // Auto-enter queue mode when global adjustment mode is active
     useEffect(() => {
-        if (parentTime.adjustmentMode && !isOptedOutOfGlobalUpdate) {
+        if (parentTime.adjustmentMode && isPendingParentUpdate) {
             setColumnViewMode("queue");
         } else if (!parentTime.adjustmentMode && columnViewMode === "queue") {
             // Exit queue mode when global adjustment mode is deactivated
@@ -62,7 +68,7 @@ function TeacherColumn({
             setColumnViewMode("view");
             originalQueueState.current = [];
         }
-    }, [parentTime.adjustmentMode, isOptedOutOfGlobalUpdate]);
+    }, [parentTime.adjustmentMode, isPendingParentUpdate]);
 
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
@@ -104,7 +110,7 @@ function TeacherColumn({
     const handleIconClick = () => {
         if (parentTime.adjustmentMode) {
             // In global mode: toggle opt in/out
-            if (isOptedOutOfGlobalUpdate) {
+            if (!isPendingParentUpdate) {
                 onOptIn(queue.teacher.username);
             } else {
                 onOptOut(queue.teacher.username);
@@ -231,7 +237,7 @@ function TeacherColumn({
                         }}
                     />
                 ) : (
-                    <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} onEventDeleted={onEventDeleted} />
+                    <TeacherQueueEditor events={events} teacherQueue={queue} onRefresh={handleRefresh} controller={controller} onEventDeleted={onEventDeleted} onPendingTeacherQueueEdit={isPendingParentUpdate ? onPendingTeacherQueueEdit : undefined} />
                 )}
             </div>
         </div>
@@ -256,7 +262,13 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         adjustmentMode: false,
         globalTime: null,
     });
-    const [optedOutTeachers, setOptedOutTeachers] = useState<Set<string>>(new Set());
+    const [pendingParentUpdateTeachers, setPendingParentUpdateTeachers] = useState<Set<string>>(new Set());
+    const [queueEditRefreshKey, setQueueEditRefreshKey] = useState(0);
+
+    // Trigger refresh when a pending teacher manually edits their queue
+    const handlePendingTeacherQueueEdit = useCallback(() => {
+        setQueueEditRefreshKey((prev) => prev + 1);
+    }, []);
 
     // Calculate global earliest time across all teacher queues
     const globalEarliestTime = useMemo(() => {
@@ -331,12 +343,12 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     const handleOptOut = (teacherUsername: string) => {
-        setOptedOutTeachers((prev) => {
+        setPendingParentUpdateTeachers((prev) => {
             const newSet = new Set(prev);
-            newSet.add(teacherUsername);
+            newSet.delete(teacherUsername);
 
             // If all teachers are opted out, exit global adjustment mode
-            if (newSet.size === teacherQueues.length) {
+            if (newSet.size === 0) {
                 handleExitGlobalAdjustmentMode();
             }
 
@@ -345,14 +357,20 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     const handleOptIn = (teacherUsername: string) => {
-        setOptedOutTeachers((prev) => {
+        setPendingParentUpdateTeachers((prev) => {
             const newSet = new Set(prev);
-            newSet.delete(teacherUsername);
+            newSet.add(teacherUsername);
             return newSet;
         });
     };
 
     const handleEnterGlobalAdjustmentMode = () => {
+        // Initialize pending set with all teachers that have events
+        const teachersWithEvents = teacherQueues
+            .filter((queue) => queue.getAllEvents().length > 0)
+            .map((queue) => queue.teacher.username);
+        setPendingParentUpdateTeachers(new Set(teachersWithEvents));
+
         setParentTime({
             adjustmentMode: true,
             globalTime: globalEarliestTime,
@@ -364,15 +382,15 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             adjustmentMode: false,
             globalTime: null,
         });
-        // Reset opted-out teachers when exiting global adjustment mode
-        setOptedOutTeachers(new Set());
+        // Clear pending teachers when exiting global adjustment mode
+        setPendingParentUpdateTeachers(new Set());
     };
 
     const handleGlobalTimeAdjustment = (newTime: string, isLocked: boolean) => {
         if (isLocked) {
             // Locked mode: all queues match the exact global time
             teacherQueues.forEach((queue) => {
-                if (!optedOutTeachers.has(queue.teacher.username)) {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                     const earliestTime = queue.getEarliestEventTime();
                     if (earliestTime) {
                         const currentMinutes = timeToMinutes(earliestTime);
@@ -402,7 +420,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             const offsetMinutes = newMinutes - currentMinutes;
 
             teacherQueues.forEach((queue) => {
-                if (!optedOutTeachers.has(queue.teacher.username)) {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                     const events = queue.getAllEvents();
                     events.forEach((event) => {
                         const currentDate = event.eventData.date;
@@ -433,7 +451,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         // Sync teacher queues that start before global earliest time to match it
         // Teacher queues that start after global earliest time wait (don't adapt them)
         teacherQueues.forEach((queue) => {
-            if (!optedOutTeachers.has(queue.teacher.username)) {
+            if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
                     const queueMinutes = timeToMinutes(earliestTime);
@@ -467,7 +485,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         if (parentTime.adjustmentMode) {
             // Store original state when entering adjustment mode
             teacherQueues.forEach((queue) => {
-                if (!optedOutTeachers.has(queue.teacher.username)) {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                     const events = queue.getAllEvents();
                     originalQueueStates.current.set(
                         queue.teacher.username,
@@ -482,7 +500,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             // Clear original state when exiting adjustment mode
             originalQueueStates.current.clear();
         }
-    }, [parentTime.adjustmentMode, teacherQueues, optedOutTeachers]);
+    }, [parentTime.adjustmentMode, teacherQueues, pendingParentUpdateTeachers]);
 
     const handleCollectGlobalUpdates = (teacherUsername: string): Array<{ id: string; date: string; duration: number }> => {
         const queue = teacherQueues.find((q) => q.teacher.username === teacherUsername);
@@ -515,7 +533,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
             // Collect only changed events from each teacher queue
             teacherQueues.forEach((queue) => {
-                if (!optedOutTeachers.has(queue.teacher.username)) {
+                if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
                     const changedEvents = handleCollectGlobalUpdates(queue.teacher.username);
                     allUpdates.push(...changedEvents);
                 }
@@ -547,6 +565,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                 globalEarliestTime={globalEarliestTime}
                 isAdjustmentMode={parentTime.adjustmentMode}
                 teacherQueues={teacherQueues}
+                pendingParentUpdateTeachers={pendingParentUpdateTeachers}
+                queueEditRefreshKey={queueEditRefreshKey}
                 onEnterAdjustmentMode={handleEnterGlobalAdjustmentMode}
                 onExitAdjustmentMode={handleExitGlobalAdjustmentMode}
                 onTimeAdjustment={handleGlobalTimeAdjustment}
@@ -584,13 +604,14 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                         getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
                                 }}
                                 parentTime={parentTime}
-                                isOptedOutOfGlobalUpdate={optedOutTeachers.has(queue.teacher.username)}
+                                isPendingParentUpdate={pendingParentUpdateTeachers.has(queue.teacher.username)}
                                 onOptOut={handleOptOut}
                                 onOptIn={handleOptIn}
                                 controller={controller}
                                 onEventDeleted={onEventDeleted}
                                 onExitGlobalAdjustment={handleExitGlobalAdjustmentMode}
                                 onCollectGlobalUpdates={handleCollectGlobalUpdates}
+                                onPendingTeacherQueueEdit={handlePendingTeacherQueueEdit}
                             />
                         );
                     })}

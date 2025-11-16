@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
@@ -10,6 +10,8 @@ interface GlobalFlagAdjustmentProps {
     globalEarliestTime: string | null;
     isAdjustmentMode: boolean;
     teacherQueues: TeacherQueue[];
+    pendingParentUpdateTeachers: Set<string>;
+    queueEditRefreshKey: number;
     onEnterAdjustmentMode: () => void;
     onExitAdjustmentMode: () => void;
     onTimeAdjustment: (newTime: string, isLocked: boolean) => void;
@@ -21,6 +23,8 @@ export default function GlobalFlagAdjustment({
     globalEarliestTime,
     isAdjustmentMode,
     teacherQueues,
+    pendingParentUpdateTeachers,
+    queueEditRefreshKey,
     onEnterAdjustmentMode,
     onExitAdjustmentMode,
     onTimeAdjustment,
@@ -31,22 +35,65 @@ export default function GlobalFlagAdjustment({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLocked, setIsLocked] = useState(true); // Locked by default - all queues match global time
 
-    // Sync adjustmentTime with globalEarliestTime when entering adjustment mode or globalEarliestTime changes
+    // Calculate the current earliest time from all pending teacher queues
+    // This updates in real-time when pending teachers edit their queues
+    const currentEarliestFromPending = useMemo(() => {
+        const pendingTimes: string[] = [];
+        teacherQueues.forEach((queue) => {
+            if (pendingParentUpdateTeachers.has(queue.teacher.username)) {
+                const earliestTime = queue.getEarliestEventTime();
+                if (earliestTime) {
+                    pendingTimes.push(earliestTime);
+                }
+            }
+        });
+
+        if (pendingTimes.length === 0) return globalEarliestTime;
+
+        // Return the earliest time from pending teachers
+        const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
+        return minutesToTime(minTimeInMinutes);
+    }, [teacherQueues, pendingParentUpdateTeachers, queueEditRefreshKey, globalEarliestTime]);
+
+    // Sync adjustmentTime with currentEarliestFromPending when queue edits change
+    // This keeps the display up-to-date while allowing the arrows to modify adjustmentTime
     useEffect(() => {
-        if (isAdjustmentMode && globalEarliestTime) {
-            setAdjustmentTime(globalEarliestTime);
+        if (currentEarliestFromPending) {
+            setAdjustmentTime(currentEarliestFromPending);
         }
-    }, [isAdjustmentMode, globalEarliestTime]);
+    }, [currentEarliestFromPending]);
 
-    // Recalculate adapted count whenever adjustmentTime or teacherQueues changes
-    // A teacher is "adapted" only if their earliest event matches the global earliest time
-    const adaptedCount = teacherQueues.filter((queue) => {
-        const earliestTime = queue.getEarliestEventTime();
-        return earliestTime === adjustmentTime;
-    }).length;
+    // Calculate adapted count for ADJUSTMENT MODE
+    // Only count teachers in the pending parent update set
+    const { adaptedCount, totalTeachers, needsAdaptation } = useMemo(() => {
+        const adapted = teacherQueues.filter((queue) => {
+            if (!pendingParentUpdateTeachers.has(queue.teacher.username)) return false;
+            const earliestTime = queue.getEarliestEventTime();
+            return earliestTime === currentEarliestFromPending;
+        }).length;
 
-    const totalTeachers = teacherQueues.length;
-    const needsAdaptation = adaptedCount < totalTeachers;
+        const total = pendingParentUpdateTeachers.size;
+        return {
+            adaptedCount: adapted,
+            totalTeachers: total,
+            needsAdaptation: adapted < total,
+        };
+    }, [teacherQueues, pendingParentUpdateTeachers, currentEarliestFromPending, queueEditRefreshKey]);
+
+    // Calculate adapted count for NORMAL MODE
+    // Count all teachers with events, not just pending ones
+    const { adaptedCount: globalAdaptedCount, totalTeachers: globalTotalTeachers } = useMemo(() => {
+        const teachersWithEvents = teacherQueues.filter((queue) => queue.getAllEvents().length > 0);
+        const adapted = teachersWithEvents.filter((queue) => {
+            const earliestTime = queue.getEarliestEventTime();
+            return earliestTime === globalEarliestTime;
+        }).length;
+
+        return {
+            adaptedCount: adapted,
+            totalTeachers: teachersWithEvents.length,
+        };
+    }, [teacherQueues, globalEarliestTime]);
 
     const handleAdjustTime = (increment: boolean) => {
         if (!adjustmentTime) return;
@@ -71,7 +118,7 @@ export default function GlobalFlagAdjustment({
     };
 
     const handleCancel = () => {
-        setAdjustmentTime(globalEarliestTime);
+        setAdjustmentTime(currentEarliestFromPending);
         onExitAdjustmentMode();
     };
 
@@ -91,7 +138,7 @@ export default function GlobalFlagAdjustment({
                 </button>
 
                 <div className="text-center min-w-[70px]">
-                    <div className="text-sm font-semibold text-foreground">{adjustmentTime || globalEarliestTime}</div>
+                    <div className="text-sm font-semibold text-foreground">{adjustmentTime}</div>
                 </div>
 
                 <button
@@ -119,9 +166,6 @@ export default function GlobalFlagAdjustment({
                     <button
                         onClick={() => {
                             onAdapt();
-                            // Sync adjustment time to global earliest after adaptation
-                            setAdjustmentTime(globalEarliestTime);
-                            onTimeAdjustment(globalEarliestTime || "", isLocked);
                         }}
                         disabled={!needsAdaptation}
                         className={`px-6 py-2 rounded-md font-medium transition-colors ${
@@ -157,7 +201,7 @@ export default function GlobalFlagAdjustment({
             </button>
 
             <div className="text-center">
-                <div className="text-sm font-semibold text-foreground">{adaptedCount}/{totalTeachers}</div>
+                <div className="text-sm font-semibold text-foreground">{globalAdaptedCount}/{globalTotalTeachers}</div>
                 <div className="text-xs text-muted-foreground">Adapted</div>
             </div>
         </div>

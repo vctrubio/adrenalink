@@ -16,6 +16,7 @@ import EventGapDetection from "./EventGapDetection";
 interface EventModCardProps {
     eventId: string;
     queueController: QueueController;
+    onPendingTeacherQueueEdit?: () => void;
 }
 
 // Sub-components
@@ -86,11 +87,16 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
     );
 };
 
-const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueController }) => {
+const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController, onPendingTeacherQueueEdit }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueController; onPendingTeacherQueueEdit?: () => void }) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const durationMinutes = event.eventData.duration;
     const endTimeMinutes = timeToMinutes(startTime) + durationMinutes;
     const endTime = minutesToTime(endTimeMinutes);
+
+    const handleTimeChange = (increment: boolean) => {
+        queueController.adjustTime(eventId, increment);
+        onPendingTeacherQueueEdit?.();
+    };
 
     return (
         <div className="flex-grow min-w-0">
@@ -98,7 +104,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
                 <span className="text-xs text-gray-600 dark:text-gray-400">Start</span>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => queueController.adjustTime(eventId, false)}
+                        onClick={() => handleTimeChange(false)}
                         disabled={!canMoveEarlier}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveEarlier ? "30 minutes earlier" : "Cannot move earlier - would overlap"}
@@ -106,7 +112,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
                         <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={() => queueController.adjustTime(eventId, true)}
+                        onClick={() => handleTimeChange(true)}
                         disabled={!canMoveLater}
                         className="p-1.5 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={canMoveLater ? "30 minutes later" : "Cannot move later - would exceed 23:00"}
@@ -125,11 +131,12 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
     );
 };
 
-const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueController }) => {
+const DurationControls = ({ duration, eventId, queueController, onPendingTeacherQueueEdit }: { duration: number; eventId: string; queueController: QueueController; onPendingTeacherQueueEdit?: () => void }) => {
     const handleDurationAdjustment = (increment: boolean) => {
         const newDuration = increment ? duration + 30 : duration - 30;
         if (newDuration < 60) return;
         queueController.adjustDuration(eventId, increment);
+        onPendingTeacherQueueEdit?.();
     };
 
     return (
@@ -152,11 +159,12 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     );
 };
 
-const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
+const LocationControls = ({ eventId, currentLocation, queueController, onPendingTeacherQueueEdit }: { eventId: string; currentLocation: string; queueController: QueueController; onPendingTeacherQueueEdit?: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleLocationSelect = async (location: string) => {
         await queueController.updateLocation(eventId, location);
+        onPendingTeacherQueueEdit?.();
         setIsOpen(false);
     };
 
@@ -196,7 +204,7 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     );
 };
 
-export default function EventModCard({ eventId, queueController }: EventModCardProps) {
+export default function EventModCard({ eventId, queueController, onPendingTeacherQueueEdit }: EventModCardProps) {
     const [refreshKey, setRefreshKey] = useState(0);
 
     const cardProps = queueController.getEventModCardProps(eventId);
@@ -239,9 +247,9 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
             {/* Time and Duration Controls (Row 1) */}
             <div className={`flex gap-4 ${ROW_MARGIN} ${ROW_PADDING}`}>
-                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
+                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} onPendingTeacherQueueEdit={onPendingTeacherQueueEdit} />
                 <div className="w-px bg-gray-300 dark:bg-gray-500 my-1" />
-                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
+                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} onPendingTeacherQueueEdit={onPendingTeacherQueueEdit} />
             </div>
 
             {/* Location and Gap Detection + Remaining Time (Row 2 - aligned below) */}
@@ -257,6 +265,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
                         onGapAdjust={() => {
                             queueController.addGap(eventId);
                             handleRefresh();
+                            onPendingTeacherQueueEdit?.();
                         }}
                     />
                 )}
@@ -265,7 +274,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
             {/* Location on its own row */}
             <div className={`${ROW_MARGIN} ${ROW_PADDING}`}>
-                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
+                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} onPendingTeacherQueueEdit={onPendingTeacherQueueEdit} />
             </div>
         </div>
     );
