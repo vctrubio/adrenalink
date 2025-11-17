@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
-const MIN_TIME_MINUTES = 0;
-const MAX_TIME_MINUTES = 1380;
+// Constants for time boundaries (in minutes from 00:00)
+const MIN_TIME_MINUTES = 0; // 00:00
+const MAX_TIME_MINUTES = 1380; // 23:00
 
 interface LessonFlagClassDailyProps {
     globalFlag: GlobalFlag;
@@ -26,21 +27,171 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
     const [lockLocationCount, setLockLocationCount] = useState(0);
     const [totalLocationEventsForLock, setTotalLocationEventsForLock] = useState(0);
 
+    // Get current state from globalFlag
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
     const stepDuration = globalFlag.getController().stepDuration || 30;
+
+    // Recalculate global earliest time on every render to reflect queue changes
     const globalEarliestTime = globalFlag.getGlobalEarliestTime();
     const globalLocation = globalFlag.getGlobalLocation();
+
     const globalTime = globalFlag.getGlobalTime();
+
+    // Initialize and sync adjustmentTime when entering adjustment mode
+    useEffect(() => {
+        if (globalTime && isAdjustmentMode && !adjustmentTime) {
+            setAdjustmentTime(globalTime);
+        }
+    }, [isAdjustmentMode, globalTime, adjustmentTime]);
+
+    // Initialize and sync adjustmentLocation when entering adjustment mode
+    useEffect(() => {
+        if (globalLocation && isAdjustmentMode && !adjustmentLocation) {
+            setAdjustmentLocation(globalLocation);
+        }
+    }, [isAdjustmentMode, globalLocation, adjustmentLocation]);
+
     const pendingTeachers = globalFlag.getPendingTeachers();
     const totalTeachers = pendingTeachers.size;
 
+    // Create a key from all teacher queue earliest times to detect when they change
+    const teachersEarliestTimesKey = teacherQueues.map((q) => `${q.teacher.username}:${q.getEarliestEventTime()}`).join("|");
+
+    // Memoize lock state calculation to prevent double-render flicker
+    const { isLockFlagTime: computedIsLockFlagTime, lockCount: computedLockCount } = useMemo(() => {
+        const pendingTeachersTimes = teacherQueues
+            .filter((q) => pendingTeachers.has(q.teacher.username))
+            .map((q) => ({ username: q.teacher.username, earliestTime: q.getEarliestEventTime() }))
+            .filter((t) => t.earliestTime !== null) as Array<{ username: string; earliestTime: string }>;
+
+        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
+            return { isLockFlagTime: false, lockCount: 0 };
+        }
+
+        const newGlobalEarliest = pendingTeachersTimes.reduce((min, t) => {
+            const minMinutes = timeToMinutes(min);
+            const tMinutes = timeToMinutes(t.earliestTime);
+            return tMinutes < minMinutes ? t.earliestTime : min;
+        }, pendingTeachersTimes[0].earliestTime);
+
+        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === newGlobalEarliest).length;
+
+        return {
+            isLockFlagTime: synchronizedCount === totalTeachers,
+            lockCount: synchronizedCount,
+        };
+    }, [teachersEarliestTimesKey, pendingTeachers, totalTeachers]);
+
+    // Sync computed values to state
+    useEffect(() => {
+        setIsLockFlagTime(computedIsLockFlagTime);
+        setLockCount(computedLockCount);
+    }, [computedIsLockFlagTime, computedLockCount]);
+
+    // Update adjustment time to reflect the current global earliest time from pending teachers
+    useEffect(() => {
+        if (isAdjustmentMode) {
+            const currentGlobalEarliest = globalEarliestTime;
+            if (currentGlobalEarliest && currentGlobalEarliest !== adjustmentTime) {
+                setAdjustmentTime(currentGlobalEarliest);
+            }
+        }
+    }, [globalEarliestTime, isAdjustmentMode]);
+
+    // Create a key from all teacher queue locations to detect when they change
+    const teachersLocationsKey = teacherQueues
+        .map((q) => {
+            const events = q.getAllEvents();
+            const locations = events.map((e) => e.eventData.location).join(",") || "none";
+            return `${q.teacher.username}:${locations}`;
+        })
+        .join("|");
+
+    // Memoize location lock state calculation
+    // Check if ALL events in each queue match the same location, count by events
+    const { isLockFlagLocation: computedIsLockFlagLocation, lockLocationCount: computedLockLocationCount, totalLocationEventsForLock: computedTotalLocationEventsForLock } = useMemo(() => {
+        let totalEventsForLock = 0;
+        let synchronizedEventsCount = 0;
+        const pendingTeachersLocations: Array<{ username: string; location: string | null }> = [];
+
+        teacherQueues
+            .filter((q) => pendingTeachers.has(q.teacher.username))
+            .forEach((q) => {
+                const events = q.getAllEvents();
+                // All events must have the same location
+                const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
+                const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
+
+                totalEventsForLock += events.length;
+
+                if (allMatch) {
+                    pendingTeachersLocations.push({ username: q.teacher.username, location: allLocations[0] });
+                } else {
+                    pendingTeachersLocations.push({ username: q.teacher.username, location: null });
+                }
+            });
+
+        // Get the global location from first synchronized teacher
+        const firstSynchronizedTeacher = pendingTeachersLocations.find((t) => t.location !== null);
+        const newGlobalLocation = firstSynchronizedTeacher?.location;
+
+        // Count events that match the target location from synchronized teachers
+        if (newGlobalLocation) {
+            teacherQueues
+                .filter((q) => pendingTeachers.has(q.teacher.username))
+                .forEach((q) => {
+                    const events = q.getAllEvents();
+                    const queueSynchronized = pendingTeachersLocations.find((t) => t.username === q.teacher.username)?.location === newGlobalLocation;
+                    if (queueSynchronized) {
+                        synchronizedEventsCount += events.length;
+                    }
+                });
+        }
+
+        const allSynchronized = pendingTeachersLocations.every((t) => t.location === newGlobalLocation && t.location !== null);
+
+        return {
+            isLockFlagLocation: allSynchronized && newGlobalLocation !== null,
+            lockLocationCount: synchronizedEventsCount,
+            totalLocationEventsForLock: totalEventsForLock,
+        };
+    }, [teachersLocationsKey, pendingTeachers, totalTeachers]);
+
+    // Sync computed location values to state
+    useEffect(() => {
+        setIsLockFlagLocation(computedIsLockFlagLocation);
+        setLockLocationCount(computedLockLocationCount);
+        setTotalLocationEventsForLock(computedTotalLocationEventsForLock);
+    }, [computedIsLockFlagLocation, computedLockLocationCount, computedTotalLocationEventsForLock]);
+
+    // Calculate adapted count for NORMAL MODE
+    // Count all teachers with events, not just pending ones
+    const { adaptedCount: globalAdaptedCount, totalTeachers: globalTotalTeachers } = useMemo(() => {
+        const teachersWithEvents = teacherQueues.filter((queue) => queue.getAllEvents().length > 0);
+        const adapted = teachersWithEvents.filter((queue) => {
+            const earliestTime = queue.getEarliestEventTime();
+            return earliestTime === globalEarliestTime;
+        }).length;
+
+        return {
+            adaptedCount: adapted,
+            totalTeachers: teachersWithEvents.length,
+        };
+    }, [teacherQueues, globalFlag, globalEarliestTime]);
+
     const handleAdjustTime = (increment: boolean) => {
         if (!adjustmentTime) return;
+
         const currentMinutes = timeToMinutes(adjustmentTime);
         const newMinutes = increment ? currentMinutes + stepDuration : currentMinutes - stepDuration;
+
         if (newMinutes < MIN_TIME_MINUTES || newMinutes > MAX_TIME_MINUTES) return;
+
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
+
+        // Always adjust time - in unlocked mode, only teachers at or before the new time move
+        // In locked mode, all pending teachers move
         globalFlag.adjustTime(newTime);
     };
 
@@ -55,14 +206,17 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
 
     const handleReset = () => {
         globalFlag.discardChanges();
+        // Reset location input to current global location
         const currentGlobalLocation = globalFlag.getGlobalLocation();
         setAdjustmentLocation(currentGlobalLocation);
+        // Reset time to current global earliest time
         const currentGlobalTime = globalFlag.getGlobalEarliestTime();
         setAdjustmentTime(currentGlobalTime);
     };
 
     const handleCancel = () => {
         globalFlag.discardChanges();
+        // Reset inputs to original values
         const currentGlobalLocation = globalFlag.getGlobalLocation();
         setAdjustmentLocation(currentGlobalLocation);
         const currentGlobalTime = globalFlag.getGlobalEarliestTime();
@@ -72,8 +226,10 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
 
     const handleLockToggle = () => {
         if (!isLockFlagTime && adjustmentTime) {
+            // Not synchronized yet - sync all teachers to adjustment time
             globalFlag.lockToAdjustmentTime(adjustmentTime);
         }
+        // If already synchronized, do nothing (button disabled anyway)
     };
 
     const handleAdjustLocation = (newLocation: string) => {
@@ -85,131 +241,112 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
 
     const handleLockLocationToggle = () => {
         if (adjustmentLocation) {
+            // Always set all teachers' events to the adjustment location
             globalFlag.lockToLocation(adjustmentLocation);
         }
     };
 
+    // Calculate adapted count for location in NORMAL MODE
+    // Count individual events that match the global location
+    const { adaptedLocationCount, totalLocationEvents } = useMemo(() => {
+        let totalEvents = 0;
+        let adaptedEvents = 0;
+
+        teacherQueues.forEach((queue) => {
+            const events = queue.getAllEvents();
+            events.forEach((event) => {
+                totalEvents++;
+                if (event.eventData.location === globalLocation) {
+                    adaptedEvents++;
+                }
+            });
+        });
+
+        return {
+            adaptedLocationCount: adaptedEvents,
+            totalLocationEvents: totalEvents,
+        };
+    }, [teacherQueues, globalFlag, globalLocation]);
+
+    // Only render if there are events
     if (!globalEarliestTime && !globalLocation) {
         return null;
     }
 
     if (isAdjustmentMode) {
         return (
-            <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-                {/* Header */}
-                <div>
-                    <h3 className="text-xl font-bold text-foreground mb-1">Adjust Schedule</h3>
-                    <p className="text-sm text-muted-foreground">Fine-tune timing and location for all lessons</p>
-                </div>
+            <div className="space-y-4">
+                {/* Time Adjustment Section */}
+                <div className="flex items-center gap-3">
+                    <FlagIcon className="w-7 h-7 text-foreground flex-shrink-0" />
 
-                {/* Time Adjustment */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <FlagIcon className="w-6 h-6 text-foreground flex-shrink-0" />
-                        <span className="text-sm font-medium text-foreground">Time</span>
+                    <button onClick={() => handleAdjustTime(false)} className="p-2 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes earlier`}>
+                        <ChevronLeft className="w-5 h-5 text-foreground" />
+                    </button>
+
+                    <div className="text-center min-w-[70px]">
+                        <div className="text-sm font-semibold text-foreground">{adjustmentTime}</div>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-muted/30 rounded-lg p-4">
-                        <button
-                            onClick={() => handleAdjustTime(false)}
-                            className="p-1.5 rounded hover:bg-muted transition-colors text-foreground"
-                            title={`${stepDuration} minutes earlier`}
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </button>
+                    <button onClick={() => handleAdjustTime(true)} className="p-2 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes later`}>
+                        <ChevronRight className="w-5 h-5 text-foreground" />
+                    </button>
 
-                        <input
-                            type="time"
-                            value={adjustmentTime || ""}
-                            onChange={(e) => {
-                                const newTime = e.target.value;
-                                setAdjustmentTime(newTime);
-                                globalFlag.adjustTime(newTime);
-                            }}
-                            className="px-3 py-2 text-sm font-semibold text-center rounded border border-input bg-background text-foreground"
-                        />
+                    <button
+                        onClick={handleLockToggle}
+                        disabled={isLockFlagTime}
+                        className={`p-2 rounded transition-colors ${isLockFlagTime ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                        title={isLockFlagTime ? "All teachers synchronized" : "Lock all teachers to adjustment time"}
+                    >
+                        {isLockFlagTime ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
+                    </button>
 
-                        <button
-                            onClick={() => handleAdjustTime(true)}
-                            className="p-1.5 rounded hover:bg-muted transition-colors text-foreground"
-                            title={`${stepDuration} minutes later`}
-                        >
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-
-                        <div className="flex-1" />
-
-                        <button
-                            onClick={handleLockToggle}
-                            disabled={isLockFlagTime}
-                            className={`p-2 rounded transition-colors flex-shrink-0 ${isLockFlagTime ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600/20 text-blue-600 hover:bg-blue-600/30"}`}
-                            title={isLockFlagTime ? "All lessons synchronized" : "Synchronize all lessons"}
-                        >
-                            {isLockFlagTime ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
-                        </button>
-
-                        <div className="text-center min-w-[60px]">
-                            <div className="text-sm font-bold text-foreground">
-                                {lockCount}/{totalTeachers}
-                            </div>
-                            <div className="text-xs text-muted-foreground">Sync</div>
+                    <div className="text-center">
+                        <div className="text-sm font-semibold text-foreground">
+                            {lockCount}/{totalTeachers}
                         </div>
+                        <div className="text-xs text-muted-foreground">Synchronized</div>
                     </div>
                 </div>
 
-                {/* Location Adjustment */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <MapPin className="w-6 h-6 text-foreground flex-shrink-0" />
-                        <span className="text-sm font-medium text-foreground">Location</span>
-                    </div>
+                {/* Location Adjustment Section */}
+                <div className="flex items-center gap-3">
+                    <MapPin className="w-7 h-7 text-foreground flex-shrink-0" />
 
-                    <div className="flex items-center gap-3 bg-muted/30 rounded-lg p-4">
-                        <input
-                            type="text"
-                            value={adjustmentLocation || ""}
-                            onChange={(e) => handleAdjustLocation(e.target.value)}
-                            placeholder="Set location..."
-                            className="px-3 py-2 text-sm rounded border border-input bg-background text-foreground placeholder-muted-foreground flex-1"
-                        />
+                    <input
+                        type="text"
+                        value={adjustmentLocation || ""}
+                        onChange={(e) => handleAdjustLocation(e.target.value)}
+                        placeholder="Location"
+                        className="px-2 py-1 text-sm rounded border border-input bg-background text-foreground min-w-[150px]"
+                    />
 
-                        <button
-                            onClick={handleLockLocationToggle}
-                            disabled={isLockFlagLocation}
-                            className={`p-2 rounded transition-colors flex-shrink-0 ${isLockFlagLocation ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600/20 text-blue-600 hover:bg-blue-600/30"}`}
-                            title={isLockFlagLocation ? "All locations synchronized" : "Synchronize all locations"}
-                        >
-                            {isLockFlagLocation ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
-                        </button>
+                    <button
+                        onClick={handleLockLocationToggle}
+                        className={`p-2 rounded transition-colors ${isLockFlagLocation ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                        disabled={isLockFlagLocation}
+                        title={isLockFlagLocation ? "All events synchronized" : "Lock all teachers to adjustment location"}
+                    >
+                        {isLockFlagLocation ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
+                    </button>
 
-                        <div className="text-center min-w-[60px]">
-                            <div className="text-sm font-bold text-foreground">
-                                {lockLocationCount}/{totalLocationEventsForLock}
-                            </div>
-                            <div className="text-xs text-muted-foreground">Sync</div>
+                    <div className="text-center">
+                        <div className="text-sm font-semibold text-foreground">
+                            {lockLocationCount}/{totalLocationEventsForLock}
                         </div>
+                        <div className="text-xs text-muted-foreground">Synchronized</div>
                     </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-4 border-t border-border">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                <div className="flex gap-2">
+                    <button onClick={handleSubmit} disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                         {isSubmitting ? "Saving..." : "Submit"}
                     </button>
-                    <button
-                        onClick={handleReset}
-                        className="px-6 py-3 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors font-medium"
-                    >
+                    <button onClick={handleReset} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
                         Reset
                     </button>
-                    <button
-                        onClick={handleCancel}
-                        className="px-6 py-3 bg-red-600/20 text-red-600 rounded-lg hover:bg-red-600/30 transition-colors font-medium"
-                    >
+                    <button onClick={handleCancel} className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium">
                         Cancel
                     </button>
                 </div>
@@ -218,71 +355,41 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
     }
 
     return (
-        <div className="bg-card border border-border rounded-lg p-6">
-            {/* Header */}
-            <div className="mb-6">
-                <h3 className="text-xl font-bold text-foreground mb-1">Lesson Schedule</h3>
-                <p className="text-sm text-muted-foreground">Global time and location settings for all lessons</p>
-            </div>
-
-            {/* Grid Layout: Time and Location */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Time Card */}
-                <button
-                    onClick={() => globalFlag.enterAdjustmentMode()}
-                    className="group text-left p-4 rounded-lg border border-border hover:border-blue-500/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-                    title="Click to adjust time"
-                >
-                    <div className="flex items-start gap-3 mb-3">
-                        <FlagIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Time</div>
-                            <div className="text-2xl font-bold text-foreground group-hover:text-blue-600 transition-colors">{globalEarliestTime}</div>
-                            <div className="text-xs text-muted-foreground mt-2">Global earliest</div>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                        <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Status</div>
-                            <div className="text-sm font-semibold text-foreground">Adapted</div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{Math.round((lockCount / totalTeachers) * 100)}%</div>
-                            <div className="text-xs text-muted-foreground">{lockCount}/{totalTeachers}</div>
-                        </div>
+        <div className="space-y-4">
+            {/* Time Section - Normal Mode */}
+            <div className="flex items-center gap-6">
+                <button onClick={() => globalFlag.enterAdjustmentMode()} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted rounded-lg transition-colors flex-1" title="Click to adjust all event times and locations">
+                    <FlagIcon className="w-7 h-7 text-foreground flex-shrink-0" />
+                    <div>
+                        <div className="text-sm font-semibold text-foreground">{globalEarliestTime}</div>
+                        <div className="text-xs text-muted-foreground">Global Earliest</div>
                     </div>
                 </button>
 
-                {/* Location Card */}
-                <button
-                    onClick={() => globalFlag.enterAdjustmentMode()}
-                    className="group text-left p-4 rounded-lg border border-border hover:border-green-500/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-                    title="Click to adjust location"
-                >
-                    <div className="flex items-start gap-3 mb-3">
-                        <MapPin className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Location</div>
-                            <div className="text-2xl font-bold text-foreground group-hover:text-green-600 transition-colors truncate">{globalLocation || "-"}</div>
-                            <div className="text-xs text-muted-foreground mt-2">Global location</div>
-                        </div>
+                <div className="text-center">
+                    <div className="text-sm font-semibold text-foreground">
+                        {globalAdaptedCount}/{globalTotalTeachers}
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                        <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Status</div>
-                            <div className="text-sm font-semibold text-foreground">Adapted</div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-xl font-bold text-green-600 dark:text-green-400">{Math.round((lockLocationCount / totalLocationEventsForLock) * 100)}%</div>
-                            <div className="text-xs text-muted-foreground">{lockLocationCount}/{totalLocationEventsForLock}</div>
-                        </div>
-                    </div>
-                </button>
+                    <div className="text-xs text-muted-foreground">Adapted</div>
+                </div>
             </div>
 
-            {/* Info Footer */}
-            <div className="mt-6 pt-6 border-t border-border/50">
-                <p className="text-xs text-muted-foreground text-center">Click to adjust time and location for all lessons</p>
+            {/* Location Section - Normal Mode */}
+            <div className="flex items-center gap-6">
+                <button onClick={() => globalFlag.enterAdjustmentMode()} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted rounded-lg transition-colors flex-1" title="Click to adjust all event times and locations">
+                    <MapPin className="w-7 h-7 text-foreground flex-shrink-0" />
+                    <div>
+                        <div className="text-sm font-semibold text-foreground">{globalLocation || "-"}</div>
+                        <div className="text-xs text-muted-foreground">Global Location</div>
+                    </div>
+                </button>
+
+                <div className="text-center">
+                    <div className="text-sm font-semibold text-foreground">
+                        {adaptedLocationCount}/{totalLocationEvents}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Adapted</div>
+                </div>
             </div>
         </div>
     );

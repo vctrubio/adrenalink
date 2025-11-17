@@ -89,6 +89,10 @@ export default function ClassboardController({ search, setSearch, selectedDate, 
                 <div className="pt-1">
                     <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
                 </div>
+
+                {/* <div className="pt-1"> */}
+                {/*     <SearchInput search={search} setSearch={setSearch} /> */}
+                {/* </div> */}
             </div>
         </div>
     );
