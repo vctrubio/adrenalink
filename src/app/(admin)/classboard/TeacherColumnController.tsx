@@ -81,7 +81,7 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
         <div className="p-4 border-b border-border space-y-3">
             {/* Header: Teacher Name + Ratio Button + Settings Icon */}
             <div className="flex items-center gap-4">
-                <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
+                <HeadsetIcon className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
                 {teacherEntity && (
                     <HoverToEntity entity={teacherEntity} id={queue.teacher.id}>
                         <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
