@@ -10,6 +10,7 @@ import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 export class GlobalFlag {
     private adjustmentMode: boolean = false;
     private globalTime: string | null = null;
+    private globalLocation: string | null = null;
     private pendingTeachers: Set<string> = new Set();
     private isLocked: boolean = false;
     private refreshKey: number = 0;
@@ -83,6 +84,73 @@ export class GlobalFlag {
         return minutesToTime(minTimeInMinutes);
     }
 
+    /**
+     * Calculate global location - most common location across all teacher queues
+     */
+    getGlobalLocation(): string | null {
+        const allLocations: string[] = [];
+        this.teacherQueues.forEach((queue) => {
+            const events = queue.getAllEvents();
+            events.forEach((event) => {
+                if (event.eventData.location) {
+                    allLocations.push(event.eventData.location);
+                }
+            });
+        });
+
+        if (allLocations.length === 0) return null;
+
+        // Count occurrences and return the most common
+        const locationCounts = allLocations.reduce(
+            (acc, loc) => {
+                acc[loc] = (acc[loc] || 0) + 1;
+                return acc;
+            },
+            {} as Record<string, number>
+        );
+
+        const mostCommonLocation = Object.entries(locationCounts).sort(
+            (a, b) => b[1] - a[1]
+        )[0][0];
+
+        return mostCommonLocation;
+    }
+
+    /**
+     * Get location from only pending teachers
+     */
+    getLocationFromPending(): string | null {
+        const pendingLocations: string[] = [];
+        this.pendingTeachers.forEach((username) => {
+            const queue = this.teacherQueues.find((q) => q.teacher.username === username);
+            if (queue) {
+                const events = queue.getAllEvents();
+                events.forEach((event) => {
+                    if (event.eventData.location) {
+                        pendingLocations.push(event.eventData.location);
+                    }
+                });
+            }
+        });
+
+        if (pendingLocations.length === 0) return this.getGlobalLocation();
+
+        // Count occurrences and return the most common
+        const locationCounts = pendingLocations.reduce(
+            (acc, loc) => {
+                acc[loc] = (acc[loc] || 0) + 1;
+                return acc;
+            },
+            {} as Record<string, number>
+        );
+
+        const mostCommonLocation = Object.entries(locationCounts).sort(
+            (a, b) => b[1] - a[1]
+        )[0][0];
+
+        return mostCommonLocation;
+    }
+
     // ============ STATE MANAGEMENT ============
 
     /**
@@ -98,6 +166,7 @@ export class GlobalFlag {
         this.pendingTeachers = new Set(teachersWithEvents);
         this.adjustmentMode = true;
         this.globalTime = this.getGlobalEarliestTime();
+        this.globalLocation = this.getGlobalLocation();
 
         // Store original state for each teacher
         this.originalQueueStates.clear();
@@ -118,12 +187,37 @@ export class GlobalFlag {
     }
 
     /**
+     * Discard all changes and restore original state
+     */
+    discardChanges(): void {
+        this.teacherQueues.forEach((queue) => {
+            if (this.pendingTeachers.has(queue.teacher.username)) {
+                const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
+                const currentEvents = queue.getAllEvents();
+
+                // Restore original state for each event
+                currentEvents.forEach((currentEvent, index) => {
+                    const originalEvent = originalEvents[index];
+                    if (originalEvent) {
+                        currentEvent.eventData.date = originalEvent.eventData.date;
+                        currentEvent.eventData.duration = originalEvent.eventData.duration;
+                        currentEvent.eventData.location = originalEvent.eventData.location;
+                    }
+                });
+            }
+        });
+
+        this.onRefresh();
+    }
+
+    /**
      * Exit global adjustment mode
      * Clears pending teachers, resets lock, and clears original state
      */
     exitAdjustmentMode(): void {
         this.adjustmentMode = false;
         this.globalTime = null;
+        this.globalLocation = null;
         this.pendingTeachers.clear();
         this.isLocked = false;
         this.originalQueueStates.clear();
@@ -301,6 +395,54 @@ export class GlobalFlag {
                 }
             }
         });
+    }
+
+    // ============ LOCATION ADJUSTMENT ============
+
+    /**
+     * Adjust all pending teacher locations to new location
+     */
+    adjustLocation(newLocation: string): void {
+        this.teacherQueues.forEach((queue) => {
+            if (this.pendingTeachers.has(queue.teacher.username)) {
+                const queueController = new QueueController(queue, this.controller, () => {
+                    this.refreshKey++;
+                    this.onRefresh();
+                });
+                queueController.setAllEventsLocation(newLocation);
+            }
+        });
+
+        this.globalLocation = newLocation;
+        this.refreshKey++;
+        this.onRefresh();
+    }
+
+    /**
+     * Lock all pending teachers to a specific location
+     */
+    lockToLocation(targetLocation: string): void {
+        this.teacherQueues.forEach((queue) => {
+            if (this.pendingTeachers.has(queue.teacher.username)) {
+                const queueController = new QueueController(queue, this.controller, () => {
+                    this.refreshKey++;
+                    this.onRefresh();
+                });
+                queueController.setAllEventsLocation(targetLocation);
+            }
+        });
+
+        this.globalLocation = targetLocation;
+        this.isLocked = true;
+        this.refreshKey++;
+        this.onRefresh();
+    }
+
+    /**
+     * Get current global location
+     */
+    getGlobalLocationAdjustment(): string | null {
+        return this.globalLocation;
     }
 
     /**

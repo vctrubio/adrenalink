@@ -5,7 +5,6 @@
 
 import { TeacherQueue, type ControllerSettings, type EventNode } from "./TeacherQueue";
 import type { EventCardProps } from "@/types/classboard-teacher-queue";
-import { updateClassboardEventLocation } from "@/actions/classboard-action";
 import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime } from "@/getters/queue-getter";
 
 export type { EventCardProps } from "@/types/classboard-teacher-queue";
@@ -14,7 +13,7 @@ export class QueueController {
     constructor(
         private queue: TeacherQueue,
         private settings: ControllerSettings,
-        private onRefresh: () => void
+        private onRefresh: () => void,
     ) {}
 
     /**
@@ -310,17 +309,26 @@ export class QueueController {
     }
 
     /**
-     * Update event location in database
+     * Set all events in queue to the same location
      */
-    async updateLocation(eventId: string, location: string): Promise<void> {
-        try {
-            const result = await updateClassboardEventLocation(eventId, location);
-            if (result.success) {
-                this.onRefresh();
-            }
-        } catch (error) {
-            console.error("Failed to update location:", error);
-        }
+    setAllEventsLocation(newLocation: string): void {
+        const events = this.queue.getAllEvents();
+        events.forEach((event) => {
+            event.eventData.location = newLocation;
+        });
+        this.onRefresh();
+    }
+
+    /**
+     * Update event location in queue
+     * Only affects this.queue - database persistence happens on submit
+     */
+    updateLocation(eventId: string, location: string): void {
+        const event = this.queue.getAllEvents().find((e) => e.id === eventId);
+        if (!event) return;
+
+        event.eventData.location = location;
+        this.onRefresh();
     }
 
     /**

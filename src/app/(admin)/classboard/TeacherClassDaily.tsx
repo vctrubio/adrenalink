@@ -109,16 +109,18 @@ function TeacherColumn({
                     const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
                     if (!originalEvent) return true; // New event, include it
 
-                    // Check if date or duration changed
+                    // Check if date, duration, or location changed
                     const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
                     const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+                    const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
 
-                    return dateChanged || durationChanged;
+                    return dateChanged || durationChanged || locationChanged;
                 })
                 .map((event) => ({
                     id: event.id,
                     date: event.eventData.date,
                     duration: event.eventData.duration,
+                    location: event.eventData.location,
                 }));
 
             if (updates.length > 0) {
@@ -146,6 +148,7 @@ function TeacherColumn({
                 if (currentEvent) {
                     currentEvent.eventData.date = originalEvent.eventData.date;
                     currentEvent.eventData.duration = originalEvent.eventData.duration;
+                    currentEvent.eventData.location = originalEvent.eventData.location;
                 }
             });
             setRefreshKey((prev) => prev + 1);

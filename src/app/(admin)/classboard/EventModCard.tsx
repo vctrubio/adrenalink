@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -171,25 +171,56 @@ const DurationControls = ({ duration, eventId, queueController, controller }: { 
 
 const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
-    const handleLocationSelect = async (location: string) => {
-        await queueController.updateLocation(eventId, location);
+    const handleLocationSelect = (location: string) => {
+        queueController.updateLocation(eventId, location);
         setIsOpen(false);
     };
 
+    const handleButtonClick = () => {
+        if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setDropdownPos({
+                top: rect.bottom + window.scrollY,
+                left: rect.left + rect.width / 2,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
     return (
-        <div className="flex-grow min-w-0 flex justify-center">
-            <div className="relative">
-                <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-muted/50 transition-colors" title="Change location">
+        <div className="flex-grow flex justify-center">
+            <div>
+                <button
+                    ref={buttonRef}
+                    onClick={handleButtonClick}
+                    className="flex items-center gap-2 px-3 py-2 rounded hover:bg-muted/50 transition-colors"
+                    title="Change location"
+                >
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm font-medium">{currentLocation}</span>
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
 
                 {isOpen && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background border border-border rounded-md shadow-lg z-50 min-w-[140px]">
+                    <div
+                        className="fixed bg-background border border-border rounded-md shadow-lg z-50 min-w-[140px]"
+                        style={{
+                            top: `${dropdownPos.top}px`,
+                            left: `${dropdownPos.left}px`,
+                            transform: 'translateX(-50%)',
+                        }}
+                    >
                         {LOCATION_OPTIONS.map((location) => (
-                            <button key={location} onClick={() => handleLocationSelect(location)} className={`w-full text-left px-3 py-2 text-xs transition-colors ${location === currentLocation ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"}`}>
+                            <button
+                                key={location}
+                                onClick={() => handleLocationSelect(location)}
+                                className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                                    location === currentLocation ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"
+                                }`}
+                            >
                                 {location}
                             </button>
                         ))}

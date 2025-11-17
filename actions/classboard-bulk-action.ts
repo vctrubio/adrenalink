@@ -7,12 +7,12 @@ import type { ApiActionResponseModel } from "@/types/actions";
 import { getSchoolIdFromHeader } from "@/types/headers";
 
 /**
- * Bulk update event dates and durations (preserves existing status)
+ * Bulk update event dates, durations, and locations (preserves existing status)
  * Optionally delete specified events after updating
  * Priority: UPDATE first, then DELETE
  */
 export async function bulkUpdateClassboardEvents(
-    updates: Array<{ id: string; date: string; duration: number }>,
+    updates: Array<{ id: string; date: string; duration: number; location?: string }>,
     toDelete?: string[]
 ): Promise<ApiActionResponseModel<{ updatedCount: number; deletedCount: number }>> {
     try {
@@ -25,12 +25,21 @@ export async function bulkUpdateClassboardEvents(
 
         // PRIORITY 1: Update events first
         if (updates.length > 0) {
-            console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates and durations`);
+            console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates, durations, and/or locations`);
 
             for (const update of updates) {
+                const updateData: Record<string, any> = {
+                    date: new Date(update.date),
+                    duration: update.duration,
+                };
+
+                if (update.location !== undefined) {
+                    updateData.location = update.location;
+                }
+
                 const result = await db
                     .update(event)
-                    .set({ date: new Date(update.date), duration: update.duration })
+                    .set(updateData)
                     .where(eq(event.id, update.id))
                     .returning({ id: event.id });
 
