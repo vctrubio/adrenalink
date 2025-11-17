@@ -320,20 +320,20 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     };
 
     return (
-        <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col">
+        <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col h-full">
             {/* Global Flag Adjustment */}
             <GlobalFlagAdjustment globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
 
             {/* Content */}
             {teacherQueues.length === 0 ? (
-                <div className="min-h-[500px] flex items-center justify-center">
+                <div className="h-full flex items-center justify-center">
                     <div className="text-center">
                         <div className="text-muted-foreground text-sm mb-2">No teachers found</div>
                         <p className="text-xs text-muted-foreground/70">Assign teachers to bookings to see them here</p>
                     </div>
                 </div>
             ) : (
-                <div className="min-h-[500px] flex flex-wrap overflow-x-auto">
+                <div className="h-full flex flex-wrap overflow-x-auto">
                     {teacherQueues.map((queue) => {
                         const stats = classboardStats.getTeacherStats(queue.teacher.username);
                         if (!stats) return null;

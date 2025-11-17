@@ -17,30 +17,15 @@ interface TeacherEventQueueProps {
     onDrop?: (e: React.DragEvent) => void;
 }
 
-export default function TeacherEventQueue({
-    queue,
-    controller,
-    onRemoveEvent,
-    onDragOver,
-    onDragEnter,
-    onDragLeave,
-    onDrop,
-}: TeacherEventQueueProps) {
+export default function TeacherEventQueue({ queue, controller, onRemoveEvent, onDragOver, onDragEnter, onDragLeave, onDrop }: TeacherEventQueueProps) {
     const events = queue.getAllEvents();
     const [processingEventId, setProcessingEventId] = useState<string | null>(null);
 
     // Create QueueController for gap calculations
-    const queueController = useMemo(
-        () => new QueueController(queue, controller, () => {}),
-        [queue, controller]
-    );
+    const queueController = useMemo(() => new QueueController(queue, controller, () => { }), [queue, controller]);
 
     // Handler for cascade delete: delete event then shift subsequent events forward
-    const handleDeleteWithCascade = async (
-        eventId: string,
-        minutesToShift: number,
-        subsequentEventIds: string[],
-    ) => {
+    const handleDeleteWithCascade = async (eventId: string, minutesToShift: number, subsequentEventIds: string[]) => {
         try {
             setProcessingEventId(eventId);
 
@@ -53,10 +38,7 @@ export default function TeacherEventQueue({
 
             // Then shift all subsequent events backward (earlier) to fill the gap
             if (subsequentEventIds.length > 0) {
-                const shiftResult = await cascadeDeleteWithShift(
-                    subsequentEventIds,
-                    minutesToShift,
-                );
+                const shiftResult = await cascadeDeleteWithShift(subsequentEventIds, minutesToShift);
 
                 if (!shiftResult.success) {
                     setProcessingEventId(null);
@@ -116,4 +98,3 @@ export default function TeacherEventQueue({
         </div>
     );
 }
-

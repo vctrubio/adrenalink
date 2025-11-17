@@ -8,6 +8,8 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { bulkDeleteClassboardEvents, bulkUpdateEventStatus } from "@/actions/classboard-bulk-action";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ENTITY_DATA } from "@/config/entities";
 
 interface TeacherColumnControllerProps {
     columnViewMode: "view" | "queue";
@@ -30,6 +32,8 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
     const hasTbcEvent = allEvents.some((e) => e.eventData.status === "tbc");
     const isPurple = completedCount === totalEvents || hasTbcEvent;
     const hasEvents = totalEvents > 0;
+
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
 
     const handleBulkStatusUpdate = async (status: EventStatus) => {
         const eventIds = allEvents.map((e) => e.id).filter((id): id is string => id !== null);
@@ -78,7 +82,12 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
             {/* Header: Teacher Name + Ratio Button + Settings Icon */}
             <div className="flex items-center gap-4">
                 <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
+                {teacherEntity && (
+                    <HoverToEntity entity={teacherEntity} id={queue.teacher.id}>
+                        <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
+                    </HoverToEntity>
+                )}
+                {!teacherEntity && <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>}
                 <div className="ml-auto flex items-center gap-2 flex-shrink-0">
                     {hasEvents && (
                         <Menu as="div" className="relative">
