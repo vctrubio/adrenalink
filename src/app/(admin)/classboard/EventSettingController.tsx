@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { ChevronDown, ChevronUp, Timer, MapPin, Flag } from "lucide-react";
+import { useCallback } from "react";
+import { ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { addMinutesToTime } from "@/getters/queue-getter";
-import { getPrettyDuration, adjustDuration, DURATION_INCREMENT } from "@/getters/duration-getter";
+import { getPrettyDuration, adjustDuration } from "@/getters/duration-getter";
 import type { ControllerSettings as ControllerSettingsType } from "@/backend/TeacherQueue";
 
 export const LOCATION_OPTIONS = ["Beach", "Lagoon", "Bay", "Ocean"];
@@ -13,18 +14,36 @@ interface ControllerSettingsProps {
     onControllerChange: (controller: ControllerSettingsType) => void;
 }
 
-export default function ControllerSettings({
-    controller,
-    onControllerChange,
-}: ControllerSettingsProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+// Sub-components for grouped sections
+const TimeAdjustButton = ({ onClick, children }: { onClick: (e: React.MouseEvent) => void; children: React.ReactNode }) => (
+    <button onClick={onClick} className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded transition-colors">
+        {children}
+    </button>
+);
 
+const SettingRow = ({ label, icon: Icon, isFlagIcon, children }: { label: string; icon?: React.ElementType; isFlagIcon?: boolean; children: React.ReactNode }) => (
+    <div className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
+        <div className="flex items-center gap-3 min-w-0">
+            {isFlagIcon ? <FlagIcon className="w-4 h-4 flex-shrink-0" /> : Icon ? <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : null}
+            <span className="text-sm text-muted-foreground">{label}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">{children}</div>
+    </div>
+);
+
+const SettingGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="space-y-0.5">
+        <h3 className="text-xs font-semibold text-foreground/70 uppercase tracking-wider px-0.5 pt-1 pb-0.5">{title}</h3>
+        <div className="divide-y divide-border">{children}</div>
+    </div>
+);
+
+export default function ControllerSettings({ controller, onControllerChange }: ControllerSettingsProps) {
     const updateController = useCallback(
         (updates: Partial<ControllerSettingsType>) => {
             onControllerChange({ ...controller, ...updates });
         },
-        [controller, onControllerChange]
+        [controller, onControllerChange],
     );
 
     const adjustDurationSetting = useCallback(
@@ -33,7 +52,7 @@ export default function ControllerSettings({
             const newValue = adjustDuration(currentValue, increment);
             updateController({ [key]: newValue });
         },
-        [controller, updateController]
+        [controller, updateController],
     );
 
     const adjustTimeUp = useCallback(
@@ -42,7 +61,7 @@ export default function ControllerSettings({
             const newTime = addMinutesToTime(controller.submitTime, 30);
             updateController({ submitTime: newTime });
         },
-        [controller.submitTime, updateController]
+        [controller.submitTime, updateController],
     );
 
     const adjustTimeDown = useCallback(
@@ -51,7 +70,7 @@ export default function ControllerSettings({
             const newTime = addMinutesToTime(controller.submitTime, -30);
             updateController({ submitTime: newTime });
         },
-        [controller.submitTime, updateController]
+        [controller.submitTime, updateController],
     );
 
     const handleLocationChange = useCallback(
@@ -59,7 +78,7 @@ export default function ControllerSettings({
             e.stopPropagation();
             updateController({ location: e.target.value });
         },
-        [updateController]
+        [updateController],
     );
 
     const adjustGapUp = useCallback(
@@ -68,7 +87,7 @@ export default function ControllerSettings({
             const newGap = Math.min(120, (controller.gapMinutes || 0) + 15);
             updateController({ gapMinutes: newGap });
         },
-        [controller.gapMinutes, updateController]
+        [controller.gapMinutes, updateController],
     );
 
     const adjustGapDown = useCallback(
@@ -77,7 +96,7 @@ export default function ControllerSettings({
             const newGap = Math.max(0, (controller.gapMinutes || 0) - 15);
             updateController({ gapMinutes: newGap });
         },
-        [controller.gapMinutes, updateController]
+        [controller.gapMinutes, updateController],
     );
 
     const adjustStepUp = useCallback(
@@ -86,7 +105,7 @@ export default function ControllerSettings({
             const newStep = Math.min(60, (controller.stepDuration || 30) + 15);
             updateController({ stepDuration: newStep });
         },
-        [controller.stepDuration, updateController]
+        [controller.stepDuration, updateController],
     );
 
     const adjustStepDown = useCallback(
@@ -95,266 +114,85 @@ export default function ControllerSettings({
             const newStep = Math.max(15, (controller.stepDuration || 30) - 15);
             updateController({ stepDuration: newStep });
         },
-        [controller.stepDuration, updateController]
+        [controller.stepDuration, updateController],
     );
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
     return (
-        <div className="relative" ref={dropdownRef}>
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-stretch gap-4">
-                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-md border">
-                            <Flag className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-mono font-medium min-w-[45px]">
-                                {controller.submitTime}
-                            </span>
-                            <div className="flex flex-col gap-0.5">
-                                <button
-                                    type="button"
-                                    onClick={adjustTimeUp}
-                                    className="p-0.5 hover:bg-blue-50 rounded transition-colors group"
-                                >
-                                    <ChevronUp className="w-3 h-3 text-muted-foreground group-hover:text-blue-600" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={adjustTimeDown}
-                                    className="p-0.5 hover:bg-blue-50 rounded transition-colors group"
-                                >
-                                    <ChevronDown className="w-3 h-3 text-muted-foreground group-hover:text-blue-600" />
-                                </button>
-                            </div>
-                        </div>
+        <div className="space-y-3">
+            {/* WHEN Section - Time and Location */}
+            <SettingGroup title="When">
+                <SettingRow label="Submit Time" isFlagIcon>
+                    <TimeAdjustButton onClick={adjustTimeDown}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.submitTime}</span>
+                    <TimeAdjustButton onClick={adjustTimeUp}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+                <SettingRow label="Location" icon={MapPin}>
+                    <select value={controller.location} onChange={handleLocationChange} className="text-sm font-medium bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer min-w-[60px]">
+                        {LOCATION_OPTIONS.map((location) => (
+                            <option key={location} value={location}>
+                                {location}
+                            </option>
+                        ))}
+                    </select>
+                </SettingRow>
+            </SettingGroup>
 
-                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-md border">
-                            <MapPin className="w-4 h-4 text-muted-foreground" />
-                            <select
-                                value={controller.location}
-                                onChange={handleLocationChange}
-                                className="text-sm font-medium bg-transparent border-none focus:outline-none cursor-pointer min-w-[80px]"
-                            >
-                                {LOCATION_OPTIONS.map((location) => (
-                                    <option
-                                        key={location}
-                                        value={location}
-                                        className="bg-background"
-                                    >
-                                        {location}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-around text-xs text-muted-foreground pt-1">
-                        <div>
-                            Private:{" "}
-                            <strong>{getPrettyDuration(controller.durationCapOne)}</strong>
-                        </div>
-                        <div>
-                            Semi-Private:{" "}
-                            <strong>{getPrettyDuration(controller.durationCapTwo)}</strong>
-                        </div>
-                        <div>
-                            Group:{" "}
-                            <strong>{getPrettyDuration(controller.durationCapThree)}</strong>
-                        </div>
-                        <div>
-                            Gap:{" "}
-                            <strong>{controller.gapMinutes || 0}min</strong>
-                        </div>
-                        <div>
-                            Step:{" "}
-                            <strong>{controller.stepDuration || 30}min</strong>
-                        </div>
-                    </div>
-                </div>
+            {/* GROUP Section - Lesson Types */}
+            <SettingGroup title="Group">
+                <SettingRow label="Private" icon={() => <span className="text-xs font-bold">1</span>}>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapOne", -(controller.stepDuration || 30))}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapOne)}</span>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapOne", controller.stepDuration || 30)}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+                <SettingRow label="Semi-Private" icon={() => <span className="text-xs font-bold">2</span>}>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapTwo", -(controller.stepDuration || 30))}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapTwo)}</span>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapTwo", controller.stepDuration || 30)}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+                <SettingRow label="Group" icon={() => <span className="text-xs font-bold">3+</span>}>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapThree", -(controller.stepDuration || 30))}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapThree)}</span>
+                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapThree", controller.stepDuration || 30)}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+            </SettingGroup>
 
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 hover:bg-muted/50 rounded-md transition-colors"
-                    title="Duration Settings"
-                >
-                    <Timer
-                        className={`w-4 h-4 transition-colors ${isOpen ? "text-blue-600" : "text-muted-foreground"
-                            }`}
-                    />
-                </button>
-            </div>
-
-            {isOpen && (
-                <div className="absolute top-full left-0 right-0 z-10 mt-1 border border-border bg-card shadow-lg rounded-md">
-                    <div className="p-4">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Timer className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium text-foreground">
-                                    Duration Settings
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3">
-                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-muted-foreground w-6">
-                                            Gap
-                                        </span>
-                                        <span className="text-sm font-medium">Break Between Events</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={adjustGapDown}
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
-                                            {controller.gapMinutes || 0}min
-                                        </span>
-                                        <button
-                                            onClick={adjustGapUp}
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-muted-foreground w-6">
-                                            ±
-                                        </span>
-                                        <span className="text-sm font-medium">Time/Duration Step</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={adjustStepDown}
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
-                                            {controller.stepDuration || 30}min
-                                        </span>
-                                        <button
-                                            onClick={adjustStepUp}
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-muted-foreground w-6">
-                                            1
-                                        </span>
-                                        <span className="text-sm font-medium">Private Lesson</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapOne", -DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
-                                            {getPrettyDuration(controller.durationCapOne)}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapOne", DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-muted-foreground w-6">
-                                            2
-                                        </span>
-                                        <span className="text-sm font-medium">Semi-Private</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapTwo", -DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
-                                            {getPrettyDuration(controller.durationCapTwo)}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapTwo", DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 bg-background rounded-md border">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-muted-foreground w-6">
-                                            3+
-                                        </span>
-                                        <span className="text-sm font-medium">Group Lesson</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapThree", -DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                        <span className="text-sm font-mono font-bold min-w-[70px] text-center px-2 py-1 bg-muted rounded">
-                                            {getPrettyDuration(controller.durationCapThree)}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                adjustDurationSetting("durationCapThree", DURATION_INCREMENT)
-                                            }
-                                            className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* TIME Section - Step and Gap */}
+            <SettingGroup title="Time">
+                <SettingRow label="Step" icon={Clock}>
+                    <TimeAdjustButton onClick={adjustStepDown}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.stepDuration || 30}m</span>
+                    <TimeAdjustButton onClick={adjustStepUp}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+                <SettingRow label="Gap" icon={Clock}>
+                    <TimeAdjustButton onClick={adjustGapDown}>
+                        <ChevronDown className="w-4 h-4" />
+                    </TimeAdjustButton>
+                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.gapMinutes || 0}m</span>
+                    <TimeAdjustButton onClick={adjustGapUp}>
+                        <ChevronUp className="w-4 h-4" />
+                    </TimeAdjustButton>
+                </SettingRow>
+            </SettingGroup>
         </div>
     );
 }

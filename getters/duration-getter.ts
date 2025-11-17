@@ -22,7 +22,6 @@ export function getPrettyDuration(durationMinutes: number): string {
 // ============ DURATION CONSTANTS ============
 export const MIN_DURATION = 60;
 export const MAX_DURATION = 360;
-export const DURATION_INCREMENT = 30;
 
 export const DEFAULT_DURATION_CAP_ONE = 120;
 export const DEFAULT_DURATION_CAP_TWO = 180;
