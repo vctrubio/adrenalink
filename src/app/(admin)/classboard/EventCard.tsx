@@ -36,9 +36,9 @@ const EquipmentDisplay = ({ categoryEquipment, capacityEquipment }: { categoryEq
     if (!EquipmentIcon) return null;
 
     return (
-        <div className="flex items-center justify-center gap-0.5 mr-1">
+        <div className="flex items-center justify-center gap-0.5">
             {Array.from({ length: capacityEquipment }).map((_, i) => (
-                <EquipmentIcon key={i} className="w-3 h-3 mt-1" style={{ color: equipmentConfig?.color }} />
+                <EquipmentIcon key={i} className="w-3 h-3 mt-0.5" style={{ color: equipmentConfig?.color }} />
             ))}
         </div>
     );

@@ -110,7 +110,7 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
             </div>
 
             {/* Statistics Panel */}
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex justify-between">
                 <div className="flex flex-col">
                     <span className="text-muted-foreground">Events</span>
                     <span className="font-semibold text-foreground">{stats.eventCount}</span>
@@ -120,11 +120,11 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
                     <span className="font-semibold text-foreground">{getPrettyDuration(stats.totalDuration)}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-muted-foreground">Teacher €</span>
+                    <span className="text-muted-foreground">Teacher</span>
                     <span className="font-semibold text-green-600 dark:text-green-400">€{stats.earnings.teacher.toFixed(2)}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-muted-foreground">School €</span>
+                    <span className="text-muted-foreground">School</span>
                     <span className="font-semibold text-orange-600 dark:text-orange-400">€{stats.earnings.school.toFixed(2)}</span>
                 </div>
             </div>

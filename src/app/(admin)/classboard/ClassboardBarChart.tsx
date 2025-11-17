@@ -13,7 +13,6 @@ interface ClassboardBarChartProps {
 }
 
 export default function ClassboardBarChart({ stats, totalBookings }: ClassboardBarChartProps) {
-
     const BAR_CHART_ENTITIES = [
         {
             id: "bookings",
@@ -33,7 +32,7 @@ export default function ClassboardBarChart({ stats, totalBookings }: ClassboardB
             id: "duration",
             name: "Duration",
             icon: DurationIcon,
-            color: "#f97316",
+            color: "#777777",
             value: getPrettyDuration(stats.totalHours * 60),
         },
         {
@@ -49,13 +48,14 @@ export default function ClassboardBarChart({ stats, totalBookings }: ClassboardB
         <div className="grid grid-cols-4 gap-2">
             {BAR_CHART_ENTITIES.map((entity) => {
                 const IconComponent = entity.icon;
-                const isZero = entity.value === 0 || entity.value === "0";
                 return (
-                    <div key={entity.id} className={`border border-border rounded-md p-4 flex flex-col items-center gap-3 ${isZero ? "bg-muted/30" : ""}`}>
+                    <div key={entity.id} className="border border-border rounded-md p-4 flex flex-col items-center gap-3">
                         <div className="text-center">
-                            <div className={`text-base font-bold ${isZero ? "text-muted-foreground" : ""}`} style={{ color: !isZero ? entity.color : undefined }}>{entity.value}</div>
+                            <div className="text-base font-bold" style={{ color: entity.color }}>
+                                {entity.value}
+                            </div>
                         </div>
-                        <div className={isZero ? "text-muted-foreground" : ""} style={{ color: !isZero ? entity.color : undefined }}>
+                        <div style={{ color: entity.color }}>
                             {IconComponent && <IconComponent className="w-6 h-6" />}
                         </div>
                         <span className="text-xs text-muted-foreground text-center truncate">{entity.name}</span>

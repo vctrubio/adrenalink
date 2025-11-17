@@ -78,15 +78,15 @@ export default function ClassboardController({ search, setSearch, selectedDate, 
                     <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                 </div>
 
-                <div className="border-t border-border pt-4">
-                    <StatsWithBulk stats={stats} teacherQueues={teacherQueues} />
-                </div>
-
-                <div className="border-t border-border pt-4">
+                {/* <div className="border-t border-border pt-4"> */}
+                {/*     <StatsWithBulk stats={stats} teacherQueues={teacherQueues} /> */}
+                {/* </div> */}
+                {/**/}
+                <div className="pt-1">
                     <EventSettingController controller={controller} onControllerChange={setController} />
                 </div>
 
-                <div className="border-t border-border pt-4">
+                <div className="pt-1">
                     <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
                 </div>
             </div>

@@ -6,6 +6,8 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { showEntityToast } from "@/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { ENTITY_DATA } from "@/config/entities";
 
 interface StudentClassDailyProps {
     bookings: DraggableBooking[];
@@ -21,6 +23,7 @@ type StudentBookingFilter = "available" | "onboard";
 
 export default function StudentClassDaily({ bookings, classboardData, selectedDate, onDragStart, onDragEnd, onAddLessonEvent, setOnNewBooking }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
 
     // Track last shown booking toast to prevent duplicates
     const lastToastBookingIdRef = useRef<string | null>(null);
@@ -99,11 +102,6 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
         return { filteredBookings: filteredData, counts };
     }, [bookings, classboardData, selectedDate, filter]);
 
-    const emptyMessage = {
-        available: "No available bookings for this date",
-        onboard: "No onboard bookings for this date",
-    }[filter];
-
     const filterTabs: Array<{ id: StudentBookingFilter; label: string; count: number }> = [
         { id: "available", label: "Available", count: counts.available },
         { id: "onboard", label: "Onboard", count: counts.onboard },
@@ -112,19 +110,21 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     return (
         <div className="space-y-4 bg-card border border-border rounded-lg p-6">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-                <div>
-                    <h3 className="text-lg font-semibold text-foreground">Student Bookings</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Manage and schedule available bookings</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <div style={{ color: studentEntity?.color }}>
+                        <HelmetIcon className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-base font-medium text-foreground">Students</h3>
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex gap-2 bg-muted rounded-lg p-1.5">
+                <div className="flex gap-2 bg-muted rounded-lg p-1.5 w-full sm:w-auto">
                     {filterTabs.map(({ id, label, count }) => (
                         <button
                             key={id}
                             onClick={() => setFilter(id)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${filter === id ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
+                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${filter === id ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
                         >
                             {label}
                             <span className={`ml-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold ${filter === id ? "bg-primary/15 text-primary" : "bg-background/50 text-muted-foreground"}`}>{count}</span>
@@ -134,13 +134,8 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
             </div>
 
             {/* Content */}
-            {filteredBookings.length === 0 ? (
-                <div className="py-16 text-center">
-                    <div className="text-muted-foreground text-sm mb-2">No bookings found</div>
-                    <p className="text-xs text-muted-foreground/70">{emptyMessage}</p>
-                </div>
-            ) : (
-                <div className="flex flex-wrap gap-4">
+            {filteredBookings.length > 0 && (
+                <div className="flex flex-wrap gap-4 border-t border-border pt-4">
                     {filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];
                         const students =

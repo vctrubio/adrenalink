@@ -16,10 +16,10 @@ export default function ExportSettingController({ selectedDate, teacherQueues }:
 
     return (
         <>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full mx-auto justify-center">
                 <button
                     onClick={() => setIsDailyScheduleModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 bg-white/5 backdrop-blur-sm hover:bg-white/10"
                 >
                     <FileText className="w-4 h-4" />
                     <span className="text-sm font-medium">Daily Schedule</span>
@@ -27,7 +27,7 @@ export default function ExportSettingController({ selectedDate, teacherQueues }:
 
                 <button
                     onClick={() => setIsPricingModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 bg-white/5 backdrop-blur-sm hover:bg-white/10"
                 >
                     <DollarSign className="w-4 h-4" />
                     <span className="text-sm font-medium">Pricing Schedule</span>
