@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import EventSettingController from "./EventSettingController";
 import ExportSettingController from "./ExportSettingController";
+import ClassboardBarChart from "./ClassboardBarChart";
 import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 import type { ControllerSettings as ControllerSettingsType, TeacherQueue } from "@/backend/TeacherQueue";
 import type { GlobalStats } from "@/backend/ClassboardStats";
@@ -64,15 +65,16 @@ interface ClassboardControllerProps {
     setController: (controller: ControllerSettingsType) => void;
     stats: GlobalStats;
     teacherQueues: TeacherQueue[];
+    totalBookings: number;
 }
 
-export default function ClassboardController({ search, setSearch, selectedDate, setSelectedDate, controller, setController, stats, teacherQueues }: ClassboardControllerProps) {
+export default function ClassboardController({ search, setSearch, selectedDate, setSelectedDate, controller, setController, stats, teacherQueues, totalBookings }: ClassboardControllerProps) {
     return (
-        <div className="lg:w-80 w-full p-4 border border-border rounded-md bg-muted/20">
-            <div className="space-y-4">
-                <SearchInput search={search} setSearch={setSearch} />
+        <div className="bg-card">
+            <div className="p-6 space-y-6">
+                <ClassboardBarChart stats={stats} totalBookings={totalBookings} />
 
-                <div className="border-t border-border pt-4">
+                <div className="">
                     <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                 </div>
 

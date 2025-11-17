@@ -53,7 +53,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 p-6">
-            <ClassboardController search={searchQuery} setSearch={setSearchQuery} selectedDate={selectedDate} setSelectedDate={setSelectedDate} controller={controller} setController={setController} stats={globalStats} teacherQueues={teacherQueues} />
+            <ClassboardController search={searchQuery} setSearch={setSearchQuery} selectedDate={selectedDate} setSelectedDate={setSelectedDate} controller={controller} setController={setController} stats={globalStats} teacherQueues={teacherQueues} totalBookings={draggableBookings.length} />
 
             <div className="flex-1 space-y-6">
                 <StudentClassDaily
