@@ -30,7 +30,8 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
     const completedCount = allEvents.filter((e) => e.eventData.status === "completed").length;
     const totalEvents = allEvents.length;
     const hasTbcEvent = allEvents.some((e) => e.eventData.status === "tbc");
-    const isPurple = completedCount === totalEvents || hasTbcEvent;
+    const isGreen = completedCount === totalEvents && !hasTbcEvent;
+    const isPurple = hasTbcEvent;
     const hasEvents = totalEvents > 0;
 
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
@@ -91,7 +92,7 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
                 <div className="ml-auto flex items-center gap-2 flex-shrink-0">
                     {hasEvents && (
                         <Menu as="div" className="relative">
-                            <Menu.Button className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${isPurple && totalEvents > 0 ? "bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800 text-purple-800 dark:text-purple-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
+                            <Menu.Button className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${isPurple ? "bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800 text-purple-800 dark:text-purple-200" : isGreen ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
                                 <span className="font-medium">{completedCount}/{totalEvents}</span>
                                 <ChevronDown className="w-3 h-3" />
                             </Menu.Button>
