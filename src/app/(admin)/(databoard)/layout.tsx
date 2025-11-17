@@ -17,9 +17,9 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const [group, setGroup] = useState<DataboardGroupByDate>("All");
     const pathname = usePathname();
 
-    // Extract entity type from pathname (e.g., /databoard/students -> students)
+    // Extract entity type from pathname (e.g., /students/[id] -> students)
     const pathSegments = pathname.split("/");
-    const entitySegment = pathSegments[pathSegments.length - 1];
+    const entitySegment = pathSegments[pathSegments.length - 2];
     
     // Map segment to entity id (handle plural forms)
     const entityIdMap: Record<string, string> = {
