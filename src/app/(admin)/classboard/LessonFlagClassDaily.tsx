@@ -11,6 +11,23 @@ import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 const MIN_TIME_MINUTES = 0; // 00:00
 const MAX_TIME_MINUTES = 1380; // 23:00
 
+interface StatusCardProps {
+    count: number;
+    total: number;
+    label: string;
+}
+
+function StatusCard({ count, total, label }: StatusCardProps) {
+    return (
+        <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
+            <div className="text-sm font-semibold text-foreground">
+                {count}/{total}
+            </div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+        </div>
+    );
+}
+
 interface LessonFlagClassDailyProps {
     globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
@@ -301,12 +318,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
                         {isLockFlagTime ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
                     </button>
 
-                    <div className="text-center">
-                        <div className="text-sm font-semibold text-foreground">
-                            {lockCount}/{totalTeachers}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Synchronized</div>
-                    </div>
+                    <StatusCard count={lockCount} total={totalTeachers} label="Synchronized" />
                 </div>
 
                 {/* Location Adjustment Section */}
@@ -330,12 +342,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
                         {isLockFlagLocation ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
                     </button>
 
-                    <div className="text-center">
-                        <div className="text-sm font-semibold text-foreground">
-                            {lockLocationCount}/{totalLocationEventsForLock}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Synchronized</div>
-                    </div>
+                    <StatusCard count={lockLocationCount} total={totalLocationEventsForLock} label="Synchronized" />
                 </div>
 
                 {/* Action Buttons */}
@@ -366,12 +373,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
                     </div>
                 </button>
 
-                <div className="text-center">
-                    <div className="text-sm font-semibold text-foreground">
-                        {globalAdaptedCount}/{globalTotalTeachers}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Adapted</div>
-                </div>
+                <StatusCard count={globalAdaptedCount} total={globalTotalTeachers} label="Adapted" />
             </div>
 
             {/* Location Section - Normal Mode */}
@@ -384,12 +386,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
                     </div>
                 </button>
 
-                <div className="text-center">
-                    <div className="text-sm font-semibold text-foreground">
-                        {adaptedLocationCount}/{totalLocationEvents}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Adapted</div>
-                </div>
+                <StatusCard count={adaptedLocationCount} total={totalLocationEvents} label="Adapted" />
             </div>
         </div>
     );
