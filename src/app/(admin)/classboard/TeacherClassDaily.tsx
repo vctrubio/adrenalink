@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
