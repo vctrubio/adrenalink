@@ -24,44 +24,83 @@ export default function GlobalFlagAdjustment({
 }: GlobalFlagAdjustmentProps) {
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLockFlagTime, setIsLockFlagTime] = useState(false);
+    const [lockCount, setLockCount] = useState(0);
 
     // Get current state from globalFlag
-    const globalEarliestTime = globalFlag.getGlobalEarliestTime();
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
     const isAdjustmentLocked = globalFlag.isAdjustmentLocked();
     const stepDuration = globalFlag.getController().stepDuration || 30;
 
-    // Sync adjustmentTime when globalFlag time changes
-    useEffect(() => {
-        const newTime = globalFlag.getGlobalTime();
-        if (newTime) {
-            setAdjustmentTime(newTime);
-        }
-    }, [globalFlag]);
+    // Recalculate global earliest time on every render to reflect queue changes
+    const globalEarliestTime = globalFlag.getGlobalEarliestTime();
 
-    // Calculate adapted count for ADJUSTMENT MODE
-    // Count how many pending teachers have their earliest event = adjustment time
-    // Recalculate on every render to always reflect current queue state
-    const pendingTeachers = globalFlag.getPendingTeachers();
     const globalTime = globalFlag.getGlobalTime();
 
-    let adaptedCount = 0;
-    let totalTeachers = pendingTeachers.size;
+    // Initialize and sync adjustmentTime when entering adjustment mode
+    useEffect(() => {
+        if (globalTime && isAdjustmentMode && !adjustmentTime) {
+            setAdjustmentTime(globalTime);
+        }
+    }, [isAdjustmentMode, globalTime, adjustmentTime]);
 
-    if (globalTime) {
-        adaptedCount = teacherQueues.filter((queue) => {
-            if (!pendingTeachers.has(queue.teacher.username)) return false;
-            const earliestTime = queue.getEarliestEventTime();
-            return earliestTime === globalTime;
-        }).length;
-    }
+    const pendingTeachers = globalFlag.getPendingTeachers();
+    const totalTeachers = pendingTeachers.size;
 
-    const needsAdaptation = adaptedCount < totalTeachers;
+    // Create a key from all teacher queue earliest times to detect when they change
+    const teachersEarliestTimesKey = teacherQueues
+        .map((q) => `${q.teacher.username}:${q.getEarliestEventTime()}`)
+        .join("|");
+
+    // Memoize lock state calculation to prevent double-render flicker
+    const { isLockFlagTime: computedIsLockFlagTime, lockCount: computedLockCount } = useMemo(() => {
+        const pendingTeachersTimes = teacherQueues
+            .filter((q) => pendingTeachers.has(q.teacher.username))
+            .map((q) => ({ username: q.teacher.username, earliestTime: q.getEarliestEventTime() }))
+            .filter((t) => t.earliestTime !== null) as Array<{ username: string; earliestTime: string }>;
+
+        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
+            return { isLockFlagTime: false, lockCount: 0 };
+        }
+
+        const newGlobalEarliest = pendingTeachersTimes.reduce(
+            (min, t) => {
+                const minMinutes = timeToMinutes(min);
+                const tMinutes = timeToMinutes(t.earliestTime);
+                return tMinutes < minMinutes ? t.earliestTime : min;
+            },
+            pendingTeachersTimes[0].earliestTime
+        );
+
+        const synchronizedCount = pendingTeachersTimes.filter(
+            (t) => t.earliestTime === newGlobalEarliest
+        ).length;
+
+        return {
+            isLockFlagTime: synchronizedCount === totalTeachers,
+            lockCount: synchronizedCount,
+        };
+    }, [teachersEarliestTimesKey, pendingTeachers, totalTeachers]);
+
+    // Sync computed values to state
+    useEffect(() => {
+        setIsLockFlagTime(computedIsLockFlagTime);
+        setLockCount(computedLockCount);
+    }, [computedIsLockFlagTime, computedLockCount]);
+
+    // Update adjustment time to reflect the current global earliest time from pending teachers
+    useEffect(() => {
+        if (isAdjustmentMode) {
+            const currentGlobalEarliest = globalEarliestTime;
+            if (currentGlobalEarliest && currentGlobalEarliest !== adjustmentTime) {
+                setAdjustmentTime(currentGlobalEarliest);
+            }
+        }
+    }, [globalEarliestTime, isAdjustmentMode]);
 
     // Calculate adapted count for NORMAL MODE
     // Count all teachers with events, not just pending ones
     const { adaptedCount: globalAdaptedCount, totalTeachers: globalTotalTeachers } = useMemo(() => {
-        const globalEarliestTime = globalFlag.getGlobalEarliestTime();
         const teachersWithEvents = teacherQueues.filter((queue) => queue.getAllEvents().length > 0);
         const adapted = teachersWithEvents.filter((queue) => {
             const earliestTime = queue.getEarliestEventTime();
@@ -72,7 +111,7 @@ export default function GlobalFlagAdjustment({
             adaptedCount: adapted,
             totalTeachers: teachersWithEvents.length,
         };
-    }, [teacherQueues, globalFlag]);
+    }, [teacherQueues, globalFlag, globalEarliestTime]);
 
     const handleAdjustTime = (increment: boolean) => {
         if (!adjustmentTime) return;
@@ -84,6 +123,9 @@ export default function GlobalFlagAdjustment({
 
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
+
+        // Always adjust time - in unlocked mode, only teachers at or before the new time move
+        // In locked mode, all pending teachers move
         globalFlag.adjustTime(newTime);
     };
 
@@ -103,7 +145,11 @@ export default function GlobalFlagAdjustment({
     };
 
     const handleLockToggle = () => {
-        globalFlag.adapt();
+        if (!isLockFlagTime && adjustmentTime) {
+            // Not synchronized yet - sync all teachers to adjustment time
+            globalFlag.lockToAdjustmentTime(adjustmentTime);
+        }
+        // If already synchronized, do nothing (button disabled anyway)
     };
 
     if (!globalEarliestTime) return null;
@@ -149,14 +195,15 @@ export default function GlobalFlagAdjustment({
                     </button>
                     <button
                         onClick={handleLockToggle}
+                        disabled={isLockFlagTime}
                         className={`p-2 rounded transition-colors ${
-                            adaptedCount === totalTeachers
-                                ? "border border-foreground text-foreground hover:bg-muted/50"
+                            isLockFlagTime
+                                ? "border border-foreground text-foreground opacity-50 cursor-not-allowed"
                                 : "bg-blue-600 text-white hover:bg-blue-700"
                         }`}
-                        title={adaptedCount === totalTeachers ? "Unlock all teachers" : "Lock all teachers to adjustment time"}
+                        title={isLockFlagTime ? "All teachers synchronized" : "Lock all teachers to adjustment time"}
                     >
-                        {adaptedCount === totalTeachers ? (
+                        {isLockFlagTime ? (
                             <Lock className="w-5 h-5" />
                         ) : (
                             <LockOpen className="w-5 h-5" />
@@ -165,8 +212,8 @@ export default function GlobalFlagAdjustment({
                 </div>
 
                 <div className="text-center">
-                    <div className="text-sm font-semibold text-foreground">{adaptedCount}/{totalTeachers}</div>
-                    <div className="text-xs text-muted-foreground">Adapted</div>
+                    <div className="text-sm font-semibold text-foreground">{lockCount}/{totalTeachers}</div>
+                    <div className="text-xs text-muted-foreground">Synchronized</div>
                 </div>
             </div>
         );

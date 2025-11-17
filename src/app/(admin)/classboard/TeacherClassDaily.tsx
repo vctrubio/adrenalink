@@ -20,6 +20,7 @@ function TeacherColumn({
     isPendingParentUpdate,
     controller,
     onEventDeleted,
+    onParentRefresh,
 }: {
     queue: TeacherQueue;
     dragState: DragState;
@@ -27,6 +28,7 @@ function TeacherColumn({
     isPendingParentUpdate: boolean;
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
+    onParentRefresh?: () => void;
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -59,7 +61,7 @@ function TeacherColumn({
 
         // Update ref for next render
         wasInAdjustmentModeRef.current = isInAdjustmentMode;
-    }, [globalFlag, columnViewMode]);
+    }, [globalFlag, columnViewMode, isPendingParentUpdate]);
 
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
@@ -164,6 +166,7 @@ function TeacherColumn({
 
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
+        onParentRefresh?.();
     };
 
     const handleDeleteComplete = () => {
@@ -316,7 +319,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     return (
         <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col">
             {/* Global Flag Adjustment */}
-            <GlobalFlagAdjustment key={refreshKey} globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+            <GlobalFlagAdjustment globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
 
             {/* Content */}
             {teacherQueues.length === 0 ? (
@@ -350,6 +353,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                 isPendingParentUpdate={globalFlag.getPendingTeachers().has(queue.teacher.username)}
                                 controller={controller}
                                 onEventDeleted={onEventDeleted}
+                                onParentRefresh={() => setRefreshKey((prev) => prev + 1)}
                             />
                         );
                     })}

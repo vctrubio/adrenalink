@@ -172,6 +172,34 @@ export class QueueController {
     }
 
     /**
+     * Set first event to a specific time (forces to that time, ignoring gaps)
+     * Used when syncing to global adjustment time via slider
+     */
+    setFirstEventTime(targetTimeStr: string): void {
+        const firstEvent = this.queue.getAllEvents()[0];
+        if (!firstEvent) return;
+
+        const currentStartMinutes = getMinutesFromISO(firstEvent.eventData.date);
+        const targetMinutes = parseFloat(targetTimeStr.split(":")[0]) * 60 + parseFloat(targetTimeStr.split(":")[1]);
+        const offsetMinutes = targetMinutes - currentStartMinutes;
+
+        if (offsetMinutes === 0) return;
+
+        const oldEndMinutes = currentStartMinutes + firstEvent.eventData.duration;
+        this.updateEventDateTime(firstEvent, offsetMinutes);
+
+        // Only cascade if the next event was touching (no gap)
+        if (firstEvent.next) {
+            const nextStartMinutes = getMinutesFromISO(firstEvent.next.eventData.date);
+            if (nextStartMinutes === oldEndMinutes) {
+                this.cascadeTimeAdjustment(firstEvent.next, offsetMinutes);
+            }
+        }
+
+        this.onRefresh();
+    }
+
+    /**
      * Move event forward in queue (earlier position)
      */
     moveUp(eventId: string): void {

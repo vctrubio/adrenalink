@@ -171,39 +171,42 @@ export class GlobalFlag {
     }
 
     /**
-     * Locked mode: all queues match the exact global time
+     * Locked mode: sync all queues to adjustment time, but respect those already past it
+     * Teachers already past the new time stay put (can't move backwards before global earliest)
      */
     private adjustTimeLocked(newTime: string): void {
+        const newMinutes = timeToMinutes(newTime);
+
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
                     const currentMinutes = timeToMinutes(earliestTime);
-                    const targetMinutes = timeToMinutes(newTime);
-                    const offsetMinutes = targetMinutes - currentMinutes;
 
-                    const queueController = new QueueController(queue, this.controller, () => {
-                        this.refreshKey++;
-                        this.onRefresh();
-                    });
-                    queueController.adjustFirstEventByOffset(offsetMinutes);
+                    // Only sync teachers who are at or before the new time
+                    // Teachers already past the new time should not move backwards
+                    if (currentMinutes <= newMinutes) {
+                        const queueController = new QueueController(queue, this.controller, () => {
+                            this.refreshKey++;
+                            this.onRefresh();
+                        });
+                        queueController.setFirstEventTime(newTime);
+                    }
                 }
             }
         });
+
+        this.globalTime = newTime;
     }
 
     /**
-     * Unlocked mode: cascade to teachers "in the way" of adjustment
-     * Moving forward: only move teachers with earliest < new time (ahead of slider)
-     * Moving backward: only move teachers with earliest > new time (behind slider)
+     * Unlocked mode: move teachers who are at or before the adjustment time
+     * Teachers already past the new time should NOT move backwards
      */
     private adjustTimeUnlocked(newTime: string): void {
         if (!this.globalTime) return;
 
-        const currentMinutes = timeToMinutes(this.globalTime);
         const newMinutes = timeToMinutes(newTime);
-        const offsetMinutes = newMinutes - currentMinutes;
-        const isMovingForward = newMinutes > currentMinutes;
 
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
@@ -211,17 +214,14 @@ export class GlobalFlag {
                 if (earliestTime) {
                     const queueMinutes = timeToMinutes(earliestTime);
 
-                    // Determine if teacher is "in the way" based on direction
-                    const shouldMove = isMovingForward
-                        ? queueMinutes < newMinutes    // Moving forward: move teachers ahead
-                        : queueMinutes > newMinutes;   // Moving backward: move teachers behind
-
-                    if (shouldMove) {
+                    // Only move teachers who are at or before the new time
+                    // Teachers already past the new time should not move backwards
+                    if (queueMinutes <= newMinutes) {
                         const queueController = new QueueController(queue, this.controller, () => {
                             this.refreshKey++;
                             this.onRefresh();
                         });
-                        queueController.adjustFirstEventByOffset(offsetMinutes);
+                        queueController.setFirstEventTime(newTime);
                     }
                 }
             }
@@ -249,6 +249,28 @@ export class GlobalFlag {
     }
 
     /**
+     * Lock all pending teachers to a specific adjustment time
+     */
+    lockToAdjustmentTime(targetTime: string): void {
+        this.teacherQueues.forEach((queue) => {
+            if (this.pendingTeachers.has(queue.teacher.username)) {
+                const earliestTime = queue.getEarliestEventTime();
+                if (earliestTime) {
+                    const queueController = new QueueController(queue, this.controller, () => {
+                        this.refreshKey++;
+                        this.onRefresh();
+                    });
+                    queueController.setFirstEventTime(targetTime);
+                }
+            }
+        });
+
+        this.isLocked = true;
+        this.refreshKey++;
+        this.onRefresh();
+    }
+
+    /**
      * Sync all pending teachers to earliest time
      */
     private syncAllToEarliest(): void {
@@ -271,15 +293,11 @@ export class GlobalFlag {
             if (this.pendingTeachers.has(queue.teacher.username)) {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
-                    const currentMinutes = timeToMinutes(earliestTime);
-                    const targetMinutes = timeToMinutes(syncTargetTime);
-                    const offsetMinutes = targetMinutes - currentMinutes;
-
                     const queueController = new QueueController(queue, this.controller, () => {
                         this.refreshKey++;
                         this.onRefresh();
                     });
-                    queueController.adjustFirstEventByOffset(offsetMinutes);
+                    queueController.setFirstEventTime(syncTargetTime);
                 }
             }
         });
