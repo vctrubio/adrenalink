@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { Menu } from "@headlessui/react";
-import { ChevronDown, Trash2, Bell, MapPin, Loader2 } from "lucide-react";
+import { ChevronDown, MapPin, Loader2 } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
-import { getEventStatusColor, type EventStatus } from "@/types/status";
+import { getEventStatusColor, type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
-import { deleteClassboardEvent } from "@/actions/classboard-action";
+import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import EventGapDetection from "./EventGapDetection";
+
+const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
 
 export const ROW_MARGIN = "mx-4";
 export const ROW_PADDING = "py-2";
@@ -44,7 +46,23 @@ const EquipmentDisplay = ({ categoryEquipment, capacityEquipment }: { categoryEq
     );
 };
 
-const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, onNotify }: { isDeleting: boolean; hasNextEvent: boolean; canShiftQueue: boolean; onDelete: (cascade: boolean) => void; onNotify: () => void }) => {
+const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, currentStatus, eventId, onDelete, onStatusChange }: { isDeleting: boolean; hasNextEvent: boolean; canShiftQueue: boolean; currentStatus: EventStatus; eventId: string; onDelete: (cascade: boolean) => void; onStatusChange: (status: EventStatus) => void }) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleStatusClick = async (status: EventStatus) => {
+        if (status === currentStatus || isUpdating) return;
+
+        setIsUpdating(true);
+        try {
+            await updateEventStatus(eventId, status);
+            onStatusChange(status);
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     return (
         <Menu as="div" className="relative ml-auto">
             <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
@@ -53,14 +71,29 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
 
             <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
                 <div className="p-1">
-                    <Menu.Item>
-                        {({ active }) => (
-                            <button onClick={onNotify} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
-                                <Bell className="w-4 h-4" />
-                                Notify
-                            </button>
-                        )}
-                    </Menu.Item>
+                    {EVENT_STATUSES.map((status) => {
+                        const statusConfig = EVENT_STATUS_CONFIG[status];
+                        return (
+                            <Menu.Item key={status}>
+                                {({ active }) => (
+                                    <button
+                                        onClick={() => handleStatusClick(status)}
+                                        disabled={isUpdating || status === currentStatus}
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize text-foreground ${
+                                            status === currentStatus
+                                                ? "font-semibold disabled:opacity-100"
+                                                : "disabled:cursor-not-allowed"
+                                        }`}
+                                        style={{
+                                            backgroundColor: active ? `${statusConfig.color}30` : status === currentStatus ? `${statusConfig.color}20` : "transparent",
+                                        }}
+                                    >
+                                        {status}
+                                    </button>
+                                )}
+                            </Menu.Item>
+                        );
+                    })}
 
                     {canShiftQueue && (
                         <Menu.Item>
@@ -68,10 +101,9 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
                                 <button
                                     onClick={() => onDelete(true)}
                                     disabled={isDeleting}
-                                    className={`${active ? "bg-blue-50 dark:bg-blue-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-800 dark:text-blue-200 disabled:opacity-50`}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}
                                 >
-                                    <Trash2 className="w-4 h-4" />
-                                    {isDeleting ? "Deleting..." : "Delete & Shift Queue"}
+                                    {isDeleting ? "Deleting..." : "Delete"}
                                 </button>
                             )}
                         </Menu.Item>
@@ -79,9 +111,8 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
                     {hasNextEvent && (
                         <Menu.Item>
                             {({ active }) => (
-                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}>
-                                    <Trash2 className="w-4 h-4" />
-                                    {isDeleting ? "Deleting..." : "Delete (Keep Gap)"}
+                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
+                                    {isDeleting ? "Deleting..." : "Delete"}
                                 </button>
                             )}
                         </Menu.Item>
@@ -89,9 +120,8 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
                     {!hasNextEvent && (
                         <Menu.Item>
                             {({ active }) => (
-                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}>
-                                    <Trash2 className="w-4 h-4" />
-                                    {isDeleting ? "Deleting..." : "Delete Event"}
+                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
+                                    {isDeleting ? "Deleting..." : "Delete"}
                                 </button>
                             )}
                         </Menu.Item>
@@ -105,26 +135,30 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, onDelete, on
 const HeaderRow = ({
     startTime,
     duration,
-    statusColor,
+    status,
+    eventId,
     location,
     categoryEquipment,
     capacityEquipment,
     children,
     settingsDropdown,
+    onStatusChange,
 }: {
     startTime: string;
     duration: number;
-    statusColor: string;
+    status: EventStatus;
+    eventId: string;
     location: string;
     categoryEquipment: string;
     capacityEquipment: number;
     children?: React.ReactNode;
     settingsDropdown?: React.ReactNode;
+    onStatusChange: (status: EventStatus) => void;
 }) => {
     return (
         <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600 pointer-events-auto pb-1">
             <div className={`flex items-center gap-2 relative mb-3 ${ROW_MARGIN} ${ROW_PADDING} pointer-events-auto`}>
-                <div style={{ color: statusColor }}>
+                <div style={{ color: getEventStatusColor(status) }}>
                     <FlagIcon className="w-8 h-8" size={34} />
                 </div>
                 <div className="flex flex-col relative mb-1">
@@ -171,16 +205,15 @@ const StudentRow = ({ student }: { student: { id: string; firstName: string; las
 
 export default function EventCard({ event, queue, queueController, onDeleteComplete, onDeleteWithCascade }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
 
     const eventId = event.id;
     const startTime = getTimeFromISO(event.eventData.date);
     const duration = event.eventData.duration;
     const students = event.studentData || [];
-    const status = event.eventData.status as EventStatus;
     const location = event.eventData.location;
     const categoryEquipment = event.packageData?.categoryEquipment || "";
     const capacityEquipment = event.packageData?.capacityEquipment || 0;
-    const statusColor = getEventStatusColor(status);
 
     const cardProps = queueController?.getEventModCardProps(eventId);
     const hasNextEvent = cardProps?.isLast === false;
@@ -236,23 +269,18 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         }
     };
 
-    const handleNotify = () => {
-        const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
-        const message = `Event Details:\nTime: ${startTime}\nDuration: ${getPrettyDuration(duration)}\nLocation: ${location}\nStudents: ${studentNames}\nStatus: ${status}`;
-        console.log("📢 Notify Event:\n", message);
-        alert(message);
-    };
-
     return (
         <div className={`w-full bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${HEADING_PADDING}`}>
             <HeaderRow
                 startTime={startTime}
                 duration={duration}
-                statusColor={statusColor}
+                status={currentStatus}
+                eventId={eventId}
                 location={location}
                 categoryEquipment={categoryEquipment}
                 capacityEquipment={capacityEquipment}
-                settingsDropdown={<SettingDropdown isDeleting={isDeleting} hasNextEvent={hasNextEvent} canShiftQueue={canShiftQueue} onDelete={handleDelete} onNotify={handleNotify} />}
+                onStatusChange={setCurrentStatus}
+                settingsDropdown={<SettingDropdown isDeleting={isDeleting} hasNextEvent={hasNextEvent} canShiftQueue={canShiftQueue} currentStatus={currentStatus} eventId={eventId} onDelete={handleDelete} onStatusChange={setCurrentStatus} />}
             >
                 {previousEvent && <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} updateMode="updateNow" />}
             </HeaderRow>

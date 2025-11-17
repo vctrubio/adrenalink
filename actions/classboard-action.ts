@@ -312,3 +312,25 @@ export async function updateEventStartTime(eventId: string, newDate: string): Pr
         return { success: false, error: `Failed to update event start time: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
+
+/**
+ * Update event status
+ */
+export async function updateEventStatus(eventId: string, status: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
+    try {
+        console.log(`📍 [classboard-action] Updating event ${eventId} status to ${status}`);
+
+        const result = await db.update(event).set({ status }).where(eq(event.id, eventId)).returning();
+
+        if (!result || result.length === 0) {
+            return { success: false, error: "Event not found" };
+        }
+
+        console.log(`✅ [classboard-action] Event status updated: ${eventId} -> ${status}`);
+
+        return { success: true, data: { success: true } };
+    } catch (error) {
+        console.error("❌ [classboard-action] Error updating event status:", error);
+        return { success: false, error: `Failed to update event status: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
