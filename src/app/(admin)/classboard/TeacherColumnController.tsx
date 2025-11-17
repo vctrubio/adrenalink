@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Menu } from "@headlessui/react";
-import { Settings, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
@@ -121,19 +121,6 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
                                             </button>
                                         )}
                                     </Menu.Item>
-                                </div>
-                            </Menu.Items>
-                        </Menu>
-                    )}
-                    {hasEvents && (
-                        <Menu as="div" className="relative">
-                            <Menu.Button className="p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0">
-                                <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                            </Menu.Button>
-
-                            <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
-                                <div className="p-1">
-                                    {/* Settings menu can be expanded if needed */}
                                 </div>
                             </Menu.Items>
                         </Menu>
