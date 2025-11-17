@@ -178,6 +178,34 @@ export async function deleteUncompletedClassboardEvents(eventIds: string[]): Pro
 }
 
 /**
+ * Bulk update event status
+ */
+export async function bulkUpdateEventStatus(eventIds: string[], status: string): Promise<ApiActionResponseModel<{ updatedCount: number }>> {
+    try {
+        if (eventIds.length === 0) {
+            return { success: false, error: "No events provided" };
+        }
+
+        console.log(`📝 [classboard-bulk-action] Updating ${eventIds.length} events to status: ${status}`);
+
+        const result = await db.update(event).set({ status }).where(inArray(event.id, eventIds)).returning({ id: event.id });
+
+        console.log(`✅ [classboard-bulk-action] Updated ${result.length} events to ${status}`);
+
+        return {
+            success: true,
+            data: { updatedCount: result.length },
+        };
+    } catch (error) {
+        console.error("❌ [classboard-bulk-action] Error updating event status:", error);
+        return {
+            success: false,
+            error: `Failed to update event status: ${error instanceof Error ? error.message : String(error)}`,
+        };
+    }
+}
+
+/**
  * Cascade delete: Shift all subsequent events backward (earlier) by the deleted event's duration
  * Called after a delete with "shift queue" option to fill the gap left by the deleted event
  * Event listener handles UI updates, so no revalidatePath needed

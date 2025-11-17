@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Menu } from "@headlessui/react";
-import { Settings, Bell, Printer, Trash2 } from "lucide-react";
+import { Settings, ChevronDown } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
-import { bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
+import { bulkDeleteClassboardEvents, bulkUpdateEventStatus } from "@/actions/classboard-bulk-action";
+import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 
 interface TeacherColumnControllerProps {
     columnViewMode: "view" | "queue";
@@ -21,21 +22,36 @@ interface TeacherColumnControllerProps {
 export default function TeacherColumnController({ columnViewMode, queue, onEditSchedule, onSubmit, onReset, onCancel, onDeleteComplete }: TeacherColumnControllerProps) {
     const stats = queue.getStats();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const handleNotify = () => {
-        if (queue) {
-            queue.printTeacherSchedule();
-        }
-    };
+    const allEvents = queue.getAllEvents();
+    const completedCount = allEvents.filter((e) => e.eventData.status === "completed").length;
+    const totalEvents = allEvents.length;
+    const hasEvents = totalEvents > 0;
 
-    const handlePrint = () => {
-        if (queue) {
-            queue.printTeacherSchedule();
+    const handleBulkStatusUpdate = async (status: EventStatus) => {
+        const eventIds = allEvents.map((e) => e.id).filter((id): id is string => id !== null);
+        if (eventIds.length === 0) return;
+
+        setIsUpdating(true);
+        try {
+            const result = await bulkUpdateEventStatus(eventIds, status);
+
+            if (!result.success) {
+                console.error("Update failed:", result.error);
+                setIsUpdating(false);
+                return;
+            }
+
+            onDeleteComplete?.();
+        } catch (error) {
+            console.error("Error updating events:", error);
+            setIsUpdating(false);
         }
     };
 
     const handleDeleteAll = async () => {
-        const eventIds = queue.getAllEvents().map((e) => e.id);
+        const eventIds = allEvents.map((e) => e.id);
         if (eventIds.length === 0) return;
 
         setIsDeleting(true);
@@ -55,15 +71,60 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
         }
     };
 
-    const hasEvents = queue.getAllEvents().length > 0;
-
     return (
         <div className="p-4 border-b border-border space-y-3">
-            {/* Header: Teacher Name + Settings Icon (only if has events) */}
+            {/* Header: Teacher Name + Ratio Button + Settings Icon */}
             <div className="flex items-center gap-4">
                 <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
-                <div className="ml-auto w-10 h-10 flex-shrink-0">
+                <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+                    {hasEvents && (
+                        <Menu as="div" className="relative">
+                            <Menu.Button className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${completedCount === totalEvents && totalEvents > 0 ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
+                                <span className="font-medium">{completedCount}/{totalEvents}</span>
+                                <ChevronDown className="w-3 h-3" />
+                            </Menu.Button>
+
+                            <Menu.Items className="absolute right-0 top-full mt-1 w-56 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
+                                <div className="p-1">
+                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border">Update Status</div>
+                                    {(["planned", "tbc", "completed", "uncompleted"] as const).map((status) => {
+                                        const statusConfig = EVENT_STATUS_CONFIG[status];
+                                        return (
+                                            <Menu.Item key={status}>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={() => handleBulkStatusUpdate(status)}
+                                                        disabled={isUpdating}
+                                                        className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize text-foreground disabled:opacity-50 ${active ? "cursor-pointer" : ""}`}
+                                                        style={{
+                                                            backgroundColor: active ? `${statusConfig.color}30` : "transparent",
+                                                        }}
+                                                    >
+                                                        Set All to {status}
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        );
+                                    })}
+
+                                    <div className="my-1 border-t border-border" />
+
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={handleDeleteAll}
+                                                disabled={isDeleting}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30 cursor-pointer" : ""}`}
+                                            >
+                                                {isDeleting ? "Deleting..." : "Delete All"}
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                            </Menu.Items>
+                        </Menu>
+                    )}
                     {hasEvents && (
                         <Menu as="div" className="relative">
                             <Menu.Button className="p-1.5 rounded hover:bg-muted/50 transition-colors flex-shrink-0">
@@ -72,36 +133,7 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
 
                             <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
                                 <div className="p-1">
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button onClick={handleNotify} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
-                                                <Bell className="w-4 h-4" />
-                                                Notify
-                                            </button>
-                                        )}
-                                    </Menu.Item>
-
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button onClick={handlePrint} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
-                                                <Printer className="w-4 h-4" />
-                                                Print
-                                            </button>
-                                        )}
-                                    </Menu.Item>
-
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button
-                                                onClick={handleDeleteAll}
-                                                disabled={isDeleting}
-                                                className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-800 dark:text-red-200 disabled:opacity-50`}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                {isDeleting ? "Deleting..." : "Delete All"}
-                                            </button>
-                                        )}
-                                    </Menu.Item>
+                                    {/* Settings menu can be expanded if needed */}
                                 </div>
                             </Menu.Items>
                         </Menu>
