@@ -18,15 +18,7 @@ interface TeacherColumnControllerProps {
     onDeleteComplete?: () => void;
 }
 
-export default function TeacherColumnController({
-    columnViewMode,
-    queue,
-    onEditSchedule,
-    onSubmit,
-    onReset,
-    onCancel,
-    onDeleteComplete,
-}: TeacherColumnControllerProps) {
+export default function TeacherColumnController({ columnViewMode, queue, onEditSchedule, onSubmit, onReset, onCancel, onDeleteComplete }: TeacherColumnControllerProps) {
     const stats = queue.getStats();
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -82,10 +74,7 @@ export default function TeacherColumnController({
                                 <div className="p-1">
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button
-                                                onClick={handleNotify}
-                                                className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                            >
+                                            <button onClick={handleNotify} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
                                                 <Bell className="w-4 h-4" />
                                                 Notify
                                             </button>
@@ -94,10 +83,7 @@ export default function TeacherColumnController({
 
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button
-                                                onClick={handlePrint}
-                                                className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
-                                            >
+                                            <button onClick={handlePrint} className={`${active ? "bg-muted/50" : ""} flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
                                                 <Printer className="w-4 h-4" />
                                                 Print
                                             </button>
@@ -122,7 +108,6 @@ export default function TeacherColumnController({
                     )}
                 </div>
             </div>
-
 
             {/* Statistics Panel */}
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -149,34 +134,20 @@ export default function TeacherColumnController({
                 {columnViewMode === "view" ? (
                     <button
                         onClick={onEditSchedule}
-                        disabled={stats.eventCount === 0}
-                        className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium ${
-                            stats.eventCount === 0
-                                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                                : "bg-primary text-primary-foreground hover:bg-primary/90"
-                        }`}
+                        className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium ${stats.eventCount === 0 ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                         title={stats.eventCount === 0 ? "No events to edit" : "Edit schedule"}
                     >
                         Edit Schedule
                     </button>
                 ) : (
                     <>
-                        <button
-                            onClick={onSubmit}
-                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
+                        <button onClick={onSubmit} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium">
                             Submit
                         </button>
-                        <button
-                            onClick={onReset}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                        >
+                        <button onClick={onReset} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
                             Reset
                         </button>
-                        <button
-                            onClick={onCancel}
-                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-                        >
+                        <button onClick={onCancel} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium">
                             Cancel
                         </button>
                     </>

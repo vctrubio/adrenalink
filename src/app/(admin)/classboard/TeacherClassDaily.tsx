@@ -33,32 +33,41 @@ function TeacherColumn({
 
     // Force refresh when queue updates (from real-time listener)
     useEffect(() => {
-        console.log(`[TeacherColumn] Queue updated for ${queue.teacher.username}, forcing refresh`);
         setRefreshKey((prev) => prev + 1);
-    }, [queue, isPendingParentUpdate, columnViewMode]);
+    }, [queue]);
 
-    // Auto-enter queue mode when global adjustment mode is active
+    // Auto-enter queue mode when teacher is pending in global adjustment mode
     useEffect(() => {
         const isInAdjustmentMode = globalFlag.isAdjustmentMode();
 
         if (isInAdjustmentMode && isPendingParentUpdate) {
             setColumnViewMode("queue");
-        } else if (!isInAdjustmentMode && columnViewMode === "queue") {
+        }
+    }, [globalFlag, isPendingParentUpdate]);
+
+    // Exit queue mode only when exiting global adjustment mode (transition true -> false)
+    useEffect(() => {
+        const isInAdjustmentMode = globalFlag.isAdjustmentMode();
+
+        // Only exit if we were in adjustment mode and now we're not (transition)
+        if (wasInAdjustmentModeRef.current && !isInAdjustmentMode && columnViewMode === "queue") {
             // Exit queue mode when global adjustment mode is deactivated
             handleReset();
             setColumnViewMode("view");
             originalQueueState.current = [];
         }
-    }, [globalFlag, isPendingParentUpdate, columnViewMode]);
+
+        // Update ref for next render
+        wasInAdjustmentModeRef.current = isInAdjustmentMode;
+    }, [globalFlag, columnViewMode]);
 
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
         const allEvents = queue.getAllEvents();
         if (allEvents.length === 0 && columnViewMode === "queue") {
-            console.log(`[TeacherColumn] Queue is empty for ${queue.teacher.username}, exiting queue mode`);
             setColumnViewMode("view");
         }
-    }, [queue]);
+    }, [queue, columnViewMode]);
 
     const events = useMemo(() => {
         return queue.getAllEvents();
@@ -66,6 +75,9 @@ function TeacherColumn({
 
     // Store original queue state for reset functionality
     const originalQueueState = useRef<EventNode[]>([]);
+
+    // Track previous adjustment mode state to detect when exiting
+    const wasInAdjustmentModeRef = useRef(false);
 
     // Store original state when entering edit mode
     useEffect(() => {
@@ -108,23 +120,12 @@ function TeacherColumn({
                 }));
 
             if (updates.length > 0) {
-                console.log(`📤 Submitting ${updates.length} changed event updates for ${queue.teacher.username}`, {
-                    changes: updates.map((u) => ({
-                        id: u.id,
-                        newDate: u.date,
-                        newDuration: u.duration,
-                    })),
-                });
                 const result = await bulkUpdateClassboardEvents(updates);
 
                 if (!result.success) {
                     console.error("Failed to update events:", result.error);
                     return;
                 }
-
-                console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
-            } else {
-                console.log("ℹ️ No events were changed, skipping submission");
             }
 
             // Clear original state and exit edit mode
@@ -160,7 +161,6 @@ function TeacherColumn({
             globalFlag.optOut(queue.teacher.username);
         }
     };
-
 
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
@@ -225,7 +225,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             new GlobalFlag(teacherQueues, controller, () => {
                 setRefreshKey((prev) => prev + 1);
             }),
-        [teacherQueues, controller]
+        [teacherQueues, controller],
     );
 
     // Update teacher queues when they change
@@ -298,15 +298,12 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             const allUpdates = globalFlag.collectChanges();
 
             if (allUpdates.length > 0) {
-                console.log(`📤 Submitting ${allUpdates.length} changed events from global adjustment`);
                 const result = await bulkUpdateClassboardEvents(allUpdates);
 
                 if (!result.success) {
                     console.error("Failed to update events:", result.error);
                     return;
                 }
-
-                console.log(`✅ Successfully updated ${result.data?.updatedCount} events`);
             }
 
             // Exit adjustment mode after successful submit
@@ -347,8 +344,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                     onDragEnter: handleDragEnter,
                                     onDragLeave: handleDragLeave,
                                     onDrop: (e, username) => handleDrop(e, username),
-                                    dragOverTeacherColumn: (teacherUsername) =>
-                                        getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
+                                    dragOverTeacherColumn: (teacherUsername) => getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
                                 }}
                                 globalFlag={globalFlag}
                                 isPendingParentUpdate={globalFlag.getPendingTeachers().has(queue.teacher.username)}

@@ -39,46 +39,24 @@ export default function GlobalFlagAdjustment({
         }
     }, [globalFlag]);
 
-    // Calculate the current earliest time from all pending teacher queues
-    // This updates in real-time when pending teachers edit their queues
-    const currentEarliestFromPending = useMemo(() => {
-        const pendingTimes: string[] = [];
-        const pendingTeachers = globalFlag.getPendingTeachers();
-        const globalEarliestTime = globalFlag.getGlobalEarliestTime();
-
-        teacherQueues.forEach((queue) => {
-            if (pendingTeachers.has(queue.teacher.username)) {
-                const earliestTime = queue.getEarliestEventTime();
-                if (earliestTime) {
-                    pendingTimes.push(earliestTime);
-                }
-            }
-        });
-
-        if (pendingTimes.length === 0) return globalEarliestTime;
-
-        // Return the earliest time from pending teachers
-        const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
-        return minutesToTime(minTimeInMinutes);
-    }, [teacherQueues, globalFlag]);
-
     // Calculate adapted count for ADJUSTMENT MODE
-    // Only count teachers in the pending parent update set
-    const { adaptedCount, totalTeachers, needsAdaptation } = useMemo(() => {
-        const pendingTeachers = globalFlag.getPendingTeachers();
-        const adapted = teacherQueues.filter((queue) => {
+    // Count how many pending teachers have their earliest event = adjustment time
+    // Recalculate on every render to always reflect current queue state
+    const pendingTeachers = globalFlag.getPendingTeachers();
+    const globalTime = globalFlag.getGlobalTime();
+
+    let adaptedCount = 0;
+    let totalTeachers = pendingTeachers.size;
+
+    if (globalTime) {
+        adaptedCount = teacherQueues.filter((queue) => {
             if (!pendingTeachers.has(queue.teacher.username)) return false;
             const earliestTime = queue.getEarliestEventTime();
-            return earliestTime === currentEarliestFromPending;
+            return earliestTime === globalTime;
         }).length;
+    }
 
-        const total = pendingTeachers.size;
-        return {
-            adaptedCount: adapted,
-            totalTeachers: total,
-            needsAdaptation: adapted < total,
-        };
-    }, [teacherQueues, globalFlag, currentEarliestFromPending]);
+    const needsAdaptation = adaptedCount < totalTeachers;
 
     // Calculate adapted count for NORMAL MODE
     // Count all teachers with events, not just pending ones
@@ -119,7 +97,8 @@ export default function GlobalFlagAdjustment({
     };
 
     const handleCancel = () => {
-        setAdjustmentTime(currentEarliestFromPending);
+        const earliestFromPending = globalFlag.getEarliestTimeFromPending();
+        setAdjustmentTime(earliestFromPending);
         globalFlag.exitAdjustmentMode();
     };
 

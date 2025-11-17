@@ -61,6 +61,28 @@ export class GlobalFlag {
         return minutesToTime(minTimeInMinutes);
     }
 
+    /**
+     * Get earliest time from only pending teachers
+     * Used to reset adjustment time when canceling
+     */
+    getEarliestTimeFromPending(): string | null {
+        const pendingTimes: string[] = [];
+        this.pendingTeachers.forEach((username) => {
+            const queue = this.teacherQueues.find((q) => q.teacher.username === username);
+            if (queue) {
+                const earliestTime = queue.getEarliestEventTime();
+                if (earliestTime) {
+                    pendingTimes.push(earliestTime);
+                }
+            }
+        });
+
+        if (pendingTimes.length === 0) return this.getGlobalEarliestTime();
+
+        const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
+        return minutesToTime(minTimeInMinutes);
+    }
+
     // ============ STATE MANAGEMENT ============
 
     /**
@@ -171,8 +193,9 @@ export class GlobalFlag {
     }
 
     /**
-     * Unlocked mode: only cascade to teachers whose earliest time < adjustmentTime
-     * Teachers starting after adjustmentTime wait for global time to catch up
+     * Unlocked mode: cascade to teachers "in the way" of adjustment
+     * Moving forward: only move teachers with earliest < new time (ahead of slider)
+     * Moving backward: only move teachers with earliest > new time (behind slider)
      */
     private adjustTimeUnlocked(newTime: string): void {
         if (!this.globalTime) return;
@@ -180,6 +203,7 @@ export class GlobalFlag {
         const currentMinutes = timeToMinutes(this.globalTime);
         const newMinutes = timeToMinutes(newTime);
         const offsetMinutes = newMinutes - currentMinutes;
+        const isMovingForward = newMinutes > currentMinutes;
 
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
@@ -187,8 +211,12 @@ export class GlobalFlag {
                 if (earliestTime) {
                     const queueMinutes = timeToMinutes(earliestTime);
 
-                    // Only cascade to teachers whose earliest time < adjustment time
-                    if (queueMinutes < newMinutes) {
+                    // Determine if teacher is "in the way" based on direction
+                    const shouldMove = isMovingForward
+                        ? queueMinutes < newMinutes    // Moving forward: move teachers ahead
+                        : queueMinutes > newMinutes;   // Moving backward: move teachers behind
+
+                    if (shouldMove) {
                         const queueController = new QueueController(queue, this.controller, () => {
                             this.refreshKey++;
                             this.onRefresh();

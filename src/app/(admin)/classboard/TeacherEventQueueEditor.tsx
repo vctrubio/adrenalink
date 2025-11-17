@@ -13,27 +13,15 @@ interface TeacherQueueEditorProps {
     onEventDeleted?: (eventId: string) => void;
 }
 
-export default function TeacherQueueEditor({
-    events,
-    teacherQueue,
-    onRefresh,
-    controller,
-}: TeacherQueueEditorProps) {
+export default function TeacherQueueEditor({ events, teacherQueue, onRefresh, controller }: TeacherQueueEditorProps) {
     // Create a single QueueController for all events
     // Include events in deps so controller updates when events change (including global adjustments)
-    const queueController = useMemo(
-        () => new QueueController(teacherQueue, controller, onRefresh),
-        [teacherQueue, controller, onRefresh, events]
-    );
+    const queueController = useMemo(() => new QueueController(teacherQueue, controller, onRefresh), [teacherQueue, controller, onRefresh, events]);
 
     return (
         <div className="space-y-2 flex-1">
             {events.map((event) => (
-                <EventModCard
-                    key={event.id}
-                    eventId={event.id}
-                    queueController={queueController}
-                />
+                <EventModCard key={event.id} eventId={event.id} queueController={queueController} />
             ))}
         </div>
     );
