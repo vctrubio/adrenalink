@@ -115,7 +115,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                     <div style={{ color: studentEntity?.color }}>
                         <HelmetIcon className="w-8 h-8" />
                     </div>
-                    <h3 className="text-base font-bold text-foreground">Students</h3>
+                    <h3 className="text-xl font-bold text-foreground">Students</h3>
                 </div>
 
                 {/* Filter Tabs */}
