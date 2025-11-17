@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
-import GlobalFlagAdjustment from "./GlobalFlagAdjustment";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
-import { GlobalFlag } from "@/backend/models/GlobalFlag";
+import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState, DragCompatibility } from "@/types/drag-state";
@@ -218,21 +216,13 @@ interface TeacherClassDailyProps {
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    globalFlag: GlobalFlag;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, onEventDeleted, onAddLessonEvent }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, onEventDeleted, onAddLessonEvent, globalFlag }: TeacherClassDailyProps) {
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<DragCompatibility>(null);
     const [refreshKey, setRefreshKey] = useState(0);
-
-    // Create GlobalFlag instance
-    const globalFlag = useMemo(
-        () =>
-            new GlobalFlag(teacherQueues, controller, () => {
-                setRefreshKey((prev) => prev + 1);
-            }),
-        [teacherQueues, controller],
-    );
 
     // Update teacher queues when they change
     useEffect(() => {
@@ -299,31 +289,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
             console.error("Error handling drop:", error);
         }
     };
-    const handleGlobalSubmit = async () => {
-        try {
-            const allUpdates = globalFlag.collectChanges();
-
-            if (allUpdates.length > 0) {
-                const result = await bulkUpdateClassboardEvents(allUpdates);
-
-                if (!result.success) {
-                    console.error("Failed to update events:", result.error);
-                    return;
-                }
-            }
-
-            // Exit adjustment mode after successful submit
-            globalFlag.exitAdjustmentMode();
-        } catch (error) {
-            console.error("Error submitting global updates:", error);
-        }
-    };
-
     return (
         <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col h-full">
-            {/* Global Flag Adjustment */}
-            <GlobalFlagAdjustment globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
-
             {/* Content */}
             {teacherQueues.length === 0 ? (
                 <div className="h-full flex items-center justify-center">

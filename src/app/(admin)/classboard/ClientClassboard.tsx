@@ -1,9 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import ClassboardController from "./ClassboardController";
 import StudentClassDaily from "./StudentClassDaily";
+import LessonFlagClassDaily from "./LessonFlagClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
+import { GlobalFlag } from "@/backend/models/GlobalFlag";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { createClassboardEvent } from "@/actions/classboard-action";
@@ -15,7 +19,37 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { selectedDate, setSelectedDate, searchQuery, setSearchQuery, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } =
         useClassboard(data);
 
+    const [refreshKey, setRefreshKey] = useState(0);
+
     const globalStats = classboardStats.getGlobalStats();
+
+    // Create global flag instance
+    const globalFlag = useMemo(
+        () =>
+            new GlobalFlag(teacherQueues, controller, () => {
+                setRefreshKey((prev) => prev + 1);
+            }),
+        [teacherQueues, controller],
+    );
+
+    const handleGlobalSubmit = async () => {
+        try {
+            const allUpdates = globalFlag.collectChanges();
+
+            if (allUpdates.length > 0) {
+                const result = await bulkUpdateClassboardEvents(allUpdates);
+
+                if (!result.success) {
+                    console.error("Failed to update events:", result.error);
+                    return;
+                }
+            }
+
+            globalFlag.exitAdjustmentMode();
+        } catch (error) {
+            console.error("Error submitting global updates:", error);
+        }
+    };
 
     const handleAddLessonEvent = async (booking: DraggableBooking, teacherUsername: string) => {
         try {
@@ -70,7 +104,9 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     setOnNewBooking={setOnNewBooking}
                 />
 
-                <TeacherClassDaily teacherQueues={teacherQueues} draggedBooking={draggedBooking} isLessonTeacher={isLessonTeacher} classboardStats={classboardStats} controller={controller} selectedDate={selectedDate} onEventDeleted={handleEventDeleted} onAddLessonEvent={handleAddLessonEvent} />
+                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+
+                <TeacherClassDaily key={refreshKey} teacherQueues={teacherQueues} draggedBooking={draggedBooking} isLessonTeacher={isLessonTeacher} classboardStats={classboardStats} controller={controller} selectedDate={selectedDate} onEventDeleted={handleEventDeleted} onAddLessonEvent={handleAddLessonEvent} globalFlag={globalFlag} />
             </div>
         </div>
     );
