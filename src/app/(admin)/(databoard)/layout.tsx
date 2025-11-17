@@ -18,9 +18,9 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const pathname = usePathname();
 
     // Extract entity type from pathname (e.g., /students/[id] -> students)
-    const pathSegments = pathname.split("/");
+    const pathSegments = pathname.split("/").filter(Boolean);
     const entitySegment = pathSegments[pathSegments.length - 2];
-    
+
     // Map segment to entity id (handle plural forms)
     const entityIdMap: Record<string, string> = {
         "students": "student",
@@ -32,10 +32,10 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         "referrals": "referral",
         "requests": "studentPackage",
     };
-    
+
     const entityId = entityIdMap[entitySegment];
     if (!entityId) {
-        throw new Error(`Unknown databoard route: ${entitySegment}`);
+        return children;
     }
     
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
