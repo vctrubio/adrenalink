@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { WindToggle } from "@/src/components/themes/WindToggle";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 interface School {
     id: string;
@@ -141,50 +142,42 @@ export function NoSchoolFound({ username, schools }: NoSchoolFoundProps) {
                     <p className="text-xl text-muted-foreground mb-2">
                         Looking for: <span className="font-mono font-semibold text-[#fb923c]">{username}</span>
                     </p>
-                    <p className="text-lg text-muted-foreground">
-                        This school doesn&apos;t exist in our system
-                    </p>
                 </div>
 
                 {/* Schools List */}
-                <div className="max-w-6xl mx-auto">
+                <div className="max-w-4xl mx-auto">
                     <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 text-foreground">
                         Browse Available Schools
                     </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <div className="space-y-4">
                         {schools.map((school, index) => (
                             <Link
                                 key={school.id}
                                 href={`https://${school.username}.adrenalink.tech`}
-                                className="group relative bg-card border border-border rounded-lg p-6 hover:border-[#fb923c]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#fb923c]/10"
+                                className="group relative bg-card border border-border rounded-lg p-6 hover:border-[#fb923c]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#fb923c]/10 flex items-center justify-between"
                                 style={{
                                     animation: mounted ? `fadeInUp 0.6s ease-out ${index * 0.1}s both` : undefined,
                                 }}
                             >
-                                {/* School Info */}
-                                <div className="space-y-3">
-                                    <div className="flex items-start justify-between">
-                                        <h4 className="text-xl font-bold text-foreground group-hover:text-[#fb923c] transition-colors">
+                                <div className="flex items-center gap-6 flex-1">
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-foreground group-hover:text-[#fb923c] transition-colors mb-2">
                                             {school.name}
                                         </h4>
-                                        <div className="w-8 h-8 rounded-full bg-[#fb923c]/10 flex items-center justify-center group-hover:bg-[#fb923c]/20 transition-colors">
-                                            <span className="text-[#fb923c] text-lg">→</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="space-y-1">
-                                        <p className="text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                             <span className="font-mono text-[#fb923c]">@{school.username}</span>
-                                        </p>
-                                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                            <span className="text-lg">🌍</span>
-                                            {school.country}
-                                        </p>
+                                            <span>{school.country}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Hover Effect Background */}
+                                <div className="w-8 h-8 rounded-full bg-[#fb923c]/10 flex items-center justify-center group-hover:bg-[#fb923c]/20 transition-colors flex-shrink-0">
+                                    <div className="transform rotate-90">
+                                        <AdranlinkIcon size={20} className="text-[#fb923c]" />
+                                    </div>
+                                </div>
+
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#fb923c]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
                             </Link>
                         ))}

@@ -38,7 +38,16 @@ const WindIcon = ({ className }: { className?: string }) => (
 export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const { collapsed } = useSidebar();
+
+    // Make sidebar optional - will be null if not in sidebar context
+    let collapsed = false;
+    try {
+        const sidebar = useSidebar();
+        collapsed = sidebar.collapsed;
+    } catch (error) {
+        // Not in sidebar context, use default value
+        collapsed = false;
+    }
 
     useEffect(() => {
         setMounted(true);
