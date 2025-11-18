@@ -29,19 +29,25 @@ interface TeacherSectionProps {
     onToggle: () => void;
 }
 
-export function TeacherSection({ 
-    teachers, 
-    selectedTeacher, 
+export function TeacherSection({
+    teachers,
+    selectedTeacher,
     selectedCommission,
-    onSelectTeacher, 
+    onSelectTeacher,
     onSelectCommission,
-    isExpanded, 
-    onToggle 
+    isExpanded,
+    onToggle
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
-    
+
+    const getCommissionDisplay = (commission: Commission) => {
+        return commission.commissionType === "fixed"
+            ? `${commission.cph} €/h`
+            : `${commission.cph} %/h`;
+    };
+
     const title = selectedTeacher && selectedCommission
-        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} • €${selectedCommission.cph}/h`
+        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} • ${getCommissionDisplay(selectedCommission)}`
         : selectedTeacher
         ? `${selectedTeacher.firstName} - Select Commission`
         : "Teacher (Optional)";

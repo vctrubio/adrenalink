@@ -9,8 +9,8 @@ interface TableProps {
 
 export function Table({ children, className = "" }: TableProps) {
     return (
-        <div className={`overflow-x-auto border border-muted ${className}`}>
-            <table className="w-full">
+        <div className={`overflow-x-auto max-h-[600px] overflow-y-auto ${className}`}>
+            <table className="w-full border-collapse text-sm">
                 {children}
             </table>
         </div>

@@ -13,8 +13,8 @@ export function TableRow({ children, onClick, isSelected = false, className = ""
     return (
         <tr
             onClick={onClick}
-            className={`transition-colors ${
-                onClick ? "cursor-pointer hover:bg-accent/50" : ""
+            className={`border-b border-border hover:bg-muted/30 transition-colors ${
+                onClick ? "cursor-pointer" : ""
             } ${
                 isSelected ? "bg-primary/10 border-l-4 border-l-primary" : ""
             } ${className}`}

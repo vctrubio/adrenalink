@@ -9,7 +9,7 @@ interface TableBodyProps {
 
 export function TableBody({ children, className = "" }: TableBodyProps) {
     return (
-        <tbody className={`bg-card divide-y divide-muted ${className}`}>
+        <tbody className={className}>
             {children}
         </tbody>
     );

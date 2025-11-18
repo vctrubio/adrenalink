@@ -1,6 +1,7 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { useState } from "react";
 import React from "react";
+import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
 interface Commission {
@@ -28,8 +29,8 @@ interface TeacherTableProps {
     onSectionClose?: () => void;
 }
 
-export function TeacherTable({ 
-    teachers, 
+export function TeacherTable({
+    teachers,
     selectedTeacher,
     selectedCommission,
     onSelectTeacher,
@@ -37,8 +38,6 @@ export function TeacherTable({
     onSectionClose
 }: TeacherTableProps) {
     const [search, setSearch] = useState("");
-    const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(null);
-
     const commissionEntity = ENTITY_DATA.find(e => e.id === "commission");
 
     // Filter teachers by search term (username)
@@ -56,22 +55,21 @@ export function TeacherTable({
     }
 
     const handleTeacherClick = (teacher: Teacher) => {
-        if (expandedTeacherId === teacher.id) {
-            // Collapse if already expanded
-            setExpandedTeacherId(null);
+        if (selectedTeacher?.id === teacher.id) {
+            // Deselect if clicking same teacher
+            onSelectTeacher(null);
+            onSelectCommission(null);
         } else {
-            // Expand and select teacher
-            setExpandedTeacherId(teacher.id);
+            // Select new teacher
             onSelectTeacher(teacher);
+            onSelectCommission(null);
         }
     };
 
-    const handleCommissionSelect = (teacher: Teacher, commission: Commission) => {
-        onSelectTeacher(teacher);
+    const handleCommissionSelect = (commission: Commission) => {
         onSelectCommission(commission);
-        setExpandedTeacherId(null); // Collapse dropdown
         if (onSectionClose) {
-            onSectionClose(); // Close the entire section
+            onSectionClose();
         }
     };
 
@@ -85,18 +83,11 @@ export function TeacherTable({
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
-                <button
-                    type="button"
-                    onClick={() => console.log("Filter teachers:", { search, filteredCount: filteredTeachers.length })}
-                    className="px-4 py-2 text-sm font-medium border border-border rounded-lg bg-background hover:bg-accent transition-colors"
-                >
-                    Filter
-                </button>
             </div>
 
             {/* Show selected teacher and commission */}
             {selectedTeacher && selectedCommission && (
-                <div className="p-3 rounded-lg bg-muted border border-border">
+                <div className="p-3 rounded-lg bg-muted">
                     <div className="flex items-center justify-between">
                         <div>
                             <div className="font-semibold text-foreground">
@@ -112,7 +103,6 @@ export function TeacherTable({
                             onClick={() => {
                                 onSelectTeacher(null);
                                 onSelectCommission(null);
-                                setExpandedTeacherId(null);
                             }}
                             className="text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
                         >
@@ -122,132 +112,119 @@ export function TeacherTable({
                 </div>
             )}
 
-            <Table>
-                <TableHeader>
-                    <tr>
-                        <TableHead sortable>Username</TableHead>
-                        <TableHead>Languages</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Commissions</TableHead>
-                    </tr>
-                </TableHeader>
-                <TableBody>
-                    {filteredTeachers.map((teacher) => {
-                        const isExpanded = expandedTeacherId === teacher.id;
-                        const isSelected = selectedTeacher?.id === teacher.id;
-                        
-                        return (
-                            <React.Fragment key={teacher.id}>
+            {selectedTeacher ? (
+                <div className="grid grid-cols-2 gap-4">
+                    {/* Left side: Selected teacher only */}
+                    <div>
+                        <Table>
+                            <TableHeader>
+                                <tr>
+                                    <TableHead>Teacher</TableHead>
+                                </tr>
+                            </TableHeader>
+                            <TableBody>
                                 <TableRow
-                                    onClick={() => handleTeacherClick(teacher)}
-                                    isSelected={isSelected && !isExpanded}
+                                    onClick={() => handleTeacherClick(selectedTeacher)}
+                                    isSelected={true}
                                 >
-                                    <TableCell className="font-medium text-foreground">
-                                        @{teacher.username}
-                                    </TableCell>
-                                    <TableCell>{teacher.languages.join(", ")}</TableCell>
-                                    <TableCell>
-                                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium">
-                                            Ready
+                                    <TableCell className="font-medium">
+                                        <div>
+                                            <div className="text-foreground">
+                                                {selectedTeacher.firstName} {selectedTeacher.lastName}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                @{selectedTeacher.username}
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <span className="text-sm text-muted-foreground">
-                                            {teacher.commissions.length}
-                                        </span>
-                                    </TableCell>
                                 </TableRow>
-                                
-                                {/* Expanded commission dropdown */}
-                                {isExpanded && (
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Right side: Commissions table */}
+                    <div>
+                        <Table>
+                            <TableHeader>
+                                <tr>
+                                    <TableHead>
+                                        <div className="text-green-600 dark:text-green-400">
+                                            <HandshakeIcon size={18} />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead>Description</TableHead>
+                                </tr>
+                            </TableHeader>
+                            <TableBody>
+                                {selectedTeacher.commissions.length > 0 ? (
+                                    selectedTeacher.commissions.map((commission) => {
+                                        const isCommissionSelected = selectedCommission?.id === commission.id;
+                                        const getCommissionDisplay = (commission: Commission) => {
+                                            return commission.commissionType === "fixed"
+                                                ? `${commission.cph} €/h`
+                                                : `${commission.cph} %/h`;
+                                        };
+
+                                        return (
+                                            <TableRow
+                                                key={commission.id}
+                                                onClick={() => handleCommissionSelect(commission)}
+                                                isSelected={isCommissionSelected}
+                                            >
+                                                <TableCell className="font-medium font-mono">
+                                                    {getCommissionDisplay(commission)}
+                                                </TableCell>
+                                                <TableCell className="text-muted-foreground">
+                                                    {commission.description || "-"}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                ) : (
                                     <tr>
-                                        <td colSpan={4} className="p-0">
-                                            <div className="bg-muted/30 border-t border-border">
-                                                <div className="p-4 space-y-2">
-                                                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                                                        Select Commission
-                                                    </div>
-                                                    
-                                                    {teacher.commissions.length > 0 ? (
-                                                        <>
-                                                            {teacher.commissions.map((commission) => {
-                                                                const isCommissionSelected = selectedCommission?.id === commission.id;
-                                                                
-                                                                return (
-                                                                    <button
-                                                                        key={commission.id}
-                                                                        type="button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleCommissionSelect(teacher, commission);
-                                                                        }}
-                                                                        className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                                                                            isCommissionSelected
-                                                                                ? "border-primary bg-primary/10"
-                                                                                : "border-border hover:border-primary/50 bg-background"
-                                                                        }`}
-                                                                    >
-                                                                        <div className="flex items-center gap-3">
-                                                                            {/* Commission Type Icon */}
-                                                                            <span 
-                                                                                className="text-sm font-bold px-2 py-1 rounded flex items-center justify-center w-8 h-8" 
-                                                                                style={{ 
-                                                                                    backgroundColor: commissionEntity?.color + "20",
-                                                                                    color: commissionEntity?.color 
-                                                                                }}
-                                                                            >
-                                                                                {commission.commissionType === "fixed" ? "€" : "%"}
-                                                                            </span>
-                                                                            
-                                                                            <div className="flex-1">
-                                                                                <div className="font-medium text-foreground">
-                                                                                    €{commission.cph}/hour
-                                                                                </div>
-                                                                                {commission.description && (
-                                                                                    <div className="text-xs text-muted-foreground mt-0.5">
-                                                                                        {commission.description}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                            
-                                                                            <div className="text-xs text-muted-foreground capitalize">
-                                                                                {commission.commissionType}
-                                                                            </div>
-                                                                        </div>
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </>
-                                                    ) : (
-                                                        <div className="text-sm text-muted-foreground text-center py-2">
-                                                            No commissions available
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* Create new commission button */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            console.log("Create new commission for teacher:", teacher.id);
-                                                        }}
-                                                        className="w-full p-3 text-left rounded-lg border-2 border-dashed border-border hover:border-primary/50 transition-all bg-background"
-                                                    >
-                                                        <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                                                            <span className="text-lg">+</span>
-                                                            <span className="text-sm font-medium">Create New Commission</span>
-                                                        </div>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                        <td colSpan={2} className="p-6 text-center text-sm text-muted-foreground">
+                                            No commissions available
                                         </td>
                                     </tr>
                                 )}
-                            </React.Fragment>
-                        );
-                    })}
-                </TableBody>
-            </Table>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            ) : (
+                <Table>
+                    <TableHeader>
+                        <tr>
+                            <TableHead>Teacher</TableHead>
+                            <TableHead>Languages</TableHead>
+                        </tr>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredTeachers.map((teacher) => {
+                            return (
+                                <TableRow
+                                    key={teacher.id}
+                                    onClick={() => handleTeacherClick(teacher)}
+                                >
+                                    <TableCell className="font-medium">
+                                        <div>
+                                            <div className="text-foreground">
+                                                {teacher.firstName} {teacher.lastName}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                @{teacher.username}
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {teacher.languages.join(", ")}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            )}
         </div>
     );
 }

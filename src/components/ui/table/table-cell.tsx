@@ -9,7 +9,7 @@ interface TableCellProps {
 
 export function TableCell({ children, className = "" }: TableCellProps) {
     return (
-        <td className={`px-4 py-3 text-sm ${className}`}>
+        <td className={`p-3 ${className}`}>
             {children}
         </td>
     );

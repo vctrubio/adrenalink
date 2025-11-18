@@ -9,7 +9,7 @@ interface TableHeaderProps {
 
 export function TableHeader({ children, className = "" }: TableHeaderProps) {
     return (
-        <thead className={`bg-muted ${className}`}>
+        <thead className={`sticky top-0 bg-muted/80 backdrop-blur ${className}`}>
             {children}
         </thead>
     );
