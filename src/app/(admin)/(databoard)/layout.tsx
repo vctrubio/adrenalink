@@ -17,9 +17,19 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const [group, setGroup] = useState<DataboardGroupByDate>("All");
     const pathname = usePathname();
 
-    // Extract entity type from pathname (e.g., /students/[id] -> students)
     const pathSegments = pathname.split("/").filter(Boolean);
-    const entitySegment = pathSegments[pathSegments.length - 2];
+
+    // Check if this is a detail page (has ID in path)
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    const isDetailPage = lastSegment !== "form" && pathSegments.length > 1 && !["students", "teachers", "bookings", "packages", "equipments", "rentals", "referrals", "requests"].includes(lastSegment);
+
+    // Only show controller on list pages, not detail pages
+    if (isDetailPage) {
+        return children;
+    }
+
+    // Extract entity type from pathname (e.g., /students -> students)
+    const entitySegment = pathSegments[pathSegments.length - 1];
 
     // Map segment to entity id (handle plural forms)
     const entityIdMap: Record<string, string> = {
@@ -37,7 +47,7 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     if (!entityId) {
         return children;
     }
-    
+
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
 
     if (!entity) {
