@@ -28,6 +28,7 @@ export async function createLesson(lessonSchema: LessonForm): Promise<ApiActionR
     try {
         const result = await db.insert(lesson).values(lessonSchema).returning();
         revalidatePath("/lessons");
+        revalidatePath("/classboard");
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error creating lesson:", error);

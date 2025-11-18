@@ -93,7 +93,7 @@ export default function TeacherEventQueue({ queue, controller, onRemoveEvent, on
                     );
                 })
             ) : (
-                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No events</div>
+                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No events - dont show?</div>
             )}
         </div>
     );

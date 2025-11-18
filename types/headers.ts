@@ -10,7 +10,9 @@ import { eq } from "drizzle-orm";
  */
 export async function getHeaderUsername(): Promise<string | null> {
     const headersList = await headers();
-    return headersList.get("x-school-username");
+    const username = headersList.get("x-school-username");
+    console.log("DEV:DEBUG 📋 getHeaderUsername() called, result:", username);
+    return username;
 }
 
 /**
@@ -68,9 +70,17 @@ export async function getSchoolIdFromHeader(): Promise<string | null> {
 const getSchoolByUsername = unstable_cache(
     async (username: string): Promise<typeof school.$inferSelect | null> => {
         try {
+            console.log("DEV:DEBUG 🔍 getSchoolByUsername() querying for:", username);
             const result = await db.query.school.findFirst({
                 where: eq(school.username, username),
             });
+
+            console.log("DEV:DEBUG 🔍 getSchoolByUsername() result:", result ? "FOUND" : "NOT FOUND");
+            if (result) {
+                console.log("DEV:DEBUG   - School ID:", result.id);
+                console.log("DEV:DEBUG   - School name:", result.name);
+                console.log("DEV:DEBUG   - School username:", result.username);
+            }
 
             return result || null;
         } catch (error) {

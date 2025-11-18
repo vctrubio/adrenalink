@@ -12,11 +12,12 @@ export function middleware(request: NextRequest) {
     const subdomainInfo = detectSubdomain(hostname);
 
     if (subdomainInfo) {
-        // printf("DEV: SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
+        printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
 
         // Create response with school context header for all routes
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
+        printf("DEV:DEBUG 📝 SET HEADER x-school-username:", subdomainInfo.subdomain);
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {

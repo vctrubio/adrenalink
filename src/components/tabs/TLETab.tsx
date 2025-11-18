@@ -11,110 +11,85 @@ import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter"
 import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
 import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
 
+const DURATION_COLOR_FILL = "#f59e0b";
+
 interface TLETabProps {
     booking: ActiveBookingModel;
     teacherId?: string;
 }
 
-// Commission breakdown table with icon
-const CommissionTable = ({ commission, commissionColor, packageColor }: { commission: ReturnType<typeof getTeacherLessonCommission>; commissionColor?: string; packageColor?: string }) => {
+// Minimal commission display - clean inline formula
+const CommissionDisplay = ({ commission, commissionColor }: { commission: ReturnType<typeof getTeacherLessonCommission>; commissionColor?: string }) => {
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 text-xs">
             <div className="flex-shrink-0" style={{ color: commissionColor }}>
-                <HandshakeIcon size={16} />
+                <HandshakeIcon size={12} />
             </div>
-            <table className="text-xs flex-shrink-0">
-                <tbody>
-                    <tr>
-                        <td className="text-muted-foreground pr-2">Commission</td>
-                        <td className="text-foreground font-bold text-center pr-2 w-6">×</td>
-                        <td className="text-muted-foreground pr-2">Price/Hour</td>
-                        <td className="text-foreground font-bold text-center pr-2 w-6">×</td>
-                        <td className="text-muted-foreground pr-2">Hours</td>
-                        <td className="text-foreground font-bold text-center pr-2 w-6">=</td>
-                        <td className="text-muted-foreground">Earned</td>
-                    </tr>
-                    <tr>
-                        <td className="font-medium pr-2" style={{ color: commissionColor }}>
-                            {commission.commissionRate}
-                        </td>
-                        <td className="text-foreground font-bold text-center pr-2">×</td>
-                        <td className="font-medium pr-2" style={{ color: packageColor }}>
-                            {commission.pricePerHour}
-                        </td>
-                        <td className="text-foreground font-bold text-center pr-2">×</td>
-                        <td className="font-medium pr-2" style={{ color: packageColor }}>
-                            {commission.hours}
-                        </td>
-                        <td className="text-foreground font-bold text-center pr-2">=</td>
-                        <td className="font-medium" style={{ color: commissionColor }}>
-                            {commission.earned}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className="text-muted-foreground">
+                {commission.commissionRate} × <span style={{ color: DURATION_COLOR_FILL }}>{commission.hours}</span>
+            </div>
+            <div className="text-muted-foreground">=</div>
+            <div className="font-semibold text-foreground" style={{ color: commissionColor }}>
+                {commission.earned}
+            </div>
         </div>
     );
 };
 
-// Event item with date, time, status and duration
+// Event item - minimal and clean
 const EventItem = ({ event, statusColor, statusLabel }: { event: ActiveBookingModel["events"][0]; statusColor: string; statusLabel: string }) => {
     return (
-        <div className="flex items-start gap-2">
-            <div className="flex-shrink-0 mt-0.5" style={{ color: statusColor }}>
-                <FlagIcon size={14} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                    <div className="text-xs text-muted-foreground">
-                        {new Date(event.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "2-digit",
-                        })}{" "}
-                        {new Date(event.date).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        })}{" "}
-                        • {statusLabel}
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                        <DurationIcon size={14} />
-                        <span className="text-xs font-semibold text-foreground">{getPrettyDuration(event.duration)}</span>
-                    </div>
+        <div className="flex items-center justify-between text-xs py-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+                <div className="flex-shrink-0" style={{ color: statusColor }}>
+                    <FlagIcon size={10} />
                 </div>
+                <div>
+                    {new Date(event.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                    })}{" "}
+                    {new Date(event.date).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })}
+                </div>
+                <div className="text-muted-foreground/60">•</div>
+                <div>{statusLabel}</div>
+            </div>
+            <div className="flex items-center gap-1 font-semibold" style={{ color: DURATION_COLOR_FILL }}>
+                <DurationIcon size={12} />
+                {getPrettyDuration(event.duration)}
             </div>
         </div>
     );
 };
 
-// Teacher header button with collapsible state
-const TeacherHeader = ({
+// Teacher footer bookmark - compact horizontal badge
+const TeacherBookmark = ({
     teacher,
     isExpanded,
     teacherColor,
     commission,
     commissionColor,
-    packageColor,
 }: {
-    teacher?: { id: string; firstName: string; lastName: string };
+    teacher?: { id: string; firstName: string; lastName: string; username: string };
     isExpanded: boolean;
     teacherColor?: string;
     commission: ReturnType<typeof getTeacherLessonCommission>;
     commissionColor?: string;
-    packageColor?: string;
 }) => {
     return (
-        <div className="flex items-center justify-between gap-3 px-4 py-2">
-            <div className="flex items-center gap-2 min-w-0">
-                <div className="p-1.5 rounded-lg flex-shrink-0" style={{ color: teacherColor, backgroundColor: `${teacherColor}15` }}>
-                    <HeadsetIcon size={16} />
+        <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2">
+                <div className="flex-shrink-0" style={{ color: teacherColor }}>
+                    <HeadsetIcon size={18} />
                 </div>
-                <div className="text-sm font-semibold text-foreground truncate">
-                    {teacher?.firstName} {teacher?.lastName}
+                <div className="text-sm font-medium text-foreground">
+                    {teacher?.username}
                 </div>
             </div>
-            {isExpanded && <CommissionTable commission={commission} commissionColor={commissionColor} packageColor={packageColor} />}
+            <CommissionDisplay commission={commission} commissionColor={commissionColor} />
         </div>
     );
 };
@@ -125,11 +100,10 @@ export const TLETab = ({ booking, teacherId }: TLETabProps) => {
     // Get entity colors
     const teacherColor = ENTITY_DATA.find((e) => e.id === "teacher")?.color;
     const commissionColor = ENTITY_DATA.find((e) => e.id === "commission")?.color;
-    const packageColor = ENTITY_DATA.find((e) => e.id === "schoolPackage")?.color;
 
     // Check if events exist
     if (booking.events.length === 0) {
-        return <div className="text-xs text-muted-foreground">No events scheduled</div>;
+        return null;
     }
 
     // Filter events by teacherId if provided
@@ -151,14 +125,14 @@ export const TLETab = ({ booking, teacherId }: TLETabProps) => {
         {} as Record<
             string,
             {
-                teacher?: { id: string; firstName: string; lastName: string };
+                teacher?: { id: string; firstName: string; lastName: string; username: string };
                 events: typeof booking.events;
             }
         >,
     );
 
     return (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col">
             {Object.entries(eventsByTeacher).map(([teacherKey, { teacher, events }]) => {
                 const isExpanded = expandedTeacherId === teacherKey;
 
@@ -174,18 +148,13 @@ export const TLETab = ({ booking, teacherId }: TLETabProps) => {
                 return (
                     <div
                         key={teacherKey}
-                        className="border rounded-xl overflow-hidden transition-colors cursor-pointer hover:opacity-80 flex-shrink-0"
-                        style={{
-                            borderColor: teacherColor,
-                            backgroundColor: isExpanded ? `${teacherColor}20` : "transparent",
-                            width: isExpanded ? "auto" : "fit-content",
-                        }}
+                        className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setExpandedTeacherId(isExpanded ? null : teacherKey)}
                     >
-                        <TeacherHeader teacher={teacher} isExpanded={isExpanded} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} packageColor={packageColor} />
+                        <TeacherBookmark teacher={teacher} isExpanded={isExpanded} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} />
 
                         {isExpanded && (
-                            <div className="space-y-2 pl-4 py-2 px-4 border-t" style={{ borderColor: teacherColor }}>
+                            <div className="px-3 pb-2 space-y-0.5 border-t border-border/50">
                                 {events.map((event) => (
                                     <EventItem key={event.id} event={event} statusColor={getEventStatusColor(event.status)} statusLabel={getEventStatusLabel(event.status)} />
                                 ))}

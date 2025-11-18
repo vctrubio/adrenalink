@@ -87,9 +87,20 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 p-6">
-            <ClassboardController search={searchQuery} setSearch={setSearchQuery} selectedDate={selectedDate} setSelectedDate={setSelectedDate} controller={controller} setController={setController} stats={globalStats} teacherQueues={teacherQueues} totalBookings={draggableBookings.length} />
+            <ClassboardController
+                search={searchQuery}
+                setSearch={setSearchQuery}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                controller={controller}
+                setController={setController}
+                stats={globalStats}
+                teacherQueues={teacherQueues}
+                totalBookings={draggableBookings.length}
+            />
 
             <div className="flex-1 space-y-6">
+                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
                 <StudentClassDaily
                     bookings={draggableBookings}
                     classboardData={classboardData}
@@ -104,9 +115,18 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     setOnNewBooking={setOnNewBooking}
                 />
 
-                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
-
-                <TeacherClassDaily key={refreshKey} teacherQueues={teacherQueues} draggedBooking={draggedBooking} isLessonTeacher={isLessonTeacher} classboardStats={classboardStats} controller={controller} selectedDate={selectedDate} onEventDeleted={handleEventDeleted} onAddLessonEvent={handleAddLessonEvent} globalFlag={globalFlag} />
+                <TeacherClassDaily
+                    key={refreshKey}
+                    teacherQueues={teacherQueues}
+                    draggedBooking={draggedBooking}
+                    isLessonTeacher={isLessonTeacher}
+                    classboardStats={classboardStats}
+                    controller={controller}
+                    selectedDate={selectedDate}
+                    onEventDeleted={handleEventDeleted}
+                    onAddLessonEvent={handleAddLessonEvent}
+                    globalFlag={globalFlag}
+                />
             </div>
         </div>
     );

@@ -2,7 +2,7 @@
 
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
-import { getSchoolFromHeader } from "@/types/headers";
+import { getSchoolFromHeader, getHeaderUsername } from "@/types/headers";
 import { booking, school, event } from "@/drizzle/schema";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { createClassboardModel } from "@/getters/classboard-getter";
@@ -84,8 +84,14 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
     try {
         // Get complete school data from x-school-username header (cached)
         const schoolData = await getSchoolFromHeader();
+
+        console.log("DEV:DEBUG 🔍 classboard-action.ts:");
+        console.log("DEV:DEBUG   - schoolData:", schoolData);
+
         if (!schoolData) {
-            return { success: false, error: "School not found in headers" };
+            const username = await getHeaderUsername();
+            console.log("DEV:DEBUG   - x-school-username header:", username);
+            return { success: false, error: `School not found in database for username: ${username || "NO HEADER"}` };
         }
 
         const result = await db.query.booking.findMany({

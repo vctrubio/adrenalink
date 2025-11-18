@@ -183,11 +183,11 @@ function TeacherColumn({
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className="flex-1 min-w-[280px] bg-transparent p-0 space-y-0 flex flex-col border-r border-border last:border-r-0"
+            className="flex-1 w-[365px] bg-card flex flex-col border-border border rounded-lg "
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 
-            <div className={`px-3 py-3 flex-1 overflow-y-auto border-2 transition-colors ${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
+            <div className={`px-3 py-3 overflow-y-auto transition-colors${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         queue={queue}
@@ -290,7 +290,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
         }
     };
     return (
-        <div className="space-y-4 bg-card border border-border rounded-lg p-6 flex flex-col h-full">
+        <div className="flex flex-col h-full">
             {/* Content */}
             {teacherQueues.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
@@ -300,7 +300,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                     </div>
                 </div>
             ) : (
-                <div className="h-full flex flex-wrap overflow-x-auto">
+                <div className="h-full flex flex-wrap overflow-x-auto gap-4">
                     {teacherQueues.map((queue) => {
                         const stats = classboardStats.getTeacherStats(queue.teacher.username);
                         if (!stats) return null;

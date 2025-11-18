@@ -33,6 +33,7 @@ export interface ActiveBookingModel {
 			id: string;
 			firstName: string;
 			lastName: string;
+			username: string;
 		};
 		commission?: {
 			type: "fixed" | "percentage";

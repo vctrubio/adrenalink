@@ -37,6 +37,8 @@ export interface StudentPackageBookingLessons {
             capacityStudents: number;
             pricePerStudent: number;
             durationMinutes: number;
+            categoryEquipment: string;
+            capacityEquipment: number;
         };
     }>;
 }
@@ -72,6 +74,8 @@ export interface TeacherPackageBookingLessons {
             capacityStudents: number;
             pricePerStudent: number;
             durationMinutes: number;
+            categoryEquipment: string;
+            capacityEquipment: number;
         };
         studentNames: string[];
     }>;
@@ -143,6 +147,8 @@ export async function getStudentPackageBookingLessons(studentId: string): Promis
                         capacityStudents: booking.studentPackage.schoolPackage.capacityStudents,
                         pricePerStudent: parseFloat(booking.studentPackage.schoolPackage.pricePerStudent),
                         durationMinutes: booking.studentPackage.schoolPackage.durationMinutes,
+                        categoryEquipment: booking.studentPackage.schoolPackage.categoryEquipment || "",
+                        capacityEquipment: booking.studentPackage.schoolPackage.capacityEquipment || 0,
                     },
                 });
             });
@@ -221,6 +227,8 @@ export async function getTeacherPackageBookingLessons(teacherId: string): Promis
                 capacityStudents: lesson.booking.studentPackage.schoolPackage.capacityStudents,
                 pricePerStudent: parseFloat(lesson.booking.studentPackage.schoolPackage.pricePerStudent),
                 durationMinutes: lesson.booking.studentPackage.schoolPackage.durationMinutes,
+                categoryEquipment: lesson.booking.studentPackage.schoolPackage.categoryEquipment || "",
+                capacityEquipment: lesson.booking.studentPackage.schoolPackage.capacityEquipment || 0,
             },
             studentNames: lesson.booking.bookingStudents.map((bs) => `${bs.student.firstName} ${bs.student.lastName}`),
         }));

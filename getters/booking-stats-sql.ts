@@ -69,6 +69,7 @@ export async function getActiveBookingsWithStats() {
 						id: lesson_item.teacher.id,
 						firstName: lesson_item.teacher.firstName,
 						lastName: lesson_item.teacher.lastName,
+						username: lesson_item.teacher.username,
 					} : undefined,
 					commission: lesson_item.commission ? {
 						type: lesson_item.commission.commissionType as "fixed" | "percentage",
