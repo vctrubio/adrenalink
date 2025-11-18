@@ -13,7 +13,7 @@ export function TableHead({ children, sortable = false, className = "", align = 
     const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
 
     return (
-        <th className={`p-3 ${alignClass} font-semibold border-b border-border ${className}`}>
+        <th className={`p-3 ${alignClass} font-semibold border-b-2 border-border ${className}`}>
             {children}
             {sortable && <span className="ml-1 text-muted-foreground">↕</span>}
         </th>

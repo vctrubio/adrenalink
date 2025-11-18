@@ -210,7 +210,7 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
                         style={{
                             top: `${dropdownPos.top}px`,
                             left: `${dropdownPos.left}px`,
-                            transform: 'translateX(-50%)',
+                            transform: "translateX(-50%)",
                         }}
                     >
                         {LOCATION_OPTIONS.map((location) => (
@@ -247,6 +247,10 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
 export default function EventModCard({ eventId, queueController }: EventModCardProps) {
     const [refreshKey, setRefreshKey] = useState(0);
 
+    const handleRefresh = useCallback(() => {
+        setRefreshKey((prev) => prev + 1);
+    }, []);
+
     const cardProps = queueController.getEventModCardProps(eventId);
 
     // Return early if invalid eventId or can't get props
@@ -256,10 +260,6 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
 
     const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
-
-    const handleRefresh = useCallback(() => {
-        setRefreshKey((prev) => prev + 1);
-    }, []);
     const students = event.studentData || [];
     const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 

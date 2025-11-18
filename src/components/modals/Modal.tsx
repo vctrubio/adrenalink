@@ -53,7 +53,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "2x
                             <Dialog.Panel
                                 className={`w-full ${maxWidthClass} transform overflow-hidden rounded-lg bg-card border border-border text-left align-middle shadow-xl transition-all`}
                             >
-                                <div className="flex items-center justify-between p-6 border-b border-border">
+                                <div className="flex items-center justify-between p-6">
                                     <Dialog.Title as="h3" className="text-lg font-semibold text-foreground">
                                         {title}
                                     </Dialog.Title>

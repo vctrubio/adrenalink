@@ -11,6 +11,10 @@ import { formatDate } from "@/getters/date-getter";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
+import { createLesson } from "@/actions/lessons-action";
+import { showEntityToast } from "@/getters/toast-getter";
+import { useRouter } from "next/navigation";
 
 type StudentInfo = {
     name: string;
@@ -458,9 +462,12 @@ const BookingDropdownRow = () => {
 };
 
 export default function StudentBookingCard({ booking, students: studentsProp, dateStart, dateEnd, package: packageData, selectedClientDate, onDragStart, onDragEnd, onAddLessonEvent }: StudentBookingCardProps) {
+    const router = useRouter();
+
     // local state
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
     // derived values
     const students = studentsProp ?? [];
@@ -468,7 +475,6 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
     // entity colors for theming
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
 
@@ -507,27 +513,71 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
     };
 
     const handleAssignTeacher = () => {
-        console.log("Assign teacher clicked for booking:", booking.bookingId);
+        setIsAssignModalOpen(true);
     };
 
-    // Get available teachers (all teachers assigned to this booking)
-    const availableTeachers = booking.lessons.map((lesson) => lesson.teacherUsername);
+    const handleAssignTeacherToBooking = async (teacherId: string, commissionId: string) => {
+        try {
+            const result = await createLesson({
+                bookingId: booking.bookingId,
+                teacherId,
+                commissionId,
+                status: "active",
+            });
+
+            if (!result.success) {
+                showEntityToast("lesson", {
+                    title: "Assignment Failed",
+                    description: result.error || "Failed to assign teacher to booking",
+                    duration: 5000,
+                });
+                return;
+            }
+
+            showEntityToast("lesson", {
+                title: "Teacher Assigned",
+                description: "Teacher successfully assigned to booking",
+                duration: 4000,
+            });
+
+            router.refresh();
+        } catch (error) {
+            console.error("Error assigning teacher:", error);
+            showEntityToast("lesson", {
+                title: "Assignment Error",
+                description: "An unexpected error occurred",
+                duration: 5000,
+            });
+        }
+    };
+
+    // Get existing teacher usernames from booking lessons
+    const existingTeacherUsernames = booking.lessons.map((lesson) => lesson.teacherUsername);
 
     // Render
     return (
-        <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card rounded-lg border border-blue-400 transition-shadow cursor-grab hover:shadow-md active:cursor-grabbing p-0">
-            <div className="grid gap-1">
-                <BookingRow start={dateStart} end={dateEnd} selectedDate={selectedClientDate} expandedRow={expandedRow} setExpandedRow={setExpandedRow} bookingEntity={bookingEntity} />
+        <>
+            <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card rounded-lg border border-blue-400 transition-shadow cursor-grab hover:shadow-md active:cursor-grabbing p-0">
+                <div className="grid gap-1">
+                    <BookingRow start={dateStart} end={dateEnd} selectedDate={selectedClientDate} expandedRow={expandedRow} setExpandedRow={setExpandedRow} bookingEntity={bookingEntity} />
 
-                <PackageRow packageData={packageData} expandedRow={expandedRow} setExpandedRow={setExpandedRow} packageEntity={packageEntity} />
+                    <PackageRow packageData={packageData} expandedRow={expandedRow} setExpandedRow={setExpandedRow} packageEntity={packageEntity} />
 
-                <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
+                    <StudentRow students={students} expandedRow={expandedRow} setExpandedRow={setExpandedRow} studentEntity={studentEntity} />
+                </div>
+
+                <div className="bg-muted/10 rounded-b-lg" draggable={false} onDragStart={(e) => e.preventDefault()}>
+                    <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
+                    <CardFooter availableTeachers={existingTeacherUsernames} onAddLessonEvent={handleAddLessonEvent} onAssignTeacher={handleAssignTeacher} loadingLessonId={loadingLessonId} />
+                </div>
             </div>
 
-            <div className="bg-muted/10 rounded-b-lg" draggable={false} onDragStart={(e) => e.preventDefault()}>
-                <TeachersRow lessons={booking.lessons} commissionEntity={commissionEntity} />
-                <CardFooter availableTeachers={availableTeachers} onAddLessonEvent={handleAddLessonEvent} onAssignTeacher={handleAssignTeacher} loadingLessonId={loadingLessonId} />
-            </div>
-        </div>
+            <LinkTeacherLessonToBookingModal
+                isOpen={isAssignModalOpen}
+                onClose={() => setIsAssignModalOpen(false)}
+                existingTeacherUsernames={existingTeacherUsernames}
+                onAssignTeacher={handleAssignTeacherToBooking}
+            />
+        </>
     );
 }
