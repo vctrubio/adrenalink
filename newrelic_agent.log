@@ -1409,3 +1409,4 @@
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":56493,"time":"2025-11-18T22:37:50.271Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":56493,"time":"2025-11-18T22:37:50.281Z","msg":"Agent state changed from connected to started."}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":56493,"time":"2025-11-18T22:37:51.281Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":56493,"time":"2025-11-18T23:27:43.299Z","msg":"Merging 1 of 1 events into TransactionEventAggregator for next harvest","component":"event_aggregator"}

@@ -6,3 +6,7 @@ export { LessonCreateTag } from "./LessonTagCreate";
 export { TeacherBookingCreateTag } from "./TeacherBookingCreateTag";
 export { TeacherBookingTag } from "./TeacherBookingTag";
 export { EquipmentTeacherTag } from "./EquipmentTeacherTag";
+export { StudentTag } from "./StudentTag";
+export { PackageTag } from "./PackageTag";
+export { EquipmentTag } from "./EquipmentTag";
+export { EventDurationTag } from "./EventDurationTag";
