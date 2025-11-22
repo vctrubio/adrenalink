@@ -40,38 +40,48 @@ function EntityBackCard({ entity }: { entity: EntityConfig }) {
     );
 }
 
-function EntityCard({ entity, isSelected, isRelated }: { entity: EntityConfig; isSelected: boolean; isRelated: boolean }) {
-    const [isFlipped, setIsFlipped] = useState(false);
+function EntityCard({ entity, isSelected, isRelated, isFlipped, onFlip }: { entity: EntityConfig; isSelected: boolean; isRelated: boolean; isFlipped: boolean; onFlip: (entityId: string) => void }) {
+    const [isHovered, setIsHovered] = useState(false);
     const shade = RAINBOW_COLORS[entity.shadeId];
     const isEntityRelatedAndSelected = isSelected && isRelated;
-
-    useEffect(() => {
-        if (!isSelected) {
-            setIsFlipped(false);
-        }
-    }, [isSelected]);
+    const showBorderTop = isHovered || isEntityRelatedAndSelected;
 
     return (
         <div
-            className="rounded-2xl border-2 overflow-hidden shadow-lg flex flex-col transition-opacity cursor-pointer min-h-64"
+            className="rounded-2xl border-2 shadow-lg flex flex-col transition-opacity cursor-pointer min-h-64"
             style={{
                 borderColor: shade.fill,
                 boxShadow: `0 10px 40px ${shade.fill}40`,
                 opacity: isRelated || !isSelected ? 1 : 0.5,
+                perspective: "1000px",
             }}
-            onClick={() => setIsFlipped(!isFlipped)}
+            onClick={() => onFlip(entity.id)}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
             <div
-                className="h-2"
+                className="h-2 transition-colors duration-200"
                 style={{
-                    background: isEntityRelatedAndSelected ? shade.fill : `linear-gradient(90deg, ${shade.fill}, ${shade.hoverFill})`,
+                    background: showBorderTop ? (isEntityRelatedAndSelected ? shade.fill : `linear-gradient(90deg, ${shade.fill}, ${shade.hoverFill})`) : "transparent",
                 }}
             />
-            <div className="p-4 bg-black/60 flex-1 flex flex-col overflow-hidden relative">
-                <div className={`absolute inset-0 flex flex-col overflow-hidden transition-opacity duration-500 ${isFlipped ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+            <div
+                className="p-4 bg-black/60 flex-1 flex flex-col relative transition-transform duration-500"
+                style={{
+                    transformStyle: "preserve-3d",
+                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                }}
+            >
+                <div className="flex flex-col h-full" style={{ backfaceVisibility: "hidden" }}>
                     <EntityFrontCard entity={entity} />
                 </div>
-                <div className={`absolute inset-0 flex flex-col overflow-hidden transition-opacity duration-500 ${isFlipped ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                <div
+                    className="absolute inset-0 flex flex-col px-6 py-10"
+                    style={{
+                        backfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)",
+                    }}
+                >
                     <EntityBackCard entity={entity} />
                 </div>
             </div>
@@ -81,11 +91,16 @@ function EntityCard({ entity, isSelected, isRelated }: { entity: EntityConfig; i
 
 export function EntityDevPage() {
     const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
+    const [flippedEntityId, setFlippedEntityId] = useState<string | null>(null);
 
     const isRelated = (entityId: string) => {
         if (!selectedEntity) return false;
         const selected = RAINBOW_ENTITIES.find((e) => e.id === selectedEntity);
         return selected?.relations?.includes(entityId) ?? false;
+    };
+
+    const handleFlip = (entityId: string) => {
+        setFlippedEntityId(flippedEntityId === entityId ? null : entityId);
     };
 
     const orderedEntities = ENTITY_ORDER.map((id) => RAINBOW_ENTITIES.find((e) => e.id === id)).filter(Boolean);
@@ -104,8 +119,8 @@ export function EntityDevPage() {
                     const isEntityRelated = isRelated(entity.id);
 
                     return (
-                        <div key={entity.id} onClick={() => setSelectedEntity(isEntitySelected ? null : entity.id)} className="text-left transition-all hover:scale-105">
-                            <EntityCard entity={entity} isSelected={selectedEntity !== null} isRelated={isEntityRelated || isEntitySelected} />
+                        <div key={entity.id} onClick={() => setSelectedEntity(isEntitySelected ? null : entity.id)} className="text-left">
+                            <EntityCard entity={entity} isSelected={selectedEntity !== null} isRelated={isEntityRelated || isEntitySelected} isFlipped={flippedEntityId === entity.id} onFlip={handleFlip} />
                         </div>
                     );
                 })}
