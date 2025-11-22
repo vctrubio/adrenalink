@@ -3,7 +3,7 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { ENTITY_DATA } from "@/config/entities";
-import { OnboardingBook } from "./OnboardingBook";
+import { EntityDevPage } from "@/src/components/onboarding/EntityDevPage";
 
 const pricingTiers = [
     {
@@ -112,11 +112,7 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
 export default function PricingPage() {
     return (
         <div className="min-h-screen relative">
-            <BackgroundImage
-                src="/kritaps_ungurs_unplash/3tiers.jpg"
-                position="fixed"
-                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)"
-            />
+            <BackgroundImage src="/kritaps_ungurs_unplash/3tiers.jpg" position="fixed" overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)" />
 
             <div className="relative z-[2] min-h-screen py-20 px-4">
                 {/* Tabs */}
@@ -133,7 +129,7 @@ export default function PricingPage() {
                     <TabPanels>
                         {/* Onboarding Panel */}
                         <TabPanel>
-                            <OnboardingBook />
+                            <EntityDevPage />
                         </TabPanel>
 
                         {/* Pricing Panel */}

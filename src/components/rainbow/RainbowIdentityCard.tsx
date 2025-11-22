@@ -3,7 +3,7 @@
 import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 import type { EntityConfig } from "@/types/rainbow-types";
 
-const RainbowIdentityCardHead = ({ entity }: { entity: EntityConfig }) => {
+export const RainbowIdentityCardHead = ({ entity }: { entity: EntityConfig }) => {
     const shade = entity.shadeId;
     const shadeColor = RAINBOW_COLORS[shade];
     const Icon = entity.icon;
@@ -24,19 +24,19 @@ const RainbowIdentityCardHead = ({ entity }: { entity: EntityConfig }) => {
     );
 
     return (
-        <div className="flex gap-6 mb-6">
-            {avatar}
-            <div className="flex-1 flex flex-col justify-center">
+        <div>
+            <div className="flex gap-6 mb-4 items-center">
+                {avatar}
                 <h3 className="text-3xl font-bold text-white flex-shrink-0">{entity.name}</h3>
-                <div className="mt-1 text-white/90 flex-wrap">
-                    <Description />
-                </div>
+            </div>
+            <div className="text-white/90 text-sm space-y-2">
+                <Description />
             </div>
         </div>
     );
 };
 
-const RainbowIdentityCardTable = ({ entity }: { entity: EntityConfig }) => {
+export const RainbowIdentityCardTable = ({ entity }: { entity: EntityConfig }) => {
     const shade = entity.shadeId;
     const shadeColor = RAINBOW_COLORS[shade];
     const schemaKeys = Object.keys(entity.info.schema);

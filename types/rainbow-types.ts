@@ -29,4 +29,5 @@ export interface EntityConfig {
   icon: React.ComponentType<{ className?: string }>; // Icon component
   description: React.ComponentType; // Description component
   info: EntityInfo; // Schema and example data
+  relations?: string[]; // Related entity IDs
 }

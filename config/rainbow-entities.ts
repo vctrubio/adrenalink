@@ -54,6 +54,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "grey-2",
         icon: AdminIcon,
         description: SchoolDescription,
+        relations: ["schoolPackage", "teacher", "booking", "equipment"],
         info: {
             schema: {
                 username: "string",
@@ -91,6 +92,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "red-0",
         icon: HelmetIcon,
         description: RentalDescription,
+        relations: ["student", "equipment"],
         info: {
             schema: {
                 name: "string",
@@ -110,6 +112,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "orange-2",
         icon: PackageIcon,
         description: SchoolPackageDescription,
+        relations: ["school", "booking", "studentPackage"],
         info: {
             schema: {
                 description: "string",
@@ -128,6 +131,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "orange-1",
         icon: RequestIcon,
         description: StudentPackageDescription,
+        relations: ["student", "schoolPackage", "booking"],
         info: {
             schema: {
                 name: "string",
@@ -145,6 +149,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "yellow-1",
         icon: HelmetIcon,
         description: StudentDescription,
+        relations: ["schoolPackage", "booking", "event", "rental", "studentPackage"],
         info: {
             schema: {
                 fullName: "string",
@@ -164,6 +169,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "green-2",
         icon: HeadsetIcon,
         description: TeacherDescription,
+        relations: ["commission", "lesson", "event"],
         info: {
             schema: {
                 fullName: "string",
@@ -179,6 +185,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "green-1",
         icon: HandshakeIcon,
         description: CommissionDescription,
+        relations: ["teacher"],
         info: {
             schema: {
                 username: "string",
@@ -196,6 +203,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "blue-3",
         icon: BookingIcon,
         description: BookingDescription,
+        relations: ["student", "schoolPackage", "lesson", "event", "studentPackage"],
         info: {
             schema: {
                 dates: "string",
@@ -212,6 +220,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "blue-2",
         icon: LessonIcon,
         description: LessonDescription,
+        relations: ["teacher", "booking", "event"],
         info: {
             schema: {
                 teacher: "string",
@@ -227,6 +236,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "blue-1",
         icon: FlagIcon,
         description: EventDescription,
+        relations: ["booking", "student", "teacher", "equipment"],
         info: {
             schema: {
                 date: "string",
@@ -247,6 +257,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "purple-2",
         icon: EquipmentIcon,
         description: EquipmentDescription,
+        relations: ["event", "repairs", "rental"],
         info: {
             schema: {
                 name: "string",
@@ -263,6 +274,7 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
         shadeId: "purple-1",
         icon: RepairIcon,
         description: RepairsDescription,
+        relations: ["equipment"],
         info: {
             schema: {
                 date: "string",
