@@ -1,20 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, User, ArrowRight, TrendingUp } from "lucide-react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
 import OpenBookIcon from "@/public/appSvgs/OpenBookIcon";
 import MagnifyingGlassIcon from "@/public/appSvgs/MagnifyingGlassIcon";
-import OnboardingAndPricingIcon from "@/public/appSvgs/OnboardingAndPricingIcon";
 import Link from "next/link";
 
 // Feature data with call-to-action links
 const FEATURES = [
     {
         icon: OpenBookIcon,
-        title: "Read the manual",
-        description: "Complete documentation and guides",
+        title: "Documentation",
+        description: "Complete guides and manuals",
         link: "/docs/manual",
     },
     {
@@ -24,18 +23,8 @@ const FEATURES = [
         link: "/docs/wwd",
     },
     {
-        icon: OnboardingAndPricingIcon,
-        title: (
-            <>
-                <span className="text-secondary font-bold" style={{ WebkitTextStroke: "1px black", textShadow: "0 0 2px rgb(59, 130, 246)" }}>
-                    Onboarding
-                </span>{" "}
-                &{" "}
-                <span className="text-primary font-bold" style={{ WebkitTextStroke: "1px black", textShadow: "0 0 2px rgb(22, 163, 74)" }}>
-                    Pricing
-                </span>
-            </>
-        ),
+        icon: TrendingUp,
+        title: "Onboarding & Pricing",
         description: "Get started and view our plans",
         link: "/docs/pricing",
     },
@@ -43,18 +32,50 @@ const FEATURES = [
 
 // Feature Card Component
 function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
+    const accentColor = "#3b82f6";
     const IconComponent = feature.icon;
 
     return (
-        <Link href={feature.link} className="block p-6 rounded-lg border border-secondary/60 bg-card/20 backdrop-blur-sm hover:border-secondary hover:shadow-xl transition-all duration-300 group cursor-pointer">
+        <Link
+            href={feature.link}
+            className="rounded-3xl px-10 py-10 backdrop-blur-2xl border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden"
+            style={{
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                borderColor: accentColor,
+                boxShadow: `0 20px 60px ${accentColor}30`,
+            }}
+            onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.boxShadow = `0 20px 60px ${accentColor}60`;
+                el.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+            }}
+            onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.boxShadow = `0 20px 60px ${accentColor}30`;
+                el.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+            }}
+        >
+            {/* Background accent bar */}
+            <div
+                className="absolute top-0 left-0 h-1 w-full"
+                style={{
+                    background: `linear-gradient(90deg, ${accentColor}, transparent)`,
+                }}
+            />
+
             <div className="flex items-center justify-between gap-6">
-                <div className="flex items-center gap-4 flex-1">
-                    <IconComponent className="w-12 h-12 text-black group-hover:scale-110 transition-transform" />
+                <div className="flex items-center gap-6 flex-1">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
+                        <IconComponent className="w-10 h-10" />
+                    </div>
                     <div>
-                        <h3 className="text-xl font-semibold group-hover:scale-105 transition-transform mb-1">{feature.title}</h3>
-                        <p className="text-sm text-white/80">{feature.description}</p>
+                        <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-white transition-colors">
+                            {feature.title}
+                        </h3>
+                        <p className="text-base text-white/80">{feature.description}</p>
                     </div>
                 </div>
+                <ArrowRight className="w-6 h-6 flex-shrink-0 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" style={{ color: accentColor }} />
             </div>
         </Link>
     );
@@ -73,10 +94,20 @@ function HeroSection() {
 // Features Grid Component
 function FeaturesGrid() {
     return (
-        <div className="flex flex-col gap-4 pt-4">
-            {FEATURES.map((feature, index) => (
-                <FeatureCard key={index} feature={feature} />
-            ))}
+        <div className="relative pt-8">
+            <div className="grid grid-cols-1 gap-6">
+                {FEATURES.map((feature, index) => (
+                    <FeatureCard key={index} feature={feature} />
+                ))}
+            </div>
+            {/* Meet the Founder */}
+            <Link
+                href="/docs"
+                className="absolute -bottom-16 right-0 flex items-center gap-2 px-3 py-2 rounded-lg text-white/70 hover:text-white transition-all duration-300"
+            >
+                <User className="w-4 h-4" />
+                <span className="text-xs font-medium">Meet the Founder</span>
+            </Link>
         </div>
     );
 }
@@ -107,8 +138,6 @@ export function LandingDescription() {
                 overlay="linear-gradient(to bottom, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.8) 8%, rgba(15, 23, 42, 0.3) 15%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 100%)"
                 priority
             />
-
-            <FloatingNav show={showNavbar} slogan="streamlining the experience" />
 
             {/* Photo Credit */}
             <Link
