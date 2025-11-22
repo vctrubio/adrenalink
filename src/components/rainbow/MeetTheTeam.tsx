@@ -1,6 +1,6 @@
 "use client";
 
-import type { RainbowShade } from "@/types/rainbow-types";
+import type { RainbowShade, EntityConfig } from "@/types/rainbow-types";
 import { colorLabels, rainbowBaseColors } from "@/config/rainbow";
 import { RAINBOW_ENTITIES } from "@/config/rainbow-entities";
 import { RainbowIdentityCard } from "./RainbowIdentityCard";
