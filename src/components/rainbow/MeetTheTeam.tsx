@@ -1,11 +1,12 @@
 "use client";
 
+import type { RainbowShade } from "@/types/rainbow-types";
 import { colorLabels, rainbowBaseColors } from "@/config/rainbow";
 import { RAINBOW_ENTITIES } from "@/config/rainbow-entities";
 import { RainbowIdentityCard } from "./RainbowIdentityCard";
 
 interface MeetTheTeamProps {
-    hoveredShade: string | null;
+    hoveredShade: RainbowShade | null;
 }
 
 // Sub-component: Team

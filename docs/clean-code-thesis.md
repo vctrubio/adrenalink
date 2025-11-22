@@ -21,6 +21,12 @@ We believe in writing **DRY, reusable, and human-friendly code** that tells a st
 - **Comments Only When Necessary**: Business logic explanations, not obvious code descriptions
 - **Function Names Tell Stories**: `getAllStudents()`, `createStudentModel()`, `getSchoolStudentCount()`
 
+### 4. Avoid Trivial One-Line Returns
+- **Don't extract code that's only called once**: Inline one-line utilities that don't reduce cognitive load
+- **Return directly, don't wrap unnecessarily**: Simple returns don't need an extra wrapper function
+- **Rule of thumb**: If a function's return statement adds more complexity than clarity, keep it inline
+- **Real cost**: Trivial abstractions scatter logic across files and require developers to jump between function definitions
+
 ## Preferred Code Pattern
 
 ### ✅ GOOD: Clean Structure with Result Pattern
@@ -57,7 +63,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentType[
 ```typescript
 export async function getStudents(): Promise<StudentModel[]> {
     const schoolUsername = headers().get('x-school-username');
-    
+
     if (schoolUsername) {
         const result = await db.query.schoolStudents.findMany({
             where: eq(school.username, schoolUsername),
@@ -73,6 +79,27 @@ export async function getStudents(): Promise<StudentModel[]> {
         return students;
     }
 }
+```
+
+### ❌ BAD: Trivial One-Line Wrapper Functions
+```typescript
+// These add no value and scatter logic across multiple files
+const getBaseColor = (shade: RainbowShade) => shade.split("-")[0];
+
+const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
+    return colorLabels[getBaseColor(shade) as ColorType];
+};
+
+// Developer now has to jump to getBaseColor definition to understand what it does
+```
+
+### ✅ GOOD: Inline When It Adds Clarity
+```typescript
+// Direct, readable, no function jumping required
+const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
+    const baseColor = shade.split("-")[0];
+    return colorLabels[baseColor as ColorType];
+};
 ```
 
 ## Why This Matters

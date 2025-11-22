@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { RainbowShade } from "@/types/rainbow-types";
 import { TABLE_CONFIG } from "@/config/tables";
 import { colorLabels, getEntityRainbowShade } from "@/config/rainbow";
 import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 
 interface RainbowHoverProps {
-	hoveredShade: string | null;
+	hoveredShade: RainbowShade | null;
 }
 
 interface MousePosition {
@@ -14,8 +15,7 @@ interface MousePosition {
 	y: number;
 }
 
-// Sub-component: RainbowTag
-const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade: string }) => {
+const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade: RainbowShade }) => {
 	const shadeColor = RAINBOW_COLORS[shade];
 
 	return (
@@ -32,7 +32,66 @@ const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade
 	);
 };
 
-// Parent component: RainbowHover (renders only)
+const RainbowHoverHead = ({ hoveredShade, bgColor }: { hoveredShade: RainbowShade; bgColor: string }) => {
+	const baseColor = hoveredShade.split("-")[0];
+	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
+
+	return (
+		<div
+			className="px-6 py-4 flex items-center gap-3 border-b border-white/10"
+			style={{
+				background: `${bgColor}15`,
+			}}
+		>
+			<div
+				className="w-10 h-10 rounded-full flex items-center justify-center"
+				style={{
+					background: bgColor,
+				}}
+			>
+				<div
+					className="w-6 h-6 rounded-full"
+					style={{
+						background: `${bgColor}40`,
+					}}
+				/>
+			</div>
+			<div>
+				<h3 className="text-sm font-semibold text-white">{colorLabel.name}</h3>
+				<p className="text-xs text-white/60">{hoveredShade}</p>
+			</div>
+		</div>
+	);
+};
+
+const RainbowHoverBody = ({ hoveredShade }: { hoveredShade: RainbowShade }) => {
+	const baseColor = hoveredShade.split("-")[0];
+	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
+
+	return (
+		<div className="px-6 py-4 border-b border-white/10">
+			<p className="text-xs leading-relaxed text-white/80">{colorLabel.description}</p>
+		</div>
+	);
+};
+
+const RainbowHoverTags = ({ hoveredShade }: { hoveredShade: RainbowShade }) => {
+	const baseColor = hoveredShade.split("-")[0];
+	const entitiesForColor = TABLE_CONFIG.filter((entity) => {
+		const shade = getEntityRainbowShade(entity.id);
+		return shade && shade.split("-")[0] === baseColor;
+	});
+
+	return (
+		<div className="px-6 py-4 flex flex-wrap gap-2">
+			{entitiesForColor.map((entity) => {
+				const shade = getEntityRainbowShade(entity.id);
+				return shade ? <RainbowTag key={entity.id} entity={entity} shade={shade as RainbowShade} /> : null;
+			})}
+		</div>
+	);
+};
+
 export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 	const [mousePos, setMousePos] = useState<MousePosition>({ x: 0, y: 0 });
 
@@ -49,13 +108,7 @@ export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 
 	if (!hoveredShade) return null;
 
-	const baseColor = hoveredShade.split("-")[0];
-	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
 	const bgColor = RAINBOW_COLORS[hoveredShade].fill;
-	const entitiesForColor = TABLE_CONFIG.filter((entity) => {
-		const shade = getEntityRainbowShade(entity.id);
-		return shade && shade.split("-")[0] === baseColor;
-	});
 
 	return (
 		<div
@@ -67,44 +120,9 @@ export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 				transform: `translate(${mousePos.x + 12}px, ${mousePos.y + 12}px)`,
 			}}
 		>
-			{/* Head */}
-			<div
-				className="px-6 py-4 flex items-center gap-3 border-b border-white/10"
-				style={{
-					background: `${bgColor}15`,
-				}}
-			>
-				<div
-					className="w-10 h-10 rounded-full flex items-center justify-center"
-					style={{
-						background: bgColor,
-					}}
-				>
-					<div
-						className="w-6 h-6 rounded-full"
-						style={{
-							background: `${bgColor}40`,
-						}}
-					/>
-				</div>
-				<div>
-					<h3 className="text-sm font-semibold text-white">{colorLabel.name}</h3>
-					<p className="text-xs text-white/60">{hoveredShade}</p>
-				</div>
-			</div>
-
-			{/* Body */}
-			<div className="px-6 py-4 border-b border-white/10">
-				<p className="text-xs leading-relaxed text-white/80">{colorLabel.description}</p>
-			</div>
-
-			{/* Toes */}
-			<div className="px-6 py-4 flex flex-wrap gap-2">
-				{entitiesForColor.map((entity) => {
-					const shade = getEntityRainbowShade(entity.id);
-					return shade ? <RainbowTag key={entity.id} entity={entity} shade={shade} /> : null;
-				})}
-			</div>
+			<RainbowHoverHead hoveredShade={hoveredShade} bgColor={bgColor} />
+			<RainbowHoverBody hoveredShade={hoveredShade} />
+			<RainbowHoverTags hoveredShade={hoveredShade} />
 		</div>
 	);
 };

@@ -1,8 +1,9 @@
+import type { RainbowShade } from "@/types/rainbow-types";
 import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 
-const allShades = Object.keys(RAINBOW_COLORS);
+const allShades = Object.keys(RAINBOW_COLORS) as RainbowShade[];
 
-export const Rainbow = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: string | null) => void; hoveredShade: string | null }) => {
+export const Rainbow = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: RainbowShade | null) => void; hoveredShade: RainbowShade | null }) => {
   const centerX = 960;
   const centerY = 700;
   const baseRadius = 50;

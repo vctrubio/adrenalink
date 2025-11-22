@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Rainbow, MeetTheTeam } from "@/src/components/rainbow";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { RAINBOW_ENTITIES } from "@/config/rainbow-entities";
+import type { RainbowShade } from "@/types/rainbow-types";
 
 export default function ManualPage() {
-    const [hoveredShade, setHoveredShade] = useState<string | null>(null);
+    const [hoveredShade, setHoveredShade] = useState<RainbowShade | null>(null);
 
     console.log("RAINBOW_ENTITIES:", RAINBOW_ENTITIES);
     return (
