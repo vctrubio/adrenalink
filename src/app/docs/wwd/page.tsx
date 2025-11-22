@@ -9,6 +9,7 @@ import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 const FEATURES = [
     {
@@ -16,35 +17,35 @@ const FEATURES = [
         name: "Students",
         accentColor: RAINBOW_COLORS["yellow-1"].fill,
         icon: HelmetIcon,
-        items: ["Register form with personal details and invitation to app", "Package request - browse and apply for courses", "Booking progress tracking throughout their journey", "Revenue tracker for transparent payment history"],
+        items: ["2-click booking process from request to confirmation", "Real-time lesson notifications and live updates", "Transparent pricing with package hour tracking", "Progress tracking and skill level management"],
     },
     {
         title: "Statistics",
         name: "Teachers",
         accentColor: RAINBOW_COLORS["green-2"].fill,
         icon: HeadsetIcon,
-        items: ["Commissions per lesson with flexible rate structures", "Lesson management - assigned bookings and schedules", "Revenue tracker showing earnings in real-time"],
+        items: ["Live sync scheduling with instant notifications", "Automatic commission calculations per lesson", "Quick hour confirmation and real-time tracking", "Earnings dashboard with transparent payments"],
     },
     {
         title: "Management",
         name: "Lessons",
         accentColor: RAINBOW_COLORS["blue-2"].fill,
         icon: FlagIcon,
-        items: ["Classboard for daily operations and lesson planning", "Dashboard for live alerts and real-time notifications", "Tracking of hours and payments with full transparency"],
+        items: ["2-click creation from student request to event", "Visual classboard for drag-and-drop scheduling", "Automatic equipment assignment and tracking", "Live sync across all portals in real-time"],
     },
     {
         title: "Tracking",
         name: "Equipment",
         accentColor: RAINBOW_COLORS["purple-2"].fill,
         icon: EquipmentIcon,
-        items: ["Register your stock and track activity or injuries", "Attach equipment to packages, bookings, lessons and events", "Manage statuses: for rental, linked to teacher, free of use, or ready to sell"],
+        items: ["Automatic flight hours logging per lesson", "Damage and injury tracking for maintenance", "Multi-lesson attachment and status management", "Rental inventory with availability tracking"],
     },
     {
         title: "We Help You Scale",
         name: "Schools",
         accentColor: RAINBOW_COLORS["grey-2"].fill,
         icon: AdminIcon,
-        items: ["Custom URLs and unique subdomains for your school", "Integrate Instagram, website, and googlePlaceId", "Personal space with custom icons and banners", "World mapping to help students find your location"],
+        items: ["Enterprise-grade automation saving 10+ hours per week", "Revenue analytics with real-time financial insights", "Grow your social links with integrated platforms", "Join our network and get discovered by students worldwide"],
     },
 ];
 
@@ -88,12 +89,24 @@ const FeatureCard = ({ feature, isLastCard }: { feature: (typeof FEATURES)[0]; i
             </div>
 
             {/* Content */}
-            <ul className="space-y-3 mx-6">
+            <ul className="space-y-1 mx-6">
                 {feature.items.map((item, itemIndex) => (
-                    <li key={itemIndex} className="flex items-start gap-3 text-base text-white/90">
-                        <span className="text-xl flex-shrink-0 mt-1" style={{ color: feature.accentColor }}>
-                            •
-                        </span>
+                    <li
+                        key={itemIndex}
+                        className="flex items-start gap-1 text-base text-white/90 px-3 py-2 rounded-lg transition-colors duration-200"
+                        style={{
+                            backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.backgroundColor = `${feature.accentColor}20`;
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                        }}
+                    >
+                        <div className="flex-shrink-0 mt-1" style={{ color: feature.accentColor }}>
+                            <AdranlinkIcon className="w-4 h-4" />
+                        </div>
                         <span>{item}</span>
                     </li>
                 ))}
