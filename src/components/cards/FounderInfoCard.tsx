@@ -1,7 +1,15 @@
 import { Mail, Linkedin, Phone } from "lucide-react";
 import Image from "next/image";
 import { Card, CardHeader, CardBody } from "@/src/components/ui/card";
-import { FOUNDER_DATA } from "@/config/founder";
+
+const FOUNDER_DATA = {
+    name: "Victor Rubio",
+    role: "Founder and Developer",
+    email: "vctrubio@gmail.com",
+    linkedin: "https://www.linkedin.com/in/vctrubio/",
+    whatsapp: "+34686516248",
+    description: "So I had an idea … but never imagined something like this. At first it was just a simple replacement for excel, as I saw receptive task that took too much time, then guess what? ",
+} as const;
 
 interface FounderInfoCardProps {
     accentColor?: string;
@@ -40,7 +48,7 @@ export const FounderInfoCard = ({ accentColor = "#3b82f6", className }: FounderI
 
     const avatar = (
         <div
-            className="w-32 h-32 rounded-2xl overflow-hidden flex items-center justify-center"
+            className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center"
             style={{
                 border: `3px solid ${accentColor}`,
             }}
