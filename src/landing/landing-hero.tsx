@@ -4,6 +4,28 @@ import { useEffect, useRef } from "react";
 
 const BLUE_BG_GO = "bg-slate-900"; // Dark mode background color - #0F172A
 
+function LandingHeroHeader() {
+    return (
+        <h1 className="text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl">Adrenalink</h1>
+    );
+}
+
+function LandingHeroSlogan() {
+    return (
+        <p className="text-xl md:text-2xl text-secondary tracking-wide drop-shadow-lg">connecting schools and students </p>
+    );
+}
+
+function LandingHeroDescription() {
+    return (
+        <div className="max-w-3xl mx-auto mt-8 px-4">
+            <p className="text-base md:text-lg text-white/90 leading-relaxed">
+                Our technology streamlines adrenaline sports school operations through automated booking, transparent payment tracking, and comprehensive equipment management. We provide schools with real-time revenue analytics and data-driven insights to optimize their business. By connecting students, teachers, and administrators on one platform, we eliminate the chaos of manual scheduling and spreadsheet management. Adrenalink is the next-generation solution for modern sports schools.
+            </p>
+        </div>
+    );
+}
+
 export function LandingHero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -99,8 +121,9 @@ export function LandingHero() {
 
             {/* Content */}
             <div className="relative z-10 text-center space-y-4">
-                <h1 className="text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl">Adrenalink</h1>
-                <p className="text-xl md:text-2xl text-secondary tracking-wide drop-shadow-lg">connecting schools and students </p>
+                <LandingHeroHeader />
+                <LandingHeroSlogan />
+                <LandingHeroDescription />
             </div>
         </section>
     );
