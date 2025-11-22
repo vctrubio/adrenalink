@@ -13,30 +13,35 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 const FEATURES = [
     {
         title: "Registration",
+        name: "Students",
         accentColor: RAINBOW_COLORS["yellow-1"].fill,
         icon: HelmetIcon,
         items: ["Register form with personal details and invitation to app", "Package request - browse and apply for courses", "Booking progress tracking throughout their journey", "Revenue tracker for transparent payment history"],
     },
     {
         title: "Statistics",
+        name: "Teachers",
         accentColor: RAINBOW_COLORS["green-2"].fill,
         icon: HeadsetIcon,
         items: ["Commissions per lesson with flexible rate structures", "Lesson management - assigned bookings and schedules", "Revenue tracker showing earnings in real-time"],
     },
     {
         title: "Management",
+        name: "Lessons",
         accentColor: RAINBOW_COLORS["blue-2"].fill,
         icon: FlagIcon,
         items: ["Classboard for daily operations and lesson planning", "Dashboard for live alerts and real-time notifications", "Tracking of hours and payments with full transparency"],
     },
     {
         title: "Tracking",
+        name: "Equipment",
         accentColor: RAINBOW_COLORS["purple-2"].fill,
         icon: EquipmentIcon,
         items: ["Register your stock and track activity or injuries", "Attach equipment to packages, bookings, lessons and events", "Manage statuses: for rental, linked to teacher, free of use, or ready to sell"],
     },
     {
         title: "We Help You Scale",
+        name: "Schools",
         accentColor: RAINBOW_COLORS["grey-2"].fill,
         icon: AdminIcon,
         items: ["Custom URLs and unique subdomains for your school", "Integrate Instagram, website, and googlePlaceId", "Personal space with custom icons and banners", "World mapping to help students find your location"],
@@ -61,19 +66,20 @@ const FeatureCard = ({ feature, isLastCard }: { feature: (typeof FEATURES)[0]; i
                     <div className="flex">
                         <div className="w-24 h-24 flex items-center justify-center flex-shrink-0 rounded-2xl">
                             <div style={{ color: feature.accentColor }}>
-                                <IconComponent className="w-12 h-12 flex-shrink-0" />
+                                <IconComponent className="w-16 h-16 flex-shrink-0" />
                             </div>
                         </div>
                         <div className="flex-1 flex flex-col justify-center">
-                            <h2 className="text-3xl font-bold text-white flex-shrink-0" style={{ color: feature.accentColor }}>
+                            <h2 className="text-4xl font-bold text-white" style={{ color: feature.accentColor }}>
                                 {feature.title}
                             </h2>
+                            <div className="text-xs uppercase tracking-wider text-white/60 mt-1">{feature.name}</div>
                         </div>
                     </div>
 
                     {/* Banner for "We Help You Scale" */}
                     {isLastCard && (
-                        <div className="inline-block bg-tertiary/20 backdrop-blur-md rounded-full px-6 py-3 border border-tertiary">
+                        <div className="hidden md:inline-block bg-tertiary/20 backdrop-blur-md rounded-full px-6 py-3 border border-tertiary">
                             <div className="text-xl md:text-2xl font-mono text-tertiary">tarifa.adrenalink.tech</div>
                         </div>
                     )}
@@ -192,7 +198,6 @@ export default function WhatWeDoPage() {
                                 left: `${pos.x}px`,
                                 top: `${pos.y}px`,
                                 transform: "translate(-50%, -50%)",
-                                opacity: pos.opacity,
                                 color: entity.color,
                             }}
                         >
