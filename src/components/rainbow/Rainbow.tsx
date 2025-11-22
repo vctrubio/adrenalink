@@ -1,34 +1,17 @@
-import { rainbowColors } from "@/config/rainbow";
+import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 
-export type RainbowColor = "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey";
-export type RainbowShade = `${RainbowColor}-${number}`;
+const allShades = Object.keys(RAINBOW_COLORS);
 
-interface RainbowProps {
-    onShadeHover: (shade: RainbowShade | null) => void;
-    hoveredShade: RainbowShade | null;
-}
+export const Rainbow = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: string | null) => void; hoveredShade: string | null }) => {
+  const centerX = 960;
+  const centerY = 700;
+  const baseRadius = 50;
+  const strokeWidth = 50;
 
-export const getBaseColor = (shade: RainbowShade): RainbowColor => {
-    const [color] = shade.split("-") as [RainbowColor];
-    return color;
-};
-
-export const getShadeColor = (shade: RainbowShade | null): { fill: string; hoverFill: string } => {
-    return shade && rainbowColors[shade] ? rainbowColors[shade] : rainbowColors["grey-0"];
-};
-
-const allShades = Object.keys(rainbowColors) as RainbowShade[];
-
-export const Rainbow = ({ onShadeHover, hoveredShade }: RainbowProps) => {
-    const centerX = 960;
-    const centerY = 700;
-    const baseRadius = 50;
-    const strokeWidth = 50;
-
-    const createArc = (radius: number, shade: RainbowShade, index: number) => {
-        const isHovered = hoveredShade === shade;
-        const shadeColor = rainbowColors[shade];
-        const fillColor = isHovered ? shadeColor.hoverFill : shadeColor.fill;
+  const createArc = (radius: number, shade: string, index: number) => {
+    const isHovered = hoveredShade === shade;
+    const shadeColor = RAINBOW_COLORS[shade];
+    const fillColor = isHovered ? shadeColor.hoverFill : shadeColor.fill;
 
         return (
             <path

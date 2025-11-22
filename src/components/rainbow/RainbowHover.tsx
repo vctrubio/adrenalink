@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { TABLE_CONFIG } from "@/config/tables";
-import { rainbowBaseColors, colorLabels, getEntityRainbowShade } from "@/config/rainbow";
-import { RainbowShade, getBaseColor, getShadeColor } from "./Rainbow";
+import { colorLabels, getEntityRainbowShade } from "@/config/rainbow";
+import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 
-// Props
 interface RainbowHoverProps {
-	hoveredShade: RainbowShade | null;
+	hoveredShade: string | null;
 }
 
 interface MousePosition {
@@ -16,8 +15,8 @@ interface MousePosition {
 }
 
 // Sub-component: RainbowTag
-const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade: RainbowShade }) => {
-	const shadeColor = getShadeColor(shade);
+const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade: string }) => {
+	const shadeColor = RAINBOW_COLORS[shade];
 
 	return (
 		<div
@@ -50,12 +49,12 @@ export const RainbowHover = ({ hoveredShade }: RainbowHoverProps) => {
 
 	if (!hoveredShade) return null;
 
-	const baseColor = getBaseColor(hoveredShade);
-	const colorLabel = colorLabels[baseColor];
-	const bgColor = rainbowBaseColors[baseColor].fill;
+	const baseColor = hoveredShade.split("-")[0];
+	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
+	const bgColor = RAINBOW_COLORS[hoveredShade].fill;
 	const entitiesForColor = TABLE_CONFIG.filter((entity) => {
 		const shade = getEntityRainbowShade(entity.id);
-		return shade && getBaseColor(shade) === baseColor;
+		return shade && shade.split("-")[0] === baseColor;
 	});
 
 	return (

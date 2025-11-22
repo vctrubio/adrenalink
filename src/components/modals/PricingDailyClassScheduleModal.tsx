@@ -54,6 +54,7 @@ export default function PricingDailyClassScheduleModal({
                     }),
                     timestamp: new Date(eventNode.eventData.date).getTime(),
                     duration: getPrettyDuration(eventNode.eventData.duration),
+                    durationMinutes: eventNode.eventData.duration,
                     location: eventNode.eventData.location,
                     teacherName: queue.teacher.name,
                     studentNames: eventNode.studentData.map((s) => `${s.firstName} ${s.lastName}`).join(" & "),
@@ -70,11 +71,12 @@ export default function PricingDailyClassScheduleModal({
 
     const totals = allEvents.reduce(
         (acc, event) => ({
+            duration: acc.duration + event.durationMinutes,
             teacherEarnings: acc.teacherEarnings + event.teacherEarning,
             schoolRevenue: acc.schoolRevenue + event.schoolRevenue,
             totalRevenue: acc.totalRevenue + event.totalRevenue,
         }),
-        { teacherEarnings: 0, schoolRevenue: 0, totalRevenue: 0 }
+        { duration: 0, teacherEarnings: 0, schoolRevenue: 0, totalRevenue: 0 }
     );
 
     return (
@@ -88,13 +90,13 @@ export default function PricingDailyClassScheduleModal({
                     <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-muted/80 backdrop-blur">
                             <tr className="border-b border-border">
-                                <th className="p-3 text-left font-semibold">Teacher</th>
-                                <th className="p-3 text-left font-semibold">Location</th>
                                 <th className="p-3 text-left font-semibold">Time</th>
-                                <th className="p-3 text-left font-semibold">Duration</th>
-                                <th className="p-3 text-left font-semibold">Students</th>
+                                <th className="p-3 text-left font-semibold">Location</th>
                                 <th className="p-3 text-left font-semibold">Package</th>
                                 <th className="p-3 text-left font-semibold">Equipment</th>
+                                <th className="p-3 text-left font-semibold">Students</th>
+                                <th className="p-3 text-left font-semibold">Teacher</th>
+                                <th className="p-3 text-left font-semibold">Duration</th>
                                 <th className="p-3 text-right font-semibold">Teacher €</th>
                                 <th className="p-3 text-right font-semibold">School €</th>
                                 <th className="p-3 text-right font-semibold">Total €</th>
@@ -103,13 +105,13 @@ export default function PricingDailyClassScheduleModal({
                         <tbody>
                             {allEvents.map((event, idx) => (
                                 <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
-                                    <td className="p-3 font-medium">{event.teacherName}</td>
-                                    <td className="p-3">{event.location}</td>
                                     <td className="p-3 font-mono">{event.time}</td>
-                                    <td className="p-3">{event.duration}</td>
-                                    <td className="p-3">{event.studentNames}</td>
+                                    <td className="p-3">{event.location}</td>
                                     <td className="p-3 text-muted-foreground">{event.packageDescription}</td>
                                     <td className="p-3">{event.equipment}</td>
+                                    <td className="p-3">{event.studentNames}</td>
+                                    <td className="p-3 font-medium">{event.teacherName}</td>
+                                    <td className="p-3">{event.duration}</td>
                                     <td className="p-3 text-right font-mono text-green-600 dark:text-green-400">
                                         €{formatCurrency(event.teacherEarning)}
                                     </td>
@@ -124,8 +126,11 @@ export default function PricingDailyClassScheduleModal({
                         </tbody>
                         <tfoot className="sticky bottom-0 bg-muted/90 backdrop-blur">
                             <tr className="border-t-2 border-border font-semibold">
-                                <td colSpan={7} className="p-3 text-right">
+                                <td colSpan={6} className="p-3 text-right">
                                     ** TOTAL **
+                                </td>
+                                <td className="p-3">
+                                    {getPrettyDuration(totals.duration)}
                                 </td>
                                 <td className="p-3 text-right font-mono text-green-600 dark:text-green-400">
                                     €{formatCurrency(totals.teacherEarnings)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Camera } from "lucide-react";
+import { BackgroundImage } from "@/src/components/BackgroundImage";
 import FloatingNav from "@/src/components/navigations/FloatingNav";
 import OpenBookIcon from "@/public/appSvgs/OpenBookIcon";
 import MagnifyingGlassIcon from "@/public/appSvgs/MagnifyingGlassIcon";
@@ -100,23 +101,11 @@ export function LandingDescription() {
 
     return (
         <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
-            {/* Background Wave Image */}
-            <div
-                className="absolute inset-0 z-0"
-                style={{
-                    backgroundImage: "url(/kritaps_ungurs_unplash/wave-wide.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                }}
-            />
-
-            {/* Gradient Overlay - top blend with hero, bottom blend with footer */}
-            <div
-                className="absolute inset-0 z-[1]"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.8) 8%, rgba(15, 23, 42, 0.3) 15%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 100%)",
-                }}
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/wave-wide.jpg"
+                position="absolute"
+                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.8) 8%, rgba(15, 23, 42, 0.3) 15%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 100%)"
+                priority
             />
 
             <FloatingNav show={showNavbar} slogan="streamlining the experience" />

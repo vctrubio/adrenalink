@@ -1,6 +1,7 @@
 "use client";
 
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { ENTITY_DATA } from "@/config/entities";
 import { OnboardingBook } from "./OnboardingBook";
 
@@ -111,23 +112,10 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
 export default function PricingPage() {
     return (
         <div className="min-h-screen relative">
-            {/* Background Image */}
-            <div
-                className="fixed inset-0 z-0"
-                style={{
-                    backgroundImage: "url(/kritaps_ungurs_unplash/3tiers.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                }}
-            />
-
-            {/* Gradient Overlay */}
-            <div
-                className="fixed inset-0 z-[1]"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)",
-                }}
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/3tiers.jpg"
+                position="fixed"
+                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)"
             />
 
             <div className="relative z-[2] min-h-screen py-20 px-4">

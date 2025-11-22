@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { ENTITY_DATA } from "@/config/entities";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
@@ -130,23 +131,10 @@ export default function WhatWeDoPage() {
 
     return (
         <div className="relative">
-            {/* Background Forest Image */}
-            <div
-                className="fixed inset-0 z-0"
-                style={{
-                    backgroundImage: "url(/kritaps_ungurs_unplash/forest.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                }}
-            />
-
-            {/* Gradient Overlay - Fixed */}
-            <div
-                className="fixed inset-0 z-[1] pointer-events-none"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)",
-                }}
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/forest.jpg"
+                position="fixed"
+                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)"
             />
 
             {/* Hero Section with Animated Background */}

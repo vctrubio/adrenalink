@@ -1,4 +1,5 @@
 import { Calendar, ArrowRight, ExternalLink } from "lucide-react";
+import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { WindToggle } from "@/src/components/themes/WindToggle";
 import LightSwitch from "@/src/components/themes/LightSwitch";
 import Link from "next/link";
@@ -95,24 +96,11 @@ function FooterCredits({ onThemeChange }: { onThemeChange?: () => void }) {
 export function DevAboutMeFooter() {
     return (
         <section className="h-screen snap-start relative overflow-hidden">
-            {/* Background Wave Image - Flipped */}
-            <div
-                className="absolute inset-0 z-0"
-                style={{
-                    backgroundImage: "url(/kritaps_ungurs_unplash/wave.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                    transform: "rotate(180deg)",
-                }}
-            />
-
-            {/* Gradient Overlay for better text readability */}
-            <div
-                className="absolute inset-0 z-[1]"
-                style={{
-                    background: "linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 25%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.5) 75%, rgba(0, 0, 0, 0.8) 100%)",
-                }}
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/wave.jpg"
+                position="absolute"
+                overlay="linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 25%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.5) 75%, rgba(0, 0, 0, 0.8) 100%)"
+                transform="rotate(180deg)"
             />
 
             <div className="relative z-10 h-full flex flex-col justify-between px-4 py-16 overflow-y-auto">

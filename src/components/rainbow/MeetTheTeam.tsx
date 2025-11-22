@@ -1,18 +1,16 @@
 "use client";
 
-import { getEntityRainbowShade, colorLabels, rainbowBaseColors } from "@/config/rainbow";
-import { TABLE_CONFIG } from "@/config/tables";
-import { ENTITY_DATA } from "@/config/entities";
-import type { RainbowShade, RainbowColor } from "./Rainbow";
-import { RainbowIdentity } from "./RainbowIdentity";
+import { colorLabels, rainbowBaseColors } from "@/config/rainbow";
+import { RAINBOW_ENTITIES } from "@/config/rainbow-entities";
+import { RainbowIdentityCard } from "./RainbowIdentityCard";
 
 interface MeetTheTeamProps {
-    hoveredShade: RainbowShade | null;
+    hoveredShade: string | null;
 }
 
 // Sub-component: Team
 const Team = () => {
-    const colors: RainbowColor[] = ["grey", "red", "orange", "yellow", "green", "blue", "purple"];
+    const colors = ["grey", "red", "orange", "yellow", "green", "blue", "purple"] as const;
 
     return (
         <div className="max-w-7xl mx-auto px-6 mt-8">
@@ -34,17 +32,10 @@ const Team = () => {
 };
 
 export const MeetTheTeam = ({ hoveredShade }: MeetTheTeamProps) => {
-    let selectedEntity = null;
-    let selectedShade: RainbowShade | null = null;
+    let selectedEntity: EntityConfig | null = null;
 
     if (hoveredShade) {
-        const selectedEntityId = Object.entries(TABLE_CONFIG).find(([_, entity]) => {
-            const shade = getEntityRainbowShade(entity.id);
-            return shade === hoveredShade;
-        })?.[1];
-
-        selectedEntity = selectedEntityId;
-        selectedShade = hoveredShade;
+        selectedEntity = RAINBOW_ENTITIES.find((entity) => entity.shadeId === hoveredShade) || null;
     }
 
     return (
@@ -56,8 +47,8 @@ export const MeetTheTeam = ({ hoveredShade }: MeetTheTeamProps) => {
             />
 
             {!selectedEntity && <h2 className="text-4xl md:text-5xl font-bold text-white text-center relative z-[4]">Meet the Team</h2>}
-            {selectedEntity && selectedShade ? (
-                <RainbowIdentity entity={selectedEntity} shade={selectedShade} />
+            {selectedEntity ? (
+                <RainbowIdentityCard entity={selectedEntity} />
             ) : (
                 <div
                     className="animate-in slide-in-from-bottom-8 fade-in duration-300"

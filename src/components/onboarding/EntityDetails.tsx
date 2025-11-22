@@ -17,11 +17,16 @@ export function EntityDetails({ entity, onNavigateToEntity }: EntityDetailsProps
     return (
         <div className="bg-card border-2 border-border rounded-xl p-8 shadow-2xl h-full overflow-y-auto">
             <div className="flex items-start gap-6 mb-6">
-                <div className={`${entity.bgColor} p-6 rounded-2xl flex-shrink-0`}>
-                    <Icon className={`${entity.color} w-16 h-16`} size={64} />
+                <div
+                    className="p-6 rounded-2xl flex-shrink-0"
+                    style={{ backgroundColor: entity.bgColor }}
+                >
+                    <Icon className="w-16 h-16" size={64} style={{ color: entity.color }} />
                 </div>
                 <div className="flex-1">
-                    <h2 className={`text-3xl font-bold ${entity.color} mb-3`}>{entity.name}</h2>
+                    <h2 className="text-3xl font-bold mb-3" style={{ color: entity.color }}>
+                        {entity.name}
+                    </h2>
                     <div className="space-y-2">
                         {entity.description.map((desc, idx) => (
                             <p key={idx} className="text-muted-foreground">{desc}</p>
@@ -42,7 +47,12 @@ export function EntityDetails({ entity, onNavigateToEntity }: EntityDetailsProps
                             <button
                                 key={relEntity.id}
                                 onClick={() => onNavigateToEntity(relEntity.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all hover:scale-105 ${relEntity.bgColor} ${relEntity.color} border-current hover:shadow-lg`}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all hover:scale-105 hover:shadow-lg"
+                                style={{
+                                    backgroundColor: relEntity.bgColor,
+                                    color: relEntity.color,
+                                    borderColor: relEntity.color,
+                                }}
                             >
                                 <RelIcon className="w-4 h-4" size={16} />
                                 <span className="font-medium">{relEntity.name}</span>

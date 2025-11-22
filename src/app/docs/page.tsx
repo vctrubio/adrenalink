@@ -1,18 +1,13 @@
 import Link from "next/link";
+import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { FounderInfoCard } from "@/src/components/cards/FounderInfoCard";
 
 export default function DocsPage() {
     return (
         <div className="min-h-screen relative flex items-center justify-center">
-            {/* Background Boat Image */}
-            <div
-                className="fixed inset-0 z-0"
-                style={{
-                    backgroundImage: "url(/kritaps_ungurs_unplash/boat.jpg)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                }}
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/boat.jpg"
+                position="fixed"
             />
 
             {/* Content */}

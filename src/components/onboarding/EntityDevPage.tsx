@@ -33,7 +33,7 @@ export function EntityDevPage() {
         .filter(Boolean);
 
     return (
-        <div>
+        <div className="h-full overflow-y-auto">
             <div className="mb-8">
                 <h1 className="text-5xl font-bold text-foreground mb-6">Schools Architecture</h1>
                 <p className="text-muted-foreground text-lg">Entity pairs organized by relationship</p>

@@ -1,4 +1,4 @@
-export { Rainbow, RainbowShade, RainbowColor, getBaseColor, getShadeColor } from "./Rainbow";
+export { Rainbow } from "./Rainbow";
 export { RainbowHover } from "./RainbowHover";
 export { MeetTheTeam } from "./MeetTheTeam";
-export { RainbowIdentity } from "./RainbowIdentity";
+export { RainbowIdentityCard } from "./RainbowIdentityCard";
