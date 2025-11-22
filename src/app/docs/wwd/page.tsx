@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { ENTITY_DATA } from "@/config/entities";
+import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -11,44 +12,94 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 
 const FEATURES = [
     {
-        title: "And! We Help Upscale Your Business",
-        accentColor: "rgb(255, 190, 165)",
-        icon: AdminIcon,
-        items: ["Marketing tools with custom URLs for your school", "Showcase photos and banners - tell us why your school is the coolest", "World mapping to help students find your location", "Join one adrenaline community connecting schools globally"],
-    },
-    {
-        title: "Student Registration",
-        accentColor: "rgb(234, 179, 8)",
+        title: "Registration",
+        accentColor: RAINBOW_COLORS["yellow-1"].fill,
         icon: HelmetIcon,
-        items: ["Students register to your school through custom URL", "Browse and pick packages that match their needs", "Submit a request for your approval", "One click to create the booking - it's that simple"],
+        items: ["Register form with personal details and invitation to app", "Package request - browse and apply for courses", "Booking progress tracking throughout their journey", "Revenue tracker for transparent payment history"],
     },
     {
-        title: "Teacher Statistics",
-        accentColor: "rgb(34, 197, 94)",
+        title: "Statistics",
+        accentColor: RAINBOW_COLORS["green-2"].fill,
         icon: HeadsetIcon,
-        items: ["Rank your teachers based on performance and reliability", "Receive direct feedback from students after each lesson", "Track teaching hours and commissions in real-time"],
+        items: ["Commissions per lesson with flexible rate structures", "Lesson management - assigned bookings and schedules", "Revenue tracker showing earnings in real-time"],
     },
     {
-        title: "Equipment Tracking",
-        accentColor: "rgb(168, 85, 247)",
-        icon: EquipmentIcon,
-        items: ["Track which equipment, monitor number of flight hours", "Know what, when, and analyze condition over time", "Too good to sell? Set a timer to know when enough is enough"],
-    },
-    {
-        title: "Lesson Management",
-        accentColor: "rgb(59, 130, 246)",
+        title: "Management",
+        accentColor: RAINBOW_COLORS["blue-2"].fill,
         icon: FlagIcon,
-        items: ["Real time sync across all portals", "Proof of stake - transparency in what everyone is paying", "Confirmations and feedback from teachers and students", "Progress tracking and comprehensive data analytics"],
+        items: ["Classboard for daily operations and lesson planning", "Dashboard for live alerts and real-time notifications", "Tracking of hours and payments with full transparency"],
+    },
+    {
+        title: "Tracking",
+        accentColor: RAINBOW_COLORS["purple-2"].fill,
+        icon: EquipmentIcon,
+        items: ["Register your stock and track activity or injuries", "Attach equipment to packages, bookings, lessons and events", "Manage statuses: for rental, linked to teacher, free of use, or ready to sell"],
+    },
+    {
+        title: "We Help You Scale",
+        accentColor: RAINBOW_COLORS["grey-2"].fill,
+        icon: AdminIcon,
+        items: ["Custom URLs and unique subdomains for your school", "Integrate Instagram, website, and googlePlaceId", "Personal space with custom icons and banners", "World mapping to help students find your location"],
     },
 ];
+
+const FeatureCard = ({ feature, isLastCard }: { feature: (typeof FEATURES)[0]; isLastCard: boolean }) => {
+    const IconComponent = feature.icon;
+
+    return (
+        <div
+            className={`rounded-2xl px-6 py-4  backdrop-blur-xl border-2 shadow-2xl transition-all duration-300 hover:scale-[1.02] ${isLastCard ? "md:col-span-2" : ""}`}
+            style={{
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                borderColor: feature.accentColor,
+                boxShadow: `0 10px 40px ${feature.accentColor}30`,
+            }}
+        >
+            {/* Header with Icon on Left */}
+            <div className="mb-4">
+                <div className="flex justify-between items-center ">
+                    <div className="flex">
+                        <div className="w-24 h-24 flex items-center justify-center flex-shrink-0 rounded-2xl">
+                            <div style={{ color: feature.accentColor }}>
+                                <IconComponent className="w-12 h-12 flex-shrink-0" />
+                            </div>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center">
+                            <h2 className="text-3xl font-bold text-white flex-shrink-0" style={{ color: feature.accentColor }}>
+                                {feature.title}
+                            </h2>
+                        </div>
+                    </div>
+
+                    {/* Banner for "We Help You Scale" */}
+                    {isLastCard && (
+                        <div className="inline-block bg-tertiary/20 backdrop-blur-md rounded-full px-6 py-3 border border-tertiary">
+                            <div className="text-xl md:text-2xl font-mono text-tertiary">tarifa.adrenalink.tech</div>
+                        </div>
+                    )}
+                </div>
+                <div className="border-b-1" style={{ borderColor: feature.accentColor }} />
+            </div>
+
+            {/* Content */}
+            <ul className="space-y-3 mx-6">
+                {feature.items.map((item, itemIndex) => (
+                    <li key={itemIndex} className="flex items-start gap-3 text-base text-white/90">
+                        <span className="text-xl flex-shrink-0 mt-1" style={{ color: feature.accentColor }}>
+                            •
+                        </span>
+                        <span>{item}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
 
 export default function WhatWeDoPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [iconPositions, setIconPositions] = useState<Array<{ x: number; y: number; entityIndex: number; opacity: number }>>([]);
-    const [selectedFeature, setSelectedFeature] = useState<number | null>(null);
-    const [cardOrder, setCardOrder] = useState<number[]>([0, 1, 2, 3, 4]);
-    const [cardsDealt, setCardsDealt] = useState<boolean>(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -121,21 +172,9 @@ export default function WhatWeDoPage() {
         };
     }, []);
 
-    // Card dealing animation
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setCardsDealt(true);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, []);
-
     return (
         <div className="relative">
-            <BackgroundImage
-                src="/kritaps_ungurs_unplash/forest.jpg"
-                position="fixed"
-                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)"
-            />
+            <BackgroundImage src="/kritaps_ungurs_unplash/forest.jpg" position="fixed" overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.85) 100%)" />
 
             {/* Hero Section with Animated Background */}
             <section ref={containerRef} className="relative h-[40vh] flex items-center justify-center overflow-hidden z-[2]">
@@ -168,75 +207,12 @@ export default function WhatWeDoPage() {
             </section>
 
             {/* Content Sections */}
-            <div className="relative z-[2] max-w-5xl mx-auto px-6 py-16 pb-32">
-                {/* Feature Cards Stack */}
-                <div className="relative h-[300px]">
-                    {cardOrder.map((featureIndex, stackPosition) => {
-                        const feature = FEATURES[featureIndex];
-                        const isSelected = selectedFeature === featureIndex;
-                        const baseOffset = FEATURES.length - 1 - stackPosition;
-                        const yOffset = isSelected ? -200 : baseOffset * 80;
-                        const dealDelay = stackPosition * 150; // Stagger each card by 150ms
-                        const IconComponent = feature.icon;
-
-                        const handleClick = () => {
-                            if (isSelected) {
-                                // Close: move this card to top of stack
-                                const newOrder = [featureIndex, ...cardOrder.filter((i) => i !== featureIndex)];
-                                setCardOrder(newOrder);
-                                setSelectedFeature(null);
-                            } else {
-                                setSelectedFeature(featureIndex);
-                            }
-                        };
-
-                        return (
-                            <div
-                                key={featureIndex}
-                                className="absolute bottom-0 left-0 right-0 cursor-pointer transition-all duration-500 ease-out"
-                                style={{
-                                    transform: cardsDealt ? `translateY(${yOffset}px)` : "translateY(100vh)",
-                                    opacity: cardsDealt ? 1 : 0,
-                                    zIndex: isSelected ? 10 : baseOffset,
-                                    transitionDelay: cardsDealt ? "0ms" : `${dealDelay}ms`,
-                                }}
-                                onClick={handleClick}
-                            >
-                                <div
-                                    className="rounded-2xl p-8 backdrop-blur-xl border-2 shadow-2xl"
-                                    style={{
-                                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                                        borderColor: feature.accentColor,
-                                        boxShadow: isSelected ? `0 20px 60px ${feature.accentColor}40` : "0 4px 12px rgba(0, 0, 0, 0.3)",
-                                    }}
-                                >
-                                    {/* Header Bar */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h2 className="text-3xl font-bold" style={{ color: feature.accentColor }}>
-                                            {feature.title}
-                                        </h2>
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform" style={{ backgroundColor: feature.accentColor, transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}>
-                                            <IconComponent className="w-6 h-6 text-black" />
-                                        </div>
-                                    </div>
-
-                                    {/* Content - Only show when selected */}
-                                    {isSelected && (
-                                        <ul className="space-y-3 animate-in slide-in-from-bottom-4 fade-in duration-500">
-                                            {feature.items.map((item, itemIndex) => (
-                                                <li key={itemIndex} className="flex items-start gap-3 text-lg text-white">
-                                                    <span className="text-2xl" style={{ color: feature.accentColor }}>
-                                                        •
-                                                    </span>
-                                                    <span>{item}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+            <div className="relative z-[2] max-w-7xl mx-auto px-6 py-16 pb-32">
+                {/* Feature Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {FEATURES.map((feature, index) => (
+                        <FeatureCard key={index} feature={feature} isLastCard={index === FEATURES.length - 1} />
+                    ))}
                 </div>
             </div>
         </div>
