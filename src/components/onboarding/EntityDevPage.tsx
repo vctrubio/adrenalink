@@ -2,27 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
-import { RainbowIdentityCardTable } from "@/src/components/rainbow/RainbowIdentityCard";
+import { RainbowIdentityCardList, RainbowIdentityCardHead } from "@/src/components/rainbow/RainbowIdentityCard";
 import type { EntityConfig } from "@/types/rainbow-types";
 
 const ENTITY_ORDER = ["school", "rental", "studentPackage", "schoolPackage", "student", "teacher", "commission", "lesson", "booking", "event", "equipment", "repairs"];
 
 function EntityFrontCard({ entity }: { entity: EntityConfig }) {
-    const shade = RAINBOW_COLORS[entity.shadeId];
-    const Icon = entity.icon;
-
     return (
         <div className="flex-1 flex flex-col overflow-y-auto">
-            <div className="flex-shrink-0 m-4 flex gap-3 items-start">
-                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 " style={{ color: shade.fill }}>
-                    <Icon className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-bold" style={{ color: shade.fill }}>
-                    {entity.name}
-                </h3>
+            <div className="flex-shrink-0 m-4">
+                <RainbowIdentityCardHead entity={entity} />
             </div>
             <div className="flex-1 overflow-y-auto">
-                <RainbowIdentityCardTable entity={entity} />
+                <RainbowIdentityCardList entity={entity} />
             </div>
         </div>
     );

@@ -7,76 +7,47 @@ export const RainbowIdentityCardHead = ({ entity }: { entity: EntityConfig }) =>
     const shade = entity.shadeId;
     const shadeColor = RAINBOW_COLORS[shade];
     const Icon = entity.icon;
-    const Description = entity.description;
-
-    const avatar = (
-        <div
-            className="w-24 h-24 flex items-center justify-center flex-shrink-0 rounded-2xl"
-            style={{
-                backgroundColor: `${shadeColor.fill}20`,
-                border: `3px solid ${shadeColor.fill}`,
-            }}
-        >
-            <div style={{ color: shadeColor.fill }}>
-                <Icon className="w-16 h-16 flex-shrink-0" />
-            </div>
-        </div>
-    );
 
     return (
-        <div>
-            <div className="flex gap-6 mb-4 items-center">
-                {avatar}
-                <h3 className="text-3xl font-bold text-white flex-shrink-0">{entity.name}</h3>
+        <div className="flex gap-3 items-start">
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0" style={{ color: shadeColor.fill }}>
+                <Icon className="w-8 h-8" />
             </div>
-            <div className="text-white/90 text-sm space-y-2">
-                <Description />
-            </div>
+            <h3 className="text-2xl font-bold" style={{ color: shadeColor.fill }}>
+                {entity.name}
+            </h3>
         </div>
     );
 };
 
-export const RainbowIdentityCardTable = ({ entity }: { entity: EntityConfig }) => {
-    const shade = entity.shadeId;
-    const shadeColor = RAINBOW_COLORS[shade];
+export const RainbowIdentityCardList = ({ entity }: { entity: EntityConfig }) => {
     const schemaKeys = Object.keys(entity.info.schema);
+    const firstRow = entity.info.rows[0] || [];
 
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr>
-                        {schemaKeys.map((fieldName) => (
-                            <th
-                                key={fieldName}
-                                className="px-4 py-3 text-left text-xs uppercase tracking-wider font-semibold text-white/80 border-b-2"
-                                style={{
-                                    borderColor: shadeColor.fill,
-                                    backgroundColor: `${shadeColor.fill}20`,
-                                }}
-                            >
-                                {fieldName}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {entity.info.rows.map((row, rowIndex) => (
-                        <tr
-                            key={rowIndex}
-                            style={{
-                                backgroundColor: rowIndex % 2 === 0 ? "transparent" : `${shadeColor.fill}10`,
-                            }}
-                        >
-                            {row.map((value, colIndex) => (
-                                <td key={colIndex} className="px-4 py-3 text-sm text-white/90">
-                                    {value}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="space-y-3">
+            {schemaKeys.map((fieldName, index) => (
+                <div key={fieldName} className="flex items-center justify-between py-2 border-b border-muted/20">
+                    <span className="text-xs uppercase tracking-wider text-white/70">{fieldName}</span>
+                    <span className="text-sm font-medium text-white">{firstRow[index] || "-"}</span>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export const RainbowIdentityCardListWithDescription = ({ entity }: { entity: EntityConfig }) => {
+    const schemaKeys = Object.keys(entity.info.schema);
+    const firstRow = entity.info.rows[0] || [];
+    const Description = entity.description;
+
+    return (
+        <div className="space-y-4">
+            <div className="text-white/90 text-sm space-y-2">
+                <Description />
+            </div>
+            <div className="border-t border-muted/20" />
+            <RainbowIdentityCardList entity={entity} />
         </div>
     );
 };
@@ -104,8 +75,10 @@ export const RainbowIdentityCard = ({ entity }: { entity: EntityConfig }) => {
 
                 {/* Card Body */}
                 <div className="p-8 bg-black/60">
-                    <RainbowIdentityCardHead entity={entity} />
-                    <RainbowIdentityCardTable entity={entity} />
+                    <div className="mb-4">
+                        <RainbowIdentityCardHead entity={entity} />
+                    </div>
+                    <RainbowIdentityCardListWithDescription entity={entity} />
                 </div>
 
                 {/* Card Footer - Gradient Bar */}
