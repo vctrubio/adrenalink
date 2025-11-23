@@ -16,7 +16,14 @@ function HeroSection() {
         <div className="text-center space-y-8 mb-16">
             <div className="space-y-4">
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white animate-in slide-in-from-bottom-4 duration-1000">Transform Your School</h1>
-                <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-200">First come, first served</p>
+                <div>
+                    <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-200">First come, first served</p>
+                    <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-200">We help you grow your social presence, and help speed your daily operations.</p>
+                </div>
+                <div>
+                    <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-300">BEta is only available to Kite/Windsurf/Wing</p>
+                    <p className="text-xl md:text-2xl text-gray-300 animate-in slide-in-from-bottom-4 duration-1000 delay-400">Coming up is Paragliding, speed riding, White Water Rafting, Ski and Snowboard. </p>
+                </div>
             </div>
             <div className="inline-block bg-black/30 backdrop-blur-md rounded-lg px-6 py-3 animate-in slide-in-from-bottom-4 duration-1000 delay-300">
                 <div className="text-3xl md:text-4xl font-mono text-green-400">your_school.adrenalink.tech</div>
@@ -30,10 +37,7 @@ function CTAButtons() {
     return (
         <div className="space-y-6 mb-16">
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link
-                    href="/welcome"
-                    className={`group ${GREEN_GO} text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-left-4 duration-1000 delay-500`}
-                >
+                <Link href="/welcome" className={`group ${GREEN_GO} text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2 animate-in slide-in-from-left-4 duration-1000 delay-500`}>
                     Sign Up (Early Bird)
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -46,18 +50,6 @@ function CTAButtons() {
                 >
                     <Calendar className="w-5 h-5" />
                     Request a Demo
-                </Link>
-            </div>
-
-            <div className="flex justify-center">
-                <Link
-                    href="https://kite-hostel.vercel.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group border border-white/30 hover:border-white/60 hover:bg-white/5 text-white/80 hover:text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2"
-                >
-                    <ExternalLink className="w-4 h-4" />
-                    See Prototype
                 </Link>
             </div>
         </div>
@@ -74,22 +66,6 @@ function PrototypePreview() {
                 </div>
             </div>
         </div>
-    );
-}
-
-// Footer Credits Component
-function FooterCredits({ onThemeChange }: { onThemeChange?: () => void }) {
-    return (
-        <footer className="mt-auto py-8 bg-gray-900 rounded-2xl">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="text-sm text-gray-400">
-                        Developed by <span className="text-secondary font-medium">vctrubio</span> 📍 Tarifa
-                    </div>
-                    <WindToggle onThemeChange={onThemeChange} />
-                </div>
-            </div>
-        </footer>
     );
 }
 
@@ -113,9 +89,9 @@ export function DevAboutMeFooter() {
                 </div>
             </div>
 
-            <div className="absolute bottom-4 right-4 z-20">
-                <LightSwitch />
-            </div>
+            {/* <div className="absolute bottom-4 right-4 z-20"> */}
+            {/*     <LightSwitch /> */}
+            {/* </div> */}
         </section>
     );
 }

@@ -69,9 +69,7 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
                         <IconComponent className="w-10 h-10" />
                     </div>
                     <div>
-                        <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-white transition-colors">
-                            {feature.title}
-                        </h3>
+                        <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-white transition-colors">{feature.title}</h3>
                         <p className="text-base text-white/80">{feature.description}</p>
                     </div>
                 </div>
@@ -86,7 +84,9 @@ function HeroSection() {
     return (
         <div className="space-y-4">
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight drop-shadow-2xl">Revolutionize Your School</h2>
-            <p className="text-xs text-secondary/60 font-mono tracking-wider">NextGen™ Sports Management Solutions</p>
+            {/* // state of the art , 3 portal view, connecting administration, student, and teeachers to the same lesson*/}
+            <p className="text-xs text-secondary/60 font-mono tracking-wider">We facilitate an easy ‘next generation’ solution, managing student registration, booking progress and lesson payments.</p>
+            <p className="text-xs text-secondary/60 font-mono tracking-wider">Read more below.</p>
         </div>
     );
 }
@@ -101,10 +101,7 @@ function FeaturesGrid() {
                 ))}
             </div>
             {/* Meet the Founder */}
-            <Link
-                href="/docs"
-                className="absolute -bottom-16 right-0 flex items-center gap-2 px-3 py-2 rounded-lg text-white/70 hover:text-white transition-all duration-300"
-            >
+            <Link href="/docs" className="absolute -bottom-16 right-0 flex items-center gap-2 px-3 py-2 rounded-lg text-white/70 hover:text-white transition-all duration-300">
                 <User className="w-4 h-4" />
                 <span className="text-xs font-medium">Meet the Founder</span>
             </Link>
