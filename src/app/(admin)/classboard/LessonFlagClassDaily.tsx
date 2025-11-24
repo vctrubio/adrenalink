@@ -376,20 +376,20 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
         return null;
     }
 
-    if (isAdjustmentMode) {
-        return (
-            <div className="space-y-4">
-                <TimeAdjustmentSection stepDuration={stepDuration} adjustmentTime={adjustmentTime} isLockFlagTime={isLockFlagTime} lockCount={lockCount} totalTeachers={totalTeachers} onAdjustTime={handleAdjustTime} onLockToggle={handleLockToggle} />
-                <LocationAdjustmentSection locationIndex={locationIndex} adjustmentLocation={adjustmentLocation} isLockFlagLocation={isLockFlagLocation} lockLocationCount={lockLocationCount} totalLocationEventsForLock={totalLocationEventsForLock} onAdjustLocationIndex={handleAdjustLocationIndex} onCustomLocationEdit={handleCustomLocationEdit} onLockLocationToggle={handleLockLocationToggle} />
-                <ActionButtons isSubmitting={isSubmitting} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} />
-            </div>
-        );
-    }
-
     return (
-        <div className="flex flex-wrap gap-4">
-            <TimeSection globalEarliestTime={globalEarliestTime} globalAdaptedCount={globalAdaptedCount} globalTotalTeachers={globalTotalTeachers} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
-            <LocationSection globalLocation={globalLocation} adaptedLocationCount={adaptedLocationCount} totalLocationEvents={totalLocationEvents} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
-        </div>
+        <>
+            {isAdjustmentMode ? (
+                <div className="space-y-4">
+                    <TimeAdjustmentSection stepDuration={stepDuration} adjustmentTime={adjustmentTime} isLockFlagTime={isLockFlagTime} lockCount={lockCount} totalTeachers={totalTeachers} onAdjustTime={handleAdjustTime} onLockToggle={handleLockToggle} />
+                    <LocationAdjustmentSection locationIndex={locationIndex} adjustmentLocation={adjustmentLocation} isLockFlagLocation={isLockFlagLocation} lockLocationCount={lockLocationCount} totalLocationEventsForLock={totalLocationEventsForLock} onAdjustLocationIndex={handleAdjustLocationIndex} onCustomLocationEdit={handleCustomLocationEdit} onLockLocationToggle={handleLockLocationToggle} />
+                    <ActionButtons isSubmitting={isSubmitting} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} />
+                </div>
+            ) : (
+                <div className="flex flex-wrap gap-4">
+                    <TimeSection globalEarliestTime={globalEarliestTime} globalAdaptedCount={globalAdaptedCount} globalTotalTeachers={globalTotalTeachers} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
+                    <LocationSection globalLocation={globalLocation} adaptedLocationCount={adaptedLocationCount} totalLocationEvents={totalLocationEvents} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
+                </div>
+            )}
+        </>
     );
 }

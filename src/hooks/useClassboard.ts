@@ -8,6 +8,7 @@ import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CA
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/src/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
+import { useSchoolTeachers } from "./useSchoolTeachers";
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
 const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
@@ -27,6 +28,9 @@ export function useClassboard(initialData: ClassboardModel) {
     const [selectedDate, setSelectedDate] = useState(() => getTodayDateString());
     const [searchQuery, setSearchQuery] = useState("");
     const [classboardData, setClassboardData] = useState<ClassboardModel>(initialData);
+
+    // Get all active teachers from the school
+    const { teachers: allSchoolTeachers } = useSchoolTeachers();
 
     // Load from localStorage after hydration
     useEffect(() => {
@@ -177,6 +181,18 @@ export function useClassboard(initialData: ClassboardModel) {
     const teacherQueues = useMemo((): TeacherQueue[] => {
         const teacherMap = new Map<string, TeacherQueue>();
 
+        // First, initialize queues for ALL active teachers from the school
+        allSchoolTeachers.forEach((teacher) => {
+            const teacherUsername = teacher.schema.username;
+            const teacherName = `${teacher.schema.firstName} ${teacher.schema.lastName}`;
+
+            if (!teacherMap.has(teacherUsername)) {
+                const queue = new TeacherQueue({ username: teacherUsername, name: teacherName });
+                teacherMap.set(teacherUsername, queue);
+            }
+        });
+
+        // Then, populate events from bookings for the selected date
         bookingsForSelectedDate.forEach((booking) => {
             booking.lessons.forEach((lesson) => {
                 if (lesson.status === "rest") {
@@ -192,6 +208,7 @@ export function useClassboard(initialData: ClassboardModel) {
                 const teacherUsername = lesson.teacher.username;
                 const teacherName = `${lesson.teacher.firstName} ${lesson.teacher.lastName}`;
 
+                // Create queue if teacher not in allSchoolTeachers (shouldn't happen but safety)
                 if (!teacherMap.has(teacherUsername)) {
                     const queue = new TeacherQueue({ username: teacherUsername, name: teacherName });
                     teacherMap.set(teacherUsername, queue);
@@ -259,7 +276,7 @@ export function useClassboard(initialData: ClassboardModel) {
 
         const queues = Array.from(teacherMap.values());
         return queues;
-    }, [bookingsForSelectedDate, selectedDate]);
+    }, [bookingsForSelectedDate, selectedDate, allSchoolTeachers, controller.gapMinutes]);
 
     const teacherLessonCounts = useMemo(() => {
         const counts = new Map<string, number>();

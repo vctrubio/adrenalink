@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Menu } from "@headlessui/react";
 import { ChevronDown, MapPin, Loader2 } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -156,24 +157,24 @@ const HeaderRow = ({
     onStatusChange: (status: EventStatus) => void;
 }) => {
     return (
-        <div className="border-b-2 border-dashed border-gray-300 dark:border-gray-600 pointer-events-auto pb-1">
+        <div className="border-b border-border pointer-events-auto pb-1">
             <div className={`flex items-center gap-2 relative mb-3 ${ROW_MARGIN} ${ROW_PADDING} pointer-events-auto`}>
                 <div style={{ color: getEventStatusColor(status) }}>
                     <FlagIcon className="w-8 h-8" size={34} />
                 </div>
                 <div className="flex flex-col relative mb-1">
-                    <div className="flex items-center gap-2 border-b border-gray-300 dark:border-gray-600">
-                        <span className="font-bold text-2xl">{startTime}</span>
-                        <span className="text-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-300">
-                            <span className="text-gray-500 dark:text-gray-400">+</span>
+                    <div className="flex items-center gap-2 border-b border-border">
+                        <span className="font-bold text-2xl text-foreground">{startTime}</span>
+                        <span className="text-sm px-2 py-1 bg-muted rounded text-foreground">
+                            <span className="text-muted-foreground">+</span>
                             {getPrettyDuration(duration)}
                         </span>
                     </div>
                     <div className="flex items-center gap-1 absolute top-full left-0 pt-0.5">
                         <EquipmentDisplay categoryEquipment={categoryEquipment} capacityEquipment={capacityEquipment} />
                         <div className="flex items-center pt-0.5">
-                            <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 mr-0.5" />
-                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{location}</span>
+                            <MapPin className="w-3 h-3 text-muted-foreground mr-0.5" />
+                            <span className="text-xs font-medium text-muted-foreground">{location}</span>
                         </div>
                         {children}
                     </div>
@@ -270,7 +271,14 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     };
 
     return (
-        <div className={`w-full bg-background dark:bg-card border border-border rounded-lg overflow-visible relative ${HEADING_PADDING}`}>
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={`w-full bg-background border border-border rounded-lg overflow-visible relative shadow-sm ${HEADING_PADDING}`}
+        >
             <HeaderRow
                 startTime={startTime}
                 duration={duration}
@@ -288,10 +296,10 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
             {students.length > 0 ? students.map((student, index) => <StudentRow key={student.id || index} student={student} />) : <div className={`${ROW_MARGIN} ${ROW_PADDING} text-sm text-muted-foreground`}>No students</div>}
 
             {isDeleting && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/50 dark:bg-card/50 rounded-lg">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

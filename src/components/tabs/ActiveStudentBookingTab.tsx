@@ -371,12 +371,30 @@ export const ActiveStudentBookingTab = ({ id, data, onAddLessonEvent, availableT
         }
     };
 
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleDragStartWithAnimation = (e: React.DragEvent) => {
+        setIsDragging(true);
+        handleDragStart(e);
+    };
+
+    const handleDragEndWithAnimation = () => {
+        setIsDragging(false);
+        handleDragEnd();
+    };
+
     return (
         <>
-            <div className="w-full flex-shrink-0 space-y-3">
+            <div className="w-full flex-shrink-0">
                 {/* Main Booking Card */}
-                <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card border border-border rounded-lg overflow-hidden hover:bg-accent/10 transition-colors cursor-grab active:cursor-grabbing">
-                    <div className="p-4">
+                <div
+                    draggable
+                    onDragStart={handleDragStartWithAnimation}
+                    onDragEnd={handleDragEndWithAnimation}
+                    className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-all duration-150 cursor-grab active:cursor-grabbing"
+                    style={{ opacity: isDragging ? 0.6 : 1 }}
+                >
+                    <div className="p-3">
                         {/* Header */}
                         <BookingHeader bookingId={id} lessons={data.lessons} durationMinutes={data.schoolPackage.durationMinutes} bookingColor={bookingColor} dateStart={dateStart} dateEnd={dateEnd} />
 

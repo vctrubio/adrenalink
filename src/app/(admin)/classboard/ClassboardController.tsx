@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import EventSettingController from "./EventSettingController";
 import ExportSettingController from "./ExportSettingController";
 import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
@@ -58,39 +59,49 @@ function SearchInput({ search, setSearch }: SearchInputProps) {
 interface ClassboardControllerProps {
     search: string;
     setSearch: (search: string) => void;
-    selectedDate: string;
-    setSelectedDate: (date: string) => void;
     controller: ControllerSettingsType;
     setController: (controller: ControllerSettingsType) => void;
     stats: GlobalStats;
     teacherQueues: TeacherQueue[];
     totalBookings: number;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
 }
 
-export default function ClassboardController({ search, setSearch, selectedDate, setSelectedDate, controller, setController, stats, teacherQueues, totalBookings }: ClassboardControllerProps) {
+export default function ClassboardController({ search, setSearch, controller, setController, stats, teacherQueues, totalBookings, isCollapsed, onToggleCollapse }: ClassboardControllerProps) {
     return (
-        <div className="bg-card">
-            <div className="p-6 space-y-6">
-                <div className="">
-                    <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        <div className="bg-card border-b border-border">
+            {/* Collapsed Header */}
+            <div
+                className="px-6 py-3 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={onToggleCollapse}
+            >
+                <div className="flex items-center gap-4">
+                    <h2 className="text-lg font-semibold text-foreground">Classboard Settings</h2>
                 </div>
-
-                <div className="border-t border-border pt-6">
-                    <ClassboardStatistics stats={stats} teacherQueues={teacherQueues} totalBookings={totalBookings} />
+                <div className={`transition-transform duration-300 ${isCollapsed ? "" : "rotate-180"}`}>
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 </div>
-
-                <div className="pt-1">
-                    <EventSettingController controller={controller} onControllerChange={setController} />
-                </div>
-
-                <div className="pt-1">
-                    <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
-                </div>
-
-                {/* <div className="pt-1"> */}
-                {/*     <SearchInput search={search} setSearch={setSearch} /> */}
-                {/* </div> */}
             </div>
+
+            {/* Expandable Content */}
+            {!isCollapsed && (
+                <div className="overflow-hidden">
+                    <div className="p-6 pt-0 space-y-6">
+                        <div className="border-t border-border pt-6">
+                            <ClassboardStatistics stats={stats} teacherQueues={teacherQueues} totalBookings={totalBookings} />
+                        </div>
+
+                        <div className="pt-1">
+                            <EventSettingController controller={controller} onControllerChange={setController} />
+                        </div>
+
+                        <div className="pt-1">
+                            <ExportSettingController selectedDate={""} teacherQueues={teacherQueues} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
+import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 import ClassboardController from "./ClassboardController";
 import StudentClassDaily from "./StudentClassDaily";
 import LessonFlagClassDaily from "./LessonFlagClassDaily";
@@ -85,50 +86,78 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         });
     };
 
+    const [isControllerCollapsed, setIsControllerCollapsed] = useState(false);
+
     return (
-        <div className="flex flex-col lg:flex-row gap-6 p-6">
+        <div className="flex flex-col h-screen overflow-hidden bg-muted/30">
+            {/* Collapsible Controller */}
             <ClassboardController
                 search={searchQuery}
                 setSearch={setSearchQuery}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
                 controller={controller}
                 setController={setController}
                 stats={globalStats}
                 teacherQueues={teacherQueues}
                 totalBookings={draggableBookings.length}
+                isCollapsed={isControllerCollapsed}
+                onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)}
             />
 
-            <div className="space-y-4">
-                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
-                <StudentClassDaily
-                    bookings={draggableBookings}
-                    classboardData={classboardData}
-                    selectedDate={selectedDate}
-                    classboard={{
-                        onDragStart: (booking) => {
-                            setDraggedBooking(booking);
-                        },
-                        onDragEnd: () => {
-                            setDraggedBooking(null);
-                        },
-                        onAddLessonEvent: handleAddLessonEvent,
-                    }}
-                    setOnNewBooking={setOnNewBooking}
-                />
+            {/* Top Controls Row: Date Picker + Flag Controls */}
+            <div className="flex gap-4 p-4 pb-0">
+                {/* Date Picker Island - Same width as teacher column */}
+                <div className="w-[340px] flex-shrink-0">
+                    <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+                        <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                    </div>
+                </div>
 
-                <TeacherClassDaily
-                    key={refreshKey}
-                    teacherQueues={teacherQueues}
-                    draggedBooking={draggedBooking}
-                    isLessonTeacher={isLessonTeacher}
-                    classboardStats={classboardStats}
-                    controller={controller}
-                    selectedDate={selectedDate}
-                    onEventDeleted={handleEventDeleted}
-                    onAddLessonEvent={handleAddLessonEvent}
-                    globalFlag={globalFlag}
-                />
+                {/* Flag Controls Island - Rest of the width */}
+                <div className="flex-1">
+                    <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+                        <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Split Screen Layout: Students (Left) | Teachers (Right) */}
+            <div className="flex flex-1 gap-4 p-4 overflow-hidden">
+                {/* Left Sidebar: Students Island */}
+                <div className="w-[340px] flex-shrink-0">
+                    <div className="bg-card rounded-xl border border-border shadow-sm h-full overflow-hidden flex flex-col">
+                        <StudentClassDaily
+                            bookings={draggableBookings}
+                            classboardData={classboardData}
+                            selectedDate={selectedDate}
+                            classboard={{
+                                onDragStart: (booking) => {
+                                    setDraggedBooking(booking);
+                                },
+                                onDragEnd: () => {
+                                    setDraggedBooking(null);
+                                },
+                                onAddLessonEvent: handleAddLessonEvent,
+                            }}
+                            setOnNewBooking={setOnNewBooking}
+                        />
+                    </div>
+                </div>
+
+                {/* Right Side: Teacher Queues */}
+                <div className="flex-1 overflow-hidden">
+                    <TeacherClassDaily
+                        key={refreshKey}
+                        teacherQueues={teacherQueues}
+                        draggedBooking={draggedBooking}
+                        isLessonTeacher={isLessonTeacher}
+                        classboardStats={classboardStats}
+                        controller={controller}
+                        selectedDate={selectedDate}
+                        onEventDeleted={handleEventDeleted}
+                        onAddLessonEvent={handleAddLessonEvent}
+                        globalFlag={globalFlag}
+                    />
+                </div>
             </div>
         </div>
     );

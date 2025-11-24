@@ -1506,3 +1506,7 @@
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T11:04:27.634Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T11:04:27.636Z","msg":"Agent state changed from connected to started."}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T11:04:28.661Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T18:30:33.938Z","msg":"Merging 25 of 25 events into TransactionEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T18:30:33.982Z","msg":"Merging 1 of 1 events into ErrorEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T18:31:03.984Z","msg":"Merging 10 of 10 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":54738,"time":"2025-11-24T18:31:34.305Z","msg":"Merging 10 of 10 events into SpanEventAggregator for next harvest","component":"event_aggregator"}

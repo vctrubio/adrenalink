@@ -30,7 +30,9 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
             const result = await getTeachers();
 
             if (result.success && result.data) {
-                setTeachers(result.data);
+                // Filter for active teachers only
+                const activeTeachers = result.data.filter((teacher) => teacher.schema.active);
+                setTeachers(activeTeachers);
             } else {
                 setError(result.error || "Failed to fetch teachers");
             }

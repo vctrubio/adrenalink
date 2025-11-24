@@ -176,18 +176,28 @@ function TeacherColumn({
         onEventDeleted?.("all");
     };
 
+    const isDragOver = dragState.dragOverTeacher === queue.teacher.username;
+    const isCompatible = dragState.dragCompatibility === "compatible";
+    const isIncompatible = dragState.dragCompatibility === "incompatible";
+
     return (
         <div
-            key={refreshKey}
+            key={queue.teacher.username}
             onDragOver={dragState.onDragOver}
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className="flex-1 w-[365px] bg-card flex flex-col border-border border rounded-lg "
+            className={`flex-shrink-0 w-[340px] bg-card flex flex-col border rounded-lg overflow-hidden shadow-sm transition-all duration-200 ${
+                isDragOver && isCompatible
+                    ? "border-primary ring-2 ring-primary/20"
+                    : isDragOver && isIncompatible
+                      ? "border-destructive/50 ring-2 ring-destructive/10"
+                      : "border-border"
+            }`}
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 
-            <div className={`p-3 transition-colors${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
+            <div className="p-3">
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         queue={queue}
@@ -300,32 +310,32 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                     </div>
                 </div>
             ) : (
-                <div className="h-full flex flex-wrap overflow-x-auto gap-4">
-                    {teacherQueues.map((queue) => {
-                        const stats = classboardStats.getTeacherStats(queue.teacher.username);
-                        if (!stats) return null;
+                <div className="h-full flex overflow-x-auto gap-3 pb-2">
+                    {teacherQueues.map((queue, index) => {
+                            const stats = classboardStats.getTeacherStats(queue.teacher.username);
+                            if (!stats) return null;
 
-                        return (
-                            <TeacherColumn
-                                key={queue.teacher.username}
-                                queue={queue}
-                                stats={stats}
-                                dragState={{
-                                    dragOverTeacher,
-                                    dragCompatibility,
-                                    onDragOver: handleDragOver,
-                                    onDragEnter: handleDragEnter,
-                                    onDragLeave: handleDragLeave,
-                                    onDrop: (e, username) => handleDrop(e, username),
-                                    dragOverTeacherColumn: (teacherUsername) => getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
-                                }}
-                                globalFlag={globalFlag}
-                                isPendingParentUpdate={globalFlag.getPendingTeachers().has(queue.teacher.username)}
-                                controller={controller}
-                                onEventDeleted={onEventDeleted}
-                                onParentRefresh={() => setRefreshKey((prev) => prev + 1)}
-                            />
-                        );
+                            return (
+                                <TeacherColumn
+                                    key={queue.teacher.username}
+                                    queue={queue}
+                                    stats={stats}
+                                    dragState={{
+                                        dragOverTeacher,
+                                        dragCompatibility,
+                                        onDragOver: handleDragOver,
+                                        onDragEnter: handleDragEnter,
+                                        onDragLeave: handleDragLeave,
+                                        onDrop: (e, username) => handleDrop(e, username),
+                                        dragOverTeacherColumn: (teacherUsername) => getDragOverTeacherColumnColor(dragOverTeacher, dragCompatibility, teacherUsername),
+                                    }}
+                                    globalFlag={globalFlag}
+                                    isPendingParentUpdate={globalFlag.getPendingTeachers().has(queue.teacher.username)}
+                                    controller={controller}
+                                    onEventDeleted={onEventDeleted}
+                                    onParentRefresh={() => setRefreshKey((prev) => prev + 1)}
+                                />
+                            );
                     })}
                 </div>
             )}

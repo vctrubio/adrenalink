@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { Switch } from "@headlessui/react";
 import { ActiveStudentBookingTab } from "@/src/components/tabs/ActiveStudentBookingTab";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
@@ -104,41 +105,49 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
         return { filteredBookings: filteredData, counts };
     }, [bookings, classboardData, selectedDate, filter]);
 
-    const filterTabs: Array<{ id: StudentBookingFilter; label: string; count: number }> = [
-        { id: "available", label: "Available", count: counts.available },
-        { id: "onboard", label: "Onboard", count: counts.onboard },
-    ];
-
     return (
-        <div className="flex flex-col bg-card border border-border rounded-lg p-4 px-6.5 h-full">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                    <div style={{ color: studentEntity?.color }}>
-                        <HelmetIcon className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground">Students</h3>
+        <div className="flex flex-col h-full">
+            {/* Header with Icon and Toggle */}
+            <div className="flex items-center gap-3 p-4 pb-3 border-b border-border bg-muted/30">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-card border border-border shadow-sm" style={{ color: studentEntity?.color }}>
+                    <HelmetIcon className="w-5 h-5" />
                 </div>
-
-                {/* Filter Tabs */}
-                <div className="flex gap-2 bg-muted rounded-lg p-1.5 w-full sm:w-auto">
-                    {filterTabs.map(({ id, label, count }) => (
-                        <button
-                            key={id}
-                            onClick={() => setFilter(id)}
-                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${filter === id ? "bg-background text-foreground shadow-md border border-border" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-                        >
-                            {label}
-                            <span className={`ml-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold ${filter === id ? "bg-primary/15 text-primary" : "bg-background/50 text-muted-foreground"}`}>{count}</span>
-                        </button>
-                    ))}
+                <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground">Students</h3>
                 </div>
             </div>
 
-            {/* Content */}
-            {filteredBookings.length > 0 && (
-                <div className="flex flex-wrap gap-4 border-t border-border pt-4 flex-1">
-                    {filteredBookings.map((booking) => {
+            {/* Toggle Switch */}
+            <div className="p-4 pb-3 border-b border-border">
+                <div className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium transition-colors ${filter === "available" ? "text-foreground" : "text-muted-foreground"}`}>Available</span>
+                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "available" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {counts.available}
+                        </span>
+                    </div>
+
+                    <Switch
+                        checked={filter === "onboard"}
+                        onChange={(checked) => setFilter(checked ? "onboard" : "available")}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${filter === "onboard" ? "bg-primary" : "bg-muted-foreground/40"}`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${filter === "onboard" ? "translate-x-6" : "translate-x-1"}`} />
+                    </Switch>
+
+                    <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "onboard" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {counts.onboard}
+                        </span>
+                        <span className={`text-xs font-medium transition-colors ${filter === "onboard" ? "text-foreground" : "text-muted-foreground"}`}>Onboard</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Cards */}
+            <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
+                {filteredBookings.length > 0 ? (
+                    filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];
                         if (!bookingData) return null;
 
@@ -146,22 +155,23 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         const existingTeacherUsernames = bookingData.lessons.map((lesson) => lesson.teacher?.username).filter(Boolean) as string[];
 
                         return (
-                            <div key={booking.bookingId}>
-                                <ActiveStudentBookingTab
-                                    id={booking.bookingId}
-                                    data={bookingData}
-                                    onAddLessonEvent={(teacherUsername) => classboard.onAddLessonEvent?.(booking, teacherUsername)}
-                                    availableTeachers={availableTeachers}
-                                    existingTeacherUsernames={existingTeacherUsernames}
-                                    onDragStart={() => classboard.onDragStart(booking)}
-                                    onDragEnd={classboard.onDragEnd}
-                                    draggableBooking={booking}
-                                />
-                            </div>
+                            <ActiveStudentBookingTab
+                                key={booking.bookingId}
+                                id={booking.bookingId}
+                                data={bookingData}
+                                onAddLessonEvent={(teacherUsername) => classboard.onAddLessonEvent?.(booking, teacherUsername)}
+                                availableTeachers={availableTeachers}
+                                existingTeacherUsernames={existingTeacherUsernames}
+                                onDragStart={() => classboard.onDragStart(booking)}
+                                onDragEnd={classboard.onDragEnd}
+                                draggableBooking={booking}
+                            />
                         );
-                    })}
-                </div>
-            )}
+                    })
+                ) : (
+                    <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No {filter} students</div>
+                )}
+            </div>
         </div>
     );
 }
