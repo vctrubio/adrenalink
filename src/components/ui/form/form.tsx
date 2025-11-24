@@ -46,7 +46,7 @@ export default function Form<T extends FieldValues = FieldValues>({ children, me
 
     return (
         <FormProvider {...methods}>
-            <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} className={`border space-y-8 p-8 ${className}`}>
+            <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} className={`space-y-8 p-8 ${className}`}>
                 {children}
             </form>
         </FormProvider>

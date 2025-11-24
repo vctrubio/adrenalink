@@ -6,6 +6,8 @@ import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { EquipmentModel } from "@/backend/models";
 import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import { TeachersUsingEquipmentCard } from "@/src/components/cards/TeachersUsingEquipmentCard";
+import { EquipmentRepairsCard } from "@/src/components/cards/EquipmentRepairsCard";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import RepairIcon from "@/public/appSvgs/RepairIcon";
@@ -104,44 +106,9 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
                         accentColor={categoryColor}
                     />
 
-                    {/* Equipment Teachers */}
-                    {equipment.relations?.teacherEquipments && equipment.relations.teacherEquipments.length > 0 && (
-                        <div className="bg-card border border-border rounded-lg p-6">
-                            <h2 className="text-lg font-semibold text-foreground mb-4">Teachers Using Equipment</h2>
-                            <div className="space-y-3">
-                                {equipment.relations.teacherEquipments.map((te) => (
-                                    <div key={te.id} className="border-l-2 border-primary pl-3">
-                                        <p className="font-medium text-foreground text-sm">
-                                            {te.teacher ? `${te.teacher.firstName} ${te.teacher.lastName}` : "Unknown"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Hours: {(equipment.stats as any)?.teacherHours?.[te.teacher?.id] || 0}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <TeachersUsingEquipmentCard equipment={equipment} />
 
-                    {/* Equipment Repairs */}
-                    {equipment.relations?.equipmentRepairs && equipment.relations.equipmentRepairs.length > 0 && (
-                        <div className="bg-card border border-border rounded-lg p-6">
-                            <h2 className="text-lg font-semibold text-foreground mb-4">Repairs ({equipment.relations.equipmentRepairs.length})</h2>
-                            <div className="space-y-3">
-                                {equipment.relations.equipmentRepairs.slice(0, 5).map((repair) => (
-                                    <div key={repair.id} className="border-l-2 border-red-500 pl-3">
-                                        <p className="text-sm font-medium text-foreground">{repair.description || "Repair"}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            ${repair.price || "0"} - {repair.status || "Pending"}
-                                        </p>
-                                    </div>
-                                ))}
-                                {equipment.relations.equipmentRepairs.length > 5 && (
-                                    <p className="text-sm text-muted-foreground">+{equipment.relations.equipmentRepairs.length - 5} more repairs</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    <EquipmentRepairsCard equipment={equipment} />
                 </>
             }
             rightColumn={
@@ -156,15 +123,11 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Total Duration</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {getPrettyDuration(equipment.stats?.total_duration_minutes || 0)}
-                                </p>
+                                <p className="text-2xl font-bold text-foreground">{getPrettyDuration(equipment.stats?.total_duration_minutes || 0)}</p>
                             </div>
                             <div className="border-t border-border pt-4">
                                 <p className="text-sm text-muted-foreground">Rentals</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {equipment.stats?.rentals_count || 0}
-                                </p>
+                                <p className="text-2xl font-bold text-foreground">{equipment.stats?.rentals_count || 0}</p>
                             </div>
                         </div>
                     </div>
@@ -190,15 +153,6 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
                         </div>
                     </div>
 
-                    {/* Repair Status */}
-                    {(equipment.relations?.equipmentRepairs || []).some((r) => r.status === "in_repair" || r.status === "pending") && (
-                        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-                            <h2 className="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">In Repair</h2>
-                            <p className="text-sm text-red-600 dark:text-red-400">
-                                This equipment has pending repairs
-                            </p>
-                        </div>
-                    )}
                 </>
             }
         />

@@ -1,6 +1,5 @@
 import { getClassboardBookings } from "@/actions/classboard-action";
 import ClientClassboard from "./ClientClassboard";
-import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 
 export default async function ClassBoardPage() {
     const result = await getClassboardBookings();
@@ -14,9 +13,5 @@ export default async function ClassBoardPage() {
         );
     }
 
-    return (
-        <SchoolTeachersProvider>
-            <ClientClassboard data={result.data} />
-        </SchoolTeachersProvider>
-    );
+    return <ClientClassboard data={result.data} />;
 }
