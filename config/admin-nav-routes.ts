@@ -59,8 +59,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
                         icon: A2Icon,
                     },
                     {
-                        name: "Stats",
-                        href: "/stats",
+                        name: "Transactions",
+                        href: "/transactions",
                         icon: BarChart3,
                     },
                 ],

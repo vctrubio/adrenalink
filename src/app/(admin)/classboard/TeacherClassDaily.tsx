@@ -187,7 +187,7 @@ function TeacherColumn({
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 
-            <div className={`px-3 py-3 overflow-y-auto transition-colors${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
+            <div className={`p-3 transition-colors${dragState.dragOverTeacherColumn(queue.teacher.username)}`}>
                 {columnViewMode === "view" ? (
                     <TeacherEventQueue
                         queue={queue}
