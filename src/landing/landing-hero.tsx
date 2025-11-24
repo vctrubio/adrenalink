@@ -40,19 +40,7 @@ function LandingHeroDescription() {
 
 export function LandingHero() {
     const wavesCanvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
     const [activeWindow, setActiveWindow] = useState<"hero" | "portals">("hero");
-
-    const scrollToWindow = (window: "hero" | "portals") => {
-        setActiveWindow(window);
-        if (containerRef.current) {
-            const scrollPosition = window === "hero" ? 0 : containerRef.current.scrollWidth / 2;
-            containerRef.current.scrollTo({
-                left: scrollPosition,
-                behavior: "smooth",
-            });
-        }
-    };
 
     useEffect(() => {
         const wavesCanvas = wavesCanvasRef.current;
@@ -73,7 +61,6 @@ export function LandingHero() {
             time += 0.005;
             ctx.clearRect(0, 0, wavesCanvas.width, wavesCanvas.height);
 
-            const centerX = wavesCanvas.width / 2;
             const centerY = wavesCanvas.height / 2;
 
             // Multiple wave layers with different frequencies
@@ -111,58 +98,52 @@ export function LandingHero() {
     }, []);
 
     return (
-        <section
-            ref={containerRef}
-            className={`h-screen snap-start relative w-full overflow-x-scroll snap-x snap-mandatory ${BLUE_BG_GO}`}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
+        <section className={`h-screen relative w-full ${BLUE_BG_GO}`}>
             {/* Waves Canvas - Always present */}
             <canvas ref={wavesCanvasRef} className="absolute inset-0 w-full h-full" />
 
-            {/* Sliding Container */}
-            <div className="relative z-10 w-[200vw] h-full flex">
-                {/* Hero Window - Left */}
-                <div className="w-screen h-full flex-shrink-0 flex flex-col snap-start snap-always relative">
-                    {/* Centered content area */}
-                    <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                        <LandingHeroHeader />
-                        <LandingHeroDescription />
-                    </div>
+            {/* Content Container */}
+            <div className="relative z-10 w-screen h-full flex flex-col">
+                {/* Hero Window */}
+                {activeWindow === "hero" && (
+                    <div className="w-full h-full flex flex-col relative">
+                        {/* Centered content area */}
+                        <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                            <LandingHeroHeader />
+                            <LandingHeroDescription />
+                        </div>
 
-                    {/* Toggle Button - Bottom Center of Hero Window */}
-                    <div className="pb-20 flex justify-center">
-                        <button
-                            onClick={() => scrollToWindow("portals")}
-                            className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
-                        >
-                            View Portals →
-                        </button>
+                        {/* Toggle Button - Bottom Center */}
+                        <div className="pb-20 flex justify-center">
+                            <button
+                                onClick={() => setActiveWindow("portals")}
+                                className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
+                            >
+                                View Portals →
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* Portals Window - Right */}
-                <div className="w-screen h-full flex-shrink-0 flex flex-col snap-start snap-always relative">
-                    <div className="flex-1 flex items-center justify-center">
-                        <LandingPortals />
-                    </div>
+                {/* Portals Window */}
+                {activeWindow === "portals" && (
+                    <div className="w-full h-full flex flex-col relative">
+                        <div className="flex-1 flex items-center justify-center">
+                            <LandingPortals />
+                        </div>
 
-                    {/* Toggle Button - Bottom Center of Portals Window */}
-                    <div className="pb-20 flex justify-center">
-                        <button
-                            onClick={() => scrollToWindow("hero")}
-                            className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
-                        >
-                            ← Back to Hero
-                        </button>
+                        {/* Toggle Button - Bottom Center */}
+                        <div className="pb-20 flex justify-center">
+                            <button
+                                onClick={() => setActiveWindow("hero")}
+                                className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
+                            >
+                                ← Back to Hero
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
-
-            <style jsx>{`
-                section::-webkit-scrollbar {
-                    display: none;
-                }
-            `}</style>
         </section>
     );
 }

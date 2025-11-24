@@ -1,9 +1,29 @@
 import ColorsDemo from "../../../components/colors-demo";
-import { ENTITY_DATA } from "../../../../config/entities";
-import { entityToRainbowColor, colorLabels, rainbowBaseColors, type RainbowColor } from "../../../../config/rainbow";
+import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "../../../../config/rainbow-entities";
+
+const COLOR_LABELS: Record<string, { name: string }> = {
+    purple: { name: "Purple" },
+    blue: { name: "Blue" },
+    green: { name: "Green" },
+    yellow: { name: "Yellow" },
+    orange: { name: "Orange" },
+    red: { name: "Red" },
+    grey: { name: "Grey" },
+};
+
+const COLOR_STYLES: Record<string, { bg: string; text: string }> = {
+    purple: { bg: "bg-purple-500", text: "text-purple-500" },
+    blue: { bg: "bg-blue-500", text: "text-blue-500" },
+    green: { bg: "bg-green-500", text: "text-green-500" },
+    yellow: { bg: "bg-yellow-500", text: "text-yellow-500" },
+    orange: { bg: "bg-orange-500", text: "text-orange-500" },
+    red: { bg: "bg-red-500", text: "text-red-500" },
+    grey: { bg: "bg-gray-500", text: "text-gray-500" },
+};
 
 export default function ColorsPage() {
-    const rainbowGroups: Record<RainbowColor, typeof ENTITY_DATA> = {
+    // Group entities by base color
+    const rainbowGroups: Record<string, typeof RAINBOW_ENTITIES> = {
         purple: [],
         blue: [],
         green: [],
@@ -13,25 +33,12 @@ export default function ColorsPage() {
         grey: [],
     };
 
-    ENTITY_DATA.forEach((entity) => {
-        const shade = entityToRainbowColor[entity.id];
-        if (shade) {
-            const baseColor = shade.split("-")[0] as RainbowColor;
-            if (rainbowGroups[baseColor]) {
-                rainbowGroups[baseColor].push(entity);
-            }
+    RAINBOW_ENTITIES.forEach((entity) => {
+        const baseColor = entity.shadeId.split("-")[0];
+        if (rainbowGroups[baseColor]) {
+            rainbowGroups[baseColor].push(entity);
         }
     });
-
-    const colorMapping: Record<RainbowColor, { bg: string; text: string; hex: string }> = {
-        purple: { bg: "bg-purple-500", text: "text-purple-500", hex: rainbowBaseColors.purple.fill },
-        blue: { bg: "bg-blue-500", text: "text-blue-500", hex: rainbowBaseColors.blue.fill },
-        green: { bg: "bg-green-500", text: "text-green-500", hex: rainbowBaseColors.green.fill },
-        yellow: { bg: "bg-yellow-500", text: "text-yellow-500", hex: rainbowBaseColors.yellow.fill },
-        orange: { bg: "bg-orange-500", text: "text-orange-500", hex: rainbowBaseColors.orange.fill },
-        red: { bg: "bg-red-500", text: "text-red-500", hex: rainbowBaseColors.red.fill },
-        grey: { bg: "bg-gray-500", text: "text-gray-500", hex: rainbowBaseColors.grey.fill },
-    };
 
     return (
         <div className="p-8">
@@ -47,12 +54,13 @@ export default function ColorsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {(Object.keys(rainbowGroups) as RainbowColor[]).map((color) => {
-                        const entities = rainbowGroups[color];
+                    {Object.entries(rainbowGroups).map(([color, entities]) => {
                         if (entities.length === 0) return null;
 
-                        const colorInfo = colorLabels[color];
-                        const colorStyle = colorMapping[color];
+                        const colorInfo = COLOR_LABELS[color];
+                        const colorStyle = COLOR_STYLES[color];
+                        const firstShade = entities[0]?.shadeId;
+                        const hexColor = firstShade ? RAINBOW_COLORS[firstShade]?.fill : "#000000";
 
                         return (
                             <div
@@ -62,12 +70,7 @@ export default function ColorsPage() {
                                 {/* Header */}
                                 <div className={`${colorStyle.bg} p-4 text-white`}>
                                     <h3 className="text-lg font-bold">{colorInfo.name}</h3>
-                                    <p className="text-xs opacity-90 mt-1">{colorStyle.hex}</p>
-                                </div>
-
-                                {/* Description */}
-                                <div className="p-4 bg-muted/30">
-                                    <p className="text-sm text-muted-foreground">{colorInfo.description}</p>
+                                    <p className="text-xs opacity-90 mt-1">{hexColor}</p>
                                 </div>
 
                                 {/* Entities */}
@@ -84,9 +87,7 @@ export default function ColorsPage() {
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="font-medium text-foreground">{entity.name}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {entity.description[0]}
-                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">{entity.shadeId}</p>
                                                 </div>
                                             </div>
                                         );
