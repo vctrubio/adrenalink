@@ -5,75 +5,75 @@ import { sql } from "drizzle-orm";
 import { getSchoolIdFromHeader } from "@/types/headers";
 
 export interface TransactionData {
-  id: string;
-  date: Date;
-  duration: number;
-  status: string;
-  location?: string | null;
-  teacher: {
     id: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-  };
-  commission: {
-    type: "fixed" | "percentage";
-    cph: number;
-  } | null;
-  package: {
-    id: string;
-    durationMinutes: number;
-    pricePerStudent: number;
-    capacityEquipment: number;
-    categoryEquipment: string;
-  };
-  students: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-  }>;
-  equipment: Array<{
-    model: string;
-    size: number | null;
-  }>;
+    date: Date;
+    duration: number;
+    status: string;
+    location?: string | null;
+    teacher: {
+        id: string;
+        username: string;
+        firstName: string;
+        lastName: string;
+    };
+    commission: {
+        type: "fixed" | "percentage";
+        cph: number;
+    } | null;
+    package: {
+        id: string;
+        durationMinutes: number;
+        pricePerStudent: number;
+        capacityEquipment: number;
+        categoryEquipment: string;
+    };
+    students: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+    }>;
+    equipment: Array<{
+        model: string;
+        size: number | null;
+    }>;
 }
 
 interface RawTransactionRow {
-  event_id: string;
-  event_date: Date;
-  event_duration: number;
-  event_status: string;
-  event_location: string | null;
-  teacher_id: string;
-  teacher_username: string;
-  teacher_first_name: string;
-  teacher_last_name: string;
-  commission_type: "fixed" | "percentage" | null;
-  commission_cph: string | null;
-  package_id: string;
-  package_duration_minutes: number;
-  package_price_per_student: number;
-  package_capacity_equipment: number;
-  package_category_equipment: string;
-  student_id: string | null;
-  student_first_name: string | null;
-  student_last_name: string | null;
-  equipment_model: string | null;
-  equipment_size: number | null;
+    event_id: string;
+    event_date: Date;
+    event_duration: number;
+    event_status: string;
+    event_location: string | null;
+    teacher_id: string;
+    teacher_username: string;
+    teacher_first_name: string;
+    teacher_last_name: string;
+    commission_type: "fixed" | "percentage" | null;
+    commission_cph: string | null;
+    package_id: string;
+    package_duration_minutes: number;
+    package_price_per_student: number;
+    package_capacity_equipment: number;
+    package_category_equipment: string;
+    student_id: string | null;
+    student_first_name: string | null;
+    student_last_name: string | null;
+    equipment_model: string | null;
+    equipment_size: number | null;
 }
 
 export async function getTransactions(): Promise<TransactionData[]> {
-  try {
-    const schoolId = await getSchoolIdFromHeader();
+    try {
+        const schoolId = await getSchoolIdFromHeader();
 
-    if (!schoolId) {
-      return [];
-    }
+        if (!schoolId) {
+            return [];
+        }
 
-    // Single optimized SQL query with all JOINs
-    const rows = await db.execute(
-      sql`
-        SELECT DISTINCT
+        // Optimized SQL query - minimal rows with efficient joins
+        const rows = await db.execute(
+            sql`
+        SELECT
           e.id as event_id,
           e.date as event_date,
           e.duration as event_duration,
@@ -107,70 +107,68 @@ export async function getTransactions(): Promise<TransactionData[]> {
         LEFT JOIN equipment_event ee ON e.id = ee.event_id
         LEFT JOIN equipment eq ON ee.equipment_id = eq.id
         WHERE e.school_id = ${schoolId}
-        ORDER BY e.date ASC, e.id ASC, s.id ASC
+        ORDER BY e.date ASC, e.id ASC, s.id ASC, eq.id ASC
       `,
-    );
+        );
 
-    // Group results by event
-    const transactionMap = new Map<string, TransactionData>();
+        // Group and deduplicate in-memory
+        const transactionMap = new Map<string, TransactionData>();
 
-    for (const row of rows as RawTransactionRow[]) {
-      const eventId = row.event_id;
+        for (const row of rows as RawTransactionRow[]) {
+            const eventId = row.event_id;
 
-      if (!transactionMap.has(eventId)) {
-        transactionMap.set(eventId, {
-          id: eventId,
-          date: row.event_date,
-          duration: row.event_duration,
-          status: row.event_status,
-          location: row.event_location,
-          teacher: {
-            id: row.teacher_id,
-            username: row.teacher_username,
-            firstName: row.teacher_first_name,
-            lastName: row.teacher_last_name,
-          },
-          commission: row.commission_type
-            ? {
-                type: row.commission_type,
-                cph: Number(row.commission_cph),
-              }
-            : null,
-          package: {
-            id: row.package_id,
-            durationMinutes: row.package_duration_minutes,
-            pricePerStudent: row.package_price_per_student,
-            capacityEquipment: row.package_capacity_equipment,
-            categoryEquipment: row.package_category_equipment,
-          },
-          students: [],
-          equipment: [],
-        });
-      }
+            if (!transactionMap.has(eventId)) {
+                transactionMap.set(eventId, {
+                    id: eventId,
+                    date: row.event_date,
+                    duration: row.event_duration,
+                    status: row.event_status,
+                    location: row.event_location,
+                    teacher: {
+                        id: row.teacher_id,
+                        username: row.teacher_username,
+                        firstName: row.teacher_first_name,
+                        lastName: row.teacher_last_name,
+                    },
+                    commission: row.commission_type
+                        ? {
+                              type: row.commission_type,
+                              cph: Number(row.commission_cph),
+                          }
+                        : null,
+                    package: {
+                        id: row.package_id,
+                        durationMinutes: row.package_duration_minutes,
+                        pricePerStudent: row.package_price_per_student,
+                        capacityEquipment: row.package_capacity_equipment,
+                        categoryEquipment: row.package_category_equipment,
+                    },
+                    students: [],
+                    equipment: [],
+                });
+            }
 
-      const transaction = transactionMap.get(eventId)!;
+            const transaction = transactionMap.get(eventId)!;
 
-      // Add student if not already present
-      if (row.student_id && !transaction.students.some((s) => s.id === row.student_id)) {
-        transaction.students.push({
-          id: row.student_id,
-          firstName: row.student_first_name!,
-          lastName: row.student_last_name!,
-        });
-      }
+            if (row.student_id && !transaction.students.some((s) => s.id === row.student_id)) {
+                transaction.students.push({
+                    id: row.student_id,
+                    firstName: row.student_first_name!,
+                    lastName: row.student_last_name!,
+                });
+            }
 
-      // Add equipment if not already present
-      if (row.equipment_model && !transaction.equipment.some((e) => e.model === row.equipment_model)) {
-        transaction.equipment.push({
-          model: row.equipment_model,
-          size: row.equipment_size,
-        });
-      }
+            if (row.equipment_model && !transaction.equipment.some((e) => e.model === row.equipment_model && e.size === row.equipment_size)) {
+                transaction.equipment.push({
+                    model: row.equipment_model,
+                    size: row.equipment_size,
+                });
+            }
+        }
+
+        return Array.from(transactionMap.values());
+    } catch (error) {
+        console.error("Error fetching transactions:", error);
+        return [];
     }
-
-    return Array.from(transactionMap.values());
-  } catch (error) {
-    console.error("Error fetching transactions:", error);
-    return [];
-  }
 }
