@@ -10,17 +10,17 @@ interface MeetTheTeamProps {
 
 // Sub-component: Team
 const Team = () => {
-    const uniqueShades = [...new Set(RAINBOW_ENTITIES.map((e) => e.shadeId))];
+    const displayEntityIds = ["school", "rental", "schoolPackage", "student", "teacher", "booking", "equipment"];
+    const displayEntities = RAINBOW_ENTITIES.filter((e) => displayEntityIds.includes(e.id));
 
     return (
         <div className="max-w-7xl mx-auto px-6 mt-8">
             <div className="flex flex-wrap justify-center gap-4">
-                {uniqueShades.map((shade) => {
-                    const bgColor = RAINBOW_COLORS[shade].fill;
-                    const entityName = RAINBOW_ENTITIES.find((e) => e.shadeId === shade)?.name || shade;
+                {displayEntities.map((entity) => {
+                    const bgColor = RAINBOW_COLORS[entity.shadeId].fill;
                     return (
-                        <div key={shade} className="py-4 px-6 rounded-lg border-2 text-center transition-all" style={{ borderColor: bgColor }}>
-                            <span className="text-white text-lg font-medium">{entityName}</span>
+                        <div key={entity.id} className="py-4 px-6 rounded-lg border-2 text-center transition-all" style={{ borderColor: bgColor }}>
+                            <span className="text-white text-lg font-medium">{entity.name}</span>
                         </div>
                     );
                 })}
