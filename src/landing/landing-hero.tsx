@@ -98,7 +98,7 @@ export function LandingHero() {
     }, []);
 
     return (
-        <section className={`h-screen relative w-full ${BLUE_BG_GO}`}>
+        <section className={`h-screen snap-start relative w-full ${BLUE_BG_GO}`}>
             {/* Waves Canvas - Always present */}
             <canvas ref={wavesCanvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -107,18 +107,18 @@ export function LandingHero() {
                 {/* Hero Window */}
                 {activeWindow === "hero" && (
                     <div className="w-full h-full flex flex-col relative">
-                        {/* Centered content area */}
-                        <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                        {/* LandingHeroHeader - Absolutely positioned to stay centered */}
+                        <div className="absolute inset-0 flex items-center justify-center">
                             <LandingHeroHeader />
-                            <LandingHeroDescription />
                         </div>
 
-                        {/* Toggle Button - Bottom Center */}
-                        <div className="pb-20 flex justify-center">
-                            <button
-                                onClick={() => setActiveWindow("portals")}
-                                className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
-                            >
+                        {/* Spacer to push other content to the bottom */}
+                        <div className="flex-1"></div>
+
+                        {/* LandingHeroDescription and Toggle Button at the bottom */}
+                        <div className="flex flex-col items-center justify-end pb-20 gap-8">
+                            <LandingHeroDescription />
+                            <button onClick={() => setActiveWindow("portals")} className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl">
                                 View Portals →
                             </button>
                         </div>
@@ -134,10 +134,7 @@ export function LandingHero() {
 
                         {/* Toggle Button - Bottom Center */}
                         <div className="pb-20 flex justify-center">
-                            <button
-                                onClick={() => setActiveWindow("hero")}
-                                className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"
-                            >
+                            <button onClick={() => setActiveWindow("hero")} className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl">
                                 ← Back to Hero
                             </button>
                         </div>
