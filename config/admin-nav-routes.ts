@@ -68,7 +68,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
             // TABLES - Entity management
             {
                 groupLabel: "TABLES",
-                routes: getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage", "rental", "studentPackage", "referral"]),
+                // routes: getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage", "rental", "studentPackage", "referral"]),
+                routes: getEntityByIds(["student", "teacher", "booking", "equipment", "schoolPackage"]),
             },
         ],
     },

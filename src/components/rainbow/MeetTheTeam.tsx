@@ -1,8 +1,7 @@
 "use client";
 
 import type { RainbowShade, EntityConfig } from "@/types/rainbow-types";
-import { colorLabels, rainbowBaseColors } from "@/config/rainbow";
-import { RAINBOW_ENTITIES } from "@/config/rainbow-entities";
+import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
 import { RainbowIdentityCard } from "./RainbowIdentityCard";
 
 interface MeetTheTeamProps {
@@ -11,16 +10,17 @@ interface MeetTheTeamProps {
 
 // Sub-component: Team
 const Team = () => {
-    const colors = ["grey", "red", "orange", "yellow", "green", "blue", "purple"] as const;
+    const uniqueShades = [...new Set(RAINBOW_ENTITIES.map((e) => e.shadeId))];
 
     return (
         <div className="max-w-7xl mx-auto px-6 mt-8">
             <div className="flex flex-wrap justify-center gap-4">
-                {colors.map((color) => {
-                    const bgColor = rainbowBaseColors[color].fill;
+                {uniqueShades.map((shade) => {
+                    const bgColor = RAINBOW_COLORS[shade].fill;
+                    const entityName = RAINBOW_ENTITIES.find((e) => e.shadeId === shade)?.name || shade;
                     return (
-                        <div key={color} className="py-4 px-6 rounded-lg border-2 text-center transition-all" style={{ borderColor: bgColor }}>
-                            <span className="text-white text-lg font-medium">{colorLabels[color].name}</span>
+                        <div key={shade} className="py-4 px-6 rounded-lg border-2 text-center transition-all" style={{ borderColor: bgColor }}>
+                            <span className="text-white text-lg font-medium">{entityName}</span>
                         </div>
                     );
                 })}

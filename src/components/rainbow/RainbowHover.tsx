@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import type { RainbowShade } from "@/types/rainbow-types";
 import { TABLE_CONFIG } from "@/config/tables";
-import { colorLabels, getEntityRainbowShade } from "@/config/rainbow";
-import { RAINBOW_COLORS } from "@/config/rainbow-entities";
+import { RAINBOW_COLORS, RAINBOW_ENTITIES } from "@/config/rainbow-entities";
 
 interface RainbowHoverProps {
 	hoveredShade: RainbowShade | null;
@@ -33,8 +32,7 @@ const RainbowTag = ({ entity, shade }: { entity: (typeof TABLE_CONFIG)[0]; shade
 };
 
 const RainbowHoverHead = ({ hoveredShade, bgColor }: { hoveredShade: RainbowShade; bgColor: string }) => {
-	const baseColor = hoveredShade.split("-")[0];
-	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
+	const entity = RAINBOW_ENTITIES.find((e) => e.shadeId === hoveredShade);
 
 	return (
 		<div
@@ -57,7 +55,7 @@ const RainbowHoverHead = ({ hoveredShade, bgColor }: { hoveredShade: RainbowShad
 				/>
 			</div>
 			<div>
-				<h3 className="text-sm font-semibold text-white">{colorLabel.name}</h3>
+				<h3 className="text-sm font-semibold text-white">{entity?.name}</h3>
 				<p className="text-xs text-white/60">{hoveredShade}</p>
 			</div>
 		</div>
@@ -65,12 +63,12 @@ const RainbowHoverHead = ({ hoveredShade, bgColor }: { hoveredShade: RainbowShad
 };
 
 const RainbowHoverBody = ({ hoveredShade }: { hoveredShade: RainbowShade }) => {
-	const baseColor = hoveredShade.split("-")[0];
-	const colorLabel = colorLabels[baseColor as "purple" | "blue" | "green" | "yellow" | "orange" | "red" | "grey"];
+	const entity = RAINBOW_ENTITIES.find((e) => e.shadeId === hoveredShade);
+	const Description = entity?.description;
 
 	return (
 		<div className="px-6 py-4 border-b border-white/10">
-			<p className="text-xs leading-relaxed text-white/80">{colorLabel.description}</p>
+			{Description && <Description />}
 		</div>
 	);
 };
@@ -78,15 +76,15 @@ const RainbowHoverBody = ({ hoveredShade }: { hoveredShade: RainbowShade }) => {
 const RainbowHoverTags = ({ hoveredShade }: { hoveredShade: RainbowShade }) => {
 	const baseColor = hoveredShade.split("-")[0];
 	const entitiesForColor = TABLE_CONFIG.filter((entity) => {
-		const shade = getEntityRainbowShade(entity.id);
-		return shade && shade.split("-")[0] === baseColor;
+		const rainbowEntity = RAINBOW_ENTITIES.find((e) => e.id === entity.id);
+		return rainbowEntity?.shadeId.split("-")[0] === baseColor;
 	});
 
 	return (
 		<div className="px-6 py-4 flex flex-wrap gap-2">
 			{entitiesForColor.map((entity) => {
-				const shade = getEntityRainbowShade(entity.id);
-				return shade ? <RainbowTag key={entity.id} entity={entity} shade={shade as RainbowShade} /> : null;
+				const rainbowEntity = RAINBOW_ENTITIES.find((e) => e.id === entity.id);
+				return rainbowEntity ? <RainbowTag key={entity.id} entity={entity} shade={rainbowEntity.shadeId as RainbowShade} /> : null;
 			})}
 		</div>
 	);
