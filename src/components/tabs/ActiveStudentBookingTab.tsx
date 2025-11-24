@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -15,35 +16,48 @@ import { formatDate } from "@/getters/date-getter";
 import { getEventStatusColor, STATUS_COLORS } from "@/types/status";
 import { StudentTag } from "@/src/components/tags";
 import { StudentBookingTabFooter, type TabType } from "./StudentBookingTabFooter";
-import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
+import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
+import { createLesson } from "@/actions/lessons-action";
+import { showEntityToast } from "@/getters/toast-getter";
+import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 
 const DURATION_COLOR_FILL = "#f59e0b";
 
 interface ActiveStudentBookingTabProps {
-    booking: ActiveBookingModel;
+    id: string;
+    data: ClassboardData;
+    onAddLessonEvent?: (teacherUsername: string) => Promise<void>;
+    availableTeachers?: string[];
+    existingTeacherUsernames?: string[];
+    onDragStart?: () => void;
+    onDragEnd?: () => void;
+    draggableBooking?: any;
 }
 
 interface StudentProgressBarProps {
-    events: ActiveBookingModel["events"];
+    lessons: ClassboardLesson[];
     totalMinutes: number;
 }
 
 // Sleek progress slider with status-based color segments using STATUS_COLORS
-const StudentProgressBar = ({ events, totalMinutes }: StudentProgressBarProps) => {
+const StudentProgressBar = ({ lessons, totalMinutes }: StudentProgressBarProps) => {
     if (!totalMinutes || totalMinutes === 0) {
         return <span className="text-xs text-muted-foreground">N/A</span>;
     }
 
+    // Flatten all events from all lessons
+    const allEvents = lessons.flatMap((lesson) => lesson.events);
+
     // Calculate event minutes by status
     const eventMinutes = {
-        completed: events.filter((e) => e.status === "completed").reduce((sum, e) => sum + e.duration, 0),
-        planned: events.filter((e) => e.status === "planned").reduce((sum, e) => sum + e.duration, 0),
-        tbc: events.filter((e) => e.status === "tbc").reduce((sum, e) => sum + e.duration, 0),
+        completed: allEvents.filter((e) => e.status === "completed").reduce((sum, e) => sum + e.duration, 0),
+        planned: allEvents.filter((e) => e.status === "planned").reduce((sum, e) => sum + e.duration, 0),
+        tbc: allEvents.filter((e) => e.status === "tbc").reduce((sum, e) => sum + e.duration, 0),
     };
 
     const totalUsedMinutes = eventMinutes.completed + eventMinutes.planned + eventMinutes.tbc;
     const extraMinutes = Math.max(0, totalUsedMinutes - totalMinutes);
-    
+
     // Determine the denominator for percentage calculation
     const denominator = totalUsedMinutes > totalMinutes ? totalUsedMinutes : totalMinutes;
 
@@ -62,9 +76,7 @@ const StudentProgressBar = ({ events, totalMinutes }: StudentProgressBarProps) =
     return (
         <div className="flex items-center gap-2">
             <div className="flex-1 flex items-center gap-2">
-                <div
-                    className="h-3 rounded-full overflow-hidden border border-border bg-gray-100 dark:bg-gray-800 flex-1"
-                >
+                <div className="h-3 rounded-full overflow-hidden border border-border bg-gray-100 dark:bg-gray-800 flex-1">
                     {/* Completed minutes - using STATUS_COLORS.eventCompleted */}
                     <div
                         className="h-full transition-all duration-300 float-left"
@@ -107,26 +119,28 @@ const StudentProgressBar = ({ events, totalMinutes }: StudentProgressBarProps) =
 
 // Header component with icon, dates, and progress bar
 interface BookingHeaderProps {
-    booking: ActiveBookingModel;
+    bookingId: string;
+    lessons: ClassboardLesson[];
+    durationMinutes: number;
     bookingColor?: string;
     dateStart: string;
     dateEnd: string;
 }
 
-const BookingHeader = ({ booking, bookingColor, dateStart, dateEnd }: BookingHeaderProps) => {
+const BookingHeader = ({ bookingId, lessons, durationMinutes, bookingColor, dateStart, dateEnd }: BookingHeaderProps) => {
     return (
         <div className="flex items-start gap-3 mb-3">
-            <Link href={`/bookings/${booking.id}`}>
+            <Link href={`/bookings/${bookingId}`}>
                 <div className="flex-shrink-0 p-2 border border-border rounded-lg" style={{ color: bookingColor }}>
                     <BookingIcon size={32} />
                 </div>
             </Link>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 pr-4">
                 <div className="text-base font-semibold text-foreground mb-2">
                     {dateStart} - {dateEnd}
                 </div>
                 {/* Progress Slider */}
-                <StudentProgressBar events={booking.events} totalMinutes={booking.package.durationMinutes} />
+                <StudentProgressBar lessons={lessons} totalMinutes={durationMinutes} />
             </div>
         </div>
     );
@@ -134,14 +148,14 @@ const BookingHeader = ({ booking, bookingColor, dateStart, dateEnd }: BookingHea
 
 // Students section component
 interface BookingStudentsProps {
-    students: ActiveBookingModel["students"];
+    bookingStudents: ClassboardData["bookingStudents"];
 }
 
-const BookingStudents = ({ students }: BookingStudentsProps) => {
+const BookingStudents = ({ bookingStudents }: BookingStudentsProps) => {
     return (
         <div className="flex flex-wrap gap-2">
-            {students.map((student) => (
-                <StudentTag key={student.id} icon={<HelmetIcon size={16} />} firstName={student.firstName} lastName={student.lastName} id={student.id} />
+            {bookingStudents.map((bookingStudent) => (
+                <StudentTag key={bookingStudent.student.id} icon={<HelmetIcon size={16} />} firstName={bookingStudent.student.firstName} lastName={bookingStudent.student.lastName} id={bookingStudent.student.id} />
             ))}
         </div>
     );
@@ -149,7 +163,7 @@ const BookingStudents = ({ students }: BookingStudentsProps) => {
 
 // Tab content component
 interface BookingTabContentProps {
-    booking: ActiveBookingModel;
+    data: ClassboardData;
     activeTab: TabType;
     pricePerStudent: number;
     pricePerHour: number;
@@ -157,7 +171,7 @@ interface BookingTabContentProps {
     teacherColor?: string;
 }
 
-const BookingTabContent = ({ booking, activeTab, pricePerStudent, pricePerHour, toPay, teacherColor }: BookingTabContentProps) => {
+const BookingTabContent = ({ data, activeTab, pricePerStudent, pricePerHour, toPay, teacherColor }: BookingTabContentProps) => {
     const hasPaid = 0;
 
     if (activeTab === "equipment") {
@@ -166,7 +180,7 @@ const BookingTabContent = ({ booking, activeTab, pricePerStudent, pricePerHour, 
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                     <div>
                         <span className="text-muted-foreground">Duration:</span>
-                        <p className="font-medium">{getPrettyDuration(booking.package.durationMinutes)}</p>
+                        <p className="font-medium">{getPrettyDuration(data.schoolPackage.durationMinutes)}</p>
                     </div>
                     <div>
                         <span className="text-muted-foreground">Total:</span>
@@ -194,12 +208,17 @@ const BookingTabContent = ({ booking, activeTab, pricePerStudent, pricePerHour, 
     }
 
     if (activeTab === "events") {
+        // Flatten all events from all lessons, grouped by teacher
+        const allEvents = data.lessons.flatMap((lesson) =>
+            lesson.events.map((event) => ({ ...event, teacher: lesson.teacher })),
+        );
+
         return (
             <div className="px-3 pb-2 pt-3 space-y-2 bg-muted/20">
-                {booking.events.length === 0 ? (
+                {allEvents.length === 0 ? (
                     <div className="text-xs text-muted-foreground px-3 py-2">No events scheduled</div>
                 ) : (
-                    booking.events.map((event) => {
+                    allEvents.map((event) => {
                         const statusColor = getEventStatusColor(event.status);
                         return (
                             <div key={event.id} className="flex items-center justify-between text-xs py-1">
@@ -245,7 +264,7 @@ const BookingTabContent = ({ booking, activeTab, pricePerStudent, pricePerHour, 
                 <div className="text-sm space-y-2">
                     <div className="text-xs font-semibold text-muted-foreground mb-3">Booking Status</div>
                     {(["active", "completed", "uncompleted"] as const).map((status) => (
-                        <button key={status} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize ${booking.status === status ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-accent/50"}`}>
+                        <button key={status} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize ${data.booking.dateStart === status ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-accent/50"}`}>
                             {status}
                         </button>
                     ))}
@@ -257,44 +276,123 @@ const BookingTabContent = ({ booking, activeTab, pricePerStudent, pricePerHour, 
     return null;
 };
 
-export const ActiveStudentBookingTab = ({ booking }: ActiveStudentBookingTabProps) => {
+export const ActiveStudentBookingTab = ({ id, data, onAddLessonEvent, availableTeachers, existingTeacherUsernames, onDragStart, onDragEnd, draggableBooking }: ActiveStudentBookingTabProps) => {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>(null);
+    const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
     const bookingEntityConfig = ENTITY_DATA.find((e) => e.id === "booking");
     const bookingColor = bookingEntityConfig?.color;
 
-    const dateStart = formatDate(booking.dateStart);
-    const dateEnd = formatDate(booking.dateEnd);
+    const dateStart = formatDate(new Date(data.booking.dateStart));
+    const dateEnd = formatDate(new Date(data.booking.dateEnd));
 
     // Calculate pricing
-    const pricePerStudent = booking.package.pricePerStudent;
-    const packageHours = booking.package.durationMinutes / 60;
+    const pricePerStudent = data.schoolPackage.pricePerStudent;
+    const packageHours = data.schoolPackage.durationMinutes / 60;
     const pricePerHour = pricePerStudent / packageHours;
     const teacherColor = ENTITY_DATA.find((e) => e.id === "teacher")?.color;
 
     // Calculate to pay
-    const completedMinutes = booking.events.filter((e) => e.status === "completed").reduce((sum, e) => sum + e.duration, 0);
+    const allEvents = data.lessons.flatMap((lesson) => lesson.events);
+    const completedMinutes = allEvents.filter((e) => e.status === "completed").reduce((sum, e) => sum + e.duration, 0);
     const completedHours = completedMinutes / 60;
     const toPay = completedHours * pricePerHour;
 
+    const handleDragStart = (e: React.DragEvent) => {
+        // Prevent drag if clicking on interactive elements
+        const target = e.target as HTMLElement;
+        if (target.closest("button") || target.closest('[role="button"]')) {
+            e.preventDefault();
+            return;
+        }
+
+        if (draggableBooking) {
+            const bookingJson = JSON.stringify(draggableBooking);
+            try {
+                e.dataTransfer.setData("application/json", bookingJson);
+                e.dataTransfer.setData("text/plain", bookingJson);
+            } catch (err) {
+                console.warn("dataTransfer setData error:", err);
+            }
+            e.dataTransfer.effectAllowed = "move";
+        }
+        onDragStart?.();
+    };
+
+    const handleDragEnd = () => onDragEnd?.();
+
+    const handleAddLessonEvent = async (teacherUsername: string) => {
+        setLoadingLessonId(teacherUsername);
+        try {
+            await onAddLessonEvent?.(teacherUsername);
+        } finally {
+            setLoadingLessonId(null);
+        }
+    };
+
+    const handleAssignTeacher = () => {
+        setIsAssignModalOpen(true);
+    };
+
+    const handleAssignTeacherToBooking = async (teacherId: string, commissionId: string) => {
+        try {
+            const result = await createLesson({
+                bookingId: id,
+                teacherId,
+                commissionId,
+                status: "active",
+            });
+
+            if (!result.success) {
+                showEntityToast("lesson", {
+                    title: "Assignment Failed",
+                    description: result.error || "Failed to assign teacher to booking",
+                    duration: 5000,
+                });
+                return;
+            }
+
+            showEntityToast("lesson", {
+                title: "Teacher Assigned",
+                description: "Teacher successfully assigned to booking",
+                duration: 4000,
+            });
+
+            router.refresh();
+        } catch (error) {
+            console.error("Error assigning teacher:", error);
+            showEntityToast("lesson", {
+                title: "Assignment Error",
+                description: "An unexpected error occurred",
+                duration: 5000,
+            });
+        }
+    };
+
     return (
-        <div className="w-[365px] flex-shrink-0 space-y-3">
-            {/* Main Booking Card */}
-            <div className="bg-card border border-border rounded-lg overflow-hidden hover:bg-accent/10 transition-colors">
-                <div className="p-4">
-                    {/* Header */}
-                    <BookingHeader booking={booking} bookingColor={bookingColor} dateStart={dateStart} dateEnd={dateEnd} />
+        <>
+            <div className="w-full flex-shrink-0 space-y-3">
+                {/* Main Booking Card */}
+                <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card border border-border rounded-lg overflow-hidden hover:bg-accent/10 transition-colors cursor-grab active:cursor-grabbing">
+                    <div className="p-4">
+                        {/* Header */}
+                        <BookingHeader bookingId={id} lessons={data.lessons} durationMinutes={data.schoolPackage.durationMinutes} bookingColor={bookingColor} dateStart={dateStart} dateEnd={dateEnd} />
 
-                    {/* Students */}
-                    <BookingStudents students={booking.students} />
+                        {/* Students */}
+                        <BookingStudents bookingStudents={data.bookingStudents} />
+                    </div>
+
+                    {/* Tab Footer */}
+                    <StudentBookingTabFooter data={data} activeTab={activeTab} onTabClick={setActiveTab} onAssignTeacher={handleAssignTeacher} onAddLessonEvent={handleAddLessonEvent} availableTeachers={availableTeachers} loadingLessonId={loadingLessonId} />
+
+                    {/* Tab Content */}
+                    <BookingTabContent data={data} activeTab={activeTab} pricePerStudent={pricePerStudent} pricePerHour={pricePerHour} toPay={toPay} teacherColor={teacherColor} />
                 </div>
-
-                {/* Tab Footer */}
-                <StudentBookingTabFooter booking={booking} activeTab={activeTab} onTabClick={setActiveTab} />
-
-                {/* Tab Content */}
-                <BookingTabContent booking={booking} activeTab={activeTab} pricePerStudent={pricePerStudent} pricePerHour={pricePerHour} toPay={toPay} teacherColor={teacherColor} />
             </div>
-        </div>
+
+            <LinkTeacherLessonToBookingModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} existingTeacherUsernames={existingTeacherUsernames || []} onAssignTeacher={handleAssignTeacherToBooking} />
+        </>
     );
 };

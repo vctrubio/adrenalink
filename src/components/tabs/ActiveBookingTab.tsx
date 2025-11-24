@@ -7,18 +7,19 @@ import { ENTITY_DATA } from "@/config/entities";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { TLETab } from "./TLETab";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
+import type { ClassboardData } from "@/backend/models/ClassboardModel";
 
 interface ActiveBookingTabProps {
-    booking: ActiveBookingModel;
+    id: string;
+    data: ClassboardData;
 }
 
 // Sleek Adrenalink-branded progress slider
-const BookingProgressBar = ({ completedMinutes, booking }: { completedMinutes: number; booking: ActiveBookingModel }) => {
-    const progressPercent = Math.min((completedMinutes / booking.package.durationMinutes) * 100, 100);
+const BookingProgressBar = ({ completedMinutes, durationMinutes, students, pricePerStudent }: { completedMinutes: number; durationMinutes: number; students: number; pricePerStudent: number }) => {
+    const progressPercent = Math.min((completedMinutes / durationMinutes) * 100, 100);
     const packageEntityConfig = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const packageColor = packageEntityConfig?.color;
-    const totalRevenue = booking.package.pricePerStudent * booking.students.length;
+    const totalRevenue = pricePerStudent * students;
 
     return (
         <div className="space-y-2">
@@ -33,7 +34,7 @@ const BookingProgressBar = ({ completedMinutes, booking }: { completedMinutes: n
             {/* Stats row - subtle and clean */}
             <div className="flex items-center justify-between text-xs">
                 <div className="text-muted-foreground font-medium">
-                    {getPrettyDuration(completedMinutes)} / {getPrettyDuration(booking.package.durationMinutes)}
+                    {getPrettyDuration(completedMinutes)} / {getPrettyDuration(durationMinutes)}
                 </div>
                 <div className="flex items-center gap-1">
                     <div style={{ color: packageColor }}>
@@ -46,9 +47,9 @@ const BookingProgressBar = ({ completedMinutes, booking }: { completedMinutes: n
     );
 };
 
-export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
+export const ActiveBookingTab = ({ id, data }: ActiveBookingTabProps) => {
     // Get equipment icon and color based on category
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === booking.package.categoryEquipment);
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === data.schoolPackage.categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
     const equipmentColor = equipmentConfig?.color;
 
@@ -57,24 +58,29 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
     const studentColor = studentEntity.color;
 
     // Format dates
-    const dateStart = new Date(booking.dateStart).toLocaleDateString("en-US", {
+    const dateStart = new Date(data.booking.dateStart).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "2-digit",
     });
 
-    const dateEnd = new Date(booking.dateEnd).toLocaleDateString("en-US", {
+    const dateEnd = new Date(data.booking.dateEnd).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "2-digit",
     });
 
     // Generate helmet icons for student capacity
-    const studentCapacity = booking.package.capacityStudents;
-    const studentCount = booking.students.length;
+    const studentCapacity = data.schoolPackage.capacityStudents;
+    const studentCount = data.bookingStudents.length;
     const helmets = Array.from({ length: studentCapacity }, (_, i) => i < studentCount);
 
-    const completedMinutes = booking.totalEventDuration;
+    // Calculate completed minutes from all events across all lessons
+    const completedMinutes = data.lessons.reduce((sum, lesson) => {
+        return sum + lesson.events.reduce((eventSum, event) => {
+            return eventSum + (event.status === "completed" ? event.duration : 0);
+        }, 0);
+    }, 0);
 
     return (
         <div className="w-[365px] flex-shrink-0 space-y-3">
@@ -106,19 +112,24 @@ export const ActiveBookingTab = ({ booking }: ActiveBookingTabProps) => {
 
                 {/* Student Names */}
                 <div className="text-sm flex flex-wrap gap-1.5 mb-3">
-                    {booking.students.map((student) => (
-                        <HoverToEntity key={student.id} entity={studentEntity} id={student.id} className="font-semibold">
-                            {student.firstName} {student.lastName}
+                    {data.bookingStudents.map((bookingStudent) => (
+                        <HoverToEntity key={bookingStudent.student.id} entity={studentEntity} id={bookingStudent.student.id} className="font-semibold">
+                            {bookingStudent.student.firstName} {bookingStudent.student.lastName}
                         </HoverToEntity>
                     ))}
                 </div>
 
                 {/* Sleek Progress Slider */}
-                <BookingProgressBar completedMinutes={completedMinutes} booking={booking} />
+                <BookingProgressBar
+                    completedMinutes={completedMinutes}
+                    durationMinutes={data.schoolPackage.durationMinutes}
+                    students={data.bookingStudents.length}
+                    pricePerStudent={data.schoolPackage.pricePerStudent}
+                />
             </div>
 
             {/* Teachers & Events - TLETab */}
-            {booking.events.length > 0 && <TLETab booking={booking} />}
+            {data.lessons.length > 0 && <TLETab bookingId={id} lessons={data.lessons} />}
         </div>
     );
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import StudentBookingCard from "./StudentBookingCard";
+import { ActiveStudentBookingTab } from "@/src/components/tabs/ActiveStudentBookingTab";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { showEntityToast } from "@/getters/toast-getter";
@@ -13,15 +13,17 @@ interface StudentClassDailyProps {
     bookings: DraggableBooking[];
     classboardData: ClassboardModel;
     selectedDate: string;
-    onDragStart: (booking: DraggableBooking) => void;
-    onDragEnd: () => void;
-    onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    classboard: {
+        onDragStart: (booking: DraggableBooking) => void;
+        onDragEnd: () => void;
+        onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    };
     setOnNewBooking?: (callback: () => void) => void;
 }
 
 type StudentBookingFilter = "available" | "onboard";
 
-export default function StudentClassDaily({ bookings, classboardData, selectedDate, onDragStart, onDragEnd, onAddLessonEvent, setOnNewBooking }: StudentClassDailyProps) {
+export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard, setOnNewBooking }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
 
@@ -108,9 +110,9 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     ];
 
     return (
-        <div className="space-y-4 bg-card border border-border rounded-lg p-4 px-6.5">
+        <div className="flex flex-col bg-card border border-border rounded-lg p-4 px-6.5 h-full">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div className="flex items-center gap-2">
                     <div style={{ color: studentEntity?.color }}>
                         <HelmetIcon className="w-8 h-8" />
@@ -135,28 +137,25 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
 
             {/* Content */}
             {filteredBookings.length > 0 && (
-                <div className="flex flex-wrap gap-4 border-t border-border pt-4">
+                <div className="flex flex-wrap gap-4 border-t border-border pt-4 flex-1">
                     {filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];
-                        const students =
-                            bookingData?.bookingStudents.map((bs) => ({
-                                name: `${bs.student.firstName} ${bs.student.lastName}`,
-                                description: bs.student.description || null,
-                                languages: bs.student.languages || [],
-                            })) || [];
+                        if (!bookingData) return null;
+
+                        const availableTeachers = booking.lessons.map((lesson) => lesson.teacherUsername);
+                        const existingTeacherUsernames = bookingData.lessons.map((lesson) => lesson.teacher?.username).filter(Boolean) as string[];
 
                         return (
-                            <div key={booking.bookingId} style={{ width: "269px" }}>
-                                <StudentBookingCard
-                                    booking={booking}
-                                    students={students}
-                                    dateStart={bookingData?.booking.dateStart}
-                                    dateEnd={bookingData?.booking.dateEnd}
-                                    package={bookingData?.schoolPackage}
-                                    selectedClientDate={selectedDate}
-                                    onDragStart={() => onDragStart(booking)}
-                                    onDragEnd={onDragEnd}
-                                    onAddLessonEvent={(teacherUsername) => onAddLessonEvent?.(booking, teacherUsername)}
+                            <div key={booking.bookingId}>
+                                <ActiveStudentBookingTab
+                                    id={booking.bookingId}
+                                    data={bookingData}
+                                    onAddLessonEvent={(teacherUsername) => classboard.onAddLessonEvent?.(booking, teacherUsername)}
+                                    availableTeachers={availableTeachers}
+                                    existingTeacherUsernames={existingTeacherUsernames}
+                                    onDragStart={() => classboard.onDragStart(booking)}
+                                    onDragEnd={classboard.onDragEnd}
+                                    draggableBooking={booking}
                                 />
                             </div>
                         );

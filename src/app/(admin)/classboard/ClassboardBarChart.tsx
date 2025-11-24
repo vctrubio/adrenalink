@@ -23,7 +23,7 @@ export default function ClassboardBarChart({ stats, totalBookings }: ClassboardB
         },
         {
             id: "events",
-            name: "Events",
+            name: "Lessons",
             icon: FlagIcon,
             color: "#0ea5e9",
             value: stats.totalEvents,
@@ -55,9 +55,7 @@ export default function ClassboardBarChart({ stats, totalBookings }: ClassboardB
                                 {entity.value}
                             </div>
                         </div>
-                        <div style={{ color: entity.color }}>
-                            {IconComponent && <IconComponent className="w-6 h-6" />}
-                        </div>
+                        <div style={{ color: entity.color }}>{IconComponent && <IconComponent className="w-6 h-6" />}</div>
                         <span className="text-xs text-muted-foreground text-center truncate">{entity.name}</span>
                     </div>
                 );

@@ -99,19 +99,21 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 totalBookings={draggableBookings.length}
             />
 
-            <div className="flex-1 space-y-6">
+            <div className="space-y-4">
                 <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
                 <StudentClassDaily
                     bookings={draggableBookings}
                     classboardData={classboardData}
                     selectedDate={selectedDate}
-                    onDragStart={(booking) => {
-                        setDraggedBooking(booking);
+                    classboard={{
+                        onDragStart: (booking) => {
+                            setDraggedBooking(booking);
+                        },
+                        onDragEnd: () => {
+                            setDraggedBooking(null);
+                        },
+                        onAddLessonEvent: handleAddLessonEvent,
                     }}
-                    onDragEnd={() => {
-                        setDraggedBooking(null);
-                    }}
-                    onAddLessonEvent={handleAddLessonEvent}
                     setOnNewBooking={setOnNewBooking}
                 />
 

@@ -9,12 +9,13 @@ import { ENTITY_DATA } from "@/config/entities";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
 import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
-import type { ActiveBookingModel } from "@/backend/models/ActiveBookingModel";
+import type { ClassboardLesson, ClassboardEvent } from "@/backend/models/ClassboardModel";
 
 const DURATION_COLOR_FILL = "#f59e0b";
 
 interface TLETabProps {
-    booking: ActiveBookingModel;
+    bookingId: string;
+    lessons: ClassboardLesson[];
     teacherId?: string;
 }
 
@@ -37,7 +38,7 @@ const CommissionDisplay = ({ commission, commissionColor }: { commission: Return
 };
 
 // Event item - minimal and clean
-const EventItem = ({ event, statusColor, statusLabel }: { event: ActiveBookingModel["events"][0]; statusColor: string; statusLabel: string }) => {
+const EventItem = ({ event, statusColor, statusLabel }: { event: ClassboardEvent; statusColor: string; statusLabel: string }) => {
     return (
         <div className="flex items-center justify-between text-xs py-1">
             <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -73,7 +74,7 @@ const TeacherBookmark = ({
     commission,
     commissionColor,
 }: {
-    teacher?: { id: string; firstName: string; lastName: string; username: string };
+    teacher: { username: string; firstName: string; lastName: string };
     isExpanded: boolean;
     teacherColor?: string;
     commission: ReturnType<typeof getTeacherLessonCommission>;
@@ -94,64 +95,41 @@ const TeacherBookmark = ({
     );
 };
 
-export const TLETab = ({ booking, teacherId }: TLETabProps) => {
+export const TLETab = ({ bookingId, lessons, teacherId }: TLETabProps) => {
     const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(null);
 
     // Get entity colors
     const teacherColor = ENTITY_DATA.find((e) => e.id === "teacher")?.color;
     const commissionColor = ENTITY_DATA.find((e) => e.id === "commission")?.color;
 
-    // Check if events exist
-    if (booking.events.length === 0) {
+    // Check if lessons exist
+    if (lessons.length === 0) {
         return null;
     }
 
-    // Filter events by teacherId if provided
-    const filteredEvents = teacherId ? booking.events.filter((event) => event.teacher?.id === teacherId) : booking.events;
-
-    // Group events by teacher
-    const eventsByTeacher = filteredEvents.reduce(
-        (acc, event) => {
-            const teacherKey = event.teacher?.id || "unknown";
-            if (!acc[teacherKey]) {
-                acc[teacherKey] = {
-                    teacher: event.teacher,
-                    events: [],
-                };
-            }
-            acc[teacherKey].events.push(event);
-            return acc;
-        },
-        {} as Record<
-            string,
-            {
-                teacher?: { id: string; firstName: string; lastName: string; username: string };
-                events: typeof booking.events;
-            }
-        >,
-    );
+    // Filter lessons by teacherId if provided
+    const filteredLessons = teacherId ? lessons.filter((lesson) => lesson.teacher.id === teacherId) : lessons;
 
     return (
         <div className="flex flex-col">
-            {Object.entries(eventsByTeacher).map(([teacherKey, { teacher, events }]) => {
-                const isExpanded = expandedTeacherId === teacherKey;
+            {filteredLessons.map((lesson) => {
+                const isExpanded = expandedTeacherId === lesson.id;
+                const events = lesson.events;
 
-                // Calculate lesson revenue based on teacher's actual hours vs package total hours
+                // Calculate lesson revenue based on teacher's actual hours
                 const teacherMinutes = events.reduce((sum, evt) => sum + evt.duration, 0);
                 const teacherHours = teacherMinutes / 60;
-                const totalBookingRevenue = booking.package.pricePerStudent * booking.students.length;
-                const lessonRevenue = totalBookingRevenue * (teacherHours / (booking.package.durationMinutes / 60));
 
                 // Get commission breakdown
-                const commission = getTeacherLessonCommission(events, events[0]?.commission, lessonRevenue, booking.package.durationMinutes);
+                const commission = getTeacherLessonCommission(events, lesson.commission, 0, 0);
 
                 return (
                     <div
-                        key={teacherKey}
+                        key={lesson.id}
                         className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer"
-                        onClick={() => setExpandedTeacherId(isExpanded ? null : teacherKey)}
+                        onClick={() => setExpandedTeacherId(isExpanded ? null : lesson.id)}
                     >
-                        <TeacherBookmark teacher={teacher} isExpanded={isExpanded} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} />
+                        <TeacherBookmark teacher={lesson.teacher} isExpanded={isExpanded} teacherColor={teacherColor} commission={commission} commissionColor={commissionColor} />
 
                         {isExpanded && (
                             <div className="px-3 pb-2 space-y-0.5 border-t border-border/50">
