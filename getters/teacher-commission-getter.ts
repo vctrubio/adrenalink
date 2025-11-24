@@ -56,19 +56,19 @@ export function getTeacherLessonCommission(
 
 	if (commission.type === "fixed") {
 		// Fixed: rate/hr × hours = earnings
-		total = commission.cph * totalHours;
-		pricePerHour = `$${commission.cph.toFixed(2)}/hr`;
+		total = parseFloat(commission.cph as any) * totalHours;
+		pricePerHour = `$${parseFloat(commission.cph as any).toFixed(2)}/hr`;
 		commissionRate = "Fixed Rate";
-		formula = `$${commission.cph.toFixed(2)}/hr × ${prettyHours} = $${total.toFixed(2)}`;
+		formula = `$${parseFloat(commission.cph as any).toFixed(2)}/hr × ${prettyHours} = $${total.toFixed(2)}`;
 	} else {
 		// Percentage: rate% × (lesson_revenue / package_hours) × hours = earnings
 		const packageHours = packageDurationMinutes ? packageDurationMinutes / 60 : 1;
 		const pricePerHourValue = lessonRevenue ? lessonRevenue / packageHours : 0;
-		const percentageAmount = lessonRevenue ? (commission.cph / 100) * lessonRevenue : 0;
+		const percentageAmount = lessonRevenue ? (parseFloat(commission.cph as any) / 100) * lessonRevenue : 0;
 		total = percentageAmount;
 		pricePerHour = `$${pricePerHourValue.toFixed(2)}/hr`;
-		commissionRate = `${commission.cph.toFixed(2)}%`;
-		formula = `${commission.cph.toFixed(2)}% × $${lessonRevenue?.toFixed(2) || "0.00"} = $${total.toFixed(2)}`;
+		commissionRate = `${parseFloat(commission.cph as any).toFixed(2)}%`;
+		formula = `${parseFloat(commission.cph as any).toFixed(2)}% × $${lessonRevenue?.toFixed(2) || "0.00"} = $${total.toFixed(2)}`;
 	}
 
 	return {

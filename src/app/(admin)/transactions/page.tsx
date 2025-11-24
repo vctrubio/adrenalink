@@ -10,6 +10,7 @@ import {
 } from "@/getters/transactions-getter";
 import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
 import { getTransactions } from "@/actions/transactions-action";
+import TransactionRow from "./TransactionRow";
 
 export default async function TransactionsPage() {
   const transactions = await getTransactions();
@@ -58,27 +59,21 @@ export default async function TransactionsPage() {
                   const statusLabel = getEventStatusLabel(transaction.status as any);
 
                   return (
-                    <tr key={transaction.id} className="border-b border-border hover:bg-muted/20 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium">{formatDateFromTimestamp(transaction.date)}</td>
-                      <td className="px-4 py-3 text-sm font-mono">{formatTimeFromDate(transaction.date)}</td>
-                      <td className="px-4 py-3 text-sm">{getPrettyDuration(transaction.duration)}</td>
-                      <td className="px-4 py-3 text-sm font-medium">{transaction.teacher.username}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className="px-2 py-1 rounded-full text-xs font-medium"
-                          style={{ color: statusColor, backgroundColor: `${statusColor}20` }}
-                        >
-                          {statusLabel}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {getEquipmentForNow(transaction.package.categoryEquipment, transaction.package.capacityEquipment, transaction.equipment)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">{getStudentNames(transaction.students)}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold">${schoolRevenue.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold">${teacherCommissionAmount.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold">${schoolLeftover.toFixed(2)}</td>
-                    </tr>
+                    <TransactionRow
+                      key={transaction.id}
+                      eventId={transaction.id}
+                      date={formatDateFromTimestamp(transaction.date)}
+                      time={formatTimeFromDate(transaction.date)}
+                      duration={getPrettyDuration(transaction.duration)}
+                      teacher={transaction.teacher.username}
+                      statusColor={statusColor}
+                      statusLabel={statusLabel}
+                      equipment={getEquipmentForNow(transaction.package.categoryEquipment, transaction.package.capacityEquipment, transaction.equipment)}
+                      students={getStudentNames(transaction.students)}
+                      revenue={schoolRevenue.toFixed(2)}
+                      commission={teacherCommissionAmount.toFixed(2)}
+                      leftover={schoolLeftover.toFixed(2)}
+                    />
                   );
                 })
               )}
