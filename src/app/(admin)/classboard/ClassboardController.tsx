@@ -3,11 +3,10 @@
 import { useRef, useEffect, useState } from "react";
 import EventSettingController from "./EventSettingController";
 import ExportSettingController from "./ExportSettingController";
-import ClassboardBarChart from "./ClassboardBarChart";
 import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 import type { ControllerSettings as ControllerSettingsType, TeacherQueue } from "@/backend/TeacherQueue";
 import type { GlobalStats } from "@/backend/ClassboardStats";
-import StatsWithBulk from "./ClassboardStatsBulk";
+import ClassboardStatistics from "./ClassboardStatistics";
 
 interface SearchInputProps {
     search: string;
@@ -72,14 +71,12 @@ export default function ClassboardController({ search, setSearch, selectedDate, 
     return (
         <div className="bg-card">
             <div className="p-6 space-y-6">
-                <ClassboardBarChart stats={stats} totalBookings={totalBookings} />
-
                 <div className="">
                     <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                 </div>
 
-                <div className="border-t border-border pt-4">
-                    <StatsWithBulk stats={stats} teacherQueues={teacherQueues} />
+                <div className="border-t border-border pt-6">
+                    <ClassboardStatistics stats={stats} teacherQueues={teacherQueues} totalBookings={totalBookings} />
                 </div>
 
                 <div className="pt-1">

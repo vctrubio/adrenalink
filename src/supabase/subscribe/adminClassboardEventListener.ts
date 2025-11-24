@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
@@ -10,100 +10,130 @@ interface AdminClassboardEventListenerOptions {
     onEventDetected: (data: ClassboardModel) => void;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 3000;
+
 export function useAdminClassboardEventListener({ schoolId, onEventDetected }: AdminClassboardEventListenerOptions) {
+    const retryCountRef = useRef(0);
+    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
         if (!schoolId || schoolId.length === 0) {
             return;
         }
 
-        try {
-            const supabase = createClient();
+        const setupSubscription = () => {
+            try {
+                const supabase = createClient();
 
-            const handleEventChange = (payload: any) => {
-                console.log("[EVENT-LISTENER] 📢 Event detected:", {
-                    event: payload.eventType,
-                    table: payload.table,
-                    new: payload.new,
-                    old: payload.old,
-                });
-
-                getClassboardBookings()
-                    .then((result) => {
-                        if (result.success && result.data) {
-                            console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
-                            onEventDetected(result.data);
-                        } else {
-                            console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
-                        }
-                    })
-                    .catch((err) => {
-                        console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
+                const handleEventChange = (payload: any) => {
+                    console.log("[EVENT-LISTENER] 📢 Event detected:", {
+                        event: payload.eventType,
+                        table: payload.table,
+                        new: payload.new,
+                        old: payload.old,
                     });
-            };
 
-            const eventChannel = supabase
-                .channel(`classboard_event_changes_only_${schoolId}`)
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "INSERT",
-                        schema: "public",
-                        table: "event",
-                        filter: `school_id=eq.${schoolId}`,
-                    },
-                    (payload) => {
-                        console.log("[EVENT-LISTENER] 📥 INSERT event received");
-                        handleEventChange(payload);
-                    },
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "UPDATE",
-                        schema: "public",
-                        table: "event",
-                        filter: `school_id=eq.${schoolId}`,
-                    },
-                    (payload) => {
-                        console.log("[EVENT-LISTENER] ✏️ UPDATE event received", {
-                            eventId: payload.new?.id,
-                            oldDate: payload.old?.date,
-                            newDate: payload.new?.date,
-                            oldDuration: payload.old?.duration,
-                            newDuration: payload.new?.duration,
+                    getClassboardBookings()
+                        .then((result) => {
+                            if (result.success && result.data) {
+                                console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
+                                onEventDetected(result.data);
+                            } else {
+                                console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
+                            }
+                        })
+                        .catch((err) => {
+                            console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
                         });
-                        handleEventChange(payload);
-                    },
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "DELETE",
-                        schema: "public",
-                        table: "event",
-                    },
-                    (payload) => {
-                        console.log("[EVENT-LISTENER] 🗑️ DELETE event received", payload);
-                        handleEventChange(payload);
-                    },
-                )
-                .subscribe((status) => {
-                    console.log(`[EVENT-LISTENER] Subscription status: ${status}`);
-                    if (status === "SUBSCRIBED") {
-                        console.log("✅ [EVENT-LISTENER] Successfully subscribed to event changes");
-                    } else if (status === "CHANNEL_ERROR") {
-                        console.error("❌ [EVENT-LISTENER] CHANNEL_ERROR occurred");
-                    } else if (status === "TIMED_OUT") {
-                        console.error("❌ [EVENT-LISTENER] TIMED_OUT waiting for subscription");
-                    }
-                });
+                };
 
-            // Cleanup
-            return () => {
-                supabase.removeChannel(eventChannel);
-            };
-        } catch (error) {
-            console.error("[EVENT-LISTENER] Error during setup:", error);
-        }
-    }, [schoolId]);
+                const eventChannel = supabase
+                    .channel(`classboard_event_changes_only_${schoolId}`)
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "INSERT",
+                            schema: "public",
+                            table: "event",
+                            filter: `school_id=eq.${schoolId}`,
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] 📥 INSERT event received");
+                            handleEventChange(payload);
+                        },
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "UPDATE",
+                            schema: "public",
+                            table: "event",
+                            filter: `school_id=eq.${schoolId}`,
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] ✏️ UPDATE event received", {
+                                eventId: payload.new?.id,
+                                oldDate: payload.old?.date,
+                                newDate: payload.new?.date,
+                                oldDuration: payload.old?.duration,
+                                newDuration: payload.new?.duration,
+                            });
+                            handleEventChange(payload);
+                        },
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "DELETE",
+                            schema: "public",
+                            table: "event",
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] 🗑️ DELETE event received", payload);
+                            handleEventChange(payload);
+                        },
+                    )
+                    .subscribe((status, err) => {
+                        console.log(`[EVENT-LISTENER] Subscription status: ${status}`);
+                        if (status === "SUBSCRIBED") {
+                            console.log("✅ [EVENT-LISTENER] Successfully subscribed to event changes");
+                            retryCountRef.current = 0;
+                        } else if (status === "CHANNEL_ERROR") {
+                            console.error(`❌ [EVENT-LISTENER] CHANNEL_ERROR occurred (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`, err);
+                            handleSubscriptionError();
+                        } else if (status === "TIMED_OUT") {
+                            console.error(`❌ [EVENT-LISTENER] TIMED_OUT waiting for subscription (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`, err);
+                            handleSubscriptionError();
+                        }
+                    });
+
+                const handleSubscriptionError = () => {
+                    supabase.removeChannel(eventChannel);
+
+                    if (retryCountRef.current < MAX_RETRIES) {
+                        retryCountRef.current += 1;
+                        console.log(`[EVENT-LISTENER] Retrying in ${RETRY_DELAY_MS}ms...`);
+                        retryTimeoutRef.current = setTimeout(() => {
+                            setupSubscription();
+                        }, RETRY_DELAY_MS);
+                    } else {
+                        console.error("[EVENT-LISTENER] ⚠️ Max retries reached. Real-time updates disabled. Classboard will still work with manual refreshes.");
+                    }
+                };
+
+                // Cleanup
+                return () => {
+                    supabase.removeChannel(eventChannel);
+                    if (retryTimeoutRef.current) {
+                        clearTimeout(retryTimeoutRef.current);
+                    }
+                };
+            } catch (error) {
+                console.error("[EVENT-LISTENER] Error during setup:", error);
+            }
+        };
+
+        return setupSubscription();
+    }, [schoolId, onEventDetected]);
 }
