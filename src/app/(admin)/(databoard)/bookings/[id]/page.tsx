@@ -2,11 +2,9 @@ import { getEntityId } from "@/actions/id-actions";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { BookingModel } from "@/backend/models";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { BookingLeftColumn } from "./BookingLeftColumn";
 
 export default async function BookingDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("booking", params.id);
@@ -24,67 +22,15 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
 
     const bookingStudents = booking.relations?.bookingStudents || [];
     const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
-    const referral = booking.relations?.studentPackage?.referral;
 
     // Get equipment category icon and color
     const equipmentCategory = schoolPackage?.categoryEquipment;
     const equipmentConfig = equipmentCategory ? EQUIPMENT_CATEGORIES.find((cat) => cat.id === equipmentCategory) : null;
-    const EquipmentIcon = equipmentConfig?.icon;
     const equipmentColor = equipmentConfig?.color || bookingEntity.color;
-
-    // Format dates
-    const dateStart = formatDate(booking.schema.dateStart);
-    const dateEnd = formatDate(booking.schema.dateEnd);
 
     return (
         <EntityDetailLayout
-            leftColumn={
-                <div className="space-y-4">
-                    {/* Header */}
-                    <div>
-                        <div className="flex items-start gap-6 mb-4">
-                            <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
-                                <bookingEntity.icon size={48} />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-3xl font-bold text-foreground">{dateStart} - {dateEnd}</h3>
-                                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                                    Created {formatDate(booking.schema.createdAt)}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="h-1 w-full rounded-full" style={{ backgroundColor: bookingEntity.color }} />
-                    </div>
-
-                    {/* Details */}
-                    <div className="space-y-4 text-sm">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Status</p>
-                                <p className="font-medium text-foreground">{booking.schema.status || "Active"}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Referral</p>
-                                <p className="font-medium text-foreground">{referral?.code || "Nobody"}</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Duration</p>
-                                <p className="font-medium text-foreground">{getPrettyDuration(schoolPackage?.durationMinutes || 0)}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Students</p>
-                                <p className="font-medium text-foreground">{schoolPackage?.capacityStudents || 0}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Equipment</p>
-                                <p className="font-medium text-foreground">{schoolPackage?.capacityEquipment || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+            leftColumn={<BookingLeftColumn booking={booking} />}
             rightColumn={
                 <>
                     {/* Students */}
