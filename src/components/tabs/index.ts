@@ -1,4 +1,7 @@
 export { ActiveBookingTab } from "./ActiveBookingTab";
-export { ActiveStudentBookingTab } from "./ActiveStudentBookingTab";
-export { TLETab } from "./TLETab";
-export { StudentBookingTabFooter } from "./StudentBookingTabFooter";
+export { ActiveStudentBookingTab, type TabType } from "./ActiveStudentBookingTab";
+export { BookingTeacherLessonTab } from "./BookingTeacherLessonTab";
+export { BookingStudentTab } from "./BookingStudentTab";
+export { ActiveButtonsFooter } from "./ActiveButtonsFooter";
+export { BookingPackageTab } from "./BookingPackageTab";
+export { BookingPaymentTab } from "./BookingPaymentTab";
