@@ -24,7 +24,7 @@ function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPacka
                         <PackageIcon size={48} />
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">{packageName}</h3>
+                        <h3 className="text-3xl font-bold text-foreground">{schoolPackage.schema.description || "Package"}</h3>
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">
                             Created {formatDate(schoolPackage.schema.createdAt)}
                         </div>
@@ -47,8 +47,8 @@ function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPacka
             {/* Content */}
             <div className="space-y-4 text-sm">
                 <div>
-                    <p className="text-xs text-muted-foreground mb-2">Description</p>
-                    <p className="font-medium text-foreground">{schoolPackage.schema.description || "No description"}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Package Style</p>
+                    <p className="font-medium text-foreground">{packageName}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -131,11 +131,6 @@ function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage:
         }
     };
 
-    // Calculate hours for display
-    const hours = schoolPackage.schema.durationMinutes / 60;
-    const pricePerHour = schoolPackage.schema.pricePerStudent / hours;
-    const packageName = `${hours}h - $${pricePerHour.toFixed(0)}/h`;
-
     return (
         <>
             {/* Header */}
@@ -145,7 +140,7 @@ function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage:
                         <PackageIcon size={48} />
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">{packageName}</h3>
+                        <h3 className="text-3xl font-bold text-foreground">{schoolPackage.schema.description || "Package"}</h3>
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">
                             Created {formatDate(schoolPackage.schema.createdAt)}
                         </div>
