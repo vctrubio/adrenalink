@@ -9,6 +9,7 @@ export type StudentUpdateForm = StudentType & {
 };
 
 export type StudentModel = AbstractModel<StudentUpdateForm> & {
+    schema: StudentType;
     stats?: DataboardStats;
     popoverType?: "student_package";
 };
@@ -23,6 +24,7 @@ export function createStudentModel(studentData: any): StudentModel {
     const rental = schoolStudent?.rental ?? false;
 
     const model: StudentModel = {
+        schema: pgTableSchema,
         updateForm: {
             ...pgTableSchema,
             description,
