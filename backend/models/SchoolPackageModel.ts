@@ -2,7 +2,10 @@ import type { SchoolPackageType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import type { DataboardStats } from "@/getters/databoard-sql-stats";
 
-export type SchoolPackageModel = AbstractModel<SchoolPackageType> & {
+export type SchoolPackageUpdateForm = SchoolPackageType;
+
+export type SchoolPackageModel = AbstractModel<SchoolPackageUpdateForm> & {
+    schema: SchoolPackageType;
     stats?: DataboardStats;
     popoverType?: string;
 };
@@ -12,6 +15,7 @@ export function createSchoolPackageModel(schoolPackageData: any): SchoolPackageM
 
     const model: SchoolPackageModel = {
         schema: pgTableSchema,
+        updateForm: pgTableSchema,
         relations: {
             school,
             studentPackages,

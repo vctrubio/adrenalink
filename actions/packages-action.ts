@@ -3,9 +3,9 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
 import { schoolPackage, school, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
-import { createSchoolPackageModel, type SchoolPackageModel } from "@/backend/models";
+import { createSchoolPackageModel, type SchoolPackageModel, type SchoolPackageUpdateForm } from "@/backend/models";
 import { buildSchoolPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
@@ -176,5 +176,63 @@ export async function deletePackage(id: string): Promise<ApiActionResponseModel<
     } catch (error) {
         console.error("Error deleting package:", error);
         return { success: false, error: "Failed to delete package" };
+    }
+}
+
+// UPDATE SCHOOL PACKAGE WITH SCHOOL CONTEXT
+export async function updateSchoolPackageDetail(
+    data: SchoolPackageUpdateForm,
+): Promise<ApiActionResponseModel<SchoolPackageModel>> {
+    try {
+        const schoolId = await getSchoolIdFromHeader();
+        if (!schoolId) {
+            return { success: false, error: "School context not found" };
+        }
+
+        // Verify package belongs to the school
+        const packageData = await db.query.schoolPackage.findFirst({
+            where: eq(schoolPackage.id, data.id),
+        });
+
+        if (!packageData) {
+            return { success: false, error: "Package not found" };
+        }
+
+        if (packageData.schoolId !== schoolId) {
+            return { success: false, error: "You do not have permission to edit this package" };
+        }
+
+        // Update school package table
+        await db.update(schoolPackage).set({
+            description: data.description,
+            durationMinutes: data.durationMinutes,
+            pricePerStudent: data.pricePerStudent,
+            capacityStudents: data.capacityStudents,
+            capacityEquipment: data.capacityEquipment,
+            categoryEquipment: data.categoryEquipment,
+            packageType: data.packageType,
+            isPublic: data.isPublic,
+            active: data.active,
+        }).where(eq(schoolPackage.id, data.id));
+
+        revalidatePath(`/packages/${data.id}`);
+
+        // Fetch and return updated package
+        const result = await db.query.schoolPackage.findFirst({
+            where: eq(schoolPackage.id, data.id),
+            with: {
+                school: true,
+                studentPackages: true,
+            },
+        });
+
+        if (!result) {
+            return { success: false, error: "Package not found after update" };
+        }
+
+        return { success: true, data: createSchoolPackageModel(result) };
+    } catch (error) {
+        console.error("Error updating package:", error);
+        return { success: false, error: "Failed to update package" };
     }
 }

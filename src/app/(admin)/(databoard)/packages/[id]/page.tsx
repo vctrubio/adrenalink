@@ -1,14 +1,23 @@
 import { getEntityId } from "@/actions/id-actions";
+import { getSchoolIdFromHeader } from "@/types/headers";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
-import { ENTITY_DATA } from "@/config/entities";
-import { formatDate } from "@/getters/date-getter";
 import type { SchoolPackageModel } from "@/backend/models";
-import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
+import { PackageLeftColumn } from "./PackageLeftColumn";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 
 export default async function PackageDetailPage({ params }: { params: { id: string } }) {
+    const schoolId = await getSchoolIdFromHeader();
+
+    if (!schoolId) {
+        return (
+            <div className="p-8">
+                <div className="text-destructive">Error: School context not found</div>
+            </div>
+        );
+    }
+
     const result = await getEntityId("schoolPackage", params.id);
 
     if (!result.success) {
@@ -20,23 +29,21 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
     }
 
     const schoolPackage = result.data as SchoolPackageModel;
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
-    // Calculate hours from durationMinutes
+    // Verify package belongs to the school
+    if (schoolPackage.schema.schoolId !== schoolId) {
+        return (
+            <div className="p-8">
+                <div className="text-destructive">Error: You do not have permission to view this package</div>
+            </div>
+        );
+    }
+
+    // Calculate stats
     const hours = schoolPackage.schema.durationMinutes / 60;
     const pricePerHour = schoolPackage.schema.pricePerStudent / hours;
-
-    // Header: "2h - $60/h"
-    const packageName = `${hours}h - $${pricePerHour.toFixed(0)}/h`;
-
-    // Status: Public/Private
-    const statusText = schoolPackage.schema.isPublic ? "Public" : "Private";
-
-    // Stats
-    // 1. Number of student packages with this package_id
     const studentPackageCount = schoolPackage.relations?.studentPackages?.length || 0;
 
-    // 2. Total hours from all booking lesson events
     let totalEventMinutes = 0;
     if (schoolPackage.relations?.studentPackages) {
         for (const studentPkg of schoolPackage.relations.studentPackages) {
@@ -56,94 +63,32 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
         }
     }
     const totalEventHours = (totalEventMinutes / 60).toFixed(1);
-
-    // 3. Revenue: hours * price per hour per student
     const revenue = (totalEventMinutes / 60) * pricePerHour;
 
     return (
         <EntityDetailLayout
-            leftColumn={
+            leftColumn={<PackageLeftColumn schoolPackage={schoolPackage} />}
+            rightColumn={
                 <>
-                    <EntityInfoCard
-                        entity={{
-                            id: packageEntity.id,
-                            name: packageName,
-                            icon: packageEntity.icon,
-                            color: packageEntity.color,
-                            bgColor: packageEntity.bgColor,
-                        }}
-                        status={statusText}
-                        stats={[
-                            {
-                                icon: BookingIcon,
-                                label: "Requests",
-                                value: studentPackageCount,
-                                color: "#3b82f6",
-                            },
-                            {
-                                icon: DurationIcon,
-                                label: "Hours",
-                                value: totalEventHours,
-                                color: "#f59e0b",
-                            },
-                            {
-                                icon: BankIcon,
-                                label: "Revenue",
-                                value: `$${revenue.toFixed(0)}`,
-                                color: "#10b981",
-                            },
-                        ]}
-                        fields={[
-                            {
-                                label: "Description",
-                                value: schoolPackage.schema.description || "No description",
-                            },
-                            {
-                                label: "Duration (minutes)",
-                                value: schoolPackage.schema.durationMinutes,
-                            },
-                            {
-                                label: "Price Per Student",
-                                value: `$${schoolPackage.schema.pricePerStudent}`,
-                            },
-                            {
-                                label: "Capacity Students",
-                                value: schoolPackage.schema.capacityStudents,
-                            },
-                            {
-                                label: "Capacity Equipment",
-                                value: schoolPackage.schema.capacityEquipment,
-                            },
-                            {
-                                label: "Category Equipment",
-                                value: schoolPackage.schema.categoryEquipment,
-                            },
-                            {
-                                label: "Package Type",
-                                value: schoolPackage.schema.packageType,
-                            },
-                            {
-                                label: "Public",
-                                value: schoolPackage.schema.isPublic ? "Yes" : "No",
-                            },
-                            {
-                                label: "Active",
-                                value: schoolPackage.schema.active ? "Yes" : "No",
-                            },
-                            {
-                                label: "Created",
-                                value: formatDate(schoolPackage.schema.createdAt),
-                            },
-                            {
-                                label: "Last Updated",
-                                value: formatDate(schoolPackage.schema.updatedAt),
-                            },
-                        ]}
-                        accentColor={packageEntity.color}
-                    />
+                    <div className="bg-card border border-border rounded-lg p-6">
+                        <h2 className="text-lg font-semibold text-foreground mb-4">Package Stats</h2>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Student Packages</p>
+                                <p className="text-2xl font-bold text-foreground">{studentPackageCount}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Hours</p>
+                                <p className="text-2xl font-bold text-foreground">{totalEventHours}h</p>
+                            </div>
+                            <div className="border-t border-border pt-4">
+                                <p className="text-sm text-muted-foreground">Revenue</p>
+                                <p className="text-2xl font-bold text-foreground">${revenue.toFixed(0)}</p>
+                            </div>
+                        </div>
+                    </div>
                 </>
             }
-            rightColumn={<></>}
         />
     );
 }
