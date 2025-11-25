@@ -2,7 +2,12 @@ import type { TeacherType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import type { DataboardStats } from "@/getters/databoard-sql-stats";
 
-export type TeacherModel = AbstractModel<TeacherType> & {
+export type TeacherUpdateForm = TeacherType & {
+    active?: boolean;
+};
+
+export type TeacherModel = AbstractModel<TeacherUpdateForm> & {
+    schema: TeacherType;
     stats?: DataboardStats;
     popoverType?: "teacher_event_equipment";
 };
@@ -12,6 +17,7 @@ export function createTeacherModel(teacherData: any): TeacherModel {
 
     const model: TeacherModel = {
         schema: pgTableSchema,
+        updateForm: pgTableSchema,
         relations: {
             school,
             commissions,

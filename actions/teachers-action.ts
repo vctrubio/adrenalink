@@ -3,8 +3,9 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
+import { getSchoolIdFromHeader } from "@/types/headers";
 import { teacher, type TeacherForm, type TeacherType } from "@/drizzle/schema";
-import { createTeacherModel, type TeacherModel } from "@/backend/models";
+import { createTeacherModel, type TeacherModel, type TeacherUpdateForm } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const teacherWithRelations = {
@@ -105,5 +106,54 @@ export async function getTeachersBySchoolId(schoolId: string): Promise<ApiAction
     } catch (error) {
         console.error("Error fetching teachers by school ID:", error);
         return { success: false, error: "Failed to fetch teachers" };
+    }
+}
+
+// UPDATE TEACHER WITH SCHOOL-SPECIFIC DATA
+export async function updateTeacherDetail(
+    data: TeacherUpdateForm,
+): Promise<ApiActionResponseModel<TeacherModel>> {
+    try {
+        const schoolId = await getSchoolIdFromHeader();
+        if (!schoolId) {
+            return { success: false, error: "School context not found" };
+        }
+
+        // Update teacher table
+        await db.update(teacher).set({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            passport: data.passport,
+            country: data.country,
+            phone: data.phone,
+            languages: data.languages,
+            active: data.active,
+        }).where(eq(teacher.id, data.id));
+
+        revalidatePath(`/teachers/${data.username}`);
+
+        // Fetch and return updated teacher
+        const result = await db.query.teacher.findFirst({
+            where: eq(teacher.id, data.id),
+            with: {
+                school: true,
+                commissions: true,
+                lessons: {
+                    with: {
+                        events: true,
+                        booking: true,
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return { success: false, error: "Teacher not found after update" };
+        }
+
+        return { success: true, data: createTeacherModel(result) };
+    } catch (error) {
+        console.error("Error updating teacher:", error);
+        return { success: false, error: "Failed to update teacher" };
     }
 }

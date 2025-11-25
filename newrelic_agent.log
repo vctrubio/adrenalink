@@ -1628,3 +1628,39 @@
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":21616,"time":"2025-11-25T10:17:29.467Z","msg":"Starting initial 1000ms harvest."}
 {"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":21616,"time":"2025-11-25T10:40:29.249Z","msg":"Merging 1 of 1 events into TransactionEventAggregator for next harvest","component":"event_aggregator"}
 {"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":21616,"time":"2025-11-25T10:40:29.254Z","msg":"Merging 3 of 3 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.306Z","msg":"Using New Relic for Node.js. Agent version: 13.5.0; Node version: v20.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.354Z","msg":"new relic agent control disabled, skipping health reporting","component":"HealthReporter"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.382Z","msg":"Instrumentation for timers has been disabled via 'config.instrumentation.timers.enabled. Not instrumenting package","component":"shimmer"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.412Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.416Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:10.416Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:12.746Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:12.746Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BS72vQX1gkIwAG7SbRfS6jtpJc4MAAgBAAAnIQEAAMD2AgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:12.746Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:12.748Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:12.757Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":49398,"time":"2025-11-25T15:39:13.757Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:57.965Z","msg":"Using New Relic for Node.js. Agent version: 13.5.0; Node version: v20.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:57.996Z","msg":"new relic agent control disabled, skipping health reporting","component":"HealthReporter"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:58.023Z","msg":"Instrumentation for timers has been disabled via 'config.instrumentation.timers.enabled. Not instrumenting package","component":"shimmer"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:58.046Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:58.048Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:39:58.048Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:14.964Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:14.966Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BZNFOUyBMARfAG7SbRfS6jtpJc5IAAgBAAAnIQEAAMNQAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:14.966Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:14.969Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:14.979Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50000,"time":"2025-11-25T15:40:15.980Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.054Z","msg":"Using New Relic for Node.js. Agent version: 13.5.0; Node version: v20.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.104Z","msg":"new relic agent control disabled, skipping health reporting","component":"HealthReporter"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.131Z","msg":"Instrumentation for timers has been disabled via 'config.instrumentation.timers.enabled. Not instrumenting package","component":"shimmer"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.159Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.162Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:41.162Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:43.373Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:43.373Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BRX5-3qgRLVOAG7SbRfS6jtpJc6EAAgBAAAnIQEAAMczAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:43.373Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:43.374Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:43.376Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":50995,"time":"2025-11-25T15:41:44.377Z","msg":"Starting initial 1000ms harvest."}

@@ -103,7 +103,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                     </div>
                 ),
                 name: (
-                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
+                    <HoverToEntity entity={teacherEntity} id={teacher.schema.username}>
                         {teacher.schema.username}
                     </HoverToEntity>
                 ),

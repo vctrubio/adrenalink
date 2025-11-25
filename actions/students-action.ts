@@ -3,9 +3,9 @@
 import { eq, notInArray, exists, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
 import { student, school, schoolStudents, type StudentForm, type StudentType, type SchoolType, type SchoolStudentType } from "@/drizzle/schema";
-import { createStudentModel, type StudentModel } from "@/backend/models";
+import { createStudentModel, type StudentModel, type StudentUpdateForm } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 const studentWithRelations = {
@@ -167,5 +167,73 @@ export async function linkStudentToSchool(studentId: string, schoolId: string, d
     } catch (error) {
         console.error("Error linking student to school:", error);
         return { success: false, error: "Failed to link student to school" };
+    }
+}
+
+// UPDATE STUDENT WITH SCHOOL-SPECIFIC DATA
+export async function updateStudentDetail(
+    data: StudentUpdateForm,
+): Promise<ApiActionResponseModel<StudentModel>> {
+    try {
+        const schoolId = await getSchoolIdFromHeader();
+        if (!schoolId) {
+            return { success: false, error: "School context not found" };
+        }
+
+        // Update student table
+        await db.update(student).set({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            passport: data.passport,
+            country: data.country,
+            phone: data.phone,
+            languages: data.languages,
+        }).where(eq(student.id, data.id));
+
+        // Update schoolStudents table
+        await db.update(schoolStudents).set({
+            description: data.description,
+            active: data.active,
+            rental: data.rental,
+        }).where(and(eq(schoolStudents.studentId, data.id), eq(schoolStudents.schoolId, schoolId)));
+
+        revalidatePath(`/students/${data.id}`);
+
+        // Fetch and return updated student
+        const result = await db.query.student.findFirst({
+            where: eq(student.id, data.id),
+            with: {
+                schoolStudents: {
+                    where: eq(schoolStudents.schoolId, schoolId),
+                    with: {
+                        school: true,
+                    },
+                },
+                studentPackageStudents: {
+                    with: {
+                        studentPackage: {
+                            with: {
+                                schoolPackage: true,
+                            },
+                        },
+                    },
+                },
+                bookingStudents: {
+                    with: {
+                        booking: true,
+                    },
+                },
+                bookingPayments: true,
+            },
+        });
+
+        if (!result) {
+            return { success: false, error: "Student not found after update" };
+        }
+
+        return { success: true, data: createStudentModel(result) };
+    } catch (error) {
+        console.error("Error updating student:", error);
+        return { success: false, error: "Failed to update student" };
     }
 }

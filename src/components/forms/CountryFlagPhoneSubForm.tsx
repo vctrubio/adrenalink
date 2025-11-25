@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import ReactCountryFlag from "react-country-flag";
 import Image from "next/image";
 import { BadgeCheck } from "lucide-react";
-import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode } from "@/config/countries";
+import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode, getCountryByName } from "@/config/countries";
 
 // Sub-component for Country Selector
 function CountrySelector({ selectedCountryCode, onCountryChange, countryError, isValid }: { selectedCountryCode: string; onCountryChange: (countryCode: string, countryName: string) => void; countryError?: string; isValid?: boolean }) {
@@ -139,10 +139,12 @@ interface CountryFlagPhoneSubFormProps {
 }
 
 // Main component - ONLY RENDERS, logic in sub-components
-export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countryValue, countryError, phoneError, onClearPhone, countryIsValid, phoneIsValid }: CountryFlagPhoneSubFormProps) {
-    const [selectedCountryCode, setSelectedCountryCode] = useState<string>(DEFAULT_COUNTRY_CONFIG.code);
-    const [phonePrefix, setPhonePrefix] = useState<string>(DEFAULT_COUNTRY_CONFIG.phoneCode);
-    const [phoneNumber, setPhoneNumber] = useState<string>("");
+export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countryValue, countryError, phoneError, onClearPhone, countryIsValid, phoneIsValid, initialPhone }: CountryFlagPhoneSubFormProps & { initialPhone?: string }) {
+    // Initialize from countryValue or use default
+    const initialCountry = countryValue ? getCountryByName(countryValue) : null;
+    const [selectedCountryCode, setSelectedCountryCode] = useState<string>(initialCountry?.code || DEFAULT_COUNTRY_CONFIG.code);
+    const [phonePrefix, setPhonePrefix] = useState<string>(initialCountry?.phoneCode || DEFAULT_COUNTRY_CONFIG.phoneCode);
+    const [phoneNumber, setPhoneNumber] = useState<string>(initialPhone ? initialPhone.replace(phonePrefix, "") : "");
     const [isPrefixModified, setIsPrefixModified] = useState<boolean>(false);
 
     // Initialize with Spain as default - only run once on mount

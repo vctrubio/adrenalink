@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/drizzle/db";
+import { getSchoolIdFromHeader } from "@/types/headers";
 import {
     student,
     teacher,
@@ -173,17 +174,31 @@ export async function getEntityId(
         // 1. Fetch entity with appropriate relations
         switch (entity) {
             case "student":
-                entityData = await db.query.student.findFirst({
+                const schoolId = await getSchoolIdFromHeader();
+                if (!schoolId) {
+                    return { success: false, error: "School context not found" };
+                }
+
+                const studentData = await db.query.student.findFirst({
                     where: eq(student.id, id),
                     with: entityRelations.student,
                 });
+
+                if (studentData) {
+                    // Filter schoolStudents to only include the current school
+                    entityData = {
+                        ...studentData,
+                        schoolStudents: studentData.schoolStudents?.filter((ss) => ss.schoolId === schoolId) || [],
+                    };
+                }
+
                 statsQuery = buildStudentStatsQuery();
                 createModel = createStudentModel;
                 break;
 
             case "teacher":
                 entityData = await db.query.teacher.findFirst({
-                    where: eq(teacher.id, id),
+                    where: eq(teacher.username, id),
                     with: entityRelations.teacher,
                 });
                 statsQuery = buildTeacherStatsQuery();
