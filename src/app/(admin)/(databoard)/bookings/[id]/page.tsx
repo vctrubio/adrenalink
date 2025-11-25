@@ -5,7 +5,6 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { BookingModel } from "@/backend/models";
-import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
@@ -33,60 +32,61 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
     const EquipmentIcon = equipmentConfig?.icon;
     const equipmentColor = equipmentConfig?.color || bookingEntity.color;
 
-    // Format dates for status line
+    // Format dates
     const dateStart = formatDate(booking.schema.dateStart);
     const dateEnd = formatDate(booking.schema.dateEnd);
 
     return (
         <EntityDetailLayout
             leftColumn={
-                <>
-                    <EntityInfoCard
-                        entity={{
-                            id: bookingEntity.id,
-                            name: `Booking ${booking.schema.id.slice(0, 8)}`,
-                            icon: bookingEntity.icon,
-                            color: bookingEntity.color,
-                            bgColor: bookingEntity.bgColor,
-                        }}
-                        status={`${dateStart} - ${dateEnd}`}
-                        stats={[
-                            {
-                                icon: DurationIcon,
-                                label: "Duration",
-                                value: getPrettyDuration(schoolPackage?.durationMinutes || 0),
-                                color: "#f59e0b",
-                            },
-                            {
-                                icon: HelmetIcon,
-                                label: "Students",
-                                value: schoolPackage?.capacityStudents || 0,
-                                color: "#eab308",
-                            },
-                            {
-                                icon: EquipmentIcon || bookingEntity.icon,
-                                label: "Equipment",
-                                value: schoolPackage?.capacityEquipment || 0,
-                                color: equipmentColor,
-                            },
-                        ]}
-                        fields={[
-                            {
-                                label: "Referral",
-                                value: referral?.code || "Nobody",
-                            },
-                            {
-                                label: "Status",
-                                value: booking.schema.status || "Active",
-                            },
-                            {
-                                label: "Created",
-                                value: formatDate(booking.schema.createdAt),
-                            },
-                        ]}
-                        accentColor={bookingEntity.color}
-                    />
+                <div className="space-y-4">
+                    {/* Header */}
+                    <div>
+                        <div className="flex items-start gap-6 mb-4">
+                            <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
+                                <bookingEntity.icon size={48} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-3xl font-bold text-foreground">{dateStart} - {dateEnd}</h3>
+                                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                                    Created {formatDate(booking.schema.createdAt)}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="h-1 w-full rounded-full" style={{ backgroundColor: bookingEntity.color }} />
+                    </div>
 
+                    {/* Details */}
+                    <div className="space-y-4 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                                <p className="font-medium text-foreground">{booking.schema.status || "Active"}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Referral</p>
+                                <p className="font-medium text-foreground">{referral?.code || "Nobody"}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Duration</p>
+                                <p className="font-medium text-foreground">{getPrettyDuration(schoolPackage?.durationMinutes || 0)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Students</p>
+                                <p className="font-medium text-foreground">{schoolPackage?.capacityStudents || 0}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Equipment</p>
+                                <p className="font-medium text-foreground">{schoolPackage?.capacityEquipment || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            rightColumn={
+                <>
                     {/* Students */}
                     {bookingStudents.length > 0 && (
                         <div className="bg-card border border-border rounded-lg p-6">
@@ -126,10 +126,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
                             </div>
                         </div>
                     )}
-                </>
-            }
-            rightColumn={
-                <>
+
                     {/* Stats Card */}
                     <div className="bg-card border border-border rounded-lg p-6">
                         <h2 className="text-lg font-semibold text-foreground mb-4">Statistics</h2>

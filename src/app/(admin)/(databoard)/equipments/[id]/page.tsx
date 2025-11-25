@@ -5,7 +5,6 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { EquipmentModel } from "@/backend/models";
-import { EntityInfoCard } from "@/src/components/cards/EntityInfoCard";
 import { TeachersUsingEquipmentCard } from "@/src/components/cards/TeachersUsingEquipmentCard";
 import { EquipmentRepairsCard } from "@/src/components/cards/EquipmentRepairsCard";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -39,80 +38,62 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
     return (
         <EntityDetailLayout
             leftColumn={
-                <>
-                    <EntityInfoCard
-                        entity={{
-                            id: equipmentEntity.id,
-                            name: equipmentName,
-                            icon: CategoryIcon,
-                            color: categoryColor,
-                            bgColor: categoryConfig?.bgColor || equipmentEntity.bgColor,
-                        }}
-                        status={`${equipment.schema.sku} • ${equipment.schema.category}`}
-                        stats={[
-                            {
-                                icon: FlagIcon,
-                                label: "Events",
-                                value: equipment.stats?.events_count || 0,
-                                color: "#10b981",
-                            },
-                            {
-                                icon: DurationIcon,
-                                label: "Hours",
-                                value: getPrettyDuration(equipment.stats?.total_duration_minutes || 0),
-                                color: "#f59e0b",
-                            },
-                            {
-                                icon: RepairIcon,
-                                label: "Repairs",
-                                value: repairCount,
-                                color: "#ef4444",
-                            },
-                        ]}
-                        fields={[
-                            {
-                                label: "SKU",
-                                value: equipment.schema.sku,
-                            },
-                            {
-                                label: "Model",
-                                value: equipment.schema.model,
-                            },
-                            {
-                                label: "Size",
-                                value: equipment.schema.size ? `${equipment.schema.size}m` : "N/A",
-                            },
-                            {
-                                label: "Color",
-                                value: equipment.schema.color || "N/A",
-                            },
-                            {
-                                label: "Category",
-                                value: equipment.schema.category,
-                            },
-                            {
-                                label: "Status",
-                                value: equipment.schema.status || "Unknown",
-                            },
-                            {
-                                label: "Created",
-                                value: formatDate(equipment.schema.createdAt),
-                            },
-                            {
-                                label: "Last Updated",
-                                value: formatDate(equipment.schema.updatedAt),
-                            },
-                        ]}
-                        accentColor={categoryColor}
-                    />
+                <div className="space-y-4">
+                    {/* Header */}
+                    <div>
+                        <div className="flex items-start gap-6 mb-4">
+                            <div className="flex-shrink-0" style={{ color: categoryColor }}>
+                                <CategoryIcon size={48} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-3xl font-bold text-foreground">{equipmentName}</h3>
+                                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                                    Created {formatDate(equipment.schema.createdAt)}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="h-1 w-full rounded-full" style={{ backgroundColor: categoryColor }} />
+                    </div>
 
-                    <TeachersUsingEquipmentCard equipment={equipment} />
-
-                    <EquipmentRepairsCard equipment={equipment} />
-                </>
+                    {/* Details */}
+                    <div className="space-y-4 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">SKU</p>
+                                <p className="font-medium text-foreground">{equipment.schema.sku}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                                <p className="font-medium text-foreground">{equipment.schema.status || "Unknown"}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Size</p>
+                                <p className="font-medium text-foreground">{equipment.schema.size ? `${equipment.schema.size}m` : "N/A"}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Color</p>
+                                <p className="font-medium text-foreground">{equipment.schema.color || "N/A"}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground mb-1">Category</p>
+                            <p className="font-medium text-foreground">{equipment.schema.category}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
+                            <p className="font-medium text-foreground">{formatDate(equipment.schema.updatedAt)}</p>
+                        </div>
+                    </div>
+                </div>
             }
             rightColumn={
                 <>
+                    <TeachersUsingEquipmentCard equipment={equipment} />
+
+                    <EquipmentRepairsCard equipment={equipment} />
+
                     {/* Stats Card */}
                     <div className="bg-card border border-border rounded-lg p-6">
                         <h2 className="text-lg font-semibold text-foreground mb-4">Statistics</h2>

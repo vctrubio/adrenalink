@@ -6,7 +6,10 @@ export type EquipmentStats = DataboardStats & {
     teacherHours: Record<string, number>;
 };
 
-export type EquipmentModel = AbstractModel<EquipmentType> & {
+export type EquipmentUpdateForm = EquipmentType;
+
+export type EquipmentModel = AbstractModel<EquipmentUpdateForm> & {
+    schema: EquipmentType;
     stats?: EquipmentStats;
     popoverType?: "equipment_repair";
 };
@@ -16,6 +19,7 @@ export function createEquipmentModel(equipmentData: any): EquipmentModel {
 
     const model: EquipmentModel = {
         schema: pgTableSchema,
+        updateForm: pgTableSchema,
         relations: {
             teacherEquipments,
             equipmentRepairs,
