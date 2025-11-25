@@ -1,3 +1,4 @@
+// remove
 "use client";
 
 import { useState } from "react";
@@ -572,12 +573,7 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
                 </div>
             </div>
 
-            <LinkTeacherLessonToBookingModal
-                isOpen={isAssignModalOpen}
-                onClose={() => setIsAssignModalOpen(false)}
-                existingTeacherUsernames={existingTeacherUsernames}
-                onAssignTeacher={handleAssignTeacherToBooking}
-            />
+            <LinkTeacherLessonToBookingModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} existingTeacherUsernames={existingTeacherUsernames} onAssignTeacher={handleAssignTeacherToBooking} />
         </>
     );
 }

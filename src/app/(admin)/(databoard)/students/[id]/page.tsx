@@ -3,6 +3,7 @@ import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout"
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { StudentModel } from "@/backend/models";
 import { StudentLeftColumn } from "./StudentLeftColumn";
+import { StudentBookingStats } from "./StudentBookingStats";
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
     const result = await getEntityId("student", params.id);
@@ -63,6 +64,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                             </div>
                         </div>
                     </div>
+
+                    {/* Booking Statistics */}
+                    <StudentBookingStats student={student} />
 
                     {/* Requested Packages */}
                     {(student.stats?.requested_packages_count || 0) > 0 && (

@@ -186,9 +186,23 @@ export async function getEntityId(
 
                 if (studentData) {
                     // Filter schoolStudents to only include the current school
+                    const filteredSchoolStudents = studentData.schoolStudents?.filter((ss) => ss.schoolId === schoolId) || [];
+
+                    // Filter bookingStudents to only include bookings from the current school
+                    const filteredBookingStudents = studentData.bookingStudents?.filter((bs: any) => {
+                        return bs.booking?.studentPackage?.schoolPackage?.schoolId === schoolId;
+                    }) || [];
+
+                    // Filter bookingPayments to only include payments for bookings from the current school
+                    const filteredBookingPayments = studentData.bookingPayments?.filter((bp: any) => {
+                        return filteredBookingStudents.some((bs: any) => bs.bookingId === bp.bookingId);
+                    }) || [];
+
                     entityData = {
                         ...studentData,
-                        schoolStudents: studentData.schoolStudents?.filter((ss) => ss.schoolId === schoolId) || [],
+                        schoolStudents: filteredSchoolStudents,
+                        bookingStudents: filteredBookingStudents,
+                        bookingPayments: filteredBookingPayments,
                     };
                 }
 
