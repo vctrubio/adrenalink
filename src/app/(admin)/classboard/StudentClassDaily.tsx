@@ -107,39 +107,29 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
 
     return (
         <div className="flex flex-col h-full">
-            {/* Header with Icon and Toggle */}
-            <div className="flex items-center gap-3 p-4 pb-3 border-b border-border bg-muted/30">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-card border border-border shadow-sm" style={{ color: studentEntity?.color }}>
-                    <HelmetIcon className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-foreground">Students</h3>
-                </div>
-            </div>
-
-            {/* Toggle Switch */}
-            <div className="p-4 pb-3 border-b border-border">
-                <div className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg border border-border">
-                    <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium transition-colors ${filter === "available" ? "text-foreground" : "text-muted-foreground"}`}>Available</span>
-                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "available" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+            {/* Header with Icon and Switch */}
+            <div className="p-4 px-6.5 border-b border-border space-y-3">
+                <div className="flex items-center gap-4">
+                    <HelmetIcon className="w-8 h-8 text-yellow-400 flex-shrink-0" />
+                    <div className="text-xl font-bold text-foreground">Students</div>
+                    <div className="ml-auto flex items-center gap-2">
+                        <span
+                            className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "available" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" : "bg-muted text-muted-foreground"}`}
+                        >
                             {counts.available}
                         </span>
-                    </div>
 
-                    <Switch
-                        checked={filter === "onboard"}
-                        onChange={(checked) => setFilter(checked ? "onboard" : "available")}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${filter === "onboard" ? "bg-primary" : "bg-muted-foreground/40"}`}
-                    >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${filter === "onboard" ? "translate-x-6" : "translate-x-1"}`} />
-                    </Switch>
+                        <Switch
+                            checked={filter === "onboard"}
+                            onChange={(checked) => setFilter(checked ? "onboard" : "available")}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 ${filter === "onboard" ? "bg-yellow-500" : "bg-muted-foreground/40"}`}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${filter === "onboard" ? "translate-x-6" : "translate-x-1"}`} />
+                        </Switch>
 
-                    <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "onboard" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "onboard" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" : "bg-muted text-muted-foreground"}`}>
                             {counts.onboard}
                         </span>
-                        <span className={`text-xs font-medium transition-colors ${filter === "onboard" ? "text-foreground" : "text-muted-foreground"}`}>Onboard</span>
                     </div>
                 </div>
             </div>
@@ -151,22 +141,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         const bookingData = classboardData[booking.bookingId];
                         if (!bookingData) return null;
 
-                        const availableTeachers = booking.lessons.map((lesson) => lesson.teacherUsername);
-                        const existingTeacherUsernames = bookingData.lessons.map((lesson) => lesson.teacher?.username).filter(Boolean) as string[];
-
-                        return (
-                            <ActiveStudentBookingTab
-                                key={booking.bookingId}
-                                id={booking.bookingId}
-                                data={bookingData}
-                                onAddLessonEvent={(teacherUsername) => classboard.onAddLessonEvent?.(booking, teacherUsername)}
-                                availableTeachers={availableTeachers}
-                                existingTeacherUsernames={existingTeacherUsernames}
-                                onDragStart={() => classboard.onDragStart(booking)}
-                                onDragEnd={classboard.onDragEnd}
-                                draggableBooking={booking}
-                            />
-                        );
+                        return <ActiveStudentBookingTab key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
                     })
                 ) : (
                     <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No {filter} students</div>

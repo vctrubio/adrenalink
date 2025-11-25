@@ -59,7 +59,11 @@ const AddEventButton = ({ lessons, onAddLessonEvent, loadingLessonId }: { lesson
                     {lessons.map((lesson) => (
                         <Menu.Item key={lesson.teacher.username}>
                             {({ active }) => (
-                                <button onClick={(e) => handleAddLessonClick(e, lesson.teacher.username)} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`} style={{ color: active ? teacherEntity?.color : undefined }}>
+                                <button
+                                    onClick={(e) => handleAddLessonClick(e, lesson.teacher.username)}
+                                    className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}
+                                    style={{ color: active ? teacherEntity?.color : undefined }}
+                                >
                                     {lesson.teacher.username}
                                 </button>
                             )}
@@ -103,7 +107,9 @@ const SettingsButton = ({ bookingStatus }: { bookingStatus: string }) => {
                     {(["active", "completed", "uncompleted"] as const).map((status) => (
                         <Menu.Item key={status}>
                             {({ active }) => (
-                                <button className={`w-full text-left px-3 py-2 text-sm rounded-md capitalize transition-colors ${bookingStatus === status ? "bg-accent text-accent-foreground font-medium" : active ? "bg-accent/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/30"}`}>
+                                <button
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md capitalize transition-colors ${bookingStatus === status ? "bg-accent text-accent-foreground font-medium" : active ? "bg-accent/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/30"}`}
+                                >
                                     {status}
                                 </button>
                             )}
@@ -135,7 +141,7 @@ export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, load
 
     return (
         <>
-            <div className="border-t border-border">
+            <div className="border-t border-border bg-stone-200">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center flex-wrap">
                         <AddEventButton lessons={lessons} onAddLessonEvent={onAddLessonEvent} loadingLessonId={loadingLessonId} />

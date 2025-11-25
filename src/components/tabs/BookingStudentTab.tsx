@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ENTITY_DATA } from "@/config/entities";
 import type { ClassboardBookingStudent } from "@/backend/models/ClassboardModel";
 
@@ -30,9 +31,11 @@ export const BookingStudentTab = ({ student }: BookingStudentTabProps) => {
     return (
         <div className="space-y-2">
             <div className="flex items-center gap-3 pb-2 border-b border-border">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${studentColor}20`, color: studentColor }}>
-                    {StudentIcon && <StudentIcon size={24} />}
-                </div>
+                <Link href={`/students/${student.id}`}>
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: `${studentColor}20`, color: studentColor }}>
+                        {StudentIcon && <StudentIcon size={24} />}
+                    </div>
+                </Link>
                 <div className="flex flex-col">
                     <div className="text-sm font-semibold text-foreground">{student.firstName} {student.lastName}</div>
                     <div className="text-xs text-muted-foreground">{student.passport}</div>

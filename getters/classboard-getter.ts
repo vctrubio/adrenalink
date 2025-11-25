@@ -19,6 +19,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
 
         result[id] = {
             booking: {
+                id,
                 dateStart,
                 dateEnd,
                 schoolId,

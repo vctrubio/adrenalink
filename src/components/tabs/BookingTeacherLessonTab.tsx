@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -34,9 +35,11 @@ const CommissionDisplay = ({ commission, commissionColor }: { commission: Return
 
 const TeacherHeader = ({ teacher, commission, commissionColor, teacherColor }: { teacher: ClassboardLesson["teacher"]; commission: ReturnType<typeof getTeacherLessonCommission>; commissionColor?: string; teacherColor?: string }) => (
     <div className="flex items-center gap-3 pb-2 border-b border-border">
-        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${teacherColor}20`, color: teacherColor }}>
-            <HeadsetIcon size={24} />
-        </div>
+        <Link href={`/teachers/${teacher.username}`}>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: `${teacherColor}20`, color: teacherColor }}>
+                <HeadsetIcon size={24} />
+            </div>
+        </Link>
         <div className="flex flex-col">
             <div className="text-sm font-semibold text-foreground">{teacher.username}</div>
             <CommissionDisplay commission={commission} commissionColor={commissionColor} />

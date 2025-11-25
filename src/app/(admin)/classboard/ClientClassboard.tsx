@@ -91,17 +91,17 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-muted/30">
             {/* Collapsible Controller */}
-            <ClassboardController
-                search={searchQuery}
-                setSearch={setSearchQuery}
-                controller={controller}
-                setController={setController}
-                stats={globalStats}
-                teacherQueues={teacherQueues}
-                totalBookings={draggableBookings.length}
-                isCollapsed={isControllerCollapsed}
-                onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)}
-            />
+            {/* <ClassboardController */}
+            {/*     search={searchQuery} */}
+            {/*     setSearch={setSearchQuery} */}
+            {/*     controller={controller} */}
+            {/*     setController={setController} */}
+            {/*     stats={globalStats} */}
+            {/*     teacherQueues={teacherQueues} */}
+            {/*     totalBookings={draggableBookings.length} */}
+            {/*     isCollapsed={isControllerCollapsed} */}
+            {/*     onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)} */}
+            {/* /> */}
 
             {/* Top Controls Row: Date Picker + Flag Controls */}
             <div className="flex gap-4 p-4 pb-0">
@@ -115,7 +115,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 {/* Flag Controls Island - Rest of the width */}
                 <div className="flex-1">
                     <div className="bg-card rounded-xl border border-border shadow-sm p-4">
-                        <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+                        <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
                     </div>
                 </div>
             </div>
@@ -124,7 +124,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             <div className="flex flex-1 gap-4 p-4 overflow-hidden">
                 {/* Left Sidebar: Students Island */}
                 <div className="w-[340px] flex-shrink-0">
-                    <div className="bg-card rounded-xl border border-border shadow-sm h-full overflow-hidden flex flex-col">
+                    <div className="border-2 border-yellow-500 rounded-xl h-full overflow-hidden flex flex-col">
                         <StudentClassDaily
                             bookings={draggableBookings}
                             classboardData={classboardData}

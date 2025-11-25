@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import TeacherEventQueue from "./TeacherEventQueue";
 import TeacherQueueEditor from "./TeacherEventQueueEditor";
 import TeacherColumnController from "./TeacherColumnController";
@@ -19,6 +19,7 @@ function TeacherColumn({
     controller,
     onEventDeleted,
     onParentRefresh,
+    isFirst = false,
 }: {
     queue: TeacherQueue;
     dragState: DragState;
@@ -27,6 +28,7 @@ function TeacherColumn({
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onParentRefresh?: () => void;
+    isFirst?: boolean;
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -187,12 +189,12 @@ function TeacherColumn({
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className={`flex-shrink-0 w-[340px] bg-card flex flex-col border rounded-lg overflow-hidden shadow-sm transition-all duration-200 ${
+            className={`flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${
                 isDragOver && isCompatible
-                    ? "border-primary ring-2 ring-primary/20"
+                    ? "border-2 border-yellow-500"
                     : isDragOver && isIncompatible
-                      ? "border-destructive/50 ring-2 ring-destructive/10"
-                      : "border-border"
+                      ? "border-2 border-muted"
+                      : "border-2 border-transparent"
             }`}
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
@@ -310,16 +312,20 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                     </div>
                 </div>
             ) : (
-                <div className="h-full flex overflow-x-auto gap-3 pb-2">
+                <div className="h-full flex overflow-x-auto pb-2 gap-4">
                     {teacherQueues.map((queue, index) => {
                             const stats = classboardStats.getTeacherStats(queue.teacher.username);
                             if (!stats) return null;
 
                             return (
-                                <TeacherColumn
-                                    key={queue.teacher.username}
-                                    queue={queue}
-                                    stats={stats}
+                                <React.Fragment key={queue.teacher.username}>
+                                    {index > 0 && (
+                                        <div className="w-px bg-muted flex-shrink-0" />
+                                    )}
+                                    <TeacherColumn
+                                        queue={queue}
+                                        stats={stats}
+                                        isFirst={index === 0}
                                     dragState={{
                                         dragOverTeacher,
                                         dragCompatibility,
@@ -335,6 +341,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                     onEventDeleted={onEventDeleted}
                                     onParentRefresh={() => setRefreshKey((prev) => prev + 1)}
                                 />
+                                </React.Fragment>
                             );
                     })}
                 </div>

@@ -85,8 +85,8 @@ function HeroSection() {
         <div className="space-y-4">
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight drop-shadow-2xl">Revolutionize Your School</h2>
             {/* // state of the art , 3 portal view, connecting administration, student, and teeachers to the same lesson*/}
-            <p className="text-xs text-secondary/60 font-mono tracking-wider">We facilitate an easy ‘next generation’ solution, managing student registration, booking progress and lesson payments.</p>
-            <p className="text-xs text-secondary/60 font-mono tracking-wider">Read more below.</p>
+            <p className="text-xs text-white/60 font-mono tracking-wider">We facilitate an easy next generation solution, managing student registration, booking progress and lesson payments.</p>
+            <p className="text-xs text-white/60 font-mono tracking-wider">Read more below.</p>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import type { SchoolPackageType, StudentType, EventType } from "@/drizzle/schema";
 
 export type ClassboardBooking = {
+    id: string;
     dateStart: string;
     dateEnd: string;
     schoolId: string;

@@ -1,7 +1,6 @@
 import { db } from "@/drizzle/db";
 import { event as eventTable, lesson as lessonTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { ActiveBookingTab } from "@/src/components/tabs/ActiveBookingTab";
 import EventCard from "@/src/app/(admin)/classboard/EventCard";
 import { EventDisplayCard } from "./EventDisplayCard";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
@@ -134,7 +133,6 @@ export default async function EventViewPage({ params }: { params: { id: string }
                     <h2 className="text-lg font-semibold flex items-center gap-2 text-white/80">
                         <User className="w-5 h-5" /> Admin Portal View
                     </h2>
-                    <ActiveBookingTab id={booking.id} data={bookingDataForTab} />
                 </div>
 
                 {/* Top-Right: Admin Event Card */}

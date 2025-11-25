@@ -277,7 +277,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`w-full bg-background border border-border rounded-lg overflow-visible relative shadow-sm ${HEADING_PADDING}`}
+            className={`w-full bg-card border border-border rounded-lg overflow-visible relative shadow-sm ${HEADING_PADDING}`}
         >
             <HeaderRow
                 startTime={startTime}

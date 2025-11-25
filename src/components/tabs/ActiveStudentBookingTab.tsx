@@ -38,12 +38,22 @@ const EquipmentTag = ({ schoolPackage }: { schoolPackage: ClassboardData["school
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((e) => e.id === schoolPackage.categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
     const equipmentColor = equipmentConfig?.color;
+    const capacity = schoolPackage.capacityEquipment;
 
     if (!EquipmentIcon) return null;
 
+    if (capacity > 2) {
+        return (
+            <div className="flex items-center gap-1 pl-2" style={{ color: equipmentColor }} title={`Equipment Capacity: ${capacity}`}>
+                <EquipmentIcon size={ICON_SIZE} />
+                <span className="text-xs font-semibold">+{capacity}</span>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex items-center" style={{ color: equipmentColor }} title={`Equipment Capacity: ${schoolPackage.capacityEquipment}`}>
-            {Array.from({ length: schoolPackage.capacityEquipment }).map((_, i) => (
+        <div className="flex items-center" style={{ color: equipmentColor }} title={`Equipment Capacity: ${capacity}`}>
+            {Array.from({ length: capacity }).map((_, i) => (
                 <EquipmentIcon key={`equip-${i}`} size={ICON_SIZE} className={`${i > 0 ? "-ml-2" : ""}`} />
             ))}
         </div>
@@ -96,7 +106,9 @@ const TeacherTag = ({ lessons, tabs }: TeacherTagProps) => {
                             e.currentTarget.style.backgroundColor = isSelected ? `${teacherColor}30` : "transparent";
                         }}
                     >
-                        <div style={{ color: teacherColor }}>{TeacherIcon && <TeacherIcon size={ICON_SIZE} />}</div>
+                        <Link href={`/teachers/${lesson.teacher.username}`} className="flex items-center justify-center" onClick={(e) => e.stopPropagation()} style={{ color: teacherColor }}>
+                            {TeacherIcon && <TeacherIcon size={ICON_SIZE} />}
+                        </Link>
                         <span className="font-medium whitespace-nowrap">{lesson.teacher.username}</span>
                     </motion.button>
                 );
@@ -162,6 +174,31 @@ const PackageTag = ({ durationMinutes, pricePerHour, eventHours, activeTab, onCl
     );
 };
 
+// --- Date Card Component ---
+
+interface DateCardProps {
+    month: string;
+    day: string;
+    dateRangeText: string;
+    bookingEntity: any;
+    isDateMatch: boolean;
+    href: string;
+}
+
+const DateCard = ({ month, day, dateRangeText, bookingEntity, isDateMatch, href }: DateCardProps) => (
+    <Link href={href} className="col-span-3">
+        <div className="border border-border rounded-lg overflow-hidden hover:bg-neutral-100 transition-colors cursor-pointer">
+            <div className="py-1 text-center border-b border-border">
+                <p className="text-xs font-bold" style={{ color: bookingEntity.color }}>
+                    {month}
+                </p>
+                <p className="text-lg font-black text-foreground">{day}</p>
+            </div>
+            <div className={`text-center text-xs font-medium p-1 ${isDateMatch ? "bg-muted" : ""}`}>{dateRangeText}</div>
+        </div>
+    </Link>
+);
+
 // --- Header Component ---
 
 interface BookingHeaderProps {
@@ -169,32 +206,37 @@ interface BookingHeaderProps {
     month: string;
     day: string;
     tabs: BookingTabsContent;
+    selectedDate: string;
 }
 
-const BookingHeader = ({ bookingData, month, day, tabs }: BookingHeaderProps) => {
+const BookingHeader = ({ bookingData, month, day, tabs, selectedDate }: BookingHeaderProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
     const { schoolPackage, lessons, booking } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
 
+    const endDate = new Date(booking.dateEnd);
+    const selected = new Date(selectedDate);
+    const daysUntilSelected = Math.ceil((selected.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
+    const dateRangeText = endDate.toDateString() === selected.toDateString() ? "xp today" : `xp ${daysUntilSelected}d`;
+
     return (
-        <div className="flex items-start gap-3 mb-3">
-            <Link href={`/bookings/${booking.id}`}>
-                <div className="text-right flex-shrink-0">
-                    <div className="bg-muted/50 rounded-lg p-1.5 text-center w-16 border border-border">
-                        <p className="text-xs font-bold" style={{ color: bookingEntity?.color || "#fb923c" }}>
-                            {month}
-                        </p>
-                        <p className="text-2xl font-black text-foreground">{day}</p>
-                    </div>
-                </div>
-            </Link>
-            <div className="flex-1 pr-4 pt-0.5 space-y-2">
+        <div className="grid grid-cols-12 gap-3">
+            <DateCard month={month} day={day} dateRangeText={dateRangeText} bookingEntity={bookingEntity} isDateMatch={endDate.toDateString() === selected.toDateString()} href={`/bookings/${booking.id}`} />
+
+            <div className="col-span-9 space-y-2">
                 <div className="flex items-center gap-3 overflow-x-auto">
                     <EquipmentTag schoolPackage={schoolPackage} />
                     {lessons.length > 0 && <div className="h-5 w-px bg-border"></div>}
                     <TeacherTag lessons={lessons} tabs={tabs} />
                 </div>
-                <PackageTag durationMinutes={packageInfo.durationMinutes} pricePerHour={packageInfo.pricePerHour} eventHours={packageInfo.eventHours} activeTab={tabs.activeTab} onClick={() => tabs.onTabClick("package")} onPaymentClick={() => tabs.onTabClick("payment")} />
+                <PackageTag
+                    durationMinutes={packageInfo.durationMinutes}
+                    pricePerHour={packageInfo.pricePerHour}
+                    eventHours={packageInfo.eventHours}
+                    activeTab={tabs.activeTab}
+                    onClick={() => tabs.onTabClick("package")}
+                    onPaymentClick={() => tabs.onTabClick("payment")}
+                />
             </div>
         </div>
     );
@@ -215,7 +257,9 @@ const StudentItem = ({ bookingStudent, tabs }: StudentItemProps) => {
     return (
         <button
             onClick={() => {
-                if (tabs.activeTab === "student") {
+                if (isSelected) {
+                    tabs.onTabClick("student");
+                } else if (tabs.activeTab === "student") {
                     tabs.onStudentSelect(bookingStudent.student.id);
                 } else {
                     tabs.onStudentSelect(bookingStudent.student.id);
@@ -236,10 +280,12 @@ const StudentItem = ({ bookingStudent, tabs }: StudentItemProps) => {
                 e.currentTarget.style.backgroundColor = isSelected ? `${studentColor}30` : "transparent";
             }}
         >
-            <div style={{ color: studentColor }}>
+            <Link href={`/students/${bookingStudent.student.id}`} className="flex items-center justify-center" onClick={(e) => e.stopPropagation()} style={{ color: studentColor }}>
                 <HelmetIcon size={ICON_SIZE} />
-            </div>
-            <span className="font-medium whitespace-nowrap max-w-[89px] overflow-x-auto">{bookingStudent.student.firstName} {bookingStudent.student.lastName}</span>
+            </Link>
+            <span className="font-medium whitespace-nowrap max-w-[89px] overflow-x-auto">
+                {bookingStudent.student.firstName} {bookingStudent.student.lastName}
+            </span>
         </button>
     );
 };
@@ -261,11 +307,7 @@ const BookingStudents = ({ bookingStudents, tabs }: BookingStudentsProps) => (
 
 // --- Tab Content Wrapper Component ---
 
-const TabContentWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="border-t border-border bg-muted/40 p-4">
-        {children}
-    </div>
-);
+const TabContentWrapper = ({ children }: { children: React.ReactNode }) => <div className="border-t border-border bg-muted/40 p-4">{children}</div>;
 
 // --- Tab Content Component ---
 
@@ -321,6 +363,7 @@ const BookingTabContent = ({ data, tabs }: BookingTabContentProps) => {
 interface ActiveStudentBookingTabProps {
     bookingData: ClassboardData;
     draggableBooking: DraggableBooking;
+    selectedDate: string;
     classboard: {
         onDragStart: (booking: DraggableBooking) => void;
         onDragEnd: () => void;
@@ -328,7 +371,7 @@ interface ActiveStudentBookingTabProps {
     };
 }
 
-export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, classboard }: ActiveStudentBookingTabProps) => {
+export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selectedDate, classboard }: ActiveStudentBookingTabProps) => {
     const [activeTab, setActiveTab] = useState<TabType>(null);
     const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
     const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
@@ -366,7 +409,7 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, classbo
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
-        if (target.closest("button") || target.closest('[role="button"]')) {
+        if (target.closest("button") || target.closest("[role=\"button\"]")) {
             e.preventDefault();
             return;
         }
@@ -382,11 +425,17 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, classbo
     return (
         <>
             <div className="w-full flex-shrink-0">
-                <div draggable onDragStart={handleDragStart} onDragEnd={handleDragEnd} className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-all duration-150 cursor-grab active:cursor-grabbing" style={{ opacity: isDragging ? 0.6 : 1 }}>
+                <div
+                    draggable
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-all duration-150 cursor-grab active:cursor-grabbing"
+                    style={{ opacity: isDragging ? 0.6 : 1 }}
+                >
                     <div className="h-2 w-full" style={progressBarStyle} />
-                    <div className="p-3">
-                        <BookingHeader bookingData={bookingData} month={month} day={day} tabs={tabs} />
-                        <div className="h-px bg-border my-3"></div>
+                    <div className="p-3 space-y-3">
+                        <BookingHeader bookingData={bookingData} month={month} day={day} tabs={tabs} selectedDate={selectedDate} />
+                        <div className="border-b border-border"></div>
                         <BookingStudents bookingStudents={bookingData.bookingStudents} tabs={tabs} />
                     </div>
                     <ActiveButtonsFooter bookingId={id} lessons={bookingData.lessons} onAddLessonEvent={handleAddLessonEvent} loadingLessonId={loadingLessonId} bookingStatus={bookingData.booking.dateStart} />

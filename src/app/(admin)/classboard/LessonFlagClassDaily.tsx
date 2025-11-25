@@ -15,76 +15,84 @@ interface LessonFlagClassDailyProps {
     globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
     onSubmit: () => Promise<void>;
+    selectedDate: string;
 }
 
-function TimeAdjustmentSection({ stepDuration, adjustmentTime, isLockFlagTime, lockCount, totalTeachers, onAdjustTime, onLockToggle }: { stepDuration: number; adjustmentTime: string | null; isLockFlagTime: boolean; lockCount: number; totalTeachers: number; onAdjustTime: (increment: boolean) => void; onLockToggle: () => void }) {
+function TimeAdjustmentSection({ stepDuration, adjustmentTime, isLockFlagTime, lockCount, totalTeachers, onAdjustTime, onLockToggle, onCustomTimeEdit }: { stepDuration: number; adjustmentTime: string | null; isLockFlagTime: boolean; lockCount: number; totalTeachers: number; onAdjustTime: (increment: boolean) => void; onLockToggle: () => void; onCustomTimeEdit: (newTime: string) => void }) {
     return (
-        <div className="flex items-center gap-3">
-            <FlagIcon className="w-8 h-8 text-foreground flex-shrink-0" />
-
-            <button onClick={() => onAdjustTime(false)} className="p-2 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes earlier`}>
-                <ChevronLeft className="w-5 h-5 text-foreground" />
-            </button>
-
-            <div className="text-center min-w-[70px]">
-                <div className="text-xl font-semibold text-foreground">{adjustmentTime}</div>
-                <div className="text-xs text-muted-foreground">
-                    {lockCount}/{totalTeachers} Sync
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 px-1">
+                <FlagIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
+                <div className="text-xs text-muted-foreground font-medium">Start Time</div>
+                <div className="text-[10px] text-muted-foreground ml-auto">
+                    {lockCount}/{totalTeachers}
                 </div>
             </div>
+            <div className="flex items-center gap-1.5 bg-background rounded-md px-2 py-1.5 border border-border">
+                <button onClick={() => onAdjustTime(false)} className="p-1 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes earlier`}>
+                    <ChevronLeft className="w-4 h-4 text-foreground" />
+                </button>
 
-            <button onClick={() => onAdjustTime(true)} className="p-2 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes later`}>
-                <ChevronRight className="w-5 h-5 text-foreground" />
-            </button>
+                <input
+                    type="text"
+                    value={adjustmentTime || ""}
+                    onChange={(e) => onCustomTimeEdit(e.target.value)}
+                    className="px-2 py-0.5 text-sm rounded border border-input bg-background text-foreground text-center w-[60px] font-semibold focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
+                    title="Click to edit time directly"
+                />
 
-            <button
-                onClick={onLockToggle}
-                disabled={isLockFlagTime}
-                className={`p-2 rounded transition-colors ${isLockFlagTime ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
-                title={isLockFlagTime ? "All teachers synchronized" : "Lock all teachers to adjustment time"}
-            >
-                {isLockFlagTime ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
-            </button>
+                <button onClick={() => onAdjustTime(true)} className="p-1 rounded hover:bg-muted transition-colors" title={`${stepDuration} minutes later`}>
+                    <ChevronRight className="w-4 h-4 text-foreground" />
+                </button>
+
+                <button
+                    onClick={onLockToggle}
+                    disabled={isLockFlagTime}
+                    className={`p-1 rounded transition-colors ${isLockFlagTime ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"}`}
+                    title={isLockFlagTime ? "All teachers synchronized" : "Lock all teachers to adjustment time"}
+                >
+                    {isLockFlagTime ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
+                </button>
+            </div>
         </div>
     );
 }
 
 function LocationAdjustmentSection({ locationIndex, adjustmentLocation, isLockFlagLocation, lockLocationCount, totalLocationEventsForLock, onAdjustLocationIndex, onCustomLocationEdit, onLockLocationToggle }: { locationIndex: number; adjustmentLocation: string | null; isLockFlagLocation: boolean; lockLocationCount: number; totalLocationEventsForLock: number; onAdjustLocationIndex: (increment: boolean) => void; onCustomLocationEdit: (newLocation: string) => void; onLockLocationToggle: () => void }) {
     return (
-        <div className="flex items-center gap-3">
-            <MapPin className="w-8 h-8 text-foreground flex-shrink-0" />
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 px-1">
+                <MapPin className="w-4 h-4 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
+                <div className="text-xs text-muted-foreground font-medium">Location</div>
+                <div className="text-[10px] text-muted-foreground ml-auto">
+                    {lockLocationCount}/{totalLocationEventsForLock}
+                </div>
+            </div>
+            <div className="flex items-center gap-1.5 bg-background rounded-md px-2 py-1.5 border border-border">
+                <button onClick={() => onAdjustLocationIndex(false)} className="p-1 rounded hover:bg-muted transition-colors" title="Previous location">
+                    <ChevronLeft className="w-4 h-4 text-foreground" />
+                </button>
 
-            <button onClick={() => onAdjustLocationIndex(false)} className="p-2 rounded hover:bg-muted transition-colors" title="Previous location">
-                <ChevronLeft className="w-5 h-5 text-foreground" />
-            </button>
-
-            <div className="text-center min-w-[90px]">
                 <input
                     type="text"
                     value={adjustmentLocation || ""}
                     onChange={(e) => onCustomLocationEdit(e.target.value)}
-                    className="px-2 py-1 text-sm rounded border border-input bg-background text-foreground text-center w-full text-xl font-semibold"
+                    className="px-2 py-0.5 text-sm rounded border border-input bg-background text-foreground text-center w-[80px] font-semibold focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
                     title="Click to edit custom location"
                 />
-            </div>
 
-            <button onClick={() => onAdjustLocationIndex(true)} className="p-2 rounded hover:bg-muted transition-colors" title="Next location">
-                <ChevronRight className="w-5 h-5 text-foreground" />
-            </button>
+                <button onClick={() => onAdjustLocationIndex(true)} className="p-1 rounded hover:bg-muted transition-colors" title="Next location">
+                    <ChevronRight className="w-4 h-4 text-foreground" />
+                </button>
 
-            <button
-                onClick={onLockLocationToggle}
-                className={`p-2 rounded transition-colors ${isLockFlagLocation ? "border border-foreground text-foreground opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
-                disabled={isLockFlagLocation}
-                title={isLockFlagLocation ? "All events synchronized" : "Lock all teachers to adjustment location"}
-            >
-                {isLockFlagLocation ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
-            </button>
-
-            <div className="text-center">
-                <div className="text-xs text-muted-foreground">
-                    {lockLocationCount}/{totalLocationEventsForLock} Sync
-                </div>
+                <button
+                    onClick={onLockLocationToggle}
+                    className={`p-1 rounded transition-colors ${isLockFlagLocation ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"}`}
+                    disabled={isLockFlagLocation}
+                    title={isLockFlagLocation ? "All events synchronized" : "Lock all teachers to adjustment location"}
+                >
+                    {isLockFlagLocation ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
+                </button>
             </div>
         </div>
     );
@@ -92,15 +100,15 @@ function LocationAdjustmentSection({ locationIndex, adjustmentLocation, isLockFl
 
 function ActionButtons({ isSubmitting, onSubmit, onReset, onCancel }: { isSubmitting: boolean; onSubmit: () => Promise<void>; onReset: () => void; onCancel: () => void }) {
     return (
-        <div className="flex gap-2">
-            <button onClick={onSubmit} disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                {isSubmitting ? "Saving..." : "Submit"}
+        <div className="flex flex-col gap-1.5">
+            <button onClick={onCancel} className="px-3 py-1 bg-muted text-foreground rounded hover:bg-muted/80 transition-colors font-medium text-xs whitespace-nowrap">
+                Cancel
             </button>
-            <button onClick={onReset} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+            <button onClick={onReset} className="px-3 py-1 bg-background border border-border text-foreground rounded hover:bg-muted transition-colors font-medium text-xs whitespace-nowrap">
                 Reset
             </button>
-            <button onClick={onCancel} className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium">
-                Cancel
+            <button onClick={onSubmit} disabled={isSubmitting} className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
         </div>
     );
@@ -108,12 +116,15 @@ function ActionButtons({ isSubmitting, onSubmit, onReset, onCancel }: { isSubmit
 
 function TimeSection({ globalEarliestTime, globalAdaptedCount, globalTotalTeachers, onEnterAdjustmentMode }: { globalEarliestTime: string | null; globalAdaptedCount: number; globalTotalTeachers: number; onEnterAdjustmentMode: () => void }) {
     return (
-        <button onClick={onEnterAdjustmentMode} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted rounded-lg transition-colors flex-1" title="Click to adjust all event times and locations">
-            <FlagIcon className="w-8 h-8 text-foreground flex-shrink-0" />
+        <button onClick={onEnterAdjustmentMode} className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 rounded-lg transition-all border border-transparent hover:border-border flex-1 group" title="Click to adjust all event times and locations">
+            <FlagIcon className="w-6 h-6 text-cyan-600 dark:text-cyan-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
             <div className="text-left flex-1">
-                <div className="text-xl font-semibold text-foreground">{globalEarliestTime}</div>
-                <div className="text-xs text-muted-foreground">
-                    {globalAdaptedCount}/{globalTotalTeachers} Adapted
+                <div className="text-xs text-muted-foreground font-medium">Start Time</div>
+                <div className="flex items-baseline gap-2">
+                    <div className="text-lg font-bold text-foreground">{globalEarliestTime}</div>
+                    <div className="text-xs text-muted-foreground">
+                        {globalAdaptedCount}/{globalTotalTeachers}
+                    </div>
                 </div>
             </div>
         </button>
@@ -122,19 +133,48 @@ function TimeSection({ globalEarliestTime, globalAdaptedCount, globalTotalTeache
 
 function LocationSection({ globalLocation, adaptedLocationCount, totalLocationEvents, onEnterAdjustmentMode }: { globalLocation: string | null; adaptedLocationCount: number; totalLocationEvents: number; onEnterAdjustmentMode: () => void }) {
     return (
-        <button onClick={onEnterAdjustmentMode} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted rounded-lg transition-colors flex-1" title="Click to adjust all event times and locations">
-            <MapPin className="w-8 h-8 text-foreground flex-shrink-0" />
+        <button onClick={onEnterAdjustmentMode} className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 rounded-lg transition-all border border-transparent hover:border-border flex-1 group" title="Click to adjust all event times and locations">
+            <MapPin className="w-6 h-6 text-cyan-600 dark:text-cyan-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
             <div className="text-left flex-1">
-                <div className="text-xl font-semibold text-foreground">{globalLocation || "-"}</div>
-                <div className="text-xs text-muted-foreground">
-                    {adaptedLocationCount}/{totalLocationEvents} Adapted
+                <div className="text-xs text-muted-foreground font-medium">Location</div>
+                <div className="flex items-baseline gap-2">
+                    <div className="text-lg font-bold text-foreground">{globalLocation || "-"}</div>
+                    <div className="text-xs text-muted-foreground">
+                        {adaptedLocationCount}/{totalLocationEvents}
+                    </div>
                 </div>
             </div>
         </button>
     );
 }
 
-export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubmit }: LessonFlagClassDailyProps) {
+export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubmit, selectedDate }: LessonFlagClassDailyProps) {
+    // Format selected date to show day of week
+    const getDayOfWeek = (dateString: string) => {
+        const date = new Date(dateString);
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        return days[date.getDay()];
+    };
+
+    const dayOfWeek = getDayOfWeek(selectedDate);
+
+    // Get current time
+    const [currentTime, setCurrentTime] = useState<string>("");
+
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, "0");
+            const minutes = now.getMinutes().toString().padStart(2, "0");
+            setCurrentTime(`${hours}:${minutes}`);
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 60000); // Update every minute
+
+        return () => clearInterval(interval);
+    }, []);
+
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
     const [locationIndex, setLocationIndex] = useState(0);
@@ -294,6 +334,13 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
         globalFlag.adjustTime(newTime);
     };
 
+    const handleCustomTimeEdit = (newTime: string) => {
+        if (newTime !== adjustmentTime) {
+            setAdjustmentTime(newTime);
+            globalFlag.adjustTime(newTime);
+        }
+    };
+
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
@@ -372,24 +419,29 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
         };
     }, [teacherQueues, globalFlag, globalLocation]);
 
-    if (!globalEarliestTime && !globalLocation) {
-        return null;
-    }
-
     return (
-        <>
+        <div className="flex gap-4">
+            {/* Day of Week Header */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
+                <div className="text-sm text-muted-foreground font-medium">{currentTime}</div>
+            </div>
+
+            {/* Main Content */}
             {isAdjustmentMode ? (
-                <div className="space-y-4">
-                    <TimeAdjustmentSection stepDuration={stepDuration} adjustmentTime={adjustmentTime} isLockFlagTime={isLockFlagTime} lockCount={lockCount} totalTeachers={totalTeachers} onAdjustTime={handleAdjustTime} onLockToggle={handleLockToggle} />
+                <div className="flex gap-3 flex-1">
+                    <TimeAdjustmentSection stepDuration={stepDuration} adjustmentTime={adjustmentTime} isLockFlagTime={isLockFlagTime} lockCount={lockCount} totalTeachers={totalTeachers} onAdjustTime={handleAdjustTime} onLockToggle={handleLockToggle} onCustomTimeEdit={handleCustomTimeEdit} />
                     <LocationAdjustmentSection locationIndex={locationIndex} adjustmentLocation={adjustmentLocation} isLockFlagLocation={isLockFlagLocation} lockLocationCount={lockLocationCount} totalLocationEventsForLock={totalLocationEventsForLock} onAdjustLocationIndex={handleAdjustLocationIndex} onCustomLocationEdit={handleCustomLocationEdit} onLockLocationToggle={handleLockLocationToggle} />
-                    <ActionButtons isSubmitting={isSubmitting} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} />
+                    <div className="ml-auto flex-shrink-0">
+                        <ActionButtons isSubmitting={isSubmitting} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} />
+                    </div>
                 </div>
             ) : (
-                <div className="flex flex-wrap gap-4">
+                <div className="flex gap-3 flex-1">
                     <TimeSection globalEarliestTime={globalEarliestTime} globalAdaptedCount={globalAdaptedCount} globalTotalTeachers={globalTotalTeachers} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
                     <LocationSection globalLocation={globalLocation} adaptedLocationCount={adaptedLocationCount} totalLocationEvents={totalLocationEvents} onEnterAdjustmentMode={() => globalFlag.enterAdjustmentMode()} />
                 </div>
             )}
-        </>
+        </div>
     );
 }
