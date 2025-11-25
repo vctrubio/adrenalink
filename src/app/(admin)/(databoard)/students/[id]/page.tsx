@@ -1,6 +1,7 @@
 import { getEntityId } from "@/actions/id-actions";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { getBookingStatsData, getGlobalStats } from "@/getters/student-booking-stats-getter";
 import type { StudentModel } from "@/backend/models";
 import { StudentLeftColumn } from "./StudentLeftColumn";
 import { StudentBookingStats } from "./StudentBookingStats";
@@ -17,12 +18,12 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     }
 
     const student = result.data as StudentModel;
+    const bookings = getBookingStatsData(student);
+    const globalStats = getGlobalStats(bookings);
 
     return (
         <EntityDetailLayout
-            leftColumn={
-                <StudentLeftColumn student={student} />
-            }
+            leftColumn={<StudentLeftColumn student={student} />}
             rightColumn={
                 <>
                     {/* Stats Card */}
@@ -66,7 +67,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                     </div>
 
                     {/* Booking Statistics */}
-                    <StudentBookingStats student={student} />
+                    <StudentBookingStats bookings={bookings} globalStats={globalStats} />
 
                     {/* Requested Packages */}
                     {(student.stats?.requested_packages_count || 0) > 0 && (

@@ -36,25 +36,34 @@ export type GlobalStatsType = {
 export function getBookingStatsData(student: StudentModel): BookingStatsData[] {
     const bookingStudents = student.relations?.bookingStudents || [];
 
-    return bookingStudents.map((bs) => {
+    console.log("=== getBookingStatsData ===");
+    console.log("Input bookingStudents count:", bookingStudents.length);
+    console.log("Input bookingPayments count:", student.relations?.bookingPayments?.length);
+
+    const result = bookingStudents.map((bs) => {
         const booking = bs.booking;
         const schoolPackage = booking?.studentPackage?.schoolPackage;
+
+        // Calculate events count and duration from lessons -> events relations
+        const lessons = booking?.lessons || [];
+        const allEvents = lessons.flatMap((lesson: any) => lesson.events || []);
+        const eventsCount = allEvents.length;
+        const totalDurationMinutes = allEvents.reduce((sum: number, event: any) => sum + (event.duration || 0), 0);
 
         // Get payment data for this booking
         const paymentsCount = getBookingPaymentsCount(student, booking.id);
         const moneyPaid = getBookingPaymentsTotal(student, booking.id);
 
         // Calculate money to pay based on actual event duration
-        const totalDurationMinutes = booking.stats?.total_duration_minutes || 0;
         const pricePerHour = schoolPackage?.pricePerHour || 0;
         const capacityStudents = schoolPackage?.capacityStudents || 1;
         const moneyToPay = (totalDurationMinutes / 60) * pricePerHour * capacityStudents;
 
-        return {
+        const statsData = {
             bookingId: booking.id,
             dateStart: booking.dateStart,
             dateEnd: booking.dateEnd,
-            eventsCount: booking.stats?.events_count || 0,
+            eventsCount,
             durationHours: totalDurationMinutes / 60,
             paymentsCount,
             moneyIn: booking.stats?.money_in || 0,
@@ -70,7 +79,24 @@ export function getBookingStatsData(student: StudentModel): BookingStatsData[] {
             moneyPaid,
             balance: moneyToPay - moneyPaid,
         };
+
+        console.log(`Booking ${booking.id}:`, {
+            lessonsCount: lessons.length,
+            eventsCount,
+            paymentsCount,
+            moneyPaid,
+            totalDurationMinutes,
+            pricePerHour,
+            capacityStudents,
+            moneyToPay,
+            balance: statsData.balance,
+        });
+
+        return statsData;
     });
+
+    console.log("Output bookings count:", result.length);
+    return result;
 }
 
 // Helper: Count payments for specific booking

@@ -198,6 +198,22 @@ export async function getEntityId(
                         return filteredBookingStudents.some((bs: any) => bs.bookingId === bp.bookingId);
                     }) || [];
 
+                    console.log("=== STUDENT DATA DEBUG ===");
+                    console.log("Student ID:", studentData.id);
+                    console.log("School ID from header:", schoolId);
+                    console.log("Total bookingStudents:", studentData.bookingStudents?.length);
+                    console.log("Filtered bookingStudents:", filteredBookingStudents.length);
+                    console.log("Total bookingPayments:", studentData.bookingPayments?.length);
+                    console.log("Filtered bookingPayments:", filteredBookingPayments.length);
+                    console.log("bookingPayments data:", JSON.stringify(filteredBookingPayments, null, 2));
+                    console.log("bookingStudents with booking:", JSON.stringify(filteredBookingStudents.map((bs: any) => ({
+                        bookingId: bs.bookingId,
+                        bookingStatus: bs.booking?.status,
+                        lessonsCount: bs.booking?.lessons?.length,
+                        firstLessonEvents: bs.booking?.lessons?.[0]?.events?.length,
+                        schoolPackageId: bs.booking?.studentPackage?.schoolPackage?.schoolId,
+                    })), null, 2));
+
                     entityData = {
                         ...studentData,
                         schoolStudents: filteredSchoolStudents,
