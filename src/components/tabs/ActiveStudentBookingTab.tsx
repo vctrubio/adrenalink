@@ -106,9 +106,9 @@ const TeacherTag = ({ lessons, tabs }: TeacherTagProps) => {
                             e.currentTarget.style.backgroundColor = isSelected ? `${teacherColor}30` : "transparent";
                         }}
                     >
-                        <Link href={`/teachers/${lesson.teacher.username}`} className="flex items-center justify-center" onClick={(e) => e.stopPropagation()} style={{ color: teacherColor }}>
+                        <div style={{ color: teacherColor }}>
                             {TeacherIcon && <TeacherIcon size={ICON_SIZE} />}
-                        </Link>
+                        </div>
                         <span className="font-medium whitespace-nowrap">{lesson.teacher.username}</span>
                     </motion.button>
                 );
@@ -280,9 +280,9 @@ const StudentItem = ({ bookingStudent, tabs }: StudentItemProps) => {
                 e.currentTarget.style.backgroundColor = isSelected ? `${studentColor}30` : "transparent";
             }}
         >
-            <Link href={`/students/${bookingStudent.student.id}`} className="flex items-center justify-center" onClick={(e) => e.stopPropagation()} style={{ color: studentColor }}>
+            <div style={{ color: studentColor }}>
                 <HelmetIcon size={ICON_SIZE} />
-            </Link>
+            </div>
             <span className="font-medium whitespace-nowrap max-w-[89px] overflow-x-auto">
                 {bookingStudent.student.firstName} {bookingStudent.student.lastName}
             </span>
