@@ -17,4 +17,6 @@ export interface DataboardController {
 	selectedCount: number;
 	onAddClick: () => void;
 	isLoading?: boolean;
+	counts: Record<string, number>;
+	onCountsChange: (counts: Record<string, number>) => void;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { DATABOARD_ENTITY_SEARCH_FIELDS } from "@/config/databoard";
 import { useDataboard } from "@/src/hooks/useDataboard";
@@ -36,6 +37,16 @@ export const DataboardRowsSection = <T extends { id: string }>({
         controller.onGroupChange
     );
     console.log("DataboardRowsSection - filter:", controller.filter, "group:", controller.group, "groupedData:", groupedData);
+
+    // Update count for this entity when data changes - use useLayoutEffect to update before paint
+    useLayoutEffect(() => {
+        if (controller.onCountsChange) {
+            controller.onCountsChange({
+                ...controller.counts,
+                [entityId]: data.length,
+            });
+        }
+    }, [data.length, entityId]);
 
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     
