@@ -124,7 +124,7 @@ export default async function EventViewPage({ params }: { params: { id: string }
         <div className="p-4 md:p-8 min-h-screen">
             <h1 className="text-3xl font-bold mb-2 text-white">Event Booking Dashboard</h1>
             <p className="text-white/60 mb-6">
-                A 360° view of event <code className="bg-white/10 text-white/80 px-1.5 py-1 rounded-md text-xs">{params.id}</code> for all user portals.
+                A 360&deg; view of event <code className="bg-white/10 text-white/80 px-1.5 py-1 rounded-md text-xs">{params.id}</code> for all user portals.
             </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

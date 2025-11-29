@@ -88,14 +88,14 @@ const CardFooter = ({ onComplete, isPending, status }: any) => (
             <FormButton variant="destructive" size="sm" className="flex-1 bg-red-900/40 text-red-400 hover:bg-red-900/60 focus:ring-red-800">
                 <X className="w-4 h-4 mr-2" /> Cancel
             </FormButton>
-            <FormButton 
-                variant="primary" 
-                size="sm" 
+            <FormButton
+                variant="primary"
+                size="sm"
                 className="flex-1 bg-sky-600/60 text-sky-300 hover:bg-sky-600/80 focus:ring-sky-500 disabled:bg-white/5 disabled:text-white/40"
                 onClick={onComplete}
-                disabled={isPending || status === 'completed'}
+                disabled={isPending || status === "completed"}
             >
-                <Check className="w-4 h-4 mr-2" /> {isPending ? "Completing..." : (status === 'completed' ? 'Completed' : 'Complete')}
+                <Check className="w-4 h-4 mr-2" /> {isPending ? "Completing..." : (status === "completed" ? "Completed" : "Complete")}
             </FormButton>
         </div>
     </div>
@@ -109,9 +109,9 @@ export function EventDisplayCard({ event, lesson, students, schoolPackage, userR
     const { teacher } = lesson;
 
     // --- Data Processing Layer ---
-    const teacherEntity = ENTITY_DATA.find(e => e.id === 'teacher');
-    const studentEntity = ENTITY_DATA.find(e => e.id === 'student');
-    const eventEntity = ENTITY_DATA.find(e => e.id === 'event');
+    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
+    const studentEntity = ENTITY_DATA.find(e => e.id === "student");
+    const eventEntity = ENTITY_DATA.find(e => e.id === "event");
 
     const eventDate = new Date(event.date);
     const time = eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -128,7 +128,7 @@ export function EventDisplayCard({ event, lesson, students, schoolPackage, userR
     return (
         <Popup>
             <div className="p-4 md:p-6 flex-1 flex flex-col">
-                <CardHeader 
+                <CardHeader
                     month={month}
                     day={day}
                     location={event.location}
@@ -136,14 +136,14 @@ export function EventDisplayCard({ event, lesson, students, schoolPackage, userR
                     duration={event.duration}
                     eventEntityColor={eventEntity?.color}
                 />
-                <CardBody 
+                <CardBody
                     teacher={teacher}
                     students={students}
                     schoolPackage={schoolPackage}
                     teacherEntity={teacherEntity}
                     studentEntity={studentEntity}
                 />
-                <CardFooter 
+                <CardFooter
                     onComplete={handleComplete}
                     isPending={isPending}
                     status={event.status}

@@ -2,8 +2,12 @@ import { getEntityId } from "@/actions/id-actions";
 import { getSchoolIdFromHeader } from "@/types/headers";
 import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { getTeacherLessonStats } from "@/getters/teacher-lesson-stats-getter";
 import type { TeacherModel } from "@/backend/models";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
+import { TeacherLessonStats } from "./TeacherLessonStats";
+import { StatsCard } from "@/src/components/cards/StatsCard";
+import { ENTITY_DATA } from "@/config/entities";
 
 export default async function TeacherDetailPage({ params }: { params: { username: string } }) {
     const schoolId = await getSchoolIdFromHeader();
@@ -27,6 +31,7 @@ export default async function TeacherDetailPage({ params }: { params: { username
     }
 
     const teacher = result.data as TeacherModel;
+    const lessonStats = getTeacherLessonStats(teacher);
 
     // Verify teacher belongs to the school
     if (teacher.updateForm.schoolId !== schoolId) {
@@ -37,33 +42,36 @@ export default async function TeacherDetailPage({ params }: { params: { username
         );
     }
 
+    const eventEntity = ENTITY_DATA.find((e) => e.id === "event");
+    const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson");
+
+    const statsData = [
+        {
+            icon: "calendar",
+            label: "Total Events",
+            value: teacher.stats?.events_count || 0,
+            color: eventEntity?.color,
+        },
+        {
+            icon: "clock",
+            label: "Total Duration",
+            value: getPrettyDuration(teacher.stats?.total_duration_minutes || 0),
+            color: "#f59e0b",
+        },
+        {
+            icon: "book-open",
+            label: "Lessons",
+            value: teacher.stats?.lessons_count || 0,
+            color: lessonEntity?.color,
+        },
+    ];
+
     return (
         <EntityDetailLayout
             leftColumn={<TeacherLeftColumn teacher={teacher} />}
             rightColumn={
                 <>
-                    {/* Stats Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Statistics</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Events</p>
-                                <p className="text-2xl font-bold text-foreground">{teacher.stats?.events_count || 0}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Duration</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {getPrettyDuration(teacher.stats?.total_duration_minutes || 0)}
-                                </p>
-                            </div>
-                            <div className="border-t border-border pt-4">
-                                <p className="text-sm text-muted-foreground">Lessons</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {teacher.stats?.lessons_count || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <StatsCard title="Statistics" stats={statsData} />
 
                     {/* Financial Info */}
                     <div className="bg-card border border-border rounded-lg p-6">
@@ -85,6 +93,9 @@ export default async function TeacherDetailPage({ params }: { params: { username
                             </div>
                         </div>
                     </div>
+
+                    {/* Teacher Lesson Stats */}
+                    <TeacherLessonStats lessons={lessonStats} />
                 </>
             }
         />
