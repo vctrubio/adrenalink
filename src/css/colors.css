@@ -41,6 +41,10 @@
         --border: 203 213 225; /* slate-300 */
         --input: 203 213 225; /* slate-300 */
         --ring: 59 130 246; /* blue-500 */
+
+        /* Facebook Nav Colors */
+        --facebook-background: 241 245 249; /* slate-100 */
+        --facebook-border: 226 232 240; /* slate-200 */
     }
 
     .dark {
@@ -84,6 +88,10 @@
         --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
         --input: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
         --ring: 96 165 250; /* blue-400 */
+
+        /* Facebook Nav Colors */
+        --facebook-background: 30 41 59; /* slate-800 */
+        --facebook-border: 51 65 85; /* slate-700 */
     }
 }
 
@@ -413,3 +421,12 @@
 .border-subscription-default { border-color: rgb(var(--subscription-default)); }
 .border-subscription-blue { border-color: rgb(var(--subscription-blue)); }
 .border-subscription-gold { border-color: rgb(var(--subscription-gold)); }
+
+/* Facebook Nav Utility Classes */
+.bg-facebook {
+    background-color: rgb(var(--facebook-background));
+}
+
+.border-facebook {
+    border-color: rgb(var(--facebook-border));
+}

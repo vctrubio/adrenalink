@@ -6,6 +6,7 @@ import { useSidebar } from "../navigations/sidebar";
 
 interface WindToggleProps {
     onThemeChange?: () => void;
+    compact?: boolean; // New prop for compact mode (icon only)
 }
 
 const NoWindIcon = ({ className }: { className?: string }) => (
@@ -35,7 +36,7 @@ const WindIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
+export function WindToggle({ onThemeChange, compact = false }: WindToggleProps = {}) {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -63,22 +64,20 @@ export function WindToggle({ onThemeChange }: WindToggleProps = {}) {
         }
     };
 
-    return (
-        <div className="mt-auto border-t border-border/30 p-3">
-            <button
-                onClick={mounted ? handleToggle : undefined}
-                className={`flex items-center justify-center w-full p-2 rounded-lg transition-colors ${
-                    mounted ? "hover:bg-accent cursor-pointer" : ""
-                } ${collapsed ? "justify-center" : ""}`}
-                title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
-            >
-                {mounted && isDarkMode ? (
-                    <WindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
-                ) : (
-                    <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
-                )}
-                {!collapsed && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
-            </button>
-        </div>
-    );
-}
+            return (
+                <button
+                    onClick={mounted ? handleToggle : undefined}
+                    className={`flex items-center justify-center p-2 rounded-lg transition-colors ${ // Removed w-full
+                        mounted ? "hover:bg-accent cursor-pointer" : ""
+                    } ${collapsed || compact ? "justify-center" : ""}`} // Added compact here
+                    title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
+                >
+                    {mounted && isDarkMode ? (
+                        <WindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                    ) : (
+                        <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+                    )}
+                    {!collapsed && !compact && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
+                </button>
+            );
+        }
