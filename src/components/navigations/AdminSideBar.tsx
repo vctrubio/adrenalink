@@ -69,7 +69,6 @@ function AdminSideBarContent({ schoolName }: AdminSideBarProps) {
                     return null;
                 })}
             </SidebarMenu>
-            <WindToggle />
             {/* <SidebarFooter /> */}
         </>
     );

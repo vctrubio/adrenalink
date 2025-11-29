@@ -3,6 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 
+const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
+
 const NavIcon = ({ href, icon: Icon, active = false }: { href: string; icon: React.ElementType; active?: boolean }) => (
     <Link
         href={href}
@@ -19,14 +21,25 @@ export const NavCenter = () => {
     const pathname = usePathname();
     return (
         <div className="hidden md:flex items-center justify-center gap-1">
-            {FACEBOOK_NAV_ROUTES.map((route) => (
-                <NavIcon
-                    key={route.href}
-                    href={route.href}
-                    icon={route.icon}
-                    active={pathname === route.href}
-                />
-            ))}
+            {FACEBOOK_NAV_ROUTES.map((route) => {
+                let isActive = false;
+                if (route.id === 'data') {
+                    isActive = databoardPaths.some(path => pathname.startsWith(path));
+                } else if (route.id === 'home') {
+                    isActive = pathname === route.href;
+                } else {
+                    isActive = pathname.startsWith(route.href);
+                }
+
+                return (
+                    <NavIcon
+                        key={route.href}
+                        href={route.href}
+                        icon={route.icon}
+                        active={isActive}
+                    />
+                );
+            })}
         </div>
     );
 };

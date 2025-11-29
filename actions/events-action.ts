@@ -12,7 +12,16 @@ const eventWithRelations = {
         with: {
             teacher: true,
             commission: true,
-            booking: true,
+            booking: {
+                with: {
+                    studentPackage: {
+                        with: {
+                            schoolPackage: true,
+                        },
+                    },
+                    bookingStudents: true,
+                },
+            },
         },
     },
     equipmentEvents: {

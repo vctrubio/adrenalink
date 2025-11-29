@@ -1,13 +1,54 @@
-"use server";
-
-import { eq, exists, and } from "drizzle-orm";
+import { eq, exists, and, count } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getHeaderUsername } from "@/types/headers";
-import { student, school, schoolStudents, teacher, booking, equipment } from "@/drizzle/schema";
-import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel } from "@/backend/models";
+import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
+import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel } from "@/backend/models";
 import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
+export async function getDataboardCounts(): Promise<ApiActionResponseModel<Record<string, number>>> {
+    try {
+        const header = await getHeaderUsername();
+
+        let schoolId: string | undefined;
+        if (header) {
+            const schoolData = await db.query.school.findFirst({
+                where: eq(school.username, header),
+            });
+            schoolId = schoolData?.id;
+        }
+
+        const whereCondition = (table: any) => (schoolId ? eq(table.schoolId, schoolId) : undefined);
+
+        const [
+            studentCount,
+            teacherCount,
+            bookingCount,
+            equipmentCount,
+            packageCount,
+        ] = await Promise.all([
+            db.select({ value: count() }).from(student).where(schoolId ? exists(db.select().from(schoolStudents).where(and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId)))) : undefined),
+            db.select({ value: count() }).from(teacher).where(whereCondition(teacher)),
+            db.select({ value: count() }).from(booking).where(whereCondition(booking)),
+            db.select({ value: count() }).from(equipment).where(whereCondition(equipment)),
+            db.select({ value: count() }).from(schoolPackage).where(whereCondition(schoolPackage)),
+        ]);
+        
+        const data = {
+            student: studentCount[0].value,
+            teacher: teacherCount[0].value,
+            booking: bookingCount[0].value,
+            equipment: equipmentCount[0].value,
+            schoolPackage: packageCount[0].value,
+        };
+
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Error fetching databoard counts:", error);
+        return { success: false, error: "Failed to fetch databoard counts" };
+    }
+}
 // GET STUDENTS
 export async function getStudents(): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
@@ -336,3 +377,62 @@ export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentM
         return { success: false, error: `Failed to fetch equipments: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
+
+// GET EVENTS
+export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>> {
+    try {
+        const header = await getHeaderUsername();
+
+        let schoolId: string | undefined;
+        if (header) {
+            const schoolData = await db.query.school.findFirst({
+                where: eq(school.username, header),
+            });
+
+            if (!schoolData) {
+                return { success: true, data: [] };
+            }
+            schoolId = schoolData.id;
+        }
+
+        // 1. Fetch events with lesson and teacher relations
+        const eventWithRelations = {
+            lesson: {
+                with: {
+                    teacher: true,
+                    booking: {
+                        with: {
+                            studentPackage: {
+                                with: {
+                                    schoolPackage: true,
+                                },
+                            },
+                            bookingStudents: true,
+                        },
+                    },
+                },
+            },
+        };
+
+        const eventsQuery = schoolId
+            ? db.query.event.findMany({
+                  where: eq(event.schoolId, schoolId),
+                  with: eventWithRelations,
+              })
+            : db.query.event.findMany({
+                  with: eventWithRelations,
+              });
+
+        // 2. Execute query
+        const eventsResult = await eventsQuery;
+
+        // 3. Create models
+        const events: EventModel[] = eventsResult.map((eventData) => createEventModel(eventData));
+
+        return { success: true, data: events };
+    } catch (error) {
+        console.error("Error fetching events:", error);
+        return { success: false, error: `Failed to fetch events: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
+

@@ -3,6 +3,7 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { DATABOARD_ENTITY_SEARCH_FIELDS } from "@/config/databoard";
 import { useDataboard } from "@/src/hooks/useDataboard";
+import { useDataboardController } from "@/src/contexts/DataboardContext";
 import { GroupDataRows } from "./GroupDataRows";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 
@@ -17,9 +18,24 @@ interface DataboardRowsSectionProps<T extends { id: string }> {
 }
 
 // Rows component for use in layouts
-export const DataboardRowsSection = <T extends { id: string }>({ entityId, data, rowComponent: RowComponent }: DataboardRowsSectionProps<T>) => {
+export const DataboardRowsSection = <T extends { id: string }>({
+    entityId,
+    data,
+    rowComponent: RowComponent,
+}: DataboardRowsSectionProps<T>) => {
+    const controller = useDataboardController();
     const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
-    const { expandedRow, setExpandedRow, groupedData } = useDataboard(data, searchFields);
+    const { expandedRow, setExpandedRow, groupedData } = useDataboard(
+        data,
+        searchFields,
+        [],
+        {},
+        controller.filter,
+        controller.onFilterChange,
+        controller.group,
+        controller.onGroupChange
+    );
+    console.log("DataboardRowsSection - filter:", controller.filter, "group:", controller.group, "groupedData:", groupedData);
 
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     
