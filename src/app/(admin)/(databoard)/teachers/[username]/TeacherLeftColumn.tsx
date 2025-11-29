@@ -280,7 +280,7 @@ function TeacherEditMode({ teacher, onCancel, onSubmit }: { teacher: TeacherMode
     );
 }
 
-export function TeacherLeftColumn({ teacher }: { teacher: TeacherModel }) {
+export function TeacherLeftColumn({ teacher, className }: { teacher: TeacherModel, className?: string }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSubmit = async (formData: any) => {
@@ -298,5 +298,5 @@ export function TeacherLeftColumn({ teacher }: { teacher: TeacherModel }) {
         <TeacherViewMode teacher={teacher} onEdit={() => setIsEditing(true)} />
     );
 
-    return <div className="space-y-4">{content}</div>;
+    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
 }

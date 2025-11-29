@@ -1,6 +1,6 @@
 import { getEntityId } from "@/actions/id-actions";
 import { getSchoolIdFromHeader } from "@/types/headers";
-import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
+import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import type { SchoolPackageModel } from "@/backend/models";
 import { PackageLeftColumn } from "./PackageLeftColumn";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
@@ -66,9 +66,9 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
     const revenue = (totalEventMinutes / 60) * pricePerHour;
 
     return (
-        <EntityDetailLayout
-            leftColumn={<PackageLeftColumn schoolPackage={schoolPackage} />}
-            rightColumn={
+        <MasterAdminLayout
+            controller={<PackageLeftColumn schoolPackage={schoolPackage} />}
+            form={
                 <>
                     <div className="bg-card border border-border rounded-lg p-6">
                         <h2 className="text-lg font-semibold text-foreground mb-4">Package Stats</h2>

@@ -9,8 +9,6 @@ export default async function BookingsPage() {
         return <div>Error loading bookings: {result.error}</div>;
     }
 
-    console.log("BookingsPage rendered with data:", result.data);
-
     return (
         <div>
             <DataboardRowsSection entityId="booking" data={result.data} rowComponent={BookingRow} />

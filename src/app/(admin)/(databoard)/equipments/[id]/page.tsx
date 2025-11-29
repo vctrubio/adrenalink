@@ -1,5 +1,5 @@
 import { getEntityId } from "@/actions/id-actions";
-import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
+import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import type { EquipmentModel } from "@/backend/models";
 import { EquipmentLeftColumn } from "./EquipmentLeftColumn";
@@ -20,9 +20,9 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
     const equipment = result.data as EquipmentModel;
 
     return (
-        <EntityDetailLayout
-            leftColumn={<EquipmentLeftColumn equipment={equipment} />}
-            rightColumn={
+        <MasterAdminLayout
+            controller={<EquipmentLeftColumn equipment={equipment} />}
+            form={
                 <>
                     <TeachersUsingEquipmentCard equipment={equipment} />
 

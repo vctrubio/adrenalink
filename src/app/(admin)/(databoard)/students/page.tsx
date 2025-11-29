@@ -1,7 +1,6 @@
 import { getStudents } from "@/actions/databoard-action";
 import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
-import type { StudentType } from "@/drizzle/schema";
 
 export default async function StudentsPage() {
     const result = await getStudents();
@@ -11,10 +10,8 @@ export default async function StudentsPage() {
     }
 
     return (
-        <DataboardRowsSection<StudentType>
-            entityId="student"
-            data={result.data}
-            rowComponent={StudentRow}
-        />
+        <div>
+            <DataboardRowsSection entityId="student" data={result.data} rowComponent={StudentRow} />
+        </div>
     );
 }

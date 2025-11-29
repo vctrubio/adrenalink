@@ -166,7 +166,7 @@ function BookingEditMode({ booking, onCancel, onSubmit }: { booking: BookingMode
     );
 }
 
-export function BookingLeftColumn({ booking }: { booking: BookingModel }) {
+export function BookingLeftColumn({ booking, className }: { booking: BookingModel; className?: string }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSubmit = async (formData: any) => {
@@ -184,5 +184,5 @@ export function BookingLeftColumn({ booking }: { booking: BookingModel }) {
         <BookingViewMode booking={booking} onEdit={() => setIsEditing(true)} />
     );
 
-    return <div className="space-y-4">{content}</div>;
+    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
 }

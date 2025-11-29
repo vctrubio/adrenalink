@@ -1,5 +1,5 @@
 import { getEntityId } from "@/actions/id-actions";
-import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
+import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -29,9 +29,9 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
     const equipmentColor = equipmentConfig?.color || bookingEntity.color;
 
     return (
-        <EntityDetailLayout
-            leftColumn={<BookingLeftColumn booking={booking} />}
-            rightColumn={
+        <MasterAdminLayout
+            controller={<BookingLeftColumn booking={booking} />}
+            form={
                 <>
                     {/* Students */}
                     {bookingStudents.length > 0 && (

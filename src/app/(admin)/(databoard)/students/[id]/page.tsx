@@ -1,5 +1,5 @@
 import { getEntityId } from "@/actions/id-actions";
-import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
+import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getBookingStatsData, getGlobalStats } from "@/getters/student-booking-stats-getter";
 import type { StudentModel } from "@/backend/models";
@@ -22,9 +22,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     const globalStats = getGlobalStats(bookings);
 
     return (
-        <EntityDetailLayout
-            leftColumn={<StudentLeftColumn student={student} />}
-            rightColumn={
+        <MasterAdminLayout
+            controller={<StudentLeftColumn student={student} />}
+            form={
                 <>
                     {/* Stats Card */}
                     <div className="bg-card border border-border rounded-lg p-6">

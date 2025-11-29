@@ -1,6 +1,6 @@
 import { getEntityId } from "@/actions/id-actions";
 import { getSchoolIdFromHeader } from "@/types/headers";
-import { EntityDetailLayout } from "@/src/components/layouts/EntityDetailLayout";
+import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTeacherLessonStats } from "@/getters/teacher-lesson-stats-getter";
 import type { TeacherModel } from "@/backend/models";
@@ -67,9 +67,9 @@ export default async function TeacherDetailPage({ params }: { params: { username
     ];
 
     return (
-        <EntityDetailLayout
-            leftColumn={<TeacherLeftColumn teacher={teacher} />}
-            rightColumn={
+        <MasterAdminLayout
+            controller={<TeacherLeftColumn teacher={teacher} />}
+            form={
                 <>
                     <StatsCard title="Statistics" stats={statsData} />
 

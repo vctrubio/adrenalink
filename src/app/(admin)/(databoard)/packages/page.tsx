@@ -9,8 +9,6 @@ export default async function SchoolPackagesPage() {
         return <div>Error loading school packages: {result.error}</div>;
     }
 
-    console.log("SchoolPackagesPage rendered with data:", result.data);
-
     return (
         <div>
             <DataboardRowsSection entityId="schoolPackage" data={result.data} rowComponent={SchoolPackageRow} />

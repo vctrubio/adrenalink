@@ -14,9 +14,7 @@ export function MasterAdminLayout({ controller, form }: MasterAdminLayoutProps) 
             <div className="lg:hidden">
                 <div className="p-4 space-y-4">
                     {controller}
-                    <div className="bg-card rounded-lg border border-border shadow-sm">
-                        <div className="p-6">{form}</div>
-                    </div>
+                    <div className="space-y-4">{form}</div>
                     <div className="h-24" />
                 </div>
             </div>
@@ -31,10 +29,8 @@ export function MasterAdminLayout({ controller, form }: MasterAdminLayoutProps) 
                         </div>
 
                         {/* Form Content */}
-                        <div className="col-span-8">
-                            <div className="bg-card rounded-xl border border-border shadow-lg">
-                                <div className="p-8">{form}</div>
-                            </div>
+                        <div className="col-span-8 space-y-8">
+                            {form}
                         </div>
                     </div>
                 </div>

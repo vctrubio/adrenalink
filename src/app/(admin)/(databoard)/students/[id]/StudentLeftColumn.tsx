@@ -315,7 +315,7 @@ function StudentEditMode({ student, onCancel, onSubmit }: { student: StudentMode
     );
 }
 
-export function StudentLeftColumn({ student }: { student: StudentModel }) {
+export function StudentLeftColumn({ student, className }: { student: StudentModel; className?: string }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSubmit = async (formData: any) => {
@@ -333,5 +333,5 @@ export function StudentLeftColumn({ student }: { student: StudentModel }) {
         <StudentViewMode student={student} onEdit={() => setIsEditing(true)} />
     );
 
-    return <div className="space-y-4">{content}</div>;
+    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
 }

@@ -288,7 +288,7 @@ function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage:
     );
 }
 
-export function PackageLeftColumn({ schoolPackage }: { schoolPackage: SchoolPackageModel }) {
+export function PackageLeftColumn({ schoolPackage, className }: { schoolPackage: SchoolPackageModel, className?: string }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSubmit = async (formData: any) => {
@@ -306,5 +306,5 @@ export function PackageLeftColumn({ schoolPackage }: { schoolPackage: SchoolPack
         <PackageViewMode schoolPackage={schoolPackage} onEdit={() => setIsEditing(true)} />
     );
 
-    return <div className="space-y-4">{content}</div>;
+    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
 }
