@@ -1712,3 +1712,285 @@
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":75387,"time":"2025-11-25T20:43:28.076Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":75387,"time":"2025-11-25T20:43:28.084Z","msg":"Agent state changed from connected to started."}
 {"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":75387,"time":"2025-11-25T20:43:29.085Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.623Z","msg":"Using New Relic for Node.js. Agent version: 13.5.0; Node version: v20.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.671Z","msg":"new relic agent control disabled, skipping health reporting","component":"HealthReporter"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.698Z","msg":"Instrumentation for timers has been disabled via 'config.instrumentation.timers.enabled. Not instrumenting package","component":"shimmer"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.728Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.731Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:02.731Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:05.384Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:05.385Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BQgnzFPbOpTnAG7SbRfS6jtpJh6sAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:05.385Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:05.386Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:05.392Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:23:06.393Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:31:48.300Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:32:06.571Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:34:38.595Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:35:14.887Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:36:10.346Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:38:11.896Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:40:03.067Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:42:11.798Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:42:11.809Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:42:11.810Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:44:12.841Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:44:12.842Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:46:22.982Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:46:22.983Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:48:22.975Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:48:22.976Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:50:24.098Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:50:24.099Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:52:02.015Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:52:02.017Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:54:04.029Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:54:04.030Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:56:03.943Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:56:03.944Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:58:14.212Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T21:58:14.212Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:00:04.701Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:00:04.702Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:02:22.648Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:02:22.648Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:03:54.629Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:03:54.629Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:06:15.323Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:06:15.324Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:08:05.838Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:08:05.838Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:10:04.029Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:10:04.029Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:12:04.029Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:12:04.030Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:14:04.793Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:14:04.793Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:16:05.078Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:16:05.079Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:18:06.249Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:18:06.250Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:20:05.033Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:20:05.033Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:22:18.313Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:22:18.315Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:24:08.915Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:24:08.919Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:26:19.550Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:26:19.551Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:28:07.371Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:28:07.372Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:30:08.105Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:30:08.106Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:32:07.896Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:32:07.897Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:34:18.676Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:34:18.677Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:36:09.276Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:36:09.277Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:38:10.115Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:38:10.116Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:40:18.450Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:40:18.451Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:42:09.109Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:42:09.110Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:44:10.033Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:44:10.034Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:46:11.136Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:46:11.137Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:48:11.734Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:48:11.735Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:50:22.906Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:50:22.909Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:52:11.339Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:52:11.340Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:54:22.145Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:54:22.147Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:56:15.041Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:56:15.042Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:58:31.101Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T22:58:31.102Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:00:23.126Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:00:23.127Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:02:13.539Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:02:13.542Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:04:13.957Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:04:13.958Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:06:13.872Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:06:13.875Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:08:14.702Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:08:14.703Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:10:12.582Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:10:12.583Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:13:03.084Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:13:03.084Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:14:13.770Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:14:13.771Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:16:13.735Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:16:13.736Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:18:24.204Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:18:24.221Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:20:14.591Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:20:14.592Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:22:37.497Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:22:37.498Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:24:17.434Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:24:17.434Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:26:47.330Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:26:47.331Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:28:17.897Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:28:17.898Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:30:17.870Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:30:17.872Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:32:18.698Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:32:18.699Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:34:18.547Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:34:18.548Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:36:31.997Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:36:31.999Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:39:12.480Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:39:12.481Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:40:30.310Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:40:30.312Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:42:59.089Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:42:59.090Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:45:11.938Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:45:11.941Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:46:11.941Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:46:11.943Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:48:40.311Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:48:40.314Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:51:01.307Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:51:01.308Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:53:02.317Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:53:02.320Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:56:53.059Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:56:53.061Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:58:36.037Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-25T23:58:36.038Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:02:54.312Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:02:54.313Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:04:47.161Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:04:47.164Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:06:37.303Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:06:37.304Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:10:23.457Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:10:23.458Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:12:34.735Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:12:34.736Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:15:15.708Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:15:15.709Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:16:56.775Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:16:56.776Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:25:06.095Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:25:06.096Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:26:46.663Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:26:46.664Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:28:26.812Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:28:26.813Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:34:48.215Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:34:48.216Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:40:29.458Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:40:29.459Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:52:41.286Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:52:41.287Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:55:31.834Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T00:55:31.835Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:05:13.610Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:05:13.610Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:16:38.292Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:16:38.293Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:34:11.094Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:34:11.097Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:36:49.400Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:36:49.400Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:54:38.290Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T01:54:38.293Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:11:30.060Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:11:30.061Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:27:17.616Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:27:17.618Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:38:01.102Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:38:01.103Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:54:21.952Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T02:54:21.954Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:11:03.673Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:11:03.673Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:26:46.450Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:26:46.453Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:43:41.673Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:43:41.674Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:59:50.363Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T03:59:50.363Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:14:58.166Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:14:58.166Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:30:29.049Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:30:29.049Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:48:55.566Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T04:48:55.567Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:05:48.270Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:05:48.273Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:23:14.987Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:23:14.987Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:27:44.689Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:27:44.692Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:45:11.337Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T05:45:11.338Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:03:15.958Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:03:15.961Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:21:08.723Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:21:08.724Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:28:44.521Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:28:44.523Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:44:59.089Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:44:59.090Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:51:54.557Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:51:54.565Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:54:21.805Z","msg":"Merging 9 of 9 events into SpanEventAggregator for next harvest","component":"event_aggregator"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T06:54:21.805Z","msg":"Merging 2 (of 2) errors for next delivery.","component":"error_tracer"}
+{"v":0,"level":50,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.201Z","msg":"Agent endpoint metric_data returned 409 status. Restarting.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.206Z","msg":"Restarting collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.207Z","msg":"Shutting down collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.596Z","msg":"Agent state changed from started to disconnected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.596Z","msg":"Disconnected from New Relic; clearing run ID BQgnzFPbOpTnAG7SbRfS6jtpJh6sAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:50.596Z","msg":"Agent state changed from disconnected to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:52.575Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:52.575Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BbnWnwv1DrMiAG7SbRfS6jtpJ1pgAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:52.575Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:52.578Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-26T19:50:52.585Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":50,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:41.098Z","msg":"Agent endpoint metric_data returned 409 status. Restarting.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:41.103Z","msg":"Restarting collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:41.103Z","msg":"Shutting down collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:42.565Z","msg":"Agent state changed from started to disconnected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:42.565Z","msg":"Disconnected from New Relic; clearing run ID BbnWnwv1DrMiAG7SbRfS6jtpJ1pgAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:25:42.565Z","msg":"Agent state changed from disconnected to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:26:16.415Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:26:16.416Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BbARkvm-z_-gAG7SbRfS6jtpKKZAAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:26:16.416Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:26:16.417Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-27T19:26:16.422Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":50,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.174Z","msg":"Agent endpoint metric_data returned 409 status. Restarting.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.179Z","msg":"Restarting collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.180Z","msg":"Shutting down collector.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.463Z","msg":"Agent state changed from started to disconnected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.463Z","msg":"Disconnected from New Relic; clearing run ID BbARkvm-z_-gAG7SbRfS6jtpKKZAAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-28T21:14:45.464Z","msg":"Agent state changed from disconnected to connecting."}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:07.427Z","msg":"Unexpected error communicating with New Relic backend.","component":"collector_api","errno":-60,"code":"ETIMEDOUT","syscall":"read","stack":"Error: read ETIMEDOUT\n    at TLSWrap.onStreamRead (node:internal/stream_base_commons:218:20)\n    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)","message":"read ETIMEDOUT"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:24.846Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:24.846Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BX_tHUDjhCjGAG7SbRfS6jtpKqUwAAgBAAAnIQEAAUJBAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:24.846Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:24.847Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":82497,"time":"2025-11-29T07:46:24.855Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.111Z","msg":"Using New Relic for Node.js. Agent version: 13.5.0; Node version: v20.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.165Z","msg":"new relic agent control disabled, skipping health reporting","component":"HealthReporter"}
+{"v":0,"level":40,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.193Z","msg":"Instrumentation for timers has been disabled via 'config.instrumentation.timers.enabled. Not instrumenting package","component":"shimmer"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.222Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.226Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:09.226Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:11.523Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:11.523Z","msg":"Connected to collector.eu01.nr-data.net:443 with agent run ID BQ06G7LG9AXUAG7SbRfS6jtpKza8AAgBAAAnIQEAAKsnAgQcaHvcAwAGMTMuNS4wAANNYWMACmFkcmVuYWxpbms.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:11.523Z","msg":"Reporting to: https://rpm.eu.newrelic.com/accounts/7262829/applications/476609500","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:11.524Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"log_event_data\":833,\"analytic_event_data\":833,\"custom_event_data\":8}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:11.531Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Mac","pid":43815,"time":"2025-11-29T18:07:12.533Z","msg":"Starting initial 1000ms harvest."}
