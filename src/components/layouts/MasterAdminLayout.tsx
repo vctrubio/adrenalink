@@ -13,7 +13,7 @@ export function MasterAdminLayout({ controller, form }: MasterAdminLayoutProps) 
             {/* Mobile Layout */}
             <div className="lg:hidden">
                 <div className="p-4 space-y-4">
-                    {controller}
+                    <div className="bg-card p-6 space-y-6">{controller}</div>
                     <div className="space-y-4">{form}</div>
                     <div className="h-24" />
                 </div>
@@ -25,7 +25,9 @@ export function MasterAdminLayout({ controller, form }: MasterAdminLayoutProps) 
                     <div className="grid grid-cols-12 gap-8">
                         {/* Controller Sidebar */}
                         <div className="col-span-4">
-                            <div className="sticky top-8">{controller}</div>
+                            <div className="sticky top-8">
+                                <div className="bg-card p-6 space-y-6">{controller}</div>
+                            </div>
                         </div>
 
                         {/* Form Content */}

@@ -5,6 +5,7 @@ import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateTeacherDetail } from "@/actions/teachers-action";
 import { CountryFlagPhoneSubForm } from "@/src/components/forms/CountryFlagPhoneSubForm";
+import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { getCountryByName } from "@/config/countries";
 import type { TeacherModel } from "@/backend/models";
 import { formatDate } from "@/getters/date-getter";
@@ -29,23 +30,12 @@ function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: (
 
     return (
         <>
-            {/* Header */}
-            <div>
-                <div className="flex items-start gap-6 mb-4">
-                    <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
-                        <TeacherIcon size={48} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">
-                            {teacher.updateForm.firstName} {teacher.updateForm.lastName}
-                        </h3>
-                        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                            Created {formatDate(teacher.updateForm.createdAt)}
-                        </div>
-                    </div>
-                </div>
-                <div className="h-1 w-full rounded-full" style={{ backgroundColor: teacherEntity.color }} />
-            </div>
+            <DataHeader
+                icon={<TeacherIcon />}
+                color={teacherEntity.color}
+                title={`${teacher.updateForm.firstName} ${teacher.updateForm.lastName}`}
+                subtitle={`Created ${formatDate(teacher.updateForm.createdAt)}`}
+            />
 
             {/* Buttons */}
             <div className="flex items-center gap-2">
@@ -162,23 +152,12 @@ function TeacherEditMode({ teacher, onCancel, onSubmit }: { teacher: TeacherMode
 
     return (
         <>
-            {/* Header */}
-            <div>
-                <div className="flex items-start gap-6 mb-4">
-                    <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
-                        <TeacherIcon size={48} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">
-                            {teacher.updateForm.firstName} {teacher.updateForm.lastName}
-                        </h3>
-                        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                            Created {formatDate(teacher.updateForm.createdAt)}
-                        </div>
-                    </div>
-                </div>
-                <div className="h-1 w-full rounded-full" style={{ backgroundColor: teacherEntity.color }} />
-            </div>
+            <DataHeader
+                icon={<TeacherIcon />}
+                color={teacherEntity.color}
+                title={`${teacher.updateForm.firstName} ${teacher.updateForm.lastName}`}
+                subtitle={`Created ${formatDate(teacher.updateForm.createdAt)}`}
+            />
 
             {/* Buttons */}
             <div className="flex items-center gap-2">

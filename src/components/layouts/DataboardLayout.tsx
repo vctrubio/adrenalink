@@ -1,9 +1,18 @@
 "use client";
 
-import { ReactNode } from "react";
-import { DataboardProvider } from "@/src/contexts/DataboardContext";
+import { ReactNode, createContext, useContext } from "react";
 import type { DataboardController as DataboardControllerType } from "@/types/databoard";
 import DataboardController from "@/src/app/(admin)/(databoard)/DataboardController";
+
+const DataboardContext = createContext<DataboardControllerType | null>(null);
+
+export function useDataboardController() {
+    const context = useContext(DataboardContext);
+    if (!context) {
+        throw new Error("useDataboardController must be used within DataboardLayout");
+    }
+    return context;
+}
 
 interface DataboardLayoutProps {
     children: ReactNode;
@@ -12,12 +21,14 @@ interface DataboardLayoutProps {
 
 export function DataboardLayout({ children, controller }: DataboardLayoutProps) {
     return (
-        <DataboardProvider controller={controller}>
+        <DataboardContext.Provider value={controller}>
             {/* Mobile Layout */}
             <div className="lg:hidden">
                 <div className="p-4 space-y-4">
-                    <DataboardController isMobile />
-                    <div className="bg-card rounded-lg border border-border shadow-sm">
+                    <div className="bg-card p-6 space-y-6">
+                        <DataboardController controller={controller} isMobile />
+                    </div>
+                    <div className="bg-card">
                         <div className="p-6">{children}</div>
                     </div>
                     <div className="h-24" />
@@ -30,7 +41,11 @@ export function DataboardLayout({ children, controller }: DataboardLayoutProps) 
                     <div className="grid grid-cols-12 gap-8">
                         {/* Controller Sidebar */}
                         <div className="col-span-4">
-                            <DataboardController />
+                            <div className="sticky top-8">
+                                <div className="bg-card p-6 space-y-6">
+                                    <DataboardController controller={controller} />
+                                </div>
+                            </div>
                         </div>
 
                         {/* Content */}
@@ -40,6 +55,6 @@ export function DataboardLayout({ children, controller }: DataboardLayoutProps) 
                     </div>
                 </div>
             </div>
-        </DataboardProvider>
+        </DataboardContext.Provider>
     );
 }

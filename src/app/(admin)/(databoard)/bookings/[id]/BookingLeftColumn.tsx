@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateBooking } from "@/actions/bookings-action";
+import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { DoubleDatePicker, type DateRange } from "@/src/components/pickers/DoubleDatePicker";
 import { formatDate } from "@/getters/date-getter";
 import type { BookingModel } from "@/backend/models";
@@ -14,21 +15,12 @@ function BookingViewMode({ booking, onEdit }: { booking: BookingModel; onEdit: (
 
     return (
         <>
-            {/* Header */}
-            <div>
-                <div className="flex items-start gap-6 mb-4">
-                    <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
-                        <bookingEntity.icon size={48} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">{dateStart} - {dateEnd}</h3>
-                        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                            Created {formatDate(booking.schema.createdAt)}
-                        </div>
-                    </div>
-                </div>
-                <div className="h-1 w-full rounded-full" style={{ backgroundColor: bookingEntity.color }} />
-            </div>
+            <DataHeader
+                icon={<bookingEntity.icon />}
+                color={bookingEntity.color}
+                title={`${dateStart} - ${dateEnd}`}
+                subtitle={`Created ${formatDate(booking.schema.createdAt)}`}
+            />
 
             {/* Buttons */}
             <div className="flex items-center gap-2">
@@ -93,21 +85,12 @@ function BookingEditMode({ booking, onCancel, onSubmit }: { booking: BookingMode
 
     return (
         <>
-            {/* Header */}
-            <div>
-                <div className="flex items-start gap-6 mb-4">
-                    <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
-                        <bookingEntity.icon size={48} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-foreground">{dateStart} - {dateEnd}</h3>
-                        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                            Created {formatDate(booking.schema.createdAt)}
-                        </div>
-                    </div>
-                </div>
-                <div className="h-1 w-full rounded-full" style={{ backgroundColor: bookingEntity.color }} />
-            </div>
+            <DataHeader
+                icon={<bookingEntity.icon />}
+                color={bookingEntity.color}
+                title={`${dateStart} - ${dateEnd}`}
+                subtitle={`Created ${formatDate(booking.schema.createdAt)}`}
+            />
 
             {/* Buttons */}
             <div className="flex items-center gap-2">
