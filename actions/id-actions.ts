@@ -95,9 +95,20 @@ const entityRelations = {
                 events: true,
                 booking: {
                     with: {
+                        lessons: {
+                            with: {
+                                teacher: true,
+                                events: true,
+                            },
+                        },
                         studentPackage: {
                             with: {
                                 schoolPackage: true,
+                            },
+                        },
+                        bookingStudents: {
+                            with: {
+                                student: true,
                             },
                         },
                     },

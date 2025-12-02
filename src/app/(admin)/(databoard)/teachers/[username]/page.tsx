@@ -3,9 +3,11 @@ import { getSchoolIdFromHeader } from "@/types/headers";
 import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import { getTeacherLessonStats } from "@/getters/teacher-lesson-stats-getter";
 import type { TeacherModel } from "@/backend/models";
+import { createBookingModel } from "@/backend/models";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
 import { TeacherLessonStats } from "./TeacherLessonStats";
 import { TeacherStatsColumns } from "./TeacherStatsColumns";
+import { BookingContainer } from "@/src/components/ids/BookingContainer";
 
 export default async function TeacherDetailPage({ params }: { params: { username: string } }) {
     const schoolId = await getSchoolIdFromHeader();
@@ -39,6 +41,16 @@ export default async function TeacherDetailPage({ params }: { params: { username
         );
     }
 
+    // Extract unique bookings from lessons
+    const bookingMap = new Map();
+    const lessons = teacher.relations?.lessons || [];
+    for (const lesson of lessons) {
+        if (lesson.booking && !bookingMap.has(lesson.booking.id)) {
+            bookingMap.set(lesson.booking.id, lesson.booking);
+        }
+    }
+    const bookings = Array.from(bookingMap.values());
+
     return (
         <MasterAdminLayout
             controller={<TeacherLeftColumn teacher={teacher} />}
@@ -47,6 +59,13 @@ export default async function TeacherDetailPage({ params }: { params: { username
                     <TeacherStatsColumns teacher={teacher} />
 
                     {/* Teacher Bookings*/}
+                    {bookings.length > 0 && (
+                        <div className="space-y-4">
+                            {bookings.map((booking) => (
+                                <BookingContainer key={booking.id} booking={createBookingModel(booking)} />
+                            ))}
+                        </div>
+                    )}
                 </>
             }
         />
