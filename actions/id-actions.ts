@@ -319,9 +319,11 @@ export async function getEntityId(
         const statsMap = createStatsMap(statsRows);
 
         // 4. Create model with stats
+        // For teachers and students, use entity.id (UUID) not the id parameter (username/id)
+        const statsKey = entity === "teacher" || entity === "student" ? entityData.id : id;
         const model: EntityType = {
             ...createModel(entityData),
-            stats: statsMap.get(id),
+            stats: statsMap.get(statsKey),
         };
 
         return { success: true, data: model };
