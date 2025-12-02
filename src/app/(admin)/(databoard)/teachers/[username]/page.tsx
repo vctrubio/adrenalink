@@ -29,7 +29,6 @@ export default async function TeacherDetailPage({ params }: { params: { username
     }
 
     const teacher = result.data as TeacherModel;
-    const lessonStats = getTeacherLessonStats(teacher);
 
     // Verify teacher belongs to the school
     if (teacher.updateForm.schoolId !== schoolId) {
@@ -47,8 +46,7 @@ export default async function TeacherDetailPage({ params }: { params: { username
                 <>
                     <TeacherStatsColumns teacher={teacher} />
 
-                    {/* Teacher Lesson Stats */}
-                    <TeacherLessonStats lessons={lessonStats} />
+                    {/* Teacher Bookings*/}
                 </>
             }
         />

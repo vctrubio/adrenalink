@@ -141,7 +141,7 @@ export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, load
 
     return (
         <>
-            <div className="border-t border-border bg-stone-200">
+            <div className="border-t border-border bg-footer">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center flex-wrap">
                         <AddEventButton lessons={lessons} onAddLessonEvent={onAddLessonEvent} loadingLessonId={loadingLessonId} />

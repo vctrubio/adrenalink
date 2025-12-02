@@ -37,6 +37,10 @@
         --subscription-blue: 59 130 246; /* blue-500 - requested/blue */
         --subscription-gold: 217 119 6; /* amber-600 - premium/gold */
 
+        /* Footer Colors */
+        --footer: 226 232 240; /* slate-200 - slightly darker than card */
+        --footer-foreground: 30 41 59; /* slate-800 */
+
         /* Border and Ring - Enhanced contrast for definition */
         --border: 203 213 225; /* slate-300 */
         --input: 203 213 225; /* slate-300 */
@@ -83,6 +87,10 @@
         --subscription-default: 100 116 139; /* slate-500 - default/grey */
         --subscription-blue: 96 165 250; /* blue-400 - requested/blue */
         --subscription-gold: 251 146 60; /* orange-400 - premium/gold */
+
+        /* Footer Colors - Dark Mode */
+        --footer: 51 65 85; /* slate-700 - lighter than card */
+        --footer-foreground: 248 250 252; /* slate-50 */
 
         /* Border and Ring */
         --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
@@ -429,4 +437,20 @@
 
 .border-facebook {
     border-color: rgb(var(--facebook-border));
+}
+
+.bg-footer {
+    background-color: rgb(var(--footer));
+}
+
+.bg-footer-foreground {
+    background-color: rgb(var(--footer-foreground));
+}
+
+.text-footer {
+    color: rgb(var(--footer));
+}
+
+.text-footer-foreground {
+    color: rgb(var(--footer-foreground));
 }

@@ -15,7 +15,6 @@ export function createBookingModel(bookingData: any): BookingModel {
 
     const model: BookingModel = {
         schema: pgTableSchema,
-        updateForm: pgTableSchema,
         relations: {
             school,
             schoolPackage,

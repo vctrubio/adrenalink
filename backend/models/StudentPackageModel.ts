@@ -8,7 +8,7 @@ export type StudentPackageModel = AbstractModel<StudentPackageType> & {
 };
 
 export function createStudentPackageModel(studentPackageData: any): StudentPackageModel {
-    const { schoolPackage, studentPackageStudents, bookings, ...pgTableSchema } = studentPackageData;
+    const { schoolPackage, studentPackageStudents, bookings, referral, ...pgTableSchema } = studentPackageData;
 
     const model: StudentPackageModel = {
         schema: pgTableSchema,
@@ -16,6 +16,7 @@ export function createStudentPackageModel(studentPackageData: any): StudentPacka
             schoolPackage,
             studentPackageStudents,
             bookings,
+            referral,
         },
         popoverType: "student_package_request",
     };

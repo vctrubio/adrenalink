@@ -118,3 +118,10 @@ export function getBookingCompletionPercentage(booking: BookingModel): number {
 
     return Math.round((actualDurationMinutes / requiredDurationMinutes) * 100);
 }
+
+export function getBookingDays(booking: BookingModel): number {
+    return Math.ceil(
+        (new Date(booking.schema.dateEnd).getTime() - new Date(booking.schema.dateStart).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+}

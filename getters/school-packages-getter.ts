@@ -55,3 +55,7 @@ export function getPackageInfo(schoolPackage: { pricePerStudent: number; duratio
         totalEvents: allEvents.length,
     };
 }
+
+export function getPackageRevenue(totalHours: number, capacityStudents: number, pricePerStudent: number): number {
+    return totalHours * capacityStudents * pricePerStudent;
+}
