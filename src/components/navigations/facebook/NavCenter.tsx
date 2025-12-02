@@ -42,7 +42,9 @@ const DataboardDropdown = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                             e.currentTarget.style.backgroundColor = "transparent";
                         }}
                     >
-                        <EntityIcon className="w-5 h-5" style={{ color: entity.color }} />
+                        <div style={{ color: entity.color }}>
+                            <EntityIcon className="w-5 h-5" />
+                        </div>
                         <span className="text-sm font-medium text-foreground">{entity.name}</span>
                     </Link>
                 );
