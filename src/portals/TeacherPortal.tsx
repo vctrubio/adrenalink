@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useTeacherLessonListener } from "@/src/supabase/subscribe";
-import type { TeacherPackageBookingLessons } from "@/src/actions/user-action";
+import { useTeacherLessonListener } from "@/supabase/subscribe";
+import type { TeacherPackageBookingLessons } from "@/actions/user-action";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { Calendar, Clock } from "lucide-react";
 

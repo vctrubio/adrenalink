@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { StudentPackageBookingLessons } from "@/src/actions/user-action";
+import type { StudentPackageBookingLessons } from "@/actions/user-action";
 import { StudentPortal } from "@/src/portals";
 
 interface StudentPortalClientProps {

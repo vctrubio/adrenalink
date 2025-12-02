@@ -6,7 +6,7 @@ import { ClassboardStats } from "@/backend/ClassboardStats";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
-import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/src/supabase/subscribe";
+import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { useSchoolTeachers } from "./useSchoolTeachers";
 

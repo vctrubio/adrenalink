@@ -1,4 +1,4 @@
-import { getStudentPackageBookingLessons } from "@/src/actions/user-action";
+import { getStudentPackageBookingLessons } from "@/actions/user-action";
 import { StudentPortalClient } from "@/src/portals/StudentPortalClient";
 
 interface PageProps {
