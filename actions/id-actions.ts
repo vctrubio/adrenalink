@@ -178,11 +178,12 @@ export async function getEntityId(
         let entityData: any;
         let statsQuery: any;
         let createModel: (data: any) => EntityType;
+        let schoolId: string | undefined;
 
         // 1. Fetch entity with appropriate relations
         switch (entity) {
             case "student":
-                const schoolId = await getSchoolIdFromHeader();
+                schoolId = await getSchoolIdFromHeader();
                 if (!schoolId) {
                     return { success: false, error: "School context not found" };
                 }
@@ -195,6 +196,11 @@ export async function getEntityId(
                 if (studentData) {
                     // Filter schoolStudents to only include the current school
                     const filteredSchoolStudents = studentData.schoolStudents?.filter((ss) => ss.schoolId === schoolId) || [];
+
+                    // Check if student belongs to this school
+                    if (filteredSchoolStudents.length === 0) {
+                        return { success: false, error: "Student not found in this school" };
+                    }
 
                     // Filter bookingStudents to only include bookings from the current school
                     const filteredBookingStudents = studentData.bookingStudents?.filter((bs: any) => {
@@ -231,7 +237,7 @@ export async function getEntityId(
                 }
 
                 statsQuery = buildStudentStatsQuery();
-                createModel = createStudentModel;
+                createModel = (data: any) => createStudentModel(data, schoolId);
                 break;
 
             case "teacher":

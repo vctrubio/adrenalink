@@ -112,7 +112,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
 
         // 4. Merge stats into models
         const students: StudentModel[] = studentsResult.map((studentData) => ({
-            ...createStudentModel(studentData),
+            ...createStudentModel(studentData, schoolId),
             stats: statsMap.get(studentData.id),
         }));
 

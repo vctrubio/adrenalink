@@ -2,6 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
+import { Breadcrumb } from "@/src/components/databoard/Breadcrumb";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardController } from "@/types/databoard";
 import { usePathname } from "next/navigation";
 
@@ -27,7 +28,16 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
 
     // Only show databoard layout on list pages, not detail pages
     if (!isListPage) {
-        return children;
+        return (
+            <>
+                <div className="px-4 py-4 lg:px-8 lg:py-8">
+                    <div className="max-w-7xl mx-auto">
+                        <Breadcrumb />
+                    </div>
+                </div>
+                {children}
+            </>
+        );
     }
 
     const handleSelectionModeToggle = (enabled: boolean) => {

@@ -14,11 +14,13 @@ export type StudentModel = AbstractModel<StudentUpdateForm> & {
     popoverType?: "student_package";
 };
 
-export function createStudentModel(studentData: any): StudentModel {
+export function createStudentModel(studentData: any, schoolId?: string): StudentModel {
     const { schoolStudents, studentPackageStudents, bookingStudents, bookingPayments, ...pgTableSchema } = studentData;
 
-    // Get the school-specific data from the first schoolStudent record
-    const schoolStudent = schoolStudents?.[0];
+    // Get the school-specific data from the matching schoolStudent record
+    const schoolStudent = schoolId
+        ? schoolStudents?.find((ss: any) => ss.schoolId === schoolId)
+        : schoolStudents?.[0];
     const description = schoolStudent?.description || null;
     const active = schoolStudent?.active ?? true;
     const rental = schoolStudent?.rental ?? false;
