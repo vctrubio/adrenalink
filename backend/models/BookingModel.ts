@@ -11,7 +11,7 @@ export type BookingModel = AbstractModel<BookingUpdateForm> & {
 };
 
 export function createBookingModel(bookingData: any): BookingModel {
-    const { school, schoolPackage, studentPackage, bookingStudents, lessons, ...pgTableSchema } = bookingData;
+    const { school, schoolPackage, studentPackage, bookingStudents, lessons, studentBookingPayments, ...pgTableSchema } = bookingData;
 
     const model: BookingModel = {
         schema: pgTableSchema,
@@ -22,6 +22,7 @@ export function createBookingModel(bookingData: any): BookingModel {
             studentPackage,
             bookingStudents,
             lessons,
+            studentBookingPayments,
         },
     };
 

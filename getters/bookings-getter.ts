@@ -10,6 +10,34 @@ export const BookingStats = {
     getEventsCount: (booking: BookingModel): number => booking.stats?.events_count || 0,
     getTotalHours: (booking: BookingModel): number => (booking.stats?.total_duration_minutes || 0) / 60,
     getRevenue: (booking: BookingModel): number => BookingStats.getMoneyIn(booking) - BookingStats.getMoneyOut(booking),
+    getTeacherPayments: (booking: BookingModel): number => {
+        const lessons = booking.relations?.lessons || [];
+        return lessons.reduce((total, lesson) => {
+            const payments = lesson.teacherLessonPayments || [];
+            return total + payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+        }, 0);
+    },
+    getStudentPayments: (booking: BookingModel): number => {
+        const payments = booking.relations?.studentBookingPayments || [];
+        return payments.reduce((total, payment) => total + (payment.amount || 0), 0);
+    },
+    getTeacherCommissions: (booking: BookingModel): number => {
+        const lessons = booking.relations?.lessons || [];
+        return lessons.reduce((total, lesson) => {
+            const events = lesson.events || [];
+            const durationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+            const durationHours = durationMinutes / 60;
+            const cph = parseFloat(lesson.commission?.cph || "0");
+            return total + (durationHours * cph);
+        }, 0);
+    },
+    getNetProfit: (booking: BookingModel): number => {
+        const revenue = BookingStats.getMoneyIn(booking);
+        const teacherPayments = BookingStats.getTeacherPayments(booking);
+        const studentPayments = BookingStats.getStudentPayments(booking);
+        const teacherCommissions = BookingStats.getTeacherCommissions(booking);
+        return revenue - teacherPayments - studentPayments - teacherCommissions;
+    },
 };
 
 // ============ LEGACY RELATION-BASED GETTERS ============

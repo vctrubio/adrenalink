@@ -44,6 +44,9 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
             controller={<BookingLeftColumn booking={booking} />}
             form={
                 <>
+                    {/* Booking Stats */}
+                    <BookingStatsColumns booking={booking} />
+
                     {/* Students */}
                     {bookingStudents.length > 0 && (
                         <div className="bg-card border border-border rounded-lg p-6">
@@ -83,9 +86,6 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
                             </div>
                         </div>
                     )}
-
-                    {/* Booking Stats */}
-                    <BookingStatsColumns booking={booking} />
 
                     {/* Completion Status */}
                     {booking.popoverType === "booking_completion" && (

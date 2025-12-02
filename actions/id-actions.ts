@@ -106,6 +106,8 @@ const entityRelations = {
             with: {
                 teacher: true,
                 events: true,
+                commission: true,
+                teacherLessonPayments: true,
             },
         },
         bookingStudents: {
@@ -118,6 +120,7 @@ const entityRelations = {
                 schoolPackage: true,
             },
         },
+        studentBookingPayments: true,
     },
     equipment: {
         teacherEquipments: {

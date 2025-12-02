@@ -68,7 +68,7 @@ export const bookingRelations = relations(booking, ({ one, many }) => ({
     }),
     bookingStudents: many(bookingStudent),
     lessons: many(lesson),
-    studentPayments: many(studentBookingPayment),
+    studentBookingPayments: many(studentBookingPayment),
 }));
 
 export const bookingStudentRelations = relations(bookingStudent, ({ one }) => ({
@@ -96,7 +96,7 @@ export const lessonRelations = relations(lesson, ({ one, many }) => ({
         references: [teacherCommission.id],
     }),
     events: many(event),
-    payments: many(teacherLessonPayment),
+    teacherLessonPayments: many(teacherLessonPayment),
     feedback: many(studentLessonFeedback),
 }));
 
