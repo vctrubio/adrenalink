@@ -1,12 +1,21 @@
 import { getEntityId } from "@/actions/id-actions";
+import { getSchoolIdFromHeader } from "@/types/headers";
 import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
-import { ENTITY_DATA } from "@/config/entities";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { getPrettyDuration } from "@/getters/duration-getter";
 import type { BookingModel } from "@/backend/models";
 import { BookingLeftColumn } from "./BookingLeftColumn";
+import { BookingStatsColumns } from "./BookingStatsColumns";
 
 export default async function BookingDetailPage({ params }: { params: { id: string } }) {
+    const schoolId = await getSchoolIdFromHeader();
+
+    if (!schoolId) {
+        return (
+            <div className="p-8">
+                <div className="text-destructive">Error: School context not found</div>
+            </div>
+        );
+    }
+
     const result = await getEntityId("booking", params.id);
 
     if (!result.success) {
@@ -18,15 +27,17 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
     }
 
     const booking = result.data as BookingModel;
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+
+    // Verify booking belongs to the school
+    if (booking.schema.schoolId !== schoolId) {
+        return (
+            <div className="p-8">
+                <div className="text-destructive">Error: You do not have permission to view this booking</div>
+            </div>
+        );
+    }
 
     const bookingStudents = booking.relations?.bookingStudents || [];
-    const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
-
-    // Get equipment category icon and color
-    const equipmentCategory = schoolPackage?.categoryEquipment;
-    const equipmentConfig = equipmentCategory ? EQUIPMENT_CATEGORIES.find((cat) => cat.id === equipmentCategory) : null;
-    const equipmentColor = equipmentConfig?.color || bookingEntity.color;
 
     return (
         <MasterAdminLayout
@@ -73,43 +84,8 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
                         </div>
                     )}
 
-                    {/* Stats Card */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Statistics</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Events</p>
-                                <p className="text-2xl font-bold text-foreground">{booking.stats?.events_count || 0}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Duration</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                    {getPrettyDuration(booking.stats?.total_duration_minutes || 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Financial Info */}
-                    <div className="bg-card border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Financial</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Revenue</p>
-                                <p className="text-xl font-bold text-green-600">${booking.stats?.money_in || 0}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Costs</p>
-                                <p className="text-xl font-bold text-red-600">${booking.stats?.money_out || 0}</p>
-                            </div>
-                            <div className="border-t border-border pt-4">
-                                <p className="text-sm text-muted-foreground">Net Profit</p>
-                                <p className="text-xl font-bold" style={{ color: (booking.stats?.money_in || 0) - (booking.stats?.money_out || 0) >= 0 ? "#10b981" : "#ef4444" }}>
-                                    ${(booking.stats?.money_in || 0) - (booking.stats?.money_out || 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Booking Stats */}
+                    <BookingStatsColumns booking={booking} />
 
                     {/* Completion Status */}
                     {booking.popoverType === "booking_completion" && (
