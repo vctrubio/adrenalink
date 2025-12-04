@@ -1,32 +1,19 @@
 "use client";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
-import { Dropdown, type DropdownItem } from "@/src/components/ui/dropdown";
+import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
 const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
-
-const NavIcon = ({ href, icon: Icon, active = false }: { href: string; icon: React.ElementType; active?: boolean }) => (
-    <Link
-        href={href}
-        className={`relative flex h-14 w-24 items-center justify-center text-muted-foreground transition-colors hover:bg-accent rounded-lg ${
-            active ? "text-primary" : ""
-        }`}
-    >
-        <Icon className={`h-7 w-7 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
-        {active && <div className="absolute bottom-0 h-1 w-full bg-primary"></div>}
-    </Link>
-);
 
 export const NavCenter = () => {
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
-    const databoardDropdownItems: DropdownItem[] = databoardEntities.map((entity) => ({
+    const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
         id: entity.id,
         label: entity.name,
         href: entity.link,
@@ -49,15 +36,14 @@ export const NavCenter = () => {
                 if (route.id === 'data') {
                     return (
                         <div key={route.href} className="relative">
-                            <button
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className={`relative flex h-14 w-24 items-center justify-center text-muted-foreground transition-colors hover:bg-accent rounded-lg ${
-                                    isActive ? "text-primary" : ""
-                                }`}
-                            >
-                                <route.icon className={`h-7 w-7 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                                {isActive && <div className="absolute bottom-0 h-1 w-full bg-primary"></div>}
-                            </button>
+                            <DropdownItem
+                                item={{
+                                    icon: route.icon,
+                                    active: isActive,
+                                    onClick: () => setIsDropdownOpen(!isDropdownOpen),
+                                }}
+                                variant="nav"
+                            />
                             <Dropdown
                                 isOpen={isDropdownOpen}
                                 onClose={() => setIsDropdownOpen(false)}
@@ -69,11 +55,14 @@ export const NavCenter = () => {
                 }
 
                 return (
-                    <NavIcon
+                    <DropdownItem
                         key={route.href}
-                        href={route.href}
-                        icon={route.icon}
-                        active={isActive}
+                        item={{
+                            href: route.href,
+                            icon: route.icon,
+                            active: isActive,
+                        }}
+                        variant="nav"
                     />
                 );
             })}

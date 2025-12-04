@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Home, Code, Settings, User, BookOpen, Table } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "@headlessui/react";
 import ToggleTheme from "../themes/toggle-theme";
 import { ENTITY_DATA } from "../../../config/entities";
 import { HIDDEN_ENTITIES } from "../../../config/tables";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
 const navigationItems = [
     { href: "/", icon: Home, label: "Home" },
@@ -35,32 +36,26 @@ const userMenuItems = [
 ];
 
 function UserDropdown() {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const dropdownItems: DropdownItemProps[] = userMenuItems.map(({ href, icon, label }) => ({
+        id: href,
+        label,
+        icon,
+        href,
+    }));
+
     return (
-        <Menu as="div" className="relative inline-block text-left">
-            <Menu.Button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md">
+        <div className="relative inline-block text-left">
+            <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
+            >
                 <User size={18} className="transition-transform duration-300 hover:scale-110" />
                 <span className="text-sm">Menu</span>
-            </Menu.Button>
-
-            <Menu.Items className="absolute right-0 z-10 mt-3 w-52 origin-top-right rounded-xl bg-card border border-border shadow-xl shadow-primary/5 backdrop-blur-sm">
-                <div className="py-2">
-                    {userMenuItems.map(({ href, icon: Icon, label }) => (
-                        <Menu.Item key={href}>
-                            {({ active }) => (
-                                <Link
-                                    href={href}
-                                    className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ease-out ${active ? "bg-primary/10 text-primary scale-105 shadow-sm" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-sm"
-                                        }`}
-                                >
-                                    <Icon size={16} className="transition-transform duration-200 group-hover:scale-110" />
-                                    {label}
-                                </Link>
-                            )}
-                        </Menu.Item>
-                    ))}
-                </div>
-            </Menu.Items>
-        </Menu>
+            </button>
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" />
+        </div>
     );
 }
 

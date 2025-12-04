@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { User } from "lucide-react";
-import { Menu } from "@headlessui/react";
 import type { BookingModel } from "@/backend/models";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -13,10 +13,12 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
+import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
 import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { updateLesson } from "@/actions/lessons-action";
 
 const ICON_SIZE = 20;
 
@@ -81,7 +83,7 @@ interface StudentListProps {
 }
 
 function StudentList({ students, capacity }: StudentListProps) {
-    const router = useRouter();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const StudentIcon = studentEntity?.icon;
 
@@ -89,70 +91,24 @@ function StudentList({ students, capacity }: StudentListProps) {
         return null;
     }
 
-    if (students.length === 1) {
-        return (
-            <Menu as="div" className="relative inline-block">
-                <Menu.Button
-                    onClick={() => console.log("DEV: Menu button clicked - 1 student")}
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                >
-                    <div style={{ color: studentEntity.color }}>
-                        <StudentIcon size={ICON_SIZE} />
-                    </div>
-                </Menu.Button>
-                <Menu.Items className="absolute left-0 top-full mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
-                    <div className="p-1">
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button
-                                    onClick={() => {
-                                        console.log("DEV: Clicked student:", students[0].firstName);
-                                        router.push(`/students/${students[0].id}`);
-                                    }}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${active ? "bg-muted/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
-                                >
-                                    {students[0].firstName} {students[0].lastName}
-                                </button>
-                            )}
-                        </Menu.Item>
-                    </div>
-                </Menu.Items>
-            </Menu>
-        );
-    }
+    const dropdownItems: DropdownItemProps[] = students.map((student) => ({
+        id: student.id,
+        label: `${student.firstName} ${student.lastName}`,
+        icon: StudentIcon,
+        color: studentEntity.color,
+        href: `/students/${student.id}`,
+    }));
 
     return (
-        <Menu as="div" className="relative inline-block">
-            <Menu.Button
-                onClick={() => console.log("DEV: Menu button clicked - multiple students", students)}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-            >
+        <div className="relative inline-block">
+            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <div style={{ color: studentEntity.color }}>
                     <StudentIcon size={ICON_SIZE} />
                 </div>
-                {students.length > 2 ? <span className="text-xs font-semibold text-foreground">+{students.length}</span> : <span className="text-xs font-semibold text-foreground">{students.length}</span>}
-            </Menu.Button>
-            <Menu.Items className="absolute left-0 top-full mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
-                <div className="p-1">
-                    {console.log("DEV: Rendering Menu.Items with students:", students)}
-                    {students.map((student) => (
-                        <Menu.Item key={student.id}>
-                            {({ active }) => (
-                                <button
-                                    onClick={() => {
-                                        console.log("DEV: Clicked student:", student.firstName);
-                                        router.push(`/students/${student.id}`);
-                                    }}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${active ? "bg-muted/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
-                                >
-                                    {student.firstName} {student.lastName}
-                                </button>
-                            )}
-                        </Menu.Item>
-                    ))}
-                </div>
-            </Menu.Items>
-        </Menu>
+                {students.length > 1 && (students.length > 2 ? <span className="text-xs font-semibold text-foreground">+{students.length}</span> : <span className="text-xs font-semibold text-foreground">{students.length}</span>)}
+            </button>
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="left" />
+        </div>
     );
 }
 
@@ -170,10 +126,7 @@ function BookingDays({ days, bookingId }: BookingDaysProps) {
 
     if (days === 1) {
         return (
-            <button
-                onClick={() => router.push(`/bookings/${bookingId}`)}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-            >
+            <button onClick={() => router.push(`/bookings/${bookingId}`)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <div style={{ color: bookingEntity.color }}>
                     <BookingIcon size={ICON_SIZE} />
                 </div>
@@ -182,10 +135,7 @@ function BookingDays({ days, bookingId }: BookingDaysProps) {
     }
 
     return (
-        <button
-            onClick={() => router.push(`/bookings/${bookingId}`)}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-        >
+        <button onClick={() => router.push(`/bookings/${bookingId}`)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
             <div style={{ color: bookingEntity.color }}>
                 <BookingIcon size={ICON_SIZE} />
             </div>
@@ -204,43 +154,34 @@ interface PackageInfoProps {
 }
 
 function PackageInfo({ durationMinutes, pricePerStudent, packageDescription, packageId, totalHours, capacityStudents }: PackageInfoProps) {
-    const router = useRouter();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const packageDurationHours = Math.round(durationMinutes / 60);
     const revenue = getPackageRevenue(packageDurationHours, capacityStudents, pricePerStudent);
 
+    const dropdownItems: DropdownItemProps[] = [
+        {
+            id: packageId,
+            label: packageDescription,
+            icon: PackageIcon,
+            color: packageEntity?.color,
+            href: `/packages/${packageId}`,
+            description: `${packageDurationHours}h + ${capacityStudents} * ${pricePerStudent}€ = ${revenue}€`,
+        },
+    ];
+
     return (
-        <Menu as="div" className="relative inline-block">
-            <Menu.Button
-                onClick={() => console.log("DEV: Package menu clicked")}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-            >
+        <div className="relative inline-block">
+            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <div style={{ color: packageEntity?.color }}>
                     <PackageIcon size={ICON_SIZE} />
                 </div>
                 <span className="text-xs font-semibold text-foreground">{Math.round(durationMinutes / 60)}h</span>
                 <span className="text-xs font-semibold text-muted-foreground">/</span>
                 <span className="text-xs font-semibold text-foreground">{pricePerStudent}€</span>
-            </Menu.Button>
-            <Menu.Items className="absolute left-0 top-full mt-2 w-48 origin-top-left bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
-                <div className="p-1">
-                    <Menu.Item>
-                        {({ active }) => (
-                            <button
-                                onClick={() => {
-                                    console.log("DEV: Clicked package:", packageDescription);
-                                    router.push(`/packages/${packageId}`);
-                                }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${active ? "bg-muted/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
-                            >
-                                <div>{packageDescription}</div>
-                                <div className="text-xs text-foreground mt-2 pt-2 border-t border-border">{packageDurationHours}h + {capacityStudents} * {pricePerStudent}€ = <span className="font-semibold">{revenue}€</span></div>
-                            </button>
-                        )}
-                    </Menu.Item>
-                </div>
-            </Menu.Items>
-        </Menu>
+            </button>
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="left" />
+        </div>
     );
 }
 
@@ -290,15 +231,37 @@ interface LessonRowProps {
 }
 
 function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
+    const router = useRouter();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const TeacherIcon = teacherEntity?.icon;
 
     if (!teacherEntity || lessons.length === 0) return null;
 
+    const handleLessonStatusUpdate = async (lessonId: string, status: LessonStatus) => {
+        try {
+            const result = await updateLesson(lessonId, { status });
+            if (result.success) {
+                router.refresh();
+            } else {
+                console.error("Failed to update lesson status:", result.error);
+            }
+        } catch (error) {
+            console.error("Error updating lesson status:", error);
+        }
+    };
+
     return (
         <div className="space-y-4">
             {lessons.map((lesson) => {
                 const commission = getTeacherLessonCommission(lesson.events || [], lesson.commission, schoolPackage.pricePerStudent, schoolPackage.durationMinutes);
+
+                const lessonStatusItems: DropdownItemProps[] = (["active", "rest", "completed", "uncompleted"] as const).map((status) => ({
+                    id: status,
+                    label: LESSON_STATUS_CONFIG[status].label,
+                    icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: LESSON_STATUS_CONFIG[status].color }} />,
+                    color: LESSON_STATUS_CONFIG[status].color,
+                    onClick: () => handleLessonStatusUpdate(lesson.id, status),
+                }));
 
                 return (
                     <div key={lesson.id} className="space-y-2">
@@ -314,7 +277,11 @@ function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
                                         <span className="text-sm font-medium">{lesson.teacher.username}</span>
                                     </div>
                                 </HoverToEntity>
-                                <span className="text-xs text-muted-foreground capitalize">{lesson.status}</span>
+                                <DropdownLabel
+                                    value={lesson.status}
+                                    items={lessonStatusItems}
+                                    color={LESSON_STATUS_CONFIG[lesson.status].color}
+                                />
                             </div>
                             <span className="text-xs text-muted-foreground">
                                 {commission.commissionRate} × {commission.hours} = {commission.earned}
@@ -323,8 +290,6 @@ function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
                         {lesson.events && lesson.events.length > 0 && (
                             <div className="space-y-1 pl-6">
                                 {lesson.events.map((event) => {
-                                    const statusColor = getEventStatusColor(event.status);
-                                    const statusLabel = getEventStatusLabel(event.status);
                                     const eventDate = new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
                                     const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
                                     const hours = Math.floor(event.duration / 60);
@@ -333,7 +298,7 @@ function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
 
                                     return (
                                         <div key={event.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <div style={{ color: statusColor }}>
+                                            <div style={{ color: EVENT_STATUS_CONFIG[event.status].color }}>
                                                 <FlagIcon size={12} />
                                             </div>
                                             <span className="font-semibold">{durationText}</span>
@@ -370,23 +335,14 @@ interface BookingFooterProps {
 function BookingFooter({ onReceiptClick, onAddStudentPayment, onAddTeacherPayment }: BookingFooterProps) {
     return (
         <div className="bg-footer p-4 flex items-center justify-between gap-2 border-t border-border">
-            <button
-                onClick={onReceiptClick}
-                className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded transition-colors"
-            >
+            <button onClick={onReceiptClick} className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded transition-colors">
                 Receipt
             </button>
             <div className="flex items-center gap-2">
-                <button
-                    onClick={onAddStudentPayment}
-                    className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors"
-                >
+                <button onClick={onAddStudentPayment} className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors">
                     Add Student Payment
                 </button>
-                <button
-                    onClick={onAddTeacherPayment}
-                    className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors"
-                >
+                <button onClick={onAddTeacherPayment} className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors">
                     Add Teacher Payment
                 </button>
             </div>
@@ -401,12 +357,7 @@ interface BookingContainerProps {
     onAddTeacherPayment?: () => void;
 }
 
-export function BookingContainer({
-    booking,
-    onReceiptClick = () => {},
-    onAddStudentPayment = () => {},
-    onAddTeacherPayment = () => {},
-}: BookingContainerProps) {
+export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStudentPayment = () => { }, onAddTeacherPayment = () => { } }: BookingContainerProps) {
     const lessons = booking.relations?.lessons || [];
     const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
 
@@ -424,11 +375,12 @@ export function BookingContainer({
 
     const bookingDays = getBookingDays(booking);
 
-    const students = booking.relations?.bookingStudents?.map((bs: any) => ({
-        id: bs.student.id,
-        firstName: bs.student.firstName,
-        lastName: bs.student.lastName,
-    })) || [];
+    const students =
+        booking.relations?.bookingStudents?.map((bs: any) => ({
+            id: bs.student.id,
+            firstName: bs.student.firstName,
+            lastName: bs.student.lastName,
+        })) || [];
 
     if (process.env.JSONIFY === "true") {
         console.log("DEV:JSON: BookingContainer students =", students);
@@ -457,18 +409,12 @@ export function BookingContainer({
                     <div className="flex items-center gap-2">
                         <DurationIcon size={ICON_SIZE} />
                         <span className="text-sm font-semibold text-foreground">{totalHours}h</span>
-                        {totalHours > Math.round(schoolPackage.durationMinutes / 60) && (
-                            <span className="text-xs font-semibold text-foreground">(+{totalHours - Math.round(schoolPackage.durationMinutes / 60)}h)</span>
-                        )}
+                        {totalHours > Math.round(schoolPackage.durationMinutes / 60) && <span className="text-xs font-semibold text-foreground">(+{totalHours - Math.round(schoolPackage.durationMinutes / 60)}h)</span>}
                     </div>
                 </div>
                 {lessons.length > 0 && <LessonRow lessons={lessons} schoolPackage={schoolPackage} />}
             </div>
-            <BookingFooter
-                onReceiptClick={onReceiptClick}
-                onAddStudentPayment={onAddStudentPayment}
-                onAddTeacherPayment={onAddTeacherPayment}
-            />
+            <BookingFooter onReceiptClick={onReceiptClick} onAddStudentPayment={onAddStudentPayment} onAddTeacherPayment={onAddTeacherPayment} />
         </div>
     );
 }
