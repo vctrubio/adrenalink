@@ -40,7 +40,12 @@ export function DropdownLabel({
     return (
         <div className="relative inline-block">
             <button
-                onClick={() => !isDisabled && setIsDropdownOpen(!isDropdownOpen)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isDisabled) {
+                        setIsDropdownOpen(!isDropdownOpen);
+                    }
+                }}
                 disabled={isDisabled}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors"
                 style={{

@@ -8,12 +8,15 @@ import { ENTITY_DATA } from "@/config/entities";
 import { BookingStats, getBookingDurationHours } from "@/getters/bookings-getter";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
+import { updateBooking } from "@/actions/bookings-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import type { BookingModel } from "@/backend/models";
+import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
 export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[] {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
@@ -96,6 +99,17 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
     ];
 
+    const currentStatus = booking.schema.status;
+    const currentStatusConfig = BOOKING_STATUS_CONFIG[currentStatus];
+
+    const statusDropdownItems: DropdownItemProps[] = (["active", "completed", "uncompleted"] as const).map((status) => ({
+        id: status,
+        label: BOOKING_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: BOOKING_STATUS_CONFIG[status].color }} />,
+        color: BOOKING_STATUS_CONFIG[status].color,
+        onClick: () => updateBooking(booking.schema.id, { status: status as BookingStatus }),
+    }));
+
     return (
         <Row
             id={booking.schema.id}
@@ -115,7 +129,9 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                         {`Booking ${booking.schema.id.slice(0, 8)}`}
                     </HoverToEntity>
                 ),
-                status: `Status: ${booking.schema.status}`,
+                status: currentStatusConfig.label,
+                dropdownItems: statusDropdownItems,
+                statusColor: currentStatusConfig.color,
             }}
             str={{
                 label: "Details",

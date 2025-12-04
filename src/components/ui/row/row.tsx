@@ -4,6 +4,7 @@ import { RowStr } from "./row-str";
 import { RowAction } from "./row-action";
 import { RowDropdownExpandable } from "./row-dropdown-expandable";
 import { RowStats, type StatItem } from "./row-stats";
+import type { DropdownItemProps } from "../dropdown";
 
 interface RowProps {
     id: string;
@@ -16,6 +17,9 @@ interface RowProps {
         avatar: ReactNode;
         name: string | ReactNode;
         status: string;
+        dropdownItems?: DropdownItemProps[];
+        statusColor?: string;
+        statusDisabled?: boolean;
     };
     str?: {
         label: string;
@@ -51,24 +55,12 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
     };
 
     return (
-        <div className="bg-card overflow-hidden">
-            <div 
-                ref={rowRef}
-                className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer" 
-                onClick={() => onToggle(id)}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-            >
+        <div className="bg-card overflow-visible">
+            <div ref={rowRef} className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer relative" onClick={() => onToggle(id)} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
                     {/* Head */}
                     <div className="flex-shrink-0">
-                        <RowHead
-                            avatar={head.avatar}
-                            name={head.name}
-                            status={head.status}
-                            entityBgColor={entityBgColor}
-                            isExpanded={isExpanded}
-                        />
+                        <RowHead avatar={head.avatar} name={head.name} status={head.status} dropdownItems={head.dropdownItems} statusColor={head.statusColor} statusDisabled={head.statusDisabled} />
                     </div>
 
                     {/* Str and Action */}

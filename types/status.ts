@@ -1,4 +1,4 @@
-import { eventStatusEnum, lessonStatusEnum } from "@/drizzle/schema";
+import { eventStatusEnum, lessonStatusEnum, bookingStatusEnum } from "@/drizzle/schema";
 
 // ============ SHARED COLOR CONSTANTS ============
 // Reusable colors across all status types
@@ -93,6 +93,33 @@ export const ACTION_BUTTON_CONFIG: Record<ActionType, ActionButtonConfig> = {
     submit: {
         label: "Submit",
         className: "bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors",
+    },
+} as const;
+
+// ============ BOOKING STATUS CONFIGURATION ============
+export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+
+export interface BookingStatusConfig {
+    status: BookingStatus;
+    color: string;
+    label: string;
+}
+
+export const BOOKING_STATUS_CONFIG: Record<BookingStatus, BookingStatusConfig> = {
+    active: {
+        status: "active",
+        color: STATUS_GREY,
+        label: "Active",
+    },
+    completed: {
+        status: "completed",
+        color: STATUS_GREEN,
+        label: "Completed",
+    },
+    uncompleted: {
+        status: "uncompleted",
+        color: STATUS_ORANGE,
+        label: "Uncompleted",
     },
 } as const;
 
