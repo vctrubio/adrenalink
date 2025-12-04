@@ -137,13 +137,39 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                         return (
                             <label
                                 key={category.id}
-                                className={`cursor-pointer select-none border-2 rounded-lg p-4 flex flex-col items-center gap-3 transition-all
-                                ${checked ? `${category.bgColor} ${category.color} border-current` : "bg-card border-border hover:border-muted-foreground"}
-                            `}
+                                style={{
+                                    '--category-color': category.color,
+                                    '--category-bg-color': category.bgColor
+                                }}
+                                className={`
+                                    group cursor-pointer select-none border-2 rounded-lg p-4 flex flex-col items-center gap-3 transition-all
+                                    ${checked
+                                        ? 'bg-card border-[var(--category-color)] text-[var(--category-color)]'
+                                        : 'bg-card border-border text-foreground'
+                                    }
+                                `}
                             >
                                 <input type="checkbox" value={category.id} className="hidden" {...register("equipmentCategories")} />
-                                <div className={`p-3 rounded-full ${checked ? "bg-white/20" : category.bgColor}`}>
-                                    <Icon className={`w-8 h-8 ${checked ? "text-current" : category.color}`} size={32} center={true} />
+                                <div
+                                    className={`
+                                        p-3 rounded-full transition-colors
+                                        ${checked
+                                            ? 'bg-[var(--category-bg-color)]'
+                                            : 'bg-muted group-hover:bg-[var(--category-bg-color)]'
+                                        }
+                                    `}
+                                >
+                                    <Icon
+                                        className={`
+                                            w-8 h-8 transition-colors
+                                            ${checked
+                                                ? 'text-white'
+                                                : 'text-[var(--category-color)] group-hover:text-white'
+                                            }
+                                        `}
+                                        size={32}
+                                        center={true}
+                                    />
                                 </div>
                                 <span className="font-semibold">{category.name}</span>
                             </label>
