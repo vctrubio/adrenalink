@@ -208,3 +208,14 @@ export async function getSchoolTimezoneFromHeader(): Promise<string | null> {
 export function revalidateSchoolCache(): void {
     revalidateTag("school");
 }
+
+/**
+ * Gets the user role from the x-user-role header
+ * Set by middleware based on authentication or path
+ *
+ * @returns The user role ("student", "teacher", etc.), or null if not set
+ */
+export async function getUserRole(): Promise<string | null> {
+    const headersList = await headers();
+    return headersList.get("x-user-role");
+}

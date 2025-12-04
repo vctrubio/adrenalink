@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
+import { Dropdown, type DropdownItem } from "@/src/components/ui/dropdown";
 
 const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
@@ -20,42 +21,18 @@ const NavIcon = ({ href, icon: Icon, active = false }: { href: string; icon: Rea
     </Link>
 );
 
-const DataboardDropdown = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-card border border-border rounded-lg shadow-lg p-2 min-w-56 z-50">
-            {databoardEntities.map((entity) => {
-                const EntityIcon = entity.icon;
-                return (
-                    <Link
-                        key={entity.id}
-                        href={entity.link}
-                        onClick={onClose}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = `${entity.color}20`;
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                        }}
-                    >
-                        <div style={{ color: entity.color }}>
-                            <EntityIcon className="w-5 h-5" />
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{entity.name}</span>
-                    </Link>
-                );
-            })}
-        </div>
-    );
-};
-
 export const NavCenter = () => {
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
+    const databoardDropdownItems: DropdownItem[] = databoardEntities.map((entity) => ({
+        id: entity.id,
+        label: entity.name,
+        href: entity.link,
+        icon: entity.icon,
+        color: entity.color,
+    }));
 
     return (
         <div className="hidden md:flex items-center justify-center gap-1">
@@ -81,7 +58,12 @@ export const NavCenter = () => {
                                 <route.icon className={`h-7 w-7 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                                 {isActive && <div className="absolute bottom-0 h-1 w-full bg-primary"></div>}
                             </button>
-                            <DataboardDropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} />
+                            <Dropdown
+                                isOpen={isDropdownOpen}
+                                onClose={() => setIsDropdownOpen(false)}
+                                items={databoardDropdownItems}
+                                align="center"
+                            />
                         </div>
                     );
                 }
