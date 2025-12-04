@@ -7,7 +7,8 @@ import { DataHeader } from "@/src/components/databoard/DataHeader";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardController as DataboardControllerType } from "@/types/databoard";
 
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
-const FILTER_OPTIONS: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
+const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
+const FILTER_OPTIONS_EQUIPMENT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days", "Active"];
 const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Daily", "Weekly", "Monthly"];
 
 interface DataboardControllerProps {
@@ -30,6 +31,7 @@ export default function DataboardController({ controller, isMobile = false }: Da
 
     const Icon = activeEntity.icon;
     const activeCount = controller.counts[activeEntity.id] || 0;
+    const filterOptions = activeEntity.id === "equipment" ? FILTER_OPTIONS_EQUIPMENT : FILTER_OPTIONS_DEFAULT;
 
     return (
         <div className="space-y-6">
@@ -44,7 +46,7 @@ export default function DataboardController({ controller, isMobile = false }: Da
                 <div className="space-y-2">
                     <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter</div>
                     <div className="flex flex-wrap gap-2">
-                        {FILTER_OPTIONS.map((option) => {
+                        {filterOptions.map((option) => {
                             const isActive = controller.filter === option;
                             return (
                                 <button
@@ -73,6 +75,29 @@ export default function DataboardController({ controller, isMobile = false }: Da
                                 <button
                                     key={option}
                                     onClick={() => controller.onGroupChange(option)}
+                                    style={{
+                                        borderColor: isActive ? activeEntity.color : undefined,
+                                        backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
+                                >
+                                    {option}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Filter Activity */}
+                <div className="space-y-2">
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter Activity</div>
+                    <div className="flex flex-wrap gap-2">
+                        {["All", "Active", "Inactive"].map((option) => {
+                            const isActive = controller.activity === option;
+                            return (
+                                <button
+                                    key={option}
+                                    onClick={() => controller.onActivityChange(option as "All" | "Active" | "Inactive")}
                                     style={{
                                         borderColor: isActive ? activeEntity.color : undefined,
                                         backgroundColor: isActive ? `${activeEntity.color}20` : undefined,

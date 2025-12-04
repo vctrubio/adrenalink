@@ -157,3 +157,20 @@ export async function updateTeacherDetail(
         return { success: false, error: "Failed to update teacher" };
     }
 }
+
+// UPDATE TEACHER ACTIVE STATUS
+export async function updateTeacherActive(teacherId: string, active: boolean): Promise<ApiActionResponseModel<TeacherType>> {
+    try {
+        const result = await db.update(teacher).set({ active }).where(eq(teacher.id, teacherId)).returning();
+
+        if (!result[0]) {
+            return { success: false, error: "Teacher not found" };
+        }
+
+        revalidatePath("/teachers");
+        return { success: true, data: result[0] };
+    } catch (error) {
+        console.error("Error updating teacher active status:", error);
+        return { success: false, error: "Failed to update teacher active status" };
+    }
+}

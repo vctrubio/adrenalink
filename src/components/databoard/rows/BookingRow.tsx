@@ -17,6 +17,7 @@ import BankIcon from "@/public/appSvgs/BankIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import type { BookingModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[] {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
@@ -110,6 +111,15 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
         onClick: () => updateBooking(booking.schema.id, { status: status as BookingStatus }),
     }));
 
+    const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === schoolPackage?.categoryEquipment);
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const equipmentCapacity = schoolPackage?.capacityEquipment || 0;
+    const actualStudents = bookingStudents.length || 0;
+    const studentCapacity = schoolPackage?.capacityStudents || 0;
+
+    const EquipmentIcon = equipmentCategory?.icon;
+    const StudentIcon = studentEntity.icon;
+
     return (
         <Row
             id={booking.schema.id}
@@ -134,7 +144,21 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: "Details",
+                label: (
+                    <div className="flex items-center gap-2">
+                        {EquipmentIcon && (
+                            <div style={{ color: equipmentCategory?.color }}>
+                                <EquipmentIcon className="w-4 h-4" />
+                            </div>
+                        )}
+                        <span>{equipmentCapacity}</span>
+                        <span className="text-muted-foreground">|</span>
+                        <div style={{ color: studentEntity.color }}>
+                            <StudentIcon className="w-4 h-4" />
+                        </div>
+                        <span>{studentCapacity}</span>
+                    </div>
+                ),
                 items: strItems,
             }}
             action={<BookingAction booking={booking} />}

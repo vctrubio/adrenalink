@@ -37,7 +37,7 @@ export default function Dropdown({
 			/>
 			<div className="absolute top-[2.5rem] w-full pointer-events-none overflow-visible z-50">
 				<div
-					className={`${alignClasses[align]} bg-card backdrop-blur-sm rounded-lg shadow-lg min-w-56 overflow-hidden pointer-events-auto ${className}`}
+					className={`${alignClasses[align]} bg-card backdrop-blur-sm rounded-lg shadow-lg min-w-56 pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto ${className}`}
 				>
 				<div className="py-1.5">
 					{items.map((item, index) => (

@@ -237,3 +237,30 @@ export async function updateStudentDetail(
         return { success: false, error: "Failed to update student" };
     }
 }
+
+// UPDATE SCHOOL STUDENT ACTIVE STATUS
+export async function updateSchoolStudentActive(studentId: string, active: boolean): Promise<ApiActionResponseModel<SchoolStudentType>> {
+    try {
+        const schoolId = await getSchoolIdFromHeader();
+
+        if (!schoolId) {
+            return { success: false, error: "School not found from header" };
+        }
+
+        const result = await db
+            .update(schoolStudents)
+            .set({ active })
+            .where(and(eq(schoolStudents.studentId, studentId), eq(schoolStudents.schoolId, schoolId)))
+            .returning();
+
+        if (!result[0]) {
+            return { success: false, error: "School student record not found" };
+        }
+
+        revalidatePath("/students");
+        return { success: true, data: result[0] };
+    } catch (error) {
+        console.error("Error updating school student active status:", error);
+        return { success: false, error: "Failed to update school student active status" };
+    }
+}

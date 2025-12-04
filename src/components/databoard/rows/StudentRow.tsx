@@ -7,6 +7,8 @@ import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePo
 import { ENTITY_DATA } from "@/config/entities";
 import { StudentStats } from "@/getters/students-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
+import { updateSchoolStudentActive } from "@/actions/students-action";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -14,6 +16,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import type { StudentModel } from "@/backend/models";
+import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
 export function calculateStudentGroupStats(students: StudentModel[]): StatItem[] {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -66,9 +69,15 @@ interface StudentRowProps {
     item: StudentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+    onStatusChange?: () => void;
 }
 
-export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowProps) => {
+function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
+    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
+    return true;
+}
+
+export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
@@ -99,6 +108,23 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
         { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
     ];
 
+    const isActive = student.updateForm.active;
+    const currentStatus = isActive ? "active" : "inactive";
+    const currentStatusConfig = SCHOOL_STUDENT_STATUS_CONFIG[currentStatus];
+
+    const statusDropdownItems: DropdownItemProps[] = (["active", "inactive"] as const).map((status) => ({
+        id: status,
+        label: SCHOOL_STUDENT_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: SCHOOL_STUDENT_STATUS_CONFIG[status].color }} />,
+        color: SCHOOL_STUDENT_STATUS_CONFIG[status].color,
+        onClick: async () => {
+            if (validateActivity(currentStatus, status)) {
+                await updateSchoolStudentActive(student.schema.id, status === "active");
+                onStatusChange?.();
+            }
+        },
+    }));
+
     return (
         <Row
             id={student.schema.id}
@@ -118,7 +144,9 @@ export const StudentRow = ({ item: student, isExpanded, onToggle }: StudentRowPr
                         {fullName}
                     </HoverToEntity>
                 ),
-                status: "Active Student",
+                status: currentStatusConfig.label,
+                dropdownItems: statusDropdownItems,
+                statusColor: currentStatusConfig.color,
             }}
             str={{
                 label: "Details",

@@ -4,6 +4,7 @@ import { eventStatusEnum, lessonStatusEnum, bookingStatusEnum } from "@/drizzle/
 // Reusable colors across all status types
 
 export const STATUS_GREY = "#9ca3af";
+export const STATUS_DARK = "#4b5563";
 export const STATUS_PURPLE = "#a855f7";
 export const STATUS_GREEN = "#86efac";
 export const STATUS_ORANGE = "#fbbf24";
@@ -120,6 +121,114 @@ export const BOOKING_STATUS_CONFIG: Record<BookingStatus, BookingStatusConfig> =
         status: "uncompleted",
         color: STATUS_ORANGE,
         label: "Uncompleted",
+    },
+} as const;
+
+// ============ SCHOOL STUDENT STATUS CONFIGURATION ============
+export type SchoolStudentStatus = "active" | "inactive";
+
+export interface SchoolStudentStatusConfig {
+    status: SchoolStudentStatus;
+    color: string;
+    label: string;
+}
+
+export const SCHOOL_STUDENT_STATUS_CONFIG: Record<SchoolStudentStatus, SchoolStudentStatusConfig> = {
+    active: {
+        status: "active",
+        color: STATUS_GREY,
+        label: "Active",
+    },
+    inactive: {
+        status: "inactive",
+        color: STATUS_DARK,
+        label: "Inactive",
+    },
+} as const;
+
+// ============ TEACHER STATUS CONFIGURATION ============
+export type TeacherStatus = "active" | "inactive";
+
+export interface TeacherStatusConfig {
+    status: TeacherStatus;
+    color: string;
+    label: string;
+}
+
+export const TEACHER_STATUS_CONFIG: Record<TeacherStatus, TeacherStatusConfig> = {
+    active: {
+        status: "active",
+        color: STATUS_GREY,
+        label: "Active",
+    },
+    inactive: {
+        status: "inactive",
+        color: STATUS_DARK,
+        label: "Inactive",
+    },
+} as const;
+
+// ============ SCHOOL PACKAGE STATUS CONFIGURATION ============
+export type SchoolPackageStatus = "active" | "inactive";
+
+export interface SchoolPackageStatusConfig {
+    status: SchoolPackageStatus;
+    color: string;
+    label: string;
+}
+
+export const SCHOOL_PACKAGE_STATUS_CONFIG: Record<SchoolPackageStatus, SchoolPackageStatusConfig> = {
+    active: {
+        status: "active",
+        color: STATUS_GREY,
+        label: "Active",
+    },
+    inactive: {
+        status: "inactive",
+        color: STATUS_DARK,
+        label: "Inactive",
+    },
+} as const;
+
+// ============ EQUIPMENT STATUS CONFIGURATION ============
+export type EquipmentStatus = "rental" | "public" | "selling" | "sold" | "inrepair" | "rip";
+
+export interface EquipmentStatusConfig {
+    status: EquipmentStatus;
+    color: string;
+    label: string;
+}
+
+export const EQUIPMENT_STATUS_CONFIG: Record<EquipmentStatus, EquipmentStatusConfig> = {
+    rental: {
+        status: "rental",
+        color: STATUS_PURPLE,
+        label: "Rental",
+    },
+    public: {
+        status: "public",
+        color: STATUS_GREEN,
+        label: "Public",
+    },
+    selling: {
+        status: "selling",
+        color: STATUS_ORANGE,
+        label: "Selling",
+    },
+    sold: {
+        status: "sold",
+        color: STATUS_DARK,
+        label: "Sold",
+    },
+    inrepair: {
+        status: "inrepair",
+        color: "#ef4444",
+        label: "In Repair",
+    },
+    rip: {
+        status: "rip",
+        color: "#6b7280",
+        label: "RIP",
     },
 } as const;
 

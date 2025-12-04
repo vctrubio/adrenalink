@@ -24,7 +24,7 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
     };
 
     const toggleGroup = (groupIndex: number) => {
-        setExpandedGroups(prev => {
+        setExpandedGroups((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(groupIndex)) {
                 newSet.delete(groupIndex);
@@ -53,20 +53,12 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
             {groupedData.map((group, groupIndex) => {
                 const isGroupExpanded = expandedGroups.has(groupIndex);
                 return (
-                    <div key={groupIndex} className="flex flex-col gap-2 rounded-lg overflow-hidden border border-border">
+                    <div key={groupIndex} className="flex flex-col gap-2 rounded-lg border border-border">
                         {/* Group Header */}
-                        <div
-                            className="bg-muted/30 px-6 py-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => toggleGroup(groupIndex)}
-                        >
+                        <div className="bg-muted/30 px-6 py-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleGroup(groupIndex)}>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <svg
-                                        className={`w-5 h-5 transition-transform ${isGroupExpanded ? "rotate-90" : ""}`}
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
+                                    <svg className={`w-5 h-5 transition-transform ${isGroupExpanded ? "rotate-90" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                     </svg>
                                     <h3 className="text-lg font-semibold">{group.label}</h3>
@@ -78,9 +70,7 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                         </div>
 
                         {/* Group Rows */}
-                        {isGroupExpanded && (
-                            <div className="flex flex-col gap-2">{group.data.map((item) => renderRow(item, expandedRow === item.schema.id, handleToggle))}</div>
-                        )}
+                        {isGroupExpanded && <div className="flex flex-col gap-2">{group.data.map((item) => renderRow(item, expandedRow === item.schema.id, handleToggle))}</div>}
                     </div>
                 );
             })}

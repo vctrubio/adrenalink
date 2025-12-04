@@ -1,4 +1,4 @@
-import { eq, exists, and, count } from "drizzle-orm";
+import { eq, exists, and, count, notInArray } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getHeaderUsername } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
@@ -50,7 +50,7 @@ export async function getDataboardCounts(): Promise<ApiActionResponseModel<Recor
     }
 }
 // GET STUDENTS
-export async function getStudents(): Promise<ApiActionResponseModel<StudentModel[]>> {
+export async function getStudents(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
         const header = await getHeaderUsername();
 
@@ -66,15 +66,25 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
         }
 
         // 1. Fetch shallow ORM relations (for row-action tags and popover)
+        const activityWhere = activity && activity !== "All"
+            ? activity === "Active"
+                ? eq(schoolStudents.active, true)
+                : eq(schoolStudents.active, false)
+            : undefined;
+
         const studentsQuery = schoolId
             ? db.query.student.findMany({
                   where: exists(
                       db
                           .select()
                           .from(schoolStudents)
-                          .where(and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId))),
+                          .where(activityWhere
+                              ? and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId), activityWhere)
+                              : and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId))
+                          ),
                   ),
                   with: {
+                      schoolStudents: true,
                       bookingStudents: {
                           with: {
                               booking: true,
@@ -89,6 +99,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
               })
             : db.query.student.findMany({
                   with: {
+                      schoolStudents: true,
                       bookingStudents: {
                           with: {
                               booking: true,
@@ -124,7 +135,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
 }
 
 // GET TEACHERS
-export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel[]>> {
+export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<TeacherModel[]>> {
     try {
         const header = await getHeaderUsername();
 
@@ -140,9 +151,17 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
         }
 
         // 1. Fetch ORM relations (lessons with events for row-action tags)
+        const activityWhere = activity && activity !== "All"
+            ? activity === "Active"
+                ? eq(teacher.active, true)
+                : eq(teacher.active, false)
+            : undefined;
+
         const teachersQuery = schoolId
             ? db.query.teacher.findMany({
-                  where: eq(teacher.schoolId, schoolId),
+                  where: activityWhere
+                      ? and(eq(teacher.schoolId, schoolId), activityWhere)
+                      : eq(teacher.schoolId, schoolId),
                   with: {
                       lessons: {
                           with: {
@@ -152,6 +171,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                   },
               })
             : db.query.teacher.findMany({
+                  where: activityWhere,
                   with: {
                       lessons: {
                           with: {
@@ -183,7 +203,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
 }
 
 // GET BOOKINGS
-export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
+export async function getBookings(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
         const header = await getHeaderUsername();
 
@@ -277,7 +297,7 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
 }
 
 // GET EQUIPMENTS
-export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentModel[]>> {
+export async function getEquipments(filter?: "All" | "Active"): Promise<ApiActionResponseModel<EquipmentModel[]>> {
     try {
         const header = await getHeaderUsername();
 
@@ -294,27 +314,12 @@ export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentM
         }
 
         // 1. Fetch ONLY display data (shallow relations for teachers with lessons)
-        const equipmentsQuery = schoolId
-            ? db.query.equipment.findMany({
-                  where: eq(equipment.schoolId, schoolId),
-                  with: {
-                      teacherEquipments: {
-                          with: {
-                              teacher: {
-                                  with: {
-                                      lessons: {
-                                          with: {
-                                              events: true,
-                                          },
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                      equipmentRepairs: true,
-                  },
-              })
-            : db.query.equipment.findMany({
+        const baseWhere = schoolId ? eq(equipment.schoolId, schoolId) : undefined;
+        const filterWhere = filter === "Active" ? notInArray(equipment.status, ["rip", "sold"]) : undefined;
+        const whereCondition = baseWhere && filterWhere ? and(baseWhere, filterWhere) : baseWhere || filterWhere;
+
+        const equipmentsQuery = db.query.equipment.findMany({
+                  where: whereCondition,
                   with: {
                       teacherEquipments: {
                           with: {

@@ -35,9 +35,17 @@ export function DropdownDictItem({
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 		>
-			<span className="text-xs uppercase tracking-wider text-muted-foreground">
-				{item.label}
-			</span>
+			<div className="flex items-center gap-2">
+				{item.color && (
+					<div
+						className="w-3 h-3 rounded-full flex-shrink-0"
+						style={{ backgroundColor: item.color }}
+					/>
+				)}
+				<span className="text-xs uppercase tracking-wider text-muted-foreground">
+					{item.label}
+				</span>
+			</div>
 			<span className="text-sm font-medium text-foreground">{item.value}</span>
 		</button>
 	);

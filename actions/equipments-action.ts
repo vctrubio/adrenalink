@@ -6,6 +6,7 @@ import { db } from "@/drizzle/db";
 import { equipment, type EquipmentForm, type EquipmentType } from "@/drizzle/schema";
 import { createEquipmentModel, type EquipmentModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
+import type { EquipmentStatus } from "@/types/status";
 
 const equipmentWithRelations = {
     school: true,
@@ -108,5 +109,22 @@ export async function getEquipmentsBySchoolId(schoolId: string): Promise<ApiActi
     } catch (error) {
         console.error("Error fetching equipments by school ID:", error);
         return { success: false, error: "Failed to fetch equipments" };
+    }
+}
+
+// UPDATE EQUIPMENT STATUS
+export async function updateEquipmentStatus(equipmentId: string, status: EquipmentStatus): Promise<ApiActionResponseModel<EquipmentType>> {
+    try {
+        const result = await db.update(equipment).set({ status }).where(eq(equipment.id, equipmentId)).returning();
+
+        if (!result[0]) {
+            return { success: false, error: "Equipment not found" };
+        }
+
+        revalidatePath("/equipments");
+        return { success: true, data: result[0] };
+    } catch (error) {
+        console.error("Error updating equipment status:", error);
+        return { success: false, error: "Failed to update equipment status" };
     }
 }

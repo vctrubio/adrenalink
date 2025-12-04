@@ -6,9 +6,11 @@ import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EquipmentStats, getEquipmentName, getEquipmentTeachers, hasOpenRepair } from "@/getters/equipments-getter";
+import { EquipmentStats, getEquipmentName, getEquipmentTeachers } from "@/getters/equipments-getter";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
+import { updateEquipmentStatus } from "@/actions/equipments-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -16,6 +18,7 @@ import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import type { EquipmentModel } from "@/backend/models";
+import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
 export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): StatItem[] {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
@@ -41,14 +44,12 @@ export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): Stat
 
 const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
     const teachers = getEquipmentTeachers(equipment);
-    const hasRepair = hasOpenRepair(equipment);
 
     return (
         <div className="flex flex-wrap gap-2">
             {teachers.map(({ teacher, totalHours }) => (
                 <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.username}`} />
             ))}
-            {hasRepair && <div className="px-2 py-1 text-xs font-medium rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">In Repair</div>}
         </div>
     );
 };
@@ -57,6 +58,11 @@ interface EquipmentRowProps {
     item: EquipmentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+}
+
+function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus): boolean {
+    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
+    return true;
 }
 
 export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
@@ -70,7 +76,20 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
     const iconColor = isExpanded ? categoryColor : "#9ca3af";
 
     const equipmentName = getEquipmentName(equipment);
-    const status = equipment.schema.status || "unknown";
+    const currentStatus = equipment.schema.status as EquipmentStatus;
+    const currentStatusConfig = EQUIPMENT_STATUS_CONFIG[currentStatus];
+
+    const statusDropdownItems: DropdownItemProps[] = (["rental", "public", "selling", "sold", "inrepair", "rip"] as const).map((status) => ({
+        id: status,
+        label: EQUIPMENT_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EQUIPMENT_STATUS_CONFIG[status].color }} />,
+        color: EQUIPMENT_STATUS_CONFIG[status].color,
+        onClick: async () => {
+            if (validateActivity(currentStatus, status)) {
+                await updateEquipmentStatus(equipment.schema.id, status);
+            }
+        },
+    }));
 
     const strItems = [
         { label: "SKU", value: equipment.schema.sku },
@@ -108,10 +127,12 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
                         {equipmentName}
                     </HoverToEntity>
                 ),
-                status: `Status: ${status}`,
+                status: currentStatusConfig.label,
+                dropdownItems: statusDropdownItems,
+                statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: "Details",
+                label: equipment.schema.color || "N/A",
                 items: strItems,
             }}
             action={<EquipmentAction equipment={equipment} />}

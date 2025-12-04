@@ -7,12 +7,15 @@ import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEv
 import { ENTITY_DATA } from "@/config/entities";
 import { TeacherStats, isTeacherLessonReady } from "@/getters/teachers-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
+import { updateTeacherActive } from "@/actions/teachers-action";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { TeacherModel } from "@/backend/models";
+import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
 export function calculateTeacherGroupStats(teachers: TeacherModel[]): StatItem[] {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
@@ -58,6 +61,11 @@ interface TeacherRowProps {
     onToggle: (id: string) => void;
 }
 
+function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): boolean {
+    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
+    return true;
+}
+
 export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
@@ -67,7 +75,20 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
     const entityColor = teacherEntity.color;
     const iconColor = isExpanded ? entityColor : "#9ca3af";
 
-    const status = teacher.schema.active ? "Active Teacher" : "Inactive Teacher";
+    const currentStatus = teacher.schema.active ? "active" : "inactive";
+    const currentStatusConfig = TEACHER_STATUS_CONFIG[currentStatus];
+
+    const statusDropdownItems: DropdownItemProps[] = (["active", "inactive"] as const).map((status) => ({
+        id: status,
+        label: TEACHER_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: TEACHER_STATUS_CONFIG[status].color }} />,
+        color: TEACHER_STATUS_CONFIG[status].color,
+        onClick: async () => {
+            if (validateActivity(currentStatus, status)) {
+                await updateTeacherActive(teacher.schema.id, status === "active");
+            }
+        },
+    }));
 
     const strItems = [
         { label: "First Name", value: teacher.schema.firstName },
@@ -107,7 +128,9 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                         {teacher.schema.username}
                     </HoverToEntity>
                 ),
-                status,
+                status: currentStatusConfig.label,
+                dropdownItems: statusDropdownItems,
+                statusColor: currentStatusConfig.color,
             }}
             str={{
                 label: "Details",
