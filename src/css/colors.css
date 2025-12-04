@@ -1,456 +1,117 @@
-/* Adrenalink Color Schema */
+/* Adrenalink Color Schema - Tailwind v4 Theme Configuration */
+
+@theme {
+	/* Tailwind utilities - reference CSS custom properties for dark mode support */
+	--color-background: rgb(var(--background));
+	--color-foreground: rgb(var(--foreground));
+	--color-card: rgb(var(--card));
+	--color-card-foreground: rgb(var(--card-foreground));
+	--color-popover: rgb(var(--popover));
+	--color-popover-foreground: rgb(var(--popover-foreground));
+
+	--color-muted: rgb(var(--muted));
+	--color-muted-foreground: rgb(var(--muted-foreground));
+
+	--color-accent: rgb(var(--accent));
+	--color-accent-foreground: rgb(var(--accent-foreground));
+
+	--color-primary: rgb(var(--primary));
+	--color-primary-foreground: rgb(var(--primary-foreground));
+	--color-secondary: rgb(var(--secondary));
+	--color-secondary-foreground: rgb(var(--secondary-foreground));
+	--color-tertiary: rgb(var(--tertiary));
+	--color-tertiary-foreground: rgb(var(--tertiary-foreground));
+	--color-fourth: rgb(var(--fourth));
+	--color-fourth-foreground: rgb(var(--fourth-foreground));
+
+	--color-destructive: rgb(var(--destructive));
+	--color-destructive-foreground: rgb(var(--destructive-foreground));
+	--color-warning: rgb(var(--warning));
+	--color-warning-foreground: rgb(var(--warning-foreground));
+
+	--color-border: rgb(var(--border));
+	--color-input: rgb(var(--input));
+	--color-ring: rgb(var(--ring));
+
+	--color-facebook: rgb(var(--facebook-background));
+	--color-facebook-border: rgb(var(--facebook-border));
+
+	--color-footer: rgb(var(--footer));
+	--color-footer-foreground: rgb(var(--footer-foreground));
+
+	--color-subscription-default: rgb(var(--subscription-default));
+	--color-subscription-blue: rgb(var(--subscription-blue));
+	--color-subscription-gold: rgb(var(--subscription-gold));
+}
+
 @layer base {
-    :root {
-        /* Background Colors - Landing hero gradient background */
-        --background: 248 250 252; /* slate-50 */
-        --foreground: 30 41 59; /* slate-800 - rich dark gray */
-        --card: 241 245 249; /* slate-100 */
-        --card-foreground: 30 41 59; /* slate-800 */
-        --popover: 248 250 252; /* slate-50 */
-        --popover-foreground: 30 41 59; /* slate-800 */
-
-        /* Muted Colors - Enhanced contrast for depth */
-        --muted: 226 232 240; /* slate-200 */
-        --muted-foreground: 100 116 139; /* slate-500 */
-
-        /* Accent Colors */
-        --accent: 226 232 240; /* slate-200 */
-        --accent-foreground: 30 41 59; /* slate-800 */
-
-        /* Primary Colors - Green as main interactive color */
-        --primary: 22 97 14; /* #16610E - deep forest green */
-        --primary-foreground: 248 250 252; /* slate-50 */
-        --secondary: 59 130 246; /* blue-500 - the blue accent */
-        --secondary-foreground: 248 250 252; /* slate-50 */
-        --tertiary: 251 146 60; /* #fb923c - orange accent */
-        --tertiary-foreground: 248 250 252; /* slate-50 */
-        --fourth: 51 65 85; /* slate-700 - background accent */
-        --fourth-foreground: 248 250 252; /* slate-50 */
-
-        --destructive: 255 59 48; /* Apple's system red */
-        --destructive-foreground: 248 250 252; /* slate-50 */
-        --warning: 255 149 0; /* light orange for warnings */
-        --warning-foreground: 248 250 252; /* slate-50 */
-
-        /* Subscription Status Colors */
-        --subscription-default: 148 163 184; /* slate-400 - default/grey */
-        --subscription-blue: 59 130 246; /* blue-500 - requested/blue */
-        --subscription-gold: 217 119 6; /* amber-600 - premium/gold */
-
-        /* Footer Colors */
-        --footer: 226 232 240; /* slate-200 - slightly darker than card */
-        --footer-foreground: 30 41 59; /* slate-800 */
-
-        /* Border and Ring - Enhanced contrast for definition */
-        --border: 203 213 225; /* slate-300 */
-        --input: 203 213 225; /* slate-300 */
-        --ring: 59 130 246; /* blue-500 */
-
-        /* Facebook Nav Colors */
-        --facebook-background: 241 245 249; /* slate-100 */
-        --facebook-border: 226 232 240; /* slate-200 */
-    }
-
-    .dark {
-        /* Background Colors - Landing hero dark gradient background */
-        --background: 15 23 42; /* slate-900 */
-        --foreground: 248 250 252; /* slate-50 - light text */
-        --card: 30 41 59; /* slate-800 */
-        --card-foreground: 248 250 252; /* slate-50 */
-        --popover: 15 23 42; /* slate-900 */
-        --popover-foreground: 248 250 252; /* slate-50 */
-
-        /* Muted Colors */
-        --muted: 51 65 85; /* slate-700 */
-        --muted-foreground: 148 163 184; /* slate-400 */
-
-        /* Accent Colors */
-        --accent: 51 65 85; /* slate-700 */
-        --accent-foreground: 248 250 252; /* slate-50 */
-
-        /* Primary Colors - Swapped in dark mode */
-        --primary: 251 146 60; /* #fb923c - orange accent (swapped with tertiary) */
-        --primary-foreground: 15 23 42; /* slate-900 */
-        --secondary: 59 130 246; /* blue-500 - the blue accent */
-        --secondary-foreground: 248 250 252; /* slate-50 */
-        --tertiary: 22 97 14; /* #16610E - swapped with primary */
-        --tertiary-foreground: 248 250 252; /* slate-50 */
-        --fourth: 71 85 105; /* slate-600 - lighter in dark mode */
-        --fourth-foreground: 248 250 252; /* slate-50 */
-
-        --destructive: 255 69 58; /* Apple red dark mode */
-        --destructive-foreground: 248 250 252; /* slate-50 */
-        --warning: 255 159 10; /* light orange for warnings dark mode */
-        --warning-foreground: 15 23 42; /* slate-900 */
-
-        /* Subscription Status Colors - Dark Mode */
-        --subscription-default: 100 116 139; /* slate-500 - default/grey */
-        --subscription-blue: 96 165 250; /* blue-400 - requested/blue */
-        --subscription-gold: 251 146 60; /* orange-400 - premium/gold */
-
-        /* Footer Colors - Dark Mode */
-        --footer: 51 65 85; /* slate-700 - lighter than card */
-        --footer-foreground: 248 250 252; /* slate-50 */
-
-        /* Border and Ring */
-        --border: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
-        --input: 52 115 162; /* PANTONE 19-4052 TCX Classic Blue */
-        --ring: 96 165 250; /* blue-400 */
-
-        /* Facebook Nav Colors */
-        --facebook-background: 30 41 59; /* slate-800 */
-        --facebook-border: 51 65 85; /* slate-700 */
-    }
-}
-
-/* Utility Classes */
-.bg-background {
-    background-color: rgb(var(--background));
-}
-
-.bg-foreground {
-    background-color: rgb(var(--foreground));
-}
-
-.bg-card {
-    background-color: rgb(var(--card));
-}
-
-.bg-card-foreground {
-    background-color: rgb(var(--card-foreground));
-}
-
-.bg-popover {
-    background-color: rgb(var(--popover));
-}
-
-.bg-popover-foreground {
-    background-color: rgb(var(--popover-foreground));
-}
-
-.bg-muted {
-    background-color: rgb(var(--muted));
-}
-
-.bg-muted-foreground {
-    background-color: rgb(var(--muted-foreground));
-}
-
-.bg-accent {
-    background-color: rgb(var(--accent));
-}
-
-.bg-accent-foreground {
-    background-color: rgb(var(--accent-foreground));
-}
-
-.bg-primary {
-    background-color: rgb(var(--primary));
-}
-
-.bg-primary-foreground {
-    background-color: rgb(var(--primary-foreground));
-}
-
-.bg-secondary {
-    background-color: rgb(var(--secondary));
-}
-
-.bg-secondary-foreground {
-    background-color: rgb(var(--secondary-foreground));
-}
-
-.bg-tertiary {
-    background-color: rgb(var(--tertiary));
-}
-
-.bg-tertiary-foreground {
-    background-color: rgb(var(--tertiary-foreground));
-}
-
-.bg-fourth {
-    background-color: rgb(var(--fourth));
-}
-
-.bg-fourth-foreground {
-    background-color: rgb(var(--fourth-foreground));
-}
-
-.bg-fifth {
-    background-color: rgb(var(--fifth));
-}
-
-.bg-fifth-foreground {
-    background-color: rgb(var(--fifth-foreground));
-}
-
-.bg-destructive {
-    background-color: rgb(var(--destructive));
-}
-
-.bg-destructive-foreground {
-    background-color: rgb(var(--destructive-foreground));
-}
-
-.bg-warning {
-    background-color: rgb(var(--warning));
-}
-
-.bg-warning-foreground {
-    background-color: rgb(var(--warning-foreground));
-}
-
-.text-background {
-    color: rgb(var(--background));
-}
-
-.text-foreground {
-    color: rgb(var(--foreground));
-}
-
-.text-card {
-    color: rgb(var(--card));
-}
-
-.text-card-foreground {
-    color: rgb(var(--card-foreground));
-}
-
-.text-popover {
-    color: rgb(var(--popover));
-}
-
-.text-popover-foreground {
-    color: rgb(var(--popover-foreground));
-}
-
-.text-muted {
-    color: rgb(var(--muted));
-}
-
-.text-muted-foreground {
-    color: rgb(var(--muted-foreground));
-}
-
-.text-accent {
-    color: rgb(var(--accent));
-}
-
-.text-accent-foreground {
-    color: rgb(var(--accent-foreground));
-}
-
-.text-primary {
-    color: rgb(var(--primary));
-}
-
-.text-primary-foreground {
-    color: rgb(var(--primary-foreground));
-}
-
-.text-secondary {
-    color: rgb(var(--secondary));
-}
-
-.text-secondary-foreground {
-    color: rgb(var(--secondary-foreground));
-}
-
-.text-tertiary {
-    color: rgb(var(--tertiary));
-}
-
-.text-tertiary-foreground {
-    color: rgb(var(--tertiary-foreground));
-}
-
-.text-fourth {
-    color: rgb(var(--fourth));
-}
-
-.text-fourth-foreground {
-    color: rgb(var(--fourth-foreground));
-}
-
-.text-fifth {
-    color: rgb(var(--fifth));
-}
-
-.text-fifth-foreground {
-    color: rgb(var(--fifth-foreground));
-}
-
-.text-destructive {
-    color: rgb(var(--destructive));
-}
-
-.text-destructive-foreground {
-    color: rgb(var(--destructive-foreground));
-}
-
-.text-warning {
-    color: rgb(var(--warning));
-}
-
-.text-warning-foreground {
-    color: rgb(var(--warning-foreground));
-}
-
-.border-warning {
-    border-color: rgb(var(--warning));
-}
-
-.border-border {
-    border-color: rgb(var(--border));
-}
-
-.border-input {
-    border-color: rgb(var(--input));
-}
-
-.ring-ring {
-    --tw-ring-color: rgb(var(--ring));
-}
-
-/* Pantone Color Utility Classes */
-.bg-pantone-ultra-violet {
-    background-color: rgb(var(--pantone-ultra-violet));
-}
-
-.bg-pantone-living-coral {
-    background-color: rgb(var(--pantone-living-coral));
-}
-
-.bg-pantone-greenery {
-    background-color: rgb(var(--pantone-greenery));
-}
-
-.bg-pantone-classic-blue {
-    background-color: rgb(var(--pantone-classic-blue));
-}
-
-.bg-pantone-serenity {
-    background-color: rgb(var(--pantone-serenity));
-}
-
-.bg-pantone-marsala {
-    background-color: rgb(var(--pantone-marsala));
-}
-
-.bg-pantone-rose-quartz {
-    background-color: rgb(var(--pantone-rose-quartz));
-}
-
-.bg-pantone-mocha-mousse {
-    background-color: rgb(var(--pantone-mocha-mousse));
-}
-
-.bg-pantone-illuminating {
-    background-color: rgb(var(--pantone-illuminating));
-}
-
-.bg-pantone-ultimate-gray {
-    background-color: rgb(var(--pantone-ultimate-gray));
-}
-
-.bg-pantone-peach-fuzz {
-    background-color: rgb(var(--pantone-peach-fuzz));
-}
-
-.bg-pantone-very-peri {
-    background-color: rgb(var(--pantone-very-peri));
-}
-
-.bg-pantone-viva-magenta {
-    background-color: rgb(var(--pantone-viva-magenta));
-}
-
-.text-pantone-ultra-violet {
-    color: rgb(var(--pantone-ultra-violet));
-}
-
-.text-pantone-living-coral {
-    color: rgb(var(--pantone-living-coral));
-}
-
-.text-pantone-greenery {
-    color: rgb(var(--pantone-greenery));
-}
-
-.text-pantone-classic-blue {
-    color: rgb(var(--pantone-classic-blue));
-}
-
-.text-pantone-serenity {
-    color: rgb(var(--pantone-serenity));
-}
-
-.text-pantone-marsala {
-    color: rgb(var(--pantone-marsala));
-}
-
-.text-pantone-rose-quartz {
-    color: rgb(var(--pantone-rose-quartz));
-}
-
-.text-pantone-mocha-mousse {
-    color: rgb(var(--pantone-mocha-mousse));
-}
-
-.text-pantone-illuminating {
-    color: rgb(var(--pantone-illuminating));
-}
-
-.text-pantone-ultimate-gray {
-    color: rgb(var(--pantone-ultimate-gray));
-}
-
-.text-pantone-peach-fuzz {
-    color: rgb(var(--pantone-peach-fuzz));
-}
-
-.text-pantone-very-peri {
-    color: rgb(var(--pantone-very-peri));
-}
-
-.text-pantone-viva-magenta {
-    color: rgb(var(--pantone-viva-magenta));
-}
-
-/* Subscription Status Color Utility Classes */
-.bg-subscription-default { background-color: rgb(var(--subscription-default)); }
-.bg-subscription-blue { background-color: rgb(var(--subscription-blue)); }
-.bg-subscription-gold { background-color: rgb(var(--subscription-gold)); }
-
-.text-subscription-default { color: rgb(var(--subscription-default)); }
-.text-subscription-blue { color: rgb(var(--subscription-blue)); }
-.text-subscription-gold { color: rgb(var(--subscription-gold)); }
-
-.border-subscription-default { border-color: rgb(var(--subscription-default)); }
-.border-subscription-blue { border-color: rgb(var(--subscription-blue)); }
-.border-subscription-gold { border-color: rgb(var(--subscription-gold)); }
-
-/* Facebook Nav Utility Classes */
-.bg-facebook {
-    background-color: rgb(var(--facebook-background));
-}
-
-.border-facebook {
-    border-color: rgb(var(--facebook-border));
-}
-
-.bg-footer {
-    background-color: rgb(var(--footer));
-}
-
-.bg-footer-foreground {
-    background-color: rgb(var(--footer-foreground));
-}
-
-.text-footer {
-    color: rgb(var(--footer));
-}
-
-.text-footer-foreground {
-    color: rgb(var(--footer-foreground));
+	:root {
+		--background: 248 250 252;
+		--foreground: 30 41 59;
+		--card: 241 245 249;
+		--card-foreground: 30 41 59;
+		--popover: 248 250 252;
+		--popover-foreground: 30 41 59;
+		--muted: 226 232 240;
+		--muted-foreground: 100 116 139;
+		--accent: 226 232 240;
+		--accent-foreground: 30 41 59;
+		--primary: 22 97 14;
+		--primary-foreground: 248 250 252;
+		--secondary: 59 130 246;
+		--secondary-foreground: 248 250 252;
+		--tertiary: 251 146 60;
+		--tertiary-foreground: 248 250 252;
+		--fourth: 51 65 85;
+		--fourth-foreground: 248 250 252;
+		--destructive: 255 59 48;
+		--destructive-foreground: 248 250 252;
+		--warning: 255 149 0;
+		--warning-foreground: 248 250 252;
+		--subscription-default: 148 163 184;
+		--subscription-blue: 59 130 246;
+		--subscription-gold: 217 119 6;
+		--footer: 226 232 240;
+		--footer-foreground: 30 41 59;
+		--border: 203 213 225;
+		--input: 203 213 225;
+		--ring: 59 130 246;
+		--facebook-background: 241 245 249;
+		--facebook-border: 226 232 240;
+	}
+
+	.dark {
+		--background: 15 23 42;
+		--foreground: 248 250 252;
+		--card: 30 41 59;
+		--card-foreground: 248 250 252;
+		--popover: 15 23 42;
+		--popover-foreground: 248 250 252;
+		--muted: 51 65 85;
+		--muted-foreground: 148 163 184;
+		--accent: 51 65 85;
+		--accent-foreground: 248 250 252;
+		--primary: 251 146 60;
+		--primary-foreground: 15 23 42;
+		--secondary: 59 130 246;
+		--secondary-foreground: 248 250 252;
+		--tertiary: 22 97 14;
+		--tertiary-foreground: 248 250 252;
+		--fourth: 71 85 105;
+		--fourth-foreground: 248 250 252;
+		--destructive: 255 69 58;
+		--destructive-foreground: 248 250 252;
+		--warning: 255 159 10;
+		--warning-foreground: 15 23 42;
+		--subscription-default: 100 116 139;
+		--subscription-blue: 96 165 250;
+		--subscription-gold: 251 146 60;
+		--footer: 51 65 85;
+		--footer-foreground: 248 250 252;
+		--border: 52 115 162;
+		--input: 52 115 162;
+		--ring: 96 165 250;
+		--facebook-background: 30 41 59;
+		--facebook-border: 51 65 85;
+	}
 }
