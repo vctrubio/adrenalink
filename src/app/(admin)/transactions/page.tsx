@@ -8,7 +8,7 @@ import {
   formatTimeFromDate,
   formatDateFromTimestamp,
 } from "@/getters/transactions-getter";
-import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getTransactions } from "@/actions/transactions-action";
 import TransactionRow from "./TransactionRow";
 
@@ -55,9 +55,6 @@ export default async function TransactionsPage() {
                   const schoolRevenue = getSchoolRevenue(transaction.package.pricePerStudent, transaction.students.length, transaction.duration, transaction.package.durationMinutes);
                   const schoolLeftover = getSchoolLeftover(schoolRevenue, teacherCommissionAmount);
 
-                  const statusColor = getEventStatusColor(transaction.status as any);
-                  const statusLabel = getEventStatusLabel(transaction.status as any);
-
                   return (
                     <TransactionRow
                       key={transaction.id}
@@ -66,8 +63,8 @@ export default async function TransactionsPage() {
                       time={formatTimeFromDate(transaction.date)}
                       duration={getPrettyDuration(transaction.duration)}
                       teacher={transaction.teacher.username}
-                      statusColor={statusColor}
-                      statusLabel={statusLabel}
+                      statusColor={EVENT_STATUS_CONFIG[transaction.status as any].color}
+                      statusLabel={EVENT_STATUS_CONFIG[transaction.status as any].label}
                       equipment={getEquipmentForNow(transaction.package.categoryEquipment, transaction.package.capacityEquipment, transaction.equipment)}
                       students={getStudentNames(transaction.students)}
                       revenue={schoolRevenue.toFixed(2)}

@@ -1,9 +1,83 @@
 "use client";
 
-import { Fragment } from "react";
-import { Menu, Transition } from "@headlessui/react";
+import { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { useCSVImportLogic } from "./csv-import-logic";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+
+function CellChangesDropdown({ logic }: { logic: ReturnType<typeof useCSVImportLogic> }) {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const dropdownItems: DropdownItemProps[] = Array.from(logic.editedCells).map((cellKey) => {
+        const info = logic.getCellDisplayInfo(cellKey);
+        return {
+            id: cellKey,
+            label: `Row ${info.rowNumber} - ${info.columnName}`,
+            icon: X,
+            description: `"${info.originalValue}" → "${info.currentValue}"`,
+            onClick: () => {
+                /* No-op, custom rendering handles this */
+            },
+        };
+    });
+
+    return (
+        <div className="flex items-center gap-2">
+            <div className="relative inline-block text-left">
+                <div className="flex">
+                    <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="inline-flex w-full justify-center gap-x-1.5 rounded-l-md bg-muted px-3 py-1 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors"
+                    >
+                        Reset Changes ({logic.editedCells.size})
+                        <ChevronDown className="-mr-1 h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button
+                        onClick={logic.handleResetData}
+                        className="inline-flex items-center justify-center rounded-r-md bg-muted px-2 py-1 text-sm hover:bg-muted/80 transition-colors border-l border-border"
+                        title="Reset All Changes"
+                    >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                </div>
+                <Dropdown
+                    isOpen={isDropdownOpen}
+                    onClose={() => setIsDropdownOpen(false)}
+                    items={dropdownItems}
+                    align="right"
+                    className="w-80"
+                    renderItem={(item, onClose) => {
+                        const info = logic.getCellDisplayInfo(item.id!);
+                        return (
+                            <div className="flex items-center justify-between px-3 py-2 text-sm">
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-foreground">
+                                        Row {info.rowNumber} - {info.columnName}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                        <span className="text-red-500">&quot;{info.originalValue}&quot;</span>
+                                        {" → "}
+                                        <span className="text-green-600">&quot;{info.currentValue}&quot;</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        logic.handleResetCell(info.rowIndex, info.cellIndex);
+                                    }}
+                                    className="ml-2 p-1 rounded hover:bg-accent/50 transition-colors"
+                                    title="Reset this cell"
+                                >
+                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                </button>
+                            </div>
+                        );
+                    }}
+                />
+            </div>
+        </div>
+    );
+}
 
 export default function CSVImport() {
     const logic = useCSVImportLogic();
@@ -155,68 +229,7 @@ export default function CSVImport() {
                                     </div>
                                 </div>
                                 {logic.editedCells.size > 0 && (
-                                    <div className="flex items-center gap-2">
-                                        <Menu as="div" className="relative inline-block text-left">
-                                            <div className="flex">
-                                                <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 rounded-l-md bg-muted px-3 py-1 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors">
-                                                    Reset Changes ({logic.editedCells.size})
-                                                    <ChevronDown className="-mr-1 h-4 w-4" aria-hidden="true" />
-                                                </Menu.Button>
-                                                <button onClick={logic.handleResetData} className="inline-flex items-center justify-center rounded-r-md bg-muted px-2 py-1 text-sm hover:bg-muted/80 transition-colors border-l border-border" title="Reset All Changes">
-                                                    <X className="h-4 w-4" aria-hidden="true" />
-                                                </button>
-                                            </div>
-
-                                            <Transition
-                                                as={Fragment}
-                                                enter="transition ease-out duration-100"
-                                                enterFrom="transform opacity-0 scale-95"
-                                                enterTo="transform opacity-100 scale-100"
-                                                leave="transition ease-in duration-75"
-                                                leaveFrom="transform opacity-100 scale-100"
-                                                leaveTo="transform opacity-0 scale-95"
-                                            >
-                                                <Menu.Items className="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-card border border-border shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                    <div className="p-2">
-                                                        <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">Changed Cells</div>
-                                                        <div className="max-h-48 overflow-y-auto">
-                                                            {Array.from(logic.editedCells).map((cellKey) => {
-                                                                const info = logic.getCellDisplayInfo(cellKey);
-                                                                return (
-                                                                    <Menu.Item key={cellKey}>
-                                                                        {({ active }) => (
-                                                                            <div className={`${active ? "bg-accent" : ""} flex items-center justify-between px-3 py-2 text-sm transition-colors`}>
-                                                                                <div className="flex-1 min-w-0">
-                                                                                    <div className="font-medium text-foreground">
-                                                                                        Row {info.rowNumber} - {info.columnName}
-                                                                                    </div>
-                                                                                    <div className="text-xs text-muted-foreground truncate">
-                                                                                        <span className="text-red-500">&quot;{info.originalValue}&quot;</span>
-                                                                                        {" → "}
-                                                                                        <span className="text-green-600">&quot;{info.currentValue}&quot;</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        logic.handleResetCell(info.rowIndex, info.cellIndex);
-                                                                                    }}
-                                                                                    className="ml-2 p-1 rounded hover:bg-accent/50 transition-colors"
-                                                                                    title="Reset this cell"
-                                                                                >
-                                                                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                                                                                </button>
-                                                                            </div>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                </Menu.Items>
-                                            </Transition>
-                                        </Menu>
-                                    </div>
+                                    <CellChangesDropdown logic={logic} />
                                 )}
                             </div>
                             <div className="mb-4 text-sm text-muted-foreground">
