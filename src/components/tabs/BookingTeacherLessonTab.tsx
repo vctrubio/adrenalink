@@ -6,7 +6,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
-import { getEventStatusColor, getEventStatusLabel } from "@/types/status";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
 
 const DURATION_COLOR = "#f59e0b";
@@ -48,8 +48,6 @@ const TeacherHeader = ({ teacher, commission, commissionColor, teacherColor }: {
 );
 
 const EventRow = ({ event, index, teacherColor }: { event: ClassboardLesson["events"][0]; index: number; teacherColor?: string }) => {
-    const statusColor = getEventStatusColor(event.status);
-    const statusLabel = getEventStatusLabel(event.status);
     const eventDate = new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
     const duration = event.duration;
@@ -60,14 +58,14 @@ const EventRow = ({ event, index, teacherColor }: { event: ClassboardLesson["eve
     return (
         <div className="flex items-center justify-between p-2 text-xs hover:bg-muted/20 transition-colors border-b border-border last:border-b-0">
             <div className="flex items-center gap-2 flex-1">
-                <div style={{ color: statusColor }}>
+                <div style={{ color: EVENT_STATUS_CONFIG[event.status].color }}>
                     <FlagIcon size={14} />
                 </div>
                 <div className="text-muted-foreground">
                     {eventDate} at {eventTime}
                 </div>
                 <div className="text-muted-foreground/40">•</div>
-                <div className="text-muted-foreground capitalize">{statusLabel}</div>
+                <div className="text-muted-foreground capitalize">{EVENT_STATUS_CONFIG[event.status].label}</div>
             </div>
             <div className="font-semibold ml-4" style={{ color: DURATION_COLOR }}>
                 {durationText}

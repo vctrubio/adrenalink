@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { ACTION_BUTTON_CONFIG } from "@/types/status";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { bulkDeleteClassboardEvents, bulkUpdateEventStatus } from "@/actions/classboard-bulk-action";
-import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
+import { EVENT_STATUS_CONFIG, type EventStatus, STATUS_PURPLE, STATUS_GREEN, STATUS_GREY } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
+import { DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
 interface TeacherColumnControllerProps {
     columnViewMode: "view" | "queue";
@@ -23,7 +24,6 @@ interface TeacherColumnControllerProps {
 
 function TeacherColumnHeader({ queue, allEvents, onDeleteComplete }: { queue: TeacherQueue; allEvents: any[]; onDeleteComplete?: () => void }) {
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isUpdating, setIsUpdating] = useState(false);
 
     const completedCount = allEvents.filter((e) => e.eventData.status === "completed").length;
     const totalEvents = allEvents.length;
@@ -37,18 +37,15 @@ function TeacherColumnHeader({ queue, allEvents, onDeleteComplete }: { queue: Te
         const eventIds = allEvents.map((e) => e.id).filter((id): id is string => id !== null);
         if (eventIds.length === 0) return;
 
-        setIsUpdating(true);
         try {
             const result = await bulkUpdateEventStatus(eventIds, status);
             if (!result.success) {
                 console.error("Update failed:", result.error);
-                setIsUpdating(false);
                 return;
             }
             onDeleteComplete?.();
         } catch (error) {
             console.error("Error updating events:", error);
-            setIsUpdating(false);
         }
     };
 
@@ -71,6 +68,25 @@ function TeacherColumnHeader({ queue, allEvents, onDeleteComplete }: { queue: Te
         }
     };
 
+    const dropdownItems: DropdownItemProps[] = [
+        ...(["planned", "tbc", "completed", "uncompleted"] as const).map((status) => ({
+            id: status,
+            label: `Set All to ${status}`,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[status].color }} />,
+            color: EVENT_STATUS_CONFIG[status].color,
+            onClick: () => handleBulkStatusUpdate(status),
+        })),
+        {
+            id: "delete-all",
+            label: isDeleting ? "Deleting..." : "Delete All",
+            icon: Trash2,
+            color: "#ef4444",
+            onClick: handleDeleteAll,
+        },
+    ];
+
+    const statusColor = isPurple ? STATUS_PURPLE : isGreen ? STATUS_GREEN : STATUS_GREY;
+
     return (
         <div className="flex items-center gap-4">
             <HeadsetIcon className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -80,59 +96,7 @@ function TeacherColumnHeader({ queue, allEvents, onDeleteComplete }: { queue: Te
                 </HoverToEntity>
             )}
             {!teacherEntity && <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>}
-            <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-                {hasEvents && (
-                    <Menu as="div" className="relative">
-                        <Menu.Button
-                            className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${isPurple ? "bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800 text-purple-800 dark:text-purple-200" : isGreen ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"}`}
-                        >
-                            <span className="font-medium">
-                                {completedCount}/{totalEvents}
-                            </span>
-                            <ChevronDown className="w-3 h-3" />
-                        </Menu.Button>
-
-                        <Menu.Items className="absolute right-0 top-full mt-1 w-56 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
-                            <div className="p-1">
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border">Update Status</div>
-                                {(["planned", "tbc", "completed", "uncompleted"] as const).map((status) => {
-                                    const statusConfig = EVENT_STATUS_CONFIG[status];
-                                    return (
-                                        <Menu.Item key={status}>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={() => handleBulkStatusUpdate(status)}
-                                                    disabled={isUpdating}
-                                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize text-foreground disabled:opacity-50 ${active ? "cursor-pointer" : ""}`}
-                                                    style={{
-                                                        backgroundColor: active ? `${statusConfig.color}30` : "transparent",
-                                                    }}
-                                                >
-                                                    Set All to {status}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    );
-                                })}
-
-                                <div className="my-1 border-t border-border" />
-
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button
-                                            onClick={handleDeleteAll}
-                                            disabled={isDeleting}
-                                            className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30 cursor-pointer" : ""}`}
-                                        >
-                                            {isDeleting ? "Deleting..." : "Delete All"}
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                            </div>
-                        </Menu.Items>
-                    </Menu>
-                )}
-            </div>
+            <div className="ml-auto flex items-center gap-2 flex-shrink-0">{hasEvents && <DropdownLabel value={`${completedCount}/${totalEvents}`} items={dropdownItems} color={statusColor} />}</div>
         </div>
     );
 }
@@ -170,21 +134,21 @@ function TeacherColumnActions({ columnViewMode, queue, onEditSchedule, onSubmit,
             {columnViewMode === "view" ? (
                 <button
                     onClick={onEditSchedule}
-                    className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium ${stats.eventCount === 0 ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+                    className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium ${stats.eventCount === 0 ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-cyan-600 text-white hover:bg-cyan-700"}`}
                     title={stats.eventCount === 0 ? "No events to edit" : "Edit schedule"}
                 >
                     Edit Schedule
                 </button>
             ) : (
                 <>
-                    <button onClick={onSubmit} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium">
-                        Submit
+                    <button onClick={onCancel} className={`px-4 py-2 ${ACTION_BUTTON_CONFIG.cancel.className} rounded-md text-sm font-medium`}>
+                        {ACTION_BUTTON_CONFIG.cancel.label}
                     </button>
-                    <button onClick={onReset} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-                        Reset
+                    <button onClick={onReset} className={`px-4 py-2 ${ACTION_BUTTON_CONFIG.reset.className} rounded-md text-sm font-medium`}>
+                        {ACTION_BUTTON_CONFIG.reset.label}
                     </button>
-                    <button onClick={onCancel} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium">
-                        Cancel
+                    <button onClick={onSubmit} className={`flex-1 px-4 py-2 ${ACTION_BUTTON_CONFIG.submit.className} rounded-md text-sm font-medium`}>
+                        {ACTION_BUTTON_CONFIG.submit.label}
                     </button>
                 </>
             )}
@@ -198,8 +162,8 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
     return (
         <div className="p-4 px-6.5 border-b border-border space-y-3">
             <TeacherColumnHeader queue={queue} allEvents={allEvents} onDeleteComplete={onDeleteComplete} />
-            {/* <TeacherColumnStats queue={queue} /> */}
-            {/* <TeacherColumnActions columnViewMode={columnViewMode} queue={queue} onEditSchedule={onEditSchedule} onSubmit={onSubmit} onReset={onReset} onCancel={onCancel} /> */}
+            <TeacherColumnStats queue={queue} />
+            <TeacherColumnActions columnViewMode={columnViewMode} queue={queue} onEditSchedule={onEditSchedule} onSubmit={onSubmit} onReset={onReset} onCancel={onCancel} />
         </div>
     );
 }

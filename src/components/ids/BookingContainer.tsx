@@ -10,6 +10,7 @@ import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getBookingDays } from "@/getters/bookings-getter";
 import { getPackageRevenue } from "@/getters/school-packages-getter";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
+import DurationExpenseIcon from "@/public/appSvgs/DurationExpenseIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
@@ -181,6 +182,34 @@ function PackageInfo({ durationMinutes, pricePerStudent, packageDescription, pac
                 <span className="text-xs font-semibold text-foreground">{pricePerStudent}€</span>
             </button>
             <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="left" />
+        </div>
+    );
+}
+
+interface DurationExpenseProps {
+    totalHours: number;
+    packageDurationMinutes: number;
+    pricePerStudent: number;
+    capacityStudents: number;
+}
+
+function DurationExpense({ totalHours, packageDurationMinutes, pricePerStudent, capacityStudents }: DurationExpenseProps) {
+    const packageHours = Math.round(packageDurationMinutes / 60);
+    const hourDifference = totalHours - packageHours;
+    const totalToPay = pricePerStudent * capacityStudents;
+
+    return (
+        <div className="flex items-center gap-2">
+            <DurationExpenseIcon size={ICON_SIZE} />
+            <span className="text-sm font-semibold text-foreground">{`${totalHours}h`}</span>
+            {hourDifference !== 0 && (
+                <span className="text-xs font-semibold text-muted-foreground">{`(${hourDifference > 0 ? "+" : ""}${hourDifference}h)`}</span>
+            )}
+            <span className="text-sm font-semibold text-foreground">=</span>
+            <span className="text-sm font-semibold text-foreground">{`${pricePerStudent}€`}</span>
+            {capacityStudents > 1 && (
+                <span className="text-xs font-semibold text-muted-foreground">{`(all to pay: ${totalToPay}€)`}</span>
+            )}
         </div>
     );
 }
@@ -388,7 +417,7 @@ export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStu
     }
 
     return (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-visible">
             <BookingProgress background={progressBar.background} />
             <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between gap-6 pb-4 border-b border-blue-500">
@@ -406,11 +435,12 @@ export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStu
                         totalHours={totalHours}
                         referralCode={booking.relations?.studentPackage?.relations?.referral?.code}
                     />
-                    <div className="flex items-center gap-2">
-                        <DurationIcon size={ICON_SIZE} />
-                        <span className="text-sm font-semibold text-foreground">{totalHours}h</span>
-                        {totalHours > Math.round(schoolPackage.durationMinutes / 60) && <span className="text-xs font-semibold text-foreground">(+{totalHours - Math.round(schoolPackage.durationMinutes / 60)}h)</span>}
-                    </div>
+                    <DurationExpense
+                        totalHours={totalHours}
+                        packageDurationMinutes={schoolPackage.durationMinutes}
+                        pricePerStudent={schoolPackage.pricePerStudent}
+                        capacityStudents={schoolPackage.capacityStudents}
+                    />
                 </div>
                 {lessons.length > 0 && <LessonRow lessons={lessons} schoolPackage={schoolPackage} />}
             </div>

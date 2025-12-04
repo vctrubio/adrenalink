@@ -7,6 +7,7 @@ export const STATUS_GREY = "#9ca3af";
 export const STATUS_PURPLE = "#a855f7";
 export const STATUS_GREEN = "#86efac";
 export const STATUS_ORANGE = "#fbbf24";
+export const ACTION_CYAN = "#06b6d4";
 
 // ============ EVENT STATUS CONFIGURATION ============
 export type EventStatus = (typeof eventStatusEnum.enumValues)[number];
@@ -69,6 +70,29 @@ export const LESSON_STATUS_CONFIG: Record<LessonStatus, LessonStatusConfig> = {
         status: "uncompleted",
         color: STATUS_ORANGE,
         label: "Uncompleted",
+    },
+} as const;
+
+// ============ ACTION BUTTON CONFIGURATION ============
+export type ActionType = "cancel" | "reset" | "submit";
+
+export interface ActionButtonConfig {
+    label: string;
+    className: string;
+}
+
+export const ACTION_BUTTON_CONFIG: Record<ActionType, ActionButtonConfig> = {
+    cancel: {
+        label: "Cancel",
+        className: "bg-muted text-foreground rounded hover:bg-muted/80 transition-colors",
+    },
+    reset: {
+        label: "Reset",
+        className: "bg-background border border-border text-foreground rounded hover:bg-muted transition-colors",
+    },
+    submit: {
+        label: "Submit",
+        className: "bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors",
     },
 } as const;
 

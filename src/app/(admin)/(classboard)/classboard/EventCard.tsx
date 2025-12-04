@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Menu } from "@headlessui/react";
-import { ChevronDown, MapPin, Loader2 } from "lucide-react";
+import { ChevronDown, MapPin, Loader2, Trash2 } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
-import { getEventStatusColor, type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
+import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
+import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import EventGapDetection from "./EventGapDetection";
 
 const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
@@ -49,6 +49,7 @@ const EquipmentDisplay = ({ categoryEquipment, capacityEquipment }: { categoryEq
 
 const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, currentStatus, eventId, onDelete, onStatusChange }: { isDeleting: boolean; hasNextEvent: boolean; canShiftQueue: boolean; currentStatus: EventStatus; eventId: string; onDelete: (cascade: boolean) => void; onStatusChange: (status: EventStatus) => void }) => {
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const handleStatusClick = async (status: EventStatus) => {
         if (status === currentStatus || isUpdating) return;
@@ -64,72 +65,41 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, currentStatu
         }
     };
 
+    const dropdownItems: DropdownItemProps[] = [
+        ...EVENT_STATUSES.map((status) => ({
+            id: status,
+            label: status,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[status].color }} />,
+            color: EVENT_STATUS_CONFIG[status].color,
+            onClick: () => handleStatusClick(status),
+        })),
+        ...(canShiftQueue
+            ? [
+                  {
+                      id: "delete-cascade",
+                      label: isDeleting ? "Deleting..." : "Delete & Shift Queue",
+                      icon: Trash2,
+                      color: "#ef4444",
+                      onClick: () => onDelete(true),
+                  },
+              ]
+            : []),
+        {
+            id: "delete",
+            label: isDeleting ? "Deleting..." : "Delete",
+            icon: Trash2,
+            color: "#ef4444",
+            onClick: () => onDelete(false),
+        },
+    ];
+
     return (
-        <Menu as="div" className="relative ml-auto">
-            <Menu.Button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
+        <div className="relative ml-auto">
+            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
                 <ChevronDown className="w-5 h-5" />
-            </Menu.Button>
-
-            <Menu.Items className="absolute right-0 top-full mt-1 w-48 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-[9999]">
-                <div className="p-1">
-                    {EVENT_STATUSES.map((status) => {
-                        const statusConfig = EVENT_STATUS_CONFIG[status];
-                        return (
-                            <Menu.Item key={status}>
-                                {({ active }) => (
-                                    <button
-                                        onClick={() => handleStatusClick(status)}
-                                        disabled={isUpdating || status === currentStatus}
-                                        className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors capitalize text-foreground ${
-                                            status === currentStatus
-                                                ? "font-semibold disabled:opacity-100"
-                                                : "disabled:cursor-not-allowed"
-                                        }`}
-                                        style={{
-                                            backgroundColor: active ? `${statusConfig.color}30` : status === currentStatus ? `${statusConfig.color}20` : "transparent",
-                                        }}
-                                    >
-                                        {status}
-                                    </button>
-                                )}
-                            </Menu.Item>
-                        );
-                    })}
-
-                    {canShiftQueue && (
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button
-                                    onClick={() => onDelete(true)}
-                                    disabled={isDeleting}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}
-                                >
-                                    {isDeleting ? "Deleting..." : "Delete"}
-                                </button>
-                            )}
-                        </Menu.Item>
-                    )}
-                    {hasNextEvent && (
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
-                                    {isDeleting ? "Deleting..." : "Delete"}
-                                </button>
-                            )}
-                        </Menu.Item>
-                    )}
-                    {!hasNextEvent && (
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button onClick={() => onDelete(false)} disabled={isDeleting} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors text-foreground disabled:opacity-50 ${active ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
-                                    {isDeleting ? "Deleting..." : "Delete"}
-                                </button>
-                            )}
-                        </Menu.Item>
-                    )}
-                </div>
-            </Menu.Items>
-        </Menu>
+            </button>
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" />
+        </div>
     );
 };
 
@@ -159,7 +129,7 @@ const HeaderRow = ({
     return (
         <div className="border-b border-border pointer-events-auto pb-1">
             <div className={`flex items-center gap-2 relative mb-3 ${ROW_MARGIN} ${ROW_PADDING} pointer-events-auto`}>
-                <div style={{ color: getEventStatusColor(status) }}>
+                <div style={{ color: EVENT_STATUS_CONFIG[status].color }}>
                     <FlagIcon className="w-8 h-8" size={34} />
                 </div>
                 <div className="flex flex-col relative mb-1">

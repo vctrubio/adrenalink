@@ -1,11 +1,26 @@
 export default function DurationIcon({ className = "", size = 24 }) {
     return (
-        <svg width={size} height={size} className={className} viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M 6 1 L 6 5 C 6 6.652344 7.347656 8 9 8 L 11 8 L 11 14.71875 C 11 17.726563 12.496094 20.550781 15 22.21875 L 19.1875 25 L 15 27.78125 C 12.496094 29.449219 11 32.273438 11 35.28125 L 11 42 L 9 42 C 7.347656 42 6 43.347656 6 45 L 6 49 L 44 49 L 44 45 C 44 43.347656 42.652344 42 41 42 L 39 42 L 39 35.28125 C 39 32.273438 37.503906 29.449219 35 27.78125 L 30.8125 25 L 35 22.21875 C 37.503906 20.550781 39 17.726563 39 14.71875 L 39 8 L 41 8 C 42.652344 8 44 6.652344 44 5 L 44 1 Z M 13 8 L 37 8 L 37 14.71875 C 37 17.058594 35.824219 19.234375 33.875 20.53125 L 28.4375 24.15625 L 27.1875 25 L 28.4375 25.84375 L 33.875 29.46875 C 35.824219 30.769531 37 32.941406 37 35.28125 L 37 42 L 13 42 L 13 35.28125 C 13 32.941406 14.175781 30.769531 16.125 29.46875 L 21.5625 25.84375 L 22.8125 25 L 21.5625 24.15625 L 16.125 20.53125 C 14.175781 19.234375 13 17.058594 13 14.71875 Z M 17 15 C 17 20.089844 25 22 25 22 C 25 22 33 19.984375 33 15 Z M 25 32 C 25 32 18.359375 34.355469 16.5 40 L 33.53125 40 C 31.695313 34.242188 25 32 25 32 Z"
-                fill="currentColor"
-                fillOpacity="0.9"
-            />
+        <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="rotate(15 12 12)">
+                <path
+                    d="M12 5V3M9 3H15"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M19.665 9.4A7.99974 7.99974 0 1 0 4.33502 9.4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M12 7L11 14L12 12L13 14L12 7Z"
+                    fill="currentColor"
+                />
+            </g>
         </svg>
     );
 }

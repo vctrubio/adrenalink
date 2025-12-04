@@ -1,7 +1,7 @@
 "use client";
 
-import { Menu } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Trash2, Check, Clock, AlertCircle } from "lucide-react";
 import type { GlobalStats } from "@/backend/ClassboardStats";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -11,6 +11,8 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 
 interface ClassboardStatisticsProps {
     stats: GlobalStats;
@@ -19,6 +21,7 @@ interface ClassboardStatisticsProps {
 }
 
 export default function ClassboardStatistics({ stats, teacherQueues, totalBookings }: ClassboardStatisticsProps) {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const allEvents = teacherQueues.flatMap((queue) => queue.getAllEvents());
     const allEventIds = allEvents.map((e) => e.id).filter((id): id is string => id !== null);
     const eventsByStatus = {
@@ -55,79 +58,62 @@ export default function ClassboardStatistics({ stats, teacherQueues, totalBookin
     const totalEvents = stats.totalEvents;
     const confirmationsNeeded = eventsByStatus.uncompleted.length;
 
+    const dropdownItems: DropdownItemProps[] = [
+        {
+            id: "complete-all",
+            label: "Set All to Completed",
+            icon: Check,
+            color: EVENT_STATUS_CONFIG.completed.color,
+            onClick: () => handleBulkAction("complete-all"),
+        },
+        {
+            id: "plan-all",
+            label: "Set All to Planned",
+            icon: Clock,
+            color: EVENT_STATUS_CONFIG.planned.color,
+            onClick: () => handleBulkAction("plan-all"),
+        },
+        {
+            id: "tbc-all",
+            label: "Set All to TBC",
+            icon: AlertCircle,
+            color: EVENT_STATUS_CONFIG.tbc.color,
+            onClick: () => handleBulkAction("tbc-all"),
+        },
+        {
+            id: "delete-uncompleted",
+            label: `Delete Uncompleted (${eventsByStatus.uncompleted.length})`,
+            icon: Trash2,
+            color: "#ef4444",
+            onClick: () => handleBulkAction("delete-uncompleted"),
+        },
+        {
+            id: "delete-all",
+            label: `Delete All (${allEventIds.length})`,
+            icon: Trash2,
+            color: "#ef4444",
+            onClick: () => handleBulkAction("delete-all"),
+        },
+    ];
+
     return (
         <div className="space-y-6">
             {/* Statistics Header with Bulk Dropdown */}
             <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4 relative">
                     <h3 className="text-lg font-semibold text-foreground">Statistics</h3>
-                    <Menu as="div" className="relative">
-                        <Menu.Button
-                            className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${
-                                completedCount === totalEvents && totalEvents > 0 ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-                            }`}
-                        >
-                            <span className="font-medium">
-                                {completedCount}/{totalEvents}
-                            </span>
-                            <ChevronDown className="w-3 h-3" />
-                        </Menu.Button>
-
-                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-background dark:bg-card border border-border rounded-lg shadow-lg focus:outline-none z-50">
-                            <div className="p-1">
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border">Update All Events</div>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button onClick={() => handleBulkAction("complete-all")} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
-                                            Set All to Completed
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button onClick={() => handleBulkAction("plan-all")} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm`}>
-                                            Set All to Planned
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button onClick={() => handleBulkAction("tbc-all")} className={`${active ? "bg-muted/50" : ""} group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-purple-600 dark:text-purple-400`}>
-                                            Set All to TBC
-                                        </button>
-                                    )}
-                                </Menu.Item>
-
-                                <div className="my-1 border-t border-border" />
-
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Delete Events</div>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button
-                                            onClick={() => handleBulkAction("delete-uncompleted")}
-                                            disabled={eventsByStatus.uncompleted.length === 0}
-                                            className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-gray-700 dark:text-gray-300 disabled:opacity-50`}
-                                        >
-                                            <span>Delete Uncompleted</span>
-                                            <span className="text-xs">({eventsByStatus.uncompleted.length})</span>
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button
-                                            onClick={() => handleBulkAction("delete-all")}
-                                            disabled={allEventIds.length === 0}
-                                            className={`${active ? "bg-red-50 dark:bg-red-950/30" : ""} group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-red-700 dark:text-red-300 disabled:opacity-50`}
-                                        >
-                                            <span>Delete All</span>
-                                            <span className="text-xs">({allEventIds.length})</span>
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                            </div>
-                        </Menu.Items>
-                    </Menu>
+                    <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full transition-colors ${
+                            completedCount === totalEvents && totalEvents > 0 ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                    >
+                        <span className="font-medium">
+                            {completedCount}/{totalEvents}
+                        </span>
+                        <ChevronDown className="w-3 h-3" />
+                    </button>
+                    <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" />
                 </div>
 
                 {/* Statistics List */}

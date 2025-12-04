@@ -1,4 +1,4 @@
-import { STATUS_COLORS } from "@/types/status";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
 
 const EMPTY_COLOR = "#374151";
@@ -27,7 +27,7 @@ export function getBookingProgressBar(lessons: ClassboardLesson[], totalMinutes:
     const tbcEnd = plannedEnd + (denominator > 0 ? (eventMinutes.tbc / denominator) * 100 : 0);
 
     return {
-        background: `linear-gradient(to right, ${STATUS_COLORS.eventCompleted} ${completedEnd}%, ${STATUS_COLORS.eventPlanned} ${completedEnd}% ${plannedEnd}%, ${STATUS_COLORS.eventTbc} ${plannedEnd}% ${tbcEnd}%, ${EMPTY_COLOR} ${tbcEnd}%)`,
+        background: `linear-gradient(to right, ${EVENT_STATUS_CONFIG.completed.color} ${completedEnd}%, ${EVENT_STATUS_CONFIG.planned.color} ${completedEnd}% ${plannedEnd}%, ${EVENT_STATUS_CONFIG.tbc.color} ${plannedEnd}% ${tbcEnd}%, ${EMPTY_COLOR} ${tbcEnd}%)`,
         completedEnd,
         plannedEnd,
         tbcEnd,

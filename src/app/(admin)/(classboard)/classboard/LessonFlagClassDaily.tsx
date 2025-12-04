@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
+import { ACTION_BUTTON_CONFIG } from "@/types/status";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
@@ -101,13 +102,13 @@ function LocationAdjustmentSection({ locationIndex, adjustmentLocation, isLockFl
 function ActionButtons({ isSubmitting, onSubmit, onReset, onCancel }: { isSubmitting: boolean; onSubmit: () => Promise<void>; onReset: () => void; onCancel: () => void }) {
     return (
         <div className="flex flex-col gap-1.5">
-            <button onClick={onCancel} className="px-3 py-1 bg-muted text-foreground rounded hover:bg-muted/80 transition-colors font-medium text-xs whitespace-nowrap">
-                Cancel
+            <button onClick={onCancel} className={`px-3 py-1 ${ACTION_BUTTON_CONFIG.cancel.className} font-medium text-xs whitespace-nowrap`}>
+                {ACTION_BUTTON_CONFIG.cancel.label}
             </button>
-            <button onClick={onReset} className="px-3 py-1 bg-background border border-border text-foreground rounded hover:bg-muted transition-colors font-medium text-xs whitespace-nowrap">
-                Reset
+            <button onClick={onReset} className={`px-3 py-1 ${ACTION_BUTTON_CONFIG.reset.className} font-medium text-xs whitespace-nowrap`}>
+                {ACTION_BUTTON_CONFIG.reset.label}
             </button>
-            <button onClick={onSubmit} disabled={isSubmitting} className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+            <button onClick={onSubmit} disabled={isSubmitting} className={`px-3 py-1 ${ACTION_BUTTON_CONFIG.submit.className} font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap`}>
                 {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
         </div>

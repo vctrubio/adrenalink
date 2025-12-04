@@ -31,6 +31,14 @@ We believe in writing **DRY, reusable, and human-friendly code** that tells a st
 - **Rule of thumb**: If a function's return statement adds more complexity than clarity, keep it inline
 - **Real cost**: Trivial abstractions scatter logic across files and require developers to jump between function definitions
 
+### 5. Centralize Configuration Objects
+
+- **Single Source of Truth**: Define config objects once, access directly everywhere
+- **No intermediate wrappers**: Don't create redundant exports that duplicate the config
+- **Direct access from config**: Import the main config object, not extracted pieces
+- **Benefit**: When refactoring, you only change one place; no orphaned imports across the codebase
+- **Real cost**: Intermediate constants like `STATUS_COLORS` encourage scattered imports; when one file changes the config structure, others still try importing removed constants
+
 ## Preferred Code Pattern
 
 ### ✅ GOOD: Clean Structure with Result Pattern
@@ -96,7 +104,19 @@ export async function getStudents(): Promise<StudentModel[]> {
 ### ❌ BAD: Trivial One-Line Wrapper Functions
 
 ```typescript
-// These add no value and scatter logic across multiple files
+// Example 1: Unnecessary wrappers that just access object properties
+export function getEventStatusColor(status: EventStatus): string {
+    return getEventStatusConfig(status).color;
+}
+
+export function getEventStatusLabel(status: EventStatus): string {
+    return getEventStatusConfig(status).label;
+}
+
+// Usage requires understanding multiple function definitions
+const color = getEventStatusColor(status);
+
+// Example 2: Trivial function extraction
 const getBaseColor = (shade: RainbowShade) => shade.split("-")[0];
 
 const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
@@ -106,14 +126,60 @@ const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
 // Developer now has to jump to getBaseColor definition to understand what it does
 ```
 
-### ✅ GOOD: Inline When It Adds Clarity
+### ✅ GOOD: Direct Access and Inline When It Adds Clarity
 
 ```typescript
-// Direct, readable, no function jumping required
+// Example 1: Direct config access - no wrapper needed
+const color = EVENT_STATUS_CONFIG[status].color;
+const label = EVENT_STATUS_CONFIG[status].label;
+
+// Clear, direct, no function jumping required
+
+// Example 2: Inline simple operations
 const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
   const baseColor = shade.split("-")[0];
   return colorLabels[baseColor as ColorType];
 };
+```
+
+### ❌ BAD: Intermediate Configuration Exports
+
+```typescript
+// types/status.ts - Creates intermediate wrapper
+export const STATUS_COLORS = {
+  eventPlanned: "#9ca3af",
+  eventCompleted: "#86efac",
+};
+
+export const EVENT_STATUS_CONFIG = {
+  planned: { color: STATUS_COLORS.eventPlanned, label: "Planned" },
+  completed: { color: STATUS_COLORS.eventCompleted, label: "Completed" },
+};
+
+// Later: getters/booking-progress-getter.ts imports STATUS_COLORS directly
+import { STATUS_COLORS } from "@/types/status";
+
+// Problem: When refactoring to use EVENT_STATUS_CONFIG directly,
+// STATUS_COLORS gets removed but booking-progress-getter still tries to import it
+```
+
+### ✅ GOOD: Direct Config Access, Single Source
+
+```typescript
+// types/status.ts - Single source of truth
+export const EVENT_STATUS_CONFIG = {
+  planned: { color: "#9ca3af", label: "Planned" },
+  completed: { color: "#86efac", label: "Completed" },
+};
+
+// getters/booking-progress-getter.ts
+import { EVENT_STATUS_CONFIG } from "@/types/status";
+
+// Direct access - always works after refactoring
+const gradient = `${EVENT_STATUS_CONFIG.completed.color} 50%`;
+
+// If structure changes, only EVENT_STATUS_CONFIG is updated
+// All imports continue to work because they reference the same object
 ```
 
 ## Why This Matters
@@ -132,6 +198,7 @@ const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
 - **Onboarding**: New developers understand the pattern quickly
 - **Scaling**: Consistent patterns across the entire codebase
 - **Refactoring**: Changes propagate cleanly through single sources of truth
+- **Configuration Refactoring**: Direct config access prevents orphaned imports when restructuring config objects (e.g., removing `STATUS_COLORS` while files still try to import it)
 
 ## Implementation Guidelines
 
