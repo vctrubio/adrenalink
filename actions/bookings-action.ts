@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { booking, school, type BookingForm, type BookingType } from "@/drizzle/schema";
 import { createBookingModel, type BookingModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -53,24 +53,15 @@ export async function createBooking(bookingSchema: BookingForm): Promise<ApiActi
 // READ
 export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
-        const schoolUsername = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
         
         let result;
-        if (schoolUsername) {
-            // School mode: Filter bookings by school username
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, schoolUsername),
-                columns: { id: true }
+        if (schoolHeader) {
+            // School mode: Filter bookings by school ID from header
+            result = await db.query.booking.findMany({
+                where: eq(booking.schoolId, schoolHeader.id),
+                with: bookingWithRelations
             });
-            
-            if (schoolWithUsername) {
-                result = await db.query.booking.findMany({
-                    where: eq(booking.schoolId, schoolWithUsername.id),
-                    with: bookingWithRelations
-                });
-            } else {
-                result = [];
-            }
         } else {
             // Sudo mode: Get ALL bookings (full privileges)
             result = await db.query.booking.findMany({

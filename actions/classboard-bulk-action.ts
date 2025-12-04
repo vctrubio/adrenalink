@@ -4,7 +4,7 @@ import { db } from "@/drizzle/db";
 import { event } from "@/drizzle/schema";
 import { inArray, eq, and, ne } from "drizzle-orm";
 import type { ApiActionResponseModel } from "@/types/actions";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 /**
  * Bulk update event dates, durations, and locations (preserves existing status)
@@ -107,8 +107,8 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
  */
 export async function deleteAllClassboardEvents(selectedDate: string): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
-        if (!schoolId) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School not found" };
         }
 
@@ -124,7 +124,7 @@ export async function deleteAllClassboardEvents(selectedDate: string): Promise<A
             .delete(event)
             .where(
                 and(
-                    eq(event.schoolId, schoolId),
+                    eq(event.schoolId, schoolHeader.id),
                     // Date is within the selected day
                     // Note: This assumes dates are stored as timestamps
                 ),

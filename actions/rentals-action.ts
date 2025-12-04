@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { rental, school, type RentalForm, type RentalType } from "@/drizzle/schema";
 import { createRentalModel, type RentalModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -28,27 +28,19 @@ export async function createRental(rentalSchema: RentalForm): Promise<ApiActionR
 // READ
 export async function getRentals(): Promise<ApiActionResponseModel<RentalModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let result;
-        if (header) {
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
-                columns: { id: true },
+        if (schoolHeader) {
+            // A school context is present.
+            // NOTE: The original logic here did not filter rentals by school, as there's
+            // no direct rental-to-school link. A future implementation should probably
+            // filter rentals based on students belonging to this school.
+            result = await db.query.rental.findMany({
+                with: rentalWithRelations,
             });
-
-            if (schoolWithUsername) {
-                // Get rentals for students in this school
-                result = await db.query.rental.findMany({
-                    with: rentalWithRelations,
-                });
-                // Filter by school through student's schoolStudents relation
-                // This is a simplified approach - rentals don't have direct schoolId
-                // For now, return all rentals and filter by student's school in the query if needed
-            } else {
-                result = [];
-            }
         } else {
+            // No school context (e.g., global admin view), fetch all rentals.
             result = await db.query.rental.findMany({
                 with: rentalWithRelations,
             });

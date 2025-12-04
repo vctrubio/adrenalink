@@ -3,7 +3,7 @@
 import { eq, notInArray, exists, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, type StudentForm, type StudentType, type SchoolType, type SchoolStudentType } from "@/drizzle/schema";
 import { createStudentModel, type StudentModel, type StudentUpdateForm } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -37,10 +37,10 @@ export async function createStudent(studentSchema: StudentForm): Promise<ApiActi
 // READ
 export async function getStudents(): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let result;
-        if (header) {
+        if (schoolHeader) {
             // Filter students by school username
             result = await db.query.student.findMany({
                 where: exists(
@@ -48,7 +48,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
                         .select()
                         .from(schoolStudents)
                         .innerJoin(school, eq(schoolStudents.schoolId, school.id))
-                        .where(and(eq(schoolStudents.studentId, student.id), eq(school.username, header))),
+                        .where(and(eq(schoolStudents.studentId, student.id), eq(school.username, schoolHeader.name))),
                 ),
                 with: studentWithRelations,
             });
@@ -175,8 +175,8 @@ export async function updateStudentDetail(
     data: StudentUpdateForm,
 ): Promise<ApiActionResponseModel<StudentModel>> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
-        if (!schoolId) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
 
@@ -195,7 +195,7 @@ export async function updateStudentDetail(
             description: data.description,
             active: data.active,
             rental: data.rental,
-        }).where(and(eq(schoolStudents.studentId, data.id), eq(schoolStudents.schoolId, schoolId)));
+        }).where(and(eq(schoolStudents.studentId, data.id), eq(schoolStudents.schoolId, schoolHeader.id)));
 
         revalidatePath(`/students/${data.id}`);
 
@@ -204,7 +204,7 @@ export async function updateStudentDetail(
             where: eq(student.id, data.id),
             with: {
                 schoolStudents: {
-                    where: eq(schoolStudents.schoolId, schoolId),
+                    where: eq(schoolStudents.schoolId, schoolHeader.id),
                     with: {
                         school: true,
                     },
@@ -241,16 +241,16 @@ export async function updateStudentDetail(
 // UPDATE SCHOOL STUDENT ACTIVE STATUS
 export async function updateSchoolStudentActive(studentId: string, active: boolean): Promise<ApiActionResponseModel<SchoolStudentType>> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found from header" };
         }
 
         const result = await db
             .update(schoolStudents)
             .set({ active })
-            .where(and(eq(schoolStudents.studentId, studentId), eq(schoolStudents.schoolId, schoolId)))
+            .where(and(eq(schoolStudents.studentId, studentId), eq(schoolStudents.schoolId, schoolHeader.id)))
             .returning();
 
         if (!result[0]) {

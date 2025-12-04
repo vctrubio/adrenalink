@@ -182,7 +182,7 @@ This would require:
 
 **Creating Events: Convert school local time → UTC for storage**
 ```typescript
-import { getSchoolFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/src/getters/timezone-getter";
 
 export async function createClassboardEvent(
@@ -191,10 +191,10 @@ export async function createClassboardEvent(
     duration: number,
     location: string
 ): Promise<ApiActionResponseModel<...>> {
-    // Get school timezone
-    const schoolData = await getSchoolFromHeader();
-    if (!schoolData?.timezone) {
-        return { success: false, error: "School timezone not configured" };
+    // Get school context
+    const schoolHeader = await getSchoolHeader();
+    if (!schoolHeader) {
+        return { success: false, error: "School context not found or timezone not configured" };
     }
 
     // Parse input: "2025-11-15T10:00:00" is Madrid local time
@@ -205,7 +205,7 @@ export async function createClassboardEvent(
     const midnightUtc = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0));
 
     const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: schoolData.timezone,
+        timeZone: schoolHeader.zone, // Use 'zone' for the timezone
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
@@ -225,7 +225,7 @@ export async function createClassboardEvent(
     // Store as UTC in database
     const result = await db.insert(event).values({
         lessonId,
-        schoolId: schoolData.id,
+        schoolId: schoolHeader.id, // Use 'id' for the school ID
         date: new Date(`${year}-${month}-${day}T${utcTimeStr}Z`),
         duration,
         location,
@@ -239,29 +239,27 @@ export async function createClassboardEvent(
 **Fetching Events: Convert UTC → school timezone BEFORE sending to client**
 ```typescript
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
-    const schoolData = await getSchoolFromHeader();
-    if (!schoolData) {
-        return { success: false, error: "School not found in headers" };
+    const schoolHeader = await getSchoolHeader();
+    if (!schoolHeader) {
+        return { success: false, error: "School context not found in headers" };
     }
 
     const result = await db.query.booking.findMany({
-        where: eq(booking.schoolId, schoolData.id),
+        where: eq(booking.schoolId, schoolHeader.id),
         with: classboardWithRelations,
     });
 
     const bookings = createClassboardModel(result);
 
     // Convert all event times from UTC → school's timezone for display
-    if (schoolData.timezone) {
-        Object.values(bookings).forEach((bookingData) => {
-            bookingData.lessons?.forEach((lesson) => {
-                lesson.events?.forEach((event) => {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), schoolData.timezone);
-                    event.date = convertedDate.toISOString();  // Pre-converted for client
-                });
+    Object.values(bookings).forEach((bookingData) => {
+        bookingData.lessons?.forEach((lesson) => {
+            lesson.events?.forEach((event) => {
+                const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), schoolHeader.zone);
+                event.date = convertedDate.toISOString();  // Pre-converted for client
             });
         });
-    }
+    });
 
     return { success: true, data: bookings };
 }
@@ -269,10 +267,12 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
 **Key points:**
 - Input `eventDate` is school's local time (e.g., "2025-11-15T10:00:00")
-- Calculate UTC offset using `Intl.DateTimeFormat` with school's timezone
-- Convert to UTC for storage (PostgreSQL's TIMESTAMPTZ normalizes to UTC)
-- When fetching, convert UTC back to school timezone before sending to client
-- Client receives pre-converted times, no conversion needed in UI
+- Get school context with `getSchoolHeader()`.
+- Use `schoolHeader.zone` for the IANA timezone.
+- Use `schoolHeader.id` for the school's UUID.
+- Convert to UTC for storage (PostgreSQL's TIMESTAMPTZ normalizes to UTC).
+- When fetching, convert UTC back to school timezone before sending to client.
+- Client receives pre-converted times, no conversion needed in UI.
 
 ### In Components (Client-Side)
 
@@ -373,8 +373,7 @@ CREATE TABLE event (
 - `convertUTCToSchoolTimezone(utcDate, schoolTimezone)` - Convert UTC Date to school timezone (server action only)
 
 ### Helper Functions
-- `getSchoolFromHeader()` - Get complete school object from x-school-username header (cached) - **USE THIS**
-- `getHeaderUsername()` - Get school username from x-school-username header
+- `getSchoolHeader()` - Get unified school context object `{id, name, zone}` from the `x-school-username` header (cached) - **USE THIS**
 
 ### In createClassboardEvent Action
 - `Intl.DateTimeFormat` with school timezone to calculate UTC offset
@@ -395,7 +394,7 @@ CREATE TABLE event (
 | Parse date string | `parseDate(dateStr)` | Convert "2025-11-15" to Date |
 | Convert UTC to school time (server only) | `convertUTCToSchoolTimezone()` | In `getClassboardBookings()` before returning data |
 | Create event (server action) | `Intl.DateTimeFormat + offset calculation` | In `createClassboardEvent()` |
-| Get school timezone context | `getSchoolFromHeader()` | In any server action needing timezone |
+| Get school timezone context | `getSchoolHeader()` | In any server action needing timezone |
 
 ---
 

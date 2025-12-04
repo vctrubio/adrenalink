@@ -2,7 +2,7 @@
 
 import { db } from "@/drizzle/db";
 import { sql } from "drizzle-orm";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 export interface TransactionData {
     id: string;
@@ -64,9 +64,9 @@ interface RawTransactionRow {
 
 export async function getTransactions(): Promise<TransactionData[]> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             return [];
         }
 
@@ -106,7 +106,7 @@ export async function getTransactions(): Promise<TransactionData[]> {
         LEFT JOIN student s ON bs.student_id = s.id
         LEFT JOIN equipment_event ee ON e.id = ee.event_id
         LEFT JOIN equipment eq ON ee.equipment_id = eq.id
-        WHERE e.school_id = ${schoolId}
+        WHERE e.school_id = ${schoolHeader.id}
         ORDER BY e.date ASC, e.id ASC, s.id ASC, eq.id ASC
       `,
         );

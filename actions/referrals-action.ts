@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { referral, school, type ReferralForm, type ReferralType } from "@/drizzle/schema";
 import { createReferralModel, type ReferralModel } from "@/backend/models";
 import { buildReferralStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
@@ -17,17 +17,11 @@ const referralWithRelations = {
 // GET REFERRALS WITH STATS
 export async function getReferralsWithStats(): Promise<ApiActionResponseModel<ReferralModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
+        if (schoolHeader) {
+            schoolId = schoolHeader.id;
         }
 
         // 1. Fetch referrals with relations
@@ -89,23 +83,14 @@ export async function createReferral(referralSchema: ReferralForm): Promise<ApiA
 // READ
 export async function getReferrals(): Promise<ApiActionResponseModel<ReferralModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let result;
-        if (header) {
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
-                columns: { id: true },
+        if (schoolHeader) {
+            result = await db.query.referral.findMany({
+                where: eq(referral.schoolId, schoolHeader.id),
+                with: referralWithRelations,
             });
-
-            if (schoolWithUsername) {
-                result = await db.query.referral.findMany({
-                    where: eq(referral.schoolId, schoolWithUsername.id),
-                    with: referralWithRelations,
-                });
-            } else {
-                result = [];
-            }
         } else {
             result = await db.query.referral.findMany({
                 with: referralWithRelations,

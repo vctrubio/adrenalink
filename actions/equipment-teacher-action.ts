@@ -4,13 +4,13 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { teacherEquipment } from "@/drizzle/schema";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 export async function linkTeacherEquipment(equipmentId: string, teacherId: string): Promise<{ success: boolean; error?: string }> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found" };
         }
 
@@ -40,9 +40,9 @@ export async function linkTeacherEquipment(equipmentId: string, teacherId: strin
 
 export async function unlinkTeacherEquipment(equipmentId: string, teacherId: string): Promise<{ success: boolean; error?: string }> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found" };
         }
 

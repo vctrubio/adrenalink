@@ -1,14 +1,14 @@
 import { getEntityId } from "@/actions/id-actions";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import type { SchoolPackageModel } from "@/backend/models";
 import { PackageLeftColumn } from "./PackageLeftColumn";
 import { PackageStatsColumns } from "./PackageStatsColumns";
 
 export default async function PackageDetailPage({ params }: { params: { id: string } }) {
-    const schoolId = await getSchoolIdFromHeader();
+    const schoolHeader = await getSchoolHeader();
 
-    if (!schoolId) {
+    if (!schoolHeader) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: School context not found</div>
@@ -29,7 +29,7 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
     const schoolPackage = result.data as SchoolPackageModel;
 
     // Verify package belongs to the school
-    if (schoolPackage.schema.schoolId !== schoolId) {
+    if (schoolPackage.schema.schoolId !== schoolHeader.id) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: You do not have permission to view this package</div>

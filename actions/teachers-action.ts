@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { teacher, type TeacherForm, type TeacherType } from "@/drizzle/schema";
 import { createTeacherModel, type TeacherModel, type TeacherUpdateForm } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -114,8 +114,8 @@ export async function updateTeacherDetail(
     data: TeacherUpdateForm,
 ): Promise<ApiActionResponseModel<TeacherModel>> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
-        if (!schoolId) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
 

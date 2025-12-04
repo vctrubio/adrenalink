@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { schoolPackage, school, type SchoolPackageForm, type SchoolPackageType } from "@/drizzle/schema";
 import { createSchoolPackageModel, type SchoolPackageModel, type SchoolPackageUpdateForm } from "@/backend/models";
 import { buildSchoolPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
@@ -17,17 +17,11 @@ const schoolPackageWithRelations = {
 // GET SCHOOL PACKAGES WITH STATS
 export async function getSchoolPackagesWithStats(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
+        if (schoolHeader) {
+            schoolId = schoolHeader.id;
         }
 
         // 1. Fetch school packages with relations
@@ -89,24 +83,14 @@ export async function createPackage(packageSchema: SchoolPackageForm): Promise<A
 // READ
 export async function getPackages(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
         
         let result;
-        if (header) {
-            // Filter packages by school username - need to use a join approach
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
-                columns: { id: true }
+        if (schoolHeader) {
+            result = await db.query.schoolPackage.findMany({
+                where: eq(schoolPackage.schoolId, schoolHeader.id),
+                with: schoolPackageWithRelations
             });
-            
-            if (schoolWithUsername) {
-                result = await db.query.schoolPackage.findMany({
-                    where: eq(schoolPackage.schoolId, schoolWithUsername.id),
-                    with: schoolPackageWithRelations
-                });
-            } else {
-                result = [];
-            }
         } else {
             // Global query (admin mode)
             result = await db.query.schoolPackage.findMany({
@@ -184,8 +168,8 @@ export async function updateSchoolPackageDetail(
     data: SchoolPackageUpdateForm,
 ): Promise<ApiActionResponseModel<SchoolPackageModel>> {
     try {
-        const schoolId = await getSchoolIdFromHeader();
-        if (!schoolId) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
 
@@ -198,7 +182,7 @@ export async function updateSchoolPackageDetail(
             return { success: false, error: "Package not found" };
         }
 
-        if (packageData.schoolId !== schoolId) {
+        if (packageData.schoolId !== schoolHeader.id) {
             return { success: false, error: "You do not have permission to edit this package" };
         }
 

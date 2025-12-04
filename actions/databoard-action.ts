@@ -1,6 +1,6 @@
 import { eq, exists, and, count, notInArray } from "drizzle-orm";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
 import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel } from "@/backend/models";
 import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
@@ -8,15 +8,8 @@ import type { ApiActionResponseModel } from "@/types/actions";
 
 export async function getDataboardCounts(): Promise<ApiActionResponseModel<Record<string, number>>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            schoolId = schoolData?.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         const whereCondition = (table: any) => (schoolId ? eq(table.schoolId, schoolId) : undefined);
 
@@ -52,18 +45,8 @@ export async function getDataboardCounts(): Promise<ApiActionResponseModel<Recor
 // GET STUDENTS
 export async function getStudents(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         // 1. Fetch shallow ORM relations (for row-action tags and popover)
         const activityWhere = activity && activity !== "All"
@@ -137,18 +120,8 @@ export async function getStudents(activity?: "All" | "Active" | "Inactive"): Pro
 // GET TEACHERS
 export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<TeacherModel[]>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         // 1. Fetch ORM relations (lessons with events for row-action tags)
         const activityWhere = activity && activity !== "All"
@@ -205,18 +178,8 @@ export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Pro
 // GET BOOKINGS
 export async function getBookings(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         // 1. Fetch ORM relations (for row-action tags and row-str details)
         const bookingsQuery = schoolId
@@ -299,19 +262,8 @@ export async function getBookings(activity?: "All" | "Active" | "Inactive"): Pro
 // GET EQUIPMENTS
 export async function getEquipments(filter?: "All" | "Active"): Promise<ApiActionResponseModel<EquipmentModel[]>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         // 1. Fetch ONLY display data (shallow relations for teachers with lessons)
         const baseWhere = schoolId ? eq(equipment.schoolId, schoolId) : undefined;
@@ -386,19 +338,8 @@ export async function getEquipments(filter?: "All" | "Active"): Promise<ApiActio
 // GET EVENTS
 export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>> {
     try {
-        const header = await getHeaderUsername();
-
-        let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
-        }
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
 
         // 1. Fetch events with lesson and teacher relations
         const eventWithRelations = {

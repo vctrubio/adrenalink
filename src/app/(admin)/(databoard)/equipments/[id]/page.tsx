@@ -1,5 +1,5 @@
 import { getEntityId } from "@/actions/id-actions";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import type { EquipmentModel } from "@/backend/models";
 import { EquipmentLeftColumn } from "./EquipmentLeftColumn";
@@ -8,9 +8,9 @@ import { EquipmentRepairsCard } from "@/src/components/cards/EquipmentRepairsCar
 import { EquipmentStatsColumns } from "./EquipmentStatsColumns";
 
 export default async function EquipmentDetailPage({ params }: { params: { id: string } }) {
-    const schoolId = await getSchoolIdFromHeader();
+    const schoolHeader = await getSchoolHeader();
 
-    if (!schoolId) {
+    if (!schoolHeader) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: School context not found</div>
@@ -31,7 +31,7 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
     const equipment = result.data as EquipmentModel;
 
     // Verify equipment belongs to the school
-    if (equipment.schema.schoolId !== schoolId) {
+    if (equipment.schema.schoolId !== schoolHeader.id) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: You do not have permission to view this equipment</div>

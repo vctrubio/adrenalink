@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { AdminSideBar } from "@/src/components/navigations/AdminSideBar";
-import { getSchoolName } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import FacebookNav from "@/src/components/navigations/FacebookNav";
 import { SearchProvider } from "@/src/providers/search-provider";
@@ -11,7 +11,8 @@ type AdminLayoutProps = {
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-    const schoolName = await getSchoolName();
+    const schoolHeader = await getSchoolHeader();
+    const schoolName = schoolHeader?.name;
 
     return (
         <SchoolTeachersProvider>

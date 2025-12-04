@@ -1,5 +1,5 @@
 import { getEntityId } from "@/actions/id-actions";
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { MasterAdminLayout } from "@/src/components/layouts/MasterAdminLayout";
 import type { BookingModel } from "@/backend/models";
 import { BookingLeftColumn } from "./BookingLeftColumn";
@@ -7,9 +7,9 @@ import { BookingStatsColumns } from "./BookingStatsColumns";
 import { BookingContainer } from "@/src/components/ids";
 
 export default async function BookingDetailPage({ params }: { params: { id: string } }) {
-    const schoolId = await getSchoolIdFromHeader();
+    const schoolHeader = await getSchoolHeader();
 
-    if (!schoolId) {
+    if (!schoolHeader) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: School context not found</div>
@@ -32,7 +32,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
     console.log("DEV:JSON: BookingModel =", booking);
 
     // Verify booking belongs to the school
-    if (booking.schema.schoolId !== schoolId) {
+    if (booking.schema.schoolId !== schoolHeader.id) {
         return (
             <div className="p-8">
                 <div className="text-destructive">Error: You do not have permission to view this booking</div>

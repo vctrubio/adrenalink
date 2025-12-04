@@ -41,7 +41,7 @@ import { db } from "@/drizzle/db";
 import { student, schoolStudents, teacher, schoolPackage, teacherCommission, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, referral } from "@/drizzle/schema";
 import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm } from "@/drizzle/schema";
 import type { ApiActionResponseModel } from "@/types/actions";
-import { getHeaderUsername, getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 
 /**
@@ -140,16 +140,14 @@ export interface RegisterData {
  */
 export async function getRegisterData(): Promise<ApiActionResponseModel<RegisterData>> {
     try {
-        // Get school username from headers
-        const schoolUsername = await getHeaderUsername();
-        
-        if (!schoolUsername) {
-            return { success: false, error: "School username not found in headers" };
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found in headers" };
         }
 
         // Fetch school with all relations in a single query
         const schoolData = await db.query.school.findFirst({
-            where: (fields, { eq }) => eq(fields.username, schoolUsername),
+            where: (fields, { eq }) => eq(fields.id, schoolHeader.id),
             with: {
                 schoolPackages: {
                     where: (fields, { eq }) => eq(fields.active, true),
@@ -224,25 +222,13 @@ export async function getSchoolPackagesIfNull(packages?: any[]): Promise<ApiActi
 
     // Otherwise, fetch from database
     try {
-        const schoolUsername = await getHeaderUsername();
-        
-        if (!schoolUsername) {
-            return { success: false, error: "School username not found in headers" };
-        }
-
-        const schoolData = await db.query.school.findFirst({
-            where: (fields, { eq }) => eq(fields.username, schoolUsername),
-            columns: {
-                id: true,
-            },
-        });
-
-        if (!schoolData) {
-            return { success: false, error: "School not found" };
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found in headers" };
         }
 
         const packagesData = await db.query.schoolPackage.findMany({
-            where: (fields, { eq }) => eq(fields.schoolId, schoolData.id),
+            where: (fields, { eq }) => eq(fields.schoolId, schoolHeader.id),
             orderBy: (fields, { asc }) => [asc(fields.packageType), asc(fields.capacityStudents)],
         });
 
@@ -296,14 +282,14 @@ export async function linkStudentToSchool(
 ): Promise<ApiActionResponseModel<typeof schoolStudents.$inferSelect>> {
     try {
         // Get school ID from header
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
         
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found in headers" };
         }
 
         const schoolStudentData: SchoolStudentForm = {
-            schoolId,
+            schoolId: schoolHeader.id,
             studentId,
             description: description || null,
             active: true,
@@ -344,10 +330,10 @@ export async function createAndLinkStudent(
     schoolStudent: typeof schoolStudents.$inferSelect;
 }>> {
     try {
-        // Get school ID from header first
-        const schoolId = await getSchoolIdFromHeader();
+        // Get school context from header first
+        const schoolHeader = await getSchoolHeader();
         
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
 
@@ -366,7 +352,7 @@ export async function createAndLinkStudent(
 
             // Link to school
             const schoolStudentData: SchoolStudentForm = {
-                schoolId,
+                schoolId: schoolHeader.id,
                 studentId: createdStudent.id,
                 description: description || null,
                 active: true,
@@ -391,7 +377,7 @@ export async function createAndLinkStudent(
         if (error instanceof Error) {
             // Check for common database errors
             if (error.message.includes("foreign key constraint")) {
-                errorMessage = `School ID not found in database. Header returned schoolId: ${await getSchoolIdFromHeader()}`;
+                errorMessage = "School ID not found in database for the provided header.";
             } else if (error.message.includes("unique constraint")) {
                 errorMessage = "Student with this passport already exists";
             } else {
@@ -431,9 +417,9 @@ export async function createAndLinkTeacher(
 }>> {
     try {
         // Get school ID from header
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
         
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
 
@@ -442,7 +428,7 @@ export async function createAndLinkTeacher(
             // Create teacher with schoolId
             const completeTeacherData: TeacherForm = {
                 ...teacherData,
-                schoolId,
+                schoolId: schoolHeader.id,
             };
 
             const [createdTeacher] = await tx.insert(teacher).values(completeTeacherData).returning();
@@ -478,7 +464,7 @@ export async function createAndLinkTeacher(
         if (error instanceof Error) {
             // Check for common database errors
             if (error.message.includes("foreign key constraint")) {
-                errorMessage = `School ID not found in database. Header returned schoolId: ${await getSchoolIdFromHeader()}`;
+                errorMessage = "School ID not found in database for the provided header.";
             } else if (error.message.includes("unique constraint")) {
                 if (error.message.includes("passport")) {
                     errorMessage = "Teacher with this passport already exists";
@@ -514,16 +500,16 @@ export async function createAndLinkPackage(
 ): Promise<ApiActionResponseModel<typeof schoolPackage.$inferSelect>> {
     try {
         // Get school ID from header
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
 
         // Create package with schoolId
         const completePackageData: SchoolPackageForm = {
             ...packageData,
-            schoolId,
+            schoolId: schoolHeader.id,
         };
 
         const [createdPackage] = await db.insert(schoolPackage).values(completePackageData).returning();
@@ -539,7 +525,7 @@ export async function createAndLinkPackage(
         if (error instanceof Error) {
             // Check for common database errors
             if (error.message.includes("foreign key constraint")) {
-                errorMessage = `School ID not found in database. Header returned schoolId: ${await getSchoolIdFromHeader()}`;
+                errorMessage = "School ID not found in database for the provided header.";
             } else {
                 errorMessage += `: ${error.message}`;
             }
@@ -593,14 +579,14 @@ export async function masterBookingAdd(
         });
 
         // Get school ID from header
-        const schoolId = await getSchoolIdFromHeader();
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolId) {
+        if (!schoolHeader) {
             console.error("🎫 [masterBookingAdd] ❌ School ID not found in headers");
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
 
-        console.log("🎫 [masterBookingAdd] ✅ School ID found:", schoolId);
+        console.log("🎫 [masterBookingAdd] ✅ School ID found:", schoolHeader.id);
 
         if (studentIds.length === 0) {
             return { success: false, error: "At least one student is required" };
@@ -647,7 +633,7 @@ export async function masterBookingAdd(
 
             // 3. Create booking
             const [createdBooking] = await tx.insert(booking).values({
-                schoolId,
+                schoolId: schoolHeader.id,
                 studentPackageId: createdStudentPackage.id,
                 dateStart: dateStartTimestamp.toISOString(),
                 dateEnd: dateEndTimestamp.toISOString(),
@@ -673,7 +659,7 @@ export async function masterBookingAdd(
                     bookingId: createdBooking.id,
                     teacherId,
                     commissionId,
-                    schoolId,
+                    schoolId: schoolHeader.id,
                     status: "active",
                 }).returning();
 

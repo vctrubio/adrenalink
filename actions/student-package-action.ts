@@ -3,7 +3,7 @@
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { getHeaderUsername } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 import { studentPackage, student, schoolPackage, school, type StudentPackageForm } from "@/drizzle/schema";
 import { createStudentPackageModel, type StudentPackageModel } from "@/backend/models";
 import { buildStudentPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
@@ -26,17 +26,11 @@ const studentPackageWithRelations = {
 // GET STUDENT PACKAGES WITH STATS
 export async function getStudentPackagesWithStats(): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let schoolId: string | undefined;
-        if (header) {
-            const schoolData = await db.query.school.findFirst({
-                where: eq(school.username, header),
-            });
-            if (!schoolData) {
-                return { success: true, data: [] };
-            }
-            schoolId = schoolData.id;
+        if (schoolHeader) {
+            schoolId = schoolHeader.id;
         }
 
         // 1. Fetch all student packages with relations
@@ -116,27 +110,17 @@ export async function createStudentPackageRequest(requestData: StudentPackageFor
 // READ - Get all student package requests
 export async function getStudentPackageRequests(): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let result: any[];
-        if (header) {
-            // Filter by school username - find school first, then filter packages
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
-                columns: { id: true },
+        if (schoolHeader) {
+            // Get all student packages, then filter by school
+            const allPackages = await db.query.studentPackage.findMany({
+                with: studentPackageWithRelations,
             });
 
-            if (schoolWithUsername) {
-                // Get all student packages, then filter by school
-                const allPackages = await db.query.studentPackage.findMany({
-                    with: studentPackageWithRelations,
-                });
-
-                // Filter by school ID after fetching
-                result = allPackages.filter((pkg) => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
-            } else {
-                result = [];
-            }
+            // Filter by school ID after fetching
+            result = allPackages.filter((pkg) => pkg.schoolPackage?.school?.id === schoolHeader.id);
         } else {
             // Global query (admin mode)
             result = await db.query.studentPackage.findMany({
@@ -171,25 +155,15 @@ export async function getStudentPackagesByStudentId(studentId: string): Promise<
 // READ - Get student package requests by school ID
 export async function getStudentPackagesBySchoolId(schoolId: string): Promise<ApiActionResponseModel<StudentPackageModel[]>> {
     try {
-        const header = await getHeaderUsername();
+        const schoolHeader = await getSchoolHeader();
 
         let result;
-        if (header) {
-            // Filter by school username - find school first, then filter packages
-            const schoolWithUsername = await db.query.school.findFirst({
-                where: eq(school.username, header),
-                columns: { id: true },
+        if (schoolHeader) {
+            result = await db.query.studentPackage.findMany({
+                with: studentPackageWithRelations,
             });
-
-            if (schoolWithUsername) {
-                result = await db.query.studentPackage.findMany({
-                    with: studentPackageWithRelations,
-                });
-                // Filter by school ID after fetching
-                result = result.filter((pkg) => pkg.schoolPackage?.school?.id === schoolWithUsername.id);
-            } else {
-                result = [];
-            }
+            // Filter by school ID after fetching
+            result = result.filter((pkg) => pkg.schoolPackage?.school?.id === schoolHeader.id);
         } else {
             // Use provided schoolId parameter
             result = await db.query.studentPackage.findMany({
