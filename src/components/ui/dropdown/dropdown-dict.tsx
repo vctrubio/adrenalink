@@ -31,7 +31,7 @@ export function DropdownDictItem({
 	return (
 		<button
 			onClick={handleClick}
-			className="flex items-center justify-between w-full px-3 py-2.5 text-left transition-colors cursor-pointer border-b border-border last:border-0"
+			className="flex items-center justify-between w-full px-3 py-2.5 text-left transition-colors cursor-pointer"
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 		>
