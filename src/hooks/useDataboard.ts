@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { DataboardFilterByDate, DataboardGroupByDate } from "@/types/databoard";
+import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 
 export interface DataboardGroup<T> {
@@ -17,7 +17,8 @@ export const useDataboard = <T>(
     externalFilter?: DataboardFilterByDate,
     onExternalFilterChange?: (value: DataboardFilterByDate) => void,
     externalGroup?: DataboardGroupByDate | string,
-    onExternalGroupChange?: (value: DataboardGroupByDate | string) => void
+    onExternalGroupChange?: (value: DataboardGroupByDate | string) => void,
+    externalActivity?: DataboardActivityFilter
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
@@ -97,6 +98,46 @@ export const useDataboard = <T>(
         });
     };
 
+    const filterDataByActivity = (items: AbstractModel<T>[]): AbstractModel<T>[] => {
+        if (!externalActivity || externalActivity === "All") return items;
+
+        return items.filter(item => {
+            const schema = item.schema as any;
+
+            // Check for equipment status (special case)
+            if (schema.status) {
+                if (externalActivity === "Active") {
+                    return schema.status !== "rip" && schema.status !== "sold";
+                } else if (externalActivity === "Inactive") {
+                    return schema.status === "rip" || schema.status === "sold";
+                }
+            }
+
+            // Check for active boolean field
+            if (typeof schema.active === "boolean") {
+                if (externalActivity === "Active") {
+                    return schema.active === true;
+                } else if (externalActivity === "Inactive") {
+                    return schema.active === false;
+                }
+            }
+
+            // Check for schoolStudents relation (student activity)
+            if (item.relations?.schoolStudents) {
+                const schoolStudent = item.relations.schoolStudents[0];
+                if (schoolStudent) {
+                    if (externalActivity === "Active") {
+                        return schoolStudent.active === true;
+                    } else if (externalActivity === "Inactive") {
+                        return schoolStudent.active === false;
+                    }
+                }
+            }
+
+            return true;
+        });
+    };
+
     const groupDataByDate = (items: AbstractModel<T>[]): DataboardGroup<T>[] => {
         const groups = new Map<string, AbstractModel<T>[]>();
 
@@ -157,7 +198,8 @@ export const useDataboard = <T>(
     const searchedData = filterDataBySearch(data);
     const filteredData = filterDataByDate(searchedData);
     const entityFilteredData = filterDataByEntity(filteredData);
-    const groupedData = groupData(entityFilteredData);
+    const activityFilteredData = filterDataByActivity(entityFilteredData);
+    const groupedData = groupData(activityFilteredData);
 
     return {
         filter,

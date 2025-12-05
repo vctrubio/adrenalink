@@ -3,7 +3,7 @@
 import { useState, ReactNode } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
 import { Breadcrumb } from "@/src/components/databoard/Breadcrumb";
-import type { DataboardFilterByDate, DataboardGroupByDate, DataboardController } from "@/types/databoard";
+import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController } from "@/types/databoard";
 import { usePathname } from "next/navigation";
 
 interface DataboardLayoutWrapperProps {
@@ -15,6 +15,7 @@ const DATABOARD_LIST_PAGES = ["students", "teachers", "bookings", "packages", "e
 export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrapperProps) {
     const [filter, setFilter] = useState<DataboardFilterByDate>("All");
     const [group, setGroup] = useState<DataboardGroupByDate | string>("All");
+    const [activity, setActivity] = useState<DataboardActivityFilter>("All");
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [counts, setCounts] = useState<Record<string, number>>({});
@@ -59,6 +60,8 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         onFilterChange: setFilter,
         group,
         onGroupChange: setGroup,
+        activity,
+        onActivityChange: setActivity,
         isSelectionMode,
         onSelectionModeToggle: handleSelectionModeToggle,
         selectedCount,

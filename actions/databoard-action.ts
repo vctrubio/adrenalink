@@ -1,4 +1,4 @@
-import { eq, exists, and, count, notInArray } from "drizzle-orm";
+import { eq, exists, and, count } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
@@ -43,28 +43,19 @@ export async function getDataboardCounts(): Promise<ApiActionResponseModel<Recor
     }
 }
 // GET STUDENTS
-export async function getStudents(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<StudentModel[]>> {
+export async function getStudents(): Promise<ApiActionResponseModel<StudentModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
         // 1. Fetch shallow ORM relations (for row-action tags and popover)
-        const activityWhere = activity && activity !== "All"
-            ? activity === "Active"
-                ? eq(schoolStudents.active, true)
-                : eq(schoolStudents.active, false)
-            : undefined;
-
         const studentsQuery = schoolId
             ? db.query.student.findMany({
                   where: exists(
                       db
                           .select()
                           .from(schoolStudents)
-                          .where(activityWhere
-                              ? and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId), activityWhere)
-                              : and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId))
-                          ),
+                          .where(and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId))),
                   ),
                   with: {
                       schoolStudents: true,
@@ -118,23 +109,15 @@ export async function getStudents(activity?: "All" | "Active" | "Inactive"): Pro
 }
 
 // GET TEACHERS
-export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<TeacherModel[]>> {
+export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
         // 1. Fetch ORM relations (lessons with events for row-action tags)
-        const activityWhere = activity && activity !== "All"
-            ? activity === "Active"
-                ? eq(teacher.active, true)
-                : eq(teacher.active, false)
-            : undefined;
-
         const teachersQuery = schoolId
             ? db.query.teacher.findMany({
-                  where: activityWhere
-                      ? and(eq(teacher.schoolId, schoolId), activityWhere)
-                      : eq(teacher.schoolId, schoolId),
+                  where: eq(teacher.schoolId, schoolId),
                   with: {
                       lessons: {
                           with: {
@@ -144,7 +127,6 @@ export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Pro
                   },
               })
             : db.query.teacher.findMany({
-                  where: activityWhere,
                   with: {
                       lessons: {
                           with: {
@@ -176,7 +158,7 @@ export async function getTeachers(activity?: "All" | "Active" | "Inactive"): Pro
 }
 
 // GET BOOKINGS
-export async function getBookings(activity?: "All" | "Active" | "Inactive"): Promise<ApiActionResponseModel<BookingModel[]>> {
+export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
@@ -260,15 +242,13 @@ export async function getBookings(activity?: "All" | "Active" | "Inactive"): Pro
 }
 
 // GET EQUIPMENTS
-export async function getEquipments(filter?: "All" | "Active"): Promise<ApiActionResponseModel<EquipmentModel[]>> {
+export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
         // 1. Fetch ONLY display data (shallow relations for teachers with lessons)
-        const baseWhere = schoolId ? eq(equipment.schoolId, schoolId) : undefined;
-        const filterWhere = filter === "Active" ? notInArray(equipment.status, ["rip", "sold"]) : undefined;
-        const whereCondition = baseWhere && filterWhere ? and(baseWhere, filterWhere) : baseWhere || filterWhere;
+        const whereCondition = schoolId ? eq(equipment.schoolId, schoolId) : undefined;
 
         const equipmentsQuery = db.query.equipment.findMany({
                   where: whereCondition,
