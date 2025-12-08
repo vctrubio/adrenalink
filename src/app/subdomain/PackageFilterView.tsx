@@ -4,15 +4,7 @@ import { useState, useMemo } from "react";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_CATEGORIES, EquipmentCategoryConfig } from "@/config/equipment";
-import {
-    ChevronDownIcon,
-    UsersIcon,
-    ClockIcon,
-    FireIcon,
-    WrenchScrewdriverIcon,
-    ArrowTrendingDownIcon,
-    ArrowTrendingUpIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon, UsersIcon, ClockIcon, FireIcon, WrenchScrewdriverIcon, ArrowTrendingDownIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- PROPS ---
@@ -25,14 +17,15 @@ type PackageTypeFilter = "lessons" | "rental";
 type SortByFilter = "popular" | "price-low" | "price-high" | "duration-short" | "duration-long";
 
 // --- PACKAGE CARD (no changes) ---
-const PackageCard = ({
-    pkg,
-}: {
-    pkg: SchoolPackageType & { bookingCount: number };
-}) => {
-    const categoryConfig = EQUIPMENT_CATEGORIES.find(c => c.id === pkg.categoryEquipment) || {
-        id: "default", name: "Package", icon: FireIcon, color: "#fb923c"
-    } as EquipmentCategoryConfig;
+const PackageCard = ({ pkg }: { pkg: SchoolPackageType & { bookingCount: number } }) => {
+    const categoryConfig =
+        EQUIPMENT_CATEGORIES.find((c) => c.id === pkg.categoryEquipment) ||
+        ({
+            id: "default",
+            name: "Package",
+            icon: FireIcon,
+            color: "#fb923c",
+        } as EquipmentCategoryConfig);
     const CategoryIcon = categoryConfig.icon;
 
     const isPopular = pkg.bookingCount > 10;
@@ -43,7 +36,14 @@ const PackageCard = ({
         { icon: UsersIcon, label: `Up to ${pkg.capacityStudents} students` },
         { icon: WrenchScrewdriverIcon, label: `${pkg.capacityEquipment} equipment sets` },
         { icon: ClockIcon, label: getPrettyDuration(pkg.durationMinutes) },
-        { icon: () => <span className="font-bold text-sm" style={{ color: categoryConfig.color }}>$/h</span>, label: `$${pricePerHour.toFixed(2)} per hour` },
+        {
+            icon: () => (
+                <span className="font-bold text-sm" style={{ color: categoryConfig.color }}>
+                    $/h
+                </span>
+            ),
+            label: `$${pricePerHour.toFixed(2)} per hour`,
+        },
     ];
 
     return (
@@ -58,12 +58,10 @@ const PackageCard = ({
             <div className="p-6">
                 {/* Header */}
                 <div className="flex justify-between items-start gap-4 mb-4">
-                    <h3 className="text-lg font-bold text-foreground">
-                        {pkg.description}
-                    </h3>
+                    <h3 className="text-lg font-bold text-foreground">{pkg.description}</h3>
                     <CategoryIcon className="w-8 h-8 flex-shrink-0" style={{ color: categoryConfig.color }} />
                 </div>
-                
+
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 mb-4">
                     {stats.map((stat, index) => {
@@ -79,9 +77,7 @@ const PackageCard = ({
 
                 {/* Footer */}
                 <div className="border-t border-border/20 pt-4 flex items-center justify-between">
-                    <div className="text-xs uppercase font-bold tracking-widest text-muted-foreground">
-                        {pkg.packageType}
-                    </div>
+                    <div className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{pkg.packageType}</div>
                     <div className="flex items-baseline gap-1">
                         <span className="text-2xl font-bold text-foreground">${pkg.pricePerStudent}</span>
                         <span className="text-sm font-medium text-muted-foreground">/person</span>
@@ -89,7 +85,7 @@ const PackageCard = ({
                 </div>
 
                 {isPopular && (
-                    <div className="absolute top-0 right-0 px-2 py-1 bg-orange-400/10 text-orange-400 text-xs font-bold tracking-wider" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 8% 100%)' }}>
+                    <div className="absolute top-0 right-0 px-2 py-1 bg-orange-400/10 text-orange-400 text-xs font-bold tracking-wider" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 8% 100%)" }}>
                         Most Popular
                     </div>
                 )}
@@ -98,18 +94,9 @@ const PackageCard = ({
     );
 };
 
-
 // --- FILTERS & STATS ---
 
-const LiquidToggle = ({
-    options,
-    active,
-    setActive
-}: {
-    options: { id: PackageTypeFilter, label: string }[],
-    active: PackageTypeFilter,
-    setActive: (opt: PackageTypeFilter) => void
-}) => {
+const LiquidToggle = ({ options, active, setActive }: { options: { id: PackageTypeFilter; label: string }[]; active: PackageTypeFilter; setActive: (opt: PackageTypeFilter) => void }) => {
     return (
         <div className="relative flex w-full max-w-xs mx-auto p-1 bg-card rounded-full border-2 border-border/20" style={{ filter: "url(#goo)" }}>
             <AnimatePresence>
@@ -119,18 +106,14 @@ const LiquidToggle = ({
                     className="absolute inset-0 bg-orange-400 rounded-full z-0"
                     style={{
                         width: `calc((100% - 0.5rem) / ${options.length})`,
-                        left: `${options.findIndex(o => o.id === active) * (100 / options.length)}%`,
+                        left: `${options.findIndex((o) => o.id === active) * (100 / options.length)}%`,
                         margin: "0.25rem",
                     }}
                 />
             </AnimatePresence>
-            {options.map(opt => (
-                <button
-                    key={opt.id}
-                    onClick={() => setActive(opt.id)}
-                    className="relative flex-1 py-2.5 text-sm font-semibold text-center transition-colors z-10"
-                >
-                    <span className={active === opt.id ? 'text-white' : 'text-muted-foreground'}>{opt.label}</span>
+            {options.map((opt) => (
+                <button key={opt.id} onClick={() => setActive(opt.id)} className="relative flex-1 py-2.5 text-sm font-semibold text-center transition-colors z-10">
+                    <span className={active === opt.id ? "text-white" : "text-muted-foreground"}>{opt.label}</span>
                 </button>
             ))}
         </div>
@@ -144,15 +127,10 @@ const StatCard = ({ icon: Icon, title, value, prefix, suffix, className }: any) 
             <h4 className="text-sm font-semibold text-muted-foreground">{title}</h4>
         </div>
         <AnimatePresence mode="wait">
-            <motion.div
-                key={value}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="text-2xl font-bold text-foreground"
-            >
-                {prefix}{value}{suffix}
+            <motion.div key={value} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="text-2xl font-bold text-foreground">
+                {prefix}
+                {value}
+                {suffix}
             </motion.div>
         </AnimatePresence>
     </div>
@@ -169,28 +147,27 @@ const EquipmentFilterCell = ({ label, count, isActive, onClick, isDisabled }: an
     >
         <div className="flex flex-col items-center justify-center gap-1">
             <span className={`font-semibold text-sm ${isActive ? "text-orange-400" : "text-foreground"}`}>{label}</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-orange-400/20 text-orange-200" : "bg-muted text-muted-foreground"}`}>
-                {count}
-            </span>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-orange-400/20 text-orange-200" : "bg-muted text-muted-foreground"}`}>{count}</span>
         </div>
     </button>
 );
 
-const SortByDropdown = ({ sortBy, setSortBy, options }: { sortBy: string, setSortBy: (val: any) => void, options: any[] }) => (
+const SortByDropdown = ({ sortBy, setSortBy, options }: { sortBy: string; setSortBy: (val: any) => void; options: any[] }) => (
     <div className="relative">
-        <select 
+        <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortByFilter)}
             className="appearance-none bg-card border border-border/30 rounded-full py-1.5 pl-4 pr-8 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400"
         >
-            {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                </option>
             ))}
         </select>
         <ChevronDownIcon className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
     </div>
 );
-
 
 // --- MAIN VIEW ---
 export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
@@ -207,15 +184,15 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
             windsurf: packages.filter((p) => p.categoryEquipment === "windsurf").length,
         };
 
-        const packagesForStats = packages.filter(p => p.packageType === packageTypeFilter);
+        const packagesForStats = packages.filter((p) => p.packageType === packageTypeFilter);
         const newDynamicStats = {
             lowestPricePerHour: 0,
             longestDuration: 0,
         };
 
         if (packagesForStats.length > 0) {
-            newDynamicStats.lowestPricePerHour = Math.min(...packagesForStats.map(p => p.pricePerStudent / (p.durationMinutes / 60)).filter(p => p > 0));
-            newDynamicStats.longestDuration = Math.max(...packagesForStats.map(p => p.durationMinutes));
+            newDynamicStats.lowestPricePerHour = Math.min(...packagesForStats.map((p) => p.pricePerStudent / (p.durationMinutes / 60)).filter((p) => p > 0));
+            newDynamicStats.longestDuration = Math.max(...packagesForStats.map((p) => p.durationMinutes));
         }
 
         const filtered = packages.filter((pkg) => {
@@ -226,12 +203,18 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
 
         const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
-                case "popular": return b.bookingCount - a.bookingCount;
-                case "price-low": return a.pricePerStudent - b.pricePerStudent;
-                case "price-high": return b.pricePerStudent - a.pricePerStudent;
-                case "duration-short": return a.durationMinutes - b.durationMinutes;
-                case "duration-long": return b.durationMinutes - a.durationMinutes;
-                default: return 0;
+                case "popular":
+                    return b.bookingCount - a.bookingCount;
+                case "price-low":
+                    return a.pricePerStudent - b.pricePerStudent;
+                case "price-high":
+                    return b.pricePerStudent - a.pricePerStudent;
+                case "duration-short":
+                    return a.durationMinutes - b.durationMinutes;
+                case "duration-long":
+                    return b.durationMinutes - a.durationMinutes;
+                default:
+                    return 0;
             }
         });
 
@@ -239,19 +222,38 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
     }, [packages, packageTypeFilter, equipmentCategoryFilters, sortBy]);
 
     const handleEquipmentFilterToggle = (value: string) => {
-        const newFilters = equipmentCategoryFilters.includes(value)
-            ? equipmentCategoryFilters.filter(f => f !== value)
-            : [...equipmentCategoryFilters, value];
+        const newFilters = equipmentCategoryFilters.includes(value) ? equipmentCategoryFilters.filter((f) => f !== value) : [...equipmentCategoryFilters, value];
         setEquipmentCategoryFilters(newFilters);
     };
 
-    const packageTypeOptions = [{ id: 'lessons', label: 'Lessons' }, { id: 'rental', label: 'Rental' }] as const;
-    const equipmentFilterOptions = [{ id: 'kite', label: 'Kite' }, { id: 'wing', label: 'Wing' }, { id: 'windsurf', label: 'Windsurf' }];
-    const sortByOptions = [{ value: "popular", label: "Most Popular" }, { value: "price-low", label: "Price: Low to High" }, { value: "price-high", label: "Price: High to Low" }, { value: "duration-short", label: "Duration: Shortest" }, { value: "duration-long", label: "Duration: Longest" }];
+    const packageTypeOptions = [
+        { id: "lessons", label: "Lessons" },
+        { id: "rental", label: "Rental" },
+    ] as const;
+    const equipmentFilterOptions = [
+        { id: "kite", label: "Kite" },
+        { id: "wing", label: "Wing" },
+        { id: "windsurf", label: "Windsurf" },
+    ];
+    const sortByOptions = [
+        { value: "popular", label: "Most Popular" },
+        { value: "price-low", label: "Price: Low to High" },
+        { value: "price-high", label: "Price: High to Low" },
+        { value: "duration-short", label: "Duration: Shortest" },
+        { value: "duration-long", label: "Duration: Longest" },
+    ];
 
     return (
         <div className="relative isolate w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <svg className="absolute -z-10 w-0 h-0"><defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" /><feComposite in="SourceGraphic" in2="goo" operator="atop"/></filter></defs></svg>
+            <svg className="absolute -z-10 w-0 h-0">
+                <defs>
+                    <filter id="goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                    </filter>
+                </defs>
+            </svg>
 
             {/* Liquid Toggle */}
             <div className="mb-8">
@@ -262,13 +264,13 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 max-w-4xl mx-auto">
                 <StatCard icon={ArrowTrendingDownIcon} title="Best Value" value={dynamicStats.lowestPricePerHour.toFixed(2)} prefix="$" suffix="/hr" />
                 <StatCard icon={ArrowTrendingUpIcon} title="Longest Session" value={getPrettyDuration(dynamicStats.longestDuration)} />
-                <StatCard icon={FireIcon} title="Popular Packages" value={filteredAndSortedPackages.filter(p => p.bookingCount > 10).length} />
+                <StatCard icon={FireIcon} title="Popular Packages" value={filteredAndSortedPackages.filter((p) => p.bookingCount > 10).length} />
             </div>
 
             {/* Equipment Filters */}
             <div className="flex justify-center mb-8">
                 <div className="flex w-full max-w-md rounded-lg">
-                    {equipmentFilterOptions.map(opt => (
+                    {equipmentFilterOptions.map((opt) => (
                         <EquipmentFilterCell key={opt.id} label={opt.label} count={(counts as any)[opt.id]} isActive={equipmentCategoryFilters.includes(opt.id)} onClick={() => handleEquipmentFilterToggle(opt.id)} isDisabled={(counts as any)[opt.id] === 0} />
                     ))}
                 </div>
@@ -285,7 +287,7 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
             {/* Packages Grid */}
             <AnimatePresence>
                 {filteredAndSortedPackages.length > 0 ? (
-                     <motion.div layout className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+                    <motion.div layout className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
                         {filteredAndSortedPackages.map((pkg) => (
                             <PackageCard key={pkg.id} pkg={pkg} />
                         ))}
