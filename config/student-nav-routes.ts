@@ -10,6 +10,7 @@ export const STUDENT_NAV_ROUTES: UserNavRoute[] = [
 	{ name: "Home", href: "" },
 	{ name: "Bookings", href: "/booking" },
 	{ name: "Requests", href: "/request" },
+	{ name: "Events", href: "/events" },
 	{ name: "Settings", href: "/settings" },
 ];
 

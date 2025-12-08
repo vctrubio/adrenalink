@@ -1,12 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import {
   booking,
   bookingStudent,
   studentPackageStudent,
   schoolStudents,
+  lesson,
+  event,
 } from "@/drizzle/schema";
 import {
   createStudentModel,
@@ -177,6 +179,63 @@ export async function getStudentRequests(
     return {
       success: false,
       error: `Failed to fetch student requests: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}
+
+// GET STUDENT EVENTS
+export async function getStudentEvents(
+  studentId: string,
+  schoolId?: string,
+): Promise<ApiActionResponseModel<any[]>> {
+  try {
+    // Find all bookings where this student is linked
+    const bookingStudentLinks = await db.query.bookingStudent.findMany({
+      where: eq(bookingStudent.studentId, studentId),
+    });
+
+    if (bookingStudentLinks.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    const bookingIds = bookingStudentLinks.map((link) => link.bookingId);
+
+    // Get all lessons from these bookings
+    const lessonsResult = await db.query.lesson.findMany({
+      where: schoolId ? and(eq(lesson.schoolId, schoolId)) : undefined,
+      with: {
+        booking: {
+          with: {
+            studentPackage: {
+              with: {
+                schoolPackage: true,
+              },
+            },
+          },
+        },
+        teacher: true,
+        events: true,
+      },
+    });
+
+    // Filter lessons that belong to student's bookings
+    const studentLessons = lessonsResult.filter((l) => bookingIds.includes(l.bookingId));
+
+    // Extract all events from lessons
+    const events = studentLessons.flatMap((lesson) =>
+      lesson.events.map((evt) => ({
+        ...evt,
+        teacher: lesson.teacher,
+        schoolPackage: lesson.booking?.studentPackage?.schoolPackage,
+      })),
+    );
+
+    return { success: true, data: events };
+  } catch (error) {
+    console.error("Error fetching student events:", error);
+    return {
+      success: false,
+      error: `Failed to fetch student events: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }

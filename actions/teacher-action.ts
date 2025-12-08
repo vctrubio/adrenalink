@@ -212,3 +212,55 @@ export async function getTeacherEquipment(
     };
   }
 }
+
+// GET TEACHER EVENTS
+export async function getTeacherEvents(
+  teacherId: string,
+  schoolId?: string,
+): Promise<ApiActionResponseModel<any[]>> {
+  try {
+    // Get all lessons for this teacher
+    const lessonsResult = await db.query.lesson.findMany({
+      where: eq(lesson.teacherId, teacherId),
+      with: {
+        booking: {
+          with: {
+            studentPackage: {
+              with: {
+                schoolPackage: true,
+              },
+            },
+            bookingStudents: {
+              with: {
+                student: true,
+              },
+            },
+          },
+        },
+        events: true,
+      },
+    });
+
+    // Filter by school if provided and extract events
+    const filteredLessons = schoolId
+      ? lessonsResult.filter((l) => l.schoolId === schoolId)
+      : lessonsResult;
+
+    // Extract all events from lessons with booking and student info
+    const events = filteredLessons.flatMap((lesson) =>
+      lesson.events.map((evt) => ({
+        ...evt,
+        schoolPackage: lesson.booking?.studentPackage?.schoolPackage,
+        students: lesson.booking?.bookingStudents?.map((bs) => bs.student) || [],
+      })),
+    );
+
+    return { success: true, data: events };
+  } catch (error) {
+    console.error("Error fetching teacher events:", error);
+    return {
+      success: false,
+      error: `Failed to fetch teacher events: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}

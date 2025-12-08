@@ -11,6 +11,7 @@ export const TEACHER_NAV_ROUTES: UserNavRoute[] = [
 	{ name: "Lessons", href: "/lesson" },
 	{ name: "Commissions", href: "/commission" },
 	{ name: "Equipment", href: "/equipment" },
+	{ name: "Events", href: "/events" },
 	{ name: "Settings", href: "/settings" },
 ];
 
