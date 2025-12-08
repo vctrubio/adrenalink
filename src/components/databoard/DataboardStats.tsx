@@ -35,13 +35,13 @@ export const DataboardStats = ({ stats, totalCount = 0, isLoading = false }: Dat
         <div
           className="h-20 w-28 rounded-lg border-2 p-3 flex flex-col justify-between shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-primary/10 to-primary/5"
           style={{
-            borderColor: `var(--color-primary, #6366f1)`,
+            borderColor: "var(--color-primary, #6366f1)",
           }}
         >
           <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
             Total
           </div>
-          <p className="text-3xl font-black" style={{ color: `var(--color-primary, #6366f1)` }}>
+          <p className="text-3xl font-black" style={{ color: "var(--color-primary, #6366f1)" }}>
             {totalCount}
           </p>
         </div>

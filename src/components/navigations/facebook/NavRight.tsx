@@ -22,14 +22,14 @@ export const NavRight = () => {
         setMounted(true);
     }, []);
 
-    const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark');
+    const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
 
     return (
         <div className="flex items-center gap-2">
             <ActionButton icon={Plus} />
             <ActionButton icon={Bell} />
             <ActionButton
-                onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
+                onClick={() => setTheme(isDarkMode ? "light" : "dark")}
                 icon={mounted ? (isDarkMode ? Sun : Moon) : undefined}
             />
             <ActionButton>

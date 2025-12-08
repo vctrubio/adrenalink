@@ -677,7 +677,7 @@ export async function masterBookingAdd(
         revalidatePath("/classboard");
 
         console.log(`✅ [masterBookingAdd] Booking creation complete! Booking ID: ${result.booking.id}`);
-        console.log(`✅ [masterBookingAdd] Returning success response with data:`, result);
+        console.log("✅ [masterBookingAdd] Returning success response with data:", result);
         return { success: true, data: result };
     } catch (error) {
         console.error("❌ [masterBookingAdd] EXCEPTION in masterBookingAdd:", error);

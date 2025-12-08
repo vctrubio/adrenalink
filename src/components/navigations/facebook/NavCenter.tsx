@@ -27,15 +27,15 @@ export const NavCenter = () => {
         <div className="hidden md:flex items-center justify-center gap-1">
             {FACEBOOK_NAV_ROUTES.map((route) => {
                 let isActive = false;
-                if (route.id === 'data') {
+                if (route.id === "data") {
                     isActive = databoardPaths.some(path => pathname.startsWith(path));
-                } else if (route.id === 'home') {
+                } else if (route.id === "home") {
                     isActive = pathname === route.href;
                 } else {
                     isActive = pathname.startsWith(route.href);
                 }
 
-                if (route.id === 'data') {
+                if (route.id === "data") {
                     return (
                         <div key={route.href} className="relative">
                             <DropdownItem

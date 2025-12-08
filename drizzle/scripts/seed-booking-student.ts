@@ -76,7 +76,7 @@ async function seedBookingStudent() {
         }
 
         console.log("\n🎉 Booking-student relationships created!");
-        console.log(`📋 Summary:`);
+        console.log("📋 Summary:");
         console.log(`   Total student-booking links created: ${totalLinked}`);
         console.log(`   Total bookings processed: ${bookings.length}`);
 

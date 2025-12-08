@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateStudentDetail } from "@/actions/students-action";
@@ -34,6 +35,9 @@ function StudentViewMode({ student, onEdit }: { student: StudentModel; onEdit: (
 
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <Link href={`/student/${student.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
+                    View Schools
+                </Link>
                 <button onClick={onEdit} style={{ borderColor: studentEntity.color }} className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors">
                     Edit
                 </button>
@@ -154,6 +158,9 @@ function StudentEditMode({ student, onCancel, onSubmit }: { student: StudentMode
 
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <Link href={`/student/${student.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
+                    View Schools
+                </Link>
                 <button onClick={onCancel} disabled={isSubmitting} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap">
                     Cancel
                 </button>

@@ -138,14 +138,14 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                             <label
                                 key={category.id}
                                 style={{
-                                    '--category-color': category.color,
-                                    '--category-bg-color': category.bgColor
+                                    "--category-color": category.color,
+                                    "--category-bg-color": category.bgColor
                                 }}
                                 className={`
                                     group cursor-pointer select-none border-2 rounded-lg p-4 flex flex-col items-center gap-3 transition-all
                                     ${checked
-                                        ? 'bg-card border-[var(--category-color)] text-[var(--category-color)]'
-                                        : 'bg-card border-border text-foreground'
+                                        ? "bg-card border-[var(--category-color)] text-[var(--category-color)]"
+                                        : "bg-card border-border text-foreground"
                                     }
                                 `}
                             >
@@ -154,8 +154,8 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                                     className={`
                                         p-3 rounded-full transition-colors
                                         ${checked
-                                            ? 'bg-[var(--category-bg-color)]'
-                                            : 'bg-muted group-hover:bg-[var(--category-bg-color)]'
+                                            ? "bg-[var(--category-bg-color)]"
+                                            : "bg-muted group-hover:bg-[var(--category-bg-color)]"
                                         }
                                     `}
                                 >
@@ -163,8 +163,8 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                                         className={`
                                             w-8 h-8 transition-colors
                                             ${checked
-                                                ? 'text-white'
-                                                : 'text-[var(--category-color)] group-hover:text-white'
+                                                ? "text-white"
+                                                : "text-[var(--category-color)] group-hover:text-white"
                                             }
                                         `}
                                         size={32}

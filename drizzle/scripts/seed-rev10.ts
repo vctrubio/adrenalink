@@ -248,9 +248,9 @@ const main = async () => {
         console.log(`   School ID: ${schoolId}`);
         console.log(`   Teachers: ${teacherIds.length}`);
         console.log(`   Students: ${students.length}`);
-        console.log(`   Packages: 8 packages created (including 4 new group packages)`);
-        console.log(`   Referrals: 5 codes created`);
-        console.log(`   Realtime: Tables configured for listening`);
+        console.log("   Packages: 8 packages created (including 4 new group packages)");
+        console.log("   Referrals: 5 codes created");
+        console.log("   Realtime: Tables configured for listening");
     } catch (error) {
         console.error("❌ Seed failed:", error);
         process.exit(1);

@@ -28,7 +28,7 @@ function FacebookListItem({ teacher, isActive }: { teacher: TeacherModel, isActi
     return (
         <li
             ref={ref}
-            className={`flex items-center gap-4 px-4 py-3 transition-colors duration-150 rounded-lg cursor-pointer ${isActive ? 'bg-accent' : 'hover:bg-accent'}`}
+            className={`flex items-center gap-4 px-4 py-3 transition-colors duration-150 rounded-lg cursor-pointer ${isActive ? "bg-accent" : "hover:bg-accent"}`}
         >
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                 <User className="w-5 h-5 text-muted-foreground" />

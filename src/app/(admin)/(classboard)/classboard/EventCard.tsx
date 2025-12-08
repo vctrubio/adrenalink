@@ -98,7 +98,7 @@ const SettingDropdown = ({ isDeleting, hasNextEvent, canShiftQueue, currentStatu
             <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground flex-shrink-0">
                 <ChevronDown className="w-5 h-5" />
             </button>
-            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" />
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" initialFocusedId={currentStatus} />
         </div>
     );
 };

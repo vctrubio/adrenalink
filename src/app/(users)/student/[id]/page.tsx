@@ -1,22 +1,35 @@
-import { getStudentPackageBookingLessons } from "@/actions/user-action";
-import { StudentPortalClient } from "@/src/portals/StudentPortalClient";
+import { getStudents } from "@/actions/student-action";
+import { getSchoolHeader } from "@/types/headers";
 
-interface PageProps {
-    params: {
-        id: string;
-    };
+interface StudentPageProps {
+    params: Promise<{ id: string }>;
 }
 
-export default async function StudentPage({ params }: PageProps) {
-    const { id } = await params;
-    const result = await getStudentPackageBookingLessons(id);
+export default async function StudentPage({ params }: StudentPageProps) {
+    const { id: studentId } = await params;
 
-    if (!result.success || !result.data) {
-        return <div className="p-6">No student data found</div>;
+    // Get school from subdomain header
+    const schoolHeader = await getSchoolHeader();
+
+    // Fetch student data
+    const result = await getStudents();
+
+    if (!result.success) {
+        return <div className="p-4 text-destructive">Error loading student data</div>;
     }
 
-    const data = result.data;
-    const schoolId = data.lessons[0]?.booking?.schoolId || "";
+    const student = result.data.find((s) => s.schema.id === studentId);
 
-    return <StudentPortalClient studentId={id} schoolId={schoolId} initialData={data} />;
+    if (!student) {
+        return <div className="p-4 text-destructive">Student not found</div>;
+    }
+
+    return (
+        <div>
+            <h2 className="text-xl font-bold text-foreground mb-2">
+                Hello {student.schema.firstName} {student.schema.lastName}
+            </h2>
+            {schoolHeader && <p className="text-muted-foreground">Welcome to {schoolHeader.name}</p>}
+        </div>
+    );
 }
