@@ -21,6 +21,8 @@ export const NavCenter = () => {
         color: entity.color,
     }));
 
+    const activeDropdownItem = databoardDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
+
     return (
         <div className="hidden md:flex items-center justify-center gap-1">
             {FACEBOOK_NAV_ROUTES.map((route) => {
@@ -49,6 +51,7 @@ export const NavCenter = () => {
                                 onClose={() => setIsDropdownOpen(false)}
                                 items={databoardDropdownItems}
                                 align="center"
+                                initialFocusedId={activeDropdownItem?.id}
                             />
                         </div>
                     );

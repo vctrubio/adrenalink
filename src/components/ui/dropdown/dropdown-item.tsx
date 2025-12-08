@@ -16,10 +16,12 @@ export function DropdownItem({
 	item,
 	onClose,
 	variant = "dropdown",
+	isFocused,
 }: {
 	item: DropdownItemProps;
 	onClose?: () => void;
 	variant?: "dropdown" | "nav";
+	isFocused?: boolean;
 }) {
 	const Icon = item.icon;
 	const isNav = variant === "nav" || item.variant === "nav";
@@ -65,41 +67,24 @@ export function DropdownItem({
 
 	const content = isNav ? navContent : dropdownContent;
 
-	const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
-		if (isNav) return;
-		if (item.color) {
-			e.currentTarget.style.backgroundColor = `${item.color}15`;
-		} else {
-			e.currentTarget.style.backgroundColor = "rgb(var(--accent) / 0.5)";
-		}
+	const dynamicStyle: React.CSSProperties = {
+		backgroundColor: "transparent",
 	};
 
-	const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
-		if (isNav) return;
-		e.currentTarget.style.backgroundColor = "transparent";
-	};
+	if (!isNav && isFocused) {
+		dynamicStyle.backgroundColor = item.color ? `${item.color}15` : "rgb(var(--accent) / 0.5)";
+	}
 
 	if (item.href) {
 		return (
-			<Link
-				href={item.href}
-				onClick={handleClick}
-				className={baseClasses}
-				onMouseEnter={handleMouseEnter}
-				onMouseLeave={handleMouseLeave}
-			>
+			<Link href={item.href} onClick={handleClick} className={baseClasses} style={dynamicStyle}>
 				{content}
 			</Link>
 		);
 	}
 
 	return (
-		<button
-			onClick={handleClick}
-			className={baseClasses}
-			onMouseEnter={handleMouseEnter}
-			onMouseLeave={handleMouseLeave}
-		>
+		<button onClick={handleClick} className={baseClasses} style={dynamicStyle}>
 			{content}
 		</button>
 	);
