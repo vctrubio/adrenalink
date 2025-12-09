@@ -10,9 +10,9 @@ import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { updateEvent } from "@/actions/events-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
+import { Users } from "lucide-react";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
-import UsersIcon from "@/public/appSvgs/UsersIcon";
 
 export function calculateEventGroupStats(events: EventModel[]): StatItem[] {
 	const totalStudentsPaid = events.reduce((sum, event) => sum + EventStats.getStudentsPaid(event), 0);
@@ -22,7 +22,7 @@ export function calculateEventGroupStats(events: EventModel[]): StatItem[] {
 	const revenueColor = totalRevenue >= 0 ? "#10b981" : "#ef4444";
 
 	return [
-		{ icon: <UsersIcon className="w-5 h-5" />, value: `€${totalStudentsPaid.toFixed(2)}`, color: "#3b82f6" },
+		{ icon: <Users className="w-5 h-5" />, value: `€${totalStudentsPaid.toFixed(2)}`, color: "#3b82f6" },
 		{ icon: <HeadsetIcon className="w-5 h-5" />, value: `€${totalTeacherCommission.toFixed(2)}`, color: "#f59e0b" },
 		{ icon: <BankIcon className="w-5 h-5" />, value: `€${Math.abs(totalRevenue).toFixed(2)}`, color: revenueColor },
 	];
@@ -61,7 +61,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 	const revenueColor = revenue >= 0 ? "#10b981" : "#ef4444";
 
 	const stats: StatItem[] = [
-		{ icon: <UsersIcon className="w-5 h-5" />, value: `€${studentsPaid.toFixed(2)}`, color: "#3b82f6" },
+		{ icon: <Users className="w-5 h-5" />, value: `€${studentsPaid.toFixed(2)}`, color: "#3b82f6" },
 		{ icon: <HeadsetIcon className="w-5 h-5" />, value: `€${teacherCommission.toFixed(2)}`, color: "#f59e0b" },
 		{ icon: <BankIcon className="w-5 h-5" />, value: `€${Math.abs(revenue).toFixed(2)}`, color: revenueColor },
 	];
