@@ -1,74 +1,54 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
-import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
-
-const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
-const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavCenter = () => {
     const pathname = usePathname();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
-    const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
-        id: entity.id,
-        label: entity.name,
-        href: entity.link,
-        icon: entity.icon,
-        color: entity.color,
-    }));
+    const getCurrentRoute = () => {
+        const entity = ENTITY_DATA.find((e) => e.link && pathname.startsWith(e.link));
+        if (entity) {
+            return { name: entity.name, icon: entity.icon, color: entity.color };
+        }
 
-    const activeDropdownItem = databoardDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
+        const route = FACEBOOK_NAV_ROUTES.find((r) => {
+            if (r.id === "home") {
+                return pathname === r.href;
+            }
+            return pathname.startsWith(r.href);
+        });
+
+        if (route) {
+            return { name: route.name, icon: route.icon, color: undefined };
+        }
+
+        const segments = pathname.split("/").filter(Boolean);
+        if (segments.length > 0) {
+            return {
+                name: segments[0].charAt(0).toUpperCase() + segments[0].slice(1),
+                icon: null,
+                color: undefined,
+            };
+        }
+
+        return { name: "Home", icon: null, color: undefined };
+    };
+
+    const currentRoute = getCurrentRoute();
+    const Icon = currentRoute.icon;
 
     return (
-        <div className="hidden md:flex items-center justify-center gap-1">
-            {FACEBOOK_NAV_ROUTES.map((route) => {
-                let isActive = false;
-                if (route.id === "data") {
-                    isActive = databoardPaths.some(path => pathname.startsWith(path));
-                } else if (route.id === "home") {
-                    isActive = pathname === route.href;
-                } else {
-                    isActive = pathname.startsWith(route.href);
-                }
-
-                if (route.id === "data") {
-                    return (
-                        <div key={route.href} className="relative">
-                            <DropdownItem
-                                item={{
-                                    icon: route.icon,
-                                    active: isActive,
-                                    onClick: () => setIsDropdownOpen(!isDropdownOpen),
-                                }}
-                                variant="nav"
-                            />
-                            <Dropdown
-                                isOpen={isDropdownOpen}
-                                onClose={() => setIsDropdownOpen(false)}
-                                items={databoardDropdownItems}
-                                align="center"
-                                initialFocusedId={activeDropdownItem?.id}
-                            />
-                        </div>
-                    );
-                }
-
-                return (
-                    <DropdownItem
-                        key={route.href}
-                        item={{
-                            href: route.href,
-                            icon: route.icon,
-                            active: isActive,
-                        }}
-                        variant="nav"
-                    />
-                );
-            })}
+        <div className="hidden md:flex flex-col items-center justify-center text-center">
+            <h1 className="text-lg font-semibold text-foreground">Adrenalink</h1>
+            <div className="flex items-center gap-1.5">
+                {Icon && (
+                    <div style={currentRoute.color ? { color: currentRoute.color } : undefined}>
+                        <Icon className="w-3.5 h-3.5" />
+                    </div>
+                )}
+                <p className="text-xs text-muted-foreground">{currentRoute.name}</p>
+            </div>
         </div>
     );
 };

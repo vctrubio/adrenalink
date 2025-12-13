@@ -1,27 +1,80 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
-import { useSearch } from "@/src/providers/search-provider";
+import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
+import { ENTITY_DATA } from "@/config/entities";
+import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
+
+const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
+const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavLeft = () => {
-    const { onOpen } = useSearch();
+    const pathname = usePathname();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
+    const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
+        id: entity.id,
+        label: entity.name,
+        href: entity.link,
+        icon: entity.icon,
+        color: entity.color,
+    }));
+
+    const activeDropdownItem = databoardDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
 
     return (
-        <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+            <Link href="/" className="flex items-center">
                 <AdranlinkIcon size={40} className="text-primary" />
             </Link>
-            <div className="relative" onClick={onOpen}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                    type="search"
-                    placeholder="Search Adrenalink..."
-                    className="h-9 w-full rounded-full bg-muted pl-10 pr-4 text-sm focus:outline-none cursor-pointer"
-                    readOnly
-                />
-            </div>
+            {FACEBOOK_NAV_ROUTES.map((route) => {
+                let isActive = false;
+                if (route.id === "data") {
+                    isActive = databoardPaths.some(path => pathname.startsWith(path));
+                } else if (route.id === "home") {
+                    isActive = pathname === route.href;
+                } else {
+                    isActive = pathname.startsWith(route.href);
+                }
+
+                if (route.id === "data") {
+                    return (
+                        <div key={route.href} className="relative">
+                            <DropdownItem
+                                item={{
+                                    icon: route.icon,
+                                    active: isActive,
+                                    onClick: () => setIsDropdownOpen(!isDropdownOpen),
+                                }}
+                                variant="nav"
+                            />
+                            <Dropdown
+                                isOpen={isDropdownOpen}
+                                onClose={() => setIsDropdownOpen(false)}
+                                items={databoardDropdownItems}
+                                align="center"
+                                initialFocusedId={activeDropdownItem?.id}
+                            />
+                        </div>
+                    );
+                }
+
+                return (
+                    <DropdownItem
+                        key={route.href}
+                        item={{
+                            href: route.href,
+                            icon: route.icon,
+                            active: isActive,
+                        }}
+                        variant="nav"
+                    />
+                );
+            })}
         </div>
     );
 };
