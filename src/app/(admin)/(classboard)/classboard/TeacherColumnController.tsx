@@ -162,7 +162,7 @@ export default function TeacherColumnController({ columnViewMode, queue, onEditS
     return (
         <div className="p-4 px-6.5 border-b border-border space-y-3">
             <TeacherColumnHeader queue={queue} allEvents={allEvents} onDeleteComplete={onDeleteComplete} />
-            <TeacherColumnStats queue={queue} />
+            {/* <TeacherColumnStats queue={queue} /> */}
             <TeacherColumnActions columnViewMode={columnViewMode} queue={queue} onEditSchedule={onEditSchedule} onSubmit={onSubmit} onReset={onReset} onCancel={onCancel} />
         </div>
     );

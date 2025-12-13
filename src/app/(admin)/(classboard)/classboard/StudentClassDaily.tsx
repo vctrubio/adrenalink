@@ -135,7 +135,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
             </div>
 
             {/* Cards */}
-            <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
+            <div className="flex flex-row flex-wrap gap-3 p-4">
                 {filteredBookings.length > 0 ? (
                     filteredBookings.map((booking) => {
                         const bookingData = classboardData[booking.bookingId];

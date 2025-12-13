@@ -189,7 +189,7 @@ function TeacherColumn({
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className={`flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${
+            className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${
                 isDragOver && isCompatible
                     ? "border-2 border-yellow-500"
                     : isDragOver && isIncompatible
@@ -319,9 +319,6 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
 
                             return (
                                 <React.Fragment key={queue.teacher.username}>
-                                    {index > 0 && (
-                                        <div className="w-px bg-muted flex-shrink-0" />
-                                    )}
                                     <TeacherColumn
                                         queue={queue}
                                         stats={stats}

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
-import ClassboardController from "./ClassboardController";
 import StudentClassDaily from "./StudentClassDaily";
 import LessonFlagClassDaily from "./LessonFlagClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
@@ -12,17 +11,16 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { createClassboardEvent } from "@/actions/classboard-action";
+
 interface ClientClassboardProps {
     data: ClassboardModel;
 }
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
-    const { selectedDate, setSelectedDate, searchQuery, setSearchQuery, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } =
+    const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } =
         useClassboard(data);
 
     const [refreshKey, setRefreshKey] = useState(0);
-
-    const globalStats = classboardStats.getGlobalStats();
 
     // Create global flag instance
     const globalFlag = useMemo(
@@ -86,64 +84,37 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         });
     };
 
-    const [isControllerCollapsed, setIsControllerCollapsed] = useState(false);
-
     return (
-        <div className="flex flex-col h-screen overflow-hidden bg-muted/30">
-            {/* Collapsible Controller */}
-            {/* <ClassboardController */}
-            {/*     search={searchQuery} */}
-            {/*     setSearch={setSearchQuery} */}
-            {/*     controller={controller} */}
-            {/*     setController={setController} */}
-            {/*     stats={globalStats} */}
-            {/*     teacherQueues={teacherQueues} */}
-            {/*     totalBookings={draggableBookings.length} */}
-            {/*     isCollapsed={isControllerCollapsed} */}
-            {/*     onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)} */}
-            {/* /> */}
-
-            {/* Top Controls Row: Date Picker + Flag Controls */}
-            <div className="flex gap-4 p-4 pb-0">
-                {/* Date Picker Island - Same width as teacher column */}
-                <div className="w-[340px] flex-shrink-0">
-                    <div className="bg-card rounded-xl border border-border shadow-sm p-4">
-                        <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                    </div>
-                </div>
-
-                {/* Flag Controls Island - Rest of the width */}
-                <div className="flex-1">
-                    <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+        <div className="p-4 bg-gray-100 dark:bg-black min-h-screen">
+            <div className="max-w-7xl mx-auto flex flex-col gap-4">
+                {/* Header */}
+                <div className="flex-none bg-card rounded-xl shadow-sm p-4">
+                    <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                    <div className="mt-4 border-t border-border pt-4">
                         <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
                     </div>
                 </div>
-            </div>
 
-            {/* Split Screen Layout: Students (Left) | Teachers (Right) */}
-            <div className="flex flex-1 gap-4 p-4 overflow-hidden">
-                {/* Left Sidebar: Students Island */}
-                <div className="w-[340px] flex-shrink-0">
-                    <div className="border-2 border-yellow-500 rounded-xl h-full overflow-hidden flex flex-col">
-                        <StudentClassDaily
-                            bookings={draggableBookings}
-                            classboardData={classboardData}
-                            selectedDate={selectedDate}
-                            classboard={{
-                                onDragStart: (booking) => {
-                                    setDraggedBooking(booking);
-                                },
-                                onDragEnd: () => {
-                                    setDraggedBooking(null);
-                                },
-                                onAddLessonEvent: handleAddLessonEvent,
-                            }}
-                            setOnNewBooking={setOnNewBooking}
-                        />
-                    </div>
+                {/* Students */}
+                <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
+                    <StudentClassDaily
+                        bookings={draggableBookings}
+                        classboardData={classboardData}
+                        selectedDate={selectedDate}
+                        classboard={{
+                            onDragStart: (booking) => {
+                                setDraggedBooking(booking);
+                            },
+                            onDragEnd: () => {
+                                setDraggedBooking(null);
+                            },
+                            onAddLessonEvent: handleAddLessonEvent,
+                        }}
+                        setOnNewBooking={setOnNewBooking}
+                    />
                 </div>
 
-                {/* Right Side: Teacher Queues */}
+                {/* Teachers */}
                 <div className="flex-1 overflow-hidden">
                     <TeacherClassDaily
                         key={refreshKey}
