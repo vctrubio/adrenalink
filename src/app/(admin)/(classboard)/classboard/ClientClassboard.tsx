@@ -89,8 +89,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             <div className="max-w-7xl mx-auto flex flex-col gap-4">
                 {/* Header */}
                 <div className="flex-none bg-card rounded-xl shadow-sm p-4">
-                    <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                    <div className="mt-4 border-t border-border pt-4">
+                    <div className="flex justify-between items-center">
+                        <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                         <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
                     </div>
                 </div>

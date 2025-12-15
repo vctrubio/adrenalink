@@ -48,7 +48,7 @@ export async function SubdomainContentView({ username, isAdminView = false }: Su
                             <p className="text-muted-foreground text-lg">No packages available at this time</p>
                         </div>
                     ) : (
-                        <PackageFilterView packages={packages} />
+                        <PackageFilterView packages={packages} schoolName={school.name} />
                     )}
                 </div>
 

@@ -4,20 +4,326 @@ import { useState, useMemo } from "react";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_CATEGORIES, EquipmentCategoryConfig } from "@/config/equipment";
-import { ChevronDownIcon, UsersIcon, ClockIcon, FireIcon, WrenchScrewdriverIcon, ArrowTrendingDownIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, UsersIcon, ClockIcon, FireIcon, WrenchScrewdriverIcon, ArrowTrendingDownIcon, ArrowTrendingUpIcon, XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
+import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
 
 // --- PROPS ---
 interface PackageFilterViewProps {
     packages: Array<SchoolPackageType & { bookingCount: number }>;
+    schoolName: string;
+    schoolUsername: string;
 }
 
 // --- TYPES ---
 type PackageTypeFilter = "lessons" | "rental";
 type SortByFilter = "popular" | "price-low" | "price-high" | "duration-short" | "duration-long";
 
-// --- PACKAGE CARD (no changes) ---
-const PackageCard = ({ pkg }: { pkg: SchoolPackageType & { bookingCount: number } }) => {
+// --- BOOKING MODAL ---
+interface BookingModalProps {
+    pkg: SchoolPackageType & { bookingCount: number };
+    schoolName: string;
+    schoolUsername: string;
+    onClose: () => void;
+}
+
+const BookingModal = ({ pkg, schoolName, schoolUsername, onClose }: BookingModalProps) => {
+    const [studentName, setStudentName] = useState("");
+    const [studentEmail, setStudentEmail] = useState("");
+    const [studentPhone, setStudentPhone] = useState("");
+    const [dateStart, setDateStart] = useState("");
+    const [dateEnd, setDateEnd] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [step, setStep] = useState<"form" | "confirm">("form");
+
+    const categoryConfig =
+        EQUIPMENT_CATEGORIES.find((c) => c.id === pkg.categoryEquipment) ||
+        ({ id: "default", name: "Package", icon: FireIcon, color: "#fb923c" } as EquipmentCategoryConfig);
+    const CategoryIcon = categoryConfig.icon;
+
+    const durationHours = pkg.durationMinutes / 60;
+    const pricePerHour = durationHours > 0 ? pkg.pricePerStudent / durationHours : 0;
+
+    const isStudentInfoComplete = studentName && studentEmail;
+    const isDatesComplete = dateStart && dateEnd;
+    const canSubmit = isStudentInfoComplete && isDatesComplete;
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+    };
+
+    const handleSubmit = async () => {
+        if (!canSubmit) return;
+
+        setIsSubmitting(true);
+
+        const studentPackageRequest = {
+            schoolPackageId: pkg.id,
+            walletId: "current-user-wallet-id",
+            requestedDateStart: dateStart,
+            requestedDateEnd: dateEnd,
+            status: "requested" as const,
+            studentInfo: { name: studentName, email: studentEmail, phone: studentPhone },
+        };
+
+        console.log("=".repeat(60));
+        console.log("ADRENALINK - Student Package Request");
+        console.log("=".repeat(60));
+        console.log("\nSchool:", schoolName);
+        console.log("API Endpoint: POST /api/student-packages");
+        console.log("\nRequest Payload:");
+        console.log(JSON.stringify(studentPackageRequest, null, 2));
+        console.log("\nPackage Details:");
+        console.log({
+            school: schoolName,
+            packageId: pkg.id,
+            description: pkg.description,
+            pricePerStudent: pkg.pricePerStudent,
+            durationMinutes: pkg.durationMinutes,
+            capacityStudents: pkg.capacityStudents,
+            categoryEquipment: pkg.categoryEquipment,
+            packageType: pkg.packageType,
+        });
+        console.log("=".repeat(60));
+
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        setIsSubmitting(false);
+        setStep("confirm");
+    };
+
+    // Entity colors from config
+    const STUDENT_COLOR = "#eab308";
+    const BOOKING_COLOR = "#3b82f6";
+    const PACKAGE_COLOR = "#fb923c";
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+        >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-md bg-background rounded-3xl overflow-hidden shadow-2xl"
+            >
+                <AnimatePresence mode="wait">
+                    {step === "form" ? (
+                        <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            {/* Header */}
+                            <div className="relative p-6 pb-4">
+                                <button onClick={onClose} className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full bg-muted/80 hover:bg-muted transition-colors" title="Esc">
+                                    <XMarkIcon className="w-4 h-4 text-muted-foreground" />
+                                </button>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${categoryConfig.color}15` }}>
+                                        <CategoryIcon className="w-7 h-7" style={{ color: categoryConfig.color }} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold" style={{ color: categoryConfig.color }}>{schoolName} <span className="font-normal text-muted-foreground">@{schoolUsername}</span></p>
+                                        <h2 className="text-lg font-semibold text-foreground">{pkg.description}</h2>
+                                        <p className="text-xs text-muted-foreground mt-0.5">{getPrettyDuration(pkg.durationMinutes)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Steps */}
+                            <div className="px-6 pb-6 space-y-3">
+                                {/* Step 1: Student Info */}
+                                <Disclosure defaultOpen>
+                                    {({ open }) => (
+                                        <div className={`rounded-2xl transition-all ${open ? "bg-card" : "bg-transparent"}`}>
+                                            <DisclosureButton className="w-full p-4 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/50">
+                                                    {isStudentInfoComplete ? (
+                                                        <CheckIcon className="w-5 h-5" style={{ color: STUDENT_COLOR }} />
+                                                    ) : (
+                                                        <HelmetIcon className="w-5 h-5" style={{ color: STUDENT_COLOR }} />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <p className="text-sm font-medium text-foreground">Student Info</p>
+                                                    {isStudentInfoComplete && <p className="text-xs text-muted-foreground">{studentName}</p>}
+                                                </div>
+                                                <ChevronDownIcon className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+                                            </DisclosureButton>
+                                            <DisclosurePanel className="px-4 pb-4 space-y-4">
+                                                <input
+                                                    type="text"
+                                                    value={studentName}
+                                                    onChange={(e) => setStudentName(e.target.value)}
+                                                    placeholder="Full name"
+                                                    className="w-full h-12 px-4 bg-muted/50 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card"
+                                                    style={{ "--tw-ring-color": STUDENT_COLOR } as React.CSSProperties}
+                                                />
+                                                <input
+                                                    type="email"
+                                                    value={studentEmail}
+                                                    onChange={(e) => setStudentEmail(e.target.value)}
+                                                    placeholder="Email address"
+                                                    className="w-full h-12 px-4 bg-muted/50 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card"
+                                                    style={{ "--tw-ring-color": STUDENT_COLOR } as React.CSSProperties}
+                                                />
+                                                <input
+                                                    type="tel"
+                                                    value={studentPhone}
+                                                    onChange={(e) => setStudentPhone(e.target.value)}
+                                                    placeholder="Phone (optional)"
+                                                    className="w-full h-12 px-4 bg-muted/50 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card"
+                                                    style={{ "--tw-ring-color": STUDENT_COLOR } as React.CSSProperties}
+                                                />
+                                            </DisclosurePanel>
+                                        </div>
+                                    )}
+                                </Disclosure>
+
+                                {/* Step 2: Booking Dates */}
+                                <Disclosure>
+                                    {({ open }) => (
+                                        <div className={`rounded-2xl transition-all ${open ? "bg-card" : "bg-transparent"}`}>
+                                            <DisclosureButton className="w-full p-4 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/50">
+                                                    {isDatesComplete ? (
+                                                        <CheckIcon className="w-5 h-5" style={{ color: BOOKING_COLOR }} />
+                                                    ) : (
+                                                        <BookingIcon className="w-5 h-5" style={{ color: BOOKING_COLOR }} />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <p className="text-sm font-medium text-foreground">Booking Dates</p>
+                                                    {isDatesComplete && <p className="text-xs text-muted-foreground">{dateStart} → {dateEnd}</p>}
+                                                </div>
+                                                <ChevronDownIcon className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+                                            </DisclosureButton>
+                                            <DisclosurePanel className="px-4 pb-4">
+                                                <div className="flex gap-3">
+                                                    <input
+                                                        type="date"
+                                                        value={dateStart}
+                                                        onChange={(e) => setDateStart(e.target.value)}
+                                                        min={new Date().toISOString().split("T")[0]}
+                                                        className="flex-1 h-12 px-4 bg-muted/50 rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card"
+                                                        style={{ "--tw-ring-color": BOOKING_COLOR } as React.CSSProperties}
+                                                    />
+                                                    <input
+                                                        type="date"
+                                                        value={dateEnd}
+                                                        onChange={(e) => setDateEnd(e.target.value)}
+                                                        min={dateStart || new Date().toISOString().split("T")[0]}
+                                                        className="flex-1 h-12 px-4 bg-muted/50 rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card"
+                                                        style={{ "--tw-ring-color": BOOKING_COLOR } as React.CSSProperties}
+                                                    />
+                                                </div>
+                                            </DisclosurePanel>
+                                        </div>
+                                    )}
+                                </Disclosure>
+
+                                {/* Step 3: Package Summary */}
+                                <Disclosure>
+                                    {({ open }) => (
+                                        <div className={`rounded-2xl transition-all ${open ? "bg-card" : "bg-transparent"}`}>
+                                            <DisclosureButton className="w-full p-4 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/50">
+                                                    <PackageIcon className="w-5 h-5" style={{ color: PACKAGE_COLOR }} />
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <p className="text-sm font-medium text-foreground">Package Summary</p>
+                                                    <p className="text-xs text-muted-foreground">${pkg.pricePerStudent} per person</p>
+                                                </div>
+                                                <ChevronDownIcon className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+                                            </DisclosureButton>
+                                            <DisclosurePanel className="px-4 pb-4">
+                                                <div className="space-y-3">
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">Duration</span>
+                                                        <span className="text-foreground font-medium">{getPrettyDuration(pkg.durationMinutes)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">Equipment</span>
+                                                        <span className="text-foreground font-medium">{categoryConfig.name} × {pkg.capacityEquipment}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">Group size</span>
+                                                        <span className="text-foreground font-medium">Up to {pkg.capacityStudents}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">Hourly rate</span>
+                                                        <span className="text-foreground font-medium">${pricePerHour.toFixed(0)}/hr</span>
+                                                    </div>
+                                                    <div className="pt-3 mt-3 border-t border-muted/50 flex justify-between items-center">
+                                                        <span className="text-sm text-muted-foreground">Total</span>
+                                                        <span className="text-2xl font-bold" style={{ color: PACKAGE_COLOR }}>${pkg.pricePerStudent}</span>
+                                                    </div>
+                                                </div>
+                                            </DisclosurePanel>
+                                        </div>
+                                    )}
+                                </Disclosure>
+
+                                {/* Request Button */}
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!canSubmit || isSubmitting}
+                                    className="w-full h-14 mt-2 rounded-2xl font-semibold text-request-foreground bg-request disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-request/20"
+                                >
+                                    {isSubmitting ? "Sending..." : canSubmit ? "Request Booking" : "Complete all steps"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div key="confirm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 text-center">
+                            <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-request/10 flex items-center justify-center">
+                                <CheckIcon className="w-8 h-8 text-request" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-foreground">Request Sent</h2>
+                            <p className="text-sm text-muted-foreground mt-2 mb-8">{schoolName} will review and respond soon</p>
+
+                            <div className="bg-card rounded-2xl p-4 mb-6 space-y-3 text-left">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Student</span>
+                                    <span className="text-foreground font-medium">{studentName}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Dates</span>
+                                    <span className="text-foreground font-medium">{dateStart} → {dateEnd}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Status</span>
+                                    <span className="font-medium" style={{ color: STUDENT_COLOR }}>Pending</span>
+                                </div>
+                            </div>
+
+                            <button onClick={onClose} className="w-full h-12 rounded-2xl font-medium text-foreground bg-muted hover:bg-muted/80 transition-colors">
+                                Done
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </motion.div>
+    );
+};
+
+// --- PACKAGE CARD ---
+const PackageCard = ({ pkg, onClick }: { pkg: SchoolPackageType & { bookingCount: number }; onClick: () => void }) => {
+    const handleClick = () => {
+        console.log("PackageCard handleClick fired for:", pkg.id);
+        onClick();
+    };
+
     const categoryConfig =
         EQUIPMENT_CATEGORIES.find((c) => c.id === pkg.categoryEquipment) ||
         ({
@@ -53,7 +359,10 @@ const PackageCard = ({ pkg }: { pkg: SchoolPackageType & { bookingCount: number 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="group relative bg-card/60 border border-border/20 rounded-xl overflow-hidden transition-all duration-300 hover:border-orange-400/40 hover:shadow-2xl hover:shadow-orange-500/10"
+            onClick={handleClick}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="group relative bg-card/60 border border-border/20 rounded-xl overflow-hidden transition-all duration-300 hover:border-orange-400/40 hover:shadow-2xl hover:shadow-orange-500/10 cursor-pointer"
         >
             <div className="p-6">
                 {/* Header */}
@@ -170,10 +479,11 @@ const SortByDropdown = ({ sortBy, setSortBy, options }: { sortBy: string; setSor
 );
 
 // --- MAIN VIEW ---
-export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
+export const PackageFilterView = ({ packages, schoolName }: PackageFilterViewProps) => {
     const [packageTypeFilter, setPackageTypeFilter] = useState<PackageTypeFilter>("lessons");
     const [equipmentCategoryFilters, setEquipmentCategoryFilters] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState<SortByFilter>("popular");
+    const [selectedPackage, setSelectedPackage] = useState<(SchoolPackageType & { bookingCount: number }) | null>(null);
 
     const { filteredAndSortedPackages, counts, dynamicStats } = useMemo(() => {
         const newCounts = {
@@ -289,7 +599,7 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
                 {filteredAndSortedPackages.length > 0 ? (
                     <motion.div layout className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
                         {filteredAndSortedPackages.map((pkg) => (
-                            <PackageCard key={pkg.id} pkg={pkg} />
+                            <PackageCard key={pkg.id} pkg={pkg} onClick={() => { console.log("Package clicked:", pkg.id, pkg.description); setSelectedPackage(pkg); }} />
                         ))}
                     </motion.div>
                 ) : (
@@ -298,6 +608,11 @@ export const PackageFilterView = ({ packages }: PackageFilterViewProps) => {
                         <p className="mt-2 text-muted-foreground">Try adjusting your filters to find the perfect package for your adventure.</p>
                     </motion.div>
                 )}
+            </AnimatePresence>
+
+            {/* Booking Modal */}
+            <AnimatePresence>
+                {selectedPackage && <BookingModal pkg={selectedPackage} schoolName={schoolName} onClose={() => setSelectedPackage(null)} />}
             </AnimatePresence>
         </div>
     );

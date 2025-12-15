@@ -42,6 +42,9 @@
 	--color-subscription-default: rgb(var(--subscription-default));
 	--color-subscription-blue: rgb(var(--subscription-blue));
 	--color-subscription-gold: rgb(var(--subscription-gold));
+
+	--color-request: rgb(var(--request));
+	--color-request-foreground: rgb(var(--request-foreground));
 }
 
 @layer base {
@@ -78,6 +81,8 @@
 		--ring: 59 130 246;
 		--facebook-background: 241 245 249;
 		--facebook-border: 226 232 240;
+		--request: 34 197 94;
+		--request-foreground: 255 255 255;
 	}
 
 	.dark {
@@ -113,5 +118,7 @@
 		--ring: 96 165 250;
 		--facebook-background: 30 41 59;
 		--facebook-border: 51 65 85;
+		--request: 74 222 128;
+		--request-foreground: 15 23 42;
 	}
 }

@@ -106,9 +106,7 @@ const TeacherTag = ({ lessons, tabs }: TeacherTagProps) => {
                             e.currentTarget.style.backgroundColor = isSelected ? `${teacherColor}30` : "transparent";
                         }}
                     >
-                        <div style={{ color: teacherColor }}>
-                            {TeacherIcon && <TeacherIcon size={ICON_SIZE} />}
-                        </div>
+                        <div style={{ color: teacherColor }}>{TeacherIcon && <TeacherIcon size={ICON_SIZE} />}</div>
                         <span className="font-medium whitespace-nowrap">{lesson.teacher.username}</span>
                     </motion.button>
                 );
@@ -424,7 +422,7 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
 
     return (
         <>
-            <div className="w-full flex-shrink-0">
+            <div className="flex-shrink-0">
                 <div
                     draggable
                     onDragStart={handleDragStart}
