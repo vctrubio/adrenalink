@@ -40,7 +40,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
             for (let layer = 0; layer < 3; layer++) {
                 ctx.beginPath();
                 ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 - layer * 0.03})`;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
 
                 for (let x = 0; x < canvas.width; x += 2) {
                     const wave1 = Math.sin(x * 0.01 + (time * 2 + layer)) * 50;
@@ -80,7 +80,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
                 ctx.beginPath();
                 ctx.arc(x, y, size, 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(59, 130, 246, ${pulse * 0.1})`;
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.stroke();
             }
 

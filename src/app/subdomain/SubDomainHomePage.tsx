@@ -57,10 +57,8 @@ export async function SubDomainHomePage({ username, isAdminView = false }: Subdo
         );
     } catch (error) {
         console.error("💥 Error in subdomain content:", error);
-        
-        const containerClass = isAdminView 
-            ? "flex items-center justify-center min-h-[60vh]" 
-            : "min-h-screen bg-red-900 text-white flex items-center justify-center";
+
+        const containerClass = isAdminView ? "flex items-center justify-center min-h-[60vh]" : "min-h-screen bg-red-900 text-white flex items-center justify-center";
 
         return (
             <div className={containerClass}>
@@ -68,9 +66,7 @@ export async function SubDomainHomePage({ username, isAdminView = false }: Subdo
                     <h1 className={isAdminView ? "text-2xl font-bold mb-2" : "text-4xl font-bold mb-4"}>Portal Error</h1>
                     <p className={isAdminView ? "text-muted-foreground mb-4" : "text-xl mb-2"}>Username: {username}</p>
                     <p className={isAdminView ? "text-sm text-red-500" : "text-red-300"}>An error occurred loading this school portal.</p>
-                    {!isAdminView && (
-                        <pre className="mt-4 text-sm bg-black/50 p-4 rounded">{error instanceof Error ? error.message : String(error)}</pre>
-                    )}
+                    {!isAdminView && <pre className="mt-4 text-sm bg-black/50 p-4 rounded">{error instanceof Error ? error.message : String(error)}</pre>}
                 </div>
             </div>
         );

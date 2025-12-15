@@ -298,8 +298,7 @@ export const lesson = pgTable(
     "lesson",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        schoolId: uuid("school_id")
-            .references(() => school.id),
+        schoolId: uuid("school_id").references(() => school.id),
         teacherId: uuid("teacher_id")
             .notNull()
             .references(() => teacher.id),
@@ -343,8 +342,7 @@ export const event = pgTable(
     "event",
     {
         id: uuid("id").defaultRandom().primaryKey().notNull(),
-        schoolId: uuid("school_id")
-            .references(() => school.id),
+        schoolId: uuid("school_id").references(() => school.id),
         lessonId: uuid("lesson_id")
             .notNull()
             .references(() => lesson.id),

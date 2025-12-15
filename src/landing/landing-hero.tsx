@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LandingPortals } from "./landing-portals";
 import { AnimatedCanvas } from "./animated-canvas";
 
-const BLUE_BG_GO = "bg-slate-900"; // Dark mode background color - #0F172A
+const BLUE_BG_GO = ""; // Use inherited background
 
 function LandingHeroHeader() {
     return (
