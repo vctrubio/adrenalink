@@ -358,11 +358,22 @@ export const PackageFilterView = ({ packages, schoolName, schoolUsername, equipm
     return (
         <div className="relative isolate w-full">
             {/* Packages Table */}
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                 {filteredAndSortedPackages.length > 0 ? (
-                    <div className="w-full overflow-hidden rounded-b-xl rounded-t-xl md:rounded-tr-none border-2 border-border/20 bg-card/60">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="w-full overflow-hidden rounded-b-xl rounded-t-xl md:rounded-tr-none border-2 border-border/20 bg-card/60"
+                    >
                         {/* Table Header */}
-                        <div className="grid grid-cols-7 gap-4 bg-card/50 p-4 border-b border-border/30">
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
+                            className="grid grid-cols-7 gap-4 bg-card/50 p-4 border-b border-border/30"
+                        >
                             <button onClick={() => handleSort("equipment")} className="text-xs font-semibold text-muted-foreground uppercase text-left hover:text-foreground transition-colors flex items-center gap-1">
                                 {packageTypeFilter === "lessons" ? "Lesson" : "Rental"}
                                 {sortBy === "equipment" && (
@@ -394,10 +405,10 @@ export const PackageFilterView = ({ packages, schoolName, schoolUsername, equipm
                                     <ChevronDownIcon className={`w-3 h-3 transition-transform ${sortDirection === "asc" ? "rotate-180" : ""}`} />
                                 )}
                             </button>
-                        </div>
+                        </motion.div>
 
                         {/* Table Rows */}
-                        <div>
+                        <motion.div layout>
                             {filteredAndSortedPackages.map((pkg, index) => {
                                 const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === pkg.categoryEquipment) || {
                                     id: "default",
@@ -420,9 +431,17 @@ export const PackageFilterView = ({ packages, schoolName, schoolUsername, equipm
                                 return (
                                     <motion.div
                                         key={pkg.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{
+                                            duration: 0.4,
+                                            delay: 0.3 + (index * 0.08),
+                                            layout: { duration: 0.3 }
+                                        }}
+                                        whileHover={{ scale: 1.005 }}
+                                        whileTap={{ scale: 0.998 }}
                                         onClick={() => setSelectedPackage(pkg)}
                                         className={`grid grid-cols-7 gap-4 p-4 border-b border-border/20 hover:bg-accent/30 transition-colors cursor-pointer group ${
                                             index % 2 === 0 ? "bg-background/50" : "bg-card/50"
@@ -502,8 +521,8 @@ export const PackageFilterView = ({ packages, schoolName, schoolUsername, equipm
                                     </motion.div>
                                 );
                             })}
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 ) : (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 px-6 bg-card/50 border border-dashed border-border/30 rounded-xl max-w-7xl mx-auto">
                         <h3 className="text-xl font-semibold text-foreground">No Packages Found</h3>
