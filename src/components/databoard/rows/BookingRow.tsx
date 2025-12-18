@@ -128,7 +128,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             entityColor={bookingEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            head={{
+    const head={{
                 avatar: (
                     <div style={{ color: iconColor }}>
                         <BookingIconComponent className="w-10 h-10" />
@@ -136,7 +136,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                 ),
                 name: (
                     <HoverToEntity entity={bookingEntity} id={booking.schema.id}>
-                        {`Booking ${booking.schema.id.slice(0, 8)}`}
+                        {booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
                     </HoverToEntity>
                 ),
                 status: currentStatusConfig.label,
