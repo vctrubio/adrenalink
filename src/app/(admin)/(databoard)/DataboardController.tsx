@@ -116,23 +116,7 @@ export default function DataboardController({ controller, isMobile = false }: Da
                     Add {activeEntity.name}
                 </button>
 
-                {/* All Entities Navigation */}
-                <div className="space-y-1">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Navigate To</div>
-                {databoardEntities.map((entity) => {
-                    const EntityIcon = entity.icon;
-                    const isActive = entity.id === activeEntity.id;
-                    return (
-                        <Link key={entity.id} href={entity.link} className={`flex items-center justify-between p-3 rounded-lg border border-transparent transition-all ${isActive ? "bg-muted" : "hover:bg-muted"}`}>
-                            <div className="flex items-center gap-3">
-                                <EntityIcon className="w-5 h-5" style={{ color: entity.color }} />
-                                <span className="text-sm font-medium">{entity.name}</span>
-                            </div>
-                            {controller.counts[entity.id] !== undefined && <span className="text-xs text-muted-foreground">{controller.counts[entity.id]}</span>}
-                        </Link>
-                    );
-                })}
-            </div>
+             
         </div>
     );
 }
