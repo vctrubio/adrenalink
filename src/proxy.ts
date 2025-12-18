@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import printf from "../printf.js";
 import { detectSubdomain } from "../types/domain";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
 
     printf("MIDDLEWARE:2", request.url);
@@ -38,7 +38,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
 }
 
-// Only run middleware on page routes, not static assets
+// Only run proxy on page routes, not static assets
 export const config = {
     matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
