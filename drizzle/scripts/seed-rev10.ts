@@ -24,11 +24,13 @@ const createSchool = async () => {
     const [s] = await db
         .insert(school)
         .values({
+            ownerId: faker.string.uuid(),
             name: "Reva Kite School",
             username: "reva10",
             country: "Spain",
             phone: faker.string.numeric(10),
             status: "active",
+            currency: "EUR",
             latitude: "40.4168",
             longitude: "-3.7038",
             timezone: "Europe/Madrid",
@@ -38,7 +40,7 @@ const createSchool = async () => {
             instagramUrl: faker.internet.url(),
         })
         .returning();
-    console.log("✅ Created school:", s.id, "Username: reva10 (Madrid, Spain) - Timezone: Europe/Madrid");
+    console.log("✅ Created school:", s.id, "Username: reva10 (Madrid, Spain) - Currency: EUR - Timezone: Europe/Madrid");
     return s;
 };
 

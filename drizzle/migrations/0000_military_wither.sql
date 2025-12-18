@@ -1,5 +1,6 @@
 CREATE TYPE "public"."booking_status" AS ENUM('active', 'completed', 'uncompleted');--> statement-breakpoint
 CREATE TYPE "public"."commission_type" AS ENUM('fixed', 'percentage');--> statement-breakpoint
+CREATE TYPE "public"."currency" AS ENUM('USD', 'EUR', 'CHF');--> statement-breakpoint
 CREATE TYPE "public"."equipment_category" AS ENUM('kite', 'wing', 'windsurf');--> statement-breakpoint
 CREATE TYPE "public"."equipment_status" AS ENUM('rental', 'public', 'selling', 'sold', 'inrepair', 'rip');--> statement-breakpoint
 CREATE TYPE "public"."event_status" AS ENUM('planned', 'tbc', 'completed', 'uncompleted');--> statement-breakpoint
@@ -9,12 +10,15 @@ CREATE TYPE "public"."package_type" AS ENUM('rental', 'lessons');--> statement-b
 CREATE TYPE "public"."rental_status" AS ENUM('planned', 'completed', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."school_status" AS ENUM('active', 'pending', 'closed');--> statement-breakpoint
 CREATE TYPE "public"."student_package_status" AS ENUM('requested', 'accepted', 'rejected');--> statement-breakpoint
+CREATE TYPE "public"."subscription_status" AS ENUM('active', 'cancelled', 'past_due', 'expired');--> statement-breakpoint
+CREATE TYPE "public"."subscription_tier" AS ENUM('blue', 'silver', 'gold');--> statement-breakpoint
 CREATE TABLE "booking" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"date_start" date NOT NULL,
 	"date_end" date NOT NULL,
 	"school_id" uuid NOT NULL,
 	"student_package_id" uuid NOT NULL,
+	"leader_student_name" varchar(255) NOT NULL,
 	"status" "booking_status" DEFAULT 'active' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -108,11 +112,13 @@ CREATE TABLE "rental" (
 --> statement-breakpoint
 CREATE TABLE "school" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"owner_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"username" varchar(50) NOT NULL,
 	"country" varchar(100) NOT NULL,
 	"phone" varchar(20) NOT NULL,
 	"status" "school_status" DEFAULT 'pending' NOT NULL,
+	"currency" "currency" DEFAULT 'EUR' NOT NULL,
 	"latitude" numeric(10, 8),
 	"longitude" numeric(10, 8),
 	"timezone" varchar(50),
@@ -151,6 +157,18 @@ CREATE TABLE "school_students" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "unique_student_school" UNIQUE("student_id","school_id")
+);
+--> statement-breakpoint
+CREATE TABLE "school_subscription" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"school_id" uuid NOT NULL,
+	"tier" "subscription_tier" NOT NULL,
+	"status" "subscription_status" DEFAULT 'active' NOT NULL,
+	"start_date" date NOT NULL,
+	"end_date" date NOT NULL,
+	"cancelled_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "student" (
@@ -202,6 +220,15 @@ CREATE TABLE "student_package_student" (
 	"student_id" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "unique_student_package_student" UNIQUE("student_package_id","student_id")
+);
+--> statement-breakpoint
+CREATE TABLE "subscription_payment" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"subscription_id" uuid NOT NULL,
+	"amount" integer NOT NULL,
+	"payment_date" timestamp with time zone NOT NULL,
+	"status" varchar(50) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "teacher" (
@@ -279,6 +306,8 @@ ALTER TABLE "school_package" ADD CONSTRAINT "school_package_school_id_school_id_
 ALTER TABLE "school_package" ADD CONSTRAINT "school_package_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "school_students" ADD CONSTRAINT "school_students_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "school_students" ADD CONSTRAINT "school_students_student_id_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "school_subscription" ADD CONSTRAINT "school_subscription_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "school_subscription" ADD CONSTRAINT "school_subscription_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_booking_payment" ADD CONSTRAINT "student_booking_payment_booking_id_booking_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."booking"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_booking_payment" ADD CONSTRAINT "student_booking_payment_student_id_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_lesson_feedback" ADD CONSTRAINT "student_lesson_feedback_student_id_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -291,6 +320,8 @@ ALTER TABLE "student_package_student" ADD CONSTRAINT "student_package_student_st
 ALTER TABLE "student_package_student" ADD CONSTRAINT "student_package_student_student_id_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_package_student" ADD CONSTRAINT "student_package_student_package_id_fk" FOREIGN KEY ("student_package_id") REFERENCES "public"."student_package"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_package_student" ADD CONSTRAINT "student_package_student_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "subscription_payment" ADD CONSTRAINT "subscription_payment_subscription_id_school_subscription_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."school_subscription"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "subscription_payment" ADD CONSTRAINT "subscription_payment_subscription_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."school_subscription"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teacher" ADD CONSTRAINT "teacher_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teacher_commission" ADD CONSTRAINT "teacher_commission_teacher_id_teacher_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teacher"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teacher_equipment" ADD CONSTRAINT "teacher_equipment_teacher_id_teacher_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teacher"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -312,6 +343,7 @@ CREATE INDEX "lesson_teacher_booking_id_idx" ON "lesson" USING btree ("teacher_i
 CREATE INDEX "rental_student_id_idx" ON "rental" USING btree ("student_id");--> statement-breakpoint
 CREATE INDEX "rental_equipment_id_idx" ON "rental" USING btree ("equipment_id");--> statement-breakpoint
 CREATE INDEX "school_package_school_id_idx" ON "school_package" USING btree ("school_id");--> statement-breakpoint
+CREATE INDEX "school_subscription_school_id_idx" ON "school_subscription" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "student_payment_booking_id_idx" ON "student_booking_payment" USING btree ("booking_id");--> statement-breakpoint
 CREATE INDEX "student_payment_student_id_idx" ON "student_booking_payment" USING btree ("student_id");--> statement-breakpoint
 CREATE INDEX "student_package_school_package_id_idx" ON "student_package" USING btree ("school_package_id");--> statement-breakpoint
@@ -319,4 +351,5 @@ CREATE INDEX "student_package_referral_id_idx" ON "student_package" USING btree 
 CREATE INDEX "student_package_wallet_id_idx" ON "student_package" USING btree ("wallet_id");--> statement-breakpoint
 CREATE INDEX "student_package_student_package_id_idx" ON "student_package_student" USING btree ("student_package_id");--> statement-breakpoint
 CREATE INDEX "student_package_student_student_id_idx" ON "student_package_student" USING btree ("student_id");--> statement-breakpoint
+CREATE INDEX "subscription_payment_subscription_id_idx" ON "subscription_payment" USING btree ("subscription_id");--> statement-breakpoint
 CREATE INDEX "payment_lesson_id_idx" ON "teacher_lesson_payment" USING btree ("lesson_id");

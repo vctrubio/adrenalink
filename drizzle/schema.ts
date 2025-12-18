@@ -12,15 +12,20 @@ export const rentalStatusEnum = pgEnum("rental_status", ["planned", "completed",
 export const packageTypeEnum = pgEnum("package_type", ["rental", "lessons"]);
 export const languagesEnum = pgEnum("languages", ["Spanish", "French", "English", "German", "Italian"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["active", "completed", "uncompleted"]);
+export const currencyEnum = pgEnum("currency", ["USD", "EUR", "CHF"]);
+export const subscriptionTierEnum = pgEnum("subscription_tier", ["blue", "silver", "gold"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "cancelled", "past_due", "expired"]);
 
 // 1. school
 export const school = pgTable("school", {
     id: uuid("id").defaultRandom().primaryKey().notNull(),
+    ownerId: uuid("owner_id").notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     username: varchar("username", { length: 50 }).notNull().unique(),
     country: varchar("country", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }).notNull(),
     status: schoolStatusEnum("status").notNull().default("pending"),
+    currency: currencyEnum("currency").notNull().default("EUR"),
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 10, scale: 8 }),
     timezone: varchar("timezone", { length: 50 }),
@@ -244,6 +249,7 @@ export const booking = pgTable(
         studentPackageId: uuid("student_package_id")
             .notNull()
             .references(() => studentPackage.id),
+        leaderStudentName: varchar("leader_student_name", { length: 255 }).notNull(),
         status: bookingStatusEnum("status").notNull().default("active"),
         createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
         updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -490,6 +496,55 @@ export const studentBookingPayment = pgTable(
     (table) => [index("student_payment_booking_id_idx").on(table.bookingId), index("student_payment_student_id_idx").on(table.studentId)],
 );
 
+// 21. school_subscription
+export const schoolSubscription = pgTable(
+    "school_subscription",
+    {
+        id: uuid("id").defaultRandom().primaryKey().notNull(),
+        schoolId: uuid("school_id")
+            .notNull()
+            .references(() => school.id),
+        tier: subscriptionTierEnum("tier").notNull(),
+        status: subscriptionStatusEnum("status").notNull().default("active"),
+        startDate: date("start_date").notNull(),
+        endDate: date("end_date").notNull(),
+        cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.schoolId],
+            foreignColumns: [school.id],
+            name: "school_subscription_school_id_fk",
+        }),
+        index("school_subscription_school_id_idx").on(table.schoolId),
+    ],
+);
+
+// 22. subscription_payment
+export const subscriptionPayment = pgTable(
+    "subscription_payment",
+    {
+        id: uuid("id").defaultRandom().primaryKey().notNull(),
+        subscriptionId: uuid("subscription_id")
+            .notNull()
+            .references(() => schoolSubscription.id),
+        amount: integer("amount").notNull(),
+        paymentDate: timestamp("payment_date", { withTimezone: true }).notNull(),
+        status: varchar("status", { length: 50 }).notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.subscriptionId],
+            foreignColumns: [schoolSubscription.id],
+            name: "subscription_payment_subscription_id_fk",
+        }),
+        index("subscription_payment_subscription_id_idx").on(table.subscriptionId),
+    ],
+);
+
 export type StudentType = typeof student.$inferSelect;
 export type StudentForm = typeof student.$inferInsert;
 export type SchoolType = typeof school.$inferSelect;
@@ -532,3 +587,7 @@ export type TeacherLessonPaymentType = typeof teacherLessonPayment.$inferSelect;
 export type TeacherLessonPaymentForm = typeof teacherLessonPayment.$inferInsert;
 export type StudentBookingPaymentType = typeof studentBookingPayment.$inferSelect;
 export type StudentBookingPaymentForm = typeof studentBookingPayment.$inferInsert;
+export type SchoolSubscriptionType = typeof schoolSubscription.$inferSelect;
+export type SchoolSubscriptionForm = typeof schoolSubscription.$inferInsert;
+export type SubscriptionPaymentType = typeof subscriptionPayment.$inferSelect;
+export type SubscriptionPaymentForm = typeof subscriptionPayment.$inferInsert;

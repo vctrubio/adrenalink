@@ -10,6 +10,8 @@ export const TABLES_TO_CLEAR = [
     "school",
     "school_students",
     "school_package",
+    "school_subscription",
+    "subscription_payment",
     "student_package",
     "student_package_student",
     "booking",
@@ -40,6 +42,9 @@ export const ENUMS_TO_CLEAR = [
     "package_type",
     "languages",
     "booking_status",
+    "currency",
+    "subscription_tier",
+    "subscription_status",
 ];
 
 export async function dropTable(tableName: string) {
