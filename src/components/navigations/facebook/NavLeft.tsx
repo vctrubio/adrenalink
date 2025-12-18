@@ -11,9 +11,13 @@ import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components
 const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
+const infoPaths = ["/info", "/info/students", "/info/teachers", "/info/bookings", "/info/equipments", "/info/packages", "/info/lessons"];
+const INFO_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "lesson"];
+
 export const NavLeft = () => {
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isInfoDropdownOpen, setIsInfoDropdownOpen] = useState(false);
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
     const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
@@ -24,7 +28,17 @@ export const NavLeft = () => {
         color: entity.color,
     }));
 
+    const infoEntities = ENTITY_DATA.filter((entity) => INFO_ENTITIES.includes(entity.id));
+    const infoDropdownItems: DropdownItemProps[] = infoEntities.map((entity) => ({
+        id: `info-${entity.id}`,
+        label: entity.name,
+        href: `/info${entity.link}`,
+        icon: entity.icon,
+        color: entity.color,
+    }));
+
     const activeDropdownItem = databoardDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
+    const activeInfoDropdownItem = infoDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
 
     return (
         <div className="flex items-center gap-1">
@@ -35,8 +49,8 @@ export const NavLeft = () => {
                 let isActive = false;
                 if (route.id === "data") {
                     isActive = databoardPaths.some(path => pathname.startsWith(path));
-                } else if (route.id === "home") {
-                    isActive = pathname === route.href;
+                } else if (route.id === "info") {
+                    isActive = infoPaths.some(path => pathname.startsWith(path));
                 } else {
                     isActive = pathname.startsWith(route.href);
                 }
@@ -58,6 +72,28 @@ export const NavLeft = () => {
                                 items={databoardDropdownItems}
                                 align="center"
                                 initialFocusedId={activeDropdownItem?.id}
+                            />
+                        </div>
+                    );
+                }
+
+                if (route.id === "info") {
+                    return (
+                        <div key={route.href} className="relative">
+                            <DropdownItem
+                                item={{
+                                    icon: route.icon,
+                                    active: isActive,
+                                    onClick: () => setIsInfoDropdownOpen(!isInfoDropdownOpen),
+                                }}
+                                variant="nav"
+                            />
+                            <Dropdown
+                                isOpen={isInfoDropdownOpen}
+                                onClose={() => setIsInfoDropdownOpen(false)}
+                                items={infoDropdownItems}
+                                align="center"
+                                initialFocusedId={activeInfoDropdownItem?.id}
                             />
                         </div>
                     );

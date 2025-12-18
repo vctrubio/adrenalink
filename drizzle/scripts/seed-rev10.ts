@@ -11,6 +11,12 @@ import {
     schoolPackage,
     teacherCommission,
     referral,
+    booking,
+    studentPackage,
+    bookingStudent,
+    lesson,
+    event,
+    equipmentEvent,
 } from "../schema.js";
 
 config({ path: ".env.local" });
@@ -142,6 +148,56 @@ const createReferrals = async (schoolId: string) => {
     return result;
 };
 
+const createStudentPackages = async (schoolPackageIds: string[]) => {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+
+    const studentPackages = schoolPackageIds.map((pkgId) => ({
+        schoolPackageId: pkgId,
+        referralId: null as any,
+        walletId: faker.string.uuid(),
+        requestedDateStart: startDate.toISOString().split("T")[0],
+        requestedDateEnd: endDate.toISOString().split("T")[0],
+        status: "accepted" as const,
+    }));
+
+    const result = await db.insert(studentPackage).values(studentPackages).returning();
+    console.log(`✅ Created ${result.length} student packages`);
+    return result;
+};
+
+const createBookings = async (schoolId: string, students: any[], studentPackages: any[]) => {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 7);
+
+    const bookings = Array.from({ length: 4 }, (_, i) => ({
+        schoolId,
+        studentPackageId: studentPackages[i % studentPackages.length].id,
+        dateStart: startDate.toISOString().split("T")[0],
+        dateEnd: endDate.toISOString().split("T")[0],
+        leaderStudentName: `${students[i % students.length].firstName} ${students[i % students.length].lastName}`,
+        status: "active" as const,
+    }));
+
+    const result = await db.insert(booking).values(bookings).returning();
+    console.log(`✅ Created ${result.length} bookings`);
+    return result;
+};
+
+const linkStudentsToBookings = async (bookings: any[], students: any[]) => {
+    const bookingStudents = bookings.flatMap((bk) =>
+        students.slice(0, 2).map((st) => ({
+            bookingId: bk.id,
+            studentId: st.id,
+        })),
+    );
+
+    await db.insert(bookingStudent).values(bookingStudents);
+    console.log(`✅ Linked ${bookingStudents.length} student-booking relations`);
+};
+
 const enableRealtimeListeners = async () => {
     try {
         console.log("\n🚀 Enabling Realtime for tables...\n");
@@ -238,19 +294,30 @@ const main = async () => {
         await createEquipment(schoolId);
 
         // 7. Create School Packages
-        await createSchoolPackages(schoolId);
+        const packages = await createSchoolPackages(schoolId);
+        const packageIds = packages.map((p) => p.id);
 
         // 8. Create Referrals
         await createReferrals(schoolId);
 
-        // 9. Enable Realtime Listeners
+        // 9. Create Student Packages
+        const studentPackages = await createStudentPackages(packageIds);
+
+        // 10. Create Bookings
+        const bookings = await createBookings(schoolId, students, studentPackages);
+
+        // 11. Link Students to Bookings
+        await linkStudentsToBookings(bookings, students);
+
+        // 12. Enable Realtime Listeners
         await enableRealtimeListeners();
 
         console.log("\n✨ Seed-rev10 completed successfully!");
         console.log(`   School ID: ${schoolId}`);
         console.log(`   Teachers: ${teacherIds.length}`);
         console.log(`   Students: ${students.length}`);
-        console.log("   Packages: 8 packages created (including 4 new group packages)");
+        console.log(`   Packages: ${packages.length} school packages created`);
+        console.log(`   Bookings: ${bookings.length} bookings created`);
         console.log("   Referrals: 5 codes created");
         console.log("   Realtime: Tables configured for listening");
     } catch (error) {

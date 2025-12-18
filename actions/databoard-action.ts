@@ -2,7 +2,7 @@ import { eq, exists, and, count } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
-import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel } from "@/backend/models";
+import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, createSchoolPackageModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel, type SchoolPackageModel } from "@/backend/models";
 import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
@@ -359,6 +359,28 @@ export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>>
     } catch (error) {
         console.error("Error fetching events:", error);
         return { success: false, error: `Failed to fetch events: ${error instanceof Error ? error.message : String(error)}` };
+    }
+}
+
+// GET SCHOOL PACKAGES
+export async function getSchoolPackages(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
+    try {
+        const schoolHeader = await getSchoolHeader();
+        const schoolId = schoolHeader?.id;
+
+        const packagesQuery = schoolId
+            ? db.query.schoolPackage.findMany({
+                  where: eq(schoolPackage.schoolId, schoolId),
+              })
+            : db.query.schoolPackage.findMany();
+
+        const packagesResult = await packagesQuery;
+        const packages: SchoolPackageModel[] = packagesResult.map((pkgData) => createSchoolPackageModel(pkgData));
+
+        return { success: true, data: packages };
+    } catch (error) {
+        console.error("Error fetching school packages:", error);
+        return { success: false, error: "Failed to fetch school packages" };
     }
 }
 

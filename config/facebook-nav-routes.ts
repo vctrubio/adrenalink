@@ -5,9 +5,9 @@ import { Users } from "lucide-react";
 
 export const FACEBOOK_NAV_ROUTES = [
     {
-        id: "home",
-        name: "Home",
-        href: "/home",
+        id: "info",
+        name: "Info",
+        href: "/info",
         icon: SchoolIcon,
     },
     {
