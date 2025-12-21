@@ -8,11 +8,11 @@ import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
-const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests"];
-const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
+const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests", "/events"];
+const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "event"];
 
 const infoPaths = ["/info", "/info/students", "/info/teachers", "/info/bookings", "/info/equipments", "/info/packages", "/info/lessons"];
-const INFO_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "lesson"];
+const INFO_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "lesson", "event"];
 
 export const NavLeft = () => {
     const pathname = usePathname();

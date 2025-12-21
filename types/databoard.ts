@@ -5,11 +5,12 @@ export type DataboardFilterByDate = "All" | "Last 7 days" | "Last 30 days" | "Ac
 
 export type DataboardGroupByDate = "All" | "Daily" | "Weekly" | "Monthly";
 
-export type DataboardActivityFilter = "All" | "Active" | "Inactive";
+export type EventActivityFilter = "All" | "Completed" | "Uncompleted";
+
+export type DataboardActivityFilter = "All" | "Active" | "Inactive" | EventActivityFilter;
 
 export interface DataboardController {
 	stats: StatItem[];
-	totalCount: number;
 	filter: DataboardFilterByDate;
 	onFilterChange: (value: DataboardFilterByDate) => void;
 	group: DataboardGroupByDate | string;
@@ -23,4 +24,5 @@ export interface DataboardController {
 	isLoading?: boolean;
 	counts: Record<string, number>;
 	onCountsChange: (counts: Record<string, number>) => void;
+	onStatsChange?: (stats: StatItem[]) => void;
 }

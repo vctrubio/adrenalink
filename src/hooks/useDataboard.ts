@@ -18,7 +18,8 @@ export const useDataboard = <T>(
     onExternalFilterChange?: (value: DataboardFilterByDate) => void,
     externalGroup?: DataboardGroupByDate | string,
     onExternalGroupChange?: (value: DataboardGroupByDate | string) => void,
-    externalActivity?: DataboardActivityFilter
+    externalActivity?: DataboardActivityFilter,
+    entityId?: string
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
@@ -103,6 +104,14 @@ export const useDataboard = <T>(
 
         return items.filter(item => {
             const schema = item.schema as any;
+
+            if (entityId === "event") {
+                if (externalActivity === "Completed") {
+                    return schema.completed === true;
+                } else if (externalActivity === "Uncompleted") {
+                    return schema.completed === false;
+                }
+            }
 
             // Check for equipment status (special case)
             if (schema.status) {
