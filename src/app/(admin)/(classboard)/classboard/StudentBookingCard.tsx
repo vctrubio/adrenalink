@@ -17,11 +17,11 @@ import { showEntityToast } from "@/getters/toast-getter";
 import { useRouter } from "next/navigation";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
-type StudentInfo = {
+interface StudentInfo {
     name: string;
     description?: string | null;
     languages: string[];
-};
+}
 
 interface StudentBookingCardProps {
     booking: DraggableBooking;
@@ -35,18 +35,18 @@ interface StudentBookingCardProps {
     onAddLessonEvent?: (teacherUsername: string) => Promise<void>;
 }
 
-type Entity = {
+interface Entity {
     id: string;
     color: string;
     bgColor: string;
     icon: ComponentType<{ className?: string }>;
-};
+}
 
 // Common constants
 const rowClassName = "grid grid-cols-[20px_1fr_20px] items-center gap-2 py-1";
 
 // Reusable DropdownRow component
-const DropdownRow = ({ items, children }: { items?: Array<{ value: string }>; children?: React.ReactNode }) => {
+const DropdownRow = ({ items, children }: { items?: { value: string }[]; children?: React.ReactNode }) => {
     if (items && items.length > 0) {
         return (
             <div className="pl-4 pr-2 pb-2">
@@ -410,7 +410,7 @@ const StudentDropdownRow = ({ student }: { student: StudentInfo }) => {
     const hasDescription = student.description && student.description.trim().length > 0;
     const hasLanguages = student.languages && Array.isArray(student.languages) && student.languages.length > 0;
 
-    const items: Array<{ value: string }> = [];
+    const items: { value: string }[] = [];
     if (hasDescription && student.description) {
         items.push({ value: student.description });
     }
@@ -431,7 +431,7 @@ const StudentDropdownRow = ({ student }: { student: StudentInfo }) => {
 
 const BookingDropdownRow = () => {
     // TODO: Replace with actual referral ID when available
-    const items: Array<{ value: string }> = [
+    const items: { value: string }[] = [
         { value: "REF-789" }, // Referral ID
     ];
 

@@ -3,7 +3,7 @@ import type { SchoolPackageType, EquipmentType } from "@/drizzle/schema";
 export function getEquipmentForNow(
   categoryEquipment: string,
   capacityEquipment: number,
-  equipmentList?: Array<{ model: string; size?: number | null }>,
+  equipmentList?: { model: string; size?: number | null }[],
 ): string {
   // If equipment was actually used (relations exist)
   if (equipmentList && equipmentList.length > 0) {
@@ -51,7 +51,7 @@ export function getSchoolLeftover(totalRevenue: number, teacherCommission: numbe
   return Math.round((totalRevenue - teacherCommission) * 100) / 100;
 }
 
-export function getStudentNames(students: Array<{ firstName: string; lastName: string }>): string {
+export function getStudentNames(students: { firstName: string; lastName: string }[]): string {
   return students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 }
 

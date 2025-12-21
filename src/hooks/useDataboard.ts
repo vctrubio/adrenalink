@@ -168,14 +168,14 @@ export const useDataboard = <T>(
             let key: string;
 
             if (group === "Daily") {
-                const day = createdAt.toLocaleDateString("en-GB", { day: 'numeric' });
-                const month = createdAt.toLocaleDateString("en-GB", { month: 'long' });
-                const weekday = createdAt.toLocaleDateString("en-GB", { weekday: 'long' });
+                const day = createdAt.toLocaleDateString("en-GB", { day: "numeric" });
+                const month = createdAt.toLocaleDateString("en-GB", { month: "long" });
+                const weekday = createdAt.toLocaleDateString("en-GB", { weekday: "long" });
                 key = `${day} ${month}, ${weekday}`;
             } else if (group === "Weekly") {
                 const weekStart = new Date(createdAt);
                 weekStart.setDate(createdAt.getDate() - createdAt.getDay());
-                key = `Week of ${weekStart.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}`;
+                key = `Week of ${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
             } else if (group === "Monthly") {
                 key = `${createdAt.toLocaleString("default", { month: "long" })} ${createdAt.getFullYear()}`;
             } else {

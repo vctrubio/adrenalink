@@ -14,7 +14,7 @@ import VerifiedIcon from "../public/appSvgs/VerifiedIcon.jsx";
 import LinkIcon from "../public/appSvgs/LinkIcon.jsx";
 import RepairIcon from "../public/appSvgs/RepairIcon.jsx";
 
-export type EntityConfig = {
+export interface EntityConfig {
     id: string;
     name: string;
     icon: React.ComponentType<any>;
@@ -23,7 +23,7 @@ export type EntityConfig = {
     link: string;
     description: string[];
     relations: string[]; // Related entity IDs
-};
+}
 
 export const ENTITY_DATA: EntityConfig[] = [
     {

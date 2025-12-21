@@ -171,7 +171,7 @@ const createBookings = async (schoolId: string, students: any[], studentPackages
     endDate.setDate(endDate.getDate() + 7);
 
     const bookingRecords: any[] = [];
-    const studentMappings: Array<{ bookingIndex: number; studentIds: string[] }> = [];
+    const studentMappings: { bookingIndex: number; studentIds: string[] }[] = [];
 
     // Distribute students across bookings - each student gets max 2 bookings (average 1)
     let studentIndex = 0;

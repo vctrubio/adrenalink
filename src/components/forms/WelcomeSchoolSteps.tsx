@@ -8,7 +8,7 @@ import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 // Define the type directly for the multi-step form
-export type SchoolFormData = {
+export interface SchoolFormData {
     name: string;
     username: string;
     country: string;
@@ -23,7 +23,7 @@ export type SchoolFormData = {
     bannerUrl?: string;
     ownerEmail: string;
     referenceNote: string;
-};
+}
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 1, title: "Name", icon: <Building className="w-4 h-4" />, fields: ["name", "username"] },

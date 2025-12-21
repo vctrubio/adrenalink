@@ -1,8 +1,8 @@
 interface CardListProps {
-    fields: Array<{
+    fields: {
         label: string;
         value: string | number;
-    }>;
+    }[];
 }
 
 export const CardList = ({ fields }: CardListProps) => {

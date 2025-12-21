@@ -18,7 +18,7 @@ export const TeacherStats = {
 // ============ LEGACY RELATION-BASED GETTERS ============
 // Used for non-databoard contexts where stats aren't available
 
-export function getTeacherUnfinishedEvents(teacher: TeacherModel): Array<{ id: string; equipmentCategory: string | null }> {
+export function getTeacherUnfinishedEvents(teacher: TeacherModel): { id: string; equipmentCategory: string | null }[] {
     const lessons = teacher.relations?.lessons || [];
     const unfinishedEvents = [];
 

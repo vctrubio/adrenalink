@@ -62,7 +62,7 @@ export async function getSchools(): Promise<ApiActionResponseModel<SchoolModel[]
     }
 }
 
-export async function getSchoolById(id: string, username: boolean = false): Promise<ApiActionResponseModel<SchoolModel>> {
+export async function getSchoolById(id: string, username = false): Promise<ApiActionResponseModel<SchoolModel>> {
     try {
         const result = await db.query.school.findFirst({
             where: username ? eq(school.username, id) : eq(school.id, id),

@@ -201,7 +201,7 @@ export default function DailyClassScheduleModal({
                     <div>
                         <h4 className="font-semibold mb-3">Student Fields</h4>
                         <div className="space-y-2">
-                            {(Object.keys(studentFields) as Array<keyof StudentFieldOptions>).map((field) => (
+                            {(Object.keys(studentFields) as (keyof StudentFieldOptions)[]).map((field) => (
                                 <label key={field} className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -218,7 +218,7 @@ export default function DailyClassScheduleModal({
                     <div>
                         <h4 className="font-semibold mb-3">Teacher Fields</h4>
                         <div className="space-y-2">
-                            {(Object.keys(teacherFields) as Array<keyof TeacherFieldOptions>).map((field) => (
+                            {(Object.keys(teacherFields) as (keyof TeacherFieldOptions)[]).map((field) => (
                                 <label key={field} className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"

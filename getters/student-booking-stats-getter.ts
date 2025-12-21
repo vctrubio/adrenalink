@@ -1,6 +1,6 @@
 import type { StudentModel } from "@/backend/models";
 
-export type BookingStatsData = {
+export interface BookingStatsData {
     bookingId: string;
     dateStart: Date;
     dateEnd: Date;
@@ -19,9 +19,9 @@ export type BookingStatsData = {
     moneyToPay: number;      // Calculated from events
     moneyPaid: number;       // Sum of student_booking_payment
     balance: number;         // moneyToPay - moneyPaid
-};
+}
 
-export type GlobalStatsType = {
+export interface GlobalStatsType {
     eventsCount: number;
     durationHours: number;
     paymentsCount: number;
@@ -30,7 +30,7 @@ export type GlobalStatsType = {
     moneyToPay: number;
     moneyPaid: number;
     balance: number;
-};
+}
 
 // Main getter
 export function getBookingStatsData(student: StudentModel): BookingStatsData[] {

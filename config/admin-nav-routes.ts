@@ -5,24 +5,24 @@ import HelmetIcon from "../public/appSvgs/HelmetIcon.jsx";
 import SubscriptionIcon from "../public/appSvgs/SubscriptionIcon.jsx";
 import A2Icon from "../public/appSvgs/A2Icon.jsx";
 
-export type AdminNavRoute = {
+export interface AdminNavRoute {
     name: string;
     href: string;
     icon: React.ComponentType<{ className?: string; size?: number }>;
     count?: number;
     color?: string;
-};
+}
 
-export type AdminNavGroup = {
+export interface AdminNavGroup {
     groupLabel: string;
     routes: AdminNavRoute[];
-};
+}
 
-export type AdminNavSection = {
+export interface AdminNavSection {
     section: "main" | "groups" | "settings" | "support";
     routes?: AdminNavRoute[]; // For main section (no group label)
     groups?: AdminNavGroup[]; // For grouped sections
-};
+}
 
 const getEntityByIds = (ids: string[]) => {
     return ENTITY_DATA.filter((entity) => ids.includes(entity.id)).map((entity) => ({

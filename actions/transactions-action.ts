@@ -27,15 +27,15 @@ export interface TransactionData {
         capacityEquipment: number;
         categoryEquipment: string;
     };
-    students: Array<{
+    students: {
         id: string;
         firstName: string;
         lastName: string;
-    }>;
-    equipment: Array<{
+    }[];
+    equipment: {
         model: string;
         size: number | null;
-    }>;
+    }[];
 }
 
 interface RawTransactionRow {

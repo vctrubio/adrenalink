@@ -8,8 +8,9 @@ import { StudentBookingStats } from "./StudentBookingStats";
 import { StudentStatsColumns } from "./StudentStatsColumns";
 import { BookingContainer } from "@/src/components/ids/BookingContainer";
 
-export default async function StudentDetailPage({ params }: { params: { id: string } }) {
-    const result = await getEntityId("student", params.id);
+export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const result = await getEntityId("student", id);
 
     if (!result.success) {
         return (

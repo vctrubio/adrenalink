@@ -1,8 +1,10 @@
 import tseslint from "typescript-eslint";
-import nextEslintConfig from 'eslint-config-next';
+import nextEslintConfig from "eslint-config-next";
 
 const eslintConfig = tseslint.config(
     ...nextEslintConfig,
+    ...tseslint.configs.recommended,
+    ...tseslint.configs.stylistic,
     {
         rules: {
             "indent": "off",
@@ -12,9 +14,8 @@ const eslintConfig = tseslint.config(
             "object-curly-spacing": ["error", "always"],
             "array-bracket-spacing": ["error", "never"],
             "max-len": "off",
-            "@typescript-eslint/no-explicit-any": "warn",
             "react-hooks/exhaustive-deps": "off",
-            "@typescript-eslint/no-unused-vars": "warn",
+            "@typescript-eslint/no-unused-vars": "off",
         },
     },
     {

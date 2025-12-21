@@ -5,11 +5,11 @@ interface CardProps {
     children: ReactNode;
     accentColor?: string;
     className?: string;
-    stats?: Array<{
+    stats?: {
         icon: React.ComponentType<{ className?: string }>;
         value: string | number;
         href?: string;
-    }>;
+    }[];
     isActionable?: boolean;
 }
 

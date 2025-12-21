@@ -238,7 +238,7 @@ export const EQUIPMENT_STATUS_CONFIG: Record<EquipmentStatus, EquipmentStatusCon
  * Get progress bar color based on event statuses
  * Priority: completed > tbc > uncompleted > planned
  */
-export function getProgressBarColor(events: Array<{ status: EventStatus }>): string {
+export function getProgressBarColor(events: { status: EventStatus }[]): string {
     if (events.length === 0) return STATUS_GREY;
 
     const statusPriority = { completed: 4, tbc: 3, uncompleted: 2, planned: 1 };

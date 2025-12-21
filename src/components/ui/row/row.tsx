@@ -23,10 +23,10 @@ interface RowProps {
     };
     str?: {
         label: string;
-        items: Array<{
+        items: {
             label: string;
             value: string | number;
-        }>;
+        }[];
     };
     action?: ReactNode;
     popover?: ReactNode;

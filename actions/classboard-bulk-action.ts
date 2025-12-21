@@ -12,7 +12,7 @@ import { getSchoolHeader } from "@/types/headers";
  * Priority: UPDATE first, then DELETE
  */
 export async function bulkUpdateClassboardEvents(
-    updates: Array<{ id: string; date: string; duration: number; location?: string }>,
+    updates: { id: string; date: string; duration: number; location?: string }[],
     toDelete?: string[]
 ): Promise<ApiActionResponseModel<{ updatedCount: number; deletedCount: number }>> {
     try {

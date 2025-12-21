@@ -14,7 +14,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 
 // --- PROPS ---
 interface PackageFilterViewProps {
-    packages: Array<SchoolPackageType & { bookingCount: number }>;
+    packages: (SchoolPackageType & { bookingCount: number })[];
     schoolName: string;
     schoolUsername: string;
     equipmentCategoryFilters: string[];

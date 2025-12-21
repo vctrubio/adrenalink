@@ -54,7 +54,7 @@ export interface RegisterData {
         name: string;
         username: string;
     };
-    packages: Array<{
+    packages: {
         id: string;
         durationMinutes: number;
         description: string | null;
@@ -67,8 +67,8 @@ export interface RegisterData {
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-    }>;
-    teachers: Array<{
+    }[];
+    teachers: {
         id: string;
         firstName: string;
         lastName: string;
@@ -81,7 +81,7 @@ export interface RegisterData {
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-        commissions: Array<{
+        commissions: {
             id: string;
             teacherId: string;
             commissionType: string;
@@ -90,9 +90,9 @@ export interface RegisterData {
             active: boolean;
             createdAt: Date;
             updatedAt: Date;
-        }>;
-    }>;
-    students: Array<{
+        }[];
+    }[];
+    students: {
         id: string;
         studentId: string;
         description: string | null;
@@ -111,8 +111,8 @@ export interface RegisterData {
             createdAt: Date;
             updatedAt: Date;
         };
-    }>;
-    referrals: Array<{
+    }[];
+    referrals: {
         id: string;
         code: string;
         description: string | null;
@@ -121,7 +121,7 @@ export interface RegisterData {
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-    }>;
+    }[];
 }
 
 /**
@@ -277,7 +277,7 @@ export async function createStudent(
  */
 export async function linkStudentToSchool(
     studentId: string,
-    canRent: boolean = false,
+    canRent = false,
     description?: string
 ): Promise<ApiActionResponseModel<typeof schoolStudents.$inferSelect>> {
     try {
@@ -323,7 +323,7 @@ export async function linkStudentToSchool(
  */
 export async function createAndLinkStudent(
     studentData: StudentForm,
-    canRent: boolean = false,
+    canRent = false,
     description?: string
 ): Promise<ApiActionResponseModel<{
     student: typeof student.$inferSelect;

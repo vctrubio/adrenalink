@@ -2,13 +2,13 @@ import KiteIcon from "../public/appSvgs/Equipments/KiteIcon.jsx";
 import WingIcon from "../public/appSvgs/Equipments/WingIcon.jsx";
 import WindsurfIcon from "../public/appSvgs/Equipments/WindsurfIcon.jsx";
 
-export type EquipmentCategoryConfig = {
+export interface EquipmentCategoryConfig {
     id: string;
     name: string;
     icon: React.ComponentType<any>;
     color: string;
     bgColor: string;
-};
+}
 
 export const EQUIPMENT_CATEGORIES: EquipmentCategoryConfig[] = [
     {

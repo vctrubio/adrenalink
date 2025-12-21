@@ -2,19 +2,19 @@
 
 import { DevNav } from "@/src/app/landing/dev/DevNav";
 
-type NavigationItem = {
+interface NavigationItem {
     id: string;
     label: string;
     icon?: React.ReactNode;
     color?: string;
     bgColor?: string;
-};
+}
 
-type LeftNavigationProps = {
+interface LeftNavigationProps {
     items: NavigationItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
-};
+}
 
 export default function LeftNavigation({ items, activeItem, onItemClick }: LeftNavigationProps) {
     return (

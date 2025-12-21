@@ -62,19 +62,19 @@ export interface ControllerSettings {
 export interface DraggableBooking {
     bookingId: string;
     capacityStudents: number;
-    lessons: Array<{
+    lessons: {
         id: string;
         teacherUsername: string;
         commissionType: "fixed" | "percentage";
         commissionCph: number;
-        events: Array<{
+        events: {
             id: string;
             date: string;
             duration: number;
             location: string;
             status: string;
-        }>;
-    }>;
+        }[];
+    }[];
 }
 
 /**

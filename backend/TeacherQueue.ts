@@ -23,7 +23,7 @@ export class TeacherQueue {
     /**
      * Insert event in chronological order by start time
      */
-    addToQueueInChronologicalOrder(eventNode: EventNode, gapMinutes: number = 0): void {
+    addToQueueInChronologicalOrder(eventNode: EventNode, gapMinutes = 0): void {
         const eventStartMinutes = this.getStartTimeMinutes(eventNode);
 
         if (!this.head) {

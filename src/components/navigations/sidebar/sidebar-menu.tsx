@@ -2,9 +2,9 @@
 
 import { type ReactNode } from "react";
 
-type SidebarMenuProps = {
+interface SidebarMenuProps {
     children: ReactNode;
-};
+}
 
 export function SidebarMenu({ children }: SidebarMenuProps) {
     return (

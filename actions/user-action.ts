@@ -9,7 +9,7 @@ export interface StudentPackageBookingLessons {
     id: string;
     firstName: string;
     lastName: string;
-    lessons: Array<{
+    lessons: {
         id: string;
         teacherUsername: string;
         teacherName: string;
@@ -18,13 +18,13 @@ export interface StudentPackageBookingLessons {
             type: string;
             cph: number;
         };
-        events: Array<{
+        events: {
             id: string;
             date: string;
             duration: number;
             location: string;
             status: string;
-        }>;
+        }[];
         booking: {
             id: string;
             dateStart: string;
@@ -40,7 +40,7 @@ export interface StudentPackageBookingLessons {
             categoryEquipment: string;
             capacityEquipment: number;
         };
-    }>;
+    }[];
 }
 
 export interface TeacherPackageBookingLessons {
@@ -48,20 +48,20 @@ export interface TeacherPackageBookingLessons {
     username: string;
     firstName: string;
     lastName: string;
-    lessons: Array<{
+    lessons: {
         id: string;
         status: string;
         commission: {
             type: string;
             cph: number;
         };
-        events: Array<{
+        events: {
             id: string;
             date: string;
             duration: number;
             location: string;
             status: string;
-        }>;
+        }[];
         booking: {
             id: string;
             dateStart: string;
@@ -78,7 +78,7 @@ export interface TeacherPackageBookingLessons {
             capacityEquipment: number;
         };
         studentNames: string[];
-    }>;
+    }[];
 }
 
 export async function getStudentPackageBookingLessons(studentId: string): Promise<ApiActionResponseModel<StudentPackageBookingLessons>> {

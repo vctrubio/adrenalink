@@ -7,10 +7,10 @@ import DropdownBullsIcon from "@/public/appSvgs/DropdownBullsIcon.jsx";
 
 interface RowStrProps {
     label: string;
-    items: Array<{
+    items: {
         label: string;
         value: string | number;
-    }>;
+    }[];
     entityColor: string;
 }
 

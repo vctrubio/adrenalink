@@ -25,7 +25,7 @@ export function getStudentSchoolCount(student: StudentModel): number {
     return student.relations?.schoolStudents?.length || 0;
 }
 
-export function getStudentUnfinishedRequests(student: StudentModel): Array<{ id: string; status: string; schoolPackageId: string }> {
+export function getStudentUnfinishedRequests(student: StudentModel): { id: string; status: string; schoolPackageId: string }[] {
     const studentPackageStudents = student.relations?.studentPackageStudents || [];
     const unfinishedRequests = [];
 

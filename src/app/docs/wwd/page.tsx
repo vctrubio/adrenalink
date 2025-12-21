@@ -118,7 +118,7 @@ const FeatureCard = ({ feature, isLastCard }: { feature: (typeof FEATURES)[0]; i
 export default function WhatWeDoPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [iconPositions, setIconPositions] = useState<Array<{ x: number; y: number; entityIndex: number; opacity: number }>>([]);
+    const [iconPositions, setIconPositions] = useState<{ x: number; y: number; entityIndex: number; opacity: number }[]>([]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -164,7 +164,7 @@ export default function WhatWeDoPage() {
             }
 
             // Calculate positions for floating entity icons
-            const newPositions: Array<{ x: number; y: number; entityIndex: number; opacity: number }> = [];
+            const newPositions: { x: number; y: number; entityIndex: number; opacity: number }[] = [];
             for (let i = 0; i < ENTITY_DATA.length; i++) {
                 const entityIndex = i;
                 const angle = (i / ENTITY_DATA.length) * Math.PI * 2 + time * 0.5;

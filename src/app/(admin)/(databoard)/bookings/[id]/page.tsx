@@ -6,7 +6,9 @@ import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingStatsColumns } from "./BookingStatsColumns";
 import { BookingContainer } from "@/src/components/ids";
 
-export default async function BookingDetailPage({ params }: { params: { id: string } }) {
+export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    console.log(`BookingDetailPage: Fetched ID from params: ${id}`);
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
@@ -17,7 +19,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
         );
     }
 
-    const result = await getEntityId("booking", params.id);
+    const result = await getEntityId("booking", id);
 
     if (!result.success) {
         return (

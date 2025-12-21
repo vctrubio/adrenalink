@@ -264,9 +264,36 @@ export function buildReferralStatsQuery(schoolId?: string) {
     }
 }
 
+export function buildEventStatsQuery(schoolId?: string) {
+    if (schoolId) {
+        return sql`
+            SELECT
+                e.id as entity_id,
+                0 as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                0 as money_in,
+                0 as money_out
+            FROM event e
+            WHERE e.school_id = ${schoolId}
+            GROUP BY e.id
+        `;
+    } else {
+        return sql`
+            SELECT
+                e.id as entity_id,
+                0 as events_count,
+                COALESCE(SUM(e.duration), 0)::integer as total_duration_minutes,
+                0 as money_in,
+                0 as money_out
+            FROM event e
+            GROUP BY e.id
+        `;
+    }
+}
+
 // ============ STATS MAP PARSER ============
 
-export type DataboardStats = {
+export interface DataboardStats {
     bookings_count?: number;
     lessons_count?: number;
     events_count: number;
@@ -276,7 +303,7 @@ export type DataboardStats = {
     rentals_count?: number;
     money_in: number;
     money_out: number;
-};
+}
 
 export function createStatsMap(statsRows: any[]): Map<string, DataboardStats> {
     const map = new Map<string, DataboardStats>();

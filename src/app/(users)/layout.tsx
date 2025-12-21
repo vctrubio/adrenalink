@@ -1,8 +1,8 @@
 import { type ReactNode } from "react";
 
-type UsersLayoutProps = {
+interface UsersLayoutProps {
     children: ReactNode;
-};
+}
 
 export default async function UsersLayout({ children }: UsersLayoutProps) {
     return (

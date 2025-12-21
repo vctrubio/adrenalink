@@ -8,13 +8,13 @@ import type { TeacherQueue, ControllerSettings, EventNode } from "../TeacherQueu
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
 export class GlobalFlag {
-    private adjustmentMode: boolean = false;
+    private adjustmentMode = false;
     private globalTime: string | null = null;
     private globalLocation: string | null = null;
-    private pendingTeachers: Set<string> = new Set();
-    private isLocked: boolean = false;
-    private refreshKey: number = 0;
-    private originalQueueStates: Map<string, EventNode[]> = new Map();
+    private pendingTeachers = new Set<string>();
+    private isLocked = false;
+    private refreshKey = 0;
+    private originalQueueStates = new Map<string, EventNode[]>();
 
     constructor(
         private teacherQueues: TeacherQueue[],
@@ -449,8 +449,8 @@ export class GlobalFlag {
      * Collect all changed events from pending teachers
      * Compares current state against original state to find changes
      */
-    collectChanges(): Array<{ id: string; date: string; duration: number }> {
-        const allUpdates: Array<{ id: string; date: string; duration: number }> = [];
+    collectChanges(): { id: string; date: string; duration: number }[] {
+        const allUpdates: { id: string; date: string; duration: number }[] = [];
 
         this.teacherQueues.forEach((queue) => {
             if (!this.pendingTeachers.has(queue.teacher.username)) {

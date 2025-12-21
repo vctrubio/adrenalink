@@ -7,6 +7,7 @@ import { EventRightColumn } from "./EventRightColumn";
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
+	console.log(`EventDetailPage: Fetched ID from params: ${id}`);
 	const schoolHeader = await getSchoolHeader();
 
 	if (!schoolHeader) {

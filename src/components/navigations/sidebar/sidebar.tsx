@@ -3,10 +3,10 @@
 import { useState, type ReactNode } from "react";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
-type SidebarContextType = {
+interface SidebarContextType {
     collapsed: boolean;
     toggleCollapsed: () => void;
-};
+}
 
 import { createContext, useContext } from "react";
 
@@ -20,10 +20,10 @@ export function useSidebar() {
     return context;
 }
 
-type AdminSidebarProps = {
+interface AdminSidebarProps {
     children: ReactNode;
     defaultCollapsed?: boolean;
-};
+}
 
 export function AdminSidebar({ children, defaultCollapsed = false }: AdminSidebarProps) {
     const [collapsed, setCollapsed] = useState(defaultCollapsed);

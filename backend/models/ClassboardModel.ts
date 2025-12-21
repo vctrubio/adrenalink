@@ -1,50 +1,50 @@
 import type { SchoolPackageType, StudentType, EventType } from "@/drizzle/schema";
 
-export type ClassboardBooking = {
+export interface ClassboardBooking {
     id: string;
     dateStart: string;
     dateEnd: string;
     schoolId: string;
-};
+}
 
 export type ClassboardSchoolPackage = SchoolPackageType;
 
 export type ClassboardStudent = Pick<StudentType, "id" | "firstName" | "lastName" | "passport" | "country" | "phone" | "languages">;
 
-export type ClassboardBookingStudent = {
+export interface ClassboardBookingStudent {
     student: ClassboardStudent & {
         description?: string | null; // from schoolStudents
     };
-};
+}
 
-export type ClassboardTeacher = {
+export interface ClassboardTeacher {
     username: string;
     firstName: string;
     lastName: string;
-};
+}
 
 export type ClassboardEvent = Pick<EventType, "id" | "date" | "duration" | "location" | "status">;
 
-export type ClassboardCommission = {
+export interface ClassboardCommission {
     id: string;
     type: "fixed" | "percentage";
     cph: string; // commission per hour
     description?: string | null;
-};
+}
 
-export type ClassboardLesson = {
+export interface ClassboardLesson {
     id: string;
     teacher: ClassboardTeacher;
     status: string;
     commission: ClassboardCommission;
     events: ClassboardEvent[];
-};
+}
 
-export type ClassboardData = {
+export interface ClassboardData {
     booking: ClassboardBooking;
     schoolPackage: ClassboardSchoolPackage;
     bookingStudents: ClassboardBookingStudent[];
     lessons: ClassboardLesson[];
-};
+}
 
 export type ClassboardModel = Record<string, ClassboardData>;

@@ -4,13 +4,13 @@ import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useSidebar } from "./sidebar";
 
-type SidebarSubmenuProps = {
+interface SidebarSubmenuProps {
     label: string;
     icon: React.ComponentType<{ className?: string; size?: number }>;
     children: ReactNode;
     defaultExpanded?: boolean;
     iconColor?: string;
-};
+}
 
 export function SidebarSubmenu({ label, icon: Icon, children, defaultExpanded = true, iconColor }: SidebarSubmenuProps) {
     const { collapsed } = useSidebar();

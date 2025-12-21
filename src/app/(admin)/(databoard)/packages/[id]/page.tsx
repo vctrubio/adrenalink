@@ -5,7 +5,9 @@ import type { SchoolPackageModel } from "@/backend/models";
 import { PackageLeftColumn } from "./PackageLeftColumn";
 import { PackageStatsColumns } from "./PackageStatsColumns";
 
-export default async function PackageDetailPage({ params }: { params: { id: string } }) {
+export default async function PackageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    console.log(`PackageDetailPage: Fetched ID from params: ${id}`);
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
@@ -16,7 +18,7 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
         );
     }
 
-    const result = await getEntityId("schoolPackage", params.id);
+    const result = await getEntityId("schoolPackage", id);
 
     if (!result.success) {
         return (

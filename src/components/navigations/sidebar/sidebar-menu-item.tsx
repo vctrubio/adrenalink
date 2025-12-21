@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "./sidebar";
 
-type SidebarMenuItemProps = {
+interface SidebarMenuItemProps {
     href: string;
     icon: React.ComponentType<{ className?: string; size?: number }>;
     label: string;
@@ -12,7 +12,7 @@ type SidebarMenuItemProps = {
     onClick?: () => void;
     iconColor?: string;
     compact?: boolean;
-};
+}
 
 const isHexColor = (color?: string) => color?.startsWith("#");
 

@@ -2,10 +2,10 @@ import { ReactNode } from "react";
 
 interface CardBodyProps {
     children?: ReactNode;
-    sections?: Array<{
+    sections?: {
         label: string;
         value: string;
-    }>;
+    }[];
 }
 
 export const CardBody = ({ children, sections }: CardBodyProps) => {

@@ -81,10 +81,10 @@ export async function getTeacherLessons(
   schoolId?: string,
 ): Promise<
   ApiActionResponseModel<
-    Array<{
+    {
       lesson: LessonType;
-      events: Array<EventType & { equipment: any[] }>;
-    }>
+      events: (EventType & { equipment: any[] })[];
+    }[]
   >
 > {
   try {
@@ -139,13 +139,13 @@ export async function getTeacherCommissions(
   teacherId: string,
 ): Promise<
   ApiActionResponseModel<
-    Array<{
+    {
       commission: TeacherCommissionType;
-      lessons: Array<{
+      lessons: {
         lesson: LessonType;
         events: EventType[];
-      }>;
-    }>
+      }[];
+    }[]
   >
 > {
   try {
@@ -189,12 +189,12 @@ export async function getTeacherEquipment(
   teacherId: string,
 ): Promise<
   ApiActionResponseModel<
-    Array<{
+    {
       id: string;
       equipmentId: string;
       active: boolean;
       equipment: any;
-    }>
+    }[]
   >
 > {
   try {

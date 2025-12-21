@@ -22,10 +22,10 @@ const rowVariants = {
 };
 
 interface GroupDataRowsProps<T> {
-    groupedData: Array<{
+    groupedData: {
         label: string;
         data: AbstractModel<T>[];
-    }>;
+    }[];
     renderRow: (item: AbstractModel<T>, isExpanded: boolean, onToggle: (id: string) => void) => ReactNode;
     expandedRow: string | null;
     setExpandedRow: (id: string | null) => void;

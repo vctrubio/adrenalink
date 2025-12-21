@@ -22,7 +22,7 @@ export function getEquipmentName(equipment: EquipmentModel): string {
 }
 
 // Get all teachers using this equipment with their total hours (from pre-calculated stats)
-export function getEquipmentTeachers(equipment: EquipmentModel): Array<{ teacher: any; totalHours: number }> {
+export function getEquipmentTeachers(equipment: EquipmentModel): { teacher: any; totalHours: number }[] {
     const teacherEquipments = equipment.relations?.teacherEquipments || [];
     const teacherHours = equipment.stats?.teacherHours || {};
 
@@ -36,5 +36,5 @@ export function getEquipmentTeachers(equipment: EquipmentModel): Array<{ teacher
 
             return { teacher, totalHours };
         })
-        .filter(Boolean) as Array<{ teacher: any; totalHours: number }>;
+        .filter(Boolean) as { teacher: any; totalHours: number }[];
 }

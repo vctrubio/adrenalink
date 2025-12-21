@@ -12,6 +12,7 @@ import {
     schoolPackage,
     referral,
     rental,
+    event,
 } from "@/drizzle/schema";
 import {
     createStudentModel,
@@ -22,6 +23,7 @@ import {
     createSchoolPackageModel,
     createReferralModel,
     createRentalModel,
+    createEventModel,
     type StudentModel,
     type TeacherModel,
     type BookingModel,
@@ -30,6 +32,7 @@ import {
     type SchoolPackageModel,
     type ReferralModel,
     type RentalModel,
+    type EventModel,
 } from "@/backend/models";
 import {
     buildStudentStatsQuery,
@@ -39,11 +42,12 @@ import {
     buildStudentPackageStatsQuery,
     buildSchoolPackageStatsQuery,
     buildReferralStatsQuery,
+    buildEventStatsQuery,
     createStatsMap,
 } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
-type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | StudentPackageModel | SchoolPackageModel | ReferralModel | RentalModel;
+type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | StudentPackageModel | SchoolPackageModel | ReferralModel | RentalModel | EventModel;
 
 // Entity relation configurations
 const entityRelations = {
@@ -196,12 +200,39 @@ const entityRelations = {
         student: true,
         equipment: true,
     },
+    event: {
+        lesson: {
+            with: {
+                booking: {
+                    with: {
+                        studentPackage: {
+                            with: {
+                                schoolPackage: true
+                            }
+                        },
+                        bookingStudents: {
+                            with: {
+                                student: true
+                            }
+                        }
+                    }
+                },
+                teacher: true,
+            }
+        },
+        equipmentEvents: {
+            with: {
+                equipment: true
+            }
+        }
+    }
 };
 
 export async function getEntityId(
     entity: string,
     id: string,
 ): Promise<ApiActionResponseModel<EntityType>> {
+    console.log(`getEntityId: Called with entity='${entity}', id='${id}'`);
     try {
         let entityData: any;
         let statsQuery: any;
@@ -333,6 +364,15 @@ export async function getEntityId(
                 createModel = createRentalModel;
                 break;
 
+            case "event":
+                entityData = await db.query.event.findFirst({
+                    where: eq(event.id, id),
+                    with: entityRelations.event,
+                });
+                statsQuery = buildEventStatsQuery();
+                createModel = createEventModel;
+                break;
+
             default:
                 return { success: false, error: `Unknown entity type: ${entity}` };
         }
@@ -355,7 +395,7 @@ export async function getEntityId(
             ...createModel(entityData),
             stats: statsMap.get(statsKey),
         };
-
+        console.log(`getEntityId: Returning data for entity='${entity}', id='${id}':`, model);
         return { success: true, data: model };
     } catch (error) {
         console.error(`Error fetching ${entity}:`, error);

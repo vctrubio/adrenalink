@@ -216,7 +216,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
         const pendingTeachersTimes = teacherQueues
             .filter((q) => pendingTeachers.has(q.teacher.username))
             .map((q) => ({ username: q.teacher.username, earliestTime: q.getEarliestEventTime() }))
-            .filter((t) => t.earliestTime !== null) as Array<{ username: string; earliestTime: string }>;
+            .filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
 
         if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
             return { isLockFlagTime: false, lockCount: 0 };
@@ -261,7 +261,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
     const { isLockFlagLocation: computedIsLockFlagLocation, lockLocationCount: computedLockLocationCount, totalLocationEventsForLock: computedTotalLocationEventsForLock } = useMemo(() => {
         let totalEventsForLock = 0;
         let synchronizedEventsCount = 0;
-        const pendingTeachersLocations: Array<{ username: string; location: string | null }> = [];
+        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
 
         teacherQueues
             .filter((q) => pendingTeachers.has(q.teacher.username))

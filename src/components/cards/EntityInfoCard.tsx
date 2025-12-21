@@ -17,10 +17,10 @@ interface EntityInfoCardProps {
     };
     status?: string;
     stats: [EntityStat, EntityStat, EntityStat];
-    fields: Array<{
+    fields: {
         label: string;
         value: string | number;
-    }>;
+    }[];
     accentColor: string;
 }
 

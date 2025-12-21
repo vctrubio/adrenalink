@@ -7,7 +7,9 @@ import { TeachersUsingEquipmentCard } from "@/src/components/cards/TeachersUsing
 import { EquipmentRepairsCard } from "@/src/components/cards/EquipmentRepairsCard";
 import { EquipmentStatsColumns } from "./EquipmentStatsColumns";
 
-export default async function EquipmentDetailPage({ params }: { params: { id: string } }) {
+export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    console.log(`EquipmentDetailPage: Fetched ID from params: ${id}`);
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
@@ -18,7 +20,7 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
         );
     }
 
-    const result = await getEntityId("equipment", params.id);
+    const result = await getEntityId("equipment", id);
 
     if (!result.success) {
         return (

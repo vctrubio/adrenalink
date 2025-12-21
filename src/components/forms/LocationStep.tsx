@@ -11,10 +11,10 @@ interface GooglePlace {
         main_text: string;
         secondary_text: string;
     };
-    terms?: Array<{
+    terms?: {
         offset: number;
         value: string;
-    }>;
+    }[];
 }
 
 interface LocationStepProps {

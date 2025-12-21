@@ -6,7 +6,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { BookmarkIcon } from 'lucide-react';
+import { BookmarkIcon } from "lucide-react";
 
 export const SchoolPackageStats = {
 	getStats: (items: SchoolPackageModel | SchoolPackageModel[], includeCount = true): StatItem[] => {

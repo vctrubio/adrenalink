@@ -1,9 +1,9 @@
 interface CardStatsProps {
-    stats: Array<{
+    stats: {
         icon: React.ComponentType<{ className?: string }>;
         value: string | number;
         href?: string;
-    }>;
+    }[];
     accentColor?: string;
     isActionable?: boolean;
 }

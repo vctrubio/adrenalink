@@ -1,10 +1,10 @@
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "./entities";
 
-export type UserNavRoute = {
+export interface UserNavRoute {
 	name: string;
 	href: string;
-};
+}
 
 export const STUDENT_NAV_ROUTES: UserNavRoute[] = [
 	{ name: "Home", href: "" },

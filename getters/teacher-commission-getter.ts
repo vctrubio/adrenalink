@@ -28,7 +28,7 @@ interface TeacherCommissionResult {
  * @returns Object with total earned amount and breakdown components
  */
 export function getTeacherLessonCommission(
-	events: Array<{ duration: number }>,
+	events: { duration: number }[],
 	commission?: CommissionData,
 	lessonRevenue?: number,
 	packageDurationMinutes?: number

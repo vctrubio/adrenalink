@@ -9,7 +9,9 @@ import { TeacherLessonStats } from "./TeacherLessonStats";
 import { TeacherStatsColumns } from "./TeacherStatsColumns";
 import { BookingContainer } from "@/src/components/ids/BookingContainer";
 
-export default async function TeacherDetailPage({ params }: { params: { username: string } }) {
+export default async function TeacherDetailPage({ params }: { params: Promise<{ username: string }> }) {
+    const { username } = await params;
+    console.log(`TeacherDetailPage: Fetched username from params: ${username}`);
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
@@ -20,7 +22,7 @@ export default async function TeacherDetailPage({ params }: { params: { username
         );
     }
 
-    const result = await getEntityId("teacher", params.username);
+    const result = await getEntityId("teacher", username);
 
     if (!result.success) {
         return (

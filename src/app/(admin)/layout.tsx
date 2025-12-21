@@ -6,9 +6,9 @@ import FacebookNav from "@/src/components/navigations/FacebookNav";
 import { SearchProvider } from "@/src/providers/search-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
 
-type AdminLayoutProps = {
+interface AdminLayoutProps {
     children: ReactNode;
-};
+}
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const schoolHeader = await getSchoolHeader();

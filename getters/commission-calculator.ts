@@ -32,8 +32,8 @@ export interface CommissionCalculation {
 export function calculateCommission(
     durationMinutes: number,
     commission: CommissionInfo,
-    lessonRevenue: number = 0,
-    packageDurationMinutes: number = 0
+    lessonRevenue = 0,
+    packageDurationMinutes = 0
 ): CommissionCalculation {
     const totalHours = durationMinutes / 60;
     const hours = formatDuration(durationMinutes);

@@ -1,11 +1,11 @@
 import { UseFormReturn, FieldValues } from "react-hook-form";
 
-export type FormStep<T extends FieldValues = FieldValues> = {
+export interface FormStep<T extends FieldValues = FieldValues> {
     id: number;
     title: string;
     icon?: React.ReactNode;
     fields?: (keyof T)[];
-};
+}
 
 export interface BaseStepProps<T extends FieldValues = FieldValues> {
     formMethods: UseFormReturn<T>;

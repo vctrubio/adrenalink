@@ -116,7 +116,7 @@ export function extractSubdomain(hostname: string): string {
  * @param pathname - Original pathname
  * @returns Portal route path
  */
-export function getPortalPath(username: string, pathname: string = "/"): string {
+export function getPortalPath(username: string, pathname = "/"): string {
     // Route to dedicated subdomain page with username as search param
     return `/subdomain?username=${encodeURIComponent(username)}`;
 }

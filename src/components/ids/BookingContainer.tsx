@@ -79,7 +79,7 @@ function StudentCapacity({ capacity }: StudentCapacityProps) {
 }
 
 interface StudentListProps {
-    students: Array<{ id: string; firstName: string; lastName: string }>;
+    students: { id: string; firstName: string; lastName: string }[];
     capacity: number;
 }
 
@@ -233,7 +233,7 @@ interface BookingInfoCapacityProps {
     equipmentCategory: string;
     capacityEquipment: number;
     capacityStudents: number;
-    students: Array<{ id: string; firstName: string }>;
+    students: { id: string; firstName: string }[];
     durationMinutes: number;
     pricePerStudent: number;
     packageDescription: string;
