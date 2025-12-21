@@ -50,8 +50,6 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
     }));
 
     const strItems = [
-        { label: "Status", value: currentStatusConfig.label },
-        { label: "Public", value: schoolPackage.schema.isPublic ? "Yes" : "No" },
         { label: "Package Type", value: schoolPackage.schema.packageType || "unknown" },
         { label: "Description", value: schoolPackage.schema.description || "No description" },
         { label: "Price Per Student", value: `$${schoolPackage.schema.pricePerStudent}` },
@@ -79,7 +77,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
                 ),
                 name: (
                     <HoverToEntity entity={packageEntity} id={schoolPackage.schema.id}>
-                        {`Package ${schoolPackage.schema.id.slice(0, 8)}`}
+                        {schoolPackage.schema.description || "No description"}
                     </HoverToEntity>
                 ),
                 status: currentStatusConfig.label,

@@ -6,6 +6,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { BookmarkIcon } from 'lucide-react';
 
 export const SchoolPackageStats = {
 	getStats: (items: SchoolPackageModel | SchoolPackageModel[], includeCount = true): StatItem[] => {
@@ -25,13 +26,11 @@ export const SchoolPackageStats = {
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			stats.push({ icon: <HelmetIcon className="w-5 h-5" />, value: totalPackages, label: "Packages", color: packageEntity.color });
+			stats.push({ icon: <BookmarkIcon className="w-5 h-5" />, value: totalPackages, label: "Packages", color: packageEntity.color });
 		}
 
 		stats.push(
 			{ icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents, label: "Students", color: studentEntity.color },
-			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), label: "Duration", color: "#4b5563" },
 			{ icon: <BankIcon className="w-5 h-5" />, value: totalRevenue, label: "Revenue", color: "#10b981" }
 		);
 

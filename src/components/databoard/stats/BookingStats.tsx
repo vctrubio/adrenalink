@@ -1,6 +1,6 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import type { StatItem } from "@/src/components/ui/row";
 import type { BookingModel } from "@/backend/models";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
@@ -31,7 +31,7 @@ export const BookingStats = {
 
 		stats.push(
 			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), label: "Duration", color: "#4b5563" },
+			{ icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(totalMinutes), label: "Duration", color: "#4b5563" },
 			{ icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netRevenue), label: "Revenue", color: bankColor }
 		);
 

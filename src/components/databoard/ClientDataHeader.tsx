@@ -18,6 +18,7 @@ interface DataboardRowsSectionProps<T extends { id: string }> {
         onToggle: (id: string) => void;
     }>;
     calculateStats: (data: AbstractModel<T>[]) => StatItem[];
+    schoolId?: string;
 }
 
 // Rows component for use in layouts
@@ -27,6 +28,7 @@ export const DataboardRowsSection = <T extends { id: string }>({
     data,
     rowComponent: RowComponent,
     calculateStats,
+    schoolId,
 }: DataboardRowsSectionProps<T>) => {
     const controller = useDataboardController();
     const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
@@ -42,6 +44,8 @@ export const DataboardRowsSection = <T extends { id: string }>({
         controller.group,
         controller.onGroupChange,
         controller.activity,
+        entityId,
+        schoolId,
     );
 
     // Calculate filtered data count - flatten all groups

@@ -10,9 +10,13 @@ interface TagProps {
     borderColorHex: string;
     color: string;
     link?: string;
+    flagIcon?: ReactNode;
+    eventCount?: number;
+    durationIcon?: ReactNode;
+    duration?: string;
 }
 
-export const Tag = ({ icon, name, bgColor, borderColorHex, color, link }: TagProps) => {
+export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon, eventCount, durationIcon, duration }: TagProps) => {
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -31,6 +35,10 @@ export const Tag = ({ icon, name, bgColor, borderColorHex, color, link }: TagPro
         >
             <div style={{ color }}>{icon}</div>
             <span className="text-foreground text-sm">{name}</span>
+            {flagIcon && <div style={{ color }}>{flagIcon}</div>}
+            {eventCount && <span className="text-foreground text-sm">{eventCount}</span>}
+            {durationIcon && <div style={{ color }}>{durationIcon}</div>}
+            {duration && <span className="text-foreground text-sm">{duration}</span>}
         </div>
     );
 };

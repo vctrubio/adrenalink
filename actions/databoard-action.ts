@@ -114,7 +114,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
-        // 1. Fetch ORM relations (lessons with events for row-action tags)
+        // 1. Fetch ORM relations (lessons with events and booking for row-action tags)
         const teachersQuery = schoolId
             ? db.query.teacher.findMany({
                   where: eq(teacher.schoolId, schoolId),
@@ -122,6 +122,15 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                       lessons: {
                           with: {
                               events: true,
+                              booking: {
+                                  with: {
+                                      studentPackage: {
+                                          with: {
+                                              schoolPackage: true,
+                                          },
+                                      },
+                                  },
+                              },
                           },
                       },
                   },
@@ -131,6 +140,15 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                       lessons: {
                           with: {
                               events: true,
+                              booking: {
+                                  with: {
+                                      studentPackage: {
+                                          with: {
+                                              schoolPackage: true,
+                                          },
+                                      },
+                                  },
+                              },
                           },
                       },
                   },
@@ -171,6 +189,7 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
                       lessons: {
                           with: {
                               teacher: true,
+                              events: true,
                           },
                       },
                       bookingStudents: {
@@ -190,6 +209,7 @@ export async function getBookings(): Promise<ApiActionResponseModel<BookingModel
                       lessons: {
                           with: {
                               teacher: true,
+                              events: true,
                           },
                       },
                       bookingStudents: {

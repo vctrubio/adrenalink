@@ -1,6 +1,6 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { StudentStats as StudentStatsGetter } from "@/getters/students-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import type { StatItem } from "@/src/components/ui/row";
 import type { StudentModel } from "@/backend/models";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -40,8 +40,6 @@ export const StudentStats = {
 
 		stats.push(
 			{ icon: <BookingIcon className="w-5 h-5" />, value: totalBookings, label: "Bookings", color: bookingEntity.color },
-			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), label: "Duration", color: "#4b5563" },
 			{ icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), label: "Balance", color: bankColor }
 		);
 

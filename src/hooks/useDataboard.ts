@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 
@@ -19,7 +19,8 @@ export const useDataboard = <T>(
     externalGroup?: DataboardGroupByDate | string,
     onExternalGroupChange?: (value: DataboardGroupByDate | string) => void,
     externalActivity?: DataboardActivityFilter,
-    entityId?: string
+    entityId?: string,
+    schoolId?: string
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
@@ -35,6 +36,11 @@ export const useDataboard = <T>(
     const [entityFilter, setEntityFilter] = useState<Record<string, string>>({});
     const [isSelectionMode, setIsSelectionMode] = useState<boolean>(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    // Reset expanded row when filters change
+    useEffect(() => {
+        setExpandedRow(null);
+    }, [filter, group, externalActivity]);
 
     const toggleSelection = (id: string) => {
         const newSelection = new Set(selectedIds);
@@ -132,14 +138,21 @@ export const useDataboard = <T>(
             }
 
             // Check for schoolStudents relation (student activity)
-            if (item.relations?.schoolStudents) {
-                const schoolStudent = item.relations.schoolStudents[0];
-                if (schoolStudent) {
-                    if (externalActivity === "Active") {
-                        return schoolStudent.active === true;
-                    } else if (externalActivity === "Inactive") {
-                        return schoolStudent.active === false;
-                    }
+            if (item.relations?.schoolStudents && item.relations.schoolStudents.length > 0) {
+                // If we have a schoolId, filter by THAT school's status only
+                const relevantSchoolStudent = schoolId
+                    ? item.relations.schoolStudents.find(ss => ss.schoolId === schoolId)
+                    : item.relations.schoolStudents[0]; // Fallback to first if no schoolId
+
+                if (!relevantSchoolStudent) {
+                    // No matching schoolStudent found - exclude this item
+                    return false;
+                }
+
+                if (externalActivity === "Active") {
+                    return relevantSchoolStudent.active === true;
+                } else if (externalActivity === "Inactive") {
+                    return relevantSchoolStudent.active === false;
                 }
             }
 
@@ -155,7 +168,10 @@ export const useDataboard = <T>(
             let key: string;
 
             if (group === "Daily") {
-                key = createdAt.toLocaleDateString("en-GB", { weekday: 'long', day: 'numeric', month: 'long' });
+                const day = createdAt.toLocaleDateString("en-GB", { day: 'numeric' });
+                const month = createdAt.toLocaleDateString("en-GB", { month: 'long' });
+                const weekday = createdAt.toLocaleDateString("en-GB", { weekday: 'long' });
+                key = `${day} ${month}, ${weekday}`;
             } else if (group === "Weekly") {
                 const weekStart = new Date(createdAt);
                 weekStart.setDate(createdAt.getDate() - createdAt.getDay());

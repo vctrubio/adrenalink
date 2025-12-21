@@ -19,6 +19,16 @@ export function getPrettyDuration(durationMinutes: number): string {
     return `${hours}:${minutes.toString().padStart(2, "0")} hrs`;
 }
 
+// ============ DURATION FULL FORMAT ============
+// Converts minutes to H:MM format (e.g., "11:30") without suffix
+export function getFullDuration(durationMinutes: number): string {
+    const totalMinutes = Math.round(durationMinutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}:${minutes.toString().padStart(2, "0")}`;
+}
+
 // ============ DURATION CONSTANTS ============
 export const MIN_DURATION = 60;
 export const MAX_DURATION = 360;

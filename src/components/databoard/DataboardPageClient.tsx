@@ -10,6 +10,7 @@ interface DataboardPageClientProps<T> {
     data: T[];
     rowComponent: ComponentType<{ item: T }>;
     calculateStats: (data: T[]) => StatItem[];
+    schoolId?: string;
 }
 
 export function DataboardPageClient<T>({
@@ -17,6 +18,7 @@ export function DataboardPageClient<T>({
     data,
     rowComponent,
     calculateStats,
+    schoolId,
 }: DataboardPageClientProps<T>) {
     return (
         <AnimatePresence mode="wait">
@@ -27,7 +29,7 @@ export function DataboardPageClient<T>({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
             >
-                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} calculateStats={calculateStats} />
+                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} calculateStats={calculateStats} schoolId={schoolId} />
             </motion.div>
         </AnimatePresence>
     );

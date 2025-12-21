@@ -10,7 +10,8 @@ import { isTeacherLessonReady } from "@/getters/teachers-getter";
 import { TeacherStats as DataboardTeacherStats } from "@/src/components/databoard/stats";
 import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
 import { updateTeacherActive } from "@/actions/teachers-action";
-import LessonIcon from "@/public/appSvgs/LessonIcon";
+import { getFullDuration } from "@/getters/duration-getter";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { TeacherModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
@@ -19,15 +20,33 @@ export const calculateTeacherGroupStats = DataboardTeacherStats.getStats;
 const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
     const lessons = teacher.relations?.lessons || [];
     const lessonReady = isTeacherLessonReady(teacher);
+    const DefaultEquipmentIcon = EQUIPMENT_CATEGORIES[0].icon;
 
     return (
         <div className="flex flex-wrap gap-2">
             {lessons.length === 0 && !lessonReady ? null : (
                 <>
-                    {lessonReady && <LessonCreateTag icon={<LessonIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />}
-                    {lessons.map((lesson) => (
-                        <LessonTag key={lesson.id} icon={<LessonIcon className="w-3 h-3" />} createdAt={lesson.createdAt} status={lesson.status} />
-                    ))}
+                    {lessonReady && <LessonCreateTag icon={<DefaultEquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />}
+                    {lessons.map((lesson) => {
+                        const events = lesson.events || [];
+                        const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+                        const duration =getFullDuration(totalMinutes);
+
+                        const categoryEquipment = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
+                        const equipmentCategory = EQUIPMENT_CATEGORIES.find(cat => cat.id === categoryEquipment);
+                        const EquipmentIcon = equipmentCategory?.icon || DefaultEquipmentIcon;
+
+                        return (
+                            <LessonTag
+                                key={lesson.id}
+                                icon={<EquipmentIcon className="w-3 h-3" />}
+                                createdAt={lesson.createdAt}
+                                status={lesson.status}
+                                duration={duration}
+                                eventCount={events.length}
+                            />
+                        );
+                    })}
                 </>
             )}
         </div>
@@ -67,9 +86,10 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
         },
     }));
 
+    const totalMinutes = teacher.stats?.total_duration_minutes || 0;
+    const durationColor = "#4b5563";
+
     const strItems = [
-        { label: "First Name", value: teacher.schema.firstName },
-        { label: "Last Name", value: teacher.schema.lastName },
         { label: "Phone", value: teacher.schema.phone },
         { label: "Passport", value: teacher.schema.passport },
         { label: "Country", value: teacher.schema.country },
@@ -95,7 +115,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                 ),
                 name: (
                     <HoverToEntity entity={teacherEntity} id={teacher.schema.username}>
-                        {teacher.schema.username}
+                        {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
                     </HoverToEntity>
                 ),
                 status: currentStatusConfig.label,
@@ -103,7 +123,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: "Details",
+                label: teacher.schema.username,
                 items: strItems,
             }}
             action={<TeacherAction teacher={teacher} />}

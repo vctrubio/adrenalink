@@ -9,6 +9,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getEquipmentName, getEquipmentTeachers } from "@/getters/equipments-getter";
 import { EquipmentStats as DataboardEquipmentStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
 import { updateEquipmentStatus } from "@/actions/equipments-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -23,9 +24,21 @@ const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
 
     return (
         <div className="flex flex-wrap gap-2">
-            {teachers.map(({ teacher, totalHours }) => (
-                <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.username}`} />
-            ))}
+            {teachers.map(({ teacher, totalHours }) => {
+                const totalMinutes = totalHours * 60;
+                const duration = getFullDuration(totalMinutes);
+                
+                return (
+                    <EquipmentTeacherTag 
+                        key={teacher.id} 
+                        icon={<HeadsetIcon className="w-3 h-3" />} 
+                        username={teacher.username} 
+                        hours={totalHours} 
+                        link={`/teachers/${teacher.username}`}
+                        duration={duration}
+                    />
+                );
+            })}
         </div>
     );
 };
@@ -42,8 +55,37 @@ function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus
 }
 
 export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
-//...
-//...
+    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+
+    const equipmentName = getEquipmentName(equipment);
+    const category = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
+    const CategoryIcon = category?.icon;
+    const iconColor = isExpanded ? equipmentEntity.color : "#9ca3af";
+
+    const currentStatus = equipment.schema.status as EquipmentStatus;
+    const currentStatusConfig = EQUIPMENT_STATUS_CONFIG[currentStatus];
+
+    const statusDropdownItems: DropdownItemProps[] = (Object.keys(EQUIPMENT_STATUS_CONFIG) as EquipmentStatus[]).map((status) => ({
+        id: status,
+        label: EQUIPMENT_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EQUIPMENT_STATUS_CONFIG[status].color }} />,
+        color: EQUIPMENT_STATUS_CONFIG[status].color,
+        onClick: async () => {
+            if (validateActivity(currentStatus, status)) {
+                await updateEquipmentStatus(equipment.schema.id, status);
+            }
+        },
+    }));
+
+    const strItems = [
+        { label: "Category", value: category?.label || "N/A" },
+        { label: "Color", value: equipment.schema.color || "N/A" },
+        { label: "Purchase Date", value: equipment.schema.purchaseDate ? formatDate(equipment.schema.purchaseDate) : "N/A" },
+        { label: "Status", value: currentStatusConfig.label },
+    ];
+
+    const stats = DataboardEquipmentStats.getStats(equipment, false);
+
     return (
         <Row
             id={equipment.schema.id}

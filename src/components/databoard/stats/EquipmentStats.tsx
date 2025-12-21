@@ -33,7 +33,6 @@ export const EquipmentStats = {
 
 		stats.push(
 			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), label: "Duration", color: "#4b5563" },
 			{ icon: <HelmetIcon className="w-5 h-5" />, value: totalRentals, label: "Rentals", color: "#ef4444" },
 			{ icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(netRevenue)), label: "Revenue", color: bankColor }
 		);

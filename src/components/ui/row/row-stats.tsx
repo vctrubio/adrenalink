@@ -25,7 +25,7 @@ export const RowStats = ({ stats }: RowStatsProps) => {
     return (
         <div className="flex items-center gap-2">
             {filteredStats.map((stat, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-0.5">
                     <div className="w-5 h-5" style={{ color: stat.color }}>
                         {stat.icon}
                     </div>

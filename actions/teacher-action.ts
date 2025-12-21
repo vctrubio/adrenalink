@@ -42,6 +42,15 @@ export async function getTeachers(): Promise<
         lessons: {
           with: {
             events: true,
+            booking: {
+              with: {
+                studentPackage: {
+                  with: {
+                    schoolPackage: true,
+                  },
+                },
+              },
+            },
           },
         },
         equipments: {

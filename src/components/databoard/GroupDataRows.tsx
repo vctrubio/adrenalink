@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { RowStats, type StatItem } from "@/src/components/ui/row";
@@ -35,10 +35,14 @@ interface GroupDataRowsProps<T> {
 
 export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, entityId, entityColor }: GroupDataRowsProps<T>) => {
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+    const prevGroupCountRef = useRef(groupedData.length);
 
-    // Reset to collapsed when groupedData changes (e.g., when changing group by option)
+    // Reset to collapsed when the number of groups changes (GROUP BY option changed)
     useEffect(() => {
-        setExpandedGroups(new Set());
+        if (groupedData.length !== prevGroupCountRef.current) {
+            setExpandedGroups(new Set());
+            prevGroupCountRef.current = groupedData.length;
+        }
     }, [groupedData.length]);
 
     const handleToggle = (id: string) => {
@@ -57,24 +61,24 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
         });
     };
 
+    const statsCalculators = {
+        student: calculateStudentGroupStats,
+        teacher: calculateTeacherGroupStats,
+        booking: calculateBookingGroupStats,
+        event: calculateEventGroupStats,
+    };
+
     const getGroupStats = (data: AbstractModel<T>[]): StatItem[] => {
-        if (entityId === "student") {
-            return calculateStudentGroupStats(data as StudentModel[]);
-        } else if (entityId === "teacher") {
-            return calculateTeacherGroupStats(data as TeacherModel[]);
-        } else if (entityId === "booking") {
-            return calculateBookingGroupStats(data as BookingModel[]);
-        } else if (entityId === "event") {
-            return calculateEventGroupStats(data as EventModel[]);
-        }
-        return [];
+        const calculator = statsCalculators[entityId as keyof typeof statsCalculators];
+        return calculator ? calculator(data as any) : [];
     };
 
     return (
         <div className="space-y-6">
             {groupedData.map((group, groupIndex) => {
                 const showHeader = group.label !== "All";
-                const isGroupExpanded = showHeader ? expandedGroups.has(groupIndex) : true;
+                // Always expand "All" groups (no header), otherwise check expandedGroups state
+                const isGroupExpanded = !showHeader || expandedGroups.has(groupIndex);
 
                 return (
                     <motion.div
@@ -82,11 +86,12 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: groupIndex * 0.1 }}
-                        className="flex flex-col gap-2 rounded-lg"
+                        className={`flex flex-col gap-2 rounded-lg ${showHeader ? "border" : ""}`}
+                        style={showHeader ? { borderColor: entityColor } : undefined}
                     >
                         {showHeader && (
                             <div
-                                className="px-6 py-4 border-b-2 cursor-pointer transition-colors"
+                                className={`px-6 py-4 cursor-pointer transition-colors ${isGroupExpanded ? "border-b-2" : ""}`}
                                 style={{ borderColor: entityColor }}
                                 onClick={() => toggleGroup(groupIndex)}
                             >
@@ -104,23 +109,20 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                             </div>
                         )}
 
-                        <AnimatePresence>
-                            {isGroupExpanded && (
-                                <motion.div
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="hidden"
-                                    variants={containerVariants}
-                                    className="flex flex-col gap-2"
-                                >
-                                    {group.data.map((item, index) => (
-                                        <motion.div key={item.schema.id} variants={rowVariants} transition={{ duration: 0.2, delay: index * 0.03 }}>
-                                            {renderRow(item, expandedRow === item.schema.id, handleToggle)}
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {isGroupExpanded && (
+                            <motion.div
+                                initial="hidden"
+                                animate="visible"
+                                variants={containerVariants}
+                                className="flex flex-col gap-2"
+                            >
+                                {group.data.map((item, index) => (
+                                    <motion.div key={item.schema.id} variants={rowVariants} transition={{ duration: 0.2, delay: index * 0.03 }}>
+                                        {renderRow(item, expandedRow === item.schema.id, handleToggle)}
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        )}
                     </motion.div>
                 );
             })}

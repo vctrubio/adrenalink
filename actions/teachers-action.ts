@@ -11,7 +11,20 @@ import type { ApiActionResponseModel } from "@/types/actions";
 const teacherWithRelations = {
     school: true,
     commissions: true,
-    lessons: true,
+    lessons: {
+        with: {
+            events: true,
+            booking: {
+                with: {
+                    studentPackage: {
+                        with: {
+                            schoolPackage: true,
+                        },
+                    },
+                },
+            },
+        },
+    },
     equipments: {
         with: {
             equipment: true,

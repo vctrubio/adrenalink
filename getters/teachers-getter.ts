@@ -11,6 +11,8 @@ export const TeacherStats = {
     getTotalHours: (teacher: TeacherModel): number => (teacher.stats?.total_duration_minutes || 0) / 60,
     getLessonsCount: (teacher: TeacherModel): number => teacher.stats?.lessons_count || 0,
     getMoneyEarned: (teacher: TeacherModel): number => TeacherStats.getMoneyIn(teacher) - TeacherStats.getMoneyOut(teacher),
+    getTotalCommissions: (teacher: TeacherModel): number => TeacherStats.getMoneyOut(teacher), // money_out = teacher commissions
+    getTotalRevenue: (teacher: TeacherModel): number => TeacherStats.getMoneyIn(teacher), // money_in = student revenue
 };
 
 // ============ LEGACY RELATION-BASED GETTERS ============

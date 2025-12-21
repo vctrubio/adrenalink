@@ -94,12 +94,15 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
 
     const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === schoolPackage?.categoryEquipment);
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
     const equipmentCapacity = schoolPackage?.capacityEquipment || 0;
     const actualStudents = bookingStudents.length || 0;
     const studentCapacity = schoolPackage?.capacityStudents || 0;
+    const packageDurationHours = schoolPackage?.durationMinutes ? Math.round(schoolPackage.durationMinutes / 60) : 0;
 
     const EquipmentIcon = equipmentCategory?.icon;
     const StudentIcon = studentEntity.icon;
+    const PackageIcon = packageEntity.icon;
 
     return (
         <Row
@@ -129,16 +132,21 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                 label: (
                     <div className="flex items-center gap-2">
                         {EquipmentIcon && (
-                            <div style={{ color: equipmentCategory?.color }}>
-                                <EquipmentIcon className="w-4 h-4" />
-                            </div>
+                            <>
+                                <div style={{ color: equipmentCategory?.color }}>
+                                    <EquipmentIcon className="w-4 h-4" />
+                                </div>
+                                <span>{equipmentCapacity}</span>
+                            </>
                         )}
-                        <span>{equipmentCapacity}</span>
-                        <span className="text-muted-foreground">|</span>
                         <div style={{ color: studentEntity.color }}>
                             <StudentIcon className="w-4 h-4" />
                         </div>
                         <span>{studentCapacity}</span>
+                        <div style={{ color: packageEntity.color }}>
+                            <PackageIcon className="w-4 h-4" />
+                        </div>
+                        <span>{packageDurationHours}h</span>
                     </div>
                 ),
                 items: strItems,
