@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
-import { DataboardStats } from "./DataboardStats";
+import { EntityHeaderRow } from "./EntityHeaderRow";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
-import type { DataboardFilterByDate, DataboardGroupByDate, DataboardController as DataboardControllerType } from "@/types/databoard";
+import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController as DataboardControllerType } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
 
 const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
@@ -18,20 +18,6 @@ const getActivityOptions = (entityId: string) => {
     return ["All", "Active", "Inactive"] as const;
 };
 
-const fadeSlide = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-};
-
-export function DataboardHeaderSkeleton() {
-    return (
-        <div className="flex items-center gap-4 px-2">
-            <div className="w-14 h-14 rounded-full bg-muted/50 flex-shrink-0 animate-pulse" />
-            <div className="h-8 w-32 sm:w-40 bg-muted/50 rounded-lg animate-pulse" />
-        </div>
-    );
-}
 
 interface FilterDropdownProps {
     label: string;
@@ -109,41 +95,13 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     if (!entity) return null;
 
-    const Icon = entity.icon;
     const filterOptions = entityId === "equipment" ? FILTER_OPTIONS_EQUIPMENT : FILTER_OPTIONS_DEFAULT;
     const isLoading = stats.length === 0;
 
     return (
         <div className="space-y-4">
             {/* Top Row: Icon + Name | Stats */}
-            <div className="flex items-center justify-between gap-6">
-                <AnimatePresence mode="wait">
-                    {isLoading ? (
-                        <motion.div key="skeleton" variants={fadeSlide} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }}>
-                            <DataboardHeaderSkeleton />
-                        </motion.div>
-                    ) : (
-                        <motion.div key={entityId} variants={fadeSlide} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }} className="flex items-center gap-4 px-2">
-                            <motion.div
-                                className="w-14 h-14 flex items-center justify-center rounded-full border-2 [&>svg]:w-full [&>svg]:h-full flex-shrink-0 p-2.5"
-                                style={{ borderColor: entity.color, color: entity.color }}
-                                initial={{ scale: 0.8, rotate: -10 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                            >
-                                <Icon />
-                            </motion.div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{entity.name}</h1>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <AnimatePresence mode="wait">
-                    <motion.div key={entityId} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2, delay: 0.1 }} className="flex-shrink-0">
-                        <DataboardStats stats={stats} />
-                    </motion.div>
-                </AnimatePresence>
-            </div>
+            <EntityHeaderRow entityId={entityId} stats={stats} isLoading={isLoading} />
 
             {/* Search + Filter Controls */}
             <div className="flex items-center gap-3">
@@ -158,9 +116,9 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={controller.onFilterChange} entityColor={entity.color} />
+                    <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
                     <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />
-                    <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v)} entityColor={entity.color} />
+                    <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v as DataboardActivityFilter)} entityColor={entity.color} />
                 </div>
             </div>
         </div>

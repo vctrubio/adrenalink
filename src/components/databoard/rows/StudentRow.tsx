@@ -5,7 +5,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
-import { StudentStats as DataboardStudentStats } from "@/src/components/databoard/stats";
+import { StudentRowStats as DataboardStudentStats } from "@/src/components/databoard/stats";
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
 import { updateSchoolStudentActive } from "@/actions/students-action";
 import BookingIcon from "@/public/appSvgs/BookingIcon";

@@ -1,5 +1,6 @@
 export { BookingStats } from "./BookingStats";
-export { StudentStats } from "./StudentStats";
+export { StudentRowStats } from "./StudentRowStats";
+export { StudentIdStats } from "./StudentIdStats";
 export { TeacherStats } from "./TeacherStats";
 export { EquipmentStats } from "./EquipmentStats";
 export { EventStats } from "./EventStats";

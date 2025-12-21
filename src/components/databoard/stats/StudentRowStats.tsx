@@ -10,7 +10,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BankIcon from "@/public/appSvgs/BankIcon";
 
-export const StudentStats = {
+export const StudentRowStats = {
 	getStats: (items: StudentModel | StudentModel[], includeCount = true): StatItem[] => {
 		const isArray = Array.isArray(items);
 		const students = isArray ? items : [items];

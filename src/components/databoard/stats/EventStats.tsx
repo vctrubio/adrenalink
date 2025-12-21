@@ -25,9 +25,9 @@ export const EventStats = {
 
         return [
             { icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(totalDuration), label: "Duration", color: "#4b5563" },
-            { icon: <CreditIcon className="w-5 h-5" />, value: `€${totalStudentsPaid.toFixed(2)}`, label: "Payments", color: paymentEntity.color },
-            { icon: <HandshakeIcon className="w-5 h-5" />, value: `€${totalTeacherCommission.toFixed(2)}`, label: "Commissions", color: commissionEntity.color },
-            { icon: <BankIcon className="w-5 h-5" />, value: `€${Math.abs(totalRevenue).toFixed(2)}`, label: "Revenue", color: revenueColor },
+            { icon: <CreditIcon className="w-5 h-5" />, value: `${totalStudentsPaid.toFixed(2)}`, label: "Payments", color: paymentEntity.color },
+            { icon: <HandshakeIcon className="w-5 h-5" />, value: `${totalTeacherCommission.toFixed(2)}`, label: "Commissions", color: commissionEntity.color },
+            { icon: <BankIcon className="w-5 h-5" />, value: `${Math.abs(totalRevenue).toFixed(2)}`, label: "Revenue", color: revenueColor },
         ];
     },
 };

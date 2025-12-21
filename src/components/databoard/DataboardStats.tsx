@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { type StatItem } from "@/src/components/ui/row";
 
 interface DataboardStatsProps {
@@ -7,7 +8,7 @@ interface DataboardStatsProps {
     isLoading?: boolean;
 }
 
-export const DataboardStats = ({ stats, isLoading = false }: DataboardStatsProps) => {
+export const DataboardStats = memo(function DataboardStats({ stats, isLoading = false }: DataboardStatsProps) {
     if (isLoading) {
         return (
             <div className="flex gap-3 items-center overflow-x-auto pb-2 px-4 py-3 scrollbar-hide">
@@ -46,4 +47,4 @@ export const DataboardStats = ({ stats, isLoading = false }: DataboardStatsProps
             ))}
         </div>
     );
-};
+});
