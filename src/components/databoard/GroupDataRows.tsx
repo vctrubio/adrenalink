@@ -69,27 +69,31 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
         <div className="space-y-6">
             {groupedData.map((group, groupIndex) => {
                 const isGroupExpanded = expandedGroups.has(groupIndex);
+                const showHeader = group.label !== "All";
+
                 return (
                     <motion.div
                         key={groupIndex}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: groupIndex * 0.1 }}
-                        className="flex flex-col gap-2 rounded-lg border border-border"
+                        className="flex flex-col gap-2 rounded-lg"
                     >
-                        <div className="bg-muted/30 px-6 py-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleGroup(groupIndex)}>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <motion.div animate={{ rotate: isGroupExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                        <AdranlinkIcon className="w-4 h-4 -translate-y-0.5" />
-                                    </motion.div>
-                                    <h3 className="text-lg font-semibold">{group.label}</h3>
-                                </div>
-                                <div className="flex items-center gap-6">
-                                    <RowStats stats={getGroupStats(group.data)} />
+                        {showHeader && (
+                            <div className="px-6 py-4 border-b border-border cursor-pointer transition-colors" onClick={() => toggleGroup(groupIndex)}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <motion.div animate={{ rotate: isGroupExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                            <AdranlinkIcon className="w-4 h-4 -translate-y-0.5" />
+                                        </motion.div>
+                                        <h3 className="text-lg font-semibold">{group.label}</h3>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <RowStats stats={getGroupStats(group.data)} />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         <AnimatePresence>
                             {isGroupExpanded && (

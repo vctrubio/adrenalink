@@ -11,6 +11,7 @@ interface DataboardPageClientProps<T> {
     data: T[];
     rowComponent: ComponentType<{ item: T }>;
     calculateStats: (data: T[]) => StatItem[];
+    dropdownComponent?: ComponentType<{ item: T }>;
 }
 
 export function DataboardPageClient<T>({
@@ -18,6 +19,7 @@ export function DataboardPageClient<T>({
     data,
     rowComponent,
     calculateStats,
+    dropdownComponent,
 }: DataboardPageClientProps<T>) {
     const controller = useDataboardController();
     const prevStatsRef = useRef<StatItem[]>([]);
@@ -43,7 +45,7 @@ export function DataboardPageClient<T>({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
             >
-                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} />
+                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} dropdownComponent={dropdownComponent} />
             </motion.div>
         </AnimatePresence>
     );

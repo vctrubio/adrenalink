@@ -94,7 +94,6 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
                 </div>
             </div>
 
-            <RowDropdownExpandable entityData={entityData} isExpanded={isExpanded} />
         </div>
     );
 };

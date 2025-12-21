@@ -155,11 +155,11 @@ export const useDataboard = <T>(
             let key: string;
 
             if (group === "Daily") {
-                key = createdAt.toLocaleDateString();
+                key = createdAt.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
             } else if (group === "Weekly") {
                 const weekStart = new Date(createdAt);
                 weekStart.setDate(createdAt.getDate() - createdAt.getDay());
-                key = `Week of ${weekStart.toLocaleDateString()}`;
+                key = `Week of ${weekStart.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}`;
             } else if (group === "Monthly") {
                 key = `${createdAt.toLocaleString("default", { month: "long" })} ${createdAt.getFullYear()}`;
             } else {

@@ -11,60 +11,71 @@ import type { AbstractModel } from "@/backend/models/AbstractModel";
 interface DataboardRowsSectionProps<T extends { id: string }> {
     entityId: string;
     data: AbstractModel<T>[];
-    rowComponent: React.ComponentType<{
-        item: AbstractModel<T>;
-        isExpanded: boolean;
-        onToggle: (id: string) => void;
-    }>;
-}
-
-// Rows component for use in layouts
-export const DataboardRowsSection = <T extends { id: string }>({
-    entityId,
-    data,
-    rowComponent: RowComponent,
-}: DataboardRowsSectionProps<T>) => {
-    const controller = useDataboardController();
-    const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
-    const { expandedRow, setExpandedRow, groupedData } = useDataboard(
-        data,
-        searchFields,
-        [],
-        {},
-        controller.filter,
-        controller.onFilterChange,
-        controller.group,
-        controller.onGroupChange,
-        controller.activity
-    );
-    // Update count for this entity when data changes - use useLayoutEffect to update before paint
-    useLayoutEffect(() => {
-        if (controller.onCountsChange) {
-            controller.onCountsChange({
-                ...controller.counts,
-                [entityId]: data.length,
-            });
-        }
-    }, [data.length, entityId]);
-
-    const entity = ENTITY_DATA.find((e) => e.id === entityId);
-    
-    if (!entity) {
-        return null;
+        rowComponent: React.ComponentType<{
+            item: AbstractModel<T>;
+            isExpanded: boolean;
+            onToggle: (id: string) => void;
+        }>;
+        dropdownComponent?: React.ComponentType<{ item: AbstractModel<T> }>;
     }
-
-    const entityColor = entity.color;
-
-    return (
-        <GroupDataRows
-            groupedData={groupedData}
-            renderRow={(item: AbstractModel<T>, isExpanded, onToggle) => {
-                return <RowComponent key={item.schema.id} item={item} isExpanded={isExpanded} onToggle={onToggle} />;
-            }}
-            expandedRow={expandedRow}
-            setExpandedRow={setExpandedRow}
-            entityId={entityId}
-            entityColor={entityColor}
-        />
-    );
-};
+    
+    // Rows component for use in layouts
+    export const DataboardRowsSection = <T extends { id: string }>({
+        entityId,
+        data,
+        rowComponent: RowComponent,
+        dropdownComponent: DropdownComponent,
+    }: DataboardRowsSectionProps<T>) => {
+        const controller = useDataboardController();
+        const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
+        const { expandedRow, setExpandedRow, groupedData } = useDataboard(
+            data,
+            searchFields,
+            [],
+            {},
+            controller.filter,
+            controller.onFilterChange,
+            controller.group,
+            controller.onGroupChange,
+            controller.activity
+        );
+        // Update count for this entity when data changes - use useLayoutEffect to update before paint
+        useLayoutEffect(() => {
+            if (controller.onCountsChange) {
+                controller.onCountsChange({
+                    ...controller.counts,
+                    [entityId]: data.length,
+                });
+            }
+        }, [data.length, entityId]);
+    
+        const entity = ENTITY_DATA.find((e) => e.id === entityId);
+        
+        if (!entity) {
+            return null;
+        }
+    
+        const entityColor = entity.color;
+    
+        return (
+            <GroupDataRows
+                groupedData={groupedData}
+                renderRow={(item: AbstractModel<T>, isExpanded, onToggle) => {
+                    return (
+                        <>
+                            <RowComponent key={item.schema.id} item={item} isExpanded={isExpanded} onToggle={onToggle} />
+                            {isExpanded && DropdownComponent && (
+                                <div className="bg-card">
+                                    <DropdownComponent item={item} />
+                                </div>
+                            )}
+                        </>
+                    );
+                }}
+                expandedRow={expandedRow}
+                setExpandedRow={setExpandedRow}
+                entityId={entityId}
+                entityColor={entityColor}
+            />
+        );
+    };
