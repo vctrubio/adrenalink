@@ -16,6 +16,7 @@ interface SchoolPackageRowProps {
     item: SchoolPackageModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: SchoolPackageStatus, toStatus: SchoolPackageStatus): boolean {
@@ -23,7 +24,7 @@ function validateActivity(fromStatus: SchoolPackageStatus, toStatus: SchoolPacka
     return true;
 }
 
-export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: SchoolPackageRowProps) => {
+export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle, expandedContent }: SchoolPackageRowProps) => {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const PackageIconComponent = packageEntity.icon;
@@ -69,6 +70,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
             entityColor={packageEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            expandedContent={expandedContent}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

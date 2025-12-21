@@ -33,6 +33,7 @@ interface EquipmentRowProps {
     item: EquipmentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus): boolean {
@@ -40,7 +41,7 @@ function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus
     return true;
 }
 
-export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
+export const EquipmentRow = ({ item: equipment, isExpanded, onToggle, expandedContent }: EquipmentRowProps) => {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
     // Get category-specific icon
@@ -82,6 +83,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
             entityColor={equipmentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            expandedContent={expandedContent}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

@@ -59,23 +59,22 @@ interface DataboardRowsSectionProps<T extends { id: string }> {
     
         return (
             <GroupDataRows
-                groupedData={groupedData}
-                renderRow={(item: AbstractModel<T>, isExpanded, onToggle) => {
-                    return (
-                        <>
-                            <RowComponent key={item.schema.id} item={item} isExpanded={isExpanded} onToggle={onToggle} />
-                            {isExpanded && DropdownComponent && (
-                                <div className="bg-card">
-                                    <DropdownComponent item={item} />
-                                </div>
-                            )}
-                        </>
+                            groupedData={groupedData}
+                            renderRow={(item: AbstractModel<T>, isExpanded, onToggle) => {
+                                return (
+                                    <RowComponent
+                                        key={item.schema.id}
+                                        item={item}
+                                        isExpanded={isExpanded}
+                                        onToggle={onToggle}
+                                        expandedContent={DropdownComponent ? <DropdownComponent item={item} /> : null}
+                                    />
+                                );
+                            }}
+                            expandedRow={expandedRow}
+                            setExpandedRow={setExpandedRow}
+                            entityId={entityId}
+                            entityColor={entityColor}
+                        />
                     );
-                }}
-                expandedRow={expandedRow}
-                setExpandedRow={setExpandedRow}
-                entityId={entityId}
-                entityColor={entityColor}
-            />
-        );
-    };
+                };

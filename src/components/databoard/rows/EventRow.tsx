@@ -44,9 +44,10 @@ interface EventRowProps {
     item: EventModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+    expandedContent?: React.ReactNode;
 }
 
-export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
+export const EventRow = ({ item: event, isExpanded, onToggle, expandedContent }: EventRowProps) => {
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -116,6 +117,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
             entityColor={eventEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            expandedContent={expandedContent}
             head={{
                 avatar: (
                     <div className="group" style={{ color: iconColor }}>

@@ -2,7 +2,7 @@ import { ReactNode, useRef } from "react";
 import { RowHead } from "./row-head";
 import { RowStr } from "./row-str";
 import { RowAction } from "./row-action";
-import { RowDropdownExpandable } from "./row-dropdown-expandable";
+
 import { RowStats, type StatItem } from "./row-stats";
 import type { DropdownItemProps } from "../dropdown";
 
@@ -31,9 +31,10 @@ interface RowProps {
     action?: ReactNode;
     popover?: ReactNode;
     stats?: StatItem[];
+    expandedContent?: ReactNode;
 }
 
-export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, onToggle, head, str, action, popover, stats }: RowProps) => {
+export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, onToggle, head, str, action, popover, stats, expandedContent }: RowProps) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
@@ -94,6 +95,11 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
                 </div>
             </div>
 
+            {isExpanded && expandedContent && (
+                <div className="bg-accent/20">
+                    {expandedContent}
+                </div>
+            )}
         </div>
     );
 };

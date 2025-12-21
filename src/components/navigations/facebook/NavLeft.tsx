@@ -43,7 +43,7 @@ export const NavLeft = () => {
     return (
         <div className="flex items-center gap-1">
             <Link href="/" className="flex items-center">
-                <AdranlinkIcon size={40} className="text-primary" />
+                <AdranlinkIcon size={40} className="text-secondary" />
             </Link>
             {FACEBOOK_NAV_ROUTES.map((route) => {
                 let isActive = false;

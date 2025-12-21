@@ -40,6 +40,7 @@ interface StudentRowProps {
     isExpanded: boolean;
     onToggle: (id: string) => void;
     onStatusChange?: () => void;
+    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
@@ -47,7 +48,7 @@ function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStude
     return true;
 }
 
-export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {
+export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange, expandedContent }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const StudentIcon = studentEntity.icon;
@@ -91,6 +92,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
             entityColor={studentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            expandedContent={expandedContent}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

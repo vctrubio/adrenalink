@@ -43,9 +43,10 @@ interface BookingRowProps {
     item: BookingModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
+    expandedContent?: React.ReactNode;
 }
 
-export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowProps) => {
+export const BookingRow = ({ item: booking, isExpanded, onToggle, expandedContent }: BookingRowProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     const BookingIconComponent = bookingEntity.icon;
@@ -107,6 +108,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             entityColor={bookingEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            expandedContent={expandedContent}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

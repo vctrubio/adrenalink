@@ -33,7 +33,7 @@ interface GroupDataRowsProps<T> {
     entityColor: string;
 }
 
-export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, entityId }: GroupDataRowsProps<T>) => {
+export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, entityId, entityColor }: GroupDataRowsProps<T>) => {
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set(groupedData.map((_, index) => index)));
 
     const handleToggle = (id: string) => {
@@ -80,13 +80,17 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                         className="flex flex-col gap-2 rounded-lg"
                     >
                         {showHeader && (
-                            <div className="px-6 py-4 border-b border-border cursor-pointer transition-colors" onClick={() => toggleGroup(groupIndex)}>
+                            <div
+                                className="px-6 py-4 border-b cursor-pointer transition-colors"
+                                style={{ borderColor: entityColor }}
+                                onClick={() => toggleGroup(groupIndex)}
+                            >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <motion.div animate={{ rotate: isGroupExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
                                             <AdranlinkIcon className="w-4 h-4 -translate-y-0.5" />
                                         </motion.div>
-                                        <h3 className="text-lg font-semibold">{group.label}</h3>
+                                        <h3 className="text-xl font-bold">{group.label}</h3>
                                     </div>
                                     <div className="flex items-center gap-6">
                                         <RowStats stats={getGroupStats(group.data)} />
