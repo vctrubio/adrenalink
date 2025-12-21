@@ -326,6 +326,7 @@ export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>>
             lesson: {
                 with: {
                     teacher: true,
+                    commission: true, // <-- Add this line
                     booking: {
                         with: {
                             studentPackage: {

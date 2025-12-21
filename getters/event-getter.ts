@@ -7,6 +7,7 @@
 import type { EventNode } from "@/backend/TeacherQueue";
 import type { EventModel } from "@/backend/models";
 import { getMinutesFromISO, minutesToTime } from "./queue-getter";
+import { calculateCommission } from "./commission-calculator";
 
 /**
  * Get event end time as HH:MM string
@@ -59,16 +60,16 @@ export class EventStats {
 	 */
 	static getTeacherCommission(event: EventModel): number {
 		const lesson = event.relations?.lesson;
-		const teacher = lesson?.teacher;
+		const commission = lesson?.commission;
 		const duration = event.schema.duration || 0;
 
-		if (!teacher) return 0;
+		if (!commission) return 0;
 
-		// Get teacher's hourly commission rate
-		const durationHours = duration / 60;
-		const commissionRate = teacher.commissionRate || 0;
+		const lessonRevenue = this.getStudentsPaid(event);
+		const packageDurationMinutes = lesson?.booking?.studentPackage?.schoolPackage?.durationMinutes || 0;
 
-		return durationHours * commissionRate;
+		const commissionCalculation = calculateCommission(duration, commission, lessonRevenue, packageDurationMinutes);
+		return commissionCalculation.earned;
 	}
 
 	/**

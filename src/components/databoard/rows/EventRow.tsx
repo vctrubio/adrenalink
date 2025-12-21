@@ -12,6 +12,7 @@ import { updateEvent } from "@/actions/events-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 export const calculateEventGroupStats = DataboardEventStats.getStats;
 
@@ -33,13 +34,25 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 	const packageDesc = EventStats.getPackageDescription(event);
 	const enrolledCount = EventStats.getEnrolledStudentsCount(event);
 	const capacity = EventStats.getStudentCapacity(event);
+	const schoolPackage = event.relations.lesson?.booking?.studentPackage?.schoolPackage;
+	const category = schoolPackage?.categoryEquipment;
+	const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
+	const CategoryIcon = categoryConfig?.icon;
 
 	const strItems = [
 		{ label: "Teacher", value: teacherName },
 		{ label: "Date", value: formatDate(event.schema.date) },
 		{ label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
 		{ label: "Location", value: event.schema.location || "TBD" },
-		{ label: "Package", value: packageDesc },
+		{
+			label: "Package",
+			value: (
+				<div className="flex items-center gap-1">
+					{CategoryIcon && <CategoryIcon className="w-4 h-4" style={{ color: categoryConfig.color }} />}
+					<span>{packageDesc}</span>
+				</div>
+			),
+		},
 	];
 
 	const stats = DataboardEventStats.getStats(event);
@@ -69,8 +82,8 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 			onToggle={onToggle}
 			head={{
 				avatar: (
-					<div style={{ color: iconColor }}>
-						<EventIconComponent className="w-10 h-10" />
+					<div style={{ color: CategoryIcon ? categoryConfig.color : iconColor }}>
+						{CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <EventIconComponent className="w-10 h-10" />}
 					</div>
 				),
 				name: (
