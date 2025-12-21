@@ -1,43 +1,20 @@
 "use client";
 
-import { Row, type StatItem } from "@/src/components/ui/row";
+import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ENTITY_DATA } from "@/config/entities";
 import { TeacherBookingTag, TeacherBookingCreateTag } from "@/src/components/tags";
 import { BookingCompletionPopover } from "@/src/components/popover/BookingCompletionPopover";
-import { ENTITY_DATA } from "@/config/entities";
-import { BookingStats, getBookingDurationHours } from "@/getters/bookings-getter";
+import { BookingStats as DataboardBookingStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
 import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import { updateBooking } from "@/actions/bookings-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
 import type { BookingModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
-export function calculateBookingGroupStats(bookings: BookingModel[]): StatItem[] {
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-
-    const totalEvents = bookings.reduce((sum, booking) => sum + BookingStats.getEventsCount(booking), 0);
-    const totalMinutes = bookings.reduce((sum, booking) => sum + (booking.stats?.total_duration_minutes || 0), 0);
-
-    const totalMoneyIn = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyIn(booking), 0);
-    const totalMoneyOut = bookings.reduce((sum, booking) => sum + BookingStats.getMoneyOut(booking), 0);
-    const netRevenue = totalMoneyIn - totalMoneyOut;
-    const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
-
-    return [
-        { icon: <BookingIcon className="w-5 h-5" />, value: bookings.length, color: bookingEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netRevenue), color: bankColor },
-    ];
-}
+export const calculateBookingGroupStats = DataboardBookingStats.getStats;
 
 const BookingAction = ({ booking }: { booking: BookingModel }) => {
     const lessons = booking.relations?.lessons || [];
@@ -70,7 +47,6 @@ interface BookingRowProps {
 
 export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     const BookingIconComponent = bookingEntity.icon;
     const entityColor = bookingEntity.color;
@@ -91,14 +67,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
         { label: "Package", value: packageDesc },
     ];
 
-    const revenue = BookingStats.getRevenue(booking);
-    const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
-
-    const stats: StatItem[] = [
-        { icon: <FlagIcon className="w-5 h-5" />, value: BookingStats.getEventsCount(booking), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(booking.stats?.total_duration_minutes || 0), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
-    ];
+    const stats = DataboardBookingStats.getStats(booking, false);
 
     const currentStatus = booking.schema.status;
     const currentStatusConfig = BOOKING_STATUS_CONFIG[currentStatus];

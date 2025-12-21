@@ -37,8 +37,6 @@ export const DataboardRowsSection = <T extends { id: string }>({
         controller.onGroupChange,
         controller.activity
     );
-    console.log("DataboardRowsSection - filter:", controller.filter, "group:", controller.group, "activity:", controller.activity, "groupedData:", groupedData);
-
     // Update count for this entity when data changes - use useLayoutEffect to update before paint
     useLayoutEffect(() => {
         if (controller.onCountsChange) {

@@ -4,13 +4,22 @@ import { useState, ReactNode } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
 import { Breadcrumb } from "@/src/components/databoard/Breadcrumb";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController } from "@/types/databoard";
+import type { StatItem } from "@/src/components/ui/row";
 import { usePathname } from "next/navigation";
 
 interface DataboardLayoutWrapperProps {
     children: ReactNode;
 }
 
-const DATABOARD_LIST_PAGES = ["students", "teachers", "bookings", "packages", "equipments"];
+const DATABOARD_LIST_PAGES = ["students", "teachers", "bookings", "packages", "equipments", "events"];
+const ENTITY_ID_MAP: Record<string, string> = {
+    students: "student",
+    teachers: "teacher",
+    bookings: "booking",
+    packages: "schoolPackage",
+    equipments: "equipment",
+    events: "event",
+};
 
 export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrapperProps) {
     const [filter, setFilter] = useState<DataboardFilterByDate>("All");
@@ -19,10 +28,12 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [counts, setCounts] = useState<Record<string, number>>({});
+    const [stats, setStats] = useState<StatItem[]>([]);
     const pathname = usePathname();
 
     const pathSegments = pathname.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1];
+    const entityId = ENTITY_ID_MAP[lastSegment] || lastSegment;
 
     // Check if this is a list page
     const isListPage = DATABOARD_LIST_PAGES.includes(lastSegment);
@@ -54,8 +65,7 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     };
 
     const controller: DataboardController = {
-        stats: [],
-        totalCount: 0,
+        stats,
         filter,
         onFilterChange: setFilter,
         group,
@@ -68,10 +78,11 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         onAddClick: handleAddClick,
         counts,
         onCountsChange: setCounts,
+        onStatsChange: setStats,
     };
 
     return (
-        <DataboardLayout controller={controller}>
+        <DataboardLayout controller={controller} entityId={entityId} stats={stats}>
             {children}
         </DataboardLayout>
     );

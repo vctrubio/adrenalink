@@ -1,6 +1,6 @@
 import { getBookings } from "@/actions/databoard-action";
-import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
-import { BookingRow } from "@/src/components/databoard/rows/BookingRow";
+import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
+import { BookingRow, calculateBookingGroupStats } from "@/src/components/databoard/rows/BookingRow";
 
 export default async function BookingsPage() {
     const result = await getBookings();
@@ -9,9 +9,5 @@ export default async function BookingsPage() {
         return <div>Error loading bookings: {result.error}</div>;
     }
 
-    return (
-        <div>
-            <DataboardRowsSection entityId="booking" data={result.data} rowComponent={BookingRow} />
-        </div>
-    );
+    return <DataboardPageClient entityId="booking" data={result.data} rowComponent={BookingRow} calculateStats={calculateBookingGroupStats} />;
 }

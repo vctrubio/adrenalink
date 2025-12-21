@@ -1,6 +1,6 @@
 import { getTeachers } from "@/actions/databoard-action";
-import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
-import { TeacherRow } from "@/src/components/databoard/rows/TeacherRow";
+import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
+import { TeacherRow, calculateTeacherGroupStats } from "@/src/components/databoard/rows/TeacherRow";
 
 export default async function TeachersPage() {
     const result = await getTeachers();
@@ -9,9 +9,5 @@ export default async function TeachersPage() {
         return <div>Error loading teachers: {result.error}</div>;
     }
 
-    return (
-        <div>
-            <DataboardRowsSection entityId="teacher" data={result.data} rowComponent={TeacherRow} />
-        </div>
-    );
+    return <DataboardPageClient entityId="teacher" data={result.data} rowComponent={TeacherRow} calculateStats={calculateTeacherGroupStats} />;
 }

@@ -1,6 +1,6 @@
 import { getEquipments } from "@/actions/databoard-action";
-import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
-import { EquipmentRow } from "@/src/components/databoard/rows/EquipmentRow";
+import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
+import { EquipmentRow, calculateEquipmentGroupStats } from "@/src/components/databoard/rows/EquipmentRow";
 
 export default async function EquipmentPage() {
     const result = await getEquipments();
@@ -9,9 +9,5 @@ export default async function EquipmentPage() {
         return <div>Error loading equipments: {result.error}</div>;
     }
 
-    return (
-        <div>
-            <DataboardRowsSection entityId="equipment" data={result.data} rowComponent={EquipmentRow} />
-        </div>
-    );
+    return <DataboardPageClient entityId="equipment" data={result.data} rowComponent={EquipmentRow} calculateStats={calculateEquipmentGroupStats} />;
 }

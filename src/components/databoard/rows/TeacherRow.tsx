@@ -1,41 +1,19 @@
 "use client";
 
-import { Row, type StatItem } from "@/src/components/ui/row";
+import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ENTITY_DATA } from "@/config/entities";
 import { LessonTag, LessonCreateTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
-import { ENTITY_DATA } from "@/config/entities";
-import { TeacherStats, isTeacherLessonReady } from "@/getters/teachers-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { isTeacherLessonReady } from "@/getters/teachers-getter";
+import { TeacherStats as DataboardTeacherStats } from "@/src/components/databoard/stats";
 import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
 import { updateTeacherActive } from "@/actions/teachers-action";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { TeacherModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
-export function calculateTeacherGroupStats(teachers: TeacherModel[]): StatItem[] {
-    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-
-    const totalLessons = teachers.reduce((sum, teacher) => sum + TeacherStats.getLessonsCount(teacher), 0);
-    const totalEvents = teachers.reduce((sum, teacher) => sum + TeacherStats.getEventsCount(teacher), 0);
-    const totalMinutes = teachers.reduce((sum, teacher) => sum + (teacher.stats?.total_duration_minutes || 0), 0);
-    const totalMoneyEarned = teachers.reduce((sum, teacher) => sum + TeacherStats.getMoneyEarned(teacher), 0);
-    const bankColor = totalMoneyEarned >= 0 ? "#10b981" : "#ef4444";
-
-    return [
-        { icon: <HeadsetIcon className="w-5 h-5" />, value: teachers.length, color: teacherEntity.color },
-        { icon: <LessonIcon className="w-5 h-5" />, value: totalLessons, color: lessonEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(totalMoneyEarned), color: bankColor },
-    ];
-}
+export const calculateTeacherGroupStats = DataboardTeacherStats.getStats;
 
 const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
     const lessons = teacher.relations?.lessons || [];
@@ -68,8 +46,6 @@ function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): b
 
 export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     const TeacherIcon = teacherEntity.icon;
     const entityColor = teacherEntity.color;
@@ -99,15 +75,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
         { label: "Languages", value: teacher.schema.languages.join(", ") },
     ];
 
-    const moneyEarned = TeacherStats.getMoneyEarned(teacher);
-    const bankColor = moneyEarned >= 0 ? "#10b981" : "#ef4444";
-
-    const stats: StatItem[] = [
-        { icon: <LessonIcon className="w-5 h-5" />, value: TeacherStats.getLessonsCount(teacher), color: lessonEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: TeacherStats.getEventsCount(teacher), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(teacher.stats?.total_duration_minutes || 0), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(moneyEarned), color: bankColor },
-    ];
+    const stats = DataboardTeacherStats.getStats(teacher, false);
 
     return (
         <Row

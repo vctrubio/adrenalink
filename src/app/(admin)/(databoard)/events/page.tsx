@@ -1,17 +1,13 @@
 import { getEvents } from "@/actions/databoard-action";
-import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
-import { EventRow } from "@/src/components/databoard/rows/EventRow";
+import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
+import { EventRow, calculateEventGroupStats } from "@/src/components/databoard/rows/EventRow";
 
 export default async function EventsPage() {
-	const result = await getEvents();
+    const result = await getEvents();
 
-	if (!result.success) {
-		return <div>Error loading events: {result.error}</div>;
-	}
+    if (!result.success) {
+        return <div>Error loading events: {result.error}</div>;
+    }
 
-	return (
-		<div>
-			<DataboardRowsSection entityId="event" data={result.data} rowComponent={EventRow} />
-		</div>
-	);
+    return <DataboardPageClient entityId="event" data={result.data} rowComponent={EventRow} calculateStats={calculateEventGroupStats} />;
 }

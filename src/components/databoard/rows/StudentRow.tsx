@@ -1,48 +1,18 @@
 "use client";
 
-import { Row, type StatItem } from "@/src/components/ui/row";
+import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ENTITY_DATA } from "@/config/entities";
 import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
-import { ENTITY_DATA } from "@/config/entities";
-import { StudentStats } from "@/getters/students-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { StudentStats as DataboardStudentStats } from "@/src/components/databoard/stats";
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
 import { updateSchoolStudentActive } from "@/actions/students-action";
-import RequestIcon from "@/public/appSvgs/RequestIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import type { StudentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
-export function calculateStudentGroupStats(students: StudentModel[]): StatItem[] {
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const requestEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-
-    const totalRequestedPackages = students.reduce((sum, student) => sum + StudentStats.getRequestedPackagesCount(student), 0);
-    const totalBookings = students.reduce((sum, student) => sum + StudentStats.getBookingsCount(student), 0);
-    const totalEvents = students.reduce((sum, student) => sum + StudentStats.getEventsCount(student), 0);
-    const totalMinutes = students.reduce((sum, student) => sum + (student.stats?.total_duration_minutes || 0), 0);
-
-    const totalMoneyIn = students.reduce((sum, student) => sum + StudentStats.getMoneyIn(student), 0);
-    const totalMoneyOut = students.reduce((sum, student) => sum + StudentStats.getMoneyOut(student), 0);
-    const netMoney = totalMoneyIn - totalMoneyOut;
-    const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
-
-    return [
-        { icon: <HelmetIcon className="w-5 h-5" />, value: students.length, color: studentEntity.color },
-        { icon: <RequestIcon className="w-5 h-5" />, value: totalRequestedPackages, color: requestEntity.color },
-        { icon: <BookingIcon className="w-5 h-5" />, value: totalBookings, color: bookingEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
-    ];
-}
+export const calculateStudentGroupStats = DataboardStudentStats.getStats;
 
 const StudentAction = ({ student }: { student: StudentModel }) => {
     const bookingStudents = student.relations?.bookingStudents || [];
@@ -79,8 +49,6 @@ function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStude
 
 export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     const StudentIcon = studentEntity.icon;
     const entityColor = studentEntity.color;
@@ -96,17 +64,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
         { label: "Joined", value: new Date(student.schema.createdAt).toLocaleDateString() },
     ];
 
-    const moneyIn = StudentStats.getMoneyIn(student);
-    const moneyOut = StudentStats.getMoneyOut(student);
-    const netMoney = moneyIn - moneyOut;
-    const bankColor = netMoney >= 0 ? "#10b981" : "#ef4444";
-
-    const stats: StatItem[] = [
-        { icon: <BookingIcon className="w-5 h-5" />, value: StudentStats.getBookingsCount(student), color: bookingEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: StudentStats.getEventsCount(student), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(student.stats?.total_duration_minutes || 0), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netMoney), color: bankColor },
-    ];
+    const stats = DataboardStudentStats.getStats(student, false);
 
     const isActive = student.updateForm.active;
     const currentStatus = isActive ? "active" : "inactive";

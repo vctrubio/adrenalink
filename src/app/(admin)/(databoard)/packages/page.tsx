@@ -1,6 +1,6 @@
 import { getSchoolPackagesWithStats } from "@/actions/packages-action";
-import { DataboardRowsSection } from "@/src/components/databoard/ClientDataHeader";
-import { SchoolPackageRow } from "@/src/components/databoard/rows/SchoolPackageRow";
+import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
+import { SchoolPackageRow, calculateSchoolPackageGroupStats } from "@/src/components/databoard/rows/SchoolPackageRow";
 
 export default async function SchoolPackagesPage() {
     const result = await getSchoolPackagesWithStats();
@@ -9,9 +9,5 @@ export default async function SchoolPackagesPage() {
         return <div>Error loading school packages: {result.error}</div>;
     }
 
-    return (
-        <div>
-            <DataboardRowsSection entityId="schoolPackage" data={result.data} rowComponent={SchoolPackageRow} />
-        </div>
-    );
+    return <DataboardPageClient entityId="schoolPackage" data={result.data} rowComponent={SchoolPackageRow} calculateStats={calculateSchoolPackageGroupStats} />;
 }

@@ -1,32 +1,19 @@
 "use client";
 
-import { Row, type StatItem } from "@/src/components/ui/row";
+import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { EventStats } from "@/getters/event-getter";
+import { EventStats as DataboardEventStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { updateEvent } from "@/actions/events-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import { Users } from "lucide-react";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
-export function calculateEventGroupStats(events: EventModel[]): StatItem[] {
-	const totalStudentsPaid = events.reduce((sum, event) => sum + EventStats.getStudentsPaid(event), 0);
-	const totalTeacherCommission = events.reduce((sum, event) => sum + EventStats.getTeacherCommission(event), 0);
-	const totalRevenue = events.reduce((sum, event) => sum + EventStats.getRevenue(event), 0);
-
-	const revenueColor = totalRevenue >= 0 ? "#10b981" : "#ef4444";
-
-	return [
-		{ icon: <Users className="w-5 h-5" />, value: `€${totalStudentsPaid.toFixed(2)}`, color: "#3b82f6" },
-		{ icon: <HeadsetIcon className="w-5 h-5" />, value: `€${totalTeacherCommission.toFixed(2)}`, color: "#f59e0b" },
-		{ icon: <BankIcon className="w-5 h-5" />, value: `€${Math.abs(totalRevenue).toFixed(2)}`, color: revenueColor },
-	];
-}
+export const calculateEventGroupStats = DataboardEventStats.getStats;
 
 interface EventRowProps {
 	item: EventModel;
@@ -55,16 +42,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 		{ label: "Package", value: packageDesc },
 	];
 
-	const studentsPaid = EventStats.getStudentsPaid(event);
-	const teacherCommission = EventStats.getTeacherCommission(event);
-	const revenue = EventStats.getRevenue(event);
-	const revenueColor = revenue >= 0 ? "#10b981" : "#ef4444";
-
-	const stats: StatItem[] = [
-		{ icon: <Users className="w-5 h-5" />, value: `€${studentsPaid.toFixed(2)}`, color: "#3b82f6" },
-		{ icon: <HeadsetIcon className="w-5 h-5" />, value: `€${teacherCommission.toFixed(2)}`, color: "#f59e0b" },
-		{ icon: <BankIcon className="w-5 h-5" />, value: `€${Math.abs(revenue).toFixed(2)}`, color: revenueColor },
-	];
+	const stats = DataboardEventStats.getStats(event);
 
 	const currentStatus = event.schema.status;
 	const currentStatusConfig = EVENT_STATUS_CONFIG[currentStatus];

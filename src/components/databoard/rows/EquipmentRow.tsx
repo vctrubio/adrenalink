@@ -1,46 +1,21 @@
 "use client";
 
-import { Row, type StatItem } from "@/src/components/ui/row";
+import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ENTITY_DATA } from "@/config/entities";
 import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
-import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EquipmentStats, getEquipmentName, getEquipmentTeachers } from "@/getters/equipments-getter";
+import { getEquipmentName, getEquipmentTeachers } from "@/getters/equipments-getter";
+import { EquipmentStats as DataboardEquipmentStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
 import { updateEquipmentStatus } from "@/actions/equipments-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import type { EquipmentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
-export function calculateEquipmentGroupStats(equipments: EquipmentModel[]): StatItem[] {
-    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-
-    const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentStats.getEventsCount(equipment), 0);
-    const totalMinutes = equipments.reduce((sum, equipment) => sum + (equipment.stats?.total_duration_minutes || 0), 0);
-    const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentStats.getRentalsCount(equipment), 0);
-
-    const totalMoneyIn = equipments.reduce((sum, equipment) => sum + EquipmentStats.getMoneyIn(equipment), 0);
-    const totalMoneyOut = equipments.reduce((sum, equipment) => sum + EquipmentStats.getMoneyOut(equipment), 0);
-    const netRevenue = totalMoneyIn - totalMoneyOut;
-    const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
-
-    return [
-        { icon: <EquipmentIcon className="w-5 h-5" />, value: equipments.length, color: equipmentEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(totalMinutes), color: "#4b5563" },
-        { icon: <HelmetIcon className="w-5 h-5" />, value: totalRentals, color: "#ef4444" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(netRevenue)), color: bankColor },
-    ];
-}
+export const calculateEquipmentGroupStats = DataboardEquipmentStats.getStats;
 
 const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
     const teachers = getEquipmentTeachers(equipment);
@@ -67,7 +42,6 @@ function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus
 
 export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 
     // Get category-specific icon
     const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
@@ -98,15 +72,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
         { label: "Updated", value: formatDate(equipment.schema.updatedAt) },
     ];
 
-    const revenue = EquipmentStats.getRevenue(equipment);
-    const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
-
-    const stats: StatItem[] = [
-        { icon: <FlagIcon className="w-5 h-5" />, value: EquipmentStats.getEventsCount(equipment), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(equipment.stats?.total_duration_minutes || 0), color: "#4b5563" },
-        { icon: <HelmetIcon className="w-5 h-5" />, value: EquipmentStats.getRentalsCount(equipment), color: "#ef4444" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(revenue)), color: bankColor },
-    ];
+    const stats = DataboardEquipmentStats.getStats(equipment, false);
 
     return (
         <Row

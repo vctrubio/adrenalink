@@ -2,7 +2,8 @@
 
 import { ReactNode, createContext, useContext } from "react";
 import type { DataboardController as DataboardControllerType } from "@/types/databoard";
-import DataboardController from "@/src/app/(admin)/(databoard)/DataboardController";
+import type { StatItem } from "@/src/components/ui/row";
+import { DataboardHeader } from "@/src/components/databoard/DataboardHeader";
 
 const DataboardContext = createContext<DataboardControllerType | null>(null);
 
@@ -17,42 +18,20 @@ export function useDataboardController() {
 interface DataboardLayoutProps {
     children: ReactNode;
     controller: DataboardControllerType;
+    entityId: string;
+    stats: StatItem[];
 }
 
-export function DataboardLayout({ children, controller }: DataboardLayoutProps) {
+export function DataboardLayout({ children, controller, entityId, stats }: DataboardLayoutProps) {
     return (
         <DataboardContext.Provider value={controller}>
-            {/* Mobile Layout */}
-            <div className="lg:hidden">
-                <div className="p-4 space-y-4">
-                    <div className="bg-card p-6 space-y-6">
-                        <DataboardController controller={controller} isMobile />
+            <div className="p-4 sm:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    <div className="space-y-4">
+                        <DataboardHeader controller={controller} entityId={entityId} stats={stats} />
                     </div>
-                    <div className="bg-card">
-                        <div className="p-6">{children}</div>
-                    </div>
-                    <div className="h-24" />
-                </div>
-            </div>
 
-            {/* Desktop Layout */}
-            <div className="hidden lg:block p-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-12 gap-8">
-                        {/* Controller Sidebar */}
-                        <div className="col-span-4">
-                            <div className="sticky top-8">
-                                <div className="bg-card p-6 space-y-6">
-                                    <DataboardController controller={controller} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="col-span-8">
-                            <div className="space-y-6">{children}</div>
-                        </div>
-                    </div>
+                    <div className="space-y-6">{children}</div>
                 </div>
             </div>
         </DataboardContext.Provider>
