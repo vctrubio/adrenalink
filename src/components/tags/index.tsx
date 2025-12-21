@@ -10,3 +10,4 @@ export { StudentTag } from "./StudentTag";
 export { PackageTag } from "./PackageTag";
 export { EquipmentTag } from "./EquipmentTag";
 export { EventDurationTag } from "./EventDurationTag";
+export { EquipmentCreateTag } from "./EquipmentCreateTag";

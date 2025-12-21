@@ -127,4 +127,24 @@ export class EventStats {
 
 		return schoolPackage?.description || "No package";
 	}
+
+	/**
+	 * Get leader student name from event
+	 */
+	static getLeaderStudentName(event: EventModel): string {
+		const lesson = event.relations?.lesson;
+		const booking = lesson?.booking;
+		return booking?.leaderStudentName || "No leader";
+	}
+
+	/**
+	 * Get all student names from event as a string
+	 */
+	static getStudentNames(event: EventModel): string {
+		const lesson = event.relations?.lesson;
+		const booking = lesson?.booking;
+		const bookingStudents = booking?.bookingStudents || [];
+		if (bookingStudents.length === 0) return "No students";
+		return bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
+	}
 }

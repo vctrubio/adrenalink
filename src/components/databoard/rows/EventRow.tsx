@@ -1,21 +1,53 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { EventStats } from "@/getters/event-getter";
+import { EventStats as EventStatsGetters } from "@/getters/event-getter";
 import { EventStats as DataboardEventStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { updateEvent } from "@/actions/events-action";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { EquipmentCreateTag, EquipmentTag } from "@/src/components/tags";
 
 export const calculateEventGroupStats = DataboardEventStats.getStats;
+
+const EventAction = ({ event }: { event: EventModel }) => {
+	const equipmentEvents = event.relations?.equipmentEvents || [];
+	const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+	const EquipmentIcon = equipmentEntity.icon;
+
+	return (
+		<div className="flex flex-wrap gap-2">
+			{equipmentEvents.length === 0 ? (
+				<EquipmentCreateTag icon={<EquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Adding new equipment...")} />
+			) : (
+				<>
+					{equipmentEvents.map((equipmentEvent) => {
+						const equipment = equipmentEvent.equipment;
+						if (!equipment) return null;
+
+						return (
+							<EquipmentTag
+								key={equipment.id}
+								icon={<EquipmentIcon className="w-3 h-3" />}
+								model={equipment.model}
+								size={equipment.size}
+								link={`/equipments/${equipment.id}`}
+							/>
+						);
+					})}
+				</>
+			)}
+		</div>
+	);
+};
 
 interface EventRowProps {
 	item: EventModel;
@@ -24,6 +56,12 @@ interface EventRowProps {
 }
 
 export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
+	const [eventTime, setEventTime] = useState("");
+
+	useEffect(() => {
+		setEventTime(new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
+	}, [event.schema.date]);
+
 	const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 	const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 	const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -32,21 +70,19 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 	const entityColor = eventEntity.color;
 	const iconColor = isExpanded ? entityColor : "#9ca3af";
 
-	const teacherName = EventStats.getTeacherName(event);
-	const packageDesc = EventStats.getPackageDescription(event);
-	const enrolledCount = EventStats.getEnrolledStudentsCount(event);
-	const capacity = EventStats.getStudentCapacity(event);
+	const teacherName = EventStatsGetters.getTeacherName(event);
+	const packageDesc = EventStatsGetters.getPackageDescription(event);
+	const enrolledCount = EventStatsGetters.getEnrolledStudentsCount(event);
+	const capacity = EventStatsGetters.getStudentCapacity(event);
 	const schoolPackage = event.relations.lesson?.booking?.studentPackage?.schoolPackage;
 	const category = schoolPackage?.categoryEquipment;
 	const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
 	const CategoryIcon = categoryConfig?.icon;
-	const booking = event.relations.lesson?.booking;
-	const leaderStudentName = booking?.leaderStudentName;
-	const bookingStudents = booking?.bookingStudents || [];
-	const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
+	const leaderStudentName = EventStatsGetters.getLeaderStudentName(event);
+	const studentNames = EventStatsGetters.getStudentNames(event);
 
 	const strItems = [
-		{ label: "Students", value: studentNames || "No students" },
+		{ label: "Students", value: studentNames },
 		{ label: "Date", value: formatDate(event.schema.date) },
 		{ label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
 		{ label: "Location", value: event.schema.location || "TBD" },
@@ -102,7 +138,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 				name: (
 					<div className="flex items-center gap-2">
 						<HoverToEntity entity={eventEntity} id={event.schema.id}>
-							{new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+							{eventTime}
 						</HoverToEntity>
 						<span className="bg-gray-400 text-white px-2 py-1 rounded-sm text-xs">
 							{getPrettyDuration(event.schema.duration || 0)}
@@ -121,7 +157,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 								<div style={{ color: teacherEntity.color }}>
 									<TeacherIcon className="w-4 h-4" />
 								</div>
-								<span>{teacherName}</span>
+								<span>{teacher.username}</span>
 							</>
 						)}
 						<div style={{ color: studentEntity.color }}>
@@ -133,18 +169,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 				),
 				items: strItems,
 			}}
-			action={
-				<div className="flex flex-wrap gap-2">
-					{teacher && (
-						<HoverToEntity entity={teacherEntity} id={teacher.id}>
-							<div className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted hover:bg-accent transition-colors cursor-pointer">
-								<HeadsetIcon className="w-3 h-3" style={{ color: teacherEntity.color }} />
-								<span className="text-xs font-medium">{teacher.username}</span>
-							</div>
-						</HoverToEntity>
-					)}
-				</div>
-			}
+			action={<EventAction event={event} />}
 			stats={stats}
 		/>
 	);

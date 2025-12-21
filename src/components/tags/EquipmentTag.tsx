@@ -1,18 +1,22 @@
 "use client";
 
 import { type ReactNode } from "react";
+import Link from "next/link";
 import { Tag } from "@/src/components/ui/tag/tag";
 
 interface EquipmentTagProps {
     icon: ReactNode;
-    equipmentType: string;
-    capacity: number;
-    color: string;
-    bgColor: string;
+    model: string;
+    size?: number | null;
+    link: string;
 }
 
-export const EquipmentTag = ({ icon, equipmentType, capacity, color, bgColor }: EquipmentTagProps) => {
-    const displayText = capacity > 1 ? `${equipmentType} (x${capacity})` : equipmentType;
+export const EquipmentTag = ({ icon, model, size, link }: EquipmentTagProps) => {
+    const displayText = size ? `${model} ${size}` : model;
 
-    return <Tag icon={icon} name={displayText} bgColor={bgColor} borderColorHex={color} color={color} />;
+    return (
+        <Link href={link}>
+            <Tag icon={icon} name={displayText} />
+        </Link>
+    );
 };

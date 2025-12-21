@@ -323,10 +323,15 @@ export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>>
 
         // 1. Fetch events with lesson and teacher relations
         const eventWithRelations = {
+            equipmentEvents: {
+                with: {
+                    equipment: true,
+                },
+            },
             lesson: {
                 with: {
                     teacher: true,
-                    commission: true, // <-- Add this line
+                    commission: true, 
                     booking: {
                         with: {
                             studentPackage: {
