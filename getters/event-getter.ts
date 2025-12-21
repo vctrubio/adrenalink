@@ -140,11 +140,11 @@ export class EventStats {
 	/**
 	 * Get all student names from event as a string
 	 */
-	static getStudentNames(event: EventModel): string {
+	static getStudentNames(event: EventModel): string[] {
 		const lesson = event.relations?.lesson;
 		const booking = lesson?.booking;
 		const bookingStudents = booking?.bookingStudents || [];
-		if (bookingStudents.length === 0) return "No students";
-		return bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
+		if (bookingStudents.length === 0) return [];
+		return bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
 	}
 }

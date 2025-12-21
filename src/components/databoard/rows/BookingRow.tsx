@@ -57,10 +57,20 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     const packageDesc = schoolPackage?.description || "No package";
 
     const bookingStudents = booking.relations?.bookingStudents || [];
-    const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
+    const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
 
     const strItems = [
-        { label: "Students", value: studentNames || "No students" },
+        {
+            label: "Students",
+            			value: (
+            				<div className="flex flex-col">
+            					{studentNames.length > 0 ? (
+            						studentNames.map((name, index) => <span key={index}>{name}</span>)
+            					) : (
+            						<span>No students</span>
+            					)}
+            				</div>
+            			),        },
         { label: "Created", value: formatDate(booking.schema.createdAt) },
         { label: "Start", value: formatDate(booking.schema.dateStart) },
         { label: "End", value: formatDate(booking.schema.dateEnd) },

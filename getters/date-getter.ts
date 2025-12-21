@@ -126,3 +126,8 @@ export function prettyDateSpan(dateStart: string | Date, dateEnd: string | Date)
 
   return `${startFormatted} +${diffDays}`;
 }
+
+export function formatEventTime(date: string | Date): string {
+    const d = new Date(date);
+    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+}

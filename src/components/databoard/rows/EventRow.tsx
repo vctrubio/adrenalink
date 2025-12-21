@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { EventStats as EventStatsGetters } from "@/getters/event-getter";
 import { EventStats as DataboardEventStats } from "@/src/components/databoard/stats";
-import { formatDate } from "@/getters/date-getter";
+import { formatDate, formatEventTime } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { updateEvent } from "@/actions/events-action";
@@ -48,12 +47,6 @@ interface EventRowProps {
 }
 
 export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
-    const [eventTime, setEventTime] = useState("");
-
-    useEffect(() => {
-        setEventTime(new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
-    }, [event.schema.date]);
-
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -72,7 +65,18 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
     const studentNames = EventStatsGetters.getStudentNames(event);
 
     const strItems = [
-        { label: "Students", value: studentNames },
+        {
+            label: "Students",
+			value: (
+				<div className="flex flex-col">
+					{studentNames.length > 0 ? (
+						studentNames.map((name, index) => <span key={index}>{name}</span>)
+					) : (
+						<span>No students</span>
+					)}
+				</div>
+			),
+        },
         { label: "Date", value: formatDate(event.schema.date) },
         { label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
         { label: "Location", value: event.schema.location || "TBD" },
@@ -121,7 +125,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
                 name: (
                     <div className="flex items-baseline gap-2">
                         <HoverToEntity entity={eventEntity} id={event.schema.id}>
-                            <span className="text-lg font-bold">{eventTime}</span>
+                            <span className="text-lg font-bold">{formatEventTime(event.schema.date)}</span>
                         </HoverToEntity>
                         <span className="text-muted-foreground text-sm">
                             {new Date(event.schema.date).getDate()}-{new Date(event.schema.date).toLocaleString("en-US", { month: "short" })}
