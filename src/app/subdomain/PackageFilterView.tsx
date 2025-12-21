@@ -11,6 +11,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
+import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 
 // --- PROPS ---
 interface PackageFilterViewProps {
@@ -477,27 +478,11 @@ export const PackageFilterView = ({ packages, schoolName, schoolUsername, equipm
                                         </div>
 
                                         {/* Capacity */}
-                                        <div className="flex items-center justify-center">
-                                            <div className="flex items-center gap-1">
-                                                {pkg.capacityEquipment > 0 && (
-                                                    <>
-                                                        <div style={{ color: categoryConfig.color }}>
-                                                            <CategoryIcon size={16} />
-                                                        </div>
-                                                        {pkg.capacityEquipment > 1 && (
-                                                            <p className="text-sm font-medium text-foreground">{pkg.capacityEquipment}</p>
-                                                        )}
-                                                        <span className="text-sm text-muted-foreground mx-1">/</span>
-                                                    </>
-                                                )}
-                                                <div style={{ color: helmetColor }}>
-                                                    <HelmetIcon size={16} />
-                                                </div>
-                                                {pkg.capacityStudents > 1 && (
-                                                    <p className="text-sm font-medium text-foreground">{pkg.capacityStudents}</p>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <EquipmentStudentCapacityBadge
+                                            categoryIcon={CategoryIcon}
+                                            equipmentCapacity={pkg.capacityEquipment}
+                                            studentCapacity={pkg.capacityStudents}
+                                        />
 
                                         {/* Duration */}
                                         <div className="flex items-center justify-end">
