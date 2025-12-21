@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Switch } from "@headlessui/react";
 import {
   getRelativeDateLabel,
   formatDateForInput,
@@ -9,9 +10,8 @@ import {
   isBeforeToday,
   toISOString,
   addDays,
-  daysBetween,
+  calculateDaysDifference,
 } from "@/getters/date-getter";
-import { DateNavigationButtons } from "./DateNavigationButtons";
 
 export interface DateRange {
   startDate: string;
@@ -35,6 +35,8 @@ export function DoubleDatePicker({
   showNavigationButtons = true,
   showDayCounter = true,
 }: DoubleDatePickerProps) {
+  const [oneDay, setOneDay] = useState(false);
+
   // Initialize with proper dates if empty
   useEffect(() => {
     if (!dateRange.startDate || !dateRange.endDate) {
@@ -65,7 +67,11 @@ export function DoubleDatePicker({
   const startRelativeLabel = getRelativeDateLabel(safeStartDate);
   const endRelativeLabel = getRelativeDateLabel(safeEndDate);
 
-  const daysDifference = Math.max(1, daysBetween(startDate, endDate));
+  const daysDifference = calculateDaysDifference(safeStartDate, safeEndDate);
+
+  useEffect(() => {
+    setOneDay(daysDifference === 0);
+  }, [daysDifference]);
 
   const updateParent = (newStartDate: Date, newEndDate: Date) => {
     const startISO = toISOString(newStartDate);
@@ -81,7 +87,7 @@ export function DoubleDatePicker({
 
   const decrementEndDate = () => {
     if (disabled) return;
-    if (daysDifference <= 1) return;
+    if (daysDifference <= 0) return;
     const newEndDate = addDays(endDate, -1);
     updateParent(startDate, newEndDate);
   };
@@ -90,7 +96,9 @@ export function DoubleDatePicker({
     if (disabled) return;
     const newStartDate = addDays(startDate, 1);
     let newEndDate = new Date(endDate);
-    if (newStartDate >= newEndDate) {
+    if (oneDay) {
+      newEndDate = new Date(newStartDate);
+    } else if (newStartDate >= newEndDate) {
       newEndDate = addDays(newStartDate, 1);
     }
     updateParent(newStartDate, newEndDate);
@@ -100,7 +108,13 @@ export function DoubleDatePicker({
     if (disabled) return;
     const newStartDate = addDays(startDate, -1);
     if (!allowPastDates && isBeforeToday(newStartDate.toISOString())) return;
-    updateParent(newStartDate, endDate);
+
+    let newEndDate = endDate;
+    if (oneDay) {
+      newEndDate = newStartDate;
+    }
+
+    updateParent(newStartDate, newEndDate);
   };
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +125,9 @@ export function DoubleDatePicker({
     selectedDate.setHours(12, 0, 0, 0);
 
     let newEndDate = new Date(endDate);
-    if (selectedDate >= endDate) {
+    if (oneDay) {
+      newEndDate = new Date(selectedDate);
+    } else if (selectedDate >= endDate) {
       newEndDate = addDays(selectedDate, 1);
     }
 
@@ -147,23 +163,43 @@ export function DoubleDatePicker({
       <div className="grid grid-cols-2 gap-8">
         {/* Start Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            Start Date
-            {startRelativeLabel && (
-              <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">
-                {startRelativeLabel}
-              </span>
-            )}
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="start-date-input"
+              className="text-sm font-medium text-muted-foreground flex items-center gap-2"
+            >
+              Start Date
+              {startRelativeLabel && (
+                <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">
+                  {startRelativeLabel}
+                </span>
+              )}
+            </label>
             {showNavigationButtons && (
-              <DateNavigationButtons
-                onPrevious={decrementStartDate}
-                onNext={incrementStartDate}
-                disabled={disabled}
-                className="ml-auto"
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={decrementStartDate}
+                  disabled={disabled}
+                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Previous"
+                >
+                  <span className="text-lg font-semibold">−</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={incrementStartDate}
+                  disabled={disabled}
+                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Next"
+                >
+                  <span className="text-lg font-semibold">+</span>
+                </button>
+              </div>
             )}
-          </label>
+          </div>
           <input
+            id="start-date-input"
             type="date"
             value={formatDateForInput(startDate)}
             onChange={handleStartDateChange}
@@ -182,13 +218,28 @@ export function DoubleDatePicker({
                 {endRelativeLabel}
               </span>
             )}
+            <Switch
+              checked={oneDay}
+              onChange={(checked) => {
+                setOneDay(checked);
+                if (checked) {
+                  updateParent(startDate, startDate);
+                } else {
+                  updateParent(startDate, addDays(endDate, 1));
+                }
+              }}
+              disabled={disabled}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ml-auto ${oneDay ? "bg-blue-500 focus:ring-blue-500" : "bg-muted-foreground/40 focus:ring-muted-foreground"}`}
+            >
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform ${oneDay ? "translate-x-5" : "translate-x-0.5"}`} />
+            </Switch>
           </label>
           <input
             type="date"
             value={formatDateForInput(endDate)}
             onChange={handleEndDateChange}
             min={getMinEndDate()}
-            disabled={disabled}
+            disabled={disabled || oneDay}
             className="w-full p-3 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           />
         </div>
@@ -200,14 +251,16 @@ export function DoubleDatePicker({
           <button
             type="button"
             onClick={decrementEndDate}
-            disabled={disabled || daysDifference <= 1}
+            disabled={disabled || daysDifference <= 0 || oneDay}
             className="btn-round-outline btn-round-sm"
           >
             - 1 Day
           </button>
 
           <span className="text-sm font-medium text-foreground px-2">
-            {daysDifference} day{daysDifference !== 1 ? "s" : ""}
+            {daysDifference === 0
+              ? "One Day"
+              : `${daysDifference + 1} day${daysDifference + 1 !== 1 ? "s" : ""}`}
           </span>
 
           <button
