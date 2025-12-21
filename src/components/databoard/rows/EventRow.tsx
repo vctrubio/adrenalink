@@ -140,8 +140,8 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 						<HoverToEntity entity={eventEntity} id={event.schema.id}>
 							{eventTime}
 						</HoverToEntity>
-						<span className="bg-gray-400 text-white px-2 py-1 rounded-sm text-xs">
-							{getPrettyDuration(event.schema.duration || 0)}
+						<span className="text-muted-foreground text-xs">
+							00-{new Date(event.schema.date).toLocaleString('en-US', { month: 'short' })}
 						</span>
 					</div>
 				),
