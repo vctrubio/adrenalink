@@ -180,6 +180,11 @@ const entityRelations = {
         school: true,
         studentPackages: {
             with: {
+                studentPackageStudents: {
+                    with: {
+                        student: true,
+                    },
+                },
                 bookings: {
                     with: {
                         lessons: {
