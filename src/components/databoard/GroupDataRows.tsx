@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { RowStats, type StatItem } from "@/src/components/ui/row";
@@ -34,7 +34,12 @@ interface GroupDataRowsProps<T> {
 }
 
 export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpandedRow, entityId, entityColor }: GroupDataRowsProps<T>) => {
-    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set(groupedData.map((_, index) => index)));
+    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
+    // Reset to collapsed when groupedData changes (e.g., when changing group by option)
+    useEffect(() => {
+        setExpandedGroups(new Set());
+    }, [groupedData.length]);
 
     const handleToggle = (id: string) => {
         setExpandedRow(expandedRow === id ? null : id);
@@ -68,8 +73,8 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
     return (
         <div className="space-y-6">
             {groupedData.map((group, groupIndex) => {
-                const isGroupExpanded = expandedGroups.has(groupIndex);
                 const showHeader = group.label !== "All";
+                const isGroupExpanded = showHeader ? expandedGroups.has(groupIndex) : true;
 
                 return (
                     <motion.div
@@ -81,7 +86,7 @@ export const GroupDataRows = <T,>({ groupedData, renderRow, expandedRow, setExpa
                     >
                         {showHeader && (
                             <div
-                                className="px-6 py-4 border-b cursor-pointer transition-colors"
+                                className="px-6 py-4 border-b-2 cursor-pointer transition-colors"
                                 style={{ borderColor: entityColor }}
                                 onClick={() => toggleGroup(groupIndex)}
                             >

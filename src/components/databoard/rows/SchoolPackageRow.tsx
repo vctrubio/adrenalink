@@ -5,6 +5,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { SchoolPackageStats as DataboardSchoolPackageStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
+import { PackageDropdownRow } from "./PackageDropdownRow";
 import { SCHOOL_PACKAGE_STATUS_CONFIG, type SchoolPackageStatus } from "@/types/status";
 import { updateSchoolPackageActive } from "@/actions/packages-action";
 import type { SchoolPackageModel } from "@/backend/models";
@@ -16,7 +17,6 @@ interface SchoolPackageRowProps {
     item: SchoolPackageModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: SchoolPackageStatus, toStatus: SchoolPackageStatus): boolean {
@@ -24,7 +24,7 @@ function validateActivity(fromStatus: SchoolPackageStatus, toStatus: SchoolPacka
     return true;
 }
 
-export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle, expandedContent }: SchoolPackageRowProps) => {
+export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: SchoolPackageRowProps) => {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const PackageIconComponent = packageEntity.icon;
@@ -70,7 +70,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle, ex
             entityColor={packageEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<PackageDropdownRow item={schoolPackage} />}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

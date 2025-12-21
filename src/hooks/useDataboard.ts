@@ -155,7 +155,7 @@ export const useDataboard = <T>(
             let key: string;
 
             if (group === "Daily") {
-                key = createdAt.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
+                key = createdAt.toLocaleDateString("en-GB", { weekday: 'long', day: 'numeric', month: 'long' });
             } else if (group === "Weekly") {
                 const weekStart = new Date(createdAt);
                 weekStart.setDate(createdAt.getDate() - createdAt.getDay());

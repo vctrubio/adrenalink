@@ -11,6 +11,7 @@ import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import { updateBooking } from "@/actions/bookings-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { BookingModel } from "@/backend/models";
+import { BookingDropdownRow } from "./BookingDropdownRow";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
@@ -43,10 +44,9 @@ interface BookingRowProps {
     item: BookingModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-    expandedContent?: React.ReactNode;
 }
 
-export const BookingRow = ({ item: booking, isExpanded, onToggle, expandedContent }: BookingRowProps) => {
+export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     const BookingIconComponent = bookingEntity.icon;
@@ -71,7 +71,8 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle, expandedConten
             						<span>No students</span>
             					)}
             				</div>
-            			),        },
+            			),
+        },
         { label: "Created", value: formatDate(booking.schema.createdAt) },
         { label: "Start", value: formatDate(booking.schema.dateStart) },
         { label: "End", value: formatDate(booking.schema.dateEnd) },
@@ -108,7 +109,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle, expandedConten
             entityColor={bookingEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<BookingDropdownRow item={booking} />}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>
@@ -148,3 +149,4 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle, expandedConten
         />
     );
 };
+

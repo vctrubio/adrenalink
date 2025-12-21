@@ -23,6 +23,15 @@ const fadeSlide = {
     exit: { opacity: 0, y: -20 },
 };
 
+export function DataboardHeaderSkeleton() {
+    return (
+        <div className="flex items-center gap-4 px-2 animate-pulse">
+            <div className="w-14 h-14 rounded-full border-2 border-muted bg-muted/30 flex-shrink-0" />
+            <div className="h-8 w-32 sm:w-40 bg-muted/50 rounded-lg" />
+        </div>
+    );
+}
+
 interface FilterDropdownProps {
     label: string;
     value: string;
@@ -47,12 +56,11 @@ function FilterDropdown({ label, value, options, onChange, entityColor }: Filter
 
     return (
         <div ref={dropdownRef} className="relative">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
-            >
+            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm">
                 <span className="text-muted-foreground text-xs uppercase">{label}:</span>
-                <span className="font-medium" style={{ color: entityColor }}>{value}</span>
+                <span className="font-medium" style={{ color: entityColor }}>
+                    {value}
+                </span>
                 <svg className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -108,15 +116,7 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
             {/* Top Row: Icon + Name | Stats */}
             <div className="flex items-center justify-between gap-6">
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key={entityId}
-                        variants={fadeSlide}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center gap-4"
-                    >
+                    <motion.div key={entityId} variants={fadeSlide} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }} className="flex items-center gap-4 px-2">
                         <motion.div
                             className="w-14 h-14 flex items-center justify-center rounded-full border-2 [&>svg]:w-full [&>svg]:h-full flex-shrink-0 p-2.5"
                             style={{ borderColor: entity.color, color: entity.color }}
@@ -131,14 +131,7 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                 </AnimatePresence>
 
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key={entityId}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2, delay: 0.1 }}
-                        className="flex-shrink-0"
-                    >
+                    <motion.div key={entityId} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2, delay: 0.1 }} className="flex-shrink-0">
                         <DataboardStats stats={stats} />
                     </motion.div>
                 </AnimatePresence>
@@ -150,32 +143,19 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                     <input
                         type="text"
                         placeholder="Search..."
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-all"
+                        style={{
+                            "--focus-ring-color": entity.color,
+                        } as React.CSSProperties}
+                        onFocus={(e) => (e.currentTarget.style.boxShadow = `0 0 0 2px ${entity.color}40`)}
+                        onBlur={(e) => (e.currentTarget.style.boxShadow = "")}
                     />
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <FilterDropdown
-                        label="Filter"
-                        value={controller.filter}
-                        options={filterOptions}
-                        onChange={controller.onFilterChange}
-                        entityColor={entity.color}
-                    />
-                    <FilterDropdown
-                        label="Group"
-                        value={controller.group}
-                        options={GROUP_OPTIONS}
-                        onChange={controller.onGroupChange}
-                        entityColor={entity.color}
-                    />
-                    <FilterDropdown
-                        label="Status"
-                        value={controller.activity}
-                        options={getActivityOptions(entityId)}
-                        onChange={(v) => controller.onActivityChange(v)}
-                        entityColor={entity.color}
-                    />
+                    <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={controller.onFilterChange} entityColor={entity.color} />
+                    <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />
+                    <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v)} entityColor={entity.color} />
                 </div>
             </div>
         </div>

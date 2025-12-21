@@ -9,6 +9,7 @@ import { StudentStats as DataboardStudentStats } from "@/src/components/databoar
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
 import { updateSchoolStudentActive } from "@/actions/students-action";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
+import { StudentDropdownRow } from "./StudentDropdownRow";
 import type { StudentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
@@ -40,7 +41,6 @@ interface StudentRowProps {
     isExpanded: boolean;
     onToggle: (id: string) => void;
     onStatusChange?: () => void;
-    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
@@ -48,7 +48,7 @@ function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStude
     return true;
 }
 
-export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange, expandedContent }: StudentRowProps) => {
+export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const StudentIcon = studentEntity.icon;
@@ -92,7 +92,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
             entityColor={studentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<StudentDropdownRow item={student} />}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

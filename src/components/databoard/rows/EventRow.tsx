@@ -12,6 +12,7 @@ import { updateEvent } from "@/actions/events-action";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EventDropdownRow } from "./EventDropdownRow";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EquipmentCreateTag, EquipmentTag } from "@/src/components/tags";
 
@@ -44,10 +45,9 @@ interface EventRowProps {
     item: EventModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-    expandedContent?: React.ReactNode;
 }
 
-export const EventRow = ({ item: event, isExpanded, onToggle, expandedContent }: EventRowProps) => {
+export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -117,7 +117,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle, expandedContent }:
             entityColor={eventEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<EventDropdownRow item={event} />}
             head={{
                 avatar: (
                     <div className="group" style={{ color: iconColor }}>

@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ENTITY_DATA } from "@/config/entities";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardController as DataboardControllerType } from "@/types/databoard";
 
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
@@ -11,6 +9,29 @@ const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "
 const FILTER_OPTIONS_EQUIPMENT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days", "Active"];
 const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Daily", "Weekly", "Monthly"];
 
+interface DataHeaderProps {
+    icon: ReactNode;
+    color: string;
+    title: string;
+    subtitle: string;
+}
+
+export function DataHeader({ icon, color, title, subtitle }: DataHeaderProps) {
+    return (
+        <div>
+            <div className="flex items-center gap-6">
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" style={{ color }}>
+                    {icon}
+                </div>
+                <div>
+                    <h3 className="text-3xl font-bold text-foreground">{title}</h3>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">{subtitle}</div>
+                </div>
+            </div>
+            <div className="h-1 w-full rounded-full my-4" style={{ backgroundColor: color }} />
+        </div>
+    );
+}
 interface DataboardControllerProps {
     controller: DataboardControllerType;
     isMobile?: boolean;
@@ -35,88 +56,81 @@ export default function DataboardController({ controller, isMobile = false }: Da
 
     return (
         <div className="space-y-6">
-            <DataHeader
-                icon={<Icon />}
-                color={activeEntity.color}
-                title={activeEntity.name}
-                subtitle={`${activeCount} Active`}
-            />
+            <DataHeader icon={<Icon />} color={activeEntity.color} title={activeEntity.name} subtitle={`${activeCount} Active`} />
 
-                {/* Filter */}
-                <div className="space-y-2">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter</div>
-                    <div className="flex flex-wrap gap-2">
-                        {filterOptions.map((option) => {
-                            const isActive = controller.filter === option;
-                            return (
-                                <button
-                                    key={option}
-                                    onClick={() => controller.onFilterChange(option)}
-                                    style={{
-                                        borderColor: isActive ? activeEntity.color : undefined,
-                                        backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
-                                >
-                                    {option}
-                                </button>
-                            );
-                        })}
-                    </div>
+            {/* Filter */}
+            <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter</div>
+                <div className="flex flex-wrap gap-2">
+                    {filterOptions.map((option) => {
+                        const isActive = controller.filter === option;
+                        return (
+                            <button
+                                key={option}
+                                onClick={() => controller.onFilterChange(option)}
+                                style={{
+                                    borderColor: isActive ? activeEntity.color : undefined,
+                                    backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
+                            >
+                                {option}
+                            </button>
+                        );
+                    })}
                 </div>
+            </div>
 
-                {/* Group By */}
-                <div className="space-y-2">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Group By</div>
-                    <div className="flex flex-wrap gap-2">
-                        {GROUP_OPTIONS.map((option) => {
-                            const isActive = controller.group === option;
-                            return (
-                                <button
-                                    key={option}
-                                    onClick={() => controller.onGroupChange(option)}
-                                    style={{
-                                        borderColor: isActive ? activeEntity.color : undefined,
-                                        backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
-                                >
-                                    {option}
-                                </button>
-                            );
-                        })}
-                    </div>
+            {/* Group By */}
+            <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Group By</div>
+                <div className="flex flex-wrap gap-2">
+                    {GROUP_OPTIONS.map((option) => {
+                        const isActive = controller.group === option;
+                        return (
+                            <button
+                                key={option}
+                                onClick={() => controller.onGroupChange(option)}
+                                style={{
+                                    borderColor: isActive ? activeEntity.color : undefined,
+                                    backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
+                            >
+                                {option}
+                            </button>
+                        );
+                    })}
                 </div>
+            </div>
 
-                {/* Filter Activity */}
-                <div className="space-y-2">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter Activity</div>
-                    <div className="flex flex-wrap gap-2">
-                        {["All", "Active", "Inactive"].map((option) => {
-                            const isActive = controller.activity === option;
-                            return (
-                                <button
-                                    key={option}
-                                    onClick={() => controller.onActivityChange(option as "All" | "Active" | "Inactive")}
-                                    style={{
-                                        borderColor: isActive ? activeEntity.color : undefined,
-                                        backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
-                                >
-                                    {option}
-                                </button>
-                            );
-                        })}
-                    </div>
+            {/* Filter Activity */}
+            <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Filter Activity</div>
+                <div className="flex flex-wrap gap-2">
+                    {["All", "Active", "Inactive"].map((option) => {
+                        const isActive = controller.activity === option;
+                        return (
+                            <button
+                                key={option}
+                                onClick={() => controller.onActivityChange(option as "All" | "Active" | "Inactive")}
+                                style={{
+                                    borderColor: isActive ? activeEntity.color : undefined,
+                                    backgroundColor: isActive ? `${activeEntity.color}20` : undefined,
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive ? "border" : "border border-transparent hover:bg-muted/50"}`}
+                            >
+                                {option}
+                            </button>
+                        );
+                    })}
                 </div>
+            </div>
 
-                {/* Add Button */}
-                <button onClick={controller.onAddClick} style={{ borderColor: activeEntity.color }} className="w-full px-4 py-2 rounded-lg border text-sm font-medium hover:bg-muted/50 transition-colors">
-                    Add {activeEntity.name}
-                </button>
-
-             
+            {/* Add Button */}
+            <button onClick={controller.onAddClick} style={{ borderColor: activeEntity.color }} className="w-full px-4 py-2 rounded-lg border text-sm font-medium hover:bg-muted/50 transition-colors">
+                Add {activeEntity.name}
+            </button>
         </div>
     );
 }

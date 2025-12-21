@@ -5,6 +5,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { LessonTag, LessonCreateTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
+import { TeacherDropdownRow } from "./TeacherDropdownRow";
 import { isTeacherLessonReady } from "@/getters/teachers-getter";
 import { TeacherStats as DataboardTeacherStats } from "@/src/components/databoard/stats";
 import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
@@ -37,7 +38,6 @@ interface TeacherRowProps {
     item: TeacherModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): boolean {
@@ -45,7 +45,7 @@ function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): b
     return true;
 }
 
-export const TeacherRow = ({ item: teacher, isExpanded, onToggle, expandedContent }: TeacherRowProps) => {
+export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     const TeacherIcon = teacherEntity.icon;
@@ -86,7 +86,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle, expandedConten
             entityColor={teacherEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<TeacherDropdownRow item={teacher} />}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

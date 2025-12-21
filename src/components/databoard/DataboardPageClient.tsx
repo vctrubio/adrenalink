@@ -1,9 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef, ComponentType } from "react";
+import { ComponentType } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DataboardRowsSection } from "./ClientDataHeader";
-import { useDataboardController } from "@/src/components/layouts/DataboardLayout";
 import type { StatItem } from "@/src/components/ui/row";
 
 interface DataboardPageClientProps<T> {
@@ -11,7 +10,6 @@ interface DataboardPageClientProps<T> {
     data: T[];
     rowComponent: ComponentType<{ item: T }>;
     calculateStats: (data: T[]) => StatItem[];
-    dropdownComponent?: ComponentType<{ item: T }>;
 }
 
 export function DataboardPageClient<T>({
@@ -19,23 +17,7 @@ export function DataboardPageClient<T>({
     data,
     rowComponent,
     calculateStats,
-    dropdownComponent,
 }: DataboardPageClientProps<T>) {
-    const controller = useDataboardController();
-    const prevStatsRef = useRef<StatItem[]>([]);
-
-    useLayoutEffect(() => {
-        if (controller.onStatsChange) {
-            const stats = calculateStats(data);
-            const hasChanged = JSON.stringify(stats) !== JSON.stringify(prevStatsRef.current);
-            if (hasChanged) {
-                prevStatsRef.current = stats;
-                controller.onStatsChange(stats);
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data]);
-
     return (
         <AnimatePresence mode="wait">
             <motion.div
@@ -45,7 +27,7 @@ export function DataboardPageClient<T>({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
             >
-                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} dropdownComponent={dropdownComponent} />
+                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} calculateStats={calculateStats} />
             </motion.div>
         </AnimatePresence>
     );

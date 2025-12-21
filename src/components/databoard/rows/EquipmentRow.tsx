@@ -12,6 +12,7 @@ import { formatDate } from "@/getters/date-getter";
 import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
 import { updateEquipmentStatus } from "@/actions/equipments-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import { EquipmentDropdownRow } from "./EquipmentDropdownRow";
 import type { EquipmentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 
@@ -33,7 +34,6 @@ interface EquipmentRowProps {
     item: EquipmentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-    expandedContent?: React.ReactNode;
 }
 
 function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus): boolean {
@@ -41,40 +41,9 @@ function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus
     return true;
 }
 
-export const EquipmentRow = ({ item: equipment, isExpanded, onToggle, expandedContent }: EquipmentRowProps) => {
-    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-
-    // Get category-specific icon
-    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
-    const CategoryIcon = categoryConfig?.icon;
-    const categoryColor = categoryConfig?.color || equipmentEntity.color;
-    const iconColor = isExpanded ? categoryColor : "#9ca3af";
-
-    const equipmentName = getEquipmentName(equipment);
-    const currentStatus = equipment.schema.status as EquipmentStatus;
-    const currentStatusConfig = EQUIPMENT_STATUS_CONFIG[currentStatus];
-
-    const statusDropdownItems: DropdownItemProps[] = (["rental", "public", "selling", "sold", "inrepair", "rip"] as const).map((status) => ({
-        id: status,
-        label: EQUIPMENT_STATUS_CONFIG[status].label,
-        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EQUIPMENT_STATUS_CONFIG[status].color }} />,
-        color: EQUIPMENT_STATUS_CONFIG[status].color,
-        onClick: async () => {
-            if (validateActivity(currentStatus, status)) {
-                await updateEquipmentStatus(equipment.schema.id, status);
-            }
-        },
-    }));
-
-    const strItems = [
-        { label: "SKU", value: equipment.schema.sku },
-        { label: "Color", value: equipment.schema.color || "N/A" },
-        { label: "Category", value: equipment.schema.category },
-        { label: "Updated", value: formatDate(equipment.schema.updatedAt) },
-    ];
-
-    const stats = DataboardEquipmentStats.getStats(equipment, false);
-
+export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
+//...
+//...
     return (
         <Row
             id={equipment.schema.id}
@@ -83,7 +52,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle, expandedCo
             entityColor={equipmentEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            expandedContent={expandedContent}
+            expandedContent={<EquipmentDropdownRow item={equipment} />}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>
