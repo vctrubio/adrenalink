@@ -4,6 +4,7 @@ export interface StatItem {
     icon: ReactNode;
     value: string | number;
     color: string;
+    label?: string;
 }
 
 interface RowStatsProps {
