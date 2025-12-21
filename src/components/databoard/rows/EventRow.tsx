@@ -82,13 +82,20 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 			onToggle={onToggle}
 			head={{
 				avatar: (
-					<div style={{ color: CategoryIcon ? categoryConfig.color : iconColor }}>
-						{CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <EventIconComponent className="w-10 h-10" />}
+					<div className="group" style={{ color: iconColor }}>
+						{CategoryIcon ? (
+							<CategoryIcon
+								className="w-10 h-10 transition-colors duration-200 group-hover:!text-current"
+								style={{ color: categoryConfig.color }}
+							/>
+						) : (
+							<EventIconComponent className="w-10 h-10" />
+						)}
 					</div>
 				),
 				name: (
 					<HoverToEntity entity={eventEntity} id={event.schema.id}>
-						{`Event ${event.schema.id.slice(0, 8)}`}
+						{new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
 					</HoverToEntity>
 				),
 				status: currentStatusConfig.label,
