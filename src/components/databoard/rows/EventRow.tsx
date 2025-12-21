@@ -19,158 +19,141 @@ import { EquipmentCreateTag, EquipmentTag } from "@/src/components/tags";
 export const calculateEventGroupStats = DataboardEventStats.getStats;
 
 const EventAction = ({ event }: { event: EventModel }) => {
-	const equipmentEvents = event.relations?.equipmentEvents || [];
-	const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-	const EquipmentIcon = equipmentEntity.icon;
+    const equipmentEvents = event.relations?.equipmentEvents || [];
+    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+    const EquipmentIcon = equipmentEntity.icon;
 
-	return (
-		<div className="flex flex-wrap gap-2">
-			{equipmentEvents.length === 0 ? (
-				<EquipmentCreateTag icon={<EquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Adding new equipment...")} />
-			) : (
-				<>
-					{equipmentEvents.map((equipmentEvent) => {
-						const equipment = equipmentEvent.equipment;
-						if (!equipment) return null;
+    return (
+        <div className="flex flex-wrap gap-2">
+            {equipmentEvents.length === 0 ? (
+                <EquipmentCreateTag icon={<EquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Adding new equipment...")} />
+            ) : (
+                <>
+                    {equipmentEvents.map((equipmentEvent) => {
+                        const equipment = equipmentEvent.equipment;
+                        if (!equipment) return null;
 
-						return (
-							<EquipmentTag
-								key={equipment.id}
-								icon={<EquipmentIcon className="w-3 h-3" />}
-								model={equipment.model}
-								size={equipment.size}
-								link={`/equipments/${equipment.id}`}
-							/>
-						);
-					})}
-				</>
-			)}
-		</div>
-	);
+                        return <EquipmentTag key={equipment.id} icon={<EquipmentIcon className="w-3 h-3" />} model={equipment.model} size={equipment.size} link={`/equipments/${equipment.id}`} />;
+                    })}
+                </>
+            )}
+        </div>
+    );
 };
 
 interface EventRowProps {
-	item: EventModel;
-	isExpanded: boolean;
-	onToggle: (id: string) => void;
+    item: EventModel;
+    isExpanded: boolean;
+    onToggle: (id: string) => void;
 }
 
 export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
-	const [eventTime, setEventTime] = useState("");
+    const [eventTime, setEventTime] = useState("");
 
-	useEffect(() => {
-		setEventTime(new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
-	}, [event.schema.date]);
+    useEffect(() => {
+        setEventTime(new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
+    }, [event.schema.date]);
 
-	const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-	const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-	const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
-	const EventIconComponent = eventEntity.icon;
-	const entityColor = eventEntity.color;
-	const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const EventIconComponent = eventEntity.icon;
+    const entityColor = eventEntity.color;
+    const iconColor = isExpanded ? entityColor : "#9ca3af";
 
-	const teacherName = EventStatsGetters.getTeacherName(event);
-	const packageDesc = EventStatsGetters.getPackageDescription(event);
-	const enrolledCount = EventStatsGetters.getEnrolledStudentsCount(event);
-	const capacity = EventStatsGetters.getStudentCapacity(event);
-	const schoolPackage = event.relations.lesson?.booking?.studentPackage?.schoolPackage;
-	const category = schoolPackage?.categoryEquipment;
-	const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
-	const CategoryIcon = categoryConfig?.icon;
-	const leaderStudentName = EventStatsGetters.getLeaderStudentName(event);
-	const studentNames = EventStatsGetters.getStudentNames(event);
+    const packageDesc = EventStatsGetters.getPackageDescription(event);
+    const capacity = EventStatsGetters.getStudentCapacity(event);
+    const schoolPackage = event.relations.lesson?.booking?.studentPackage?.schoolPackage;
+    const category = schoolPackage?.categoryEquipment;
+    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
+    const CategoryIcon = categoryConfig?.icon;
+    const leaderStudentName = EventStatsGetters.getLeaderStudentName(event);
+    const studentNames = EventStatsGetters.getStudentNames(event);
 
-	const strItems = [
-		{ label: "Students", value: studentNames },
-		{ label: "Date", value: formatDate(event.schema.date) },
-		{ label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
-		{ label: "Location", value: event.schema.location || "TBD" },
-		{
-			label: "Package",
-			value: (
-				<div className="flex items-center gap-1">
-					{CategoryIcon && <CategoryIcon className="w-4 h-4" style={{ color: categoryConfig.color }} />}
-					<span>{packageDesc}</span>
-				</div>
-			),
-		},
-	];
+    const strItems = [
+        { label: "Students", value: studentNames },
+        { label: "Date", value: formatDate(event.schema.date) },
+        { label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
+        { label: "Location", value: event.schema.location || "TBD" },
+        {
+            label: "Package",
+            value: (
+                <div className="flex items-center gap-1">
+                    {CategoryIcon && <CategoryIcon className="w-4 h-4" style={{ color: categoryConfig.color }} />}
+                    <span>{packageDesc}</span>
+                </div>
+            ),
+        },
+    ];
 
-	const stats = DataboardEventStats.getStats(event);
+    const stats = DataboardEventStats.getStats(event);
 
-	const currentStatus = event.schema.status;
-	const currentStatusConfig = EVENT_STATUS_CONFIG[currentStatus];
+    const currentStatus = event.schema.status;
+    const currentStatusConfig = EVENT_STATUS_CONFIG[currentStatus];
 
-	const statusDropdownItems: DropdownItemProps[] = (["planned", "tbc", "completed", "uncompleted"] as const).map((status) => ({
-		id: status,
-		label: EVENT_STATUS_CONFIG[status].label,
-		icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[status].color }} />,
-		color: EVENT_STATUS_CONFIG[status].color,
-		onClick: () => updateEvent(event.schema.id, { status: status as EventStatus }),
-	}));
+    const statusDropdownItems: DropdownItemProps[] = (["planned", "tbc", "completed", "uncompleted"] as const).map((status) => ({
+        id: status,
+        label: EVENT_STATUS_CONFIG[status].label,
+        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[status].color }} />,
+        color: EVENT_STATUS_CONFIG[status].color,
+        onClick: () => updateEvent(event.schema.id, { status: status as EventStatus }),
+    }));
 
-	const lesson = event.relations?.lesson;
-	const teacher = lesson?.teacher;
-	const TeacherIcon = teacherEntity.icon;
+    const lesson = event.relations?.lesson;
+    const teacher = lesson?.teacher;
+    const TeacherIcon = teacherEntity.icon;
 
-	return (
-		<Row
-			id={event.schema.id}
-			entityData={event.schema}
-			entityBgColor={eventEntity.bgColor}
-			entityColor={eventEntity.color}
-			isExpanded={isExpanded}
-			onToggle={onToggle}
-			head={{
-				avatar: (
-					<div className="group" style={{ color: iconColor }}>
-						{CategoryIcon ? (
-							<CategoryIcon
-								className="w-10 h-10 transition-colors duration-200 group-hover:!text-current"
-								style={{ color: categoryConfig.color }}
-							/>
-						) : (
-							<EventIconComponent className="w-10 h-10" />
-						)}
-					</div>
-				),
-				name: (
-					<div className="flex items-center gap-2">
-						<HoverToEntity entity={eventEntity} id={event.schema.id}>
-							{eventTime}
-						</HoverToEntity>
-						<span className="text-muted-foreground text-xs">
-							00-{new Date(event.schema.date).toLocaleString('en-US', { month: 'short' })}
-						</span>
-					</div>
-				),
-				status: currentStatusConfig.label,
-				dropdownItems: statusDropdownItems,
-				statusColor: currentStatusConfig.color,
-			}}
-			str={{
-				label: (
-					<div className="flex items-center gap-2">
-						{teacher && (
-							<>
-								<div style={{ color: teacherEntity.color }}>
-									<TeacherIcon className="w-4 h-4" />
-								</div>
-								<span>{teacher.username}</span>
-							</>
-						)}
-						<div style={{ color: studentEntity.color }}>
-							<HelmetIcon className="w-4 h-4" />
-						</div>
-						<span>{leaderStudentName}</span>
-						{capacity > 1 && <span className="text-muted-foreground">+{capacity - 1}</span>}
-					</div>
-				),
-				items: strItems,
-			}}
-			action={<EventAction event={event} />}
-			stats={stats}
-		/>
-	);
+    return (
+        <Row
+            id={event.schema.id}
+            entityData={event.schema}
+            entityBgColor={eventEntity.bgColor}
+            entityColor={eventEntity.color}
+            isExpanded={isExpanded}
+            onToggle={onToggle}
+            head={{
+                avatar: (
+                    <div className="group" style={{ color: iconColor }}>
+                        {CategoryIcon ? <CategoryIcon className="w-10 h-10 transition-colors duration-200 group-hover:!text-current" style={{ color: categoryConfig.color }} /> : <EventIconComponent className="w-10 h-10" />}
+                    </div>
+                ),
+                name: (
+                    <div className="flex items-baseline gap-2">
+                        <HoverToEntity entity={eventEntity} id={event.schema.id}>
+                            <span className="text-lg font-bold">{eventTime}</span>
+                        </HoverToEntity>
+                        <span className="text-muted-foreground text-sm">
+                            {new Date(event.schema.date).getDate()}-{new Date(event.schema.date).toLocaleString("en-US", { month: "short" })}
+                        </span>
+                    </div>
+                ),
+                status: currentStatusConfig.label,
+                dropdownItems: statusDropdownItems,
+                statusColor: currentStatusConfig.color,
+            }}
+            str={{
+                label: (
+                    <div className="flex items-center gap-2">
+                        {teacher && (
+                            <>
+                                <div style={{ color: teacherEntity.color }}>
+                                    <TeacherIcon className="w-4 h-4" />
+                                </div>
+                                <span>{teacher.username}</span>
+                            </>
+                        )}
+                        <div style={{ color: studentEntity.color }}>
+                            <HelmetIcon className="w-4 h-4" />
+                        </div>
+                        <span>{leaderStudentName}</span>
+                        {capacity > 1 && <span className="text-muted-foreground">+{capacity - 1}</span>}
+                    </div>
+                ),
+                items: strItems,
+            }}
+            action={<EventAction event={event} />}
+            stats={stats}
+        />
+    );
 };

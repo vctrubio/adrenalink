@@ -339,7 +339,11 @@ export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>>
                                     schoolPackage: true,
                                 },
                             },
-                            bookingStudents: true,
+                            bookingStudents: {
+                                with: {
+                                    student: true,
+                                },
+                            },
                         },
                     },
                 },

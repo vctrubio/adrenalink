@@ -25,14 +25,9 @@ interface DataboardLayoutProps {
 export function DataboardLayout({ children, controller, entityId, stats }: DataboardLayoutProps) {
     return (
         <DataboardContext.Provider value={controller}>
-            <div className="p-4 sm:p-6 lg:p-8">
-                <div className="max-w-7xl mx-auto space-y-6">
-                    <div className="space-y-4">
-                        <DataboardHeader controller={controller} entityId={entityId} stats={stats} />
-                    </div>
-
-                    <div className="space-y-6">{children}</div>
-                </div>
+            <div className="max-w-7xl mx-auto space-y-2">
+                <DataboardHeader controller={controller} entityId={entityId} stats={stats} />
+                {children}
             </div>
         </DataboardContext.Provider>
     );
