@@ -32,9 +32,7 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
 
                         {/* Form Content */}
                         <div className="col-span-8">
-                            <div className="bg-card rounded-xl border border-border shadow-lg">
-                                <div className="p-8">{form}</div>
-                            </div>
+                            <div className="">{form}</div>
                         </div>
                     </div>
                 </div>
