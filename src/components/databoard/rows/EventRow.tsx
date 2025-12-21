@@ -13,6 +13,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 export const calculateEventGroupStats = DataboardEventStats.getStats;
 
@@ -25,6 +26,7 @@ interface EventRowProps {
 export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
 	const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
 	const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+	const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
 	const EventIconComponent = eventEntity.icon;
 	const entityColor = eventEntity.color;
@@ -38,9 +40,13 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 	const category = schoolPackage?.categoryEquipment;
 	const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
 	const CategoryIcon = categoryConfig?.icon;
+	const booking = event.relations.lesson?.booking;
+	const leaderStudentName = booking?.leaderStudentName;
+	const bookingStudents = booking?.bookingStudents || [];
+	const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown")).join(", ");
 
 	const strItems = [
-		{ label: "Teacher", value: teacherName },
+		{ label: "Students", value: studentNames || "No students" },
 		{ label: "Date", value: formatDate(event.schema.date) },
 		{ label: "Duration", value: getPrettyDuration(event.schema.duration || 0) },
 		{ label: "Location", value: event.schema.location || "TBD" },
@@ -94,9 +100,14 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 					</div>
 				),
 				name: (
-					<HoverToEntity entity={eventEntity} id={event.schema.id}>
-						{new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
-					</HoverToEntity>
+					<div className="flex items-center gap-2">
+						<HoverToEntity entity={eventEntity} id={event.schema.id}>
+							{new Date(event.schema.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+						</HoverToEntity>
+						<span className="bg-gray-400 text-white px-2 py-1 rounded-sm text-xs">
+							{getPrettyDuration(event.schema.duration || 0)}
+						</span>
+					</div>
 				),
 				status: currentStatusConfig.label,
 				dropdownItems: statusDropdownItems,
@@ -113,8 +124,11 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
 								<span>{teacherName}</span>
 							</>
 						)}
-						<span className="text-muted-foreground">|</span>
-						<span>{enrolledCount}/{capacity} students</span>
+						<div style={{ color: studentEntity.color }}>
+							<HelmetIcon className="w-4 h-4" />
+						</div>
+						<span>{leaderStudentName}</span>
+						{capacity > 1 && <span className="text-muted-foreground">+{capacity - 1}</span>}
 					</div>
 				),
 				items: strItems,

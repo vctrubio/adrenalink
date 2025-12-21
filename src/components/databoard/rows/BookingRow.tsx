@@ -97,10 +97,10 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             entityColor={bookingEntity.color}
             isExpanded={isExpanded}
             onToggle={onToggle}
-    const head={{
+            head={{
                 avatar: (
                     <div style={{ color: iconColor }}>
-                        <BookingIconComponent className="w-10 h-10" />
+                        {EquipmentIcon ? <EquipmentIcon className="w-10 h-10" /> : <BookingIconComponent className="w-10 h-10" />}
                     </div>
                 ),
                 name: (
