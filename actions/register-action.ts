@@ -390,6 +390,7 @@ export async function createAndLinkPackage(
  * @param teacherId - Optional teacher ID (if provided, creates a lesson)
  * @param commissionId - Optional commission ID (required if teacherId provided)
  * @param referralId - Optional referral ID to track referral commissions
+ * @param leaderStudentName - Name of the leader student (first and last name)
  * @returns Booking with lesson (if created)
  */
 export async function masterBookingAdd(
@@ -399,7 +400,8 @@ export async function masterBookingAdd(
     dateEnd: string,
     teacherId?: string,
     commissionId?: string,
-    referralId?: string
+    referralId?: string,
+    leaderStudentName?: string
 ): Promise<ApiActionResponseModel<{
     booking: typeof booking.$inferSelect;
     lesson?: typeof lesson.$inferSelect;
@@ -413,6 +415,7 @@ export async function masterBookingAdd(
             teacherId,
             commissionId,
             referralId,
+            leaderStudentName,
         });
 
         // Get school ID from header
@@ -475,6 +478,7 @@ export async function masterBookingAdd(
                 dateStart: dateStartTimestamp.toISOString(),
                 dateEnd: dateEndTimestamp.toISOString(),
                 status: "active",
+                leaderStudentName: leaderStudentName || "",
             }).returning();
 
             console.log(`📅 [masterBookingAdd] Created booking: ${createdBooking.id}`);

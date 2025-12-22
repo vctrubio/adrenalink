@@ -66,6 +66,15 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         }
     }, [studentIdParam, schoolPackages]);
 
+    // Set leader student to first selected student
+    useEffect(() => {
+        if (selectedStudentIds.length > 0) {
+            setLeaderStudentId(selectedStudentIds[0]);
+        } else {
+            setLeaderStudentId("");
+        }
+    }, [selectedStudentIds]);
+
     const selectedStudentsList = students
         .map(ss => ss.student)
         .filter((student: any) => selectedStudentIds.includes(student.id));
@@ -188,6 +197,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const handleReset = () => {
         setSelectedPackage(null);
         setSelectedStudentIds(studentIdParam ? [studentIdParam] : []);
+        setLeaderStudentId("");
         setSelectedTeacher(null);
         setSelectedCommission(null);
         setSelectedReferral(null);
@@ -199,11 +209,17 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         }
     };
 
+    const getLeaderStudentName = () => {
+        const leaderStudent = selectedStudents.find(s => s.id === leaderStudentId);
+        return leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "";
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         setError(null);
 
         try {
+            const leaderStudentName = getLeaderStudentName();
             console.log("BOOKING FORM: Submitting booking...", {
                 packageId: selectedPackage.id,
                 studentIds: selectedStudentIds,
@@ -211,6 +227,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 dateEnd: dateRange.endDate,
                 teacherId: selectedTeacher?.id,
                 commissionId: selectedCommission?.id,
+                leaderStudentName,
             });
 
             const result = await masterBookingAdd(
@@ -220,7 +237,8 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 dateRange.endDate,
                 selectedTeacher?.id,
                 selectedCommission?.id,
-                selectedReferral?.id
+                selectedReferral?.id,
+                leaderStudentName
             );
 
             console.log("BOOKING FORM: Result from masterBookingAdd:", result);
@@ -276,6 +294,8 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                     loading={loading}
                     canCreateBooking={canCreateBooking}
                     school={school}
+                    leaderStudentId={leaderStudentId}
+                    onLeaderStudentChange={setLeaderStudentId}
                 />
             }
             form={

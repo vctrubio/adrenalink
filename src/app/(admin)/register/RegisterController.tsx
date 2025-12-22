@@ -32,6 +32,8 @@ interface RegisterControllerProps {
     teacherFormData?: TeacherFormData | null;
     packageFormData?: PackageFormData | null;
     error?: string | null;
+    leaderStudentId?: string;
+    onLeaderStudentChange?: (studentId: string) => void;
 }
 
 export default function RegisterController({
@@ -53,6 +55,8 @@ export default function RegisterController({
     teacherFormData = null,
     packageFormData = null,
     error = null,
+    leaderStudentId = "",
+    onLeaderStudentChange,
 }: RegisterControllerProps) {
     return (
         <div className={`bg-card ${isMobile ? "rounded-lg border border-border" : "lg:sticky lg:top-4"}`}>
@@ -123,6 +127,25 @@ export default function RegisterController({
                             selectedCommission={selectedCommission}
                             onScrollToSection={onScrollToSection}
                         />
+                        {selectedStudents.length > 0 && (
+                            <div className="space-y-2 pt-2">
+                                <label className="text-xs font-medium text-muted-foreground">Leader</label>
+                                <select
+                                    value={leaderStudentId}
+                                    onChange={(e) => onLeaderStudentChange?.(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                >
+                                    <option value="" disabled>
+                                        Select leader student
+                                    </option>
+                                    {selectedStudents.map((student) => (
+                                        <option key={student.id} value={student.id}>
+                                            {student.firstName} {student.lastName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <ControllerActions
                             onSubmit={onSubmit}
                             onReset={onReset}
