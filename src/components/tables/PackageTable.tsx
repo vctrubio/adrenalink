@@ -1,7 +1,8 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { useState } from "react";
+import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
+import { useState, useMemo } from "react";
 
 interface Package {
     id: string;
@@ -20,13 +21,27 @@ interface PackageTableProps {
     selectedStudentCount?: number;
 }
 
-export function PackageTable({ 
-    packages, 
-    selectedPackage, 
+type SortColumn = "duration" | "capacity" | "price" | null;
+type SortDirection = "asc" | "desc";
+
+export function PackageTable({
+    packages,
+    selectedPackage,
     onSelect,
-    selectedStudentCount = 0 
+    selectedStudentCount = 0
 }: PackageTableProps) {
     const [search, setSearch] = useState("");
+    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
 
     if (packages.length === 0) {
         return (
@@ -42,11 +57,35 @@ export function PackageTable({
         matchesStudentCount: selectedStudentCount > 0 && pkg.capacityStudents === selectedStudentCount
     }));
 
-    // Filter packages by search term (description)
-    const filteredPackages = packagesWithMatch.filter((pkg) => {
-        const searchLower = search.toLowerCase();
-        return pkg.description?.toLowerCase().includes(searchLower) || false;
-    });
+    // Filter and sort packages
+    const processedPackages = useMemo(() => {
+        let filtered = packagesWithMatch.filter((pkg) => {
+            const searchLower = search.toLowerCase();
+            return pkg.description?.toLowerCase().includes(searchLower) || false;
+        });
+
+        if (sortColumn) {
+            filtered.sort((a, b) => {
+                let comparison = 0;
+                switch (sortColumn) {
+                    case "duration":
+                        comparison = a.durationMinutes - b.durationMinutes;
+                        break;
+                    case "capacity":
+                        comparison = a.capacityStudents - b.capacityStudents;
+                        break;
+                    case "price":
+                        comparison = a.pricePerStudent - b.pricePerStudent;
+                        break;
+                }
+                return sortDirection === "asc" ? comparison : -comparison;
+            });
+        }
+
+        return filtered;
+    }, [packagesWithMatch, search, sortColumn, sortDirection]);
+
+    const filteredPackages = processedPackages;
 
     return (
         <div className="space-y-2">
@@ -76,12 +115,33 @@ export function PackageTable({
             <Table>
                 <TableHeader>
                     <tr>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "capacity"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("capacity")}
+                        >
+                            Category
+                        </TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead sortable>Duration</TableHead>
-                        <TableHead sortable>Equipment</TableHead>
-                        <TableHead sortable>Capacity</TableHead>
-                        <TableHead sortable>Price</TableHead>
-                        <TableHead>Per Hour</TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "duration"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("duration")}
+                        >
+                            Duration
+                        </TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "price"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("price")}
+                            align="right"
+                        >
+                            Price
+                        </TableHead>
+                        <TableHead align="right">Per Hour</TableHead>
                     </tr>
                 </TableHeader>
                 <TableBody>
@@ -90,6 +150,11 @@ export function PackageTable({
                         const matchesCount = pkg.matchesStudentCount;
                         const pricePerHour = (pkg.pricePerStudent * pkg.capacityStudents) / (pkg.durationMinutes / 60);
                         
+                        const equipmentConfig = EQUIPMENT_CATEGORIES.find(
+                            (cat) => cat.id === pkg.categoryEquipment
+                        );
+                        const EquipmentIcon = equipmentConfig?.icon;
+
                         return (
                             <TableRow
                                 key={pkg.id}
@@ -97,6 +162,15 @@ export function PackageTable({
                                 isSelected={isSelected}
                                 className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}
                             >
+                                <TableCell>
+                                    {EquipmentIcon && (
+                                        <EquipmentStudentCapacityBadge
+                                            categoryIcon={EquipmentIcon}
+                                            equipmentCapacity={pkg.capacityEquipment}
+                                            studentCapacity={pkg.capacityStudents}
+                                        />
+                                    )}
+                                </TableCell>
                                 <TableCell className="font-medium text-foreground">
                                     <div className="flex items-center gap-2">
                                         {pkg.description}
@@ -108,33 +182,10 @@ export function PackageTable({
                                     </div>
                                 </TableCell>
                                 <TableCell>{getPrettyDuration(pkg.durationMinutes)}</TableCell>
-                                <TableCell className="capitalize">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="flex items-center gap-0.5">
-                                            {Array.from({ length: pkg.capacityEquipment }).map((_, index) => {
-                                                const equipmentConfig = EQUIPMENT_CATEGORIES.find(
-                                                    (cat) => cat.id === pkg.categoryEquipment
-                                                );
-                                                const EquipmentIcon = equipmentConfig?.icon;
-                                                
-                                                return EquipmentIcon ? (
-                                                    <EquipmentIcon 
-                                                        key={index} 
-                                                        width={12} 
-                                                        height={12}
-                                                        fill={equipmentConfig.color}
-                                                    />
-                                                ) : null;
-                                            })}
-                                        </div>
-                                        {pkg.categoryEquipment}
-                                    </div>
-                                </TableCell>
-                                <TableCell>{pkg.capacityStudents}</TableCell>
-                                <TableCell className="font-semibold text-primary">
+                                <TableCell className="font-semibold text-primary text-right">
                                     €{pkg.pricePerStudent * pkg.capacityStudents}
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">
+                                <TableCell className="text-muted-foreground text-right">
                                     €{pricePerHour.toFixed(2)}/h
                                 </TableCell>
                             </TableRow>

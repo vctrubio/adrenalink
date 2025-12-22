@@ -1,5 +1,6 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
-import { useState } from "react";
+import { TeacherStatusBadge } from "@/src/components/ui/badge";
+import { useState, useMemo } from "react";
 import React from "react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
@@ -20,6 +21,11 @@ interface Teacher {
     commissions: Commission[];
 }
 
+interface TeacherStats {
+    totalLessons: number;
+    plannedLessons: number;
+}
+
 interface TeacherTableProps {
     teachers: Teacher[];
     selectedTeacher: Teacher | null;
@@ -27,7 +33,11 @@ interface TeacherTableProps {
     onSelectTeacher: (teacher: Teacher | null) => void;
     onSelectCommission: (commission: Commission | null) => void;
     onSectionClose?: () => void;
+    teacherStatsMap?: Record<string, TeacherStats>;
 }
+
+type SortColumn = "firstName" | "lastName" | null;
+type SortDirection = "asc" | "desc";
 
 export function TeacherTable({
     teachers,
@@ -35,16 +45,47 @@ export function TeacherTable({
     selectedCommission,
     onSelectTeacher,
     onSelectCommission,
-    onSectionClose
+    onSectionClose,
+    teacherStatsMap = {}
 }: TeacherTableProps) {
     const [search, setSearch] = useState("");
+    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const commissionEntity = ENTITY_DATA.find(e => e.id === "commission");
 
-    // Filter teachers by search term (username)
-    const filteredTeachers = teachers.filter((teacher) => {
-        const searchLower = search.toLowerCase();
-        return teacher.username.toLowerCase().includes(searchLower);
-    });
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
+
+    // Filter and sort teachers
+    const filteredTeachers = useMemo(() => {
+        let filtered = teachers.filter((teacher) => {
+            const searchLower = search.toLowerCase();
+            return teacher.username.toLowerCase().includes(searchLower);
+        });
+
+        if (sortColumn) {
+            filtered.sort((a, b) => {
+                let comparison = 0;
+                switch (sortColumn) {
+                    case "firstName":
+                        comparison = a.firstName.localeCompare(b.firstName);
+                        break;
+                    case "lastName":
+                        comparison = a.lastName.localeCompare(b.lastName);
+                        break;
+                }
+                return sortDirection === "asc" ? comparison : -comparison;
+            });
+        }
+
+        return filtered;
+    }, [teachers, search, sortColumn, sortDirection]);
 
     if (teachers.length === 0) {
         return (
@@ -195,29 +236,37 @@ export function TeacherTable({
                 <Table>
                     <TableHeader>
                         <tr>
-                            <TableHead>Teacher</TableHead>
+                            <TableHead
+                                sortable
+                                sortActive={sortColumn === "firstName" || sortColumn === "lastName"}
+                                sortDirection={sortDirection}
+                                onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}
+                            >
+                                Name
+                            </TableHead>
                             <TableHead>Languages</TableHead>
+                            <TableHead>Status</TableHead>
                         </tr>
                     </TableHeader>
                     <TableBody>
                         {filteredTeachers.map((teacher) => {
+                            const stats = teacherStatsMap[teacher.id] || { totalLessons: 0, plannedLessons: 0 };
                             return (
                                 <TableRow
                                     key={teacher.id}
                                     onClick={() => handleTeacherClick(teacher)}
                                 >
-                                    <TableCell className="font-medium">
+                                    <TableCell className="font-medium text-foreground">
                                         <div>
-                                            <div className="text-foreground">
-                                                {teacher.firstName} {teacher.lastName}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                @{teacher.username}
-                                            </div>
+                                            <div>{teacher.firstName} {teacher.lastName}</div>
+                                            <div className="text-xs text-muted-foreground">{teacher.username}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {teacher.languages.join(", ")}
+                                    </TableCell>
+                                    <TableCell>
+                                        <TeacherStatusBadge totalLessons={stats.totalLessons} plannedLessons={stats.plannedLessons} />
                                     </TableCell>
                                 </TableRow>
                             );

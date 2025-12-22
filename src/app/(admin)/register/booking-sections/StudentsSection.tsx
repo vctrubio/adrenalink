@@ -22,6 +22,12 @@ interface SchoolStudent {
     student: Student;
 }
 
+interface StudentStats {
+    bookingCount: number;
+    durationHours: number;
+    allBookingsCompleted?: boolean;
+}
+
 interface StudentsSectionProps {
     students: SchoolStudent[];
     selectedStudentIds: string[];
@@ -30,15 +36,17 @@ interface StudentsSectionProps {
     capacity?: number;
     isExpanded: boolean;
     onSectionToggle: () => void;
+    studentStatsMap?: Record<string, StudentStats>;
 }
 
-export function StudentsSection({ 
-    students, 
-    selectedStudentIds, 
-    onToggle, 
+export function StudentsSection({
+    students,
+    selectedStudentIds,
+    onToggle,
     capacity,
     isExpanded,
-    onSectionToggle 
+    onSectionToggle,
+    studentStatsMap
 }: StudentsSectionProps) {
     const studentEntity = ENTITY_DATA.find(e => e.id === "student");
     
@@ -62,6 +70,7 @@ export function StudentsSection({
                 selectedStudentIds={selectedStudentIds}
                 onToggle={onToggle}
                 capacity={capacity}
+                studentStatsMap={studentStatsMap}
             />
         </Section>
     );

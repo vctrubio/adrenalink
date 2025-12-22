@@ -20,7 +20,6 @@ export const useDataboard = <T>(
     onExternalGroupChange?: (value: DataboardGroupByDate | string) => void,
     externalActivity?: DataboardActivityFilter,
     entityId?: string,
-    schoolId?: string
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
@@ -139,13 +138,11 @@ export const useDataboard = <T>(
 
             // Check for schoolStudents relation (student activity)
             if (item.relations?.schoolStudents && item.relations.schoolStudents.length > 0) {
-                // If we have a schoolId, filter by THAT school's status only
-                const relevantSchoolStudent = schoolId
-                    ? item.relations.schoolStudents.find(ss => ss.schoolId === schoolId)
-                    : item.relations.schoolStudents[0]; // Fallback to first if no schoolId
+                // Use first schoolStudent
+                const relevantSchoolStudent = item.relations.schoolStudents[0];
 
                 if (!relevantSchoolStudent) {
-                    // No matching schoolStudent found - exclude this item
+                    // No schoolStudent found - exclude this item
                     return false;
                 }
 

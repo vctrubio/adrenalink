@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { masterBookingAdd } from "@/actions/register-action";
 import { showEntityToast } from "@/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
+import { DateRangeBadge } from "@/src/components/ui/badge";
+import { useTeacherLessonStats, useStudentBookingStats } from "./RegisterContext";
 import RegisterController from "./RegisterController";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
 import { DateSection } from "./booking-sections/DateSection";
@@ -15,18 +17,27 @@ import { TeacherSection } from "./booking-sections/TeacherSection";
 
 type SectionId = "dates-section" | "package-section" | "students-section" | "referral-section" | "teacher-section" | "commission-section";
 
+interface StudentStats {
+    bookingCount: number;
+    durationHours: number;
+    allBookingsCompleted?: boolean;
+}
+
 interface BookingFormProps {
     school: any;
     schoolPackages: any[];
     students: any[];
     teachers: any[];
     referrals: any[];
+    studentStats?: Record<string, StudentStats>;
 }
 
-export default function BookingForm({ school, schoolPackages, students, teachers, referrals }: BookingFormProps) {
+export default function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
+    const studentBookingStats = useStudentBookingStats();
+    const teacherLessonStats = useTeacherLessonStats();
 
     // State
     const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -59,6 +70,8 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         .filter((student: any) => selectedStudentIds.includes(student.id));
 
     const selectedStudents = selectedStudentsList;
+
+    const dateRangeTitle = <DateRangeBadge startDate={dateRange.startDate} endDate={dateRange.endDate} />;
 
     const canCreateBooking =
         selectedPackage &&
@@ -271,6 +284,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                         onDateChange={(field, value) => setDateRange(prev => ({ ...prev, [field]: value }))}
                         isExpanded={expandedSections.has("dates-section")}
                         onToggle={() => toggleSection("dates-section")}
+                        title={dateRangeTitle}
                     />
 
                     <PackageSection
@@ -289,6 +303,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                         preSelectedId={studentIdParam}
                         isExpanded={expandedSections.has("students-section")}
                         onSectionToggle={() => toggleSection("students-section")}
+                        studentStatsMap={studentBookingStats}
                     />
 
                     <ReferralSection
@@ -308,6 +323,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                         onAddCommission={handleAddCommission}
                         isExpanded={expandedSections.has("teacher-section")}
                         onToggle={() => toggleSection("teacher-section")}
+                        teacherStatsMap={teacherLessonStats}
                     />
 
                     {error && (

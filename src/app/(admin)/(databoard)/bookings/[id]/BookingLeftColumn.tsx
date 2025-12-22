@@ -3,25 +3,15 @@
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateBooking } from "@/actions/bookings-action";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { DoubleDatePicker, type DateRange } from "@/src/components/pickers/DoubleDatePicker";
 import { formatDate } from "@/getters/date-getter";
 import type { BookingModel } from "@/backend/models";
 
 function BookingViewMode({ booking, onEdit }: { booking: BookingModel; onEdit: () => void }) {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const dateStart = formatDate(booking.schema.dateStart);
-    const dateEnd = formatDate(booking.schema.dateEnd);
 
     return (
         <>
-            <DataHeader
-                icon={<bookingEntity.icon />}
-                color={bookingEntity.color}
-                title={`${dateStart} - ${dateEnd}`}
-                subtitle={`Created ${formatDate(booking.schema.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button
@@ -51,10 +41,6 @@ function BookingViewMode({ booking, onEdit }: { booking: BookingModel; onEdit: (
 }
 
 function BookingEditMode({ booking, onCancel, onSubmit }: { booking: BookingModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const dateStart = formatDate(booking.schema.dateStart);
-    const dateEnd = formatDate(booking.schema.dateEnd);
-
     const initialFormData = {
         dateStart: booking.schema.dateStart,
         dateEnd: booking.schema.dateEnd,
@@ -85,13 +71,6 @@ function BookingEditMode({ booking, onCancel, onSubmit }: { booking: BookingMode
 
     return (
         <>
-            <DataHeader
-                icon={<bookingEntity.icon />}
-                color={bookingEntity.color}
-                title={`${dateStart} - ${dateEnd}`}
-                subtitle={`Created ${formatDate(booking.schema.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button

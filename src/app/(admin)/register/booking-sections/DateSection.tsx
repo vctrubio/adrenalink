@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
 import { DoubleDatePicker, type DateRange } from "../../../../components/pickers";
@@ -10,6 +11,7 @@ interface DateSectionProps {
   isExpanded: boolean;
   onToggle: () => void;
   disabled?: boolean;
+  title?: ReactNode;
 }
 
 export function DateSection({
@@ -18,6 +20,7 @@ export function DateSection({
   isExpanded,
   onToggle,
   disabled = false,
+  title = "Booking Dates",
 }: DateSectionProps) {
   const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
 
@@ -29,7 +32,7 @@ export function DateSection({
   return (
     <Section
       id="dates-section"
-      title="Booking Dates"
+      title={title}
       isExpanded={isExpanded}
       onToggle={onToggle}
       entityIcon={bookingEntity?.icon}

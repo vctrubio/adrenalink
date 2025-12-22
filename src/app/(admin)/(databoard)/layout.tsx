@@ -2,7 +2,6 @@
 
 import { useState, ReactNode } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
-import { Breadcrumb } from "@/src/components/databoard/Breadcrumb";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
 import { usePathname } from "next/navigation";
@@ -35,22 +34,6 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const lastSegment = pathSegments[pathSegments.length - 1];
     const entityId = ENTITY_ID_MAP[lastSegment] || lastSegment;
 
-    // Check if this is a list page
-    const isListPage = DATABOARD_LIST_PAGES.includes(lastSegment);
-
-    // Only show databoard layout on list pages, not detail pages
-    if (!isListPage) {
-        return (
-            <>
-                <div className="px-4 py-4 lg:px-8 lg:py-8">
-                    <div className="max-w-7xl mx-auto">
-                        <Breadcrumb />
-                    </div>
-                </div>
-                {children}
-            </>
-        );
-    }
 
     const handleSelectionModeToggle = (enabled: boolean) => {
         setIsSelectionMode(enabled);

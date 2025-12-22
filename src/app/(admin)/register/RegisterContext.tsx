@@ -1,37 +1,19 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import type { RegisterData } from "@/actions/register-action";
+import type { RegisterTables } from "@/supabase/server";
 
-interface RegisterContextType extends RegisterData {
-    // Expose all RegisterData properties directly
-    school: RegisterData["school"];
-    packages: RegisterData["packages"];
-    teachers: RegisterData["teachers"];
-    students: RegisterData["students"];
-    referrals: RegisterData["referrals"];
-}
+const RegisterContext = createContext<RegisterTables | undefined>(undefined);
 
-const RegisterContext = createContext<RegisterContextType | undefined>(undefined);
-
-export function RegisterProvider({ 
-    children, 
-    data 
-}: { 
-    children: ReactNode; 
-    data: RegisterData;
+export function RegisterProvider({
+    children,
+    data
+}: {
+    children: ReactNode;
+    data: RegisterTables;
 }) {
-    // Provide the complete data object with direct property access
-    const contextValue: RegisterContextType = {
-        school: data.school,
-        packages: data.packages,
-        teachers: data.teachers,
-        students: data.students,
-        referrals: data.referrals,
-    };
-
     return (
-        <RegisterContext.Provider value={contextValue}>
+        <RegisterContext.Provider value={data}>
             {children}
         </RegisterContext.Provider>
     );
@@ -39,9 +21,8 @@ export function RegisterProvider({
 
 /**
  * Hook to access all register data
- * Returns the complete RegisterData object
  */
-export function useRegisterData(): RegisterData {
+export function useRegisterData(): RegisterTables {
     const context = useContext(RegisterContext);
     if (!context) {
         throw new Error("useRegisterData must be used within RegisterProvider");
@@ -91,4 +72,26 @@ export function useStudents() {
         throw new Error("useStudents must be used within RegisterProvider");
     }
     return context.students;
+}
+
+/**
+ * Hook to access student booking stats
+ */
+export function useStudentBookingStats() {
+    const context = useContext(RegisterContext);
+    if (!context) {
+        throw new Error("useStudentBookingStats must be used within RegisterProvider");
+    }
+    return context.studentBookingStats;
+}
+
+/**
+ * Hook to access teacher lesson stats
+ */
+export function useTeacherLessonStats() {
+    const context = useContext(RegisterContext);
+    if (!context) {
+        throw new Error("useTeacherLessonStats must be used within RegisterProvider");
+    }
+    return context.teacherLessonStats;
 }

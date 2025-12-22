@@ -18,6 +18,11 @@ interface Teacher {
     commissions: Commission[];
 }
 
+interface TeacherStats {
+    totalLessons: number;
+    plannedLessons: number;
+}
+
 interface TeacherSectionProps {
     teachers: Teacher[];
     selectedTeacher: Teacher | null;
@@ -27,6 +32,7 @@ interface TeacherSectionProps {
     onAddCommission?: (teacherId: string, commission: Omit<Commission, "id">) => Promise<void>;
     isExpanded: boolean;
     onToggle: () => void;
+    teacherStatsMap?: Record<string, TeacherStats>;
 }
 
 export function TeacherSection({
@@ -36,7 +42,8 @@ export function TeacherSection({
     onSelectTeacher,
     onSelectCommission,
     isExpanded,
-    onToggle
+    onToggle,
+    teacherStatsMap
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
 
@@ -68,6 +75,7 @@ export function TeacherSection({
                 onSelectTeacher={onSelectTeacher}
                 onSelectCommission={onSelectCommission}
                 onSectionClose={onToggle}
+                teacherStatsMap={teacherStatsMap}
             />
         </Section>
     );

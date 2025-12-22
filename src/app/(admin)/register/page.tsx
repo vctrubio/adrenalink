@@ -13,6 +13,7 @@ export default function RegisterPage() {
             students={data.students}
             teachers={data.teachers}
             referrals={data.referrals}
+            studentStats={data.studentStats}
         />
     );
 }

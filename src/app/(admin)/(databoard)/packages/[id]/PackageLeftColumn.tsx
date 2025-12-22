@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateSchoolPackageDetail } from "@/actions/packages-action";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import type { SchoolPackageModel } from "@/backend/models";
 import { formatDate } from "@/getters/date-getter";
 
 function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPackageModel; onEdit: () => void }) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
-    const PackageIcon = packageEntity.icon;
 
     // Calculate hours from durationMinutes
     const hours = schoolPackage.schema.durationMinutes / 60;
@@ -18,13 +16,6 @@ function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPacka
 
     return (
         <>
-            <DataHeader
-                icon={<PackageIcon />}
-                color={packageEntity.color}
-                title={schoolPackage.schema.description || "Package"}
-                subtitle={`Created ${formatDate(schoolPackage.schema.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button
@@ -91,7 +82,6 @@ function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPacka
 
 function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage: SchoolPackageModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
-    const PackageIcon = packageEntity.icon;
 
     const initialFormData = {
         description: schoolPackage.updateForm.description,
@@ -125,13 +115,6 @@ function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage:
 
     return (
         <>
-            <DataHeader
-                icon={<PackageIcon />}
-                color={packageEntity.color}
-                title={schoolPackage.schema.description || "Package"}
-                subtitle={`Created ${formatDate(schoolPackage.schema.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button

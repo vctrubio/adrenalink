@@ -6,15 +6,12 @@ import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateStudentDetail } from "@/actions/students-action";
 import { CountryFlagPhoneSubForm } from "@/src/components/forms/CountryFlagPhoneSubForm";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { getCountryByName } from "@/config/countries";
 import type { StudentModel } from "@/backend/models";
-import { formatDate } from "@/getters/date-getter";
 import { ChevronDown } from "lucide-react";
 
 function StudentViewMode({ student, onEdit }: { student: StudentModel; onEdit: () => void }) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const StudentIcon = studentEntity.icon;
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,8 +28,6 @@ function StudentViewMode({ student, onEdit }: { student: StudentModel; onEdit: (
 
     return (
         <>
-            <DataHeader icon={<StudentIcon />} color={studentEntity.color} title={`${student.updateForm.firstName} ${student.updateForm.lastName}`} subtitle={`Created ${formatDate(student.updateForm.createdAt)}`} />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <Link href={`/student/${student.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
@@ -120,7 +115,6 @@ function StudentViewMode({ student, onEdit }: { student: StudentModel; onEdit: (
 
 function StudentEditMode({ student, onCancel, onSubmit }: { student: StudentModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const StudentIcon = studentEntity.icon;
 
     const initialFormData = {
         firstName: student.updateForm.firstName,
@@ -154,8 +148,6 @@ function StudentEditMode({ student, onCancel, onSubmit }: { student: StudentMode
 
     return (
         <>
-            <DataHeader icon={<StudentIcon />} color={studentEntity.color} title={`${student.updateForm.firstName} ${student.updateForm.lastName}`} subtitle={`Created ${formatDate(student.updateForm.createdAt)}`} />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <Link href={`/student/${student.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">

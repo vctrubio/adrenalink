@@ -1,5 +1,5 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface Referral {
     id: string;
@@ -16,18 +16,51 @@ interface ReferralTableProps {
     onSelect: (referral: Referral | null) => void;
 }
 
-export function ReferralTable({ 
-    referrals, 
-    selectedReferral, 
-    onSelect 
+type SortColumn = "code" | "commission" | null;
+type SortDirection = "asc" | "desc";
+
+export function ReferralTable({
+    referrals,
+    selectedReferral,
+    onSelect
 }: ReferralTableProps) {
     const [search, setSearch] = useState("");
+    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-    // Filter referrals by search term (code)
-    const filteredReferrals = referrals.filter((referral) => {
-        const searchLower = search.toLowerCase();
-        return referral.code.toLowerCase().includes(searchLower);
-    });
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
+
+    // Filter and sort referrals
+    const filteredReferrals = useMemo(() => {
+        let filtered = referrals.filter((referral) => {
+            const searchLower = search.toLowerCase();
+            return referral.code.toLowerCase().includes(searchLower);
+        });
+
+        if (sortColumn) {
+            filtered.sort((a, b) => {
+                let comparison = 0;
+                switch (sortColumn) {
+                    case "code":
+                        comparison = a.code.localeCompare(b.code);
+                        break;
+                    case "commission":
+                        comparison = a.commissionValue.localeCompare(b.commissionValue);
+                        break;
+                }
+                return sortDirection === "asc" ? comparison : -comparison;
+            });
+        }
+
+        return filtered;
+    }, [referrals, search, sortColumn, sortDirection]);
 
     if (referrals.length === 0) {
         return (
@@ -70,9 +103,23 @@ export function ReferralTable({
             <Table>
                 <TableHeader>
                     <tr>
-                        <TableHead sortable>Code</TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "code"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("code")}
+                        >
+                            Code
+                        </TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead sortable>Commission</TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "commission"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("commission")}
+                        >
+                            Commission
+                        </TableHead>
                     </tr>
                 </TableHeader>
                 <TableBody>

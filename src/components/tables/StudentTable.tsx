@@ -1,7 +1,6 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import { useState } from "react";
+import { StudentStatusBadge } from "@/src/components/ui/badge";
+import { useState, useMemo } from "react";
 
 interface Student {
     id: string;
@@ -23,31 +22,75 @@ interface SchoolStudent {
     student: Student;
 }
 
+interface StudentStats {
+    bookingCount: number;
+    durationHours: number;
+    allBookingsCompleted?: boolean;
+}
+
 interface StudentTableProps {
     students: SchoolStudent[];
     selectedStudentIds: string[];
     onToggle: (studentId: string) => void;
     capacity?: number;
+    studentStatsMap?: Record<string, StudentStats>;
 }
 
-export function StudentTable({ 
-    students, 
-    selectedStudentIds, 
+type SortColumn = "firstName" | "lastName" | null;
+type SortDirection = "asc" | "desc";
+
+export function StudentTable({
+    students,
+    selectedStudentIds,
     onToggle,
-    capacity 
+    capacity,
+    studentStatsMap = {}
 }: StudentTableProps) {
     const [search, setSearch] = useState("");
+    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-    // Filter students by search term (first name, last name, or passport)
-    const filteredStudents = students.filter((schoolStudent) => {
-        const student = schoolStudent.student;
-        const searchLower = search.toLowerCase();
-        return (
-            student.firstName.toLowerCase().includes(searchLower) ||
-            student.lastName.toLowerCase().includes(searchLower) ||
-            student.passport.toLowerCase().includes(searchLower)
-        );
-    });
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
+
+    // Filter and sort students
+    const filteredStudents = useMemo(() => {
+        let filtered = students.filter((schoolStudent) => {
+            const student = schoolStudent.student;
+            const searchLower = search.toLowerCase();
+            return (
+                student.firstName.toLowerCase().includes(searchLower) ||
+                student.lastName.toLowerCase().includes(searchLower) ||
+                student.passport.toLowerCase().includes(searchLower)
+            );
+        });
+
+        if (sortColumn) {
+            filtered.sort((a, b) => {
+                let comparison = 0;
+                const studentA = a.student;
+                const studentB = b.student;
+
+                switch (sortColumn) {
+                    case "firstName":
+                        comparison = studentA.firstName.localeCompare(studentB.firstName);
+                        break;
+                    case "lastName":
+                        comparison = studentA.lastName.localeCompare(studentB.lastName);
+                        break;
+                }
+                return sortDirection === "asc" ? comparison : -comparison;
+            });
+        }
+
+        return filtered;
+    }, [students, search, sortColumn, sortDirection]);
 
     if (students.length === 0) {
         return (
@@ -76,28 +119,29 @@ export function StudentTable({
                 </button>
             </div>
             <Table>
-            <TableHeader>
-                <tr>
-                    <TableHead sortable>First Name</TableHead>
-                    <TableHead sortable>Last Name</TableHead>
-                    <TableHead sortable>Passport</TableHead>
-                    <TableHead sortable>Country</TableHead>
-                    <TableHead>Languages</TableHead>
-                    <TableHead>Status</TableHead>
-                </tr>
-            </TableHeader>
+                <TableHeader>
+                    <tr>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "firstName" || sortColumn === "lastName"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}
+                        >
+                            Name
+                        </TableHead>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Languages</TableHead>
+                        <TableHead>Status</TableHead>
+                    </tr>
+                </TableHeader>
             <TableBody>
                 {filteredStudents.map((schoolStudent) => {
                     const student = schoolStudent.student;
                     const isSelected = selectedStudentIds.includes(student.id);
                     const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;
-                    
-                    // Calculate status based on bookings
-                    // For now showing "New" - we'll add booking stats later
-                    const hasBookings = false; // TODO: Get from student relations
-                    const bookingCount = 0; // TODO: Count from bookingStudents
-                    const totalDurationHours = 0; // TODO: Sum from lessons
-                    
+
+                    const stats = studentStatsMap[student.id] || { bookingCount: 0, durationHours: 0 };
+
                     return (
                         <TableRow
                             key={student.id}
@@ -106,37 +150,23 @@ export function StudentTable({
                             className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                         >
                             <TableCell className="font-medium text-foreground">
-                                {student.firstName}
-                            </TableCell>
-                            <TableCell className="font-medium text-foreground">
-                                {student.lastName}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                                {student.passport}
+                                <div>
+                                    <div>{student.firstName} {student.lastName}</div>
+                                    <div className="text-xs text-muted-foreground">{student.passport}</div>
+                                </div>
                             </TableCell>
                             <TableCell>{student.country}</TableCell>
                             <TableCell>{student.languages.join(", ")}</TableCell>
                             <TableCell>
-                                {!hasBookings ? (
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium">
-                                        New
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <div className="flex items-center gap-1">
-                                            <BookingIcon size={14} />
-                                            <span>{bookingCount}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <DurationIcon size={14} />
-                                            <span>{totalDurationHours}h</span>
-                                        </div>
-                                    </div>
-                                )}
+                                <StudentStatusBadge
+                                    bookingCount={stats.bookingCount}
+                                    durationHours={stats.durationHours}
+                                    allBookingsCompleted={stats.allBookingsCompleted}
+                                />
                             </TableCell>
                         </TableRow>
                     );
-                })}  
+                })}
             </TableBody>
         </Table>
         </div>

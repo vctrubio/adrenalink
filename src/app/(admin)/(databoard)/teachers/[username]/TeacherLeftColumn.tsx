@@ -5,15 +5,12 @@ import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateTeacherDetail } from "@/actions/teachers-action";
 import { CountryFlagPhoneSubForm } from "@/src/components/forms/CountryFlagPhoneSubForm";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { getCountryByName } from "@/config/countries";
 import type { TeacherModel } from "@/backend/models";
-import { formatDate } from "@/getters/date-getter";
 import { ChevronDown } from "lucide-react";
 
 function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: () => void }) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    const TeacherIcon = teacherEntity.icon;
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -30,13 +27,6 @@ function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: (
 
     return (
         <>
-            <DataHeader
-                icon={<TeacherIcon />}
-                color={teacherEntity.color}
-                title={`${teacher.updateForm.firstName} ${teacher.updateForm.lastName}`}
-                subtitle={`Created ${formatDate(teacher.updateForm.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button
@@ -119,9 +109,6 @@ function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: (
 }
 
 function TeacherEditMode({ teacher, onCancel, onSubmit }: { teacher: TeacherModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    const TeacherIcon = teacherEntity.icon;
-
     const initialFormData = {
         firstName: teacher.updateForm.firstName,
         lastName: teacher.updateForm.lastName,
@@ -152,13 +139,6 @@ function TeacherEditMode({ teacher, onCancel, onSubmit }: { teacher: TeacherMode
 
     return (
         <>
-            <DataHeader
-                icon={<TeacherIcon />}
-                color={teacherEntity.color}
-                title={`${teacher.updateForm.firstName} ${teacher.updateForm.lastName}`}
-                subtitle={`Created ${formatDate(teacher.updateForm.createdAt)}`}
-            />
-
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <button

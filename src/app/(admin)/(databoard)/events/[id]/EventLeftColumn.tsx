@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { updateEvent } from "@/actions/events-action";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { EventStats } from "@/getters/event-getter";
@@ -13,8 +12,6 @@ import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 
 function EventViewMode({ event, onEdit }: { event: EventModel; onEdit: () => void }) {
 	const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-	const eventDate = formatDate(event.schema.date);
-	const teacherName = EventStats.getTeacherName(event);
 	const packageDesc = EventStats.getPackageDescription(event);
 	const studentsPaid = EventStats.getStudentsPaid(event);
 	const teacherCommission = EventStats.getTeacherCommission(event);
@@ -22,13 +19,6 @@ function EventViewMode({ event, onEdit }: { event: EventModel; onEdit: () => voi
 
 	return (
 		<>
-			<DataHeader
-				icon={<eventEntity.icon />}
-				color={eventEntity.color}
-				title={eventDate}
-				subtitle={teacherName}
-			/>
-
 			{/* Buttons */}
 			<div className="flex items-center gap-2">
 				<button
@@ -89,10 +79,6 @@ function EventViewMode({ event, onEdit }: { event: EventModel; onEdit: () => voi
 }
 
 function EventEditMode({ event, onCancel, onSubmit }: { event: EventModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-	const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-	const eventDate = formatDate(event.schema.date);
-	const teacherName = EventStats.getTeacherName(event);
-
 	const initialFormData = {
 		date: event.schema.date,
 		duration: event.schema.duration || 0,
@@ -120,13 +106,6 @@ function EventEditMode({ event, onCancel, onSubmit }: { event: EventModel; onCan
 
 	return (
 		<>
-			<DataHeader
-				icon={<eventEntity.icon />}
-				color={eventEntity.color}
-				title={eventDate}
-				subtitle={teacherName}
-			/>
-
 			{/* Buttons */}
 			<div className="flex items-center gap-2">
 				<button

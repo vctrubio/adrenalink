@@ -4,8 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, MapPin, Loader2, Trash2 } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
-import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
+import { TimeDurationBadge } from "@/src/components/ui/badge";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
@@ -133,13 +133,7 @@ const HeaderRow = ({
                     <FlagIcon className="w-8 h-8" size={34} />
                 </div>
                 <div className="flex flex-col relative mb-1">
-                    <div className="flex items-center gap-2 border-b border-border">
-                        <span className="font-bold text-2xl text-foreground">{startTime}</span>
-                        <span className="text-sm px-2 py-1 bg-muted rounded text-foreground">
-                            <span className="text-muted-foreground">+</span>
-                            {getPrettyDuration(duration)}
-                        </span>
-                    </div>
+                    <TimeDurationBadge startTime={startTime} duration={duration} />
                     <div className="flex items-center gap-1 absolute top-full left-0 pt-0.5">
                         <EquipmentDisplay categoryEquipment={categoryEquipment} capacityEquipment={capacityEquipment} />
                         <div className="flex items-center pt-0.5">
