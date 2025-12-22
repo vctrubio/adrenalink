@@ -6,7 +6,7 @@ import { Plus, Loader2, Settings } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
 import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
 import { createLesson } from "@/actions/lessons-action";
-import { showEntityToast } from "@/getters/toast-getter";
+
 import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
 import { useRouter } from "next/navigation";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -132,13 +132,11 @@ export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, load
         try {
             const result = await createLesson({ bookingId, teacherId, commissionId, status: "active" });
             if (result.success) {
-                showEntityToast("lesson", { title: "Teacher Assigned" });
                 router.refresh();
             } else {
-                showEntityToast("lesson", { title: "Assignment Failed", description: result.error });
+
             }
         } catch (error) {
-            showEntityToast("lesson", { title: "Assignment Error" });
         }
     };
 

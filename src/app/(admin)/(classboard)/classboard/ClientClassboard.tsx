@@ -17,8 +17,7 @@ interface ClientClassboardProps {
 }
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
-    const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } =
-        useClassboard(data);
+    const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
 
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -85,50 +84,46 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     };
 
     return (
-        <div className="p-4 bg-gray-100 dark:bg-black min-h-screen">
-            <div className="max-w-7xl mx-auto flex flex-col gap-4">
-                {/* Header */}
-                <div className="flex-none bg-card rounded-xl shadow-sm p-4">
-                    <div className="flex justify-between items-center">
-                        <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                        <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
-                    </div>
-                </div>
+        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex justify-between items-center p-2.5">
+                <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
+            </div>
 
-                {/* Students */}
-                <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
-                    <StudentClassDaily
-                        bookings={draggableBookings}
-                        classboardData={classboardData}
-                        selectedDate={selectedDate}
-                        classboard={{
-                            onDragStart: (booking) => {
-                                setDraggedBooking(booking);
-                            },
-                            onDragEnd: () => {
-                                setDraggedBooking(null);
-                            },
-                            onAddLessonEvent: handleAddLessonEvent,
-                        }}
-                        setOnNewBooking={setOnNewBooking}
-                    />
-                </div>
+            {/* Students */}
+            <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
+                <StudentClassDaily
+                    bookings={draggableBookings}
+                    classboardData={classboardData}
+                    selectedDate={selectedDate}
+                    classboard={{
+                        onDragStart: (booking) => {
+                            setDraggedBooking(booking);
+                        },
+                        onDragEnd: () => {
+                            setDraggedBooking(null);
+                        },
+                        onAddLessonEvent: handleAddLessonEvent,
+                    }}
+                    setOnNewBooking={setOnNewBooking}
+                />
+            </div>
 
-                {/* Teachers */}
-                <div className="flex-1 overflow-hidden">
-                    <TeacherClassDaily
-                        key={refreshKey}
-                        teacherQueues={teacherQueues}
-                        draggedBooking={draggedBooking}
-                        isLessonTeacher={isLessonTeacher}
-                        classboardStats={classboardStats}
-                        controller={controller}
-                        selectedDate={selectedDate}
-                        onEventDeleted={handleEventDeleted}
-                        onAddLessonEvent={handleAddLessonEvent}
-                        globalFlag={globalFlag}
-                    />
-                </div>
+            {/* Teachers */}
+            <div className="flex-1 overflow-hidden">
+                <TeacherClassDaily
+                    key={refreshKey}
+                    teacherQueues={teacherQueues}
+                    draggedBooking={draggedBooking}
+                    isLessonTeacher={isLessonTeacher}
+                    classboardStats={classboardStats}
+                    controller={controller}
+                    selectedDate={selectedDate}
+                    onEventDeleted={handleEventDeleted}
+                    onAddLessonEvent={handleAddLessonEvent}
+                    globalFlag={globalFlag}
+                />
             </div>
         </div>
     );

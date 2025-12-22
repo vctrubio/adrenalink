@@ -251,10 +251,9 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 return;
             }
 
-            // Success - show toast, reset and refresh
+            // Success - show toast and reset
             toast.success(`Booking created: ${leaderStudentName}`);
             handleReset();
-            router.refresh();
             setLoading(false);
         } catch (err) {
             const errorMessage = "An unexpected error occurred";

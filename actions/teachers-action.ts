@@ -134,6 +134,7 @@ export async function updateTeacherDetail(
 
         // Update teacher table
         await db.update(teacher).set({
+            username: data.username,
             firstName: data.firstName,
             lastName: data.lastName,
             passport: data.passport,

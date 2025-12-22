@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_noStore as noStore } from "next/cache";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
@@ -81,6 +82,7 @@ const classboardWithRelations = {
 } as const;
 
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
+    noStore();
     try {
         // Get school context from header (cached, returns {id, name, zone})
         const schoolHeader = await getSchoolHeader();

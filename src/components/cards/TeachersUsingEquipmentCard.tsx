@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { EquipmentModel } from "@/backend/models";
 import { linkTeacherEquipment } from "@/actions/equipment-teacher-action";
-import { showEntityToast } from "@/getters/toast-getter";
+
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { EntityActionList } from "@/src/components/cards/EntityActionList";
 import LinkTeacherEquipmentModal from "@/src/components/modals/LinkTeacherEquipmentModal";
@@ -26,29 +26,15 @@ export const TeachersUsingEquipmentCard = ({ equipment, onTeacherAssigned }: Tea
             const result = await linkTeacherEquipment(equipment.schema.id, teacherId);
 
             if (!result.success) {
-                showEntityToast("equipment", {
-                    title: "Assignment Failed",
-                    description: result.error || "Failed to assign equipment to teacher",
-                    duration: 5000,
-                });
                 return;
             }
 
-            showEntityToast("equipment", {
-                title: "Equipment Assigned",
-                description: "Teacher successfully assigned to equipment",
-                duration: 4000,
-            });
+
 
             setIsModalOpen(false);
             onTeacherAssigned?.();
         } catch (error) {
             console.error("Error assigning teacher:", error);
-            showEntityToast("equipment", {
-                title: "Assignment Error",
-                description: "An unexpected error occurred",
-                duration: 5000,
-            });
         } finally {
             setIsAssigning(false);
         }

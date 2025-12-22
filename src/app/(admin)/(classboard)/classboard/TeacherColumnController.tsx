@@ -91,7 +91,7 @@ function TeacherColumnHeader({ queue, allEvents, onDeleteComplete }: { queue: Te
         <div className="flex items-center gap-4">
             <HeadsetIcon className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
             {teacherEntity && (
-                <HoverToEntity entity={teacherEntity} id={queue.teacher.id}>
+                <HoverToEntity entity={teacherEntity} id={queue.teacher.username}>
                     <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
                 </HoverToEntity>
             )}

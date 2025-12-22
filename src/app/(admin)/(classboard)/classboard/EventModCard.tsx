@@ -8,7 +8,7 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { EventNode } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
-import { showEntityToast } from "@/getters/toast-getter";
+
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
@@ -53,22 +53,11 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
             const result = await deleteClassboardEvent(eventId);
 
             if (!result.success) {
-                console.error("Delete failed:", result.error);
-                showEntityToast("event", {
-                    title: "Delete Failed",
-                    description: result.error || "Failed to delete event",
-                    duration: 4000,
-                });
                 setIsDeleting(false);
                 return;
             }
         } catch (error) {
             console.error("Error deleting event:", error);
-            showEntityToast("event", {
-                title: "Delete Failed",
-                description: error instanceof Error ? error.message : "Failed to delete event",
-                duration: 4000,
-            });
             setIsDeleting(false);
         }
     };

@@ -36,7 +36,6 @@
  * ✅ Reusable helper across all actions
  */
 
-import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { student, schoolStudents, teacher, schoolPackage, teacherCommission, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, referral } from "@/drizzle/schema";
 import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm } from "@/drizzle/schema";
@@ -85,7 +84,6 @@ export async function getSchoolPackagesIfNull(packages?: any[]): Promise<ApiActi
 export async function createStudent(studentData: StudentForm): Promise<ApiActionResponseModel<typeof student.$inferSelect>> {
     try {
         const result = await db.insert(student).values(studentData).returning();
-        revalidatePath("/register");
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error creating student:", error);
@@ -127,7 +125,6 @@ export async function linkStudentToSchool(studentId: string, canRent = false, de
         };
 
         const result = await db.insert(schoolStudents).values(schoolStudentData).returning();
-        revalidatePath("/register");
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error linking student to school:", error);
@@ -199,7 +196,6 @@ export async function createAndLinkStudent(
             };
         });
 
-        revalidatePath("/register");
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating and linking student:", error);
@@ -288,7 +284,6 @@ export async function createAndLinkTeacher(
             };
         });
 
-        revalidatePath("/register");
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating teacher:", error);
@@ -346,8 +341,6 @@ export async function createAndLinkPackage(packageData: Omit<SchoolPackageForm, 
 
         const [createdPackage] = await db.insert(schoolPackage).values(completePackageData).returning();
 
-        revalidatePath("/register");
-        revalidatePath("/packages");
         return { success: true, data: createdPackage };
     } catch (error) {
         console.error("Error creating package:", error);
@@ -519,10 +512,6 @@ export async function masterBookingAdd(
                 lesson: createdLesson,
             };
         });
-
-        revalidatePath("/register");
-        // revalidatePath("/classboard"); // there is a web socket to listen for this.
-        revalidatePath("/bookings");
 
         console.log(`✅ [masterBookingAdd] Booking creation complete! Booking ID: ${result.booking.id}`);
         console.log("✅ [masterBookingAdd] Returning success response with data:", result);

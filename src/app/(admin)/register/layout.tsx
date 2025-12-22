@@ -1,10 +1,18 @@
 import { ReactNode } from "react";
 import { headers } from "next/headers";
-import { supabase, getRegisterTables } from "@/supabase/server";
+import { supabase, getRegisterTables, type RegisterTables } from "@/supabase/server";
 import { RegisterProvider } from "./RegisterContext";
 
 interface RegisterLayoutProps {
     children: ReactNode;
+}
+
+// Server action for client-side refresh
+async function refreshRegisterData(schoolId: string, schoolName: string, schoolUsername: string): Promise<RegisterTables> {
+    "use server";
+    const result = await getRegisterTables(schoolId, schoolName, schoolUsername);
+    if (!result.success) throw new Error(result.error);
+    return result.data;
 }
 
 export default async function Layout({ children }: RegisterLayoutProps) {
@@ -51,8 +59,11 @@ export default async function Layout({ children }: RegisterLayoutProps) {
         );
     }
 
+    // Create bound refresh action
+    const boundRefresh = refreshRegisterData.bind(null, schoolData.id, schoolData.name, schoolData.username);
+
     return (
-        <RegisterProvider data={result.data}>
+        <RegisterProvider initialData={result.data} refreshAction={boundRefresh}>
             {children}
         </RegisterProvider>
     );

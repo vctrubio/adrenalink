@@ -13,7 +13,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
 import { createLesson } from "@/actions/lessons-action";
-import { showEntityToast } from "@/getters/toast-getter";
+
 import { useRouter } from "next/navigation";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
@@ -503,28 +503,14 @@ export default function StudentBookingCard({ booking, students: studentsProp, da
             });
 
             if (!result.success) {
-                showEntityToast("lesson", {
-                    title: "Assignment Failed",
-                    description: result.error || "Failed to assign teacher to booking",
-                    duration: 5000,
-                });
                 return;
             }
 
-            showEntityToast("lesson", {
-                title: "Teacher Assigned",
-                description: "Teacher successfully assigned to booking",
-                duration: 4000,
-            });
+
 
             router.refresh();
         } catch (error) {
             console.error("Error assigning teacher:", error);
-            showEntityToast("lesson", {
-                title: "Assignment Error",
-                description: "An unexpected error occurred",
-                duration: 5000,
-            });
         }
     };
 

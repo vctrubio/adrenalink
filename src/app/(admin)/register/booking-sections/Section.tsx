@@ -24,28 +24,12 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
 
     return (
         <div id={id} className="scroll-mt-4">
-            <div
-                className={`rounded-lg bg-card border border-border transition-all duration-200 ${
-                    alwaysExpanded
-                        ? ""
-                        : "hover:border-primary/50 hover:shadow-md"
-                }`}
-            >
+            <div className={`rounded-lg bg-card border border-border transition-all duration-200 ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`}>
                 {/* Header */}
-                <div
-                    className={`flex items-center justify-between p-4 ${
-                        alwaysExpanded
-                            ? "cursor-default"
-                            : "cursor-pointer active:bg-muted touch-manipulation"
-                    }`}
-                    onClick={handleClick}
-                >
+                <div className={`flex items-center justify-between p-4 ${alwaysExpanded ? "cursor-default" : "cursor-pointer active:bg-muted touch-manipulation"}`} onClick={handleClick}>
                     <div className="flex items-center gap-3">
                         {EntityIcon && (
-                            <div
-                                className="w-8 h-8 flex items-center justify-center"
-                                style={{ color: entityColor }}
-                            >
+                            <div className="w-8 h-8 flex items-center justify-center" style={{ color: entityColor }}>
                                 <EntityIcon className="w-8 h-8" />
                             </div>
                         )}
@@ -103,13 +87,9 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                         )}
                     </div>
                 </div>
-                
+
                 {/* Content */}
-                {(isExpanded || alwaysExpanded) && (
-                    <div className="px-4 pb-4">
-                        {children}
-                    </div>
-                )}
+                {(isExpanded || alwaysExpanded) && <div className="px-4 pb-4">{children}</div>}
             </div>
         </div>
     );

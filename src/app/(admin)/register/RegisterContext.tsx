@@ -1,19 +1,143 @@
 "use client";
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import type { RegisterTables } from "@/supabase/server";
 
-const RegisterContext = createContext<RegisterTables | undefined>(undefined);
+interface QueueItem {
+    id: string;
+    name: string;
+    timestamp: number;
+}
+
+interface EntityQueues {
+    students: QueueItem[];
+    teachers: QueueItem[];
+    packages: QueueItem[];
+    bookings: QueueItem[];
+}
+
+interface RegisterContextValue {
+    data: RegisterTables;
+    setData: (data: RegisterTables) => void;
+    refreshData: () => Promise<void>;
+    isRefreshing: boolean;
+
+    // Entity queues
+    queues: EntityQueues;
+    addToQueue: (type: keyof EntityQueues, item: QueueItem) => void;
+    removeFromQueue: (type: keyof EntityQueues, id: string) => void;
+    clearQueue: (type: keyof EntityQueues) => void;
+
+    // Optimistic updates
+    addStudent: (student: any) => void;
+    addTeacher: (teacher: any) => void;
+    addPackage: (pkg: any) => void;
+}
+
+const RegisterContext = createContext<RegisterContextValue | undefined>(undefined);
 
 export function RegisterProvider({
     children,
-    data
+    initialData,
+    refreshAction
 }: {
     children: ReactNode;
-    data: RegisterTables;
+    initialData: RegisterTables;
+    refreshAction: () => Promise<RegisterTables>;
 }) {
+    const [data, setData] = useState<RegisterTables>(initialData);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [queues, setQueues] = useState<EntityQueues>({
+        students: [],
+        teachers: [],
+        packages: [],
+        bookings: []
+    });
+
+    const pathname = usePathname();
+    const previousPathname = useRef(pathname);
+
+    // Re-fetch on route transitions (not on page reload)
+    useEffect(() => {
+        if (previousPathname.current !== pathname && pathname.startsWith("/register")) {
+            refreshData();
+            previousPathname.current = pathname;
+        }
+    }, [pathname]);
+
+    const refreshData = useCallback(async () => {
+        setIsRefreshing(true);
+        try {
+            const fresh = await refreshAction();
+            setData(fresh);
+        } catch (error) {
+            console.error("Failed to refresh register data:", error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    }, [refreshAction]);
+
+    // Queue management
+    const addToQueue = useCallback((type: keyof EntityQueues, item: QueueItem) => {
+        setQueues(prev => ({
+            ...prev,
+            [type]: [...prev[type], item]
+        }));
+    }, []);
+
+    const removeFromQueue = useCallback((type: keyof EntityQueues, id: string) => {
+        setQueues(prev => ({
+            ...prev,
+            [type]: prev[type].filter(item => item.id !== id)
+        }));
+    }, []);
+
+    const clearQueue = useCallback((type: keyof EntityQueues) => {
+        setQueues(prev => ({
+            ...prev,
+            [type]: []
+        }));
+    }, []);
+
+    // Optimistic update helpers
+    const addStudent = useCallback((student: any) => {
+        setData(prev => ({
+            ...prev,
+            students: [...prev.students, student]
+        }));
+    }, []);
+
+    const addTeacher = useCallback((teacher: any) => {
+        setData(prev => ({
+            ...prev,
+            teachers: [...prev.teachers, teacher]
+        }));
+    }, []);
+
+    const addPackage = useCallback((pkg: any) => {
+        setData(prev => ({
+            ...prev,
+            packages: [...prev.packages, pkg]
+        }));
+    }, []);
+
+    const value = {
+        data,
+        setData,
+        refreshData,
+        isRefreshing,
+        queues,
+        addToQueue,
+        removeFromQueue,
+        clearQueue,
+        addStudent,
+        addTeacher,
+        addPackage
+    };
+
     return (
-        <RegisterContext.Provider value={data}>
+        <RegisterContext.Provider value={value}>
             {children}
         </RegisterContext.Provider>
     );
@@ -27,7 +151,38 @@ export function useRegisterData(): RegisterTables {
     if (!context) {
         throw new Error("useRegisterData must be used within RegisterProvider");
     }
-    return context;
+    return context.data;
+}
+
+/**
+ * Hook to access register actions (optimistic updates, queue management, refresh)
+ */
+export function useRegisterActions() {
+    const context = useContext(RegisterContext);
+    if (!context) {
+        throw new Error("useRegisterActions must be used within RegisterProvider");
+    }
+    return {
+        addStudent: context.addStudent,
+        addTeacher: context.addTeacher,
+        addPackage: context.addPackage,
+        addToQueue: context.addToQueue,
+        removeFromQueue: context.removeFromQueue,
+        clearQueue: context.clearQueue,
+        refreshData: context.refreshData,
+        isRefreshing: context.isRefreshing
+    };
+}
+
+/**
+ * Hook to access entity queues
+ */
+export function useRegisterQueues() {
+    const context = useContext(RegisterContext);
+    if (!context) {
+        throw new Error("useRegisterQueues must be used within RegisterProvider");
+    }
+    return context.queues;
 }
 
 /**
@@ -38,7 +193,7 @@ export function useSchool() {
     if (!context) {
         throw new Error("useSchool must be used within RegisterProvider");
     }
-    return context.school;
+    return context.data.school;
 }
 
 /**
@@ -49,7 +204,7 @@ export function usePackages() {
     if (!context) {
         throw new Error("usePackages must be used within RegisterProvider");
     }
-    return context.packages;
+    return context.data.packages;
 }
 
 /**
@@ -60,7 +215,7 @@ export function useTeachers() {
     if (!context) {
         throw new Error("useTeachers must be used within RegisterProvider");
     }
-    return context.teachers;
+    return context.data.teachers;
 }
 
 /**
@@ -71,7 +226,7 @@ export function useStudents() {
     if (!context) {
         throw new Error("useStudents must be used within RegisterProvider");
     }
-    return context.students;
+    return context.data.students;
 }
 
 /**
@@ -82,7 +237,7 @@ export function useStudentBookingStats() {
     if (!context) {
         throw new Error("useStudentBookingStats must be used within RegisterProvider");
     }
-    return context.studentBookingStats;
+    return context.data.studentBookingStats;
 }
 
 /**
@@ -93,5 +248,5 @@ export function useTeacherLessonStats() {
     if (!context) {
         throw new Error("useTeacherLessonStats must be used within RegisterProvider");
     }
-    return context.teacherLessonStats;
+    return context.data.teacherLessonStats;
 }

@@ -1,14 +1,9 @@
-"use client";
-
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Switch } from "@headlessui/react";
+import { useState, useMemo, useEffect } from "react";
 import { ActiveStudentBookingTab } from "@/src/components/tabs/ActiveStudentBookingTab";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { showEntityToast } from "@/getters/toast-getter";
-import { prettyDateSpan } from "@/getters/date-getter";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { ENTITY_DATA } from "@/config/entities";
+import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 
 interface StudentClassDailyProps {
     bookings: DraggableBooking[];
@@ -26,37 +21,6 @@ type StudentBookingFilter = "available" | "onboard";
 
 export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard, setOnNewBooking }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-
-    // Track last shown booking toast to prevent duplicates
-    const lastToastBookingIdRef = useRef<string | null>(null);
-    const previousBookingCountRef = useRef(bookings.length);
-
-    // Detect new bookings and show toast
-    useEffect(() => {
-        if (bookings.length > previousBookingCountRef.current) {
-            // Get the newest booking (first one in the array)
-            const newestBooking = bookings[0];
-
-            // Check if we already showed a toast for this booking
-            if (newestBooking && lastToastBookingIdRef.current !== newestBooking.bookingId) {
-                // Get booking data for date span
-                const bookingData = classboardData[newestBooking.bookingId];
-                const dateStart = bookingData?.booking.dateStart || "";
-                const dateEnd = bookingData?.booking.dateEnd || "";
-
-                showEntityToast("booking", {
-                    title: "New Booking Alert",
-                    description: prettyDateSpan(dateStart, dateEnd),
-                    duration: 4000,
-                });
-
-                lastToastBookingIdRef.current = newestBooking.bookingId;
-            }
-        }
-
-        previousBookingCountRef.current = bookings.length;
-    }, [bookings, classboardData]);
 
     // Register a no-op callback with parent (just for compatibility)
     useEffect(() => {
@@ -92,7 +56,6 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
         const counts = {
             onboard: onboardBookings.length,
             available: availableBookings.length,
-            completed: 0,
         };
 
         let filteredData: DraggableBooking[];
@@ -112,24 +75,14 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                 <div className="flex items-center gap-4">
                     <HelmetIcon className="w-8 h-8 text-yellow-400 flex-shrink-0" />
                     <div className="text-xl font-bold text-foreground">Students</div>
-                    <div className="ml-auto flex items-center gap-2">
-                        <span
-                            className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "available" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" : "bg-muted text-muted-foreground"}`}
-                        >
-                            {counts.available}
-                        </span>
-
-                        <Switch
-                            checked={filter === "onboard"}
-                            onChange={(checked) => setFilter(checked ? "onboard" : "available")}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 ${filter === "onboard" ? "bg-yellow-500" : "bg-muted-foreground/40"}`}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${filter === "onboard" ? "translate-x-6" : "translate-x-1"}`} />
-                        </Switch>
-
-                        <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors ${filter === "onboard" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" : "bg-muted text-muted-foreground"}`}>
-                            {counts.onboard}
-                        </span>
+                    <div className="ml-auto">
+                        <ToggleSwitch
+                            value={filter}
+                            onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)}
+                            values={{ left: "available", right: "onboard" }}
+                            counts={counts}
+                            color="yellow"
+                        />
                     </div>
                 </div>
             </div>

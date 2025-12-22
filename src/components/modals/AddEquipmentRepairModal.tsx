@@ -10,7 +10,7 @@ import FormField from "@/src/components/ui/form/form-field";
 import FormInput from "@/src/components/ui/form/form-input";
 import FormSubmit from "@/src/components/ui/form/form-submit";
 import { createEquipmentRepair } from "@/actions/equipment-repair-action";
-import { showEntityToast } from "@/getters/toast-getter";
+
 
 interface AddEquipmentRepairModalProps {
   isOpen: boolean;
@@ -57,30 +57,16 @@ export default function AddEquipmentRepairModal({
       });
 
       if (!result.success) {
-        showEntityToast("equipment", {
-          title: "Failed to Add Repair",
-          description: result.error || "Failed to add repair",
-          duration: 5000,
-        });
         return;
       }
 
-      showEntityToast("equipment", {
-        title: "Repair Added",
-        description: "Repair record successfully created",
-        duration: 4000,
-      });
+
 
       onRepairAdded?.();
       onClose();
       methods.reset();
     } catch (error) {
       console.error("Error adding repair:", error);
-      showEntityToast("equipment", {
-        title: "Error",
-        description: "An unexpected error occurred",
-        duration: 5000,
-      });
     } finally {
       setIsSubmitting(false);
     }
