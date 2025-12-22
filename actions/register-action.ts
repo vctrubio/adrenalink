@@ -2,32 +2,32 @@
 
 /**
  * REGISTER ACTIONS
- * 
+ *
  * Architecture Decision: Username → ID Lookup Pattern
  * ====================================================
- * 
+ *
  * CONTEXT:
  * - Headers provide: x-school-username (string, unique)
  * - Database uses: schoolId (UUID) as foreign keys
  * - School table has: Both id (UUID PK) and username (unique varchar)
- * 
+ *
  * DECISION: Use helper function pattern
  * - getSchoolIdFromHeader() converts username → ID
  * - All actions use this helper for school context
  * - Maintains relational integrity with UUID foreign keys
- * 
+ *
  * WHY NOT username as FK?
  * ❌ Breaks normalization
  * ❌ Username changes would break all relations
  * ❌ Larger indexes (varchar vs UUID)
  * ❌ Poor performance on joins
- * 
+ *
  * SCENARIOS HANDLED:
  * 1. Create student: No school context needed
  * 2. Link to school: Use getSchoolIdFromHeader() for schoolId
  * 3. Create + Link: Transaction ensures both succeed or both fail
  * 4. Query by school: Use getSchoolIdFromHeader() in where clause
- * 
+ *
  * BENEFITS:
  * ✅ Single source of truth (headers)
  * ✅ Type-safe UUID foreign keys
@@ -43,11 +43,10 @@ import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, Te
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getSchoolHeader } from "@/types/headers";
 
-
 /**
  * Get school packages only if not already provided
  * Useful for sub-routes that may not have packages in context
- * 
+ *
  * @param packages - Existing packages array (if any)
  * @returns Packages array (either provided or freshly fetched)
  */
@@ -79,26 +78,24 @@ export async function getSchoolPackagesIfNull(packages?: any[]): Promise<ApiActi
 /**
  * Create a new student
  * Creates a student entity with personal information
- * 
+ *
  * @param studentData - Student information (firstName, lastName, passport, etc.)
  * @returns Created student record
  */
-export async function createStudent(
-    studentData: StudentForm
-): Promise<ApiActionResponseModel<typeof student.$inferSelect>> {
+export async function createStudent(studentData: StudentForm): Promise<ApiActionResponseModel<typeof student.$inferSelect>> {
     try {
         const result = await db.insert(student).values(studentData).returning();
         revalidatePath("/register");
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error creating student:", error);
-        
+
         // Provide more detailed error message
         let errorMessage = "Failed to create student";
         if (error instanceof Error) {
             errorMessage += `: ${error.message}`;
         }
-        
+
         return { success: false, error: errorMessage };
     }
 }
@@ -106,21 +103,17 @@ export async function createStudent(
 /**
  * Link student to school
  * Creates the school_students relationship using the x-school-username header
- * 
+ *
  * @param studentId - The student ID to link
  * @param canRent - Whether student can rent equipment (maps to 'rental' field)
  * @param description - Optional description/notes about the student
  * @returns Created school_students record
  */
-export async function linkStudentToSchool(
-    studentId: string,
-    canRent = false,
-    description?: string
-): Promise<ApiActionResponseModel<typeof schoolStudents.$inferSelect>> {
+export async function linkStudentToSchool(studentId: string, canRent = false, description?: string): Promise<ApiActionResponseModel<typeof schoolStudents.$inferSelect>> {
     try {
         // Get school ID from header
         const schoolHeader = await getSchoolHeader();
-        
+
         if (!schoolHeader) {
             return { success: false, error: "School not found in headers" };
         }
@@ -138,13 +131,13 @@ export async function linkStudentToSchool(
         return { success: true, data: result[0] };
     } catch (error) {
         console.error("Error linking student to school:", error);
-        
+
         // Provide more detailed error message
         let errorMessage = "Failed to link student to school";
         if (error instanceof Error) {
             errorMessage += `: ${error.message}`;
         }
-        
+
         return { success: false, error: errorMessage };
     }
 }
@@ -152,7 +145,7 @@ export async function linkStudentToSchool(
 /**
  * Create student and link to school in a single transaction
  * This is the recommended way to create a student from the register form
- * 
+ *
  * @param studentData - Student information
  * @param canRent - Whether student can rent equipment
  * @param description - Optional description
@@ -161,15 +154,17 @@ export async function linkStudentToSchool(
 export async function createAndLinkStudent(
     studentData: StudentForm,
     canRent = false,
-    description?: string
-): Promise<ApiActionResponseModel<{
-    student: typeof student.$inferSelect;
-    schoolStudent: typeof schoolStudents.$inferSelect;
-}>> {
+    description?: string,
+): Promise<
+    ApiActionResponseModel<{
+        student: typeof student.$inferSelect;
+        schoolStudent: typeof schoolStudents.$inferSelect;
+    }>
+> {
     try {
         // Get school context from header first
         const schoolHeader = await getSchoolHeader();
-        
+
         if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
@@ -208,7 +203,7 @@ export async function createAndLinkStudent(
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating and linking student:", error);
-        
+
         // Provide detailed error message
         let errorMessage = "Failed to create and link student";
         if (error instanceof Error) {
@@ -221,7 +216,7 @@ export async function createAndLinkStudent(
                 errorMessage += `: ${error.message}`;
             }
         }
-        
+
         return { success: false, error: errorMessage };
     }
 }
@@ -236,7 +231,7 @@ export async function createAndLinkStudent(
  * Create and link teacher to school with commission
  * Teachers are always linked to a school (schoolId is required in schema)
  * Creates both teacher and their commission structure in a transaction
- * 
+ *
  * @param teacherData - Teacher information (firstName, lastName, username, passport, etc.)
  * @param commissionData - Commission information (type, value, description)
  * @returns Created teacher record with commission
@@ -247,15 +242,17 @@ export async function createAndLinkTeacher(
         commissionType: "fixed" | "percentage";
         commissionValue: number;
         commissionDescription?: string;
-    }[]
-): Promise<ApiActionResponseModel<{
-    teacher: typeof teacher.$inferSelect;
-    commissions: (typeof teacherCommission.$inferSelect)[];
-}>> {
+    }[],
+): Promise<
+    ApiActionResponseModel<{
+        teacher: typeof teacher.$inferSelect;
+        commissions: (typeof teacherCommission.$inferSelect)[];
+    }>
+> {
     try {
         // Get school ID from header
         const schoolHeader = await getSchoolHeader();
-        
+
         if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
@@ -272,7 +269,7 @@ export async function createAndLinkTeacher(
 
             // Create all commissions for the teacher
             const createdCommissions: (typeof teacherCommission.$inferSelect)[] = [];
-            
+
             for (const commissionData of commissionsData) {
                 const commissionFormData: TeacherCommissionForm = {
                     teacherId: createdTeacher.id,
@@ -290,12 +287,12 @@ export async function createAndLinkTeacher(
                 commissions: createdCommissions,
             };
         });
-        
+
         revalidatePath("/register");
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating teacher:", error);
-        
+
         // Provide detailed error message
         let errorMessage = "Failed to create teacher";
         if (error instanceof Error) {
@@ -314,7 +311,7 @@ export async function createAndLinkTeacher(
                 errorMessage += `: ${error.message}`;
             }
         }
-        
+
         return { success: false, error: errorMessage };
     }
 }
@@ -328,13 +325,11 @@ export async function createAndLinkTeacher(
 /**
  * Create and link package to school
  * Packages are always linked to a school (schoolId is required in schema)
- * 
+ *
  * @param packageData - Package information (duration, price, capacity, etc.)
  * @returns Created package record
  */
-export async function createAndLinkPackage(
-    packageData: Omit<SchoolPackageForm, "schoolId">
-): Promise<ApiActionResponseModel<typeof schoolPackage.$inferSelect>> {
+export async function createAndLinkPackage(packageData: Omit<SchoolPackageForm, "schoolId">): Promise<ApiActionResponseModel<typeof schoolPackage.$inferSelect>> {
     try {
         // Get school ID from header
         const schoolHeader = await getSchoolHeader();
@@ -401,11 +396,13 @@ export async function masterBookingAdd(
     teacherId?: string,
     commissionId?: string,
     referralId?: string,
-    leaderStudentName?: string
-): Promise<ApiActionResponseModel<{
-    booking: typeof booking.$inferSelect;
-    lesson?: typeof lesson.$inferSelect;
-}>> {
+    leaderStudentName?: string,
+): Promise<
+    ApiActionResponseModel<{
+        booking: typeof booking.$inferSelect;
+        lesson?: typeof lesson.$inferSelect;
+    }>
+> {
     try {
         console.log("🎫 [masterBookingAdd] Starting booking creation with:", {
             packageId,
@@ -450,14 +447,17 @@ export async function masterBookingAdd(
         // Start transaction
         const result = await db.transaction(async (tx) => {
             // 1. Create studentPackage (minimal - dates and wallet match booking)
-            const [createdStudentPackage] = await tx.insert(studentPackage).values({
-                schoolPackageId: packageId,
-                walletId: "00000000-0000-0000-0000-000000000000",
-                requestedDateStart: dateStartTimestamp.toISOString(),
-                requestedDateEnd: dateEndTimestamp.toISOString(),
-                status: "accepted",
-                referralId: referralId || null,
-            }).returning();
+            const [createdStudentPackage] = await tx
+                .insert(studentPackage)
+                .values({
+                    schoolPackageId: packageId,
+                    walletId: "00000000-0000-0000-0000-000000000000",
+                    requestedDateStart: dateStartTimestamp.toISOString(),
+                    requestedDateEnd: dateEndTimestamp.toISOString(),
+                    status: "accepted",
+                    referralId: referralId || null,
+                })
+                .returning();
 
             console.log(`📦 [masterBookingAdd] Created studentPackage: ${createdStudentPackage.id}`);
 
@@ -472,14 +472,17 @@ export async function masterBookingAdd(
             console.log(`👥 [masterBookingAdd] Linked ${studentIds.length} students to studentPackage`);
 
             // 3. Create booking
-            const [createdBooking] = await tx.insert(booking).values({
-                schoolId: schoolHeader.id,
-                studentPackageId: createdStudentPackage.id,
-                dateStart: dateStartTimestamp.toISOString(),
-                dateEnd: dateEndTimestamp.toISOString(),
-                status: "active",
-                leaderStudentName: leaderStudentName || "",
-            }).returning();
+            const [createdBooking] = await tx
+                .insert(booking)
+                .values({
+                    schoolId: schoolHeader.id,
+                    studentPackageId: createdStudentPackage.id,
+                    dateStart: dateStartTimestamp.toISOString(),
+                    dateEnd: dateEndTimestamp.toISOString(),
+                    status: "active",
+                    leaderStudentName: leaderStudentName || "",
+                })
+                .returning();
 
             console.log(`📅 [masterBookingAdd] Created booking: ${createdBooking.id}`);
 
@@ -496,13 +499,16 @@ export async function masterBookingAdd(
             // 5. Create lesson if teacher provided
             let createdLesson: typeof lesson.$inferSelect | undefined;
             if (teacherId && commissionId) {
-                const [newLesson] = await tx.insert(lesson).values({
-                    bookingId: createdBooking.id,
-                    teacherId,
-                    commissionId,
-                    schoolId: schoolHeader.id,
-                    status: "active",
-                }).returning();
+                const [newLesson] = await tx
+                    .insert(lesson)
+                    .values({
+                        bookingId: createdBooking.id,
+                        teacherId,
+                        commissionId,
+                        schoolId: schoolHeader.id,
+                        status: "active",
+                    })
+                    .returning();
 
                 createdLesson = newLesson;
                 console.log(`📚 [masterBookingAdd] Created lesson: ${newLesson.id}`);
@@ -515,7 +521,8 @@ export async function masterBookingAdd(
         });
 
         revalidatePath("/register");
-        revalidatePath("/classboard");
+        // revalidatePath("/classboard"); // there is a web socket to listen for this.
+        revalidatePath("/bookings");
 
         console.log(`✅ [masterBookingAdd] Booking creation complete! Booking ID: ${result.booking.id}`);
         console.log("✅ [masterBookingAdd] Returning success response with data:", result);

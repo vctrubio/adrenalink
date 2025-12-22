@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 import { useTeacherLessonListener } from "@/supabase/subscribe";
 import type { TeacherPackageBookingLessons } from "@/actions/user-action";
 import type { ApiActionResponseModel } from "@/types/actions";
-import { Calendar, Clock } from "lucide-react";
 
 interface TeacherPortalProps {
     teacherId: string;
@@ -34,46 +32,14 @@ export function TeacherPortal({ teacherId, schoolId, data, onDataUpdate }: Teach
             // Check for new events
             lesson.events.forEach((event) => {
                 if (!previousEventIds.has(event.id)) {
-                    const date = new Date(event.date).toLocaleDateString();
-                    const time = new Date(event.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    });
-
-                    toast.custom(
-                        () => (
-                            <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 dark:bg-green-950 p-4 shadow-lg">
-                                <Calendar className="w-5 h-5 text-green-500 flex-shrink-0" />
-                                <div className="flex-1">
-                                    <div className="font-semibold text-foreground">Event Added</div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        {lesson.studentNames.join(", ")} • {date} at {time}
-                                    </div>
-                                </div>
-                            </div>
-                        ),
-                        { duration: 4000 }
-                    );
+                    console.log("New event detected:", event);
                 }
             });
 
             // Check for deleted events
             previousEvents.forEach((event) => {
                 if (!newEventIds.has(event.id)) {
-                    toast.custom(
-                        () => (
-                            <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 p-4 shadow-lg">
-                                <Clock className="w-5 h-5 text-red-500 flex-shrink-0" />
-                                <div className="flex-1">
-                                    <div className="font-semibold text-foreground">Event Removed</div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        {lesson.studentNames.join(", ")} • event update :::
-                                    </div>
-                                </div>
-                            </div>
-                        ),
-                        { duration: 4000 }
-                    );
+                    console.log("Event removed:", event);
                 }
             });
 

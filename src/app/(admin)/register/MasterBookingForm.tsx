@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import toast from "react-hot-toast";
 import { masterBookingAdd } from "@/actions/register-action";
 import { prettyDateSpan } from "@/getters/date-getter";
 import { DateRangeBadge } from "@/src/components/ui/badge";
@@ -249,36 +247,18 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 const errorMessage = result.error || "Failed to create booking";
                 console.error("BOOKING FORM: Error creating booking:", errorMessage);
                 setError(errorMessage);
-                toast.error("Booking Error", {
-                    description: errorMessage,
-                    duration: 5000,
-                });
                 setLoading(false);
                 return;
             }
 
-            // Success - show toast and reset
-            toast.success(
-                <div className="flex items-center gap-2">
-                    <BookingIcon size={20} color="#22c55e" />
-                    <HelmetIcon size={18} color="#22c55e" />
-                    <span>{leaderStudentName}</span>
-                </div>,
-                {
-                    description: prettyDateSpan(dateRange.startDate, dateRange.endDate),
-                    duration: 4000,
-                }
-            );
+            // Success - show toast, reset and refresh
+            toast.success(`Booking created: ${leaderStudentName}`);
             handleReset();
             router.refresh();
             setLoading(false);
         } catch (err) {
             const errorMessage = "An unexpected error occurred";
             setError(errorMessage);
-            toast.error("Booking Error", {
-                description: errorMessage,
-                duration: 5000,
-            });
             setLoading(false);
         }
     };

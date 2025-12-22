@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 import { useStudentLessonListener } from "@/supabase/subscribe";
 import type { StudentPackageBookingLessons } from "@/actions/user-action";
 import type { ApiActionResponseModel } from "@/types/actions";
-import { Calendar, Clock } from "lucide-react";
 import { EventStudentCard } from "./EventStudentCard";
 
 interface StudentPortalProps {
@@ -35,56 +33,14 @@ export function StudentPortal({ studentId, schoolId, data, onDataUpdate }: Stude
             // Check for new events
             lesson.events.forEach((event) => {
                 if (!previousEventIds.has(event.id)) {
-                    const date = new Date(event.date).toLocaleDateString();
-                    const time = new Date(event.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    });
-
-                    toast.custom(
-                        () => (
-                            <div className="flex items-center gap-4 rounded-2xl border-2 border-blue-500/50 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/90 dark:to-cyan-950/90 p-5 shadow-2xl backdrop-blur-sm">
-                                <div className="p-2 rounded-full bg-blue-500/20">
-                                    <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-bold text-foreground text-lg">New Session Added!</div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        <span className="font-medium">{lesson.teacherName}</span> • {date} at {time}
-                                    </div>
-                                </div>
-                            </div>
-                        ),
-                        { duration: 5000 }
-                    );
+                    console.log("New event detected:", event);
                 }
             });
 
             // Check for deleted events
             previousEvents.forEach((event) => {
                 if (!newEventIds.has(event.id)) {
-                    const date = new Date(event.date).toLocaleDateString();
-                    const time = new Date(event.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    });
-
-                    toast.custom(
-                        () => (
-                            <div className="flex items-center gap-4 rounded-2xl border-2 border-orange-500/50 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/90 dark:to-amber-950/90 p-5 shadow-2xl backdrop-blur-sm">
-                                <div className="p-2 rounded-full bg-orange-500/20">
-                                    <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-bold text-foreground text-lg">Session Cancelled</div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        <span className="font-medium">{lesson.teacherName}</span> • {date} at {time}
-                                    </div>
-                                </div>
-                            </div>
-                        ),
-                        { duration: 5000 }
-                    );
+                    console.log("Event removed:", event);
                 }
             });
 
