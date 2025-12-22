@@ -10,6 +10,17 @@ export const STATUS_GREEN = "#86efac";
 export const STATUS_ORANGE = "#fbbf24";
 export const ACTION_CYAN = "#06b6d4";
 
+// ============ BADGE COLOR AND OPACITY CONSTANTS ============
+// Darker colors for better badge contrast, with defined opacity levels
+
+export const BADGE_STATUS_GREEN = "#22c55e"; // Darker green for better contrast
+export const BADGE_ACTION_CYAN = "#06b6d4";
+export const BADGE_STATUS_ORANGE = "#f59e0b";
+
+export const BADGE_BG_OPACITY_DARK = "50"; // For primary status badges
+export const BADGE_BG_OPACITY_MEDIUM = "30"; // For secondary badges
+export const BADGE_BG_OPACITY_LIGHT = "20"; // For light badges
+
 // ============ EVENT STATUS CONFIGURATION ============
 export type EventStatus = (typeof eventStatusEnum.enumValues)[number];
 

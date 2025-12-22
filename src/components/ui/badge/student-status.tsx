@@ -1,6 +1,6 @@
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import { STATUS_GREEN, ACTION_CYAN } from "@/types/status";
+import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/types/status";
 
 interface StudentStatusBadgeProps {
   bookingCount: number;
@@ -17,10 +17,9 @@ export function StudentStatusBadge({
   if (bookingCount === 0) {
     return (
       <div
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
         style={{
-          backgroundColor: `${STATUS_GREEN}40`,
-          color: "#1f2937",
+          backgroundColor: `${BADGE_STATUS_GREEN}${BADGE_BG_OPACITY_DARK}`,
         }}
       >
         New
@@ -32,10 +31,9 @@ export function StudentStatusBadge({
   if (allBookingsCompleted) {
     return (
       <div
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
         style={{
-          backgroundColor: `${STATUS_GREEN}40`,
-          color: "#1f2937",
+          backgroundColor: `${BADGE_STATUS_GREEN}${BADGE_BG_OPACITY_DARK}`,
         }}
       >
         <BookingIcon size={14} />
@@ -49,10 +47,9 @@ export function StudentStatusBadge({
   // Show bookings + duration with blue background if not all completed
   return (
     <div
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
       style={{
-        backgroundColor: `${ACTION_CYAN}40`,
-        color: "#1f2937",
+        backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_DARK}`,
       }}
     >
       <BookingIcon size={14} />

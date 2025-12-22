@@ -1,5 +1,5 @@
 import LessonIcon from "@/public/appSvgs/LessonIcon";
-import { STATUS_GREEN, ACTION_CYAN } from "@/types/status";
+import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/types/status";
 
 interface TeacherStatusBadgeProps {
   totalLessons: number;
@@ -10,10 +10,9 @@ export function TeacherStatusBadge({ totalLessons, plannedLessons }: TeacherStat
   if (totalLessons === 0) {
     return (
       <div
-        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
         style={{
-          backgroundColor: `${STATUS_GREEN}40`,
-          color: "#1f2937",
+          backgroundColor: `${BADGE_STATUS_GREEN}${BADGE_BG_OPACITY_DARK}`,
         }}
       >
         New
@@ -25,10 +24,9 @@ export function TeacherStatusBadge({ totalLessons, plannedLessons }: TeacherStat
   const hasPlanedLessons = plannedLessons > 0;
   return (
     <div
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
       style={{
-        backgroundColor: hasPlanedLessons ? `${ACTION_CYAN}40` : `${STATUS_GREEN}40`,
-        color: "#1f2937",
+        backgroundColor: hasPlanedLessons ? `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_DARK}` : `${BADGE_STATUS_GREEN}${BADGE_BG_OPACITY_DARK}`,
       }}
     >
       <LessonIcon size={14} />

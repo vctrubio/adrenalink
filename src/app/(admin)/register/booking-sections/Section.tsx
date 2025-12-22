@@ -1,3 +1,5 @@
+import { ExpandCollapseIcon } from "@/src/components/ui/ExpandCollapseIcon";
+
 interface SectionProps {
     id: string;
     title: React.ReactNode;
@@ -95,9 +97,9 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                             </>
                         )}
                         {!alwaysExpanded && (
-                            <span className="text-xl font-bold text-primary min-w-[24px] h-8 flex items-center justify-center">
-                                {isExpanded ? "−" : "+"}
-                            </span>
+                            <div className="min-w-[24px] h-8 flex items-center justify-center text-primary">
+                                <ExpandCollapseIcon isExpanded={isExpanded} className="w-5 h-5" />
+                            </div>
                         )}
                     </div>
                 </div>
