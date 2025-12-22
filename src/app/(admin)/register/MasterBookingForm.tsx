@@ -130,7 +130,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const handleTeacherSelect = (teacher: any) => {
         setSelectedTeacher(teacher);
         // Auto-select first commission if only one exists
-        if (teacher.commissions && teacher.commissions.length === 1) {
+        if (teacher?.commissions && teacher.commissions.length === 1) {
             setSelectedCommission(teacher.commissions[0]);
         } else {
             setSelectedCommission(null);
@@ -304,14 +304,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                         isExpanded={expandedSections.has("students-section")}
                         onSectionToggle={() => toggleSection("students-section")}
                         studentStatsMap={studentBookingStats}
-                    />
-
-                    <ReferralSection
-                        referrals={referrals}
-                        selectedReferral={selectedReferral}
-                        onSelect={handleReferralSelect}
-                        isExpanded={expandedSections.has("referral-section")}
-                        onToggle={() => toggleSection("referral-section")}
+                        selectedPackage={selectedPackage}
                     />
 
                     <TeacherSection
@@ -324,6 +317,16 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                         isExpanded={expandedSections.has("teacher-section")}
                         onToggle={() => toggleSection("teacher-section")}
                         teacherStatsMap={teacherLessonStats}
+                        onClose={() => closeSection("teacher-section")}
+                    />
+
+                    <ReferralSection
+                        referrals={referrals}
+                        selectedReferral={selectedReferral}
+                        onSelect={handleReferralSelect}
+                        isExpanded={expandedSections.has("referral-section")}
+                        onToggle={() => toggleSection("referral-section")}
+                        onClose={() => closeSection("referral-section")}
                     />
 
                     {error && (

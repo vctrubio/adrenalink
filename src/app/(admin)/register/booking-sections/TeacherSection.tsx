@@ -1,6 +1,7 @@
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
 import { TeacherTable } from "@/src/components/tables/TeacherTable";
+import { TeacherCommissionBadge } from "@/src/components/ui/badge";
 
 interface Commission {
     id: string;
@@ -33,6 +34,7 @@ interface TeacherSectionProps {
     isExpanded: boolean;
     onToggle: () => void;
     teacherStatsMap?: Record<string, TeacherStats>;
+    onClose?: () => void;
 }
 
 export function TeacherSection({
@@ -43,21 +45,21 @@ export function TeacherSection({
     onSelectCommission,
     isExpanded,
     onToggle,
-    teacherStatsMap
+    teacherStatsMap,
+    onClose
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
 
-    const getCommissionDisplay = (commission: Commission) => {
-        return commission.commissionType === "fixed"
-            ? `${commission.cph} €/h`
-            : `${commission.cph} %/h`;
-    };
-
     const title = selectedTeacher && selectedCommission
-        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} • ${getCommissionDisplay(selectedCommission)}`
+        ? (
+            <div className="flex items-center gap-2">
+                <span>{selectedTeacher.firstName} {selectedTeacher.lastName}</span>
+                <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />
+            </div>
+        )
         : selectedTeacher
         ? `${selectedTeacher.firstName} - Select Commission`
-        : "Teacher (Optional)";
+        : "Teacher";
 
     return (
         <Section
@@ -67,6 +69,13 @@ export function TeacherSection({
             onToggle={onToggle}
             entityIcon={teacherEntity?.icon}
             entityColor={teacherEntity?.color}
+            optional={true}
+            hasSelection={selectedTeacher !== null}
+            onClear={() => {
+                onSelectTeacher(null);
+                onSelectCommission(null);
+            }}
+            onOptional={onClose}
         >
             <TeacherTable
                 teachers={teachers}

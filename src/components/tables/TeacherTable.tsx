@@ -1,9 +1,11 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { TeacherStatusBadge } from "@/src/components/ui/badge";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { useState, useMemo } from "react";
-import React from "react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
+import { useTableSort } from "@/hooks/useTableSort";
+import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 
 interface Commission {
     id: string;
@@ -36,8 +38,7 @@ interface TeacherTableProps {
     teacherStatsMap?: Record<string, TeacherStats>;
 }
 
-type SortColumn = "firstName" | "lastName" | null;
-type SortDirection = "asc" | "desc";
+type SortColumn = "firstName" | "lastName" | "languages" | "status" | null;
 
 export function TeacherTable({
     teachers,
@@ -49,29 +50,38 @@ export function TeacherTable({
     teacherStatsMap = {}
 }: TeacherTableProps) {
     const [search, setSearch] = useState("");
-    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+    const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
+    const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
     const commissionEntity = ENTITY_DATA.find(e => e.id === "commission");
-
-    const handleSort = (column: SortColumn) => {
-        if (sortColumn === column) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-        } else {
-            setSortColumn(column);
-            setSortDirection("asc");
-        }
-    };
+    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
 
     // Filter and sort teachers
     const filteredTeachers = useMemo(() => {
         let filtered = teachers.filter((teacher) => {
             const searchLower = search.toLowerCase();
-            return teacher.username.toLowerCase().includes(searchLower);
+
+            // Search filter
+            const matchesSearch = teacher.username.toLowerCase().includes(searchLower);
+
+            if (!matchesSearch) return false;
+
+            // Status filter
+            const stats = teacherStatsMap[teacher.id];
+            if (statusFilter === "New") {
+                return !stats || stats.totalLessons === 0;
+            } else if (statusFilter === "Ongoing") {
+                return stats && stats.totalLessons > 0;
+            }
+
+            return true; // "All"
         });
 
         if (sortColumn) {
             filtered.sort((a, b) => {
                 let comparison = 0;
+                const statsA = teacherStatsMap[a.id];
+                const statsB = teacherStatsMap[b.id];
+
                 switch (sortColumn) {
                     case "firstName":
                         comparison = a.firstName.localeCompare(b.firstName);
@@ -79,13 +89,21 @@ export function TeacherTable({
                     case "lastName":
                         comparison = a.lastName.localeCompare(b.lastName);
                         break;
+                    case "languages":
+                        comparison = (a.languages[0] || "").localeCompare(b.languages[0] || "");
+                        break;
+                    case "status":
+                        const lessonsA = statsA?.totalLessons || 0;
+                        const lessonsB = statsB?.totalLessons || 0;
+                        comparison = lessonsA - lessonsB;
+                        break;
                 }
                 return sortDirection === "asc" ? comparison : -comparison;
             });
         }
 
         return filtered;
-    }, [teachers, search, sortColumn, sortDirection]);
+    }, [teachers, search, sortColumn, sortDirection, statusFilter, teacherStatsMap]);
 
     if (teachers.length === 0) {
         return (
@@ -116,7 +134,7 @@ export function TeacherTable({
 
     return (
         <div className="space-y-3">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
                 <input
                     type="text"
                     placeholder="Search by username..."
@@ -124,6 +142,15 @@ export function TeacherTable({
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
+                {teacherEntity && (
+                    <FilterDropdown
+                        label="Status"
+                        value={statusFilter}
+                        options={STATUS_FILTER_OPTIONS}
+                        onChange={(v) => setStatusFilter(v as StatusFilterType)}
+                        entityColor={teacherEntity.color}
+                    />
+                )}
             </div>
 
             {/* Show selected teacher and commission */}
@@ -167,6 +194,7 @@ export function TeacherTable({
                                 <TableRow
                                     onClick={() => handleTeacherClick(selectedTeacher)}
                                     isSelected={true}
+                                    selectedColor={teacherEntity?.color}
                                 >
                                     <TableCell className="font-medium">
                                         <div>
@@ -211,6 +239,7 @@ export function TeacherTable({
                                                 key={commission.id}
                                                 onClick={() => handleCommissionSelect(commission)}
                                                 isSelected={isCommissionSelected}
+                                                selectedColor={commissionEntity?.color}
                                             >
                                                 <TableCell className="font-medium font-mono">
                                                     {getCommissionDisplay(commission)}
@@ -244,8 +273,22 @@ export function TeacherTable({
                             >
                                 Name
                             </TableHead>
-                            <TableHead>Languages</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead
+                                sortable
+                                sortActive={sortColumn === "languages"}
+                                sortDirection={sortDirection}
+                                onSort={() => handleSort("languages")}
+                            >
+                                Languages
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortActive={sortColumn === "status"}
+                                sortDirection={sortDirection}
+                                onSort={() => handleSort("status")}
+                            >
+                                Status
+                            </TableHead>
                         </tr>
                     </TableHeader>
                     <TableBody>
@@ -255,6 +298,7 @@ export function TeacherTable({
                                 <TableRow
                                     key={teacher.id}
                                     onClick={() => handleTeacherClick(teacher)}
+                                    selectedColor={teacherEntity?.color}
                                 >
                                     <TableCell className="font-medium text-foreground">
                                         <div>

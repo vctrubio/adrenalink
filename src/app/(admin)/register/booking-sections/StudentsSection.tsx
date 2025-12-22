@@ -28,6 +28,13 @@ interface StudentStats {
     allBookingsCompleted?: boolean;
 }
 
+type StudentStatusFilter = "All" | "New" | "Ongoing";
+
+interface Package {
+    id: string;
+    capacityStudents: number;
+}
+
 interface StudentsSectionProps {
     students: SchoolStudent[];
     selectedStudentIds: string[];
@@ -37,6 +44,7 @@ interface StudentsSectionProps {
     isExpanded: boolean;
     onSectionToggle: () => void;
     studentStatsMap?: Record<string, StudentStats>;
+    selectedPackage?: Package | null;
 }
 
 export function StudentsSection({
@@ -46,14 +54,24 @@ export function StudentsSection({
     capacity,
     isExpanded,
     onSectionToggle,
-    studentStatsMap
+    studentStatsMap,
+    selectedPackage
 }: StudentsSectionProps) {
     const studentEntity = ENTITY_DATA.find(e => e.id === "student");
-    
-    const title = capacity
+
+    const selectedStudentNames = selectedStudentIds
+        .map(id => students.find(s => s.student.id === id)?.student.firstName)
+        .filter(Boolean)
+        .join(", ");
+
+    const title = selectedPackage && selectedStudentIds.length > 0
+        ? `(${selectedStudentIds.length}/${selectedPackage.capacityStudents}) ${selectedStudentNames}`
+        : selectedPackage
+        ? `Select Students (${selectedPackage.capacityStudents})`
+        : capacity
         ? `Select Students (${selectedStudentIds.length}/${capacity})`
         : selectedStudentIds.length > 0
-        ? `${selectedStudentIds.length} Student${selectedStudentIds.length !== 1 ? "s" : ""} Selected`
+        ? `(${selectedStudentIds.length}) ${selectedStudentNames}`
         : "Select Students";
 
     return (
@@ -64,6 +82,10 @@ export function StudentsSection({
             onToggle={onSectionToggle}
             entityIcon={studentEntity?.icon}
             entityColor={studentEntity?.color}
+            hasSelection={selectedStudentIds.length > 0}
+            onClear={() => {
+                selectedStudentIds.forEach(id => onToggle(id));
+            }}
         >
             <StudentTable
                 students={students}

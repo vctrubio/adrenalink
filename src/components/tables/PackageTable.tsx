@@ -1,8 +1,13 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { getPricePerHour } from "@/getters/package-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import { MultiSelectFilterDropdown } from "@/src/components/ui/MultiSelectFilterDropdown";
 import { useState, useMemo } from "react";
+import { ENTITY_DATA } from "@/config/entities";
+import { useTableSort } from "@/hooks/useTableSort";
 
 interface Package {
     id: string;
@@ -12,6 +17,7 @@ interface Package {
     capacityStudents: number;
     capacityEquipment: number;
     categoryEquipment: string;
+    isPublic: boolean;
 }
 
 interface PackageTableProps {
@@ -21,8 +27,13 @@ interface PackageTableProps {
     selectedStudentCount?: number;
 }
 
-type SortColumn = "duration" | "capacity" | "price" | null;
-type SortDirection = "asc" | "desc";
+type SortColumn = "duration" | "capacity" | "price" | "pricePerHour" | null;
+
+const PUBLIC_PRIVATE_OPTIONS = ["All", "Public", "Private"] as const;
+type PublicPrivateFilter = typeof PUBLIC_PRIVATE_OPTIONS[number];
+
+const CAPACITY_OPTIONS = ["All", "Single", "Double", "More"] as const;
+type CapacityFilter = typeof CAPACITY_OPTIONS[number];
 
 export function PackageTable({
     packages,
@@ -31,17 +42,17 @@ export function PackageTable({
     selectedStudentCount = 0
 }: PackageTableProps) {
     const [search, setSearch] = useState("");
-    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+    const [publicPrivateFilter, setPublicPrivateFilter] = useState<PublicPrivateFilter>("All");
+    const [capacityFilter, setCapacityFilter] = useState<CapacityFilter>("All");
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
+    const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage");
 
-    const handleSort = (column: SortColumn) => {
-        if (sortColumn === column) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-        } else {
-            setSortColumn(column);
-            setSortDirection("asc");
-        }
-    };
+    // Get unique categories from packages
+    const availableCategories = useMemo(() => {
+        const categories = new Set(packages.map(pkg => pkg.categoryEquipment));
+        return Array.from(categories);
+    }, [packages]);
 
     if (packages.length === 0) {
         return (
@@ -61,7 +72,37 @@ export function PackageTable({
     const processedPackages = useMemo(() => {
         let filtered = packagesWithMatch.filter((pkg) => {
             const searchLower = search.toLowerCase();
-            return pkg.description?.toLowerCase().includes(searchLower) || false;
+
+            // Search filter
+            if (!pkg.description?.toLowerCase().includes(searchLower)) {
+                return false;
+            }
+
+            // Public/Private filter
+            if (publicPrivateFilter === "Public" && !pkg.isPublic) {
+                return false;
+            }
+            if (publicPrivateFilter === "Private" && pkg.isPublic) {
+                return false;
+            }
+
+            // Capacity filter
+            if (capacityFilter === "Single" && pkg.capacityStudents !== 1) {
+                return false;
+            }
+            if (capacityFilter === "Double" && pkg.capacityStudents !== 2) {
+                return false;
+            }
+            if (capacityFilter === "More" && pkg.capacityStudents <= 2) {
+                return false;
+            }
+
+            // Category filter (multi-select)
+            if (selectedCategories.length > 0 && !selectedCategories.includes(pkg.categoryEquipment)) {
+                return false;
+            }
+
+            return true;
         });
 
         if (sortColumn) {
@@ -77,13 +118,18 @@ export function PackageTable({
                     case "price":
                         comparison = a.pricePerStudent - b.pricePerStudent;
                         break;
+                    case "pricePerHour":
+                        const pricePerHourA = getPricePerHour(a.pricePerStudent, a.capacityStudents, a.durationMinutes);
+                        const pricePerHourB = getPricePerHour(b.pricePerStudent, b.capacityStudents, b.durationMinutes);
+                        comparison = pricePerHourA - pricePerHourB;
+                        break;
                 }
                 return sortDirection === "asc" ? comparison : -comparison;
             });
         }
 
         return filtered;
-    }, [packagesWithMatch, search, sortColumn, sortDirection]);
+    }, [packagesWithMatch, search, sortColumn, sortDirection, publicPrivateFilter, capacityFilter, selectedCategories]);
 
     const filteredPackages = processedPackages;
 
@@ -95,21 +141,39 @@ export function PackageTable({
                 </div>
             )}
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center flex-wrap">
                 <input
                     type="text"
                     placeholder="Search by description..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
-                <button
-                    type="button"
-                    onClick={() => console.log("Filter packages:", { search, filteredCount: filteredPackages.length })}
-                    className="px-4 py-2 text-sm font-medium border border-border rounded-lg bg-background hover:bg-accent transition-colors"
-                >
-                    Filter
-                </button>
+                {packageEntity && (
+                    <>
+                        <FilterDropdown
+                            label="Access"
+                            value={publicPrivateFilter}
+                            options={PUBLIC_PRIVATE_OPTIONS}
+                            onChange={(v) => setPublicPrivateFilter(v as PublicPrivateFilter)}
+                            entityColor={packageEntity.color}
+                        />
+                        <FilterDropdown
+                            label="Capacity"
+                            value={capacityFilter}
+                            options={CAPACITY_OPTIONS}
+                            onChange={(v) => setCapacityFilter(v as CapacityFilter)}
+                            entityColor={packageEntity.color}
+                        />
+                        <MultiSelectFilterDropdown
+                            label="Category"
+                            selectedValues={selectedCategories}
+                            options={availableCategories}
+                            onChange={setSelectedCategories}
+                            entityColor={packageEntity.color}
+                        />
+                    </>
+                )}
             </div>
             
             <Table>
@@ -141,15 +205,24 @@ export function PackageTable({
                         >
                             Price
                         </TableHead>
-                        <TableHead align="right">Per Hour</TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "pricePerHour"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("pricePerHour")}
+                            align="right"
+                        >
+                            Per Hour
+                        </TableHead>
+                        <TableHead>Access</TableHead>
                     </tr>
                 </TableHeader>
                 <TableBody>
                     {filteredPackages.map((pkg) => {
                         const isSelected = selectedPackage?.id === pkg.id;
                         const matchesCount = pkg.matchesStudentCount;
-                        const pricePerHour = (pkg.pricePerStudent * pkg.capacityStudents) / (pkg.durationMinutes / 60);
-                        
+                        const pricePerHour = getPricePerHour(pkg.pricePerStudent, pkg.capacityStudents, pkg.durationMinutes);
+
                         const equipmentConfig = EQUIPMENT_CATEGORIES.find(
                             (cat) => cat.id === pkg.categoryEquipment
                         );
@@ -160,6 +233,7 @@ export function PackageTable({
                                 key={pkg.id}
                                 onClick={() => onSelect(pkg)}
                                 isSelected={isSelected}
+                                selectedColor={packageEntity?.color}
                                 className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}
                             >
                                 <TableCell>
@@ -176,7 +250,7 @@ export function PackageTable({
                                         {pkg.description}
                                         {matchesCount && (
                                             <span className="text-xs text-green-600 dark:text-green-400">
-                                                ✓ Match
+                                                ✓ Match ({pkg.capacityStudents})
                                             </span>
                                         )}
                                     </div>
@@ -187,6 +261,11 @@ export function PackageTable({
                                 </TableCell>
                                 <TableCell className="text-muted-foreground text-right">
                                     €{pricePerHour.toFixed(2)}/h
+                                </TableCell>
+                                <TableCell className="text-xs font-medium">
+                                    <span className={pkg.isPublic ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}>
+                                        {pkg.isPublic ? "Public" : "Private"}
+                                    </span>
                                 </TableCell>
                             </TableRow>
                         );

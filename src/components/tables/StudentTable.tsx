@@ -1,6 +1,10 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { StudentStatusBadge } from "@/src/components/ui/badge";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { useState, useMemo } from "react";
+import { ENTITY_DATA } from "@/config/entities";
+import { useTableSort } from "@/hooks/useTableSort";
+import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 
 interface Student {
     id: string;
@@ -36,8 +40,7 @@ interface StudentTableProps {
     studentStatsMap?: Record<string, StudentStats>;
 }
 
-type SortColumn = "firstName" | "lastName" | null;
-type SortDirection = "asc" | "desc";
+type SortColumn = "firstName" | "lastName" | "country" | "languages" | "status" | null;
 
 export function StudentTable({
     students,
@@ -47,28 +50,34 @@ export function StudentTable({
     studentStatsMap = {}
 }: StudentTableProps) {
     const [search, setSearch] = useState("");
-    const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-
-    const handleSort = (column: SortColumn) => {
-        if (sortColumn === column) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-        } else {
-            setSortColumn(column);
-            setSortDirection("asc");
-        }
-    };
+    const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
+    const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
+    const studentEntity = ENTITY_DATA.find(e => e.id === "student");
 
     // Filter and sort students
     const filteredStudents = useMemo(() => {
         let filtered = students.filter((schoolStudent) => {
             const student = schoolStudent.student;
             const searchLower = search.toLowerCase();
-            return (
+
+            // Search filter
+            const matchesSearch = (
                 student.firstName.toLowerCase().includes(searchLower) ||
                 student.lastName.toLowerCase().includes(searchLower) ||
                 student.passport.toLowerCase().includes(searchLower)
             );
+
+            if (!matchesSearch) return false;
+
+            // Status filter
+            const stats = studentStatsMap[student.id];
+            if (statusFilter === "New") {
+                return !stats || stats.bookingCount === 0;
+            } else if (statusFilter === "Ongoing") {
+                return stats && stats.bookingCount > 0;
+            }
+
+            return true; // "All"
         });
 
         if (sortColumn) {
@@ -76,6 +85,8 @@ export function StudentTable({
                 let comparison = 0;
                 const studentA = a.student;
                 const studentB = b.student;
+                const statsA = studentStatsMap[studentA.id];
+                const statsB = studentStatsMap[studentB.id];
 
                 switch (sortColumn) {
                     case "firstName":
@@ -84,13 +95,24 @@ export function StudentTable({
                     case "lastName":
                         comparison = studentA.lastName.localeCompare(studentB.lastName);
                         break;
+                    case "country":
+                        comparison = studentA.country.localeCompare(studentB.country);
+                        break;
+                    case "languages":
+                        comparison = (studentA.languages[0] || "").localeCompare(studentB.languages[0] || "");
+                        break;
+                    case "status":
+                        const countA = statsA?.bookingCount || 0;
+                        const countB = statsB?.bookingCount || 0;
+                        comparison = countA - countB;
+                        break;
                 }
                 return sortDirection === "asc" ? comparison : -comparison;
             });
         }
 
         return filtered;
-    }, [students, search, sortColumn, sortDirection]);
+    }, [students, search, sortColumn, sortDirection, statusFilter, studentStatsMap]);
 
     if (students.length === 0) {
         return (
@@ -102,7 +124,7 @@ export function StudentTable({
 
     return (
         <div className="space-y-3">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
                 <input
                     type="text"
                     placeholder="Search by name or passport..."
@@ -110,13 +132,15 @@ export function StudentTable({
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
-                <button
-                    type="button"
-                    onClick={() => console.log("Filter students:", { search, filteredCount: filteredStudents.length })}
-                    className="px-4 py-2 text-sm font-medium border border-border rounded-lg bg-background hover:bg-accent transition-colors"
-                >
-                    Filter
-                </button>
+                {studentEntity && (
+                    <FilterDropdown
+                        label="Status"
+                        value={statusFilter}
+                        options={STATUS_FILTER_OPTIONS}
+                        onChange={(v) => setStatusFilter(v as StatusFilterType)}
+                        entityColor={studentEntity.color}
+                    />
+                )}
             </div>
             <Table>
                 <TableHeader>
@@ -129,9 +153,30 @@ export function StudentTable({
                         >
                             Name
                         </TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Languages</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "country"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("country")}
+                        >
+                            Country
+                        </TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "languages"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("languages")}
+                        >
+                            Languages
+                        </TableHead>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "status"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("status")}
+                        >
+                            Status
+                        </TableHead>
                     </tr>
                 </TableHeader>
             <TableBody>
@@ -147,6 +192,7 @@ export function StudentTable({
                             key={student.id}
                             onClick={!isDisabled ? () => onToggle(student.id) : undefined}
                             isSelected={isSelected}
+                            selectedColor={studentEntity?.color}
                             className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                         >
                             <TableCell className="font-medium text-foreground">

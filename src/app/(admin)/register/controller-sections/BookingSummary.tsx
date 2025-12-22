@@ -108,40 +108,12 @@ export function BookingSummary({
                     )}
                 </button>
 
-                {/* Referral */}
-                <button
-                    onClick={() => onScrollToSection("referral-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasReferral 
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
-                    }`}
-                >
-                    <div className="text-xs text-muted-foreground mb-1">
-                        {hasReferral ? "✓ Referral" : "Referral (Optional)"}
-                    </div>
-                    {hasReferral ? (
-                        <>
-                            <div className="text-sm font-medium">
-                                {selectedReferral.code}
-                            </div>
-                            {selectedReferral.description && (
-                                <div className="text-xs text-muted-foreground">
-                                    {selectedReferral.description}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">Skip to book without referral</div>
-                    )}
-                </button>
-
                 {/* Teacher */}
                 <button
                     onClick={() => onScrollToSection("teacher-section")}
                     className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasTeacher 
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
+                        hasTeacher
+                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
                             : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
                     }`}
                 >
@@ -161,6 +133,34 @@ export function BookingSummary({
                         </>
                     ) : (
                         <div className="text-xs text-muted-foreground">Skip to create booking without lesson</div>
+                    )}
+                </button>
+
+                {/* Referral */}
+                <button
+                    onClick={() => onScrollToSection("referral-section")}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
+                        hasReferral
+                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
+                    }`}
+                >
+                    <div className="text-xs text-muted-foreground mb-1">
+                        {hasReferral ? "✓ Referral" : "Referral (Optional)"}
+                    </div>
+                    {hasReferral ? (
+                        <>
+                            <div className="text-sm font-medium">
+                                {selectedReferral.code}
+                            </div>
+                            {selectedReferral.description && (
+                                <div className="text-xs text-muted-foreground">
+                                    {selectedReferral.description}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-xs text-muted-foreground">Skip to book without referral</div>
                     )}
                 </button>
 

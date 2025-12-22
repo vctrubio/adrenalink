@@ -72,33 +72,13 @@ export function ReferralTable({
 
     return (
         <div className="space-y-3">
-            <div className="flex gap-2">
-                <input
-                    type="text"
-                    placeholder="Search by code..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <button
-                    type="button"
-                    onClick={() => console.log("Filter referrals:", { search, filteredCount: filteredReferrals.length })}
-                    className="px-4 py-2 text-sm font-medium border border-border rounded-lg bg-background hover:bg-accent transition-colors"
-                >
-                    Filter
-                </button>
-            </div>
-
-            {/* Option to clear selection */}
-            {selectedReferral && (
-                <button
-                    type="button"
-                    onClick={() => onSelect(null)}
-                    className="w-full p-2 text-sm text-left rounded-lg border border-border hover:border-destructive/50 bg-muted/30 transition-all"
-                >
-                    ✕ Clear referral selection
-                </button>
-            )}
+            <input
+                type="text"
+                placeholder="Search by code..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
 
             <Table>
                 <TableHeader>
