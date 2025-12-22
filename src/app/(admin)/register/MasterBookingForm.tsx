@@ -44,6 +44,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(
         studentIdParam ? [studentIdParam] : []
     );
+    const [leaderStudentId, setLeaderStudentId] = useState<string>("");
     const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
     const [selectedCommission, setSelectedCommission] = useState<any>(null);
     const [selectedReferral, setSelectedReferral] = useState<any>(null);
