@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { masterBookingAdd } from "@/actions/register-action";
-import { showEntityToast } from "@/getters/toast-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
 import { DateRangeBadge } from "@/src/components/ui/badge";
 import { useTeacherLessonStats, useStudentBookingStats } from "./RegisterContext";
@@ -247,8 +249,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 const errorMessage = result.error || "Failed to create booking";
                 console.error("BOOKING FORM: Error creating booking:", errorMessage);
                 setError(errorMessage);
-                showEntityToast("booking", {
-                    title: "Booking Error",
+                toast.error("Booking Error", {
                     description: errorMessage,
                     duration: 5000,
                 });
@@ -257,19 +258,24 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             }
 
             // Success - show toast and reset
-            showEntityToast("booking", {
-                title: "Booking Created",
-                description: prettyDateSpan(dateRange.startDate, dateRange.endDate),
-                duration: 4000,
-            });
+            toast.success(
+                <div className="flex items-center gap-2">
+                    <BookingIcon size={20} color="#22c55e" />
+                    <HelmetIcon size={18} color="#22c55e" />
+                    <span>{leaderStudentName}</span>
+                </div>,
+                {
+                    description: prettyDateSpan(dateRange.startDate, dateRange.endDate),
+                    duration: 4000,
+                }
+            );
             handleReset();
             router.refresh();
             setLoading(false);
         } catch (err) {
             const errorMessage = "An unexpected error occurred";
             setError(errorMessage);
-            showEntityToast("booking", {
-                title: "Booking Error",
+            toast.error("Booking Error", {
                 description: errorMessage,
                 duration: 5000,
             });

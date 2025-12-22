@@ -30,47 +30,38 @@ interface PackageTableProps {
 type SortColumn = "duration" | "capacity" | "price" | "pricePerHour" | null;
 
 const PUBLIC_PRIVATE_OPTIONS = ["All", "Public", "Private"] as const;
-type PublicPrivateFilter = typeof PUBLIC_PRIVATE_OPTIONS[number];
+type PublicPrivateFilter = (typeof PUBLIC_PRIVATE_OPTIONS)[number];
 
 const CAPACITY_OPTIONS = ["All", "Single", "Double", "More"] as const;
-type CapacityFilter = typeof CAPACITY_OPTIONS[number];
+type CapacityFilter = (typeof CAPACITY_OPTIONS)[number];
 
-export function PackageTable({
-    packages,
-    selectedPackage,
-    onSelect,
-    selectedStudentCount = 0
-}: PackageTableProps) {
+export function PackageTable({ packages, selectedPackage, onSelect, selectedStudentCount = 0 }: PackageTableProps) {
     const [search, setSearch] = useState("");
     const [publicPrivateFilter, setPublicPrivateFilter] = useState<PublicPrivateFilter>("All");
     const [capacityFilter, setCapacityFilter] = useState<CapacityFilter>("All");
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
-    const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage");
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
 
     // Get unique categories from packages
     const availableCategories = useMemo(() => {
-        const categories = new Set(packages.map(pkg => pkg.categoryEquipment));
+        const categories = new Set(packages.map((pkg) => pkg.categoryEquipment));
         return Array.from(categories);
     }, [packages]);
 
     if (packages.length === 0) {
-        return (
-            <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
-                No packages available
-            </div>
-        );
+        return <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">No packages available</div>;
     }
 
     // Add match indicator for packages that match student count
-    const packagesWithMatch = packages.map(pkg => ({
+    const packagesWithMatch = packages.map((pkg) => ({
         ...pkg,
-        matchesStudentCount: selectedStudentCount > 0 && pkg.capacityStudents === selectedStudentCount
+        matchesStudentCount: selectedStudentCount > 0 && pkg.capacityStudents === selectedStudentCount,
     }));
 
     // Filter and sort packages
     const processedPackages = useMemo(() => {
-        let filtered = packagesWithMatch.filter((pkg) => {
+        const filtered = packagesWithMatch.filter((pkg) => {
             const searchLower = search.toLowerCase();
 
             // Search filter
@@ -140,7 +131,7 @@ export function PackageTable({
                     💡 Packages matching {selectedStudentCount} student{selectedStudentCount !== 1 ? "s" : ""} are highlighted
                 </div>
             )}
-            
+
             <div className="flex gap-2 items-center flex-wrap">
                 <input
                     type="text"
@@ -151,67 +142,27 @@ export function PackageTable({
                 />
                 {packageEntity && (
                     <>
-                        <FilterDropdown
-                            label="Access"
-                            value={publicPrivateFilter}
-                            options={PUBLIC_PRIVATE_OPTIONS}
-                            onChange={(v) => setPublicPrivateFilter(v as PublicPrivateFilter)}
-                            entityColor={packageEntity.color}
-                        />
-                        <FilterDropdown
-                            label="Capacity"
-                            value={capacityFilter}
-                            options={CAPACITY_OPTIONS}
-                            onChange={(v) => setCapacityFilter(v as CapacityFilter)}
-                            entityColor={packageEntity.color}
-                        />
-                        <MultiSelectFilterDropdown
-                            label="Category"
-                            selectedValues={selectedCategories}
-                            options={availableCategories}
-                            onChange={setSelectedCategories}
-                            entityColor={packageEntity.color}
-                        />
+                        <FilterDropdown label="Access" value={publicPrivateFilter} options={PUBLIC_PRIVATE_OPTIONS} onChange={(v) => setPublicPrivateFilter(v as PublicPrivateFilter)} entityColor={packageEntity.color} />
+                        <FilterDropdown label="Capacity" value={capacityFilter} options={CAPACITY_OPTIONS} onChange={(v) => setCapacityFilter(v as CapacityFilter)} entityColor={packageEntity.color} />
+                        <MultiSelectFilterDropdown label="Category" selectedValues={selectedCategories} options={availableCategories} onChange={setSelectedCategories} entityColor={packageEntity.color} />
                     </>
                 )}
             </div>
-            
+
             <Table>
                 <TableHeader>
                     <tr>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "capacity"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("capacity")}
-                        >
+                        <TableHead sortable sortActive={sortColumn === "capacity"} sortDirection={sortDirection} onSort={() => handleSort("capacity")}>
                             Category
                         </TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "duration"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("duration")}
-                        >
+                        <TableHead sortable sortActive={sortColumn === "duration"} sortDirection={sortDirection} onSort={() => handleSort("duration")}>
                             Duration
                         </TableHead>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "price"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("price")}
-                            align="right"
-                        >
+                        <TableHead sortable sortActive={sortColumn === "price"} sortDirection={sortDirection} onSort={() => handleSort("price")} align="right">
                             Price
                         </TableHead>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "pricePerHour"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("pricePerHour")}
-                            align="right"
-                        >
+                        <TableHead sortable sortActive={sortColumn === "pricePerHour"} sortDirection={sortDirection} onSort={() => handleSort("pricePerHour")} align="right">
                             Per Hour
                         </TableHead>
                         <TableHead>Access</TableHead>
@@ -223,49 +174,23 @@ export function PackageTable({
                         const matchesCount = pkg.matchesStudentCount;
                         const pricePerHour = getPricePerHour(pkg.pricePerStudent, pkg.capacityStudents, pkg.durationMinutes);
 
-                        const equipmentConfig = EQUIPMENT_CATEGORIES.find(
-                            (cat) => cat.id === pkg.categoryEquipment
-                        );
+                        const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === pkg.categoryEquipment);
                         const EquipmentIcon = equipmentConfig?.icon;
 
                         return (
-                            <TableRow
-                                key={pkg.id}
-                                onClick={() => onSelect(pkg)}
-                                isSelected={isSelected}
-                                selectedColor={packageEntity?.color}
-                                className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}
-                            >
-                                <TableCell>
-                                    {EquipmentIcon && (
-                                        <EquipmentStudentCapacityBadge
-                                            categoryIcon={EquipmentIcon}
-                                            equipmentCapacity={pkg.capacityEquipment}
-                                            studentCapacity={pkg.capacityStudents}
-                                        />
-                                    )}
-                                </TableCell>
+                            <TableRow key={pkg.id} onClick={() => onSelect(pkg)} isSelected={isSelected} selectedColor={packageEntity?.color} className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}>
+                                <TableCell>{EquipmentIcon && <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={pkg.capacityEquipment} studentCapacity={pkg.capacityStudents} />}</TableCell>
                                 <TableCell className="font-medium text-foreground">
                                     <div className="flex items-center gap-2">
                                         {pkg.description}
-                                        {matchesCount && (
-                                            <span className="text-xs text-green-600 dark:text-green-400">
-                                                ✓ Match ({pkg.capacityStudents})
-                                            </span>
-                                        )}
+                                        {matchesCount && <span className="text-xs text-green-600 dark:text-green-400">✓ Match ({pkg.capacityStudents})</span>}
                                     </div>
                                 </TableCell>
                                 <TableCell>{getPrettyDuration(pkg.durationMinutes)}</TableCell>
-                                <TableCell className="font-semibold text-primary text-right">
-                                    €{pkg.pricePerStudent * pkg.capacityStudents}
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-right">
-                                    €{pricePerHour.toFixed(2)}/h
-                                </TableCell>
+                                <TableCell className="font-semibold text-primary text-right">{pkg.pricePerStudent}</TableCell>
+                                <TableCell className="text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
                                 <TableCell className="text-xs font-medium">
-                                    <span className={pkg.isPublic ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}>
-                                        {pkg.isPublic ? "Public" : "Private"}
-                                    </span>
+                                    <span className={pkg.isPublic ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}>{pkg.isPublic ? "Public" : "Private"}</span>
                                 </TableCell>
                             </TableRow>
                         );

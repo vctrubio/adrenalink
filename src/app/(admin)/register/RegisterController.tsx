@@ -1,8 +1,12 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { StudentFormData } from "@/src/components/forms/Student4SchoolForm";
 import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
 import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { SchoolHeader } from "./controller-sections/SchoolHeader";
 import { FormSelector } from "./controller-sections/FormSelector";
 import { StudentSummary } from "./controller-sections/StudentSummary";
@@ -58,6 +62,22 @@ export default function RegisterController({
     leaderStudentId = "",
     onLeaderStudentChange,
 }: RegisterControllerProps) {
+    const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
+    const leaderDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (leaderDropdownRef.current && !leaderDropdownRef.current.contains(event.target as Node)) {
+                setIsLeaderDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const selectedLeaderStudent = selectedStudents.find(s => s.id === leaderStudentId);
+    const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
+
     return (
         <div className={`bg-card ${isMobile ? "rounded-lg border border-border" : "lg:sticky lg:top-4"}`}>
             <div className="p-6 space-y-6">
@@ -128,22 +148,57 @@ export default function RegisterController({
                             onScrollToSection={onScrollToSection}
                         />
                         {selectedStudents.length > 0 && (
-                            <div className="space-y-2 pt-2">
-                                <label className="text-xs font-medium text-muted-foreground">Leader</label>
-                                <select
-                                    value={leaderStudentId}
-                                    onChange={(e) => onLeaderStudentChange?.(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                >
-                                    <option value="" disabled>
-                                        Select leader student
-                                    </option>
-                                    {selectedStudents.map((student) => (
-                                        <option key={student.id} value={student.id}>
-                                            {student.firstName} {student.lastName}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="border-t border-border pt-4">
+                                <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Leader</h3>
+                                <div ref={leaderDropdownRef} className="relative">
+                                    <button
+                                        onClick={() => setIsLeaderDropdownOpen(!isLeaderDropdownOpen)}
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {leaderStudentName && (
+                                                <>
+                                                    <HelmetIcon size={16} />
+                                                    <span className="font-medium">{leaderStudentName}</span>
+                                                </>
+                                            )}
+                                            {!leaderStudentName && (
+                                                <span className="text-muted-foreground text-xs">Select leader student</span>
+                                            )}
+                                        </div>
+                                        <motion.div animate={{ rotate: isLeaderDropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                            <AdranlinkIcon className="w-4 h-4" />
+                                        </motion.div>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isLeaderDropdownOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
+                                            >
+                                                {selectedStudents.map((student) => {
+                                                    const isActive = student.id === leaderStudentId;
+                                                    return (
+                                                        <button
+                                                            key={student.id}
+                                                            onClick={() => {
+                                                                onLeaderStudentChange?.(student.id);
+                                                                setIsLeaderDropdownOpen(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left text-sm transition-colors ${isActive ? "bg-muted font-medium" : "hover:bg-muted/50"}`}
+                                                        >
+                                                            {student.firstName} {student.lastName}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
                         )}
                         <ControllerActions

@@ -17,15 +17,7 @@ interface BookingSummaryProps {
     onScrollToSection: (sectionId: string) => void;
 }
 
-export function BookingSummary({
-    dateRange,
-    selectedPackage,
-    selectedStudents,
-    selectedReferral,
-    selectedTeacher,
-    selectedCommission,
-    onScrollToSection,
-}: BookingSummaryProps) {
+export function BookingSummary({ dateRange, selectedPackage, selectedStudents, selectedReferral, selectedTeacher, selectedCommission, onScrollToSection }: BookingSummaryProps) {
     const hasDates = dateRange.startDate && dateRange.endDate;
     const hasPackage = !!selectedPackage;
     const hasStudents = selectedStudents.length > 0;
@@ -42,16 +34,12 @@ export function BookingSummary({
                 {/* Dates */}
                 <button
                     onClick={() => onScrollToSection("dates-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasDates
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                            : "bg-muted/30 border-border cursor-pointer"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${hasDates ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-muted/30 border-border cursor-pointer"}`}
                 >
                     <div className="flex items-center gap-2 mb-1">
                         <BookingIcon size={16} color={hasDates ? "#22c55e" : "#9ca3af"} />
                         <span className="text-xs font-medium" style={{ color: hasDates ? "#22c55e" : "#6b7280" }}>
-                            Dates Required
+                            Dates {hasDates ? "" : "Required"}
                         </span>
                     </div>
                     {hasDates ? (
@@ -66,16 +54,12 @@ export function BookingSummary({
                 {/* Package */}
                 <button
                     onClick={() => onScrollToSection("package-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasPackage
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                            : "bg-muted/30 border-border cursor-pointer"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${hasPackage ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-muted/30 border-border cursor-pointer"}`}
                 >
                     <div className="flex items-center gap-2 mb-1">
                         <PackageIcon size={16} color={hasPackage ? "#22c55e" : "#9ca3af"} />
                         <span className="text-xs font-medium" style={{ color: hasPackage ? "#22c55e" : "#6b7280" }}>
-                            Package Required
+                            Package {hasPackage ? "" : "Required"}
                         </span>
                     </div>
                     {hasPackage ? (
@@ -83,21 +67,21 @@ export function BookingSummary({
                             <div className="text-sm font-medium">{selectedPackage.description}</div>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 {(() => {
-                                    const equipmentConfig = EQUIPMENT_CATEGORIES.find(
-                                        cat => cat.id === selectedPackage.categoryEquipment
-                                    );
+                                    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === selectedPackage.categoryEquipment);
                                     const EquipmentIcon = equipmentConfig?.icon;
-                                    return EquipmentIcon ? (
-                                        <EquipmentStudentCapacityBadge
-                                            categoryIcon={EquipmentIcon}
-                                            equipmentCapacity={selectedPackage.capacityEquipment}
-                                            studentCapacity={selectedPackage.capacityStudents}
-                                        />
-                                    ) : null;
+                                    return EquipmentIcon ? <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={selectedPackage.capacityEquipment} studentCapacity={selectedPackage.capacityStudents} /> : null;
                                 })()}
-                                <span>€{selectedPackage.pricePerStudent} per student</span>
-                                <span className="text-muted-foreground/70">•</span>
-                                <span>Revenue: €{(selectedPackage.pricePerStudent * selectedPackage.capacityStudents).toFixed(2)}</span>
+                                <span className="text-foreground font-medium">{parseFloat(selectedPackage.pricePerStudent).toFixed(2)}</span>
+                                <span className="text-foreground">×</span>
+                                {selectedPackage.capacityStudents > 1 && (
+                                    <>
+                                        <span className="text-foreground font-medium">{selectedPackage.capacityStudents}p</span>
+                                        <span className="text-foreground">×</span>
+                                    </>
+                                )}
+                                <span className="text-foreground font-medium">{(selectedPackage.durationMinutes / 60).toFixed(2)}h</span>
+                                <span className="text-foreground">=</span>
+                                <span className="text-foreground font-medium">{(selectedPackage.pricePerStudent * selectedPackage.capacityStudents * (selectedPackage.durationMinutes / 60)).toFixed(2)}</span>
                             </div>
                         </>
                     ) : (
@@ -108,13 +92,8 @@ export function BookingSummary({
                 {/* Students */}
                 <button
                     onClick={() => onScrollToSection("students-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasCorrectStudentCount
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                            : hasStudents
-                            ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
-                            : "bg-muted/30 border-border cursor-pointer"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${hasCorrectStudentCount ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : hasStudents ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800" : "bg-muted/30 border-border cursor-pointer"
+                        }`}
                 >
                     <div className="flex items-center gap-2 mb-1">
                         <HelmetIcon size={16} color={hasCorrectStudentCount ? "#22c55e" : hasStudents ? "#ca8a04" : "#9ca3af"} />
@@ -131,20 +110,15 @@ export function BookingSummary({
                             ))}
                         </div>
                     ) : (
-                        <div className="text-xs text-muted-foreground">
-                            {hasPackage ? `Select ${selectedPackage.capacityStudents} student${selectedPackage.capacityStudents > 1 ? "s" : ""}` : "Select package first"}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{hasPackage ? `Select ${selectedPackage.capacityStudents} student${selectedPackage.capacityStudents > 1 ? "s" : ""}` : "Select package first"}</div>
                     )}
                 </button>
 
                 {/* Teacher */}
                 <button
                     onClick={() => onScrollToSection("teacher-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasTeacher
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${hasTeacher ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
+                        }`}
                 >
                     <div className="flex items-center gap-2 mb-1">
                         <HeadsetIcon size={16} color={hasTeacher ? "#22c55e" : "#9ca3af"} />
@@ -158,9 +132,7 @@ export function BookingSummary({
                                 <span className="text-sm font-medium">
                                     {selectedTeacher.firstName} {selectedTeacher.lastName}
                                 </span>
-                                {hasCommission && (
-                                    <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />
-                                )}
+                                {hasCommission && <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />}
                             </div>
                         </>
                     ) : (
@@ -171,11 +143,8 @@ export function BookingSummary({
                 {/* Referral */}
                 <button
                     onClick={() => onScrollToSection("referral-section")}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${
-                        hasReferral
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover:opacity-80 ${hasReferral ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-pointer"
+                        }`}
                 >
                     <div className="flex items-center gap-2 mb-1">
                         <LinkIcon size={16} color={hasReferral ? "#22c55e" : "#9ca3af"} />
@@ -186,16 +155,10 @@ export function BookingSummary({
                     {hasReferral ? (
                         <>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                    {selectedReferral.code}
-                                </span>
+                                <span className="text-sm font-medium">{selectedReferral.code}</span>
                                 <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
                             </div>
-                            {selectedReferral.description && (
-                                <div className="text-xs text-muted-foreground">
-                                    {selectedReferral.description}
-                                </div>
-                            )}
+                            {selectedReferral.description && <div className="text-xs text-muted-foreground">{selectedReferral.description}</div>}
                         </>
                     ) : (
                         <div className="text-xs text-muted-foreground">Skip to book without referral</div>
@@ -204,10 +167,7 @@ export function BookingSummary({
 
                 {/* Commission */}
                 {hasTeacher && !hasCommission && (
-                    <button
-                        onClick={() => onScrollToSection("teacher-section")}
-                        className="w-full text-left p-3 rounded-lg border bg-muted/30 border-border transition-all hover:opacity-80 cursor-pointer"
-                    >
+                    <button onClick={() => onScrollToSection("teacher-section")} className="w-full text-left p-3 rounded-lg border bg-muted/30 border-border transition-all hover:opacity-80 cursor-pointer">
                         <div className="flex items-center gap-2 mb-1">
                             <HandshakeIcon size={16} color="#9ca3af" />
                             <span className="text-xs font-medium text-muted-foreground">Commission Required</span>
