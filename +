@@ -6,7 +6,7 @@ interface SectionProps {
     isExpanded: boolean;
     onToggle: () => void;
     children: React.ReactNode;
-    entityIcon?: React.ComponentType<{ className?: string }>;
+    entityIcon?: React.ComponentType<any>;
     entityColor?: string;
     alwaysExpanded?: boolean;
     optional?: boolean;
@@ -35,7 +35,7 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                         )}
                         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <divu className="flex items-center gap-2">
                         {optional ? (
                             <>
                                 {hasSelection && onClear && (
@@ -85,11 +85,12 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                                 <ExpandCollapseIcon isExpanded={isExpanded} className="w-5 h-5" />
                             </div>
                         )}
-                    </div>
                 </div>
-                {/* Content */}
-                {(isExpanded || alwaysExpanded) && <div className="px-4 pb-4">{children}</div>}
             </div>
+
+            {/* Content */}
+            {(isExpanded || alwaysExpanded) && <div className="px-4 pb-4">{children}</div>}
         </div>
+        </div >
     );
 }

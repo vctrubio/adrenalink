@@ -8,16 +8,12 @@ import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
-const databoardPaths = ["/data", "/students", "/teachers", "/bookings", "/equipments", "/packages", "/rentals", "/referrals", "/requests", "/events"];
+const NAV_IDS = ["info", "classboard", "data", "users"] as const;
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "event"];
-
-const infoPaths = ["/info", "/info/students", "/info/teachers", "/info/bookings", "/info/equipments", "/info/packages", "/info/lessons"];
-const INFO_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "lesson", "event"];
 
 export const NavLeft = () => {
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isInfoDropdownOpen, setIsInfoDropdownOpen] = useState(false);
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
     const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
@@ -28,29 +24,22 @@ export const NavLeft = () => {
         color: entity.color,
     }));
 
-    const infoEntities = ENTITY_DATA.filter((entity) => INFO_ENTITIES.includes(entity.id));
-    const infoDropdownItems: DropdownItemProps[] = infoEntities.map((entity) => ({
-        id: `info-${entity.id}`,
-        label: entity.name,
-        href: `/info${entity.link}`,
-        icon: entity.icon,
-        color: entity.color,
-    }));
+    const databoardPaths = databoardDropdownItems.map((item) => item.href).filter(Boolean) as string[];
 
     const activeDropdownItem = databoardDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
-    const activeInfoDropdownItem = infoDropdownItems.find((item) => item.href && pathname.startsWith(item.href));
+    const routesToRender = FACEBOOK_NAV_ROUTES.filter((route) => NAV_IDS.includes(route.id as (typeof NAV_IDS)[number]));
 
     return (
         <div className="flex items-center gap-1">
             <Link href="/" className="flex items-center">
                 <AdranlinkIcon size={40} className="text-secondary" />
             </Link>
-            {FACEBOOK_NAV_ROUTES.map((route) => {
+            {routesToRender.map((route) => {
                 let isActive = false;
                 if (route.id === "data") {
-                    isActive = databoardPaths.some(path => pathname.startsWith(path));
+                    isActive = databoardPaths.some((path) => pathname.startsWith(path));
                 } else if (route.id === "info") {
-                    isActive = infoPaths.some(path => pathname.startsWith(path));
+                    isActive = pathname.startsWith("/home");
                 } else {
                     isActive = pathname.startsWith(route.href);
                 }
@@ -77,33 +66,11 @@ export const NavLeft = () => {
                     );
                 }
 
-                if (route.id === "info") {
-                    return (
-                        <div key={route.href} className="relative">
-                            <DropdownItem
-                                item={{
-                                    icon: route.icon,
-                                    active: isActive,
-                                    onClick: () => setIsInfoDropdownOpen(!isInfoDropdownOpen),
-                                }}
-                                variant="nav"
-                            />
-                            <Dropdown
-                                isOpen={isInfoDropdownOpen}
-                                onClose={() => setIsInfoDropdownOpen(false)}
-                                items={infoDropdownItems}
-                                align="center"
-                                initialFocusedId={activeInfoDropdownItem?.id}
-                            />
-                        </div>
-                    );
-                }
-
                 return (
                     <DropdownItem
                         key={route.href}
                         item={{
-                            href: route.href,
+                            href: route.id === "info" ? "/home" : route.href,
                             icon: route.icon,
                             active: isActive,
                         }}

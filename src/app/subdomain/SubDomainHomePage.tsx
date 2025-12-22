@@ -64,7 +64,7 @@ export function SubDomainHomePage({ school, packages }: SubDomainHomePageProps) 
                 )}
             </div>
 
-            <SchoolSubdomain school={school} />
+            {/* <SchoolSubdomain school={school} /> */} {/* Debugging Component and Irrelñevant*/}
         </div>
     );
 }

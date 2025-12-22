@@ -9,7 +9,6 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 // Style Constants
 const BORDER_STYLE = "border-4 border-secondary";
-const BANNER_BORDER_STYLE = "border-b-4 border-secondary";
 const AVATAR_SIZE = {
     small: "w-32 h-32",
     large: "md:w-40 md:h-40",
@@ -167,7 +166,7 @@ export function LiquidToggle({ options, active, setActive }: { options: { id: Pa
 }
 
 export default function SchoolHeader({ school, equipmentCategoryFilters, onEquipmentFilterToggle, packageTypeFilter, onPackageTypeFilterChange }: SchoolHeaderProps) {
-    const bannerUrl = `/cdn/schools/${school.schema.username}/banner.jpg`;
+    const bannerUrl = "/beach-banner.jpg";
 
     const packageTypeOptions = [
         { id: "lessons" as PackageTypeFilter, label: "Lessons" },
@@ -177,7 +176,7 @@ export default function SchoolHeader({ school, equipmentCategoryFilters, onEquip
     return (
         <div className="relative w-full">
             {/* Banner Section with Animated Canvas */}
-            <div className={`relative w-full h-48 md:h-64 flex items-center justify-center ${BANNER_BORDER_STYLE}`}>
+            <div className="relative w-full h-48 md:h-64 flex items-center justify-center">
                 {/* Animated Canvas Background */}
                 <AnimatedCanvas className="absolute inset-0 w-full h-full pointer-events-none" />
 
