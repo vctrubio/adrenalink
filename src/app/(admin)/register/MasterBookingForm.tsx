@@ -34,7 +34,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const addParam = searchParams.get("add");
     const studentBookingStats = useStudentBookingStats();
     const teacherLessonStats = useTeacherLessonStats();
-    const { removeFromQueue, refreshData } = useRegisterActions();
+    const { removeFromQueue, refreshData, isRefreshing } = useRegisterActions();
     const contextData = useRegisterData();
     const bookingForm = useBookingForm();
 
@@ -60,6 +60,8 @@ export default function BookingForm({ school, schoolPackages, students, teachers
 
     // Track if we've processed the add param to avoid infinite loops
     const processedParamRef = useRef<string | null>(null);
+    // Track if we've initiated refresh for the add param
+    const refreshInitiatedRef = useRef<string | null>(null);
 
     // If studentId param exists, set package capacity to 1
     useEffect(() => {

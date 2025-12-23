@@ -60,7 +60,7 @@ export function TeacherSection({
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
     const pathname = usePathname();
     const router = useRouter();
-    const { addTeacher, addToQueue } = useRegisterActions();
+    const { addTeacher } = useRegisterActions();
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -122,13 +122,6 @@ export function TeacherSection({
                 commissions: [],
             };
             addTeacher(newTeacher);
-
-            // Add to queue with just id and name
-            addToQueue("teachers", {
-                id: result.data.teacher.id,
-                name: `${formData.firstName} ${formData.lastName}`,
-                timestamp: Date.now(),
-            });
 
             // Behavior depends on current route
             if (pathname === "/register") {

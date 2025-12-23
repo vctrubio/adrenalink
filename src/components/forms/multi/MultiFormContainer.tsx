@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { UseFormReturn, FieldValues } from "react-hook-form";
 import { Form } from "@/src/components/ui/form";
-import FloatingNav from "@/src/components/navigations/FloatingNav";
 import { MultiFormStepper } from "./MultiFormStepper";
 import { MultiFormButtons } from "./MultiFormButtons";
 import type { FormStep } from "./types";
+import { AlertCircle, CheckCircle2, MessageCircle } from "lucide-react";
 
 interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Form configuration
@@ -33,10 +33,7 @@ interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Success state
     successTitle?: string;
     successMessage?: string;
-
-    // Floating nav
-    showFloatingNav?: boolean;
-    navSlogan?: string;
+    successButtonText?: string;
 }
 
 export function MultiFormContainer<T extends FieldValues = FieldValues>({
@@ -53,11 +50,13 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     submitButtonText = "Submit",
     successTitle = "Congratulations",
     successMessage = "We will get back to you in 1 business day. Thank you.",
-    showFloatingNav = true,
-    navSlogan = "streamlining the experience",
+    successButtonText = "Go to Home",
 }: MultiFormContainerProps<T>) {
     const [stepIndex, setStepIndex] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isError, setIsError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    
     const { handleSubmit, trigger, formState, setFocus } = formMethods;
 
     // Auto-focus first input when step changes
@@ -87,8 +86,26 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
         }
     };
 
-    const goTo = (idx: number) => {
-        if (idx >= 0 && idx < steps.length) {
+    const goTo = async (idx: number) => {
+        if (idx < 0 || idx >= steps.length) return;
+
+        if (idx < stepIndex) {
+            // Allow going back without validation
+            setStepIndex(idx);
+            onStepChange?.(idx);
+        } else {
+            // Going forward: validate all steps in between
+            for (let i = stepIndex; i < idx; i++) {
+                const currentFields = steps[i].fields;
+                const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as (keyof T)[]);
+                if (!isValid) {
+                    if (i !== stepIndex) {
+                        setStepIndex(i);
+                        onStepChange?.(i);
+                    }
+                    return;
+                }
+            }
             setStepIndex(idx);
             onStepChange?.(idx);
         }
@@ -113,11 +130,14 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     // Enhanced submit handler
     const handleFormSubmit = async (data: T) => {
+        setIsError(false);
         try {
             await onSubmit(data);
             setIsSubmitted(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Form submission error:", error);
+            setIsError(true);
+            setErrorMessage(error.message || "Something went wrong");
         }
     };
 
@@ -130,16 +150,10 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     if (isSubmitted) {
         return (
             <div className={className}>
-                {/* Floating Nav */}
-                {showFloatingNav && <FloatingNav show={showFloatingNav} slogan={navSlogan} />}
-
-                {/* Success Content */}
                 <div className="bg-card rounded-lg border border-border p-6 md:p-8 text-center animate-in fade-in duration-500">
                     <div className="space-y-6">
-                        <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
-                            <svg className="w-8 h-8 text-secondary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                        <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
+                            <CheckCircle2 className="w-8 h-8 text-secondary" />
                         </div>
 
                         <div className="animate-in slide-in-from-bottom duration-500 delay-300">
@@ -148,9 +162,63 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                         </div>
 
                         <div className="animate-in slide-in-from-bottom duration-500 delay-500">
-                            <button onClick={() => (window.location.href = "/")} className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200">
-                                Go to Home
+                            <button 
+                                onClick={() => {
+                                    if (onSuccessButtonClick) {
+                                        onSuccessButtonClick();
+                                    } else {
+                                        window.location.href = "/";
+                                    }
+                                }} 
+                                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200 shadow-md"
+                            >
+                                {successButtonText}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error view
+    if (isError) {
+        return (
+            <div className={className}>
+                <div className="bg-card rounded-lg border border-warning/30 p-6 md:p-8 text-center animate-in fade-in duration-500">
+                    <div className="space-y-6">
+                        <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
+                            <AlertCircle className="w-8 h-8 text-warning" />
+                        </div>
+
+                        <div className="animate-in slide-in-from-bottom duration-500 delay-300">
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Something Went Wrong</h1>
+                            <p className="text-muted-foreground text-lg mb-2">Don't worry, we will get back to you as soon as possible.</p>
+                            <p className="text-sm text-muted-foreground/70 italic">Error: {errorMessage}</p>
+                        </div>
+
+                        <div className="animate-in slide-in-from-bottom duration-500 delay-500 space-y-4">
+                            <div className="p-4 bg-muted/50 rounded-lg inline-block">
+                                <p className="text-sm font-medium mb-2">Contact me directly:</p>
+                                <a 
+                                    href="https://wa.me/+34686516248" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 text-secondary hover:text-secondary/80 font-bold transition-colors"
+                                >
+                                    <MessageCircle className="w-5 h-5" />
+                                    Victor Rubio - Founder
+                                </a>
+                            </div>
+                            
+                            <div>
+                                <button 
+                                    onClick={() => setIsError(false)} 
+                                    className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
+                                >
+                                    Try again
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -160,9 +228,6 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     return (
         <div className={`mt-4 md:mt-18 px-2 md:px-0 ${className}`}>
-            {/* Floating Nav */}
-            {showFloatingNav && <FloatingNav show={showFloatingNav} slogan={navSlogan} />}
-
             {/* Header */}
             {(title || currentSubtitle) && (
                 <div className="mb-3 md:mb-8 text-center">

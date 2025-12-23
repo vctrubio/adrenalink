@@ -109,6 +109,17 @@ export function StudentsSection({
 
         setLoading(true);
         try {
+            console.log("📝 [StudentsSection] Form data before submission:", {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                passport: formData.passport,
+                country: formData.country,
+                phone: formData.phone,
+                languages: formData.languages,
+                languagesType: typeof formData.languages,
+                languagesIsArray: Array.isArray(formData.languages),
+            });
+
             const result = await createAndLinkStudent(
                 {
                     firstName: formData.firstName,
@@ -140,13 +151,6 @@ export function StudentsSection({
                 student: result.data.student
             };
             addStudent(newStudent);
-
-            // Add to queue with just id and name
-            addToQueue("students", {
-                id: result.data.student.id,
-                name: `${formData.firstName} ${formData.lastName}`,
-                timestamp: Date.now()
-            });
 
             // Behavior depends on current route
             if (pathname === "/register") {

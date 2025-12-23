@@ -19,23 +19,12 @@ export function SubDomainHomePage({ school, packages }: SubDomainHomePageProps) 
     const [packageTypeFilter, setPackageTypeFilter] = useState<PackageTypeFilter>("lessons");
 
     const handleEquipmentFilterToggle = (categoryId: string) => {
-        setEquipmentCategoryFilters((prev) =>
-            prev.includes(categoryId)
-                ? prev.filter((f) => f !== categoryId)
-                : [...prev, categoryId]
-        );
+        setEquipmentCategoryFilters((prev) => (prev.includes(categoryId) ? prev.filter((f) => f !== categoryId) : [...prev, categoryId]));
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-            <SchoolHeader
-                school={school}
-                equipmentCategoryFilters={equipmentCategoryFilters}
-                onEquipmentFilterToggle={handleEquipmentFilterToggle}
-                packageTypeFilter={packageTypeFilter}
-                onPackageTypeFilterChange={setPackageTypeFilter}
-            />
-
+            <SchoolHeader school={school} equipmentCategoryFilters={equipmentCategoryFilters} onEquipmentFilterToggle={handleEquipmentFilterToggle} packageTypeFilter={packageTypeFilter} onPackageTypeFilterChange={setPackageTypeFilter} />
             <div className="container mx-auto px-6 py-12">
                 {packages.length === 0 ? (
                     <div className="text-center py-16 bg-card rounded-lg border border-border">
@@ -53,17 +42,10 @@ export function SubDomainHomePage({ school, packages }: SubDomainHomePageProps) 
                                 setActive={setPackageTypeFilter}
                             />
                         </div>
-                        <PackageFilterView
-                            packages={packages}
-                            schoolName={school.schema.name}
-                            schoolUsername={school.schema.username}
-                            equipmentCategoryFilters={equipmentCategoryFilters}
-                            packageTypeFilter={packageTypeFilter}
-                        />
+                        <PackageFilterView packages={packages} schoolName={school.schema.name} schoolUsername={school.schema.username} equipmentCategoryFilters={equipmentCategoryFilters} packageTypeFilter={packageTypeFilter} />
                     </div>
                 )}
             </div>
-
             {/* <SchoolSubdomain school={school} /> */} {/* Debugging Component and Irrelñevant*/}
         </div>
     );

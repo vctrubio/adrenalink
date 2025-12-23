@@ -11,6 +11,8 @@ interface QueueItem {
     id: string;
     name: string;
     timestamp: number;
+    type: "student" | "teacher" | "package" | "booking";
+    metadata?: Record<string, any>;
 }
 
 interface EntityQueues {

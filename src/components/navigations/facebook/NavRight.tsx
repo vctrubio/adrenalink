@@ -4,6 +4,7 @@ import AdminIcon from "@/public/appSvgs/AdminIcon";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { useSearch } from "@/src/providers/search-provider";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -23,8 +24,10 @@ const ActionButton = ({ icon: Icon, children, onClick }: { icon?: React.ElementT
 export const NavRight = () => {
     const [mounted, setMounted] = useState(false);
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
+    const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { onOpen } = useSearch();
+    const credentials = useSchoolCredentials();
 
     useEffect(() => {
         setMounted(true);
@@ -40,6 +43,39 @@ export const NavRight = () => {
         icon: entity.icon,
         color: entity.color,
     }));
+
+    const adminDropdownItems: DropdownItemProps[] = credentials ? [
+        {
+            id: "username",
+            label: `Username: ${credentials.username}`,
+            href: undefined,
+        },
+        {
+            id: "currency",
+            label: `Currency: ${credentials.currency}`,
+            href: undefined,
+        },
+        {
+            id: "status",
+            label: `Status: ${credentials.status}`,
+            href: undefined,
+        },
+        {
+            id: "ownerId",
+            label: `Owner ID: ${credentials.ownerId}`,
+            href: undefined,
+        },
+    ] : [];
+
+    const renderCredentialItem = (item: DropdownItemProps) => {
+        const [key, value] = item.label?.split(": ") || [];
+        return (
+            <div className="px-4 py-2 text-sm">
+                <div className="text-xs text-muted-foreground font-medium">{key}</div>
+                <div className="text-foreground font-semibold truncate">{value}</div>
+            </div>
+        );
+    };
 
     return (
         <>
@@ -58,9 +94,18 @@ export const NavRight = () => {
                     onClick={() => setTheme(isDarkMode ? "light" : "dark")}
                     icon={mounted ? (isDarkMode ? Sun : Moon) : undefined}
                 />
-                <ActionButton>
-                    <AdminIcon className="h-6 w-6" />
-                </ActionButton>
+                <div className="relative">
+                    <ActionButton onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
+                        <AdminIcon className="h-6 w-6" />
+                    </ActionButton>
+                    <Dropdown
+                        isOpen={isAdminDropdownOpen}
+                        onClose={() => setIsAdminDropdownOpen(false)}
+                        items={adminDropdownItems}
+                        renderItem={renderCredentialItem}
+                        align="right"
+                    />
+                </div>
             </div>
             <FacebookSearch />
         </>

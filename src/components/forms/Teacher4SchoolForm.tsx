@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
@@ -287,23 +287,30 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const TeacherIcon = teacherEntity?.icon;
 
-    const handleLanguageToggle = (language: string) => {
-        const newLanguages = formData.languages.includes(language)
-            ? formData.languages.filter((l) => l !== language)
-            : [...formData.languages, language];
-        onFormDataChange({ ...formData, languages: newLanguages });
-    };
+    const handleLanguageToggle = useCallback((language: string) => {
+        onFormDataChange((prevData: TeacherFormData) => {
+            const newLanguages = prevData.languages.includes(language)
+                ? prevData.languages.filter((l) => l !== language)
+                : [...prevData.languages, language];
+            return { ...prevData, languages: newLanguages };
+        });
+    }, [onFormDataChange]);
 
-    const handleCustomLanguageAdd = (language: string) => {
-        if (!formData.languages.includes(language)) {
-            const newLanguages = [...formData.languages, language];
-            onFormDataChange({ ...formData, languages: newLanguages });
-        }
-    };
+    const handleCustomLanguageAdd = useCallback((language: string) => {
+        onFormDataChange((prevData: TeacherFormData) => {
+            if (!prevData.languages.includes(language)) {
+                const newLanguages = [...prevData.languages, language];
+                return { ...prevData, languages: newLanguages };
+            }
+            return prevData;
+        });
+    }, [onFormDataChange]);
 
-    const updateField = (field: keyof TeacherFormData, value: string | string[]) => {
-        onFormDataChange({ ...formData, [field]: value });
-    };
+    const updateField = useCallback((field: keyof TeacherFormData, value: string | string[]) => {
+        onFormDataChange((prevData: TeacherFormData) => {
+            return { ...prevData, [field]: value };
+        });
+    }, [onFormDataChange]);
 
     const getFieldError = (field: keyof TeacherFormData): string | undefined => {
         try {
@@ -395,7 +402,7 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
             <TeacherCommissionForm
                 teacherId={formData.username || "new-teacher"}
                 commissions={formData.commissions}
-                onCommissionsChange={(commissions) => onFormDataChange({ ...formData, commissions })}
+                onCommissionsChange={(commissions) => onFormDataChange((prevData) => ({ ...prevData, commissions }))}
             />
         </div>
     );

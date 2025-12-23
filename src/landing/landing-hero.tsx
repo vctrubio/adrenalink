@@ -118,9 +118,9 @@ export function LandingHero() {
                         {/* LandingHeroDescription and Toggle Button at the bottom */}
                         <div className="flex flex-col items-center justify-end pb-20 gap-8">
                             <LandingHeroDescription />
-                            <button onClick={() => setActiveWindow("portals")} className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl">
-                                View Portals →
-                            </button>
+                            {/* <button onClick={() => setActiveWindow("portals")} className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-200 shadow-xl"> */}
+                            {/*     View Portals → */}
+                            {/* </button> */}
                         </div>
                     </div>
                 )}

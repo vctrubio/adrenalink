@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
@@ -57,81 +57,27 @@ function NameFields({
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-                label="First Name"
-                required
-                error={firstNameError}
-                isValid={firstNameIsValid}
-            >
-                <FormInput
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => onFirstNameChange(e.target.value)}
-                    placeholder="Enter first name"
-                    error={!!firstNameError}
-                    autoFocus={autoFocus}
-                />
+            <FormField label="First Name" required error={firstNameError} isValid={firstNameIsValid}>
+                <FormInput type="text" value={firstName} onChange={(e) => onFirstNameChange(e.target.value)} placeholder="Enter first name" error={!!firstNameError} autoFocus={autoFocus} />
             </FormField>
-            <FormField
-                label="Last Name"
-                required
-                error={lastNameError}
-                isValid={lastNameIsValid}
-            >
-                <FormInput
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => onLastNameChange(e.target.value)}
-                    placeholder="Enter last name"
-                    error={!!lastNameError}
-                />
+            <FormField label="Last Name" required error={lastNameError} isValid={lastNameIsValid}>
+                <FormInput type="text" value={lastName} onChange={(e) => onLastNameChange(e.target.value)} placeholder="Enter last name" error={!!lastNameError} />
             </FormField>
         </div>
     );
 }
 
 // Sub-component: Passport Field
-function PassportField({
-    passport,
-    onPassportChange,
-    passportError,
-    passportIsValid,
-}: {
-    passport: string;
-    onPassportChange: (value: string) => void;
-    passportError?: string;
-    passportIsValid?: boolean;
-}) {
+function PassportField({ passport, onPassportChange, passportError, passportIsValid }: { passport: string; onPassportChange: (value: string) => void; passportError?: string; passportIsValid?: boolean }) {
     return (
-        <FormField
-            label="Passport"
-            required
-            error={passportError}
-            isValid={passportIsValid}
-        >
-            <FormInput
-                type="text"
-                value={passport}
-                onChange={(e) => onPassportChange(e.target.value)}
-                placeholder="Enter passport number"
-                error={!!passportError}
-            />
+        <FormField label="Passport" required error={passportError} isValid={passportIsValid}>
+            <FormInput type="text" value={passport} onChange={(e) => onPassportChange(e.target.value)} placeholder="Enter passport number" error={!!passportError} />
         </FormField>
     );
 }
 
 // Sub-component: Languages Selection
-function LanguagesField({
-    languages,
-    onLanguageToggle,
-    onCustomLanguageAdd,
-    languagesError,
-}: {
-    languages: string[];
-    onLanguageToggle: (language: string) => void;
-    onCustomLanguageAdd: (language: string) => void;
-    languagesError?: string;
-}) {
+function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, languagesError }: { languages: string[]; onLanguageToggle: (language: string) => void; onCustomLanguageAdd: (language: string) => void; languagesError?: string }) {
     const [customLanguage, setCustomLanguage] = useState("");
     const [showOtherInput, setShowOtherInput] = useState(false);
 
@@ -147,20 +93,11 @@ function LanguagesField({
         onLanguageToggle(language);
     };
 
-    const standardLanguages = languages.filter((lang) => 
-        LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
-    );
-    const customLanguages = languages.filter((lang) => 
-        !LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
-    );
+    const standardLanguages = languages.filter((lang) => LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number]));
+    const customLanguages = languages.filter((lang) => !LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number]));
 
     return (
-        <FormField
-            label="Languages"
-            required
-            error={languagesError}
-            isValid={languages.length > 0}
-        >
+        <FormField label="Languages" required error={languagesError} isValid={languages.length > 0}>
             <div className="space-y-3">
                 {/* Standard language buttons */}
                 <div className="flex flex-wrap gap-2">
@@ -169,25 +106,18 @@ function LanguagesField({
                             key={language}
                             type="button"
                             onClick={() => onLanguageToggle(language)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                                standardLanguages.includes(language)
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-background text-foreground border-input hover:border-primary/50"
-                            }`}
+                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${standardLanguages.includes(language) ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input hover:border-primary/50"
+                                }`}
                         >
                             {language}
                         </button>
                     ))}
-                    
+
                     {/* Other button */}
                     <button
                         type="button"
                         onClick={() => setShowOtherInput(!showOtherInput)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                            showOtherInput
-                                ? "bg-secondary text-secondary-foreground border-secondary"
-                                : "bg-background text-foreground border-input hover:border-secondary/50"
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${showOtherInput ? "bg-secondary text-secondary-foreground border-secondary" : "bg-background text-foreground border-input hover:border-secondary/50"}`}
                     >
                         Other +
                     </button>
@@ -208,11 +138,7 @@ function LanguagesField({
                                 }
                             }}
                         />
-                        <button
-                            type="button"
-                            onClick={handleAddCustomLanguage}
-                            className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
+                        <button type="button" onClick={handleAddCustomLanguage} className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
                             Add
                         </button>
                     </div>
@@ -222,16 +148,9 @@ function LanguagesField({
                 {customLanguages.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                         {customLanguages.map((language) => (
-                            <div
-                                key={language}
-                                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground border-2 border-secondary flex items-center gap-2"
-                            >
+                            <div key={language} className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground border-2 border-secondary flex items-center gap-2">
                                 {language}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveLanguage(language)}
-                                    className="text-xs hover:text-destructive"
-                                >
+                                <button type="button" onClick={() => handleRemoveLanguage(language)} className="text-xs hover:text-destructive">
                                     ✕
                                 </button>
                             </div>
@@ -244,18 +163,10 @@ function LanguagesField({
 }
 
 // Sub-component: Description Field
-function DescriptionField({
-    description,
-    onDescriptionChange,
-}: {
-    description: string;
-    onDescriptionChange: (value: string) => void;
-}) {
+function DescriptionField({ description, onDescriptionChange }: { description: string; onDescriptionChange: (value: string) => void }) {
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground">
-                Description
-            </label>
+            <label className="block text-sm font-medium text-foreground">Description</label>
             <textarea
                 value={description || ""}
                 onChange={(e) => onDescriptionChange(e.target.value)}
@@ -268,22 +179,10 @@ function DescriptionField({
 }
 
 // Sub-component: Can Rent Toggle
-function CanRentField({
-    canRent,
-    onCanRentChange,
-}: {
-    canRent: boolean;
-    onCanRentChange: (value: boolean) => void;
-}) {
+function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRentChange: (value: boolean) => void }) {
     return (
         <div className="flex items-center space-x-3">
-            <input
-                type="checkbox"
-                id="canRent"
-                checked={canRent}
-                onChange={(e) => onCanRentChange(e.target.checked)}
-                className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary"
-            />
+            <input type="checkbox" id="canRent" checked={canRent} onChange={(e) => onCanRentChange(e.target.checked)} className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary" />
             <label htmlFor="canRent" className="text-sm font-medium text-foreground cursor-pointer">
                 Student can rent equipment
             </label>
@@ -296,23 +195,31 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const StudentIcon = studentEntity?.icon;
 
-    const handleLanguageToggle = (language: string) => {
-        const newLanguages = formData.languages.includes(language)
-            ? formData.languages.filter((l) => l !== language)
-            : [...formData.languages, language];
-        onFormDataChange({ ...formData, languages: newLanguages });
-    };
 
-    const handleCustomLanguageAdd = (language: string) => {
-        if (!formData.languages.includes(language)) {
-            const newLanguages = [...formData.languages, language];
-            onFormDataChange({ ...formData, languages: newLanguages });
-        }
-    };
+    const handleLanguageToggle = useCallback((language: string) => {
+        onFormDataChange((prevData: StudentFormData) => {
+            const newLanguages = prevData.languages.includes(language)
+                ? prevData.languages.filter((l) => l !== language)
+                : [...prevData.languages, language];
+            return { ...prevData, languages: newLanguages };
+        });
+    }, [onFormDataChange]);
 
-    const updateField = (field: keyof StudentFormData, value: string | string[] | boolean) => {
-        onFormDataChange({ ...formData, [field]: value });
-    };
+    const handleCustomLanguageAdd = useCallback((language: string) => {
+        onFormDataChange((prevData: StudentFormData) => {
+            if (!prevData.languages.includes(language)) {
+                const newLanguages = [...prevData.languages, language];
+                return { ...prevData, languages: newLanguages };
+            }
+            return prevData;
+        });
+    }, [onFormDataChange]);
+
+    const updateField = useCallback((field: keyof StudentFormData, value: string | string[] | boolean) => {
+        onFormDataChange((prevData: StudentFormData) => {
+            return { ...prevData, [field]: value };
+        });
+    }, [onFormDataChange]);
 
     const getFieldError = (field: keyof StudentFormData): string | undefined => {
         try {
@@ -335,7 +242,7 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
             {/* Header with Icon */}
             <div className="flex items-center gap-3">
                 {StudentIcon && (
-                    <div 
+                    <div
                         className="w-10 h-10 flex items-center justify-center transition-all duration-300"
                         style={{
                             color: isFormReady ? studentEntity?.color : "#94a3b8",
@@ -344,10 +251,7 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
                         <StudentIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 
-                    className="text-2xl font-bold px-4 py-1 rounded-md"
-                    style={{ backgroundColor: studentEntity?.bgColor }}
-                >
+                <h2 className="text-2xl font-bold px-4 py-1 rounded-md" style={{ backgroundColor: studentEntity?.bgColor }}>
                     Create New Student
                 </h2>
             </div>
@@ -377,32 +281,16 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
             />
 
             {/* Passport */}
-            <PassportField
-                passport={formData.passport}
-                onPassportChange={(value) => updateField("passport", value)}
-                passportError={getFieldError("passport")}
-                passportIsValid={isFieldValid("passport")}
-            />
+            <PassportField passport={formData.passport} onPassportChange={(value) => updateField("passport", value)} passportError={getFieldError("passport")} passportIsValid={isFieldValid("passport")} />
 
             {/* Languages */}
-            <LanguagesField
-                languages={formData.languages}
-                onLanguageToggle={handleLanguageToggle}
-                onCustomLanguageAdd={handleCustomLanguageAdd}
-                languagesError={getFieldError("languages")}
-            />
+            <LanguagesField languages={formData.languages} onLanguageToggle={handleLanguageToggle} onCustomLanguageAdd={handleCustomLanguageAdd} languagesError={getFieldError("languages")} />
 
             {/* Description */}
-            <DescriptionField
-                description={formData.description || ""}
-                onDescriptionChange={(value) => updateField("description", value)}
-            />
+            <DescriptionField description={formData.description || ""} onDescriptionChange={(value) => updateField("description", value)} />
 
             {/* Can Rent */}
-            <CanRentField
-                canRent={formData.canRent}
-                onCanRentChange={(value) => updateField("canRent", value)}
-            />
+            <CanRentField canRent={formData.canRent} onCanRentChange={(value) => updateField("canRent", value)} />
         </div>
     );
 }

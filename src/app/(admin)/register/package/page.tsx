@@ -66,6 +66,7 @@ export default function PackagePage() {
                 id: result.data.id,
                 name: formData.description,
                 timestamp: Date.now(),
+                type: "package",
             });
 
             toast.success(`Package added: ${formData.description}`);

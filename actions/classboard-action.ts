@@ -111,40 +111,6 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
             if (!b.studentPackage.schoolPackage) {
                 throw new Error(`❌ Booking ${b.id} - studentPackage missing schoolPackage - this should not happen!`);
             }
-
-            console.log(
-                // `DEV: [classboard-action] Booking ${idx} (${b.id}):`,
-                JSON.stringify(
-                    {
-                        // dateStart: b.dateStart,
-                        // dateEnd: b.dateEnd,
-                        // lessonCount: b.lessons.length,
-                        // schoolPackage: b.studentPackage.schoolPackage,
-                        // bookingStudents: b.bookingStudents.map((bs) => ({
-                        //     student: {
-                        //         id: bs.student.id,
-                        //         firstName: bs.student.firstName,
-                        //         lastName: bs.student.lastName,
-                        //         passport: bs.student.passport,
-                        //         country: bs.student.country,
-                        //         phone: bs.student.phone,
-                        //     },
-                        // })),
-                        lessons: b.lessons.map((lesson) => ({
-                            // id: lesson.id,
-                            teacherUsername: lesson.teacher.username,
-                            events: lesson.events.map((e) => ({
-                                date: e.date,
-                                duration: e.duration,
-                                // location: e.location,
-                                // status: e.status,
-                            })),
-                        })),
-                    },
-                    null,
-                    2,
-                ),
-            );
         });
 
         const bookings: ClassboardModel = createClassboardModel(result);
@@ -305,7 +271,11 @@ export async function updateEventStartTime(eventId: string, newDate: string): Pr
     try {
         console.log(`⏰ [classboard-action] Updating event ${eventId} start time to ${newDate}`);
 
-        const result = await db.update(event).set({ date: new Date(newDate) }).where(eq(event.id, eventId)).returning();
+        const result = await db
+            .update(event)
+            .set({ date: new Date(newDate) })
+            .where(eq(event.id, eventId))
+            .returning();
 
         if (!result || result.length === 0) {
             return { success: false, error: "Event not found" };

@@ -9,7 +9,9 @@ import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import { NameStep, LocationStepWrapper, CategoriesStep, AssetsStep, ContactStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import { DetailsStep, CategoriesStep, AssetsStep, ContactStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import { WelcomeHeader } from "./WelcomeHeader";
+import { WelcomeSchoolNameRegistration } from "./WelcomeSchoolNameRegistration";
 import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
 import { HandleFormTimeOut } from "./HandleFormTimeOut";
 
@@ -37,6 +39,9 @@ const schoolSchema = z.object({
     ),
     ownerEmail: z.string().email("Valid email is required"),
     referenceNote: z.string().optional(),
+    websiteUrl: z.string().optional(),
+    instagramUrl: z.string().optional(),
+    currency: z.enum(["USD", "EUR", "CHF"]).default("EUR"),
 });
 
 // Username generation utilities
@@ -70,6 +75,9 @@ export function WelcomeSchoolForm() {
     const [uploadStatus, setUploadStatus] = useState<string>("");
     const [showTimeoutHandler, setShowTimeoutHandler] = useState(false);
     const [timeoutFormData, setTimeoutFormData] = useState<SchoolFormData | null>(null);
+    const [uploadStarted, setUploadStarted] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [isNameRegistered, setIsNameRegistered] = useState(false);
 
     const methods = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema),
@@ -86,12 +94,18 @@ export function WelcomeSchoolForm() {
             bannerFile: undefined,
             ownerEmail: "",
             referenceNote: "",
+            websiteUrl: "",
+            instagramUrl: "",
+            currency: "EUR",
         },
         mode: "onTouched",
     });
 
-    const { setValue, setFocus } = methods;
+    const { setValue, setFocus, watch } = methods;
     const { triggerPhoneClear } = usePhoneClear();
+    
+    // Watch all fields for live preview
+    const formValues = watch();
 
     const editField = (field: keyof SchoolFormData, goToStep?: (stepIndex: number) => void) => {
         const targetIdx = WELCOME_SCHOOL_STEPS.findIndex((s) => s.fields?.includes(field));
@@ -176,55 +190,84 @@ export function WelcomeSchoolForm() {
         [setValue],
     );
 
+    const triggerUpload = async (data: SchoolFormData) => {
+        if (uploadStarted) return;
+        if (!data.iconFile && !data.bannerFile) return;
+
+        setPendingToBucket(true);
+        setUploadStarted(true);
+        setUploadStatus("Uploading assets in background...");
+        console.log("📤 Starting background upload of assets to R2...");
+
+        try {
+            const formData = new FormData();
+            formData.append("username", data.username);
+
+            // Add metadata for bucket storage
+            const metadata: BucketMetadata = {
+                school_username: data.username,
+                school_name: data.name,
+                owner_email: data.ownerEmail,
+                reference_note: data.referenceNote,
+                created_at: new Date().toISOString(),
+                approved_at: null,
+                welcome_form: "created",
+            };
+            formData.append("metadata", JSON.stringify(metadata));
+
+            if (data.iconFile) {
+                formData.append("iconFile", data.iconFile);
+            }
+            if (data.bannerFile) {
+                formData.append("bannerFile", data.bannerFile);
+            }
+
+            // Non-blocking upload request
+            fetch("/api/cloudflare/upload", {
+                method: "POST",
+                body: formData,
+            })
+                .then(async (res) => {
+                    const result = await res.json();
+                    if (result.success) {
+                        console.log("✅ Background upload success:", result.uploaded);
+                        setUploadStatus("Upload complete");
+                    } else {
+                        console.error("❌ Background upload failed:", result.error);
+                        setUploadStatus("Upload failed");
+                        // Allow retry if needed
+                        setUploadStarted(false);
+                    }
+                    setPendingToBucket(false);
+                })
+                .catch((err) => {
+                    console.error("❌ Background upload network error:", err);
+                    setUploadStatus("Upload network error");
+                    setPendingToBucket(false);
+                    setUploadStarted(false);
+                });
+        } catch (e) {
+            console.error("Error triggering upload:", e);
+            setPendingToBucket(false);
+            setUploadStarted(false);
+        }
+    };
+
+    const handleStepChange = (newStep: number) => {
+        setCurrentStep(newStep);
+        
+        // Assets step is now index 0. If we move to step 1 (Details) or higher, trigger upload.
+        if (newStep > 0) {
+            const data = methods.getValues();
+            triggerUpload(data);
+        }
+    };
+
     const onSubmit = async (data: SchoolFormData) => {
         try {
-            setPendingToBucket(true);
-            setUploadStatus("Preparing upload...");
-
-            // Step 1: Upload assets to R2 via API route
-            if (data.iconFile || data.bannerFile) {
-                setUploadStatus("Uploading assets to R2...");
-                console.log("📤 Uploading assets to R2...");
-
-                const formData = new FormData();
-                formData.append("username", data.username);
-
-                // Add metadata for bucket storage
-                const metadata: BucketMetadata = {
-                    school_username: data.username,
-                    school_name: data.name,
-                    owner_email: data.ownerEmail,
-                    reference_note: data.referenceNote,
-                    created_at: new Date().toISOString(),
-                    approved_at: null,
-                };
-                formData.append("metadata", JSON.stringify(metadata));
-
-                if (data.iconFile) {
-                    formData.append("iconFile", data.iconFile);
-                }
-                if (data.bannerFile) {
-                    formData.append("bannerFile", data.bannerFile);
-                }
-
-                console.log("🟡 Frontend: Sending upload request...");
-                const uploadResponse = await fetch("/api/cloudflare/upload", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                console.log(`🟡 Frontend: Upload response status: ${uploadResponse.status}`);
-                const uploadResult = await uploadResponse.json();
-                console.log("🟡 Frontend: Upload result:", uploadResult);
-
-                if (!uploadResult.success) {
-                    console.error("❌ Frontend: Asset upload failed:", uploadResult.error);
-                    setPendingToBucket(false);
-                    setUploadStatus("");
-                    throw new Error(`Failed to upload assets: ${uploadResult.error}`);
-                }
-
-                console.log("✅ Frontend: Assets uploaded successfully:", uploadResult.uploaded);
+            // Ensure upload started if it hasn't (fallback)
+            if (!uploadStarted) {
+                triggerUpload(data);
             }
 
             // Step 2: Prepare school data (no longer storing asset URLs)
@@ -243,16 +286,17 @@ export function WelcomeSchoolForm() {
 
             if (!result.success) {
                 console.error("❌ Database error:", result.error);
-                setPendingToBucket(false);
-                setUploadStatus("");
-
+                
                 // Throw error to prevent success page
                 throw new Error(`Failed to create school: ${result.error}`);
             }
 
             console.log("✅ School created successfully:", result.data);
 
-            // Step 4: Reset form and state ONLY on success
+            // Direct redirect to production subdomain
+            window.location.href = `https://${data.username}.adrenalink.tech/`;
+
+            // Reset logic (fallback if redirect takes time)
             const lastCountry = data.country;
             methods.reset();
             setValue("country", lastCountry);
@@ -260,19 +304,21 @@ export function WelcomeSchoolForm() {
             setUsernameStatus(null);
             setPendingToBucket(false);
             setUploadStatus("");
+            setUploadStarted(false);
+            setCurrentStep(0);
+            setIsNameRegistered(false);
         } catch (error) {
             console.error("Error in school creation flow:", error);
-            setPendingToBucket(false);
             setUploadStatus("");
             
-            // Show timeout handler for R2 connectivity issues
+            // Show timeout handler for R2 connectivity issues if it was an upload related error (though upload is now backgrounded, main flow might still have DB errors)
             if (error instanceof Error && (
                 error.message.includes("timeout") ||
                 error.message.includes("ETIMEDOUT") ||
                 error.message.includes("upload") ||
                 error.message.includes("Failed to upload assets")
             )) {
-                console.log("🔄 R2 upload failed, showing timeout handler");
+                console.log("🔄 R2/DB failed, showing timeout handler");
                 setTimeoutFormData(data);
                 setShowTimeoutHandler(true);
             }
@@ -281,29 +327,25 @@ export function WelcomeSchoolForm() {
 
     // Step configuration (0-based indexing for array steps)
     const stepComponents = {
-        0: NameStep,
-        1: LocationStepWrapper,
+        0: AssetsStep,
+        1: DetailsStep,
         2: CategoriesStep,
-        3: AssetsStep,
-        4: ContactStep,
-        5: SummaryStep,
+        3: ContactStep,
+        4: SummaryStep,
     };
 
     const stepSubtitles = {
-        0: "Tell Us Who You Are",
-        1: "Where Can We Find You",
+        0: "Make your school stand out",
+        1: "How can students find you?",
         2: "What do you have to offer?",
-        3: "Make your school stand out",
-        4: "How can we reach you?",
-        5: "Does everything look correct officer?",
+        3: "How can we reach you?",
+        4: "Does everything look correct officer?",
     };
 
     const stepProps = {
         0: {
-            isGeneratingUsername,
-            usernameStatus,
-            onNameBlur: handleNameBlur,
-            onUsernameChange: handleUsernameChange,
+            pendingToBucket,
+            uploadStatus,
         },
         1: {
             onCountryChange: handleCountryChange,
@@ -312,30 +354,48 @@ export function WelcomeSchoolForm() {
             triggerPhoneClear,
         },
         2: {},
-        3: {
-            pendingToBucket,
-            uploadStatus,
-        },
-        4: {},
-        5: {
+        3: {},
+        4: {
             onEditField: editField,
         },
     };
 
     return (
-        <>
-            <MultiFormContainer<SchoolFormData>
-                steps={WELCOME_SCHOOL_STEPS}
-                formMethods={methods}
-                onSubmit={onSubmit}
-                stepComponents={stepComponents}
-                stepProps={stepProps}
-                stepSubtitles={stepSubtitles}
-                title="Start Your Adventure"
-                submitButtonText="Create School"
-                successTitle="Congratulations"
-                successMessage="We will get back to you in 1 business day. Thank you."
-            />
+        <div className="w-full max-w-3xl mx-auto space-y-6">
+            {/* Live Header Preview - Always visible to encourage completion */}
+            <WelcomeHeader formData={formValues} showPreview={isNameRegistered} />
+
+            {!isNameRegistered ? (
+                <WelcomeSchoolNameRegistration
+                    formMethods={methods}
+                    isGeneratingUsername={isGeneratingUsername}
+                    usernameStatus={usernameStatus}
+                    onNameBlur={handleNameBlur}
+                    onUsernameChange={handleUsernameChange}
+                    onNext={() => {
+                        console.log("🔄 Transitioning to multi-form...");
+                        setIsNameRegistered(true);
+                    }}
+                />
+            ) : (
+                <MultiFormContainer<SchoolFormData>
+                    steps={WELCOME_SCHOOL_STEPS}
+                    formMethods={methods}
+                    onSubmit={onSubmit}
+                    onStepChange={handleStepChange}
+                    stepComponents={stepComponents}
+                    stepProps={stepProps}
+                    stepSubtitles={stepSubtitles}
+                    submitButtonText="Create School"
+                    successTitle="Congratulations"
+                    successMessage="We will get back to you in 1 business day. Thank you."
+                    successButtonText="Go to School"
+                    onSuccessButtonClick={() => {
+                        const username = methods.getValues("username");
+                        window.location.href = `https://${username}.adrenalink.tech/`;
+                    }}
+                />
+            )}
             
             {showTimeoutHandler && timeoutFormData && (
                 <HandleFormTimeOut
@@ -346,6 +406,6 @@ export function WelcomeSchoolForm() {
                     }}
                 />
             )}
-        </>
+        </div>
     );
 }

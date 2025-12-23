@@ -8,6 +8,7 @@ export const bucketMetadataSchema = z.object({
     reference_note: z.string(),
     created_at: z.string(),
     approved_at: z.string().nullable(),
+    welcome_form: z.string().optional(),
 });
 
 export type BucketMetadata = z.infer<typeof bucketMetadataSchema>;

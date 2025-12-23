@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 const NAV_IDS = ["info", "classboard", "data", "users"] as const;
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment", "event"];
@@ -14,6 +16,9 @@ const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "e
 export const NavLeft = () => {
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const credentials = useSchoolCredentials();
+    const logoUrl = credentials?.logo || null;
+    const schoolUsername = credentials?.username || null;
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
     const databoardDropdownItems: DropdownItemProps[] = databoardEntities.map((entity) => ({
@@ -32,7 +37,18 @@ export const NavLeft = () => {
     return (
         <div className="flex items-center gap-1">
             <Link href="/" className="flex items-center">
-                <AdranlinkIcon size={40} className="text-secondary" />
+                {logoUrl ? (
+                    <Image
+                        src={logoUrl}
+                        alt={schoolUsername || "School Logo"}
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover"
+                        priority
+                    />
+                ) : (
+                    <AdranlinkIcon size={40} className="text-secondary" />
+                )}
             </Link>
             {routesToRender.map((route) => {
                 let isActive = false;

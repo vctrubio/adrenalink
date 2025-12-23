@@ -44,7 +44,7 @@ export function PackageSection({
     const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage");
     const pathname = usePathname();
     const router = useRouter();
-    const { addPackage, addToQueue } = useRegisterActions();
+    const { addPackage } = useRegisterActions();
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -120,13 +120,6 @@ export function PackageSection({
                 isPublic: result.data.package.isPublic,
             };
             addPackage(newPackage);
-
-            // Add to queue with just id and name
-            addToQueue("packages", {
-                id: result.data.package.id,
-                name: formData.description,
-                timestamp: Date.now(),
-            });
 
             // Behavior depends on current route
             if (pathname === "/register") {

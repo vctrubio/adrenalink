@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ReactCountryFlag from "react-country-flag";
 import Image from "next/image";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, MessageCircle, MapPin } from "lucide-react";
 import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode, getCountryByName } from "@/config/countries";
 
 // Sub-component for Country Selector
@@ -18,7 +18,8 @@ function CountrySelector({ selectedCountryCode, onCountryChange, countryError, i
 
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground flex items-center">
+            <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                 Country
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}
@@ -40,7 +41,7 @@ function CountrySelector({ selectedCountryCode, onCountryChange, countryError, i
                     className={`
             w-full h-10 pl-12 pr-8 py-2 rounded-md border transition-colors
             bg-background text-foreground appearance-none
-            ${countryError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
+            ${countryError ? "border-black focus:ring-black" : "border-input focus:ring-ring focus:border-ring"}
             focus:outline-none focus:ring-2 focus:ring-opacity-50
             disabled:opacity-50 disabled:cursor-not-allowed
           `}
@@ -65,7 +66,6 @@ function CountrySelector({ selectedCountryCode, onCountryChange, countryError, i
                     />
                 </div>
             </div>
-            {countryError && <p className="text-sm text-destructive">{countryError}</p>}
         </div>
     );
 }
@@ -90,7 +90,8 @@ function PhoneInput({
 }) {
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground flex items-center">
+            <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
                 Phone
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}
@@ -115,13 +116,12 @@ function PhoneInput({
                     className={`
             flex-1 h-10 px-3 py-2 rounded-r-md border transition-colors
             bg-background text-foreground
-            ${phoneError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
+            ${phoneError ? "border-black focus:ring-black" : "border-input focus:ring-ring focus:border-ring"}
             focus:outline-none focus:ring-2 focus:ring-opacity-50
             disabled:opacity-50 disabled:cursor-not-allowed
           `}
                 />
             </div>
-            {phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
         </div>
     );
 }
@@ -147,24 +147,25 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
     const [phoneNumber, setPhoneNumber] = useState<string>(initialPhone ? initialPhone.replace(phonePrefix, "") : "");
     const [isPrefixModified, setIsPrefixModified] = useState<boolean>(false);
 
-    // Initialize with Spain as default - only run once on mount
+    // Initialize with Spain as default when component mounts or countryValue becomes empty
     useEffect(() => {
         if (!countryValue) {
-            onCountryChange(DEFAULT_COUNTRY_CONFIG.name);
+            const defaultCountry = getCountryByCode(DEFAULT_COUNTRY_CONFIG.code);
+            if (defaultCountry) {
+                onCountryChange(defaultCountry.name);
+                // Ensure phone is set to prefix at minimum so it's not empty string
+                const fullPhone = defaultCountry.phoneCode + phoneNumber;
+                onPhoneChange(fullPhone);
+            }
         }
-    }, []); // Run only once on mount
+    }, []); // Run once on mount to set defaults
 
-    // Handle phone clearing via prop changes instead of useEffect
-    // This prevents infinite loops by not depending on callback functions
-
-    // Reset to default when form is cleared
+    // When form resets and countryValue becomes empty, reset phone only
     useEffect(() => {
         if (!countryValue) {
-            setSelectedCountryCode(DEFAULT_COUNTRY_CONFIG.code);
-            setPhonePrefix(DEFAULT_COUNTRY_CONFIG.phoneCode);
-            setIsPrefixModified(false);
+            setPhoneNumber("");
         }
-    }, [countryValue]); // Only depend on countryValue, not onCountryChange
+    }, [countryValue]);
 
     const handleCountryChange = (countryCode: string, countryName: string) => {
         const country = getCountryByCode(countryCode);
@@ -172,7 +173,7 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
             setSelectedCountryCode(countryCode);
             setPhonePrefix(country.phoneCode);
             setIsPrefixModified(false);
-            onCountryChange(countryName);
+            onCountryChange(country.name);
 
             // Update full phone with new prefix
             const fullPhone = country.phoneCode + phoneNumber;
@@ -203,9 +204,15 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
 
     // PARENT COMPONENT - ONLY RENDERS
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CountrySelector selectedCountryCode={selectedCountryCode} onCountryChange={handleCountryChange} countryError={countryError} isValid={countryIsValid} />
-            <PhoneInput phonePrefix={phonePrefix} phoneNumber={phoneNumber} isPrefixModified={isPrefixModified} onPrefixChange={handlePrefixChange} onNumberChange={handleNumberChange} phoneError={phoneError} isValid={phoneIsValid} />
+        <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+                <div className="shrink-0">
+                    <CountrySelector selectedCountryCode={selectedCountryCode} onCountryChange={handleCountryChange} countryError={countryError} isValid={countryIsValid} />
+                </div>
+                <div className="flex-1">
+                    <PhoneInput phonePrefix={phonePrefix} phoneNumber={phoneNumber} isPrefixModified={isPrefixModified} onPrefixChange={handlePrefixChange} onNumberChange={handleNumberChange} phoneError={phoneError} isValid={phoneIsValid} />
+                </div>
+            </div>
         </div>
     );
 }

@@ -86,6 +86,7 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
                 id: result.data.booking.id,
                 name: leaderStudentName,
                 timestamp: Date.now(),
+                type: "booking",
             });
 
             // Success toast

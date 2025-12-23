@@ -20,6 +20,7 @@ import {
     useTeacherFormState,
     usePackageFormState
 } from "./RegisterContext";
+import RegisterQueue from "./RegisterQueue";
 
 type FormType = "booking" | "student" | "package" | "teacher";
 
@@ -63,7 +64,6 @@ export default function RegisterController({
     const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
     const leaderDropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
-    const queues = useRegisterQueues();
     const bookingForm = useBookingForm();
 
     // Form state from context
@@ -95,47 +95,6 @@ export default function RegisterController({
 
     // Internal loading state for generic submissions
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Check if any queues have items
-    const hasQueueItems = Object.values(queues).some((items) => items.length > 0);
-
-    const renderQueueBadges = (type: "students" | "teachers" | "packages" | "bookings") => {
-        const items = queues[type];
-        const entityId = type === "bookings" ? "booking" : type.slice(0, -1);
-        const entityConfig = ENTITY_DATA.find((e) => e.id === entityId);
-
-        if (!items || items.length === 0) return null;
-
-        return (
-            <div key={type} className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground uppercase">Recently Added {type}</h3>
-                <div className="flex flex-wrap gap-2">
-                    {items.map((item) => (
-                        <motion.button
-                            key={item.id}
-                            onClick={() => {
-                                if (type === "bookings") {
-                                    router.push(`/bookings/${item.id}`);
-                                } else {
-                                    router.push(`/register?add=${entityId}:${item.id}`);
-                                }
-                            }}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="px-3 py-1.5 rounded-full text-xs font-medium border border-border hover:bg-muted/50 transition-colors"
-                            style={{
-                                backgroundColor: `${entityConfig?.color}15`,
-                                color: entityConfig?.color,
-                            }}
-                        >
-                            {item.name}
-                        </motion.button>
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     // Generic submit action
     const handleActionSubmit = async () => {
@@ -280,17 +239,8 @@ export default function RegisterController({
                     </div>
                 )}
 
-                {/* Queue Badges - Always show below everything */}
-                {hasQueueItems && (
-                    <motion.div className="space-y-4 border-t border-border pt-4">
-                        <AnimatePresence>
-                            {renderQueueBadges("students")}
-                            {renderQueueBadges("teachers")}
-                            {renderQueueBadges("packages")}
-                            {renderQueueBadges("bookings")}
-                        </AnimatePresence>
-                    </motion.div>
-                )}
+                {/* Queue - Always show below everything */}
+                <RegisterQueue />
             </div>
         </div>
     );

@@ -68,6 +68,7 @@ export default function StudentPage() {
                 id: result.data.student.id,
                 name: `${formData.firstName} ${formData.lastName}`,
                 timestamp: Date.now(),
+                type: "student",
             });
 
             toast.success(`Student added: ${formData.firstName} ${formData.lastName}`);

@@ -70,8 +70,9 @@ export default function TeacherPage() {
             // Add to queue for quick access in booking form
             addToQueue("teachers", {
                 id: result.data.teacher.id,
-                name: `${formData.firstName} ${formData.lastName}`,
+                name: result.data.teacher.username,
                 timestamp: Date.now(),
+                type: "teacher",
             });
 
             toast.success(`Teacher added: ${formData.firstName} ${formData.lastName}`);

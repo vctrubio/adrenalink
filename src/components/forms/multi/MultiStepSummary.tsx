@@ -1,16 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import type { BaseStepProps } from "./types";
-
-export interface SummaryField {
-    key: string;
-    label: string;
-    value: any;
-    displayValue?: string;
-    editable?: boolean;
-    colSpan?: 1 | 2; // For grid layout
-}
+import type { BaseStepProps, SummaryField } from "./types";
 
 interface MultiStepSummaryProps extends BaseStepProps {
     fields: SummaryField[];

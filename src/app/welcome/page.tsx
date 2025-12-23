@@ -1,5 +1,5 @@
 import { WelcomeSchoolForm } from "@/src/components/forms/WelcomeSchoolForm";
-import { R2ConnectivityCheck } from "@/src/components/R2ConnectivityCheck";
+// import { R2ConnectivityCheck } from "@/src/components/R2ConnectivityCheck";
 
 export default function SchoolFormsPage() {
     return (

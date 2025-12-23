@@ -2,10 +2,11 @@
 
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { LocationStep } from "./LocationStep";
-import { Building, MapPin, Tag, Image, Mail, CheckCircle2 } from "lucide-react";
+import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Instagram, MessageCircle } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 
 // Define the type directly for the multi-step form
 export interface SchoolFormData {
@@ -23,100 +24,91 @@ export interface SchoolFormData {
     bannerUrl?: string;
     ownerEmail: string;
     referenceNote: string;
+    websiteUrl?: string;
+    instagramUrl?: string;
+    currency: "USD" | "EUR" | "CHF";
 }
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
-    { id: 1, title: "Name", icon: <Building className="w-4 h-4" />, fields: ["name", "username"] },
-    { id: 2, title: "Location", icon: <MapPin className="w-4 h-4" />, fields: ["country", "phone", "latitude", "longitude", "googlePlaceId"] },
+    { id: 1, title: "Assets", icon: <ImageIcon className="w-4 h-4" />, fields: ["iconFile", "bannerFile"] },
+    { id: 2, title: "Details", icon: <MapPin className="w-4 h-4" />, fields: ["country", "phone", "currency", "latitude", "longitude", "googlePlaceId", "websiteUrl", "instagramUrl"] },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
-    { id: 4, title: "Assets", icon: <Image className="w-4 h-4" />, fields: ["iconFile", "bannerFile"] },
-    { id: 5, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
-    { id: 6, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
+    { id: 4, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
+    { id: 5, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
-interface NameStepProps extends BaseStepProps<SchoolFormData> {
-    isGeneratingUsername: boolean;
-    usernameStatus: "available" | "unavailable" | "checking" | null;
-    onNameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-    onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-export function NameStep({ formMethods, isGeneratingUsername, usernameStatus, onNameBlur, onUsernameChange }: NameStepProps) {
-    const {
-        register,
-        formState: { errors },
-        watch,
-    } = formMethods;
-    const values = watch();
-    return (
-        <div className="space-y-4 md:space-y-6">
-            <FormField label="School Name" required error={errors.name?.message} isValid={!errors.name && !!values.name && values.name.length > 0}>
-                <FormInput {...register("name")} placeholder="Enter school name" autoFocus onBlur={onNameBlur} />
-            </FormField>
-
-            <FormField label="Username" required error={errors.username?.message} isValid={!errors.username && !!values.username && values.username.length > 0 && usernameStatus === "available"}>
-                <div className="relative">
-                    <FormInput
-                        {...register("username", { onChange: onUsernameChange })}
-                        placeholder={isGeneratingUsername ? "Generating username..." : "school.adrenaline.com"}
-                        disabled={isGeneratingUsername}
-                        className={`
-                            ${isGeneratingUsername ? "animate-pulse" : ""}
-                            ${usernameStatus === "available" ? "border-secondary focus:ring-secondary" : ""}
-                            ${usernameStatus === "unavailable" ? "border-warning focus:ring-warning" : ""}
-                        `}
-                    />
-                    <div className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 md:space-x-2">
-                        {isGeneratingUsername && <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
-                        {usernameStatus === "checking" && !isGeneratingUsername && <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>}
-                        {usernameStatus === "available" && (
-                            <div className="w-3 h-3 md:w-4 md:h-4 bg-secondary rounded-full flex items-center justify-center">
-                                <svg width="8" height="6" viewBox="0 0 10 8" fill="none" className="md:w-[10px] md:h-2">
-                                    <path d="M9 1L3.5 6.5L1 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </div>
-                        )}
-                        {usernameStatus === "unavailable" && (
-                            <div className="w-3 h-3 md:w-4 md:h-4 bg-warning rounded-full flex items-center justify-center">
-                                <svg width="6" height="6" viewBox="0 0 8 8" fill="none" className="md:w-2 md:h-2">
-                                    <path d="M6 2L2 6M2 2L6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </FormField>
-        </div>
-    );
-}
-
-interface LocationStepWrapperProps extends BaseStepProps<SchoolFormData> {
+interface DetailsStepProps extends BaseStepProps<SchoolFormData> {
     onCountryChange: (country: string) => void;
     onPhoneChange: (phone: string) => void;
     onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string }) => void;
     triggerPhoneClear: () => void;
 }
 
-export function LocationStepWrapper({ formMethods, onCountryChange, onPhoneChange, onLocationChange, triggerPhoneClear }: LocationStepWrapperProps) {
+export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLocationChange, triggerPhoneClear }: DetailsStepProps) {
     const {
+        register,
         formState: { errors },
         watch,
+        setValue,
     } = formMethods;
     const values = watch();
+
     return (
-        <LocationStep
-            country={values.country}
-            phone={values.phone}
-            latitude={values.latitude}
-            longitude={values.longitude}
-            googlePlaceId={values.googlePlaceId}
-            countryError={errors.country?.message}
-            phoneError={errors.phone?.message}
-            onCountryChange={onCountryChange}
-            onPhoneChange={onPhoneChange}
-            onLocationChange={onLocationChange}
-            triggerPhoneClear={triggerPhoneClear}
-        />
+        <div className="space-y-6">
+            <LocationStep
+                country={values.country}
+                phone={values.phone}
+                latitude={values.latitude}
+                longitude={values.longitude}
+                googlePlaceId={values.googlePlaceId}
+                countryError={errors.country?.message}
+                phoneError={errors.phone?.message}
+                onCountryChange={onCountryChange}
+                onPhoneChange={onPhoneChange}
+                onLocationChange={onLocationChange}
+                triggerPhoneClear={triggerPhoneClear}
+            />
+            
+            <div className="flex justify-end">
+                 <FilterDropdown
+                    label="Currency"
+                    value={values.currency || "EUR"}
+                    options={["USD", "EUR", "CHF"]}
+                    onChange={(val) => setValue("currency", val as any)}
+                    entityColor="#3b82f6" // Secondary color blue-500
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Website" error={errors.websiteUrl?.message}>
+                    <div className="relative">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                            <Globe className="w-4 h-4" />
+                        </div>
+                        <FormInput 
+                            type="url" 
+                            placeholder="https://..." 
+                            {...register("websiteUrl")} 
+                            className="pl-10"
+                        />
+                    </div>
+                </FormField>
+
+                <FormField label="Instagram" error={errors.instagramUrl?.message}>
+                    <div className="relative">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                            <Instagram className="w-4 h-4" />
+                        </div>
+                        <FormInput 
+                            type="url" 
+                            placeholder="https://instagram.com/..." 
+                            {...register("instagramUrl")} 
+                            className="pl-10"
+                        />
+                    </div>
+                </FormField>
+            </div>
+        </div>
     );
 }
 
@@ -206,41 +198,42 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
 
     return (
         <div className="space-y-6 md:space-y-8">
-
-            {/* Icon Upload */}
-            <div className="space-y-3 md:space-y-4">
-                <div className="flex flex-col items-center space-y-3 md:space-y-4">
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-muted rounded-full border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
-                        {values.iconFile ? <img src={URL.createObjectURL(values.iconFile)} alt="Icon preview" className="w-full h-full object-cover rounded-full" /> : <Building className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Icon Upload */}
+                <div className="space-y-3">
+                    <div className="text-center md:text-left">
+                        <label className="text-sm font-medium text-foreground">School Icon</label>
+                        <p className="text-xs text-muted-foreground mb-3">Square recommended, max 2MB</p>
                     </div>
-                    <div className="text-center">
-                        <label className="cursor-pointer inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors">
-                            <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleIconChange} className="hidden" disabled={pendingToBucket} />
-                            Choose Icon
-                        </label>
-                        <p className="text-xs text-muted-foreground mt-1">PNG or JPG, max 2MB, square recommended</p>
-                    </div>
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> icon</p>
+                        </div>
+                        <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleIconChange} className="hidden" disabled={pendingToBucket} />
+                    </label>
+                    {values.iconFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Icon selected</p>}
                 </div>
-            </div>
 
-            {/* Banner Upload */}
-            <div className="space-y-3 md:space-y-4">
-                <div className="flex flex-col items-center space-y-3 md:space-y-4">
-                    <div className="w-full max-w-sm md:max-w-md h-28 md:h-32 bg-muted rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
-                        {values.bannerFile ? <img src={URL.createObjectURL(values.bannerFile)} alt="Banner preview" className="w-full h-full object-cover rounded-lg" /> : <Image className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />}
+                {/* Banner Upload */}
+                <div className="space-y-3">
+                    <div className="text-center md:text-left">
+                        <label className="text-sm font-medium text-foreground">School Banner</label>
+                        <p className="text-xs text-muted-foreground mb-3">16:9 recommended, max 5MB</p>
                     </div>
-                    <div className="text-center">
-                        <label className="cursor-pointer inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors">
-                            <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleBannerChange} className="hidden" disabled={pendingToBucket} />
-                            Choose Banner
-                        </label>
-                        <p className="text-xs text-muted-foreground mt-1">PNG or JPG, max 5MB, 16:9 ratio recommended</p>
-                    </div>
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> banner</p>
+                        </div>
+                        <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleBannerChange} className="hidden" disabled={pendingToBucket} />
+                    </label>
+                    {values.bannerFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Banner selected</p>}
                 </div>
             </div>
 
             {pendingToBucket && (
-                <div className="flex items-center justify-center space-x-2 md:space-x-3 text-primary">
+                <div className="flex items-center justify-center space-x-2 md:space-x-3 text-primary animate-in fade-in duration-300">
                     <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-xs md:text-sm font-medium">{uploadStatus || "Processing..."}</span>
                 </div>
@@ -258,7 +251,7 @@ export function ContactStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     return (
         <div className="space-y-4 md:space-y-6">
             <div className="text-center space-y-1 md:space-y-2">
-                <h3 className="text-base md:text-lg font-semibold">Contact Information</h3>
+                <h3 className="text-base md:text-lg font-semibold">Contact</h3>
                 <p className="text-sm md:text-base text-muted-foreground">How can we reach you and learn more about your journey?</p>
             </div>
 
@@ -290,6 +283,11 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
             colSpan: 1,
         },
         {
+            key: "currency",
+            label: "Currency",
+            colSpan: 1,
+        },
+        {
             key: "username",
             label: "Username",
             colSpan: 1,
@@ -301,8 +299,20 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
         },
         {
             key: "phone",
-            label: "Phone",
+            label: "Phone (WhatsApp)",
             colSpan: 1,
+        },
+        {
+            key: "websiteUrl",
+            label: "Website",
+            colSpan: 1,
+            displayValue: values.websiteUrl || "—",
+        },
+        {
+            key: "instagramUrl",
+            label: "Instagram",
+            colSpan: 1,
+            displayValue: values.instagramUrl || "—",
         },
         {
             key: "equipmentCategories",
