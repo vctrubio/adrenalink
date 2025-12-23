@@ -13,7 +13,7 @@ const defaultStudentForm: StudentFormData = {
     passport: "",
     country: "",
     phone: "",
-    languages: ["English"],
+    languages: [],
     description: "",
     canRent: false,
 };
@@ -80,7 +80,7 @@ export default function StudentPage() {
                 passport: "",
                 country: formData.country,
                 phone: formData.phone,
-                languages: ["English"],
+                languages: [],
                 description: "",
                 canRent: false,
             });

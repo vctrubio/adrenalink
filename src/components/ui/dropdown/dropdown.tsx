@@ -92,7 +92,7 @@ export default function Dropdown({
 	return (
 		<>
 			<div className="fixed inset-0 z-40" onClick={onClose} aria-hidden="true" />
-			<div className="absolute top-[2.5rem] w-full pointer-events-none overflow-visible z-50">
+			<div className="absolute top-[2.5rem] pointer-events-none overflow-visible z-50">
 				<div
 					className={`${alignClasses[align]} bg-card backdrop-blur-sm rounded-lg shadow-lg min-w-56 pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto ${className}`}
 				>

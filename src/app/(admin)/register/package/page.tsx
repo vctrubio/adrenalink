@@ -13,8 +13,8 @@ const defaultPackageForm: PackageFormData = {
     pricePerStudent: 0,
     capacityStudents: 1,
     capacityEquipment: 1,
-    categoryEquipment: "kite",
-    packageType: "lessons",
+    categoryEquipment: "" as any,
+    packageType: "" as any,
     isPublic: true,
 };
 
@@ -71,16 +71,16 @@ export default function PackagePage() {
 
             toast.success(`Package added: ${formData.description}`);
 
-            // Reset form but keep category and type for next entry
+            // Reset form
             setFormData({
                 durationMinutes: 60,
                 description: "",
                 pricePerStudent: 0,
                 capacityStudents: 1,
                 capacityEquipment: 1,
-                categoryEquipment: formData.categoryEquipment,
-                packageType: formData.packageType,
-                isPublic: formData.isPublic,
+                categoryEquipment: "" as any,
+                packageType: "" as any,
+                isPublic: true,
             });
         } catch (error) {
             console.error("Package creation error:", error);

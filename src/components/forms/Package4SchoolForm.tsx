@@ -4,6 +4,8 @@ import { z } from "zod";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
+import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 
 // Define the package form schema
 export const packageFormSchema = z.object({
@@ -66,8 +68,8 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
                         <PackageIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 className="text-2xl font-bold px-4 py-1 rounded-md" style={{ backgroundColor: packageEntity?.bgColor }}>
-                    Create New Package
+                <h2 className="text-2xl font-bold text-foreground">
+                    {formData.description || "New Package"}
                 </h2>
             </div>
 
@@ -113,11 +115,11 @@ function PackageTypeAndVisibilityField({ formData, onFormDataChange, typeError, 
         <div className="space-y-4">
             <FormField label="Package Type" required error={typeError} isValid={typeIsValid}>
                 <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => handleTypeChange("lessons")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}>
+                    <button type="button" onClick={() => handleTypeChange("lessons")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}>
                         <div className="font-medium">Lessons</div>
                         <div className="text-sm text-muted-foreground">Teaching sessions</div>
                     </button>
-                    <button type="button" onClick={() => handleTypeChange("rental")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}>
+                    <button type="button" onClick={() => handleTypeChange("rental")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}>
                         <div className="font-medium">Rental</div>
                         <div className="text-sm text-muted-foreground">Equipment rental only</div>
                     </button>
@@ -125,11 +127,16 @@ function PackageTypeAndVisibilityField({ formData, onFormDataChange, typeError, 
             </FormField>
 
             {/* Visibility Toggle */}
-            <div className="flex items-center space-x-3">
-                <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={handleVisibilityToggle} className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary" />
-                <label htmlFor="isPublic" className="text-sm font-medium text-foreground cursor-pointer">
-                    Make package publicly visible
-                </label>
+            <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Visibility</label>
+                <ToggleSwitch
+                    value={formData.isPublic ? "public" : "private"}
+                    onChange={(value) => handleVisibilityToggle()}
+                    values={{ left: "public", right: "private" }}
+                    counts={{ public: 0, private: 0 }}
+                    tintColor="#3b82f6"
+                    showLabels={true}
+                />
             </div>
         </div>
     );
@@ -151,7 +158,7 @@ function CategoryEquipmentField({ formData, onFormDataChange, error, isValid }: 
                             key={cat.id}
                             type="button"
                             onClick={() => handleChange(cat.id as "kite" | "wing" | "windsurf")}
-                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${formData.categoryEquipment === cat.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}
+                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${formData.categoryEquipment === cat.id ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
                         >
                             <div className="w-12 h-12 flex items-center justify-center" style={{ color: formData.categoryEquipment === cat.id ? cat.color : "#94a3b8" }}>
                                 <CategoryIcon className="w-12 h-12" />

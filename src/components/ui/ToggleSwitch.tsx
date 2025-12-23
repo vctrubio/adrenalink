@@ -12,6 +12,7 @@ interface ToggleSwitchProps {
     counts: Record<string, number>;
     color?: "yellow"; // Can be extended with more colors
     tintColor?: string; // Custom hex for active state
+    showLabels?: boolean; // Show labels instead of counts
 }
 
 const colorMap = {
@@ -24,7 +25,7 @@ const colorMap = {
     },
 };
 
-const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintColor }: ToggleSwitchProps) => {
+const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintColor, showLabels = false }: ToggleSwitchProps) => {
     const isRight = value === values.right;
     const colorClasses = colorMap[color];
     const baseColor = tintColor || colorClasses?.base || "#3b82f6";
@@ -38,7 +39,7 @@ const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintC
                     color: !isRight ? "#ffffff" : undefined,
                 }}
             >
-                {counts[values.left]}
+                {showLabels ? values.left.charAt(0).toUpperCase() + values.left.slice(1) : counts[values.left]}
             </span>
 
             <Switch
@@ -59,7 +60,7 @@ const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintC
                     color: isRight ? "#ffffff" : undefined,
                 }}
             >
-                {counts[values.right]}
+                {showLabels ? values.right.charAt(0).toUpperCase() + values.right.slice(1) : counts[values.right]}
             </span>
         </div>
     );

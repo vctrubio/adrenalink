@@ -6,6 +6,8 @@ import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { languagesEnum } from "@/drizzle/schema";
+import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
+import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
@@ -106,7 +108,9 @@ function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, lang
                             key={language}
                             type="button"
                             onClick={() => onLanguageToggle(language)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${standardLanguages.includes(language) ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input hover:border-primary/50"
+                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${standardLanguages.includes(language)
+                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                : "bg-background text-foreground border-input hover:border-green-300/50"
                                 }`}
                         >
                             {language}
@@ -117,7 +121,9 @@ function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, lang
                     <button
                         type="button"
                         onClick={() => setShowOtherInput(!showOtherInput)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${showOtherInput ? "bg-secondary text-secondary-foreground border-secondary" : "bg-background text-foreground border-input hover:border-secondary/50"}`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${showOtherInput
+                            ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                            : "bg-background text-foreground border-input hover:border-green-300/50"}`}
                     >
                         Other +
                     </button>
@@ -148,7 +154,7 @@ function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, lang
                 {customLanguages.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                         {customLanguages.map((language) => (
-                            <div key={language} className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground border-2 border-secondary flex items-center gap-2">
+                            <div key={language} className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}>
                                 {language}
                                 <button type="button" onClick={() => handleRemoveLanguage(language)} className="text-xs hover:text-destructive">
                                     ✕
@@ -181,11 +187,14 @@ function DescriptionField({ description, onDescriptionChange }: { description: s
 // Sub-component: Can Rent Toggle
 function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRentChange: (value: boolean) => void }) {
     return (
-        <div className="flex items-center space-x-3">
-            <input type="checkbox" id="canRent" checked={canRent} onChange={(e) => onCanRentChange(e.target.checked)} className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary" />
-            <label htmlFor="canRent" className="text-sm font-medium text-foreground cursor-pointer">
-                Student can rent equipment
-            </label>
+        <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Student Can Rent</label>
+            <ToggleSwitch
+                value={canRent ? "yes" : "no"}
+                onChange={(value) => onCanRentChange(value === "yes")}
+                values={{ left: "no", right: "yes" }}
+                counts={{ no: 1, yes: 1 }}
+            />
         </div>
     );
 }
@@ -251,8 +260,10 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
                         <StudentIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 className="text-2xl font-bold px-4 py-1 rounded-md" style={{ backgroundColor: studentEntity?.bgColor }}>
-                    Create New Student
+                <h2 className="text-2xl font-bold text-foreground">
+                    {formData.firstName && formData.lastName
+                        ? `${formData.firstName} ${formData.lastName}`
+                        : "New Student"}
                 </h2>
             </div>
 

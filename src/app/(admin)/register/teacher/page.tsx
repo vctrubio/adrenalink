@@ -14,7 +14,7 @@ const defaultTeacherForm: TeacherFormData = {
     passport: "",
     country: "",
     phone: "",
-    languages: ["English"],
+    languages: [],
     commissions: [],
 };
 
@@ -85,7 +85,7 @@ export default function TeacherPage() {
                 passport: "",
                 country: formData.country,
                 phone: formData.phone,
-                languages: ["English"],
+                languages: [],
                 commissions: [],
             });
         } catch (error) {

@@ -7,6 +7,8 @@ import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { languagesEnum } from "@/drizzle/schema";
 import TeacherCommissionForm from "./TeacherCommissionForm";
+import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
+import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
@@ -210,22 +212,22 @@ function LanguagesField({
                             onClick={() => onLanguageToggle(language)}
                             className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
                                 standardLanguages.includes(language)
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-background text-foreground border-input hover:border-primary/50"
+                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                    : "bg-background text-foreground border-input hover:border-green-300/50"
                             }`}
                         >
                             {language}
                         </button>
                     ))}
-                    
+
                     {/* Other button */}
                     <button
                         type="button"
                         onClick={() => setShowOtherInput(!showOtherInput)}
                         className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
                             showOtherInput
-                                ? "bg-secondary text-secondary-foreground border-secondary"
-                                : "bg-background text-foreground border-input hover:border-secondary/50"
+                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                : "bg-background text-foreground border-input hover:border-green-300/50"
                         }`}
                     >
                         Other +
@@ -263,7 +265,7 @@ function LanguagesField({
                         {customLanguages.map((language) => (
                             <div
                                 key={language}
-                                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground border-2 border-secondary flex items-center gap-2"
+                                className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}
                             >
                                 {language}
                                 <button
@@ -333,7 +335,7 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
             {/* Header with Icon */}
             <div className="flex items-center gap-3">
                 {TeacherIcon && (
-                    <div 
+                    <div
                         className="w-10 h-10 flex items-center justify-center transition-all duration-300"
                         style={{
                             color: isFormReady ? teacherEntity?.color : "#94a3b8",
@@ -342,11 +344,10 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
                         <TeacherIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 
-                    className="text-2xl font-bold px-4 py-1 rounded-md"
-                    style={{ backgroundColor: teacherEntity?.bgColor }}
-                >
-                    Create New Teacher
+                <h2 className="text-2xl font-bold text-foreground">
+                    {formData.firstName && formData.lastName
+                        ? `${formData.firstName} ${formData.lastName}`
+                        : "New Teacher"}
                 </h2>
             </div>
 

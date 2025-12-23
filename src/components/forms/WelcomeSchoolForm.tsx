@@ -36,6 +36,7 @@ const schoolSchema = z.object({
     websiteUrl: z.string().optional(),
     instagramUrl: z.string().optional(),
     currency: z.enum(["USD", "EUR", "CHF"]).default("EUR"),
+    ownerId: z.string().uuid().default("00000000-0000-0000-0000-000000000000"),
 });
 
 // Username generation utilities
@@ -92,6 +93,7 @@ export function WelcomeSchoolForm() {
             websiteUrl: "",
             instagramUrl: "",
             currency: "EUR",
+            ownerId: "00000000-0000-0000-0000-000000000000",
         },
         mode: "onTouched",
     });
@@ -366,7 +368,6 @@ export function WelcomeSchoolForm() {
                     onNameBlur={handleNameBlur}
                     onUsernameChange={handleUsernameChange}
                     onNext={() => {
-                        console.log("🔄 Transitioning to multi-form...");
                         setIsNameRegistered(true);
                     }}
                 />
