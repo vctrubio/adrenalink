@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
-import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm } from "./RegisterContext";
+import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData } from "./RegisterContext";
 import { DateSection } from "./booking-sections/DateSection";
 import { PackageSection } from "./booking-sections/PackageSection";
 import { StudentsSection } from "./booking-sections/StudentsSection";
@@ -34,8 +34,14 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const addParam = searchParams.get("add");
     const studentBookingStats = useStudentBookingStats();
     const teacherLessonStats = useTeacherLessonStats();
-    const { removeFromQueue } = useRegisterActions();
+    const { removeFromQueue, refreshData } = useRegisterActions();
+    const contextData = useRegisterData();
     const bookingForm = useBookingForm();
+
+    // Use context data (updated by refreshData) or fall back to props for initial load
+    const currentStudents = contextData.students || students;
+    const currentTeachers = contextData.teachers || teachers;
+    const currentPackages = contextData.packages || schoolPackages;
 
     // Use context state
     const selectedPackage = bookingForm.form.selectedPackage;
@@ -52,16 +58,19 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         () => new Set(studentIdParam ? ["package-section", "teacher-section", "commission-section"] : ["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"])
     );
 
+    // Track if we've processed the add param to avoid infinite loops
+    const processedParamRef = useRef<string | null>(null);
+
     // If studentId param exists, set package capacity to 1
     useEffect(() => {
         if (studentIdParam && selectedPackage && selectedPackage.capacityStudents !== 1) {
             // Find single-student packages
-            const singlePackage = schoolPackages.find(pkg => pkg.capacityStudents === 1);
+            const singlePackage = currentPackages.find(pkg => pkg.capacityStudents === 1);
             if (singlePackage) {
                 bookingForm.setForm({ selectedPackage: singlePackage });
             }
         }
-    }, [studentIdParam, schoolPackages, selectedPackage]);
+    }, [studentIdParam, currentPackages, selectedPackage, bookingForm]);
 
     // Set leader student to first selected student
     useEffect(() => {
@@ -72,36 +81,36 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         }
     }, [selectedStudentIds]);
 
+    // Refresh data when add param is detected for the first time
+    useEffect(() => {
+        if (addParam && processedParamRef.current !== addParam) {
+            refreshData();
+        }
+    }, [addParam, refreshData]);
+
     // Handle ?add=entity:id param to auto-select entities from queue
     useEffect(() => {
-        if (!addParam) return;
+        if (!addParam || processedParamRef.current === addParam) return;
+
+        processedParamRef.current = addParam;
 
         const parts = addParam.split(":");
         const entityType = parts[0];
         const entityId = parts[1];
-        // Optional 3rd part for commissionId
         const extraId = parts[2];
 
         if (entityType === "student") {
-            // Expand students section
             setExpandedSections(prev => new Set([...prev, "students-section"]));
-            // Select student if not already selected
             if (!selectedStudentIds.includes(entityId)) {
                 bookingForm.setForm({ selectedStudentIds: [...selectedStudentIds, entityId] });
             }
-            // Remove from queue
             removeFromQueue("students", entityId);
-            // Clear param from URL
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
-            // Expand teacher section
             setExpandedSections(prev => new Set([...prev, "teacher-section"]));
-            // Find and select teacher
-            const teacher = teachers.find(t => t.id === entityId);
+            const teacher = currentTeachers.find(t => t.id === entityId);
             if (teacher) {
                 bookingForm.setForm({ selectedTeacher: teacher });
-                
-                // If commission ID provided, find and select it
                 if (extraId) {
                     const commission = teacher.commissions?.find((c: any) => c.id === extraId);
                     if (commission) {
@@ -109,26 +118,20 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                     }
                 }
             }
-            // Remove from queue
             removeFromQueue("teachers", entityId);
-            // Clear param from URL
             router.replace("/register", { scroll: false });
         } else if (entityType === "package") {
-            // Expand package section
             setExpandedSections(prev => new Set([...prev, "package-section"]));
-            // Find and select package
-            const pkg = schoolPackages.find(p => p.id === entityId);
+            const pkg = currentPackages.find(p => p.id === entityId);
             if (pkg) {
                 bookingForm.setForm({ selectedPackage: pkg });
             }
-            // Remove from queue
             removeFromQueue("packages", entityId);
-            // Clear param from URL
             router.replace("/register", { scroll: false });
         }
-    }, [addParam, selectedStudentIds, teachers, schoolPackages, removeFromQueue, router]);
+    }, [addParam, selectedStudentIds, currentTeachers, currentPackages, removeFromQueue, router, bookingForm]);
 
-    const selectedStudentsList = students
+    const selectedStudentsList = currentStudents
         .map(ss => ss.student)
         .filter((student: any) => selectedStudentIds.includes(student.id));
 
@@ -221,20 +224,6 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         alert("Commission added! (Note: This is temporary - needs backend integration)");
     };
 
-    const handleScrollToSection = (sectionId: string) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
-            // Expand the section
-            setExpandedSections((prev) => {
-                const newSet = new Set(prev);
-                newSet.add(sectionId as SectionId);
-                return newSet;
-            });
-        }
-    };
-
-    const scrollToSection = handleScrollToSection;
 
     return (
         <div className="space-y-6">
@@ -247,7 +236,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             />
 
             <PackageSection
-                packages={schoolPackages}
+                packages={currentPackages}
                 selectedPackage={selectedPackage}
                 onSelect={handlePackageSelect}
                 isExpanded={expandedSections.has("package-section")}
@@ -256,7 +245,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             />
 
             <StudentsSection
-                students={students}
+                students={currentStudents}
                 selectedStudentIds={selectedStudentIds}
                 onToggle={handleStudentToggle}
                 preSelectedId={studentIdParam}
@@ -267,7 +256,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             />
 
             <TeacherSection
-                teachers={teachers}
+                teachers={currentTeachers}
                 selectedTeacher={selectedTeacher}
                 selectedCommission={selectedCommission}
                 onSelectTeacher={handleTeacherSelect}

@@ -202,14 +202,15 @@ export async function createAndLinkStudent(
 
         // Provide detailed error message
         let errorMessage = "Failed to create and link student";
-        if (error instanceof Error) {
+        if (error instanceof Error || (typeof error === "object" && error !== null)) {
+            const err = error as any;
             // Check for common database errors
-            if (error.message.includes("foreign key constraint")) {
+            if (err.code === "23503" || err.message?.includes("foreign key constraint")) {
                 errorMessage = "School ID not found in database for the provided header.";
-            } else if (error.message.includes("unique constraint")) {
+            } else if (err.code === "23505" || err.message?.includes("unique constraint")) {
                 errorMessage = "Student with this passport already exists";
             } else {
-                errorMessage += `: ${error.message}`;
+                errorMessage += `: ${err.message || JSON.stringify(err)}`;
             }
         }
 
@@ -290,20 +291,21 @@ export async function createAndLinkTeacher(
 
         // Provide detailed error message
         let errorMessage = "Failed to create teacher";
-        if (error instanceof Error) {
+        if (error instanceof Error || (typeof error === "object" && error !== null)) {
+            const err = error as any;
             // Check for common database errors
-            if (error.message.includes("foreign key constraint")) {
+            if (err.code === "23503" || err.message?.includes("foreign key constraint")) {
                 errorMessage = "School ID not found in database for the provided header.";
-            } else if (error.message.includes("unique constraint")) {
-                if (error.message.includes("passport")) {
+            } else if (err.code === "23505" || err.message?.includes("unique constraint")) {
+                if (err.message?.includes("passport")) {
                     errorMessage = "Teacher with this passport already exists";
-                } else if (error.message.includes("username")) {
+                } else if (err.message?.includes("username")) {
                     errorMessage = "Teacher with this username already exists for this school";
                 } else {
                     errorMessage = "Teacher with this information already exists";
                 }
             } else {
-                errorMessage += `: ${error.message}`;
+                errorMessage += `: ${err.message || JSON.stringify(err)}`;
             }
         }
 
@@ -347,12 +349,13 @@ export async function createAndLinkPackage(packageData: Omit<SchoolPackageForm, 
 
         // Provide detailed error message
         let errorMessage = "Failed to create package";
-        if (error instanceof Error) {
+        if (error instanceof Error || (typeof error === "object" && error !== null)) {
+            const err = error as any;
             // Check for common database errors
-            if (error.message.includes("foreign key constraint")) {
+            if (err.code === "23503" || err.message?.includes("foreign key constraint")) {
                 errorMessage = "School ID not found in database for the provided header.";
             } else {
-                errorMessage += `: ${error.message}`;
+                errorMessage += `: ${err.message || JSON.stringify(err)}`;
             }
         }
 
@@ -520,13 +523,14 @@ export async function masterBookingAdd(
         console.error("❌ [masterBookingAdd] EXCEPTION in masterBookingAdd:", error);
 
         let errorMessage = "Failed to create booking";
-        if (error instanceof Error) {
-            if (error.message.includes("foreign key constraint")) {
+        if (error instanceof Error || (typeof error === "object" && error !== null)) {
+            const err = error as any;
+            if (err.code === "23503" || err.message?.includes("foreign key constraint")) {
                 errorMessage = "Invalid package, student, teacher, or commission ID";
-            } else if (error.message.includes("unique constraint")) {
+            } else if (err.code === "23505" || err.message?.includes("unique constraint")) {
                 errorMessage = "Duplicate booking entry";
             } else {
-                errorMessage += `: ${error.message}`;
+                errorMessage += `: ${err.message || JSON.stringify(err)}`;
             }
         }
 

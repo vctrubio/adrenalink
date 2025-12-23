@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRegisterData, usePackageFormState, useFormSubmission } from "../RegisterContext";
+import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/Package4SchoolForm";
 import { createAndLinkPackage } from "@/actions/register-action";
 import toast from "react-hot-toast";
@@ -20,11 +20,10 @@ const defaultPackageForm: PackageFormData = {
 
 export default function PackagePage() {
     const router = useRouter();
-    const { addPackage, addToQueue } = useRegisterData();
+    const { addToQueue } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
-    const { setPackageFormValid, setPackageSubmit } = useFormSubmission();
+    const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
-    const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
     useEffect(() => {
@@ -38,14 +37,12 @@ export default function PackagePage() {
 
     // Update form validity in context
     useEffect(() => {
-        setPackageFormValid(isFormValid);
-    }, [isFormValid, setPackageFormValid]);
+        setFormValidity(isFormValid);
+    }, [isFormValid, setFormValidity]);
 
     // Define and memoize submit handler
     const handleSubmit = useCallback(async () => {
         if (!isFormValid) return;
-
-        setLoading(true);
 
         try {
             const result = await createAndLinkPackage({
@@ -61,50 +58,32 @@ export default function PackagePage() {
 
             if (!result.success) {
                 toast.error(result.error || "Failed to create package");
-                setLoading(false);
                 return;
             }
 
-            // Optimistic update
-            const newPackage = {
-                id: result.data.id,
-                description: result.data.description,
-                durationMinutes: result.data.durationMinutes,
-                pricePerStudent: result.data.pricePerStudent,
-                capacityStudents: result.data.capacityStudents,
-                capacityEquipment: result.data.capacityEquipment,
-                categoryEquipment: result.data.categoryEquipment,
-                isPublic: result.data.isPublic,
-            };
-            addPackage(newPackage);
-
-            // Add to queue
+            // Add to queue for quick access in booking form
             addToQueue("packages", {
                 id: result.data.id,
                 name: formData.description,
                 timestamp: Date.now(),
             });
 
-            toast.success(`Package created: ${formData.description}`);
+            toast.success(`Package added: ${formData.description}`);
 
             // Reset form
             setFormData(defaultPackageForm);
             setContextForm(null);
-            setLoading(false);
         } catch (error) {
             console.error("Package creation error:", error);
-            console.error("Full error details:", JSON.stringify(error, null, 2));
-            const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
-            console.error("Showing toast with message:", errorMessage);
-            toast.error(errorMessage || "An unexpected error occurred");
-            setLoading(false);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+            toast.error(errorMessage);
         }
-    }, [isFormValid, formData, addPackage, addToQueue, setContextForm]);
+    }, [isFormValid, formData, addToQueue, setContextForm]);
 
     // Register submit handler in context
     useEffect(() => {
-        setPackageSubmit(() => handleSubmit);
-    }, [handleSubmit, setPackageSubmit]);
+        registerSubmitHandler(handleSubmit);
+    }, [handleSubmit, registerSubmitHandler]);
 
     return (
         <div className="bg-card rounded-lg border border-border">
@@ -114,4 +93,3 @@ export default function PackagePage() {
         </div>
     );
 }
-

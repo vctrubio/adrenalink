@@ -3,9 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import type { StudentFormData } from "@/src/components/forms/Student4SchoolForm";
-import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
-import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
@@ -16,7 +13,13 @@ import { TeacherSummary } from "./controller-sections/TeacherSummary";
 import { PackageSummary } from "./controller-sections/PackageSummary";
 import { BookingSummary } from "./controller-sections/BookingSummary";
 import { ControllerActions } from "./controller-sections/ControllerActions";
-import { useRegisterQueues, useBookingForm } from "./RegisterContext";
+import {
+    useRegisterQueues,
+    useBookingForm,
+    useStudentFormState,
+    useTeacherFormState,
+    usePackageFormState
+} from "./RegisterContext";
 
 type FormType = "booking" | "student" | "package" | "teacher";
 
@@ -28,25 +31,15 @@ interface RegisterControllerProps {
     selectedTeacher: any;
     selectedCommission: any;
     dateRange: { startDate: string; endDate: string };
-    onSubmit: () => void;
     onReset: () => void;
-    onScrollToSection: (sectionId: string) => void;
     loading: boolean;
-    canCreateBooking: boolean;
     school: any;
     isMobile?: boolean;
-    studentFormData?: StudentFormData | null;
-    teacherFormData?: TeacherFormData | null;
-    packageFormData?: PackageFormData | null;
     error?: string | null;
     leaderStudentId?: string;
     onLeaderStudentChange?: (studentId: string) => void;
-    isStudentFormValid?: boolean;
-    isTeacherFormValid?: boolean;
-    isPackageFormValid?: boolean;
-    onStudentSubmit?: () => Promise<void>;
-    onTeacherSubmit?: () => Promise<void>;
-    onPackageSubmit?: () => Promise<void>;
+    submitHandler?: () => Promise<void>;
+    isFormValid?: boolean;
 }
 
 export default function RegisterController({
@@ -57,31 +50,26 @@ export default function RegisterController({
     selectedTeacher,
     selectedCommission,
     dateRange,
-    onSubmit,
     onReset,
-    onScrollToSection,
     loading,
-    canCreateBooking,
     school,
     isMobile = false,
-    studentFormData = null,
-    teacherFormData = null,
-    packageFormData = null,
     error = null,
     leaderStudentId = "",
     onLeaderStudentChange,
-    isStudentFormValid = false,
-    isTeacherFormValid = false,
-    isPackageFormValid = false,
-    onStudentSubmit,
-    onTeacherSubmit,
-    onPackageSubmit,
+    submitHandler,
+    isFormValid = false,
 }: RegisterControllerProps) {
     const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
     const leaderDropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const queues = useRegisterQueues();
     const bookingForm = useBookingForm();
+
+    // Form state from context
+    const { form: studentFormData } = useStudentFormState();
+    const { form: teacherFormData } = useTeacherFormState();
+    const { form: packageFormData } = usePackageFormState();
 
     // Use context leader student change if not provided
     const handleLeaderStudentChange = (studentId: string) => {
@@ -104,6 +92,9 @@ export default function RegisterController({
 
     const selectedLeaderStudent = selectedStudents.find((s) => s.id === leaderStudentId);
     const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
+
+    // Internal loading state for generic submissions
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Check if any queues have items
     const hasQueueItems = Object.values(queues).some((items) => items.length > 0);
@@ -146,6 +137,20 @@ export default function RegisterController({
         );
     };
 
+    // Generic submit action
+    const handleActionSubmit = async () => {
+        if (submitHandler) {
+            setIsSubmitting(true);
+            try {
+                await submitHandler();
+            } finally {
+                setIsSubmitting(false);
+            }
+        }
+    };
+
+    const isActionLoading = loading || isSubmitting;
+
     return (
         <div className={`bg-card ${isMobile ? "rounded-lg border border-border" : "lg:sticky lg:top-4"}`}>
             <div className="p-6 space-y-6">
@@ -159,7 +164,15 @@ export default function RegisterController({
                 {activeForm === "student" && studentFormData && (
                     <div className="space-y-4">
                         <StudentSummary studentFormData={studentFormData} />
-                        <ControllerActions onSubmit={onStudentSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isStudentFormValid} submitLabel="Create Student" resetLabel="Cancel" error={error} />
+                        <ControllerActions 
+                            onSubmit={handleActionSubmit} 
+                            onReset={onReset} 
+                            loading={isActionLoading} 
+                            canSubmit={isFormValid} 
+                            submitLabel="Create Student" 
+                            resetLabel="Cancel" 
+                            error={error} 
+                        />
                     </div>
                 )}
 
@@ -167,7 +180,15 @@ export default function RegisterController({
                 {activeForm === "teacher" && teacherFormData && (
                     <div className="space-y-4">
                         <TeacherSummary teacherFormData={teacherFormData} />
-                        <ControllerActions onSubmit={onTeacherSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isTeacherFormValid} submitLabel="Create Teacher" resetLabel="Cancel" error={error} />
+                        <ControllerActions 
+                            onSubmit={handleActionSubmit} 
+                            onReset={onReset} 
+                            loading={isActionLoading} 
+                            canSubmit={isFormValid} 
+                            submitLabel="Create Teacher" 
+                            resetLabel="Cancel" 
+                            error={error} 
+                        />
                     </div>
                 )}
 
@@ -175,7 +196,15 @@ export default function RegisterController({
                 {activeForm === "package" && packageFormData && (
                     <div className="space-y-4">
                         <PackageSummary packageFormData={packageFormData} />
-                        <ControllerActions onSubmit={onPackageSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isPackageFormValid} submitLabel="Create Package" resetLabel="Cancel" error={error} />
+                        <ControllerActions 
+                            onSubmit={handleActionSubmit} 
+                            onReset={onReset} 
+                            loading={isActionLoading} 
+                            canSubmit={isFormValid} 
+                            submitLabel="Create Package" 
+                            resetLabel="Cancel" 
+                            error={error} 
+                        />
                     </div>
                 )}
 
@@ -189,7 +218,6 @@ export default function RegisterController({
                             selectedReferral={selectedReferral}
                             selectedTeacher={selectedTeacher}
                             selectedCommission={selectedCommission}
-                            onScrollToSection={onScrollToSection}
                         />
                         {selectedStudents.length > 0 && (
                             <div className="border-t border-border pt-4">
@@ -240,7 +268,15 @@ export default function RegisterController({
                                 </div>
                             </div>
                         )}
-                        <ControllerActions onSubmit={onSubmit} onReset={onReset} loading={loading} canSubmit={canCreateBooking} submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"} resetLabel="Reset" error={error} />
+                        <ControllerActions 
+                            onSubmit={handleActionSubmit} 
+                            onReset={onReset} 
+                            loading={isActionLoading} 
+                            canSubmit={isFormValid} 
+                            submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"} 
+                            resetLabel="Reset" 
+                            error={error} 
+                        />
                     </div>
                 )}
 

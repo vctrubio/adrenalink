@@ -31,29 +31,24 @@ interface BookingFormState {
 }
 
 interface RegisterContextValue {
-    // Data management
+    // Data
     data: RegisterTables;
-    setData: (data: RegisterTables) => void;
     refreshData: () => Promise<void>;
     isRefreshing: boolean;
 
-    // Entity queues
+    // Queue - for recently added items
     queues: EntityQueues;
     addToQueue: (type: keyof EntityQueues, item: QueueItem) => void;
     removeFromQueue: (type: keyof EntityQueues, id: string) => void;
-    clearQueue: (type: keyof EntityQueues) => void;
-
-    // Optimistic updates
-    addStudent: (student: any) => void;
-    addTeacher: (teacher: any) => void;
-    addPackage: (pkg: any) => void;
 
     // Booking form state
-    bookingForm: BookingFormState;
-    setBookingForm: (form: Partial<BookingFormState>) => void;
-    resetBookingForm: () => void;
+    bookingForm: {
+        form: BookingFormState;
+        setForm: (updates: Partial<BookingFormState>) => void;
+        reset: () => void;
+    };
 
-    // Entity form states
+    // Entity form states (for persistence across navigation)
     studentForm: StudentFormData | null;
     setStudentForm: (form: StudentFormData | null) => void;
     teacherForm: TeacherFormData | null;
@@ -61,19 +56,11 @@ interface RegisterContextValue {
     packageForm: PackageFormData | null;
     setPackageForm: (form: PackageFormData | null) => void;
 
-    // Form validation and submission
-    isStudentFormValid: boolean;
-    setStudentFormValid: (valid: boolean) => void;
-    isTeacherFormValid: boolean;
-    setTeacherFormValid: (valid: boolean) => void;
-    isPackageFormValid: boolean;
-    setPackageFormValid: (valid: boolean) => void;
-    onStudentSubmit?: () => Promise<void>;
-    setStudentSubmit: (handler: () => Promise<void>) => void;
-    onTeacherSubmit?: () => Promise<void>;
-    setTeacherSubmit: (handler: () => Promise<void>) => void;
-    onPackageSubmit?: () => Promise<void>;
-    setPackageSubmit: (handler: () => Promise<void>) => void;
+    // Form submission coordination
+    submitHandler: (() => Promise<void>) | undefined;
+    registerSubmitHandler: (handler: () => Promise<void>) => void;
+    isFormValid: boolean;
+    setFormValidity: (valid: boolean) => void;
 }
 
 const RegisterContext = createContext<RegisterContextValue | undefined>(undefined);
@@ -106,6 +93,14 @@ export function RegisterProvider({
         bookings: []
     });
 
+    // UI Coordination
+    const [scrollTarget, setScrollTarget] = useState<string | null>(null);
+
+    const scrollToSection = useCallback((sectionId: string) => {
+        setScrollTarget(sectionId);
+        setTimeout(() => setScrollTarget(null), 100);
+    }, []);
+
     // Booking form state
     const [bookingForm, setBookingFormState] = useState<BookingFormState>(defaultBookingForm);
 
@@ -114,15 +109,16 @@ export function RegisterProvider({
     const [teacherForm, setTeacherForm] = useState<TeacherFormData | null>(null);
     const [packageForm, setPackageForm] = useState<PackageFormData | null>(null);
 
-    // Form validation states
-    const [isStudentFormValid, setStudentFormValid] = useState(false);
-    const [isTeacherFormValid, setTeacherFormValid] = useState(false);
-    const [isPackageFormValid, setPackageFormValid] = useState(false);
+    // Generic Form Coordination
+    const [submitHandler, setSubmitHandlerState] = useState<(() => Promise<void>) | undefined>();
+    const [isFormValid, setFormValidity] = useState(false);
 
-    // Form submission handlers
-    const [onStudentSubmit, setStudentSubmit] = useState<(() => Promise<void>) | undefined>();
-    const [onTeacherSubmit, setTeacherSubmit] = useState<(() => Promise<void>) | undefined>();
-    const [onPackageSubmit, setPackageSubmit] = useState<(() => Promise<void>) | undefined>();
+    // Wrap setSubmitHandler to ensure stable reference if needed, 
+    // but React's setState is already stable. 
+    // We expose it as registerSubmitHandler for semantic clarity.
+    const registerSubmitHandler = useCallback((handler: () => Promise<void>) => {
+        setSubmitHandlerState(() => handler);
+    }, []);
 
     const pathname = usePathname();
     const previousPathname = useRef(pathname);
@@ -169,71 +165,36 @@ export function RegisterProvider({
         }));
     }, []);
 
-    // Optimistic update helpers - add to beginning so they appear at top
-    const addStudent = useCallback((student: any) => {
-        setData(prev => ({
-            ...prev,
-            students: [student, ...prev.students]
-        }));
-    }, []);
-
-    const addTeacher = useCallback((teacher: any) => {
-        setData(prev => ({
-            ...prev,
-            teachers: [teacher, ...prev.teachers]
-        }));
-    }, []);
-
-    const addPackage = useCallback((pkg: any) => {
-        setData(prev => ({
-            ...prev,
-            packages: [pkg, ...prev.packages]
-        }));
-    }, []);
-
-    // Booking form update function
     const setBookingForm = useCallback((updates: Partial<BookingFormState>) => {
         setBookingFormState(prev => ({ ...prev, ...updates }));
     }, []);
 
-    // Reset booking form
     const resetBookingForm = useCallback(() => {
         setBookingFormState(defaultBookingForm);
     }, []);
 
-    const value = {
+    const value: RegisterContextValue = {
         data,
-        setData,
         refreshData,
         isRefreshing,
         queues,
         addToQueue,
         removeFromQueue,
-        clearQueue,
-        addStudent,
-        addTeacher,
-        addPackage,
-        bookingForm,
-        setBookingForm,
-        resetBookingForm,
+        bookingForm: {
+            form: bookingForm,
+            setForm: setBookingForm,
+            reset: resetBookingForm,
+        },
         studentForm,
         setStudentForm,
         teacherForm,
         setTeacherForm,
         packageForm,
         setPackageForm,
-        isStudentFormValid,
-        setStudentFormValid,
-        isTeacherFormValid,
-        setTeacherFormValid,
-        isPackageFormValid,
-        setPackageFormValid,
-        onStudentSubmit,
-        setStudentSubmit,
-        onTeacherSubmit,
-        setTeacherSubmit,
-        onPackageSubmit,
-        setPackageSubmit
+        submitHandler,
+        registerSubmitHandler,
+        isFormValid,
+        setFormValidity,
     };
 
     return (
@@ -243,166 +204,94 @@ export function RegisterProvider({
     );
 }
 
-/**
- * Hook to access all register data
- */
+// ... hooks ...
+
 export function useRegisterData(): RegisterTables {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useRegisterData must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useRegisterData must be used within RegisterProvider");
     return context.data;
 }
 
-/**
- * Hook to access register actions (optimistic updates, queue management, refresh)
- */
 export function useRegisterActions() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useRegisterActions must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useRegisterActions must be used within RegisterProvider");
     return {
-        addStudent: context.addStudent,
-        addTeacher: context.addTeacher,
-        addPackage: context.addPackage,
         addToQueue: context.addToQueue,
         removeFromQueue: context.removeFromQueue,
-        clearQueue: context.clearQueue,
         refreshData: context.refreshData,
         isRefreshing: context.isRefreshing
     };
 }
 
-/**
- * Hook to access entity queues
- */
 export function useRegisterQueues() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useRegisterQueues must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useRegisterQueues must be used within RegisterProvider");
     return context.queues;
 }
 
-/**
- * Hook to access school data only
- */
 export function useSchool() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useSchool must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useSchool must be used within RegisterProvider");
     return context.data.school;
 }
 
-/**
- * Hook to access packages data only
- */
 export function usePackages() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("usePackages must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("usePackages must be used within RegisterProvider");
     return context.data.packages;
 }
 
-/**
- * Hook to access teachers data only
- */
 export function useTeachers() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useTeachers must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useTeachers must be used within RegisterProvider");
     return context.data.teachers;
 }
 
-/**
- * Hook to access students data only
- */
 export function useStudents() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useStudents must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useStudents must be used within RegisterProvider");
     return context.data.students;
 }
 
-/**
- * Hook to access student booking stats
- */
 export function useStudentBookingStats() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useStudentBookingStats must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useStudentBookingStats must be used within RegisterProvider");
     return context.data.studentBookingStats;
 }
 
-/**
- * Hook to access teacher lesson stats
- */
 export function useTeacherLessonStats() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useTeacherLessonStats must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useTeacherLessonStats must be used within RegisterProvider");
     return context.data.teacherLessonStats;
 }
 
-/**
- * Hook to access and update booking form state
- */
 export function useBookingForm() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useBookingForm must be used within RegisterProvider");
-    }
-    // Return separate values instead of an object to avoid creating new references
-    return {
-        form: context.bookingForm,
-        setForm: context.setBookingForm,
-        reset: context.resetBookingForm,
-    };
+    if (!context) throw new Error("useBookingForm must be used within RegisterProvider");
+    return context.bookingForm;
 }
 
-/**
- * Hook to access and update student form state
- */
 export function useStudentFormState() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useStudentFormState must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useStudentFormState must be used within RegisterProvider");
     return {
         form: context.studentForm,
         setForm: context.setStudentForm,
     };
 }
 
-/**
- * Hook to access and update teacher form state
- */
 export function useTeacherFormState() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useTeacherFormState must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useTeacherFormState must be used within RegisterProvider");
     return {
         form: context.teacherForm,
         setForm: context.setTeacherForm,
     };
 }
 
-/**
- * Hook to access and update package form state
- */
 export function usePackageFormState() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("usePackageFormState must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("usePackageFormState must be used within RegisterProvider");
     return {
         form: context.packageForm,
         setForm: context.setPackageForm,
@@ -410,25 +299,15 @@ export function usePackageFormState() {
 }
 
 /**
- * Hook to access and manage form submission
+ * Hook for pages to register their form submission logic
  */
-export function useFormSubmission() {
+export function useFormRegistration() {
     const context = useContext(RegisterContext);
-    if (!context) {
-        throw new Error("useFormSubmission must be used within RegisterProvider");
-    }
+    if (!context) throw new Error("useFormRegistration must be used within RegisterProvider");
     return {
-        isStudentFormValid: context.isStudentFormValid,
-        setStudentFormValid: context.setStudentFormValid,
-        onStudentSubmit: context.onStudentSubmit,
-        setStudentSubmit: context.setStudentSubmit,
-        isTeacherFormValid: context.isTeacherFormValid,
-        setTeacherFormValid: context.setTeacherFormValid,
-        onTeacherSubmit: context.onTeacherSubmit,
-        setTeacherSubmit: context.setTeacherSubmit,
-        isPackageFormValid: context.isPackageFormValid,
-        setPackageFormValid: context.setPackageFormValid,
-        onPackageSubmit: context.onPackageSubmit,
-        setPackageSubmit: context.setPackageSubmit,
+        submitHandler: context.submitHandler,
+        registerSubmitHandler: context.registerSubmitHandler,
+        isFormValid: context.isFormValid,
+        setFormValidity: context.setFormValidity,
     };
 }

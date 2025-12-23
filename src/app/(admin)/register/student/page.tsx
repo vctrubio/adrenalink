@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRegisterData, useStudentFormState, useFormSubmission } from "../RegisterContext";
+import { useRegisterActions, useStudentFormState, useFormRegistration } from "../RegisterContext";
 import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/Student4SchoolForm";
 import { createAndLinkStudent } from "@/actions/register-action";
 import toast from "react-hot-toast";
@@ -20,11 +20,10 @@ const defaultStudentForm: StudentFormData = {
 
 export default function StudentPage() {
     const router = useRouter();
-    const { addStudent, addToQueue } = useRegisterData();
+    const { addToQueue } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
-    const { setStudentFormValid, setStudentSubmit } = useFormSubmission();
+    const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<StudentFormData>(contextForm || defaultStudentForm);
-    const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
     useEffect(() => {
@@ -38,14 +37,12 @@ export default function StudentPage() {
 
     // Update form validity in context
     useEffect(() => {
-        setStudentFormValid(isFormValid);
-    }, [isFormValid, setStudentFormValid]);
+        setFormValidity(isFormValid);
+    }, [isFormValid, setFormValidity]);
 
     // Define and memoize submit handler
     const handleSubmit = useCallback(async () => {
         if (!isFormValid) return;
-
-        setLoading(true);
 
         try {
             const result = await createAndLinkStudent(
@@ -63,46 +60,32 @@ export default function StudentPage() {
 
             if (!result.success) {
                 toast.error(result.error || "Failed to create student");
-                setLoading(false);
                 return;
             }
 
-            // Optimistic update
-            const newStudent = {
-                id: result.data.schoolStudent.id,
-                studentId: result.data.student.id,
-                description: result.data.schoolStudent.description,
-                active: true,
-                rental: result.data.schoolStudent.rental,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                student: result.data.student,
-            };
-            addStudent(newStudent);
-
-            // Add to queue
+            // Add to queue for quick access in booking form
             addToQueue("students", {
                 id: result.data.student.id,
                 name: `${formData.firstName} ${formData.lastName}`,
                 timestamp: Date.now(),
             });
 
-            toast.success(`Student created: ${formData.firstName} ${formData.lastName}`);
+            toast.success(`Student added: ${formData.firstName} ${formData.lastName}`);
 
             // Reset form
             setFormData(defaultStudentForm);
             setContextForm(null);
-            setLoading(false);
-        } catch {
-            toast.error("An unexpected error occurred");
-            setLoading(false);
+        } catch (error) {
+            console.error("Student creation error:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+            toast.error(errorMessage);
         }
-    }, [isFormValid, formData, addStudent, addToQueue, setContextForm]);
+    }, [isFormValid, formData, addToQueue, setContextForm]);
 
     // Register submit handler in context
     useEffect(() => {
-        setStudentSubmit(() => handleSubmit);
-    }, [handleSubmit, setStudentSubmit]);
+        registerSubmitHandler(handleSubmit);
+    }, [handleSubmit, registerSubmitHandler]);
 
     return (
         <div className="bg-card rounded-lg border border-border">
