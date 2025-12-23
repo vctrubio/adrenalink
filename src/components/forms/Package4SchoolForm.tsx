@@ -57,7 +57,7 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
             {/* Header with Icon */}
             <div className="flex items-center gap-3">
                 {PackageIcon && (
-                    <div 
+                    <div
                         className="w-10 h-10 flex items-center justify-center transition-all duration-300"
                         style={{
                             color: isFormReady ? packageEntity?.color : "#94a3b8",
@@ -66,60 +66,32 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
                         <PackageIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 
-                    className="text-2xl font-bold px-4 py-1 rounded-md"
-                    style={{ backgroundColor: packageEntity?.bgColor }}
-                >
+                <h2 className="text-2xl font-bold px-4 py-1 rounded-md" style={{ backgroundColor: packageEntity?.bgColor }}>
                     Create New Package
                 </h2>
             </div>
 
             <div className="space-y-6">
                 {/* Package Type & Visibility Together */}
-                <PackageTypeAndVisibilityField 
-                    formData={formData} 
-                    onFormDataChange={onFormDataChange}
-                    typeError={getFieldError("packageType")}
-                    typeIsValid={isFieldValid("packageType")}
-                />
-                
-                <CategoryEquipmentField 
-                    formData={formData} 
-                    onFormDataChange={onFormDataChange}
-                    error={getFieldError("categoryEquipment")}
-                    isValid={isFieldValid("categoryEquipment")}
-                />
-                
-                <CapacityEquipmentField 
-                    formData={formData} 
-                    onFormDataChange={onFormDataChange}
-                    error={getFieldError("capacityEquipment")}
-                    isValid={isFieldValid("capacityEquipment")}
-                />
-                
-                <DurationField 
-                    formData={formData} 
-                    onFormDataChange={onFormDataChange}
-                    error={getFieldError("durationMinutes")}
-                    isValid={isFieldValid("durationMinutes")}
-                />
-                
-                <PricingRevenueField 
-                    formData={formData} 
+                <PackageTypeAndVisibilityField formData={formData} onFormDataChange={onFormDataChange} typeError={getFieldError("packageType")} typeIsValid={isFieldValid("packageType")} />
+
+                <CategoryEquipmentField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("categoryEquipment")} isValid={isFieldValid("categoryEquipment")} />
+
+                <CapacityEquipmentField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("capacityEquipment")} isValid={isFieldValid("capacityEquipment")} />
+
+                <DurationField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("durationMinutes")} isValid={isFieldValid("durationMinutes")} />
+
+                <PricingRevenueField
+                    formData={formData}
                     onFormDataChange={onFormDataChange}
                     priceError={getFieldError("pricePerStudent")}
                     capacityError={getFieldError("capacityStudents")}
                     priceIsValid={isFieldValid("pricePerStudent")}
                     capacityIsValid={isFieldValid("capacityStudents")}
                 />
-                
-                <DescriptionField 
-                    formData={formData} 
-                    onFormDataChange={onFormDataChange}
-                    error={getFieldError("description")}
-                    isValid={isFieldValid("description")}
-                />
-                
+
+                <DescriptionField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("description")} isValid={isFieldValid("description")} />
+
                 {/* Revenue Summary - Like Commission Border */}
                 <PackageRevenueSummary formData={formData} />
             </div>
@@ -128,17 +100,7 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
 }
 
 // Sub-component: Package Type & Visibility Together
-function PackageTypeAndVisibilityField({
-    formData,
-    onFormDataChange,
-    typeError,
-    typeIsValid,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    typeError?: string;
-    typeIsValid?: boolean;
-}) {
+function PackageTypeAndVisibilityField({ formData, onFormDataChange, typeError, typeIsValid }: { formData: PackageFormData; onFormDataChange: (data: PackageFormData) => void; typeError?: string; typeIsValid?: boolean }) {
     const handleTypeChange = (value: "rental" | "lessons") => {
         onFormDataChange({ ...formData, packageType: value });
     };
@@ -151,42 +113,20 @@ function PackageTypeAndVisibilityField({
         <div className="space-y-4">
             <FormField label="Package Type" required error={typeError} isValid={typeIsValid}>
                 <div className="grid grid-cols-2 gap-4">
-                    <button
-                        type="button"
-                        onClick={() => handleTypeChange("lessons")}
-                        className={`p-4 border-2 rounded-lg transition-all ${
-                            formData.packageType === "lessons"
-                                ? "border-primary bg-primary/10"
-                                : "border-border hover:border-primary/50"
-                        }`}
-                    >
+                    <button type="button" onClick={() => handleTypeChange("lessons")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}>
                         <div className="font-medium">Lessons</div>
                         <div className="text-sm text-muted-foreground">Teaching sessions</div>
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => handleTypeChange("rental")}
-                        className={`p-4 border-2 rounded-lg transition-all ${
-                            formData.packageType === "rental"
-                                ? "border-primary bg-primary/10"
-                                : "border-border hover:border-primary/50"
-                        }`}
-                    >
+                    <button type="button" onClick={() => handleTypeChange("rental")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}>
                         <div className="font-medium">Rental</div>
                         <div className="text-sm text-muted-foreground">Equipment rental only</div>
                     </button>
                 </div>
             </FormField>
-            
+
             {/* Visibility Toggle */}
             <div className="flex items-center space-x-3">
-                <input
-                    type="checkbox"
-                    id="isPublic"
-                    checked={formData.isPublic}
-                    onChange={handleVisibilityToggle}
-                    className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary"
-                />
+                <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={handleVisibilityToggle} className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary" />
                 <label htmlFor="isPublic" className="text-sm font-medium text-foreground cursor-pointer">
                     Make package publicly visible
                 </label>
@@ -196,17 +136,7 @@ function PackageTypeAndVisibilityField({
 }
 
 // Sub-component: Category Equipment Selection
-function CategoryEquipmentField({
-    formData,
-    onFormDataChange,
-    error,
-    isValid,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-}) {
+function CategoryEquipmentField({ formData, onFormDataChange, error, isValid }: { formData: PackageFormData; onFormDataChange: (data: PackageFormData) => void; error?: string; isValid?: boolean }) {
     const handleChange = (value: "kite" | "wing" | "windsurf") => {
         onFormDataChange({ ...formData, categoryEquipment: value });
     };
@@ -221,16 +151,9 @@ function CategoryEquipmentField({
                             key={cat.id}
                             type="button"
                             onClick={() => handleChange(cat.id as "kite" | "wing" | "windsurf")}
-                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${
-                                formData.categoryEquipment === cat.id
-                                    ? "border-primary bg-primary/10"
-                                    : "border-border hover:border-primary/50"
-                            }`}
+                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${formData.categoryEquipment === cat.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}
                         >
-                            <div 
-                                className="w-12 h-12 flex items-center justify-center"
-                                style={{ color: formData.categoryEquipment === cat.id ? cat.color : "#94a3b8" }}
-                            >
+                            <div className="w-12 h-12 flex items-center justify-center" style={{ color: formData.categoryEquipment === cat.id ? cat.color : "#94a3b8" }}>
                                 <CategoryIcon className="w-12 h-12" />
                             </div>
                             <div className="font-medium">{cat.name}</div>
@@ -243,17 +166,7 @@ function CategoryEquipmentField({
 }
 
 // Sub-component: Duration Field
-function DurationField({
-    formData,
-    onFormDataChange,
-    error,
-    isValid,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-}) {
+function DurationField({ formData, onFormDataChange, error, isValid }: { formData: PackageFormData; onFormDataChange: (data: PackageFormData) => void; error?: string; isValid?: boolean }) {
     // Convert minutes to hours and minutes
     const hours = Math.floor(formData.durationMinutes / 60);
     const minutes = formData.durationMinutes % 60;
@@ -274,30 +187,18 @@ function DurationField({
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="text-sm text-muted-foreground mb-2 block">Hours</label>
-                    <FormInput
-                        type="number"
-                        value={hours || ""}
-                        onChange={(e) => handleHoursChange(parseInt(e.target.value) || 0)}
-                        placeholder="0"
-                        min={0}
-                    />
+                    <FormInput type="number" value={hours || ""} onChange={(e) => handleHoursChange(parseInt(e.target.value) || 0)} placeholder="0" min={0} />
                 </div>
                 <div>
                     <label className="text-sm text-muted-foreground mb-2 block">Minutes</label>
-                    <FormInput
-                        type="number"
-                        value={minutes || ""}
-                        onChange={(e) => handleMinutesChange(parseInt(e.target.value) || 0)}
-                        placeholder="0"
-                        min={0}
-                        max={59}
-                    />
+                    <FormInput type="number" value={minutes || ""} onChange={(e) => handleMinutesChange(parseInt(e.target.value) || 0)} placeholder="0" min={0} max={59} />
                 </div>
             </div>
             {/* Display Total */}
             {formData.durationMinutes > 0 && (
                 <div className="text-sm text-muted-foreground mt-2">
-                    Total: <span className="font-medium text-foreground">
+                    Total:{" "}
+                    <span className="font-medium text-foreground">
                         {hours > 0 && `${hours}h `}
                         {minutes > 0 && `${minutes}m`}
                         {hours === 0 && minutes === 0 && "0m"}
@@ -342,37 +243,18 @@ function PricingRevenueField({
             <FormField label="Price per Student" required error={priceError} isValid={priceIsValid}>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
-                    <FormInput
-                        type="number"
-                        value={formData.pricePerStudent || ""}
-                        onChange={handlePriceChange}
-                        placeholder="0"
-                        min={0}
-                        className="pl-8"
-                    />
+                    <FormInput type="number" value={formData.pricePerStudent || ""} onChange={handlePriceChange} placeholder="0" min={0} className="pl-8" />
                 </div>
             </FormField>
 
             <FormField label="Student Capacity" required error={capacityError} isValid={capacityIsValid}>
-                <FormInput
-                    type="number"
-                    value={formData.capacityStudents || ""}
-                    onChange={handleCapacityChange}
-                    placeholder="Max students"
-                    min={1}
-                />
+                <FormInput type="number" value={formData.capacityStudents || ""} onChange={handleCapacityChange} placeholder="Max students" min={1} />
             </FormField>
 
             <FormField label="Revenue">
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
-                    <FormInput
-                        type="text"
-                        value={revenue > 0 ? revenue.toFixed(0) : ""}
-                        placeholder="0"
-                        disabled
-                        className="pl-8 bg-muted/50 cursor-not-allowed"
-                    />
+                    <FormInput type="text" value={revenue > 0 ? revenue.toFixed(0) : ""} placeholder="0" disabled className="pl-8 bg-muted/50 cursor-not-allowed" />
                 </div>
             </FormField>
         </div>
@@ -380,17 +262,7 @@ function PricingRevenueField({
 }
 
 // Sub-component: Equipment Capacity Field
-function CapacityEquipmentField({
-    formData,
-    onFormDataChange,
-    error,
-    isValid,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-}) {
+function CapacityEquipmentField({ formData, onFormDataChange, error, isValid }: { formData: PackageFormData; onFormDataChange: (data: PackageFormData) => void; error?: string; isValid?: boolean }) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value) || 0;
         onFormDataChange({ ...formData, capacityEquipment: value });
@@ -398,29 +270,13 @@ function CapacityEquipmentField({
 
     return (
         <FormField label="Equipment Capacity" required error={error} isValid={isValid}>
-            <FormInput
-                type="number"
-                value={formData.capacityEquipment || ""}
-                onChange={handleChange}
-                placeholder="Max equipment"
-                min={1}
-            />
+            <FormInput type="number" value={formData.capacityEquipment || ""} onChange={handleChange} placeholder="Max equipment" min={1} />
         </FormField>
     );
 }
 
 // Sub-component: Description Field
-function DescriptionField({
-    formData,
-    onFormDataChange,
-    error,
-    isValid,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-}) {
+function DescriptionField({ formData, onFormDataChange, error, isValid }: { formData: PackageFormData; onFormDataChange: (data: PackageFormData) => void; error?: string; isValid?: boolean }) {
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         onFormDataChange({ ...formData, description: e.target.value });
     };
@@ -456,7 +312,7 @@ function PackageRevenueSummary({ formData }: { formData: PackageFormData }) {
     return (
         <div className="space-y-3 border-t-2 pt-6" style={{ borderColor: packageColor }}>
             <h3 className="text-lg font-semibold">Revenue Summary</h3>
-            
+
             <div className="grid grid-cols-2 gap-4 text-sm">
                 {/* Duration */}
                 <div>
@@ -469,9 +325,7 @@ function PackageRevenueSummary({ formData }: { formData: PackageFormData }) {
                 {/* Price per Hour */}
                 <div>
                     <span className="text-muted-foreground">Revenue per Hour:</span>
-                    <p className="font-medium">
-                        €{pricePerHour.toFixed(2)}/hr
-                    </p>
+                    <p className="font-medium">€{pricePerHour.toFixed(2)}/hr</p>
                 </div>
 
                 {/* Only show price per student if capacity > 1 */}
@@ -479,15 +333,11 @@ function PackageRevenueSummary({ formData }: { formData: PackageFormData }) {
                     <>
                         <div>
                             <span className="text-muted-foreground">Price per Student:</span>
-                            <p className="font-medium">
-                                €{formData.pricePerStudent}
-                            </p>
+                            <p className="font-medium">€{formData.pricePerStudent}</p>
                         </div>
                         <div>
                             <span className="text-muted-foreground">Price per Hour/Student:</span>
-                            <p className="font-medium">
-                                €{pricePerHourPerStudent.toFixed(2)}/hr
-                            </p>
+                            <p className="font-medium">€{pricePerHourPerStudent.toFixed(2)}/hr</p>
                         </div>
                     </>
                 )}
@@ -503,9 +353,7 @@ function PackageRevenueSummary({ formData }: { formData: PackageFormData }) {
                 {/* Total Revenue */}
                 <div>
                     <span className="text-muted-foreground">Expected Revenue:</span>
-                    <p className="font-medium text-green-600">
-                        €{revenue.toFixed(2)}
-                    </p>
+                    <p className="font-medium text-green-600">€{revenue.toFixed(2)}</p>
                 </div>
             </div>
         </div>

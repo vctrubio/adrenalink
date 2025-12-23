@@ -71,9 +71,17 @@ export default function PackagePage() {
 
             toast.success(`Package added: ${formData.description}`);
 
-            // Reset form
-            setFormData(defaultPackageForm);
-            setContextForm(null);
+            // Reset form but keep category and type for next entry
+            setFormData({
+                durationMinutes: 60,
+                description: "",
+                pricePerStudent: 0,
+                capacityStudents: 1,
+                capacityEquipment: 1,
+                categoryEquipment: formData.categoryEquipment,
+                packageType: formData.packageType,
+                isPublic: formData.isPublic,
+            });
         } catch (error) {
             console.error("Package creation error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";

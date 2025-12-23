@@ -15,7 +15,7 @@ export function EquipmentStudentCapacityBadge({
   const equipmentColor = "#a855f7"; // Color for equipment entity from config/entities.ts
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-start">
       <div className="flex items-center gap-1">
         {equipmentCapacity > 0 && (
           <>

@@ -6,7 +6,7 @@ import { Form } from "@/src/components/ui/form";
 import { MultiFormStepper } from "./MultiFormStepper";
 import { MultiFormButtons } from "./MultiFormButtons";
 import type { FormStep } from "./types";
-import { AlertCircle, CheckCircle2, MessageCircle } from "lucide-react";
+import { WelcomeSchoolResponseBanner } from "../WelcomeSchoolResponseBanner";
 
 interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Form configuration
@@ -34,6 +34,10 @@ interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     successTitle?: string;
     successMessage?: string;
     successButtonText?: string;
+    onSuccessButtonClick?: () => void;
+    
+    // State change callback
+    onStateChange?: (state: { isSubmitted: boolean; isError: boolean }) => void;
 }
 
 export function MultiFormContainer<T extends FieldValues = FieldValues>({
@@ -51,6 +55,8 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     successTitle = "Congratulations",
     successMessage = "We will get back to you in 1 business day. Thank you.",
     successButtonText = "Go to Home",
+    onSuccessButtonClick,
+    onStateChange,
 }: MultiFormContainerProps<T>) {
     const [stepIndex, setStepIndex] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -134,10 +140,12 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
         try {
             await onSubmit(data);
             setIsSubmitted(true);
+            onStateChange?.({ isSubmitted: true, isError: false });
         } catch (error: any) {
             console.error("Form submission error:", error);
             setIsError(true);
             setErrorMessage(error.message || "Something went wrong");
+            onStateChange?.({ isSubmitted: false, isError: true });
         }
     };
 
@@ -150,33 +158,19 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     if (isSubmitted) {
         return (
             <div className={className}>
-                <div className="bg-card rounded-lg border border-border p-6 md:p-8 text-center animate-in fade-in duration-500">
-                    <div className="space-y-6">
-                        <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
-                            <CheckCircle2 className="w-8 h-8 text-secondary" />
-                        </div>
-
-                        <div className="animate-in slide-in-from-bottom duration-500 delay-300">
-                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{successTitle}</h1>
-                            <p className="text-muted-foreground text-lg">{successMessage}</p>
-                        </div>
-
-                        <div className="animate-in slide-in-from-bottom duration-500 delay-500">
-                            <button 
-                                onClick={() => {
-                                    if (onSuccessButtonClick) {
-                                        onSuccessButtonClick();
-                                    } else {
-                                        window.location.href = "/";
-                                    }
-                                }} 
-                                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-md font-medium transition-all duration-200 shadow-md"
-                            >
-                                {successButtonText}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <WelcomeSchoolResponseBanner
+                    status="success"
+                    title={successTitle || "Congratulations"}
+                    message={successMessage || "Operation successful."}
+                    primaryButtonText={successButtonText || "Continue"}
+                    onPrimaryAction={() => {
+                        if (onSuccessButtonClick) {
+                            onSuccessButtonClick();
+                        } else {
+                            window.location.href = "/";
+                        }
+                    }}
+                />
             </div>
         );
     }
@@ -185,43 +179,17 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     if (isError) {
         return (
             <div className={className}>
-                <div className="bg-card rounded-lg border border-warning/30 p-6 md:p-8 text-center animate-in fade-in duration-500">
-                    <div className="space-y-6">
-                        <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300 delay-200">
-                            <AlertCircle className="w-8 h-8 text-warning" />
-                        </div>
-
-                        <div className="animate-in slide-in-from-bottom duration-500 delay-300">
-                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Something Went Wrong</h1>
-                            <p className="text-muted-foreground text-lg mb-2">Don't worry, we will get back to you as soon as possible.</p>
-                            <p className="text-sm text-muted-foreground/70 italic">Error: {errorMessage}</p>
-                        </div>
-
-                        <div className="animate-in slide-in-from-bottom duration-500 delay-500 space-y-4">
-                            <div className="p-4 bg-muted/50 rounded-lg inline-block">
-                                <p className="text-sm font-medium mb-2">Contact me directly:</p>
-                                <a 
-                                    href="https://wa.me/+34686516248" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 text-secondary hover:text-secondary/80 font-bold transition-colors"
-                                >
-                                    <MessageCircle className="w-5 h-5" />
-                                    Victor Rubio - Founder
-                                </a>
-                            </div>
-                            
-                            <div>
-                                <button 
-                                    onClick={() => setIsError(false)} 
-                                    className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
-                                >
-                                    Try again
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <WelcomeSchoolResponseBanner
+                    status="error"
+                    title="Something Went Wrong"
+                    message="Don't worry, we will get back to you as soon as possible."
+                    primaryButtonText="Try again"
+                    onPrimaryAction={() => {
+                        setIsError(false);
+                        onStateChange?.({ isSubmitted: false, isError: false });
+                    }}
+                    errorDetails={errorMessage}
+                />
             </div>
         );
     }

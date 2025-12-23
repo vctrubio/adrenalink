@@ -29,14 +29,8 @@ const schoolSchema = z.object({
     longitude: z.number().optional(),
     googlePlaceId: z.string().optional(),
     equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf"])).min(1, "Select at least one equipment category"),
-    iconFile: z.instanceof(File, { message: "Icon file is required" }).refine(
-        (file) => file && file.type.startsWith("image/"),
-        "Icon must be an image file"
-    ),
-    bannerFile: z.instanceof(File, { message: "Banner file is required" }).refine(
-        (file) => file && file.type.startsWith("image/"),
-        "Banner must be an image file"
-    ),
+    iconFile: z.instanceof(File, { message: "Icon file is required" }).refine((file) => file && file.type.startsWith("image/"), "Icon must be an image file"),
+    bannerFile: z.instanceof(File, { message: "Banner file is required" }).refine((file) => file && file.type.startsWith("image/"), "Banner must be an image file"),
     ownerEmail: z.string().email("Valid email is required"),
     referenceNote: z.string().optional(),
     websiteUrl: z.string().optional(),
@@ -78,6 +72,7 @@ export function WelcomeSchoolForm() {
     const [uploadStarted, setUploadStarted] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [isNameRegistered, setIsNameRegistered] = useState(false);
+    const [isResultView, setIsResultView] = useState(false);
 
     const methods = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema),
@@ -103,7 +98,7 @@ export function WelcomeSchoolForm() {
 
     const { setValue, setFocus, watch } = methods;
     const { triggerPhoneClear } = usePhoneClear();
-    
+
     // Watch all fields for live preview
     const formValues = watch();
 
@@ -255,7 +250,7 @@ export function WelcomeSchoolForm() {
 
     const handleStepChange = (newStep: number) => {
         setCurrentStep(newStep);
-        
+
         // Assets step is now index 0. If we move to step 1 (Details) or higher, trigger upload.
         if (newStep > 0) {
             const data = methods.getValues();
@@ -286,7 +281,7 @@ export function WelcomeSchoolForm() {
 
             if (!result.success) {
                 console.error("❌ Database error:", result.error);
-                
+
                 // Throw error to prevent success page
                 throw new Error(`Failed to create school: ${result.error}`);
             }
@@ -310,18 +305,16 @@ export function WelcomeSchoolForm() {
         } catch (error) {
             console.error("Error in school creation flow:", error);
             setUploadStatus("");
-            
+
             // Show timeout handler for R2 connectivity issues if it was an upload related error (though upload is now backgrounded, main flow might still have DB errors)
-            if (error instanceof Error && (
-                error.message.includes("timeout") ||
-                error.message.includes("ETIMEDOUT") ||
-                error.message.includes("upload") ||
-                error.message.includes("Failed to upload assets")
-            )) {
+            if (error instanceof Error && (error.message.includes("timeout") || error.message.includes("ETIMEDOUT") || error.message.includes("upload") || error.message.includes("Failed to upload assets"))) {
                 console.log("🔄 R2/DB failed, showing timeout handler");
                 setTimeoutFormData(data);
                 setShowTimeoutHandler(true);
             }
+
+            // Rethrow error so MultiFormContainer shows the error state
+            throw error;
         }
     };
 
@@ -363,7 +356,7 @@ export function WelcomeSchoolForm() {
     return (
         <div className="w-full max-w-3xl mx-auto space-y-6">
             {/* Live Header Preview - Always visible to encourage completion */}
-            <WelcomeHeader formData={formValues} showPreview={isNameRegistered} />
+            <WelcomeHeader formData={formValues} showPreview={isNameRegistered && !isResultView} />
 
             {!isNameRegistered ? (
                 <WelcomeSchoolNameRegistration
@@ -394,9 +387,10 @@ export function WelcomeSchoolForm() {
                         const username = methods.getValues("username");
                         window.location.href = `https://${username}.adrenalink.tech/`;
                     }}
+                    onStateChange={(state) => setIsResultView(state.isSubmitted || state.isError)}
                 />
             )}
-            
+
             {showTimeoutHandler && timeoutFormData && (
                 <HandleFormTimeOut
                     formData={timeoutFormData}

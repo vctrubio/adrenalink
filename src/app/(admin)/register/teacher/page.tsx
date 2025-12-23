@@ -77,9 +77,17 @@ export default function TeacherPage() {
 
             toast.success(`Teacher added: ${formData.firstName} ${formData.lastName}`);
 
-            // Reset form
-            setFormData(defaultTeacherForm);
-            setContextForm(null);
+            // Reset form but keep country and phone for next entry
+            setFormData({
+                firstName: "",
+                lastName: "",
+                username: "",
+                passport: "",
+                country: formData.country,
+                phone: formData.phone,
+                languages: ["English"],
+                commissions: [],
+            });
         } catch (error) {
             console.error("Teacher creation error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";

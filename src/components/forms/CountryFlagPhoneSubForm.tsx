@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ReactCountryFlag from "react-country-flag";
 import Image from "next/image";
-import { BadgeCheck, MessageCircle, MapPin } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode, getCountryByName } from "@/config/countries";
 
 // Sub-component for Country Selector
@@ -19,7 +19,6 @@ function CountrySelector({ selectedCountryCode, onCountryChange, countryError, i
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                 Country
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}
@@ -91,7 +90,6 @@ function PhoneInput({
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
-                <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
                 Phone
                 {!isValid && <span className="text-destructive ml-1">*</span>}
                 {isValid && <BadgeCheck className="w-4 h-4 text-secondary ml-1" />}

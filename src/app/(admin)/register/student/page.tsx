@@ -73,9 +73,17 @@ export default function StudentPage() {
 
             toast.success(`Student added: ${formData.firstName} ${formData.lastName}`);
 
-            // Reset form
-            setFormData(defaultStudentForm);
-            setContextForm(null);
+            // Reset form but keep country and phone for next entry
+            setFormData({
+                firstName: "",
+                lastName: "",
+                passport: "",
+                country: formData.country,
+                phone: formData.phone,
+                languages: ["English"],
+                description: "",
+                canRent: false,
+            });
         } catch (error) {
             console.error("Student creation error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";

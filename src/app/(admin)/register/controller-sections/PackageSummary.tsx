@@ -1,5 +1,7 @@
 import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
+import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 interface PackageSummaryProps {
     packageFormData: PackageFormData;
@@ -30,74 +32,89 @@ export function PackageSummary({ packageFormData }: PackageSummaryProps) {
 
             <div className="space-y-2">
                 <SummaryItem
-                    label="Package Type"
-                    value={packageFormData.packageType ? typeLabels[packageFormData.packageType] : null}
-                    placeholder="Select package type"
+                    label="Description"
+                    value={packageFormData.description || null}
+                    placeholder="Enter package description"
+                    isRequired={true}
                 />
 
                 <SummaryItem
-                    label="Category"
+                    label="Package Type"
+                    value={packageFormData.packageType ? typeLabels[packageFormData.packageType] : null}
+                    placeholder="Select package type"
+                    isRequired={true}
+                />
+
+                <SummaryItem
+                    label="Capacity"
                     value={
-                        categoryConfig ? (
-                            <div className="flex items-center gap-2">
-                                <div 
-                                    className="w-5 h-5 flex items-center justify-center"
-                                    style={{ color: categoryConfig.color }}
-                                >
-                                    {CategoryIcon && <CategoryIcon className="w-5 h-5" />}
-                                </div>
-                                <span>{categoryConfig.name}</span>
-                            </div>
-                        ) : null
+                        packageFormData.capacityStudents > 0 && packageFormData.capacityEquipment > 0 && CategoryIcon
+                            ? (
+                                <EquipmentStudentCapacityBadge
+                                    categoryIcon={CategoryIcon}
+                                    equipmentCapacity={packageFormData.capacityEquipment}
+                                    studentCapacity={packageFormData.capacityStudents}
+                                />
+                            )
+                            : null
                     }
-                    placeholder="Select equipment category"
+                    placeholder="Set capacity limits"
+                    isRequired={true}
                 />
 
                 <SummaryItem
                     label="Duration"
                     value={packageFormData.durationMinutes > 0 ? formatDuration(packageFormData.durationMinutes) : null}
                     placeholder="Set duration"
+                    isRequired={true}
                 />
 
                 <SummaryItem
                     label="Price"
                     value={packageFormData.pricePerStudent >= 0 ? `€${packageFormData.pricePerStudent}` : null}
                     placeholder="Set price per student"
-                />
-
-                <SummaryItem
-                    label="Capacity"
-                    value={
-                        packageFormData.capacityStudents > 0 && packageFormData.capacityEquipment > 0
-                            ? `${packageFormData.capacityStudents} students / ${packageFormData.capacityEquipment} equipment`
-                            : null
-                    }
-                    placeholder="Set capacity limits"
+                    isRequired={true}
                 />
 
                 <SummaryItem
                     label="Visibility"
                     value={packageFormData.isPublic ? "Public" : "Private"}
                     placeholder="Set visibility"
+                    isRequired={true}
                 />
             </div>
         </div>
     );
 }
 
-function SummaryItem({ label, value, placeholder }: { label: string; value: string | React.ReactNode | null; placeholder: string }) {
+function SummaryItem({
+    label,
+    value,
+    placeholder,
+    isRequired = true,
+}: {
+    label: string;
+    value: string | React.ReactNode | null;
+    placeholder: string;
+    isRequired?: boolean;
+}) {
     const isComplete = !!value;
 
+    // Use required colors for completed required fields, otherwise use optional colors if not required
+    const colors = isComplete
+        ? FORM_SUMMARY_COLORS.required
+        : isRequired
+            ? FORM_SUMMARY_COLORS.required
+            : FORM_SUMMARY_COLORS.optional;
+
     return (
-        <div
-            className={`p-3 rounded-lg border ${
-                isComplete
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                    : "bg-muted/30 border-border"
-            }`}
-        >
+        <div className={`p-3 rounded-lg border ${colors.bg} ${colors.border}`}>
             <div className="text-xs text-muted-foreground mb-1">
-                {isComplete ? `✓ ${label}` : `⚠ ${label} Required`}
+                {isComplete
+                    ? `✓ ${label}`
+                    : isRequired
+                        ? `⚠ ${label} Required`
+                        : `${label}`}
             </div>
             {isComplete ? (
                 <div className="text-sm">{value}</div>

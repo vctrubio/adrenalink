@@ -1,4 +1,5 @@
 import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
+import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 interface TeacherSummaryProps {
     teacherFormData: TeacherFormData;
@@ -52,27 +53,45 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
 
                 <SummaryItem
                     label="Commissions"
-                    value={teacherFormData.commissions.length > 0 
-                        ? `${teacherFormData.commissions.length} commission${teacherFormData.commissions.length > 1 ? "s" : ""} set` 
+                    value={teacherFormData.commissions.length > 0
+                        ? `${teacherFormData.commissions.length} commission${teacherFormData.commissions.length > 1 ? "s" : ""} set`
                         : null}
                     placeholder="Add commission rates (optional)"
+                    isRequired={false}
                 />
             </div>
         </div>
     );
 }
 
-function SummaryItem({ label, value, placeholder }: { label: string; value: string | null; placeholder: string }) {
+function SummaryItem({
+    label,
+    value,
+    placeholder,
+    isRequired = true,
+}: {
+    label: string;
+    value: string | null;
+    placeholder: string;
+    isRequired?: boolean;
+}) {
     const isComplete = !!value;
 
+    // Use required colors for completed required fields, otherwise use optional colors if not required
+    const colors = isComplete
+        ? FORM_SUMMARY_COLORS.required
+        : isRequired
+            ? FORM_SUMMARY_COLORS.required
+            : FORM_SUMMARY_COLORS.optional;
+
     return (
-        <div className={`p-3 rounded-lg border ${
-            isComplete 
-                ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
-                : "bg-muted/30 border-border"
-        }`}>
+        <div className={`p-3 rounded-lg border ${colors.bg} ${colors.border}`}>
             <div className="text-xs text-muted-foreground mb-1">
-                {isComplete ? `✓ ${label}` : `⚠ ${label} Required`}
+                {isComplete
+                    ? `✓ ${label}`
+                    : isRequired
+                        ? `⚠ ${label} Required`
+                        : `${label}`}
             </div>
             {isComplete ? (
                 <div className="text-sm">{value}</div>
