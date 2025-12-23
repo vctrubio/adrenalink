@@ -28,6 +28,9 @@ interface StudentFormProps {
     formData: StudentFormData;
     onFormDataChange: (data: StudentFormData) => void;
     isFormReady?: boolean;
+    showSubmit?: boolean;
+    onSubmit?: () => void;
+    isLoading?: boolean;
 }
 
 // Sub-component: Name Fields
@@ -289,7 +292,7 @@ function CanRentField({
 }
 
 // Main component - ONLY RENDERS
-export default function StudentForm({ formData, onFormDataChange, isFormReady = false }: StudentFormProps) {
+export default function StudentForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: StudentFormProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const StudentIcon = studentEntity?.icon;
 

@@ -1,3 +1,6 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
 import { ExpandCollapseIcon } from "@/src/components/ui/ExpandCollapseIcon";
 
 interface SectionProps {
@@ -13,9 +16,11 @@ interface SectionProps {
     hasSelection?: boolean;
     onClear?: () => void;
     onOptional?: () => void;
+    showAddButton?: boolean;
+    onAddClick?: () => void;
 }
 
-export function Section({ id, title, isExpanded, onToggle, children, entityIcon: EntityIcon, entityColor, alwaysExpanded = false, optional = false, hasSelection = false, onClear, onOptional }: SectionProps) {
+export function Section({ id, title, isExpanded, onToggle, children, entityIcon: EntityIcon, entityColor, alwaysExpanded = false, optional = false, hasSelection = false, onClear, onOptional, showAddButton = false, onAddClick }: SectionProps) {
     const handleClick = () => {
         if (!alwaysExpanded) {
             onToggle();
@@ -23,8 +28,8 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
     };
 
     return (
-        <div id={id} className="scroll-mt-4">
-            <div className={`rounded-lg bg-card border border-border transition-all duration-200 ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`}>
+        <motion.div id={id} className="scroll-mt-4" layout>
+            <motion.div className={`rounded-lg bg-card border border-border ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`} layout>
                 {/* Header */}
                 <div className={`flex items-center justify-between p-4 ${alwaysExpanded ? "cursor-default" : "cursor-pointer active:bg-muted touch-manipulation"}`} onClick={handleClick}>
                     <div className="flex items-center gap-3">
@@ -36,6 +41,19 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                     </div>
                     <div className="flex items-center gap-2">
+                        {showAddButton && onAddClick && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAddClick();
+                                }}
+                                className="px-3 py-2 text-sm font-medium rounded-lg border border-border hover:bg-muted/80 text-foreground transition-colors"
+                                style={{ color: entityColor }}
+                            >
+                                + Add
+                            </button>
+                        )}
                         {optional ? (
                             <>
                                 {hasSelection && onClear && (
@@ -87,9 +105,16 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                         )}
                     </div>
                 </div>
-                {/* Content */}
-                {(isExpanded || alwaysExpanded) && <div className="px-4 pb-4">{children}</div>}
-            </div>
-        </div>
+
+                {/* Content with Framer Motion animations */}
+                <AnimatePresence initial={false}>
+                    {(isExpanded || alwaysExpanded) && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            <div className="px-4 pb-4">{children}</div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </motion.div>
     );
 }

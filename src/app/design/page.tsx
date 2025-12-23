@@ -97,6 +97,37 @@ export default function DesignPage() {
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-100">Adrenalink Design System</h1>
 
+                {/* Theme Color Palette */}
+                <div className="mt-6">
+                    <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Theme Colors</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div className="rounded-lg p-4 bg-background text-foreground shadow-sm">
+                            <div className="font-medium">Background</div>
+                            <div className="text-xs opacity-80">bg-background • text-foreground</div>
+                        </div>
+                        <div className="rounded-lg p-4 bg-card text-card-foreground shadow-sm">
+                            <div className="font-medium">Card</div>
+                            <div className="text-xs opacity-80">bg-card • text-card-foreground</div>
+                        </div>
+                        <div className="rounded-lg p-4 bg-muted text-muted-foreground shadow-sm">
+                            <div className="font-medium">Muted</div>
+                            <div className="text-xs opacity-80">bg-muted • text-muted-foreground</div>
+                        </div>
+                        <div className="rounded-lg p-4 bg-primary text-primary-foreground shadow-sm">
+                            <div className="font-medium">Primary</div>
+                            <div className="text-xs opacity-80">bg-primary • text-primary-foreground</div>
+                        </div>
+                        <div className="rounded-lg p-4 bg-secondary text-secondary-foreground shadow-sm">
+                            <div className="font-medium">Secondary</div>
+                            <div className="text-xs opacity-80">bg-secondary • text-secondary-foreground</div>
+                        </div>
+                        <div className="rounded-lg p-4 bg-foreground text-background shadow-sm">
+                            <div className="font-medium">Foreground</div>
+                            <div className="text-xs opacity-80">bg-foreground • text-background</div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Entity Icon Section */}
                 <div className="mt-16">
                     <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-6">Entity Icons</h2>

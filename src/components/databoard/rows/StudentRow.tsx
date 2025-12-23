@@ -3,7 +3,7 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { BookingTag, BookingCreateTag } from "@/src/components/tags";
+import { BookingTag, BookingCreateTag, UrlParamAddTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { StudentRowStats as DataboardStudentStats } from "@/src/components/databoard/stats";
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
@@ -17,9 +17,11 @@ export const calculateStudentGroupStats = DataboardStudentStats.getStats;
 
 const StudentAction = ({ student }: { student: StudentModel }) => {
     const bookingStudents = student.relations?.bookingStudents || [];
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     return (
         <div className="flex flex-wrap gap-2">
+            <UrlParamAddTag type="student" id={student.schema.id} color={studentEntity.color} />
             {bookingStudents.length === 0 ? (
                 <BookingCreateTag icon={<BookingIcon className="w-3 h-3" />} onClick={() => console.log("Creating new booking...")} />
             ) : (

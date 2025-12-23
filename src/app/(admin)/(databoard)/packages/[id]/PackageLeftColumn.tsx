@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ENTITY_DATA } from "@/config/entities";
+import { UrlParamAddTag } from "@/src/components/tags";
 import { updateSchoolPackageDetail } from "@/actions/packages-action";
 import type { SchoolPackageModel } from "@/backend/models";
 import { formatDate } from "@/getters/date-getter";
@@ -18,6 +19,7 @@ function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPacka
         <>
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <UrlParamAddTag type="package" id={schoolPackage.schema.id} color={packageEntity.color} />
                 <button
                     onClick={onEdit}
                     style={{ borderColor: packageEntity.color }}

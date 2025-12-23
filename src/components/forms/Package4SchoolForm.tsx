@@ -23,9 +23,12 @@ interface Package4SchoolFormProps {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     isFormReady: boolean;
+    showSubmit?: boolean;
+    onSubmit?: () => void;
+    isLoading?: boolean;
 }
 
-export default function Package4SchoolForm({ formData, onFormDataChange, isFormReady }: Package4SchoolFormProps) {
+export default function Package4SchoolForm({ formData, onFormDataChange, isFormReady, showSubmit = false, onSubmit, isLoading = false }: Package4SchoolFormProps) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const PackageIcon = packageEntity?.icon;
 

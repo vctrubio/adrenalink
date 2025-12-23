@@ -3,6 +3,7 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
+import { UrlParamAddTag } from "@/src/components/tags";
 import { SchoolPackageStats as DataboardSchoolPackageStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
 import { PackageDropdownRow } from "./PackageDropdownRow";
@@ -88,7 +89,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
                 label: schoolPackage.schema.isPublic ? "Public" : "Internal",
                 items: strItems,
             }}
-            action={null}
+            action={<UrlParamAddTag type="package" id={schoolPackage.schema.id} color={packageEntity.color} />}
             popover={undefined}
             stats={stats}
         />

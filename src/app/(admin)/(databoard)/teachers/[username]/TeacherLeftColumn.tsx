@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
+import { UrlParamAddTag } from "@/src/components/tags";
 import { updateTeacherDetail } from "@/actions/teachers-action";
 import { CountryFlagPhoneSubForm } from "@/src/components/forms/CountryFlagPhoneSubForm";
 import { getCountryByName } from "@/config/countries";
@@ -55,6 +56,7 @@ function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: (
         <>
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <UrlParamAddTag type="teacher" id={teacher.schema.id} color={teacherEntity.color} />
                 <button onClick={onEdit} style={{ borderColor: teacherEntity.color }} className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors">
                     Edit
                 </button>

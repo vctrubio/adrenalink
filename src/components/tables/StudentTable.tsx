@@ -180,7 +180,7 @@ export function StudentTable({
                     </tr>
                 </TableHeader>
             <TableBody>
-                {filteredStudents.map((schoolStudent) => {
+                {filteredStudents.map((schoolStudent, index) => {
                     const student = schoolStudent.student;
                     const isSelected = selectedStudentIds.includes(student.id);
                     const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;

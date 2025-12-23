@@ -96,14 +96,13 @@ export default function TeacherCommissionForm({ teacherId, commissions, onCommis
     };
 
     return (
-        <div className="space-y-3 border-t-2 pt-6" style={{ borderColor: commissionColor }}>
+        <div className="space-y-4 border-t pt-6 mt-6">
             {/* Header - Toggle Button */}
             <CommissionHeader
                 commissionColor={commissionColor}
                 commissionCount={commissions.length}
                 isOpen={isOpen}
                 onToggle={() => setIsOpen(!isOpen)}
-                teacherId={teacherId}
             />
 
             {/* Commission List */}
@@ -123,54 +122,12 @@ export default function TeacherCommissionForm({ teacherId, commissions, onCommis
                     formData={formData}
                     editingCommission={editingCommission}
                     commissionColor={commissionColor}
-                    teacherId={teacherId}
                     onFormDataChange={setFormData}
                     onSubmit={handleAddCommission}
                     onCancel={handleCancel}
                     getFieldError={getFieldError}
                 />
             )}
-        </div>
-    );
-}
-
-// Sub-component: Header
-function CommissionHeader({
-    commissionColor,
-    commissionCount,
-    isOpen,
-    onToggle,
-    teacherId,
-}: {
-    commissionColor?: string;
-    commissionCount: number;
-    isOpen: boolean;
-    onToggle: () => void;
-    teacherId: string;
-}) {
-    return (
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <div 
-                    className="w-6 h-6 flex items-center justify-center"
-                    style={{ color: commissionColor }}
-                >
-                    <HandshakeIcon size={24} />
-                </div>
-                <h3 className="text-lg font-semibold">Commission</h3>
-                {commissionCount > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                        ({commissionCount} {commissionCount === 1 ? "structure" : "structures"})
-                    </span>
-                )}
-            </div>
-            <button
-                type="button"
-                onClick={onToggle}
-                className="px-3 py-1.5 text-sm border-2 border-border rounded-md hover:border-primary/50 transition-all"
-            >
-                {isOpen ? "Close" : `+ Add Commission for ${teacherId.slice(0, 8)}`}
-            </button>
         </div>
     );
 }
@@ -190,58 +147,93 @@ function CommissionList({
     onDelete: (id: string) => void;
 }) {
     return (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {commissions.map((commission) => (
                 <div
                     key={commission.id}
-                    className="flex items-center justify-between p-3 rounded-lg border-2 border-border hover:border-primary/30 transition-all"
+                    className="group relative flex flex-col p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all duration-200 bg-card/50"
                 >
-                    <div className="flex items-center gap-3 flex-1">
-                        <div 
-                            className="w-8 h-8 flex items-center justify-center rounded-md"
-                            style={{ 
-                                color: commissionColor,
-                                backgroundColor: commissionBgColor 
-                            }}
-                        >
-                            <HandshakeIcon size={18} />
-                        </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                    {commission.commissionType === "fixed" 
-                                        ? `€${commission.commissionValue}/hour` 
-                                        : `${commission.commissionValue}%`}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                    ({commission.commissionType === "fixed" ? "Fixed Rate" : "Percentage"})
-                                </span>
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <div 
+                                className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm"
+                                style={{ 
+                                    color: commissionColor,
+                                    backgroundColor: commissionBgColor 
+                                }}
+                            >
+                                <HandshakeIcon size={16} />
                             </div>
-                            {commission.commissionDescription && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                    {commission.commissionDescription}
+                            <div>
+                                <div className="text-lg font-bold leading-none">
+                                    {commission.commissionType === "fixed" 
+                                        ? `€${commission.commissionValue}` 
+                                        : `${commission.commissionValue}%`}
                                 </div>
-                            )}
+                                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                                    {commission.commissionType === "fixed" ? "Per Hour" : "Commission"}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                type="button"
+                                onClick={() => onEdit(commission)}
+                                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onDelete(commission.id)}
+                                className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                            </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => onEdit(commission)}
-                            className="px-2 py-1 text-xs text-primary hover:underline"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => onDelete(commission.id)}
-                            className="px-2 py-1 text-xs text-destructive hover:underline"
-                        >
-                            Delete
-                        </button>
-                    </div>
+                    
+                    {commission.commissionDescription ? (
+                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {commission.commissionDescription}
+                        </div>
+                    ) : (
+                         <div className="text-xs text-muted-foreground/50 italic mt-1">
+                            No description
+                        </div>
+                    )}
                 </div>
             ))}
+        </div>
+    );
+}
+
+// Sub-component: Header
+function CommissionHeader({
+    commissionColor,
+    commissionCount,
+    isOpen,
+    onToggle,
+}: {
+    commissionColor?: string;
+    commissionCount: number;
+    isOpen: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                    Commission Structure
+                </h3>
+            </div>
+            <button
+                type="button"
+                onClick={onToggle}
+                className="text-sm font-medium text-primary hover:underline flex items-center gap-1 transition-all"
+            >
+                {isOpen ? "Close Form" : "+ Add New Rate"}
+            </button>
         </div>
     );
 }
@@ -251,7 +243,6 @@ function CommissionFormFields({
     formData,
     editingCommission,
     commissionColor,
-    teacherId,
     onFormDataChange,
     onSubmit,
     onCancel,
@@ -260,7 +251,7 @@ function CommissionFormFields({
     formData: Omit<CommissionData, "id">;
     editingCommission: CommissionData | null;
     commissionColor?: string;
-    teacherId: string;
+    teacherId?: string; // Removed usage
     onFormDataChange: (data: Omit<CommissionData, "id">) => void;
     onSubmit: () => void;
     onCancel: () => void;
@@ -268,12 +259,11 @@ function CommissionFormFields({
 }) {
     return (
         <div 
-            className="p-4 rounded-lg space-y-4"
-            style={{ backgroundColor: `${commissionColor}10` }}
+            className="p-5 rounded-xl border border-border bg-card/50 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2 duration-200"
         >
-            <div className="flex items-center gap-2 pb-2 border-b" style={{ borderColor: `${commissionColor}30` }}>
+            <div className="flex items-center justify-between pb-3 border-b border-border/50">
                 <h4 className="text-sm font-semibold">
-                    {editingCommission ? "Edit Commission" : `Add New Commission for ${teacherId.slice(0, 8)}`}
+                    {editingCommission ? "Edit Rate" : "New Commission Rate"}
                 </h4>
             </div>
 

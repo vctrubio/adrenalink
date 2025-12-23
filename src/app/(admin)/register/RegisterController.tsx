@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { StudentFormData } from "@/src/components/forms/Student4SchoolForm";
 import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
 import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { ENTITY_DATA } from "@/config/entities";
 import { SchoolHeader } from "./controller-sections/SchoolHeader";
 import { FormSelector } from "./controller-sections/FormSelector";
 import { StudentSummary } from "./controller-sections/StudentSummary";
@@ -14,6 +16,7 @@ import { TeacherSummary } from "./controller-sections/TeacherSummary";
 import { PackageSummary } from "./controller-sections/PackageSummary";
 import { BookingSummary } from "./controller-sections/BookingSummary";
 import { ControllerActions } from "./controller-sections/ControllerActions";
+import { useRegisterQueues, useBookingForm } from "./RegisterContext";
 
 type FormType = "booking" | "student" | "package" | "teacher";
 
@@ -38,6 +41,12 @@ interface RegisterControllerProps {
     error?: string | null;
     leaderStudentId?: string;
     onLeaderStudentChange?: (studentId: string) => void;
+    isStudentFormValid?: boolean;
+    isTeacherFormValid?: boolean;
+    isPackageFormValid?: boolean;
+    onStudentSubmit?: () => Promise<void>;
+    onTeacherSubmit?: () => Promise<void>;
+    onPackageSubmit?: () => Promise<void>;
 }
 
 export default function RegisterController({
@@ -61,9 +70,27 @@ export default function RegisterController({
     error = null,
     leaderStudentId = "",
     onLeaderStudentChange,
+    isStudentFormValid = false,
+    isTeacherFormValid = false,
+    isPackageFormValid = false,
+    onStudentSubmit,
+    onTeacherSubmit,
+    onPackageSubmit,
 }: RegisterControllerProps) {
     const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
     const leaderDropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+    const queues = useRegisterQueues();
+    const bookingForm = useBookingForm();
+
+    // Use context leader student change if not provided
+    const handleLeaderStudentChange = (studentId: string) => {
+        if (onLeaderStudentChange) {
+            onLeaderStudentChange(studentId);
+        } else {
+            bookingForm.setForm({ leaderStudentId: studentId });
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -75,8 +102,49 @@ export default function RegisterController({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const selectedLeaderStudent = selectedStudents.find(s => s.id === leaderStudentId);
+    const selectedLeaderStudent = selectedStudents.find((s) => s.id === leaderStudentId);
     const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
+
+    // Check if any queues have items
+    const hasQueueItems = Object.values(queues).some((items) => items.length > 0);
+
+    const renderQueueBadges = (type: "students" | "teachers" | "packages" | "bookings") => {
+        const items = queues[type];
+        const entityId = type === "bookings" ? "booking" : type.slice(0, -1);
+        const entityConfig = ENTITY_DATA.find((e) => e.id === entityId);
+
+        if (!items || items.length === 0) return null;
+
+        return (
+            <div key={type} className="space-y-2">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase">Recently Added {type}</h3>
+                <div className="flex flex-wrap gap-2">
+                    {items.map((item) => (
+                        <motion.button
+                            key={item.id}
+                            onClick={() => {
+                                if (type === "bookings") {
+                                    router.push(`/bookings/${item.id}`);
+                                } else {
+                                    router.push(`/register?add=${entityId}:${item.id}`);
+                                }
+                            }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium border border-border hover:bg-muted/50 transition-colors"
+                            style={{
+                                backgroundColor: `${entityConfig?.color}15`,
+                                color: entityConfig?.color,
+                            }}
+                        >
+                            {item.name}
+                        </motion.button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className={`bg-card ${isMobile ? "rounded-lg border border-border" : "lg:sticky lg:top-4"}`}>
@@ -91,15 +159,7 @@ export default function RegisterController({
                 {activeForm === "student" && studentFormData && (
                     <div className="space-y-4">
                         <StudentSummary studentFormData={studentFormData} />
-                        <ControllerActions
-                            onSubmit={onSubmit}
-                            onReset={onReset}
-                            loading={loading}
-                            canSubmit={canCreateBooking}
-                            submitLabel="Create Student"
-                            resetLabel="Cancel"
-                            error={error}
-                        />
+                        <ControllerActions onSubmit={onStudentSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isStudentFormValid} submitLabel="Create Student" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -107,15 +167,7 @@ export default function RegisterController({
                 {activeForm === "teacher" && teacherFormData && (
                     <div className="space-y-4">
                         <TeacherSummary teacherFormData={teacherFormData} />
-                        <ControllerActions
-                            onSubmit={onSubmit}
-                            onReset={onReset}
-                            loading={loading}
-                            canSubmit={canCreateBooking}
-                            submitLabel="Create Teacher"
-                            resetLabel="Cancel"
-                            error={error}
-                        />
+                        <ControllerActions onSubmit={onTeacherSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isTeacherFormValid} submitLabel="Create Teacher" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -123,15 +175,7 @@ export default function RegisterController({
                 {activeForm === "package" && packageFormData && (
                     <div className="space-y-4">
                         <PackageSummary packageFormData={packageFormData} />
-                        <ControllerActions
-                            onSubmit={onSubmit}
-                            onReset={onReset}
-                            loading={loading}
-                            canSubmit={canCreateBooking}
-                            submitLabel="Create Package"
-                            resetLabel="Cancel"
-                            error={error}
-                        />
+                        <ControllerActions onSubmit={onPackageSubmit || onSubmit} onReset={onReset} loading={loading} canSubmit={isPackageFormValid} submitLabel="Create Package" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -151,10 +195,7 @@ export default function RegisterController({
                             <div className="border-t border-border pt-4">
                                 <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Leader</h3>
                                 <div ref={leaderDropdownRef} className="relative">
-                                    <button
-                                        onClick={() => setIsLeaderDropdownOpen(!isLeaderDropdownOpen)}
-                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
-                                    >
+                                    <button onClick={() => setIsLeaderDropdownOpen(!isLeaderDropdownOpen)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm">
                                         <div className="flex items-center gap-2">
                                             {leaderStudentName && (
                                                 <>
@@ -162,9 +203,7 @@ export default function RegisterController({
                                                     <span className="font-medium">{leaderStudentName}</span>
                                                 </>
                                             )}
-                                            {!leaderStudentName && (
-                                                <span className="text-muted-foreground text-xs">Select leader student</span>
-                                            )}
+                                            {!leaderStudentName && <span className="text-muted-foreground text-xs">Select leader student</span>}
                                         </div>
                                         <motion.div animate={{ rotate: isLeaderDropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                                             <AdranlinkIcon className="w-4 h-4" />
@@ -186,7 +225,7 @@ export default function RegisterController({
                                                         <button
                                                             key={student.id}
                                                             onClick={() => {
-                                                                onLeaderStudentChange?.(student.id);
+                                                                handleLeaderStudentChange(student.id);
                                                                 setIsLeaderDropdownOpen(false);
                                                             }}
                                                             className={`w-full px-3 py-2 text-left text-sm transition-colors ${isActive ? "bg-muted font-medium" : "hover:bg-muted/50"}`}
@@ -201,16 +240,20 @@ export default function RegisterController({
                                 </div>
                             </div>
                         )}
-                        <ControllerActions
-                            onSubmit={onSubmit}
-                            onReset={onReset}
-                            loading={loading}
-                            canSubmit={canCreateBooking}
-                            submitLabel="Create Booking"
-                            resetLabel="Reset"
-                            error={error}
-                        />
+                        <ControllerActions onSubmit={onSubmit} onReset={onReset} loading={loading} canSubmit={canCreateBooking} submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"} resetLabel="Reset" error={error} />
                     </div>
+                )}
+
+                {/* Queue Badges - Always show below everything */}
+                {hasQueueItems && (
+                    <motion.div className="space-y-4 border-t border-border pt-4">
+                        <AnimatePresence>
+                            {renderQueueBadges("students")}
+                            {renderQueueBadges("teachers")}
+                            {renderQueueBadges("packages")}
+                            {renderQueueBadges("bookings")}
+                        </AnimatePresence>
+                    </motion.div>
                 )}
             </div>
         </div>

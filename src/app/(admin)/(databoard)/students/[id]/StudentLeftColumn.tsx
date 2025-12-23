@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
+import { UrlParamAddTag } from "@/src/components/tags";
 import { updateStudentDetail } from "@/actions/students-action";
 import { CountryFlagPhoneSubForm } from "@/src/components/forms/CountryFlagPhoneSubForm";
 import { getCountryByName } from "@/config/countries";
@@ -30,6 +31,7 @@ function StudentViewMode({ student, onEdit }: { student: StudentModel; onEdit: (
         <>
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <UrlParamAddTag type="student" id={student.schema.id} color={studentEntity.color} />
                 <Link href={`/student/${student.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
                     View Schools
                 </Link>

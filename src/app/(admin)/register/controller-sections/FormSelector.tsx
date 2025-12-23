@@ -10,10 +10,10 @@ interface FormSelectorProps {
 }
 
 const formConfig = [
-    { id: "booking", name: "Booking", entity: ENTITY_DATA.find(e => e.id === "booking")! },
-    { id: "student", name: "Student", entity: ENTITY_DATA.find(e => e.id === "student")! },
-    { id: "package", name: "Package", entity: ENTITY_DATA.find(e => e.id === "schoolPackage")! },
-    { id: "teacher", name: "Teacher", entity: ENTITY_DATA.find(e => e.id === "teacher")! },
+    { id: "booking", name: "Booking", entity: ENTITY_DATA.find((e) => e.id === "booking")! },
+    { id: "student", name: "Student", entity: ENTITY_DATA.find((e) => e.id === "student")! },
+    { id: "package", name: "Package", entity: ENTITY_DATA.find((e) => e.id === "schoolPackage")! },
+    { id: "teacher", name: "Teacher", entity: ENTITY_DATA.find((e) => e.id === "teacher")! },
 ];
 
 export function FormSelector({ activeForm }: FormSelectorProps) {
@@ -43,20 +43,13 @@ export function FormSelector({ activeForm }: FormSelectorProps) {
                         <button
                             key={form.id}
                             onClick={handleClick}
-                            className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                                isActive
-                                    ? "border-primary"
-                                    : "border-border bg-background hover:border-primary/50"
-                            }`}
+                            className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${isActive ? "border-primary" : "border-border bg-background hover:border-secondary/60"}`}
                             style={{
                                 borderColor: isActive ? form.entity.color : undefined,
                                 backgroundColor: isActive ? `${form.entity.color}15` : undefined,
                             }}
                         >
-                            <div
-                                className="w-5 h-5 flex items-center justify-center flex-shrink-0"
-                                style={{ color: form.entity.color }}
-                            >
+                            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0" style={{ color: form.entity.color }}>
                                 <Icon className="w-full h-full" fill={form.entity.color} />
                             </div>
                             <span className="text-sm font-medium">{form.name}</span>

@@ -3,7 +3,7 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { LessonTag, LessonCreateTag } from "@/src/components/tags";
+import { LessonTag, LessonCreateTag, UrlParamAddTag, TeacherAddButton } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { TeacherDropdownRow } from "./TeacherDropdownRow";
 import { isTeacherLessonReady } from "@/getters/teachers-getter";
@@ -21,9 +21,11 @@ const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
     const lessons = teacher.relations?.lessons || [];
     const lessonReady = isTeacherLessonReady(teacher);
     const DefaultEquipmentIcon = EQUIPMENT_CATEGORIES[0].icon;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     return (
         <div className="flex flex-wrap gap-2">
+            <TeacherAddButton teacher={teacher} color={teacherEntity.color} />
             {lessons.length === 0 && !lessonReady ? null : (
                 <>
                     {lessonReady && <LessonCreateTag icon={<DefaultEquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />}

@@ -7,7 +7,7 @@ import { DoubleDatePicker, type DateRange } from "../../../../components/pickers
 
 interface DateSectionProps {
   dateRange: DateRange;
-  onDateChange: (field: "startDate" | "endDate", value: string) => void;
+  onDateChange: (dateRange: DateRange) => void;
   isExpanded: boolean;
   onToggle: () => void;
   disabled?: boolean;
@@ -25,8 +25,7 @@ export function DateSection({
   const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
 
   const handleDateRangeChange = (newDateRange: DateRange) => {
-    onDateChange("startDate", newDateRange.startDate);
-    onDateChange("endDate", newDateRange.endDate);
+    onDateChange(newDateRange);
   };
 
   return (

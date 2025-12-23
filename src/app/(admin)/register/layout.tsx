@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { headers } from "next/headers";
 import { supabase, getRegisterTables, type RegisterTables } from "@/supabase/server";
 import { RegisterProvider } from "./RegisterContext";
+import { RegisterLayoutContent } from "./RegisterLayoutContent";
 
 interface RegisterLayoutProps {
     children: ReactNode;
@@ -64,7 +65,9 @@ export default async function Layout({ children }: RegisterLayoutProps) {
 
     return (
         <RegisterProvider initialData={result.data} refreshAction={boundRefresh}>
-            {children}
+            <RegisterLayoutContent>
+                {children}
+            </RegisterLayoutContent>
         </RegisterProvider>
     );
 }

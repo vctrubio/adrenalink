@@ -1,47 +1,53 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRegisterData } from "../RegisterContext";
-import PackageForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/Package4SchoolForm";
+import { useRegisterData, usePackageFormState, useFormSubmission } from "../RegisterContext";
+import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/Package4SchoolForm";
 import { createAndLinkPackage } from "@/actions/register-action";
-import RegisterController from "../RegisterController";
-import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
+import toast from "react-hot-toast";
+
+const defaultPackageForm: PackageFormData = {
+    durationMinutes: 60,
+    description: "",
+    pricePerStudent: 0,
+    capacityStudents: 1,
+    capacityEquipment: 1,
+    categoryEquipment: "kite",
+    packageType: "lessons",
+    isPublic: true,
+};
 
 export default function PackagePage() {
     const router = useRouter();
-    const { school } = useRegisterData();
-    const [formData, setFormData] = useState<PackageFormData>({
-        durationMinutes: 60, // Default to 1 hour
-        description: "",
-        pricePerStudent: 0,
-        capacityStudents: 1,
-        capacityEquipment: 1,
-        categoryEquipment: "kite", // Default category
-        packageType: "lessons", // Default type
-        isPublic: true, // Default to public
-    });
+    const { addPackage, addToQueue } = useRegisterData();
+    const { form: contextForm, setForm: setContextForm } = usePackageFormState();
+    const { setPackageFormValid, setPackageSubmit } = useFormSubmission();
+    const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+
+    // Update context when form data changes
+    useEffect(() => {
+        setContextForm(formData);
+    }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
         const result = packageFormSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
-    const isValid = () => {
-        const result = packageFormSchema.safeParse(formData);
-        return result.success;
-    };
+    // Update form validity in context
+    useEffect(() => {
+        setPackageFormValid(isFormValid);
+    }, [isFormValid, setPackageFormValid]);
 
-    const handleSubmit = async () => {
-        if (!isValid()) return;
+    // Define and memoize submit handler
+    const handleSubmit = useCallback(async () => {
+        if (!isFormValid) return;
 
         setLoading(true);
-        setError(null);
 
         try {
-            // Create package and link to school
             const result = await createAndLinkPackage({
                 durationMinutes: formData.durationMinutes,
                 description: formData.description || null,
@@ -54,47 +60,58 @@ export default function PackagePage() {
             });
 
             if (!result.success) {
-                setError(result.error || "Failed to create package");
+                toast.error(result.error || "Failed to create package");
                 setLoading(false);
                 return;
             }
 
-            // Success - navigate back to register
-            router.push("/register");
-            router.refresh();
+            // Optimistic update
+            const newPackage = {
+                id: result.data.id,
+                description: result.data.description,
+                durationMinutes: result.data.durationMinutes,
+                pricePerStudent: result.data.pricePerStudent,
+                capacityStudents: result.data.capacityStudents,
+                capacityEquipment: result.data.capacityEquipment,
+                categoryEquipment: result.data.categoryEquipment,
+                isPublic: result.data.isPublic,
+            };
+            addPackage(newPackage);
+
+            // Add to queue
+            addToQueue("packages", {
+                id: result.data.id,
+                name: formData.description,
+                timestamp: Date.now(),
+            });
+
+            toast.success(`Package created: ${formData.description}`);
+
+            // Reset form
+            setFormData(defaultPackageForm);
+            setContextForm(null);
             setLoading(false);
-        } catch {
-            setError("An unexpected error occurred");
+        } catch (error) {
+            console.error("Package creation error:", error);
+            console.error("Full error details:", JSON.stringify(error, null, 2));
+            const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+            console.error("Showing toast with message:", errorMessage);
+            toast.error(errorMessage || "An unexpected error occurred");
             setLoading(false);
         }
-    };
+    }, [isFormValid, formData, addPackage, addToQueue, setContextForm]);
 
-    const handleReset = () => {
-        router.push("/register");
-    };
+    // Register submit handler in context
+    useEffect(() => {
+        setPackageSubmit(() => handleSubmit);
+    }, [handleSubmit, setPackageSubmit]);
 
     return (
-        <RegisterFormLayout
-            controller={
-                <RegisterController
-                    activeForm="package"
-                    selectedPackage={null}
-                    selectedStudents={[]}
-                    selectedTeacher={null}
-                    selectedCommission={null}
-                    dateRange={{ startDate: "", endDate: "" }}
-                    onSubmit={handleSubmit}
-                    onReset={handleReset}
-                    onScrollToSection={() => {}}
-                    loading={loading}
-                    canCreateBooking={isValid()}
-                    school={school}
-                    packageFormData={formData}
-                    error={error}
-                />
-            }
-            form={<PackageForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />}
-        />
+        <div className="bg-card rounded-lg border border-border">
+            <div className="p-6">
+                <Package4SchoolForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />
+            </div>
+        </div>
     );
 }
 

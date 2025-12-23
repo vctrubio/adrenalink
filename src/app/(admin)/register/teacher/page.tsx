@@ -1,47 +1,53 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRegisterData } from "../RegisterContext";
+import { useRegisterData, useTeacherFormState, useFormSubmission } from "../RegisterContext";
 import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/actions/register-action";
-import RegisterController from "../RegisterController";
-import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
+import toast from "react-hot-toast";
+
+const defaultTeacherForm: TeacherFormData = {
+    firstName: "",
+    lastName: "",
+    username: "",
+    passport: "",
+    country: "",
+    phone: "",
+    languages: ["English"],
+    commissions: [],
+};
 
 export default function TeacherPage() {
     const router = useRouter();
-    const { school } = useRegisterData();
-    const [formData, setFormData] = useState<TeacherFormData>({
-        firstName: "",
-        lastName: "",
-        username: "",
-        passport: "",
-        country: "",
-        phone: "",
-        languages: ["English"],
-        commissions: [],
-    });
+    const { addTeacher, addToQueue } = useRegisterData();
+    const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
+    const { setTeacherFormValid, setTeacherSubmit } = useFormSubmission();
+    const [formData, setFormData] = useState<TeacherFormData>(contextForm || defaultTeacherForm);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+
+    // Update context when form data changes
+    useEffect(() => {
+        setContextForm(formData);
+    }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
         const result = teacherFormSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
-    const isValid = () => {
-        const result = teacherFormSchema.safeParse(formData);
-        return result.success;
-    };
+    // Update form validity in context
+    useEffect(() => {
+        setTeacherFormValid(isFormValid);
+    }, [isFormValid, setTeacherFormValid]);
 
-    const handleSubmit = async () => {
-        if (!isValid()) return;
+    // Define and memoize submit handler
+    const handleSubmit = useCallback(async () => {
+        if (!isFormValid) return;
 
         setLoading(true);
-        setError(null);
 
         try {
-            // Create teacher and link to school with commissions
             const result = await createAndLinkTeacher(
                 {
                     firstName: formData.firstName,
@@ -60,47 +66,52 @@ export default function TeacherPage() {
             );
 
             if (!result.success) {
-                setError(result.error || "Failed to create teacher");
+                toast.error(result.error || "Failed to create teacher");
                 setLoading(false);
                 return;
             }
 
-            // Success - navigate back to register
-            router.push("/register");
-            router.refresh();
+            // Optimistic update
+            const newTeacher = {
+                id: result.data.teacher.id,
+                firstName: result.data.teacher.firstName,
+                lastName: result.data.teacher.lastName,
+                username: result.data.teacher.username,
+                languages: result.data.teacher.languages,
+                commissions: [],
+            };
+            addTeacher(newTeacher);
+
+            // Add to queue
+            addToQueue("teachers", {
+                id: result.data.teacher.id,
+                name: `${formData.firstName} ${formData.lastName}`,
+                timestamp: Date.now(),
+            });
+
+            toast.success(`Teacher created: ${formData.firstName} ${formData.lastName}`);
+
+            // Reset form
+            setFormData(defaultTeacherForm);
+            setContextForm(null);
             setLoading(false);
         } catch {
-            setError("An unexpected error occurred");
+            toast.error("An unexpected error occurred");
             setLoading(false);
         }
-    };
+    }, [isFormValid, formData, addTeacher, addToQueue, setContextForm]);
 
-    const handleReset = () => {
-        router.push("/register");
-    };
+    // Register submit handler in context
+    useEffect(() => {
+        setTeacherSubmit(() => handleSubmit);
+    }, [handleSubmit, setTeacherSubmit]);
 
     return (
-        <RegisterFormLayout
-            controller={
-                <RegisterController
-                    activeForm="teacher"
-                    selectedPackage={null}
-                    selectedStudents={[]}
-                    selectedTeacher={null}
-                    selectedCommission={null}
-                    dateRange={{ startDate: "", endDate: "" }}
-                    onSubmit={handleSubmit}
-                    onReset={handleReset}
-                    onScrollToSection={() => {}}
-                    loading={loading}
-                    canCreateBooking={isValid()}
-                    school={school}
-                    teacherFormData={formData}
-                    error={error}
-                />
-            }
-            form={<TeacherForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />}
-        />
+        <div className="bg-card rounded-lg border border-border">
+            <div className="p-6">
+                <TeacherForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />
+            </div>
+        </div>
     );
 }
 

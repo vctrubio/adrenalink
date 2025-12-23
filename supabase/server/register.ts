@@ -98,29 +98,29 @@ export async function getRegisterTables(
         // Run all queries in parallel for maximum performance
         const [packagesResult, studentsResult, teachersResult, referralsResult, bookingsResult, lessonsResult] =
             await Promise.all([
-                // 1. Packages
+                // 1. Packages - oldest first
                 supabase
                     .from("school_package")
                     .select("id, duration_minutes, description, price_per_student, capacity_students, capacity_equipment, category_equipment, package_type, is_public, active")
                     .eq("school_id", schoolId)
                     .eq("active", true)
-                    .order("package_type", { ascending: true })
-                    .order("capacity_students", { ascending: true }),
+                    .order("created_at", { ascending: true }),
 
-                // 2. Students - join school_students with student
+                // 2. Students - newest first
                 supabase
                     .from("school_students")
                     .select("id, student_id, description, active, rental, student(id, first_name, last_name, passport, country, phone, languages)")
                     .eq("school_id", schoolId)
-                    .eq("active", true),
+                    .eq("active", true)
+                    .order("created_at", { ascending: false }),
 
-                // 3. Teachers with their active commissions
+                // 3. Teachers - oldest first
                 supabase
                     .from("teacher")
                     .select("id, first_name, last_name, username, passport, country, phone, languages, school_id, active, teacher_commission(id, teacher_id, commission_type, description, cph, active)")
                     .eq("school_id", schoolId)
                     .eq("active", true)
-                    .order("username", { ascending: true }),
+                    .order("created_at", { ascending: true }),
 
                 // 4. Referrals
                 supabase

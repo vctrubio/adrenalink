@@ -202,8 +202,6 @@ export function StudentsSection({
             <EntityAddDialog
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
-                title="Add Student"
-                entityColor={studentEntity?.color || "#000"}
             >
                 <StudentForm
                     formData={formData}

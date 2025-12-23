@@ -34,6 +34,9 @@ interface TeacherFormProps {
     formData: TeacherFormData;
     onFormDataChange: (data: TeacherFormData) => void;
     isFormReady?: boolean;
+    showSubmit?: boolean;
+    onSubmit?: () => void;
+    isLoading?: boolean;
 }
 
 // Sub-component: Name Fields
@@ -280,7 +283,7 @@ function LanguagesField({
 }
 
 // Main component - ONLY RENDERS
-export default function TeacherForm({ formData, onFormDataChange, isFormReady = false }: TeacherFormProps) {
+export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: TeacherFormProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const TeacherIcon = teacherEntity?.icon;
 

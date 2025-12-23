@@ -11,3 +11,5 @@ export { PackageTag } from "./PackageTag";
 export { EquipmentTag } from "./EquipmentTag";
 export { EventDurationTag } from "./EventDurationTag";
 export { EquipmentCreateTag } from "./EquipmentCreateTag";
+export { UrlParamAddTag } from "./UrlParamAddTag";
+export { TeacherAddButton } from "./TeacherAddButton";
