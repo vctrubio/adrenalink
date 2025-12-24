@@ -5,11 +5,15 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { MoreVertical, Plus, Receipt } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -31,7 +35,7 @@ const CardHeader = ({
     dateEnd, 
     selectedDate, 
     leaderName, 
-    studentCount,
+    studentCount, 
     students,
     studentColor,
     onExpand 
@@ -177,42 +181,105 @@ const BookingSummaryBadges = ({
 const InstructorList = ({ 
     lessons, 
     onAddEvent, 
+    onAddTeacher,
+    availableTeachers = [],
     loadingLessonId 
 }: { 
     lessons: ClassboardLesson[]; 
     onAddEvent: (username: string) => void; 
+    onAddTeacher?: (username: string) => void;
+    availableTeachers?: { username: string; firstName: string }[];
     loadingLessonId: string | null; 
 }) => {
+    const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
+    const addTeacherTriggerRef = useRef<HTMLButtonElement>(null);
+    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
+    const teacherColor = teacherEntity?.color || "#22c55e";
+
+    const existingTeacherUsernames = new Set(lessons.map(l => l.teacher.username));
+    const teachersToDisplay = availableTeachers.filter(t => !existingTeacherUsernames.has(t.username));
+
+    const teacherItems: DropdownItemProps[] = teachersToDisplay.map(t => ({
+        id: t.username,
+        label: t.username,
+        icon: HeadsetIcon,
+        color: teacherColor,
+        onClick: () => onAddTeacher?.(t.username)
+    }));
+
     return (
         <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-muted-foreground">Instructors</span>
-                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lessons.length}</span>
+                <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
+                <div className="relative">
+                    <button 
+                        ref={addTeacherTriggerRef}
+                        onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)}
+                        className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors"
+                        title="Add teacher to booking"
+                    >
+                        <Plus size={14} />
+                    </button>
+                    <Dropdown 
+                        isOpen={isAddTeacherOpen}
+                        onClose={() => setIsAddTeacherOpen(false)}
+                        items={teacherItems}
+                        align="right"
+                        triggerRef={addTeacherTriggerRef}
+                    />
+                </div>
             </div>
             <div className="flex flex-wrap gap-2">
                 {lessons.map((lesson) => {
                     const isLoading = loadingLessonId === lesson.teacher.username;
+                    const events = lesson.events || [];
+                    const totalMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
+                    const durationStr = getFullDuration(totalMinutes);
+                    const eventCount = events.length;
+
                     return (
                         <button
                             key={lesson.teacher.username}
                             onClick={() => onAddEvent(lesson.teacher.username)}
                             disabled={isLoading}
-                            className="flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition-colors border border-border/50 text-xs group"
+                            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-border/50 text-xs group"
                             title="Click to add event for this teacher"
                         >
-                            <div className="w-5 h-5 rounded-full bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary">
+                            <div className="flex items-center justify-center text-muted-foreground group-hover:text-primary">
                                 {isLoading ? (
-                                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                    <Plus size={12} />
+                                    <div style={{ color: teacherColor }}>
+                                        <HeadsetIcon size={16} />
+                                    </div>
                                 )}
                             </div>
-                            <span className="font-medium">{lesson.teacher.firstName}</span>
+                            <span className="font-medium text-foreground">{lesson.teacher.username}</span>
+                            <div className="h-3 w-px bg-border/60 mx-0.5" />
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 text-muted-foreground" title="Events">
+                                    <FlagIcon size={12} />
+                                    <span className="font-medium">{eventCount}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-muted-foreground" title="Duration">
+                                    <DurationIcon size={12} />
+                                    <span className="font-medium">{durationStr}</span>
+                                </div>
+                            </div>
                         </button>
                     );
                 })}
                 {lessons.length === 0 && (
-                    <span className="text-xs text-muted-foreground italic">No instructors assigned</span>
+                    <button
+                        ref={addTeacherTriggerRef}
+                        onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group"
+                    >
+                        <div className="flex items-center justify-center w-4 h-4 rounded-full bg-background group-hover:text-primary transition-colors">
+                            <Plus size={12} />
+                        </div>
+                        <span>Assign Lesson</span>
+                    </button>
                 )}
             </div>
         </div>
@@ -260,6 +327,8 @@ interface StudentBookingCardProps {
         onDragStart: (booking: DraggableBooking) => void;
         onDragEnd: () => void;
         onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+        onAddTeacher?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+        availableTeachers?: { username: string; firstName: string; id: string }[];
     };
 }
 
@@ -271,12 +340,10 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
 
-    // Student Info
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
     const students = bookingStudents.map(bs => bs.student);
 
-    // Drag Handlers
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
         if (target.closest("button") || target.closest("[role=\"button\"]")) {
@@ -300,7 +367,6 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
         setIsDragging(false);
     };
 
-    // Actions
     const handleAddEvent = async (teacherUsername: string) => {
         if (!classboard.onAddLessonEvent) return;
         setLoadingLessonId(teacherUsername);
@@ -309,6 +375,11 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
         } finally {
             setLoadingLessonId(null);
         }
+    };
+
+    const handleAddTeacher = async (teacherUsername: string) => {
+        if (!classboard.onAddTeacher) return;
+        await classboard.onAddTeacher(draggableBooking, teacherUsername);
     };
 
     return (
@@ -347,6 +418,8 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                 <InstructorList 
                     lessons={lessons} 
                     onAddEvent={handleAddEvent} 
+                    onAddTeacher={handleAddTeacher}
+                    availableTeachers={classboard.availableTeachers}
                     loadingLessonId={loadingLessonId} 
                 />
             </div>

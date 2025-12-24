@@ -12,6 +12,8 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { createClassboardEvent } from "@/actions/classboard-action";
+import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
+import { createLesson } from "@/actions/lessons-action";
 
 interface ClientClassboardProps {
     data: ClassboardModel;
@@ -19,6 +21,7 @@ interface ClientClassboardProps {
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
+    const { teachers: allSchoolTeachers } = useSchoolTeachers();
 
     const [refreshKey, setRefreshKey] = useState(0);
     const [isControllerCollapsed, setIsControllerCollapsed] = useState(true);
@@ -64,6 +67,33 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         }
     };
 
+    const handleAddTeacher = async (booking: DraggableBooking, teacherUsername: string) => {
+        try {
+            const teacherModel = allSchoolTeachers.find((t) => t.schema.username === teacherUsername);
+            if (!teacherModel) return;
+
+            const commission = teacherModel.relations?.commissions?.[0];
+            if (!commission) {
+                console.error("❌ [ClientClassboard] Teacher has no commission:", teacherUsername);
+                return;
+            }
+
+            const result = await createLesson({
+                bookingId: booking.bookingId,
+                teacherId: teacherModel.schema.id,
+                commissionId: commission.id,
+                schoolId: teacherModel.schema.schoolId,
+                status: "active",
+            });
+
+            if (!result.success) {
+                console.error("❌ [ClientClassboard] Failed to create lesson:", result.error);
+            }
+        } catch (error) {
+            console.error("❌ [ClientClassboard] Error adding teacher to booking:", error);
+        }
+    };
+
     const handleEventDeleted = (eventId: string) => {
         // Remove the event from classboardData by rebuilding the object
         setClassboardData((prevData) => {
@@ -84,6 +114,14 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             return updatedData;
         });
     };
+
+    const availableTeachers = useMemo(() => {
+        return allSchoolTeachers.map(t => ({
+            id: t.schema.id,
+            username: t.schema.username,
+            firstName: t.schema.firstName
+        }));
+    }, [allSchoolTeachers]);
 
     return (
         <div className="flex flex-col gap-4 h-full">
@@ -106,6 +144,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                                 setDraggedBooking(null);
                             },
                             onAddLessonEvent: handleAddLessonEvent,
+                            onAddTeacher: handleAddTeacher,
+                            availableTeachers: availableTeachers
                         }}
                         setOnNewBooking={setOnNewBooking}
                     />

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useEffect } from "react";
 import StudentBookingCard from "./StudentBookingCard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -13,6 +15,8 @@ interface StudentClassDailyProps {
         onDragStart: (booking: DraggableBooking) => void;
         onDragEnd: () => void;
         onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+        onAddTeacher?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+        availableTeachers?: { username: string; firstName: string; id: string }[];
     };
     setOnNewBooking?: (callback: () => void) => void;
 }
@@ -26,7 +30,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     useEffect(() => {
         if (setOnNewBooking) {
             setOnNewBooking(() => {
-                // No-op - the actual toast is shown via the useEffect above
+                // No-op
             });
         }
     }, [setOnNewBooking]);
@@ -94,7 +98,15 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         const bookingData = classboardData[booking.bookingId];
                         if (!bookingData) return null;
 
-                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
+                        return (
+                            <StudentBookingCard 
+                                key={booking.bookingId} 
+                                bookingData={bookingData} 
+                                draggableBooking={booking} 
+                                classboard={classboard} 
+                                selectedDate={selectedDate} 
+                            />
+                        );
                     })
                 ) : (
                     <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No {filter} students</div>
