@@ -3,22 +3,20 @@
 export interface EntityActionBtns4SchoolFormProps {
     onSubmit: () => Promise<void> | void;
     onCancel: () => void;
-    onReset?: () => void;
+    onClear?: () => void;
     isLoading?: boolean;
     isFormValid?: boolean;
     entityColor?: string;
-    showReset?: boolean;
     submitLabel?: string;
 }
 
 export function EntityActionBtns4SchoolForm({
     onSubmit,
     onCancel,
-    onReset,
+    onClear,
     isLoading = false,
     isFormValid = true,
     entityColor = "#3b82f6",
-    showReset = false,
     submitLabel = "Submit",
 }: EntityActionBtns4SchoolFormProps) {
     return (
@@ -45,20 +43,20 @@ export function EntityActionBtns4SchoolForm({
                 {isLoading ? "Saving..." : submitLabel}
             </button>
 
-            {showReset && onReset && (
+            {onClear && (
                 <button
-                    onClick={onReset}
+                    onClick={onClear}
                     disabled={isLoading}
-                    className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
                 >
-                    Reset
+                    Clear
                 </button>
             )}
 
             <button
                 onClick={onCancel}
                 disabled={isLoading}
-                className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
             >
                 Cancel
             </button>

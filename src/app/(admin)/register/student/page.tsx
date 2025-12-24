@@ -3,19 +3,9 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, useStudentFormState, useFormRegistration } from "../RegisterContext";
 import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
+import { defaultStudentForm } from "@/types/form-entities";
 import { createAndLinkStudent } from "@/actions/register-action";
 import toast from "react-hot-toast";
-
-const defaultStudentForm: StudentFormData = {
-    firstName: "",
-    lastName: "",
-    passport: "",
-    country: "",
-    phone: "",
-    languages: [],
-    description: "",
-    canRent: false,
-};
 
 export default function StudentPage() {
     const { addToQueue } = useRegisterActions();

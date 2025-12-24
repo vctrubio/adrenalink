@@ -9,23 +9,13 @@ import { languagesEnum } from "@/drizzle/schema";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
+import { studentFormSchema, defaultStudentForm, type StudentFormData } from "@/types/form-entities";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
 
-// Zod schema for validation
-export const studentFormSchema = z.object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    passport: z.string().min(1, "Passport is required"),
-    country: z.string().min(1, "Country is required"),
-    phone: z.string().min(1, "Phone number is required"),
-    languages: z.array(z.string()).min(1, "At least one language is required"),
-    description: z.string().optional(),
-    canRent: z.boolean().default(false),
-});
-
-export type StudentFormData = z.infer<typeof studentFormSchema>;
+// Re-export for backward compatibility
+export { studentFormSchema, type StudentFormData };
 
 interface StudentFormProps {
     formData: StudentFormData;
@@ -34,6 +24,7 @@ interface StudentFormProps {
     showSubmit?: boolean;
     onSubmit?: () => void;
     isLoading?: boolean;
+    onClose?: () => void;
 }
 
 // Sub-component: Name Fields
@@ -204,7 +195,7 @@ const CanRentField = memo(function CanRentField({ canRent, onCanRentChange }: { 
 });
 
 // Main component - ONLY RENDERS
-export default function StudentForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: StudentFormProps) {
+export default function StudentForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false, onClose }: StudentFormProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
 
     // Memoize entity title to prevent re-renders on keystroke
@@ -212,6 +203,10 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
         const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
         return name || "New Student";
     }, [formData.firstName, formData.lastName]);
+
+    const handleClear = useCallback(() => {
+        onFormDataChange(defaultStudentForm);
+    }, [onFormDataChange]);
 
     const handleLanguageToggle = useCallback((language: string) => {
         onFormDataChange((prevData: StudentFormData) => {
@@ -301,7 +296,8 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
             entityTitle={entityTitle}
             isFormReady={isFormReady}
             onSubmit={onSubmit || (() => Promise.resolve())}
-            onCancel={() => {}}
+            onCancel={onClose || (() => {})}
+            onClear={handleClear}
             isLoading={isLoading}
             submitLabel="Add Student"
         >

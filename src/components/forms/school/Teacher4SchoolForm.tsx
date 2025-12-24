@@ -10,28 +10,13 @@ import TeacherCommissionForm from "../TeacherCommissionForm";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
+import { teacherFormSchema, defaultTeacherForm, type TeacherFormData } from "@/types/form-entities";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
 
-// Zod schema for validation
-export const teacherFormSchema = z.object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-z0-9_-]+$/, "Username must be lowercase letters, numbers, dashes, or underscores"),
-    passport: z.string().min(1, "Passport is required"),
-    country: z.string().min(1, "Country is required"),
-    phone: z.string().min(1, "Phone number is required"),
-    languages: z.array(z.string()).min(1, "At least one language is required"),
-    commissions: z.array(z.object({
-        id: z.string(),
-        commissionType: z.enum(["fixed", "percentage"]),
-        commissionValue: z.number().min(0),
-        commissionDescription: z.string().optional(),
-    })).default([]),
-});
-
-export type TeacherFormData = z.infer<typeof teacherFormSchema>;
+// Re-export for backward compatibility
+export { teacherFormSchema, type TeacherFormData };
 
 interface TeacherFormProps {
     formData: TeacherFormData;
@@ -40,6 +25,7 @@ interface TeacherFormProps {
     showSubmit?: boolean;
     onSubmit?: () => void;
     isLoading?: boolean;
+    onClose?: () => void;
 }
 
 // Sub-component: Name Fields
@@ -288,7 +274,7 @@ const LanguagesField = memo(function LanguagesField({
 });
 
 // Main component - ONLY RENDERS
-export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: TeacherFormProps) {
+export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false, onClose }: TeacherFormProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
 
     // Memoize entity title to prevent re-renders on keystroke
@@ -296,6 +282,10 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
         const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
         return name || "New Teacher";
     }, [formData.firstName, formData.lastName]);
+
+    const handleClear = useCallback(() => {
+        onFormDataChange(defaultTeacherForm);
+    }, [onFormDataChange]);
 
     const handleLanguageToggle = useCallback((language: string) => {
         onFormDataChange((prevData: TeacherFormData) => {
@@ -404,7 +394,8 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
             entityTitle={entityTitle}
             isFormReady={isFormReady}
             onSubmit={onSubmit || (() => Promise.resolve())}
-            onCancel={() => {}}
+            onCancel={onClose || (() => {})}
+            onClear={handleClear}
             isLoading={isLoading}
             submitLabel="Add Teacher"
         >

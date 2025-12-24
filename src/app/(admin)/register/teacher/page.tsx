@@ -4,19 +4,9 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
+import { defaultTeacherForm } from "@/types/form-entities";
 import { createAndLinkTeacher } from "@/actions/register-action";
 import toast from "react-hot-toast";
-
-const defaultTeacherForm: TeacherFormData = {
-    firstName: "",
-    lastName: "",
-    username: "",
-    passport: "",
-    country: "",
-    phone: "",
-    languages: [],
-    commissions: [],
-};
 
 export default function TeacherPage() {
     const router = useRouter();

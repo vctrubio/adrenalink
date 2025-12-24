@@ -8,20 +8,10 @@ import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { ENTITY_DATA } from "@/config/entities";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { MasterSchoolForm } from "./MasterSchoolForm";
+import { packageFormSchema, defaultPackageForm, type PackageFormData } from "@/types/form-entities";
 
-// Define the package form schema
-export const packageFormSchema = z.object({
-    durationMinutes: z.number().min(1, "Duration must be at least 1 minute"),
-    description: z.string().min(1, "Description is required"),
-    pricePerStudent: z.number().min(0, "Price must be 0 or greater"),
-    capacityStudents: z.number().min(1, "Must allow at least 1 student"),
-    capacityEquipment: z.number().min(1, "Must have at least 1 equipment"),
-    categoryEquipment: z.enum(["kite", "wing", "windsurf"]),
-    packageType: z.enum(["rental", "lessons"]),
-    isPublic: z.boolean(),
-});
-
-export type PackageFormData = z.infer<typeof packageFormSchema>;
+// Re-export for backward compatibility
+export { packageFormSchema, type PackageFormData };
 
 interface Package4SchoolFormProps {
     formData: PackageFormData;
@@ -30,6 +20,7 @@ interface Package4SchoolFormProps {
     showSubmit?: boolean;
     onSubmit?: () => void;
     isLoading?: boolean;
+    onClose?: () => void;
 }
 
 // Sub-component: Package Type & Visibility Together
@@ -231,13 +222,17 @@ const DescriptionFieldMemo = memo(function DescriptionField({ formData, onFormDa
 });
 
 // Main component - ONLY RENDERS
-export default function Package4SchoolForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: Package4SchoolFormProps) {
+export default function Package4SchoolForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false, onClose }: Package4SchoolFormProps) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
 
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
         return formData.description || "New Package";
     }, [formData.description]);
+
+    const handleClear = useCallback(() => {
+        onFormDataChange(defaultPackageForm);
+    }, [onFormDataChange]);
 
     const getFieldError = useCallback((field: keyof PackageFormData): string | undefined => {
         try {
@@ -285,7 +280,8 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
             entityTitle={entityTitle}
             isFormReady={isFormReady}
             onSubmit={onSubmit || (() => Promise.resolve())}
-            onCancel={() => {}}
+            onCancel={onClose || (() => {})}
+            onClear={handleClear}
             isLoading={isLoading}
             submitLabel="Add Package"
         >

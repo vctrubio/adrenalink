@@ -224,6 +224,7 @@ export function TeacherSection({
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={loading}
+                    onClose={() => setIsDialogOpen(false)}
                 />
             </EntityAddDialog>
         </>

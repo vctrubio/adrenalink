@@ -9,6 +9,7 @@ import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
+import { defaultPackageForm } from "@/types/form-entities";
 import { createSchoolPackage } from "@/actions/register-action";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 
@@ -31,17 +32,6 @@ interface PackageSectionProps {
     onToggle: () => void;
     selectedStudentCount?: number;
 }
-
-const defaultPackageForm: PackageFormData = {
-    durationMinutes: 60,
-    description: "",
-    pricePerStudent: 0,
-    capacityStudents: 1,
-    capacityEquipment: 1,
-    categoryEquipment: "" as any,
-    packageType: "" as any,
-    isPublic: true,
-};
 
 export function PackageSection({
     packages,
@@ -196,6 +186,7 @@ export function PackageSection({
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={loading}
+                    onClose={() => setIsDialogOpen(false)}
                 />
             </EntityAddDialog>
         </>

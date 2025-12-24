@@ -10,9 +10,11 @@ import FacebookSearch from "@/src/components/modals/FacebookSearch";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
-import Student4SchoolForm, { type StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
-import TeacherForm, { type TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
-import Package4SchoolForm, { type PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
+import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm";
+import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
+import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
+import Equipment4SchoolForm from "@/src/components/forms/school/Equipment4SchoolForm";
+import { studentFormSchema, defaultStudentForm, teacherFormSchema, defaultTeacherForm, packageFormSchema, defaultPackageForm, equipmentFormSchema, defaultEquipmentForm, type StudentFormData, type TeacherFormData, type PackageFormData, type EquipmentFormData } from "@/types/form-entities";
 import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage } from "@/actions/register-action";
 import toast from "react-hot-toast";
 
@@ -27,51 +29,25 @@ const ActionButton = ({ icon: Icon, children, onClick }: { icon?: React.ElementT
 
 export const NavRight = () => {
     const router = useRouter();
-    const [mounted, setMounted] = useState(false);
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
-    const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | null>(null);
-    const [studentFormData, setStudentFormData] = useState<StudentFormData>({
-        firstName: "",
-        lastName: "",
-        schoolGrade: "",
-        motherTongue: [],
-    });
-    const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>({
-        firstName: "",
-        lastName: "",
-        username: "",
-        passport: "",
-        country: "",
-        phone: "",
-        languages: ["English"],
-        commissions: [],
-    });
-    const [packageFormData, setPackageFormData] = useState<PackageFormData>({
-        durationMinutes: 60,
-        description: "",
-        pricePerStudent: 0,
-        capacityStudents: 1,
-        capacityEquipment: 1,
-        categoryEquipment: "" as any,
-        packageType: "" as any,
-        isPublic: true,
-    });
+    const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(null);
+    const [studentFormData, setStudentFormData] = useState<StudentFormData>(defaultStudentForm);
+    const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>(defaultTeacherForm);
+    const [packageFormData, setPackageFormData] = useState<PackageFormData>(defaultPackageForm);
+    const [equipmentFormData, setEquipmentFormData] = useState<EquipmentFormData>(defaultEquipmentForm);
     const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { onOpen } = useSearch();
     const credentials = useSchoolCredentials();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
+    const isDarkMode = theme === "dark" || resolvedTheme === "dark";
 
     // Form validity checks
     const isStudentFormValid = useMemo(() => studentFormSchema.safeParse(studentFormData).success, [studentFormData]);
     const isTeacherFormValid = useMemo(() => teacherFormSchema.safeParse(teacherFormData).success, [teacherFormData]);
     const isPackageFormValid = useMemo(() => packageFormSchema.safeParse(packageFormData).success, [packageFormData]);
+    const isEquipmentFormValid = useMemo(() => equipmentFormSchema.safeParse(equipmentFormData).success, [equipmentFormData]);
 
     // Submit handlers
     const handleStudentSubmit = useCallback(async () => {
@@ -84,15 +60,18 @@ export const NavRight = () => {
             const result = await createAndLinkStudent({
                 firstName: studentFormData.firstName,
                 lastName: studentFormData.lastName,
-                schoolGrade: studentFormData.schoolGrade,
-                motherTongue: studentFormData.motherTongue,
-            });
+                passport: studentFormData.passport,
+                country: studentFormData.country,
+                phone: studentFormData.phone,
+                languages: studentFormData.languages,
+            }, studentFormData.canRent, studentFormData.description || undefined);
             if (!result.success) {
                 toast.error(result.error || "Failed to create student");
                 setIsLoadingSubmit(false);
                 return;
             }
             toast.success("Student created successfully");
+            setStudentFormData(defaultStudentForm);
             setSelectedCreateEntity(null);
             router.push(`/register?studentId=${result.data.id}`);
             setIsLoadingSubmit(false);
@@ -133,6 +112,7 @@ export const NavRight = () => {
                 return;
             }
             toast.success("Teacher created successfully");
+            setTeacherFormData(defaultTeacherForm);
             setSelectedCreateEntity(null);
             router.push(`/register?add=teacher:${result.data.teacher.id}`);
             setIsLoadingSubmit(false);
@@ -167,6 +147,7 @@ export const NavRight = () => {
                 return;
             }
             toast.success("Package created successfully");
+            setPackageFormData(defaultPackageForm);
             setSelectedCreateEntity(null);
             router.push(`/register?add=package:${result.data.id}`);
             setIsLoadingSubmit(false);
@@ -178,17 +159,38 @@ export const NavRight = () => {
         }
     }, [isPackageFormValid, packageFormData, router]);
 
+    const handleEquipmentSubmit = useCallback(async () => {
+        if (!isEquipmentFormValid) {
+            toast.error("Please fill all required fields");
+            return;
+        }
+        setIsLoadingSubmit(true);
+        try {
+            // TODO: Create equipment server action
+            // const result = await createEquipment({...});
+            toast.success("Equipment created successfully");
+            setEquipmentFormData(defaultEquipmentForm);
+            setSelectedCreateEntity(null);
+            setIsLoadingSubmit(false);
+        } catch (error) {
+            console.error("Equipment creation error:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+            toast.error(errorMessage);
+            setIsLoadingSubmit(false);
+        }
+    }, [isEquipmentFormValid, equipmentFormData]);
+
     const createEntities = ENTITY_DATA.filter((entity) => CREATE_ENTITIES.includes(entity.id));
     const createDropdownItems: DropdownItemProps[] = createEntities.map((entity) => ({
         id: entity.id,
         label: entity.name,
-        href: entity.id === "equipment" ? entity.link : undefined,
+        href: undefined,
         icon: entity.icon,
         color: entity.color,
-        onClick: entity.id !== "equipment" ? () => {
-            setSelectedCreateEntity(entity.id as "student" | "teacher" | "schoolPackage");
+        onClick: () => {
+            setSelectedCreateEntity(entity.id as "student" | "teacher" | "schoolPackage" | "equipment");
             setIsCreateDropdownOpen(false);
-        } : undefined,
+        },
     }));
 
     const adminDropdownItems: DropdownItemProps[] = credentials
@@ -234,7 +236,7 @@ export const NavRight = () => {
                     <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" />
                 </div>
                 <ActionButton icon={Search} onClick={onOpen} />
-                <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={mounted ? (isDarkMode ? Sun : Moon) : undefined} />
+                <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
                     <ActionButton onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
@@ -254,6 +256,7 @@ export const NavRight = () => {
                     isFormReady={isStudentFormValid}
                     onSubmit={handleStudentSubmit}
                     isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
                 />
             </EntityAddDialog>
 
@@ -267,6 +270,7 @@ export const NavRight = () => {
                     isFormReady={isTeacherFormValid}
                     onSubmit={handleTeacherSubmit}
                     isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
                 />
             </EntityAddDialog>
 
@@ -280,6 +284,21 @@ export const NavRight = () => {
                     isFormReady={isPackageFormValid}
                     onSubmit={handlePackageSubmit}
                     isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
+                />
+            </EntityAddDialog>
+
+            <EntityAddDialog
+                isOpen={selectedCreateEntity === "equipment"}
+                onClose={() => setSelectedCreateEntity(null)}
+            >
+                <Equipment4SchoolForm
+                    formData={equipmentFormData}
+                    onFormDataChange={setEquipmentFormData}
+                    isFormReady={isEquipmentFormValid}
+                    onSubmit={handleEquipmentSubmit}
+                    isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
                 />
             </EntityAddDialog>
         </>

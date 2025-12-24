@@ -12,7 +12,7 @@ export interface MasterSchoolFormProps {
     isFormReady: boolean;
     onSubmit: () => Promise<void>;
     onCancel: () => void;
-    onReset?: () => void;
+    onClear?: () => void;
     isLoading?: boolean;
     showActionButtons?: boolean;
     submitLabel?: string;
@@ -26,7 +26,7 @@ export function MasterSchoolForm({
     isFormReady,
     onSubmit,
     onCancel,
-    onReset,
+    onClear,
     isLoading = false,
     showActionButtons = true,
     submitLabel = "Submit",
@@ -60,11 +60,10 @@ export function MasterSchoolForm({
                 <EntityActionBtns4SchoolForm
                     onSubmit={handleSubmit}
                     onCancel={onCancel}
-                    onReset={onReset}
+                    onClear={onClear}
                     isLoading={isLoading}
                     isFormValid={isFormReady}
                     entityColor={color}
-                    showReset={!!onReset}
                     submitLabel={submitLabel}
                 />
             )}
