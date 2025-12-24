@@ -5,7 +5,7 @@ import { EntityHeaderRow } from "./EntityHeaderRow";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
-import { SORT_OPTIONS_DEFAULT } from "@/types/sort";
+import { ENTITY_SORT_OPTIONS } from "@/types/sort";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController as DataboardControllerType } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
 
@@ -50,9 +50,10 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                 <div className="flex items-center gap-2">
                     <SortDropdown 
                         value={controller.sort} 
-                        options={SORT_OPTIONS_DEFAULT} 
+                        options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking} 
                         onChange={controller.onSortChange} 
                         entityColor={entity.color} 
+                        entityName={entity.name}
                     />
                     <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
                     <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />

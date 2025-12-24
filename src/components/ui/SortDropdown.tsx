@@ -3,16 +3,17 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import type { SortOption, SortConfig, SortDirection } from "@/types/sort";
+import type { SortOption, SortConfig } from "@/types/sort";
 
 interface SortDropdownProps {
     value: SortConfig;
     options: SortOption[];
     onChange: (config: SortConfig) => void;
     entityColor: string;
+    entityName: string;
 }
 
-export function SortDropdown({ value, options, onChange, entityColor }: SortDropdownProps) {
+export function SortDropdown({ value, options, onChange, entityColor, entityName }: SortDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownRect, setDropdownRect] = useState({ top: 0, right: 0 });
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -38,20 +39,30 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
         }
     }, [isOpen]);
 
-    const handleSortChange = (field: string) => {
-        // If clicking the same field, toggle direction
-        if (value.field === field) {
-            const newDirection = value.direction === "asc" ? "desc" : "asc";
-            onChange({ ...value, direction: newDirection });
-        } else {
-            // New field, default to desc (usually what people want for dates)
-            onChange({ field, direction: "desc" });
-        }
+    const handleOptionSelect = (option: SortOption) => {
+        onChange({ field: option.field, direction: option.direction });
         setIsOpen(false);
     };
 
-    const activeOption = options.find((o) => o.value === value.field);
-    const displayLabel = activeOption ? activeOption.label : "Sort";
+    // Determine display label based on selected config
+    let displayLabel = "Sort";
+    
+    if (value.field === "createdAt") {
+        displayLabel = value.direction === "desc" ? "Newest" : "Oldest";
+    } else if (value.field === "updatedAt") {
+        displayLabel = "Updated";
+    } else if (value.field === "studentPackageCount") {
+        displayLabel = "Popular";
+    } else if (value.field === "bookingCount") {
+        displayLabel = "Bookings";
+    } else if (value.field === "lessonCount") {
+        displayLabel = "Lessons";
+    } else if (value.field === "eventDuration") {
+        displayLabel = "Usage";
+    } else {
+        const activeOption = options.find(o => o.field === value.field && o.direction === value.direction);
+        displayLabel = activeOption ? activeOption.label : "Sort";
+    }
 
     return (
         <div ref={dropdownRef} className="relative">
@@ -73,7 +84,7 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
                     />
                 </div>
                 
-                <span className="font-medium" style={{ color: value.field ? entityColor : undefined }}>
+                <span className="font-medium whitespace-nowrap" style={{ color: value.field ? entityColor : undefined }}>
                     {displayLabel}
                 </span>
             </button>
@@ -85,24 +96,20 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.15 }}
-                        className="fixed min-w-[140px] bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
+                        className="fixed min-w-[180px] bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
                         style={{ top: `${dropdownRect.top}px`, right: `${dropdownRect.right}px` }}
                     >
                         {options.map((option) => {
-                            const isActive = value.field === option.value;
+                            const isActive = value.field === option.field && value.direction === option.direction;
+                            
                             return (
                                 <button
-                                    key={option.value}
-                                    onClick={() => handleSortChange(option.value)}
+                                    key={`${option.field}-${option.direction}`}
+                                    onClick={() => handleOptionSelect(option)}
                                     className={`w-full px-3 py-2 text-left text-sm transition-colors flex items-center justify-between ${isActive ? "bg-muted font-medium" : "hover:bg-muted/50"}`}
                                     style={{ color: isActive ? entityColor : undefined }}
                                 >
                                     <span>{option.label}</span>
-                                    {isActive && (
-                                        <span className="text-xs opacity-70">
-                                            {value.direction === "asc" ? "Oldest" : "Newest"}
-                                        </span>
-                                    )}
                                 </button>
                             );
                         })}

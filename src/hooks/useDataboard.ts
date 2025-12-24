@@ -218,9 +218,27 @@ export const useDataboard = <T>(
         if (!sort.field) return items;
 
         return [...items].sort((a, b) => {
-            const field = sort.field as keyof typeof a.schema;
-            const valA = a.schema[field];
-            const valB = b.schema[field];
+            let valA: any;
+            let valB: any;
+
+            // Handle custom fields
+            if (sort.field === "bookingCount") {
+                valA = (a.relations as any)?.bookingStudents?.length || 0;
+                valB = (b.relations as any)?.bookingStudents?.length || 0;
+            } else if (sort.field === "lessonCount") {
+                valA = (a.relations as any)?.lessons?.length || 0;
+                valB = (b.relations as any)?.lessons?.length || 0;
+            } else if (sort.field === "studentPackageCount") {
+                valA = (a.relations as any)?.studentPackages?.length || 0;
+                valB = (b.relations as any)?.studentPackages?.length || 0;
+            } else if (sort.field === "eventDuration") {
+                valA = (a.relations as any)?.equipmentEvents?.reduce((acc: number, ee: any) => acc + (ee.event?.duration || 0), 0) || 0;
+                valB = (b.relations as any)?.equipmentEvents?.reduce((acc: number, ee: any) => acc + (ee.event?.duration || 0), 0) || 0;
+            } else {
+                const field = sort.field as keyof typeof a.schema;
+                valA = a.schema[field];
+                valB = b.schema[field];
+            }
 
             if (valA === valB) return 0;
             
