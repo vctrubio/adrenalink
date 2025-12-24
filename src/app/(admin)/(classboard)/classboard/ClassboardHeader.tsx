@@ -20,12 +20,6 @@ interface ClassboardHeaderProps {
     classboardStats: ClassboardStats;
 }
 
-const STAT_CARD_CONFIG = [
-    { key: "bookings", label: "Bookings", icon: BookingIcon, colorKey: "booking" },
-    { key: "commission", label: "Commission", icon: HandshakeIcon, color: "#10b981" },
-    { key: "revenue", label: "Revenue", icon: TrendingUp, color: "#f97316" },
-] as const;
-
 function StatCard({ label, icon: Icon, value, color }: { label: string; icon: typeof BookingIcon; value: number; color: string }) {
     return (
         <motion.div

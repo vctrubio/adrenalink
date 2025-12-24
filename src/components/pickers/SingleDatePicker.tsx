@@ -2,165 +2,148 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import {
-  formatDateForInput,
-  getTodayDateString,
-  addDays,
-} from "@/getters/date-getter";
+import { formatDateForInput, getTodayDateString, addDays } from "@/getters/date-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 
 function getRelativeDateLabel(selectedDate: string): string {
-  const selectedDateObj = new Date(selectedDate);
-  const todayObj = new Date(getTodayDateString());
-  selectedDateObj.setHours(0, 0, 0, 0);
-  todayObj.setHours(0, 0, 0, 0);
+    const selectedDateObj = new Date(selectedDate);
+    const todayObj = new Date(getTodayDateString());
+    selectedDateObj.setHours(0, 0, 0, 0);
+    todayObj.setHours(0, 0, 0, 0);
 
-  const diffTime = selectedDateObj.getTime() - todayObj.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const diffTime = selectedDateObj.getTime() - todayObj.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays > 0) {
-    return `+${getCompactNumber(diffDays)}d`;
-  } else if (diffDays < 0) {
-    return `${getCompactNumber(diffDays)}d`;
-  }
-  return "";
+    if (diffDays > 0) {
+        return `+${getCompactNumber(diffDays)}d`;
+    } else if (diffDays < 0) {
+        return `${getCompactNumber(diffDays)}d`;
+    }
+    return "";
 }
 
 interface SingleDatePickerProps {
-  selectedDate?: string;
-  onDateChange?: (date: string) => void;
-  disabled?: boolean;
-  allowPastDates?: boolean;
-  showNavigationButtons?: boolean;
-  showTodayButton?: boolean;
+    selectedDate?: string;
+    onDateChange?: (date: string) => void;
+    disabled?: boolean;
+    allowPastDates?: boolean;
+    showNavigationButtons?: boolean;
+    showTodayButton?: boolean;
 }
 
-export function SingleDatePicker({
-  selectedDate,
-  onDateChange,
-  disabled = false,
-  allowPastDates = true,
-  showNavigationButtons = true,
-  showTodayButton = true,
-}: SingleDatePickerProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isToday, setIsToday] = useState(false);
-  const [relativeLabel, setRelativeLabel] = useState("");
+export function SingleDatePicker({ selectedDate, onDateChange, disabled = false, allowPastDates = true, showNavigationButtons = true, showTodayButton = true }: SingleDatePickerProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const [isToday, setIsToday] = useState(false);
+    const [relativeLabel, setRelativeLabel] = useState("");
 
-  useEffect(() => {
-    const today = getTodayDateString();
-    const todayCheck = selectedDate === today;
-    setIsToday(todayCheck);
+    useEffect(() => {
+        const today = getTodayDateString();
+        const todayCheck = selectedDate === today;
+        setIsToday(todayCheck);
 
-    if (selectedDate && !todayCheck) {
-      const label = getRelativeDateLabel(selectedDate);
-      setRelativeLabel(label);
-    } else {
-      setRelativeLabel("");
-    }
-  }, [selectedDate]);
+        if (selectedDate && !todayCheck) {
+            const label = getRelativeDateLabel(selectedDate);
+            setRelativeLabel(label);
+        } else {
+            setRelativeLabel("");
+        }
+    }, [selectedDate]);
 
-  const updateDate = (newDate: string) => {
-    if (onDateChange) {
-      onDateChange(newDate);
-      return;
-    }
+    const updateDate = (newDate: string) => {
+        if (onDateChange) {
+            onDateChange(newDate);
+            return;
+        }
 
-    const currentParams = new URLSearchParams(window.location.search);
+        const currentParams = new URLSearchParams(window.location.search);
 
-    if (newDate) {
-      currentParams.set("date", newDate);
-    } else {
-      currentParams.delete("date");
-    }
+        if (newDate) {
+            currentParams.set("date", newDate);
+        } else {
+            currentParams.delete("date");
+        }
 
-    const queryString = currentParams.toString();
-    const newUrl = `${pathname}${queryString ? `?${queryString}` : ""}`;
-    router.push(newUrl);
-  };
+        const queryString = currentParams.toString();
+        const newUrl = `${pathname}${queryString ? `?${queryString}` : ""}`;
+        router.push(newUrl);
+    };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled) return;
-    const newDate = e.target.value;
-    updateDate(newDate);
-  };
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (disabled) return;
+        const newDate = e.target.value;
+        updateDate(newDate);
+    };
 
-  const navigateDate = (direction: "prev" | "next") => {
-    if (disabled) return;
-    const currentDate = selectedDate ? new Date(selectedDate) : new Date();
-    currentDate.setHours(12, 0, 0, 0);
+    const navigateDate = (direction: "prev" | "next") => {
+        if (disabled) return;
+        const currentDate = selectedDate ? new Date(selectedDate) : new Date();
+        currentDate.setHours(12, 0, 0, 0);
 
-    const delta = direction === "prev" ? -1 : 1;
-    const newDate = addDays(currentDate, delta);
+        const delta = direction === "prev" ? -1 : 1;
+        const newDate = addDays(currentDate, delta);
 
-    const dateString = formatDateForInput(newDate);
-    updateDate(dateString);
-  };
+        const dateString = formatDateForInput(newDate);
+        updateDate(dateString);
+    };
 
-  const getMinDate = () => {
-    if (allowPastDates) return undefined;
-    return getTodayDateString();
-  };
+    const getMinDate = () => {
+        if (allowPastDates) return undefined;
+        return getTodayDateString();
+    };
 
-  return (
-    <div className={`space-y-2 ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
-      <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {showTodayButton && isToday ? (
-            <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">
-              Today
-            </span>
-          ) : showTodayButton && !isToday ? (
-            <button
-              type="button"
-              onClick={() => updateDate(getTodayDateString())}
-              className="text-xs bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 px-2 py-1 rounded-md text-blue-700 dark:text-blue-300 transition-colors"
-              title="Go to today"
-            >
-              Go to Today
-            </button>
-          ) : null}
+    return (
+        <div className={`space-y-2 ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
+            <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {showTodayButton && isToday ? (
+                        <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">Today</span>
+                    ) : showTodayButton && !isToday ? (
+                        <button
+                            type="button"
+                            onClick={() => updateDate(getTodayDateString())}
+                            className="text-xs bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 px-2 py-1 rounded-md text-blue-700 dark:text-blue-300 transition-colors"
+                            title="Go to today"
+                        >
+                            Go to Today
+                        </button>
+                    ) : null}
+                </div>
+                {relativeLabel && !isToday && <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">{relativeLabel}</span>}
+            </label>
+            <div className="flex items-center gap-1">
+                {showNavigationButtons && (
+                    <button
+                        type="button"
+                        onClick={() => navigateDate("prev")}
+                        disabled={disabled}
+                        className="p-2 border border-border rounded-lg bg-background hover:bg-muted active:bg-muted/80 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors font-mono"
+                        title="Previous day"
+                    >
+                        ←
+                    </button>
+                )}
+                <input
+                    type="date"
+                    value={formatDateForInput(selectedDate || "")}
+                    onChange={handleDateChange}
+                    min={getMinDate()}
+                    disabled={disabled}
+                    className="p-2 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring flex-1 min-w-0"
+                    placeholder="Select date"
+                />
+                {showNavigationButtons && (
+                    <button
+                        type="button"
+                        onClick={() => navigateDate("next")}
+                        disabled={disabled}
+                        className="p-2 border border-border rounded-lg bg-background hover:bg-muted active:bg-muted/80 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors font-mono"
+                        title="Next day"
+                    >
+                        →
+                    </button>
+                )}
+            </div>
         </div>
-        {relativeLabel && !isToday && (
-          <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">
-            {relativeLabel}
-          </span>
-        )}
-      </label>
-      <div className="flex items-center gap-1">
-        {showNavigationButtons && (
-          <button
-            type="button"
-            onClick={() => navigateDate("prev")}
-            disabled={disabled}
-            className="p-2 border border-border rounded-lg bg-background hover:bg-muted active:bg-muted/80 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors font-mono"
-            title="Previous day"
-          >
-            ←
-          </button>
-        )}
-        <input
-          type="date"
-          value={formatDateForInput(selectedDate || "")}
-          onChange={handleDateChange}
-          min={getMinDate()}
-          disabled={disabled}
-          className="p-2 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring flex-1 min-w-0"
-          placeholder="Select date"
-        />
-        {showNavigationButtons && (
-          <button
-            type="button"
-            onClick={() => navigateDate("next")}
-            disabled={disabled}
-            className="p-2 border border-border rounded-lg bg-background hover:bg-muted active:bg-muted/80 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors font-mono"
-            title="Next day"
-          >
-            →
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
 }
