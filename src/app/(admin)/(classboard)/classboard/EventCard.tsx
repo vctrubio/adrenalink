@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import { getTimeFromISO } from "@/getters/queue-getter";
@@ -33,6 +33,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
 
     const eventId = event.id;
     const startTime = getTimeFromISO(event.eventData.date);
@@ -147,6 +148,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 {EquipmentIcon && (
                     <div className="relative">
                         <button 
+                            ref={dropdownTriggerRef}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border"
                             style={{ color: EVENT_STATUS_CONFIG[currentStatus].color }}
@@ -158,7 +160,8 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                             onClose={() => setIsDropdownOpen(false)} 
                             items={dropdownItems} 
                             align="right" 
-                            initialFocusedId={currentStatus} 
+                            initialFocusedId={currentStatus}
+                            triggerRef={dropdownTriggerRef}
                         />
                     </div>
                 )}

@@ -2,7 +2,7 @@
 import { Plus, Search, Sun, Moon } from "lucide-react";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 import { useTheme } from "next-themes";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useSearch } from "@/src/providers/search-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
@@ -18,8 +18,8 @@ import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, create
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 
-const ActionButton = ({ icon: Icon, children, onClick }: { icon?: React.ElementType; children?: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
+const ActionButton = ({ icon: Icon, children, onClick, buttonRef }: { icon?: React.ElementType; children?: React.ReactNode; onClick?: () => void; buttonRef?: React.RefObject<HTMLButtonElement> }) => (
+    <button ref={buttonRef} onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
         {Icon && <Icon className="h-5 w-5" />}
         {children}
     </button>
@@ -37,6 +37,9 @@ export const NavRight = () => {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { onOpen } = useSearch();
     const credentials = useSchoolCredentials();
+
+    const createButtonRef = useRef<HTMLButtonElement>(null);
+    const adminButtonRef = useRef<HTMLButtonElement>(null);
 
     const isDarkMode = theme === "dark" || resolvedTheme === "dark";
 
@@ -172,16 +175,29 @@ export const NavRight = () => {
         <>
             <div className="flex items-center gap-2">
                 <div className="relative">
-                    <ActionButton icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
-                    <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" />
+                    <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
+                    <Dropdown 
+                        isOpen={isCreateDropdownOpen} 
+                        onClose={() => setIsCreateDropdownOpen(false)} 
+                        items={createDropdownItems} 
+                        align="right"
+                        triggerRef={createButtonRef}
+                    />
                 </div>
                 <ActionButton icon={Search} onClick={onOpen} />
                 <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
-                    <ActionButton onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
+                    <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
                     </ActionButton>
-                    <Dropdown isOpen={isAdminDropdownOpen} onClose={() => setIsAdminDropdownOpen(false)} items={adminDropdownItems} renderItem={renderCredentialItem} align="right" />
+                    <Dropdown 
+                        isOpen={isAdminDropdownOpen} 
+                        onClose={() => setIsAdminDropdownOpen(false)} 
+                        items={adminDropdownItems} 
+                        renderItem={renderCredentialItem} 
+                        align="right" 
+                        triggerRef={adminButtonRef}
+                    />
                 </div>
             </div>
             <FacebookSearch />
