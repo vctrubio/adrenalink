@@ -10,7 +10,7 @@ import { PackageDropdownRow } from "./PackageDropdownRow";
 import { SCHOOL_PACKAGE_STATUS_CONFIG, type SchoolPackageStatus } from "@/types/status";
 import { updateSchoolPackageActive, updateSchoolPackagePublic } from "@/actions/packages-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EquipmentStudentPriceBadge } from "@/src/components/ui/badge/equipment-student-price";
+import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import type { SchoolPackageModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { Globe, Lock } from "lucide-react";
@@ -114,10 +114,13 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
             }}
             str={{
                 label: EquipmentIcon ? (
-                    <EquipmentStudentPriceBadge 
+                    <EquipmentStudentPackagePriceBadge 
                         categoryIcon={EquipmentIcon} 
                         equipmentCapacity={schoolPackage.schema.capacityEquipment} 
                         studentCapacity={schoolPackage.schema.capacityStudents} 
+                        packageDurationHours={durationHours}
+                        packageIcon={PackageIconComponent}
+                        packageColor={entityColor}
                         pricePerHour={pricePerHour}
                     />
                 ) : "No Icon",

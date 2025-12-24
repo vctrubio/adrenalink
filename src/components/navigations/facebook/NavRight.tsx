@@ -14,7 +14,7 @@ import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
 import Equipment4SchoolForm from "@/src/components/forms/school/Equipment4SchoolForm";
 import { studentFormSchema, defaultStudentForm, teacherFormSchema, defaultTeacherForm, packageFormSchema, defaultPackageForm, equipmentFormSchema, defaultEquipmentForm, type StudentFormData, type TeacherFormData, type PackageFormData, type EquipmentFormData } from "@/types/form-entities";
-import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage } from "@/actions/register-action";
+import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, createSchoolEquipment } from "@/actions/register-action";
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 
@@ -110,8 +110,14 @@ export const NavRight = () => {
 
     const handleEquipmentSubmit = useCallback(async () => {
         try {
-            // TODO: Create equipment server action
-            // await createEquipment({...});
+            await createSchoolEquipment({
+                category: equipmentFormData.category,
+                sku: equipmentFormData.sku,
+                model: equipmentFormData.model,
+                color: equipmentFormData.color || undefined,
+                size: equipmentFormData.size || undefined,
+                status: equipmentFormData.status || undefined,
+            });
             setEquipmentFormData(defaultEquipmentForm);
             setSelectedCreateEntity(null);
         } catch (error) {

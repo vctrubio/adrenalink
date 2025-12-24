@@ -37,8 +37,8 @@
  */
 
 import { db } from "@/drizzle/db";
-import { student, schoolStudents, teacher, schoolPackage, teacherCommission, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, referral } from "@/drizzle/schema";
-import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm } from "@/drizzle/schema";
+import { student, schoolStudents, teacher, schoolPackage, teacherCommission, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, referral, equipment } from "@/drizzle/schema";
+import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm, EquipmentForm } from "@/drizzle/schema";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getSchoolHeader } from "@/types/headers";
 
@@ -350,6 +350,56 @@ export async function createSchoolPackage(packageData: Omit<SchoolPackageForm, "
 
         // Provide detailed error message
         let errorMessage = "Failed to create package";
+        if (error instanceof Error || (typeof error === "object" && error !== null)) {
+            const err = error as any;
+            // Check for common database errors
+            if (err.code === "23503" || err.message?.includes("foreign key constraint")) {
+                errorMessage = "School ID not found in database for the provided header.";
+            } else {
+                errorMessage += `: ${err.message || JSON.stringify(err)}`;
+            }
+        }
+
+        return { success: false, error: errorMessage };
+    }
+}
+
+/**
+ * ============================================================================
+ * EQUIPMENT ACTIONS
+ * ============================================================================
+ */
+
+/**
+ * Create and link equipment to school
+ * Equipment is always linked to a school (schoolId is required in schema)
+ *
+ * @param equipmentData - Equipment information (category, sku, model, color, size, status)
+ * @returns Created equipment record
+ */
+export async function createSchoolEquipment(equipmentData: Omit<EquipmentForm, "schoolId">): Promise<ApiActionResponseModel<typeof equipment.$inferSelect>> {
+    try {
+        // Get school ID from header
+        const schoolHeader = await getSchoolHeader();
+
+        if (!schoolHeader) {
+            return { success: false, error: "School not found in headers - check x-school-username header" };
+        }
+
+        // Create equipment with schoolId
+        const completeEquipmentData: EquipmentForm = {
+            ...equipmentData,
+            schoolId: schoolHeader.id,
+        };
+
+        const [createdEquipment] = await db.insert(equipment).values(completeEquipmentData).returning();
+
+        return { success: true, data: createdEquipment };
+    } catch (error) {
+        console.error("Error creating equipment:", error);
+
+        // Provide detailed error message
+        let errorMessage = "Failed to create equipment";
         if (error instanceof Error || (typeof error === "object" && error !== null)) {
             const err = error as any;
             // Check for common database errors
