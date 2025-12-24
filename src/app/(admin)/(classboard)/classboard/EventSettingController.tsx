@@ -71,8 +71,8 @@ const LocationSelector = ({
                         key={option}
                         onClick={() => onChange(option)}
                         className={`
-                            px-2 py-1 text-[10px] uppercase tracking-wide font-medium rounded transition-all flex-1
-                            ${isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}
+                            px-2 py-1 text-[10px] uppercase tracking-wide font-medium rounded border transition-all flex-1
+                            ${isActive ? "border-secondary text-secondary shadow-sm" : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}
                         `}
                     >
                         {option}
