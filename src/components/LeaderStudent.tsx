@@ -21,7 +21,7 @@ export const LeaderStudent = ({ leaderStudentName, bookingId, bookingStudents }:
     const buttonRef = useRef<HTMLButtonElement>(null);
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color;
-    const displayName = leaderStudentName || `Booking ${bookingId.slice(0, 8)}`;
+    const displayName = leaderStudentName || "Booking abc";
     const hasMultipleStudents = bookingStudents.length > 1;
 
     useEffect(() => {
@@ -74,7 +74,9 @@ export const LeaderStudent = ({ leaderStudentName, bookingId, bookingStudents }:
                         {bookingStudents.map((student) => (
                             <div key={student.id} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors">
                                 <HelmetIcon size={16} />
-                                <span>{student.firstName} {student.lastName}</span>
+                                <span>
+                                    {student.firstName} {student.lastName}
+                                </span>
                             </div>
                         ))}
                     </motion.div>

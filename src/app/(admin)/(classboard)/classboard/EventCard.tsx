@@ -117,24 +117,6 @@ const HeaderRow = ({
     );
 };
 
-const StudentRow = ({ student }: { student: { id: string; firstName: string; lastName: string } }) => {
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-    if (!studentEntity) return null;
-
-    return (
-        <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
-            <div style={{ color: studentEntity.color }}>{studentEntity.icon && <studentEntity.icon className="w-8 h-8" />}</div>
-            <div className="flex-1">
-                <HoverToEntity entity={studentEntity} id={student.id}>
-                    <span className="text-base font-medium whitespace-nowrap">
-                        {student.firstName} {student.lastName}
-                    </span>
-                </HoverToEntity>
-            </div>
-        </div>
-    );
-};
-
 const GapDetectionHeader = ({ children }: { children?: React.ReactNode }) => {
     if (!children) return null;
 

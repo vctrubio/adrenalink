@@ -1,7 +1,7 @@
 interface CardListProps {
     fields: {
         label: string;
-        value: string | number;
+        value: string | number | React.ReactNode;
     }[];
 }
 
