@@ -8,6 +8,7 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
@@ -17,7 +18,6 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-
 // --- Sub-components ---
 
 const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardLesson[]; durationMinutes: number }) => {
@@ -29,17 +29,17 @@ const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardL
     );
 };
 
-const CardHeader = ({ 
-    bookingId, 
-    dateStart, 
-    dateEnd, 
-    selectedDate, 
-    leaderName, 
-    studentCount, 
+const CardHeader = ({
+    bookingId,
+    dateStart,
+    dateEnd,
+    selectedDate,
+    leaderName,
+    studentCount,
     students,
     studentColor,
-    onExpand 
-}: { 
+    onExpand,
+}: {
     bookingId: string;
     dateStart: string;
     dateEnd: string;
@@ -70,16 +70,9 @@ const CardHeader = ({
     return (
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Link 
-                    href={`/bookings/${bookingId}`}
-                    className="flex flex-col items-center justify-center bg-muted/50 rounded-lg p-1.5 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date"
-                >
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide leading-none group-hover/date:text-primary">
-                        {startDate.toLocaleDateString("en-US", { month: "short" })}
-                    </span>
-                    <span className="text-xl font-black leading-none text-foreground mt-0.5 group-hover/date:text-primary">
-                        {startDate.getDate()}
-                    </span>
+                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg p-1.5 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide leading-none group-hover/date:text-primary">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
+                    <span className="text-xl font-black leading-none text-foreground mt-0.5 group-hover/date:text-primary">{startDate.getDate()}</span>
                 </Link>
                 <div className="flex flex-col">
                     <button
@@ -89,39 +82,26 @@ const CardHeader = ({
                     >
                         {leaderName}
                     </button>
-                    {studentCount > 1 && (
-                        <Dropdown 
-                            isOpen={isStudentDropdownOpen}
-                            onClose={() => setIsStudentDropdownOpen(false)}
-                            items={studentDropdownItems}
-                            align="left"
-                            triggerRef={studentTriggerRef}
-                        />
-                    )}
-                    <span className={`text-[10px] font-medium ${isExpired ? "text-red-500" : "text-emerald-500"}`}>
-                        {expiryText}
-                    </span>
+                    {studentCount > 1 && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
+                    <span className={`text-[10px] font-medium ${isExpired ? "text-red-500" : "text-emerald-500"}`}>{expiryText}</span>
                 </div>
             </div>
-            
-            <button 
-                onClick={onExpand}
-                className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
-            >
+
+            <button onClick={onExpand} className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground">
                 <MoreVertical size={16} />
             </button>
         </div>
     );
 };
 
-const BookingSummaryBadges = ({ 
-    schoolPackage, 
-    lessons, 
+const BookingSummaryBadges = ({
+    schoolPackage,
+    lessons,
     studentCount,
     students,
-    studentColor
-}: { 
-    schoolPackage: ClassboardData["schoolPackage"]; 
+    studentColor,
+}: {
+    schoolPackage: ClassboardData["schoolPackage"];
     lessons: ClassboardLesson[];
     studentCount: number;
     students: { id: string; firstName: string; lastName: string }[];
@@ -145,12 +125,10 @@ const BookingSummaryBadges = ({
             <button
                 ref={badgeTriggerRef}
                 onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                className={`w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors ${ 
-                    studentCount > 1 ? "hover:bg-muted/50 cursor-pointer" : "cursor-default"
-                }`}
+                className={`w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors ${studentCount > 1 ? "hover:bg-muted/50 cursor-pointer" : "cursor-default"}`}
             >
                 <div className="flex-1 overflow-hidden">
-                    <EquipmentStudentPackagePriceBadge 
+                    <EquipmentStudentPackagePriceBadge
                         categoryEquipment={schoolPackage.categoryEquipment}
                         equipmentCapacity={schoolPackage.capacityEquipment}
                         studentCapacity={studentCount}
@@ -158,53 +136,45 @@ const BookingSummaryBadges = ({
                         pricePerHour={packageInfo.pricePerHour}
                     />
                 </div>
-                
+
                 <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 shrink-0 pl-2 border-l border-border/50">
                     <Receipt size={16} />
                     <span className="text-sm font-bold">{totalPayment.toFixed(0)}€</span>
                 </div>
             </button>
-            
-            {studentCount > 1 && (
-                <Dropdown 
-                    isOpen={isStudentDropdownOpen}
-                    onClose={() => setIsStudentDropdownOpen(false)}
-                    items={studentDropdownItems}
-                    align="left"
-                    triggerRef={badgeTriggerRef}
-                />
-            )}
+
+            {studentCount > 1 && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={badgeTriggerRef} />}
         </div>
     );
 };
 
-const InstructorList = ({ 
-    lessons, 
-    onAddEvent, 
+const InstructorList = ({
+    lessons,
+    onAddEvent,
     onAddTeacher,
     availableTeachers = [],
-    loadingLessonId 
-}: { 
-    lessons: ClassboardLesson[]; 
-    onAddEvent: (username: string) => void; 
+    loadingLessonId,
+}: {
+    lessons: ClassboardLesson[];
+    onAddEvent: (username: string) => void;
     onAddTeacher?: (username: string) => void;
     availableTeachers?: { username: string; firstName: string }[];
-    loadingLessonId: string | null; 
+    loadingLessonId: string | null;
 }) => {
     const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
     const addTeacherTriggerRef = useRef<HTMLButtonElement>(null);
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
 
-    const existingTeacherUsernames = new Set(lessons.map(l => l.teacher.username));
-    const teachersToDisplay = availableTeachers.filter(t => !existingTeacherUsernames.has(t.username));
+    const existingTeacherUsernames = new Set(lessons.map((l) => l.teacher.username));
+    const teachersToDisplay = availableTeachers.filter((t) => !existingTeacherUsernames.has(t.username));
 
-    const teacherItems: DropdownItemProps[] = teachersToDisplay.map(t => ({
+    const teacherItems: DropdownItemProps[] = teachersToDisplay.map((t) => ({
         id: t.username,
         label: t.username,
         icon: HeadsetIcon,
         color: teacherColor,
-        onClick: () => onAddTeacher?.(t.username)
+        onClick: () => onAddTeacher?.(t.username),
     }));
 
     return (
@@ -212,21 +182,10 @@ const InstructorList = ({
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
                 <div className="relative">
-                    <button 
-                        ref={addTeacherTriggerRef}
-                        onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)}
-                        className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors"
-                        title="Add teacher to booking"
-                    >
+                    <button ref={addTeacherTriggerRef} onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)} className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors" title="Add teacher to booking">
                         <Plus size={14} />
                     </button>
-                    <Dropdown 
-                        isOpen={isAddTeacherOpen}
-                        onClose={() => setIsAddTeacherOpen(false)}
-                        items={teacherItems}
-                        align="right"
-                        triggerRef={addTeacherTriggerRef}
-                    />
+                    <Dropdown isOpen={isAddTeacherOpen} onClose={() => setIsAddTeacherOpen(false)} items={teacherItems} align="right" triggerRef={addTeacherTriggerRef} />
                 </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -286,30 +245,19 @@ const InstructorList = ({
     );
 };
 
-const ExpandableDetails = ({ 
-    isExpanded, 
-    schoolPackage, 
-    bookingId 
-}: { 
-    isExpanded: boolean; 
-    schoolPackage: ClassboardData["schoolPackage"]; 
-    bookingId: string; 
-}) => {
+const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpanded: boolean; schoolPackage: ClassboardData["schoolPackage"]; bookingId: string }) => {
     return (
         <AnimatePresence>
             {isExpanded && (
-                <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden bg-muted/30 border-t border-border/50"
-                >
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-muted/30 border-t border-border/50">
                     <div className="p-4">
-                        <CardList fields={[ 
-                            { label: "Description", value: schoolPackage.description || "N/A" },
-                            { label: "Booking ID", value: bookingId },
-                            { label: "Type", value: schoolPackage.packageType },
-                        ]} />
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                                <PackageIcon size={16} className="text-muted-foreground" />
+                                <span className="text-sm font-semibold text-foreground">Package</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground">{schoolPackage.description || "N/A"}</span>
+                        </div>
                     </div>
                 </motion.div>
             )}
@@ -342,7 +290,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
 
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
-    const students = bookingStudents.map(bs => bs.student);
+    const students = bookingStudents.map((bs) => bs.student);
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
@@ -393,7 +341,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
             <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
             <div className="p-4 space-y-4">
-                <CardHeader 
+                <CardHeader
                     bookingId={booking.id}
                     dateStart={booking.dateStart}
                     dateEnd={booking.dateEnd}
@@ -406,29 +354,13 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                 />
 
                 <div className="space-y-3">
-                    <BookingSummaryBadges 
-                        schoolPackage={schoolPackage}
-                        lessons={lessons}
-                        studentCount={students.length}
-                        students={students}
-                        studentColor={studentColor}
-                    />
+                    <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
                 </div>
 
-                <InstructorList 
-                    lessons={lessons} 
-                    onAddEvent={handleAddEvent} 
-                    onAddTeacher={handleAddTeacher}
-                    availableTeachers={classboard.availableTeachers}
-                    loadingLessonId={loadingLessonId} 
-                />
+                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} onAddTeacher={handleAddTeacher} availableTeachers={classboard.availableTeachers} loadingLessonId={loadingLessonId} />
             </div>
 
-            <ExpandableDetails 
-                isExpanded={isExpanded} 
-                schoolPackage={schoolPackage} 
-                bookingId={booking.id} 
-            />
+            <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
         </motion.div>
     );
 }
