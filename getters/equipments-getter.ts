@@ -17,7 +17,7 @@ export const EquipmentStats = {
 
 // Get equipment name (model + size)
 export function getEquipmentName(equipment: EquipmentModel): string {
-    const size = equipment.schema.size ? ` ${equipment.schema.size}m` : "";
+    const size = equipment.schema.size ? ` ${equipment.schema.size}` : "";
     return `${equipment.schema.model}${size}`;
 }
 

@@ -23,6 +23,7 @@ interface RowProps {
     };
     str?: {
         label: string | ReactNode;
+        color?: string;
         items: {
             label: string;
             value: string | number;
@@ -69,7 +70,7 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:flex-row">
                             {str && (
                                 <div className="flex-shrink-0">
-                                    <RowStr label={str.label} items={str.items} entityColor={entityBgColor} />
+                                    <RowStr label={str.label} items={str.items} entityColor={str.color || entityBgColor} />
                                 </div>
                             )}
 

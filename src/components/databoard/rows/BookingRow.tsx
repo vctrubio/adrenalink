@@ -15,7 +15,6 @@ import { BookingDropdownRow } from "./BookingDropdownRow";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getFullDuration } from "@/getters/duration-getter";
-import PPHIcon from "@/public/appSvgs/PPHIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 
 export const calculateBookingGroupStats = DataboardBookingStats.getStats;
@@ -39,16 +38,7 @@ const BookingAction = ({ booking }: { booking: BookingModel }) => {
                         const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
                         const duration = getFullDuration(totalMinutes);
 
-                        return (
-                            <TeacherBookingTag 
-                                key={lesson.id} 
-                                icon={<HeadsetIcon className="w-4 h-4" />} 
-                                username={teacher.username} 
-                                link={`/teachers/${teacher.username}`}
-                                duration={duration}
-                                eventCount={events.length}
-                            />
-                        );
+                        return <TeacherBookingTag key={lesson.id} icon={<HeadsetIcon className="w-4 h-4" />} username={teacher.username} link={`/teachers/${teacher.username}`} duration={duration} eventCount={events.length} />;
                     })}
                 </>
             )}
@@ -64,10 +54,13 @@ interface BookingRowProps {
 
 export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+
+    const entityColor = bookingEntity.color;
+    const entityBgColor = bookingEntity.bgColor;
+    const iconColor = isExpanded ? entityColor : "#9ca3af";
 
     const BookingIconComponent = bookingEntity.icon;
-    const entityColor = bookingEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
 
     const studentPackage = booking.relations?.studentPackage;
     const schoolPackage = studentPackage?.schoolPackage;
@@ -79,20 +72,12 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     const strItems = [
         {
             label: "Students",
-            			value: (
-            				<div className="flex flex-col">
-            					{studentNames.length > 0 ? (
-            						studentNames.map((name, index) => <span key={index}>{name}</span>)
-            					) : (
-            						<span>No students</span>
-            					)}
-            				</div>
-            			),
+            value: <div className="flex flex-col">{studentNames.length > 0 ? studentNames.map((name, index) => <span key={index}>{name}</span>) : <span>No students</span>}</div>,
         },
+        { label: "Package", value: packageDesc },
         { label: "Created", value: formatDate(booking.schema.createdAt) },
         { label: "Start", value: formatDate(booking.schema.dateStart) },
         { label: "End", value: formatDate(booking.schema.dateEnd) },
-        { label: "Package", value: packageDesc },
     ];
 
     const stats = DataboardBookingStats.getStats(booking, false);
@@ -109,34 +94,25 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     }));
 
     const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === schoolPackage?.categoryEquipment);
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
     const equipmentCapacity = schoolPackage?.capacityEquipment || 0;
-    const actualStudents = bookingStudents.length || 0;
     const studentCapacity = schoolPackage?.capacityStudents || 0;
     const packageDurationHours = schoolPackage?.durationMinutes ? Math.round(schoolPackage.durationMinutes / 60) : 0;
     const durationHours = schoolPackage?.durationMinutes ? schoolPackage.durationMinutes / 60 : 0;
     const pricePerHour = durationHours > 0 ? (schoolPackage?.pricePerStudent || 0) / durationHours : 0;
 
     const EquipmentIcon = equipmentCategory?.icon;
-    const StudentIcon = studentEntity.icon;
-    const PackageIcon = packageEntity.icon;
 
     return (
         <Row
             id={booking.schema.id}
             entityData={booking.schema}
-            entityBgColor={bookingEntity.bgColor}
-            entityColor={bookingEntity.color}
+            entityBgColor={entityBgColor}
+            entityColor={entityColor}
             isExpanded={isExpanded}
             onToggle={onToggle}
             expandedContent={<BookingDropdownRow item={booking} />}
             head={{
-                avatar: (
-                    <div style={{ color: iconColor }}>
-                        {EquipmentIcon ? <EquipmentIcon className="w-10 h-10" /> : <BookingIconComponent className="w-10 h-10" />}
-                    </div>
-                ),
+                avatar: <div style={{ color: iconColor }}>{EquipmentIcon ? <EquipmentIcon className="w-10 h-10" /> : <BookingIconComponent className="w-10 h-10" />}</div>,
                 name: (
                     <HoverToEntity entity={bookingEntity} id={booking.schema.id}>
                         {booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
@@ -148,17 +124,16 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             }}
             str={{
                 label: (
-                    <EquipmentStudentPackagePriceBadge 
-                        categoryIcon={EquipmentIcon}
+                    <EquipmentStudentPackagePriceBadge
+                        categoryEquipment={schoolPackage?.categoryEquipment}
                         equipmentCapacity={equipmentCapacity}
                         studentCapacity={studentCapacity}
                         packageDurationHours={packageDurationHours}
-                        packageIcon={PackageIcon}
-                        packageColor={packageEntity.color}
                         pricePerHour={pricePerHour}
                     />
                 ),
                 items: strItems,
+                color: schoolPackage ? packageEntity.bgColor : entityBgColor,
             }}
             action={<BookingAction booking={booking} />}
             popover={<BookingCompletionPopover booking={booking} />}
@@ -166,4 +141,3 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
         />
     );
 };
-

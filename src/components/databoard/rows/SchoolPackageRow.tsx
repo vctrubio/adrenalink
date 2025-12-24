@@ -9,7 +9,6 @@ import { formatDate } from "@/getters/date-getter";
 import { PackageDropdownRow } from "./PackageDropdownRow";
 import { SCHOOL_PACKAGE_STATUS_CONFIG, type SchoolPackageStatus } from "@/types/status";
 import { updateSchoolPackageActive, updateSchoolPackagePublic } from "@/actions/packages-action";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import type { SchoolPackageModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -40,9 +39,6 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
 
     const currentStatus = schoolPackage.schema.active ? "active" : "inactive";
     const currentStatusConfig = SCHOOL_PACKAGE_STATUS_CONFIG[currentStatus];
-
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === schoolPackage.schema.categoryEquipment);
-    const EquipmentIcon = equipmentConfig?.icon;
 
     const statusDropdownItems: DropdownItemProps[] = [
         ...(["active", "inactive"] as const).map((status) => ({
@@ -113,17 +109,15 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: EquipmentIcon ? (
+                label: (
                     <EquipmentStudentPackagePriceBadge 
-                        categoryIcon={EquipmentIcon} 
+                        categoryEquipment={schoolPackage.schema.categoryEquipment} 
                         equipmentCapacity={schoolPackage.schema.capacityEquipment} 
                         studentCapacity={schoolPackage.schema.capacityStudents} 
                         packageDurationHours={durationHours}
-                        packageIcon={PackageIconComponent}
-                        packageColor={entityColor}
                         pricePerHour={pricePerHour}
                     />
-                ) : "No Icon",
+                ),
                 items: strItems,
             }}
             action={

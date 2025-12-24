@@ -36,6 +36,7 @@
  * ✅ Reusable helper across all actions
  */
 
+import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { student, schoolStudents, teacher, schoolPackage, teacherCommission, studentPackage, studentPackageStudent, booking, bookingStudent, lesson, referral, equipment } from "@/drizzle/schema";
 import type { StudentForm, SchoolStudentForm, TeacherForm, SchoolPackageForm, TeacherCommissionForm, EquipmentForm } from "@/drizzle/schema";
@@ -196,6 +197,8 @@ export async function createAndLinkStudent(
             };
         });
 
+        revalidatePath("/register");
+        revalidatePath("/register/student");
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating and linking student:", error);
@@ -285,6 +288,8 @@ export async function createAndLinkTeacher(
             };
         });
 
+        revalidatePath("/register");
+        revalidatePath("/register/teacher");
         return { success: true, data: result };
     } catch (error) {
         console.error("Error creating teacher:", error);
@@ -331,7 +336,6 @@ export async function createSchoolPackage(packageData: Omit<SchoolPackageForm, "
         // Get school ID from header
         const schoolHeader = await getSchoolHeader();
 
-        console.log("Creating package school HEader DEBUG..........:", schoolHeader);
         if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }
@@ -344,6 +348,7 @@ export async function createSchoolPackage(packageData: Omit<SchoolPackageForm, "
 
         const [createdPackage] = await db.insert(schoolPackage).values(completePackageData).returning();
 
+        revalidatePath("/register");
         return { success: true, data: createdPackage };
     } catch (error) {
         console.error("Error creating package:", error);
@@ -394,6 +399,7 @@ export async function createSchoolEquipment(equipmentData: Omit<EquipmentForm, "
 
         const [createdEquipment] = await db.insert(equipment).values(completeEquipmentData).returning();
 
+        revalidatePath("/register");
         return { success: true, data: createdEquipment };
     } catch (error) {
         console.error("Error creating equipment:", error);

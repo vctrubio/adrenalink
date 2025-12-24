@@ -1,19 +1,35 @@
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { ENTITY_DATA } from "@/config/entities";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import PPHIcon from "@/public/appSvgs/PPHIcon";
 
 interface EquipmentStudentPackagePriceBadgeProps {
-    categoryIcon?: React.ComponentType<{ size?: number }>;
+    categoryEquipment?: string | null;
     equipmentCapacity: number;
     studentCapacity: number;
     packageDurationHours: number;
-    packageIcon: React.ComponentType<{ size?: number }>;
-    packageColor: string;
     pricePerHour: number;
 }
 
-export function EquipmentStudentPackagePriceBadge({ categoryIcon: CategoryIcon, equipmentCapacity, studentCapacity, packageDurationHours, packageIcon: PackageIcon, packageColor, pricePerHour }: EquipmentStudentPackagePriceBadgeProps) {
-    const studentColor = "#eab308";
-    const equipmentColor = "#a855f7";
+export function EquipmentStudentPackagePriceBadge({ 
+    categoryEquipment, 
+    equipmentCapacity, 
+    studentCapacity, 
+    packageDurationHours, 
+    pricePerHour 
+}: EquipmentStudentPackagePriceBadgeProps) {
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
+
+    const studentColor = studentEntity.color;
+    const StudentIcon = studentEntity.icon;
+    
+    const packageColor = packageEntity.color;
+    const PackageIcon = packageEntity.icon;
+    
+    const equipmentColor = equipmentConfig?.color || "#a855f7";
+    const CategoryIcon = equipmentConfig?.icon;
+    
     const priceColor = "#f97316";
 
     return (
@@ -31,7 +47,7 @@ export function EquipmentStudentPackagePriceBadge({ categoryIcon: CategoryIcon, 
             {/* Student */}
             <div className="flex items-center gap-1.5">
                 <div style={{ color: studentColor }}>
-                    <HelmetIcon size={16} />
+                    <StudentIcon size={16} />
                 </div>
                 {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
             </div>

@@ -7,7 +7,7 @@ import { useSearch } from "@/src/providers/search-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
 import { ENTITY_DATA } from "@/config/entities";
-import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm";
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
@@ -129,7 +129,6 @@ export const NavRight = () => {
     const createDropdownItems: DropdownItemProps[] = createEntities.map((entity) => ({
         id: entity.id,
         label: entity.name,
-        href: undefined,
         icon: entity.icon,
         color: entity.color,
         onClick: () => {
@@ -143,22 +142,18 @@ export const NavRight = () => {
             {
                 id: "username",
                 label: `Username: ${credentials.username}`,
-                href: undefined,
             },
             {
                 id: "currency",
                 label: `Currency: ${credentials.currency}`,
-                href: undefined,
             },
             {
                 id: "status",
                 label: `Status: ${credentials.status}`,
-                href: undefined,
             },
             {
                 id: "ownerId",
                 label: `Owner ID: ${credentials.ownerId}`,
-                href: undefined,
             },
         ]
         : [];

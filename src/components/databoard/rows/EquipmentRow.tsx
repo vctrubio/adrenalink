@@ -27,17 +27,8 @@ const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
             {teachers.map(({ teacher, totalHours }) => {
                 const totalMinutes = totalHours * 60;
                 const duration = getFullDuration(totalMinutes);
-                
-                return (
-                    <EquipmentTeacherTag 
-                        key={teacher.id} 
-                        icon={<HeadsetIcon className="w-3 h-3" />} 
-                        username={teacher.username} 
-                        hours={totalHours} 
-                        link={`/teachers/${teacher.username}`}
-                        duration={duration}
-                    />
-                );
+
+                return <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.username}`} duration={duration} />;
             })}
         </div>
     );
@@ -77,11 +68,22 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
         },
     }));
 
+    const teachers = getEquipmentTeachers(equipment);
+    const teacherUsernames = teachers.map(({ teacher }) => teacher.username);
+
     const strItems = [
-        { label: "Category", value: category?.label || "N/A" },
-        { label: "Color", value: equipment.schema.color || "N/A" },
-        { label: "Purchase Date", value: equipment.schema.purchaseDate ? formatDate(equipment.schema.purchaseDate) : "N/A" },
-        { label: "Status", value: currentStatusConfig.label },
+        {
+            label: "Teachers",
+            value: (
+                <div className="flex flex-col">
+                    {teacherUsernames.length > 0 ? (
+                        teacherUsernames.map((username, index) => <span key={index}>{username}</span>)
+                    ) : (
+                        <span>No teachers</span>
+                    )}
+                </div>
+            ),
+        },
     ];
 
     const stats = DataboardEquipmentStats.getStats(equipment, false);
@@ -96,11 +98,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
             onToggle={onToggle}
             expandedContent={<EquipmentDropdownRow item={equipment} />}
             head={{
-                avatar: (
-                    <div style={{ color: iconColor }}>
-                        {CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}
-                    </div>
-                ),
+                avatar: <div style={{ color: iconColor }}>{CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}</div>,
                 name: (
                     <HoverToEntity entity={equipmentEntity} id={equipment.schema.id}>
                         {equipmentName}
