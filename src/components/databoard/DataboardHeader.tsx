@@ -3,6 +3,7 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { EntityHeaderRow } from "./EntityHeaderRow";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import { SearchInput } from "@/src/components/SearchInput";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController as DataboardControllerType } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
 
@@ -37,13 +38,7 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
             {/* Search + Filter Controls */}
             <div className="flex items-center gap-3">
                 <div className="flex-1">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none transition-all focus:bg-background"
-                        onFocus={(e) => (e.currentTarget.style.boxShadow = `0 0 0 2px ${entity.color}40`)}
-                        onBlur={(e) => (e.currentTarget.style.boxShadow = "")}
-                    />
+                    <SearchInput entityColor={entity.color} />
                 </div>
 
                 <div className="flex items-center gap-2">

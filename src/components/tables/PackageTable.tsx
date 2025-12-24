@@ -5,6 +5,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { MultiSelectFilterDropdown } from "@/src/components/ui/MultiSelectFilterDropdown";
+import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -133,12 +134,13 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
             )}
 
             <div className="flex gap-2 items-center flex-wrap">
-                <input
-                    type="text"
+                <SearchInput
                     placeholder="Search by description..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    variant="background"
+                    entityColor={packageEntity?.color}
+                    className="flex-1 min-w-[200px]"
                 />
                 {packageEntity && (
                     <>

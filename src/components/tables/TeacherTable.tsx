@@ -1,6 +1,7 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { TeacherStatusBadge } from "@/src/components/ui/badge";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
@@ -123,7 +124,14 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
     return (
         <div className="space-y-3">
             <div className="flex gap-2 items-center">
-                <input type="text" placeholder="Search by username..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <SearchInput
+                    placeholder="Search by username..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    variant="background"
+                    entityColor={teacherEntity?.color}
+                    className="flex-1"
+                />
                 {teacherEntity && <FilterDropdown label="Status" value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(v) => setStatusFilter(v as StatusFilterType)} entityColor={teacherEntity.color} />}
             </div>
 

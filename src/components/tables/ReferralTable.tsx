@@ -1,5 +1,7 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
+import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
+import { ENTITY_DATA } from "@/config/entities";
 
 interface Referral {
     id: string;
@@ -70,14 +72,16 @@ export function ReferralTable({
         );
     }
 
+    const referralEntity = ENTITY_DATA.find((e) => e.id === "referral");
+
     return (
         <div className="space-y-3">
-            <input
-                type="text"
+            <SearchInput
                 placeholder="Search by code..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                variant="background"
+                entityColor={referralEntity?.color}
             />
 
             <Table>
