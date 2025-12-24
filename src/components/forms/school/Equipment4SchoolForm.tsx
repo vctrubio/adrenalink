@@ -61,37 +61,24 @@ const CategoryFieldMemo = memo(function CategoryField({
     );
 });
 
-// Sub-component: SKU and Model Fields
-const SkuModelFieldsMemo = memo(function SkuModelFields({
-    sku,
+// Sub-component: Model and Size Fields
+const ModelSizeFieldsMemo = memo(function ModelSizeFields({
     model,
-    onSkuChange,
+    size,
     onModelChange,
-    skuError,
+    onSizeChange,
     modelError,
-    skuIsValid,
     modelIsValid,
 }: {
-    sku: string;
     model: string;
-    onSkuChange: (value: string) => void;
+    size: number | undefined;
     onModelChange: (value: string) => void;
-    skuError?: string;
+    onSizeChange: (value: number | undefined) => void;
     modelError?: string;
-    skuIsValid?: boolean;
     modelIsValid?: boolean;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="SKU" required error={skuError} isValid={skuIsValid}>
-                <FormInput
-                    type="text"
-                    value={sku}
-                    onChange={(e) => onSkuChange(e.target.value)}
-                    placeholder="Enter SKU"
-                    error={!!skuError}
-                />
-            </FormField>
             <FormField label="Model" required error={modelError} isValid={modelIsValid}>
                 <FormInput
                     type="text"
@@ -101,21 +88,33 @@ const SkuModelFieldsMemo = memo(function SkuModelFields({
                     error={!!modelError}
                 />
             </FormField>
+            <FormField label="Size">
+                <FormInput
+                    type="number"
+                    value={size ?? ""}
+                    onChange={(e) => onSizeChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder="e.g., 14, 17, 19"
+                />
+            </FormField>
         </div>
     );
 });
 
-// Sub-component: Color and Size Fields
-const ColorSizeFieldsMemo = memo(function ColorSizeFields({
+// Sub-component: Color and SKU Fields
+const ColorSkuFieldsMemo = memo(function ColorSkuFields({
     color,
-    size,
+    sku,
     onColorChange,
-    onSizeChange,
+    onSkuChange,
+    skuError,
+    skuIsValid,
 }: {
     color: string | undefined;
-    size: number | undefined;
+    sku: string;
     onColorChange: (value: string) => void;
-    onSizeChange: (value: number | undefined) => void;
+    onSkuChange: (value: string) => void;
+    skuError?: string;
+    skuIsValid?: boolean;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,12 +126,13 @@ const ColorSizeFieldsMemo = memo(function ColorSizeFields({
                     placeholder="e.g., Blue, Red, Black"
                 />
             </FormField>
-            <FormField label="Size">
+            <FormField label="SKU" required error={skuError} isValid={skuIsValid}>
                 <FormInput
-                    type="number"
-                    value={size ?? ""}
-                    onChange={(e) => onSizeChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder="e.g., 14, 17, 19"
+                    type="text"
+                    value={sku}
+                    onChange={(e) => onSkuChange(e.target.value)}
+                    placeholder="Enter SKU"
+                    error={!!skuError}
                 />
             </FormField>
         </div>
@@ -188,8 +188,9 @@ export default function Equipment4SchoolForm({
     const entityTitle = useMemo(() => {
         const cat = EQUIPMENT_CATEGORIES.find((c) => c.id === formData.category);
         const catName = cat?.name || "Equipment";
-        return formData.sku ? `${catName} - ${formData.sku}` : `New ${catName}`;
-    }, [formData.category, formData.sku]);
+        const details = [formData.model, formData.size].filter(Boolean).join(" ");
+        return details ? `${catName} - ${details}` : `New ${catName}`;
+    }, [formData.category, formData.model, formData.size]);
 
     const handleClear = useCallback(() => {
         onFormDataChange(defaultEquipmentForm);
@@ -227,24 +228,24 @@ export default function Equipment4SchoolForm({
                 isValid={isFieldValid("category")}
             />
 
-            {/* SKU and Model */}
-            <SkuModelFieldsMemo
-                sku={formData.sku}
+            {/* Model and Size */}
+            <ModelSizeFieldsMemo
                 model={formData.model}
-                onSkuChange={(value) => updateField("sku", value)}
+                size={formData.size}
                 onModelChange={(value) => updateField("model", value)}
-                skuError={getFieldError("sku")}
+                onSizeChange={(value) => updateField("size", value)}
                 modelError={getFieldError("model")}
-                skuIsValid={isFieldValid("sku")}
                 modelIsValid={isFieldValid("model")}
             />
 
-            {/* Color and Size */}
-            <ColorSizeFieldsMemo
+            {/* Color and SKU */}
+            <ColorSkuFieldsMemo
                 color={formData.color}
-                size={formData.size}
+                sku={formData.sku}
                 onColorChange={(value) => updateField("color", value)}
-                onSizeChange={(value) => updateField("size", value)}
+                onSkuChange={(value) => updateField("sku", value)}
+                skuError={getFieldError("sku")}
+                skuIsValid={isFieldValid("sku")}
             />
 
             {/* Status */}
