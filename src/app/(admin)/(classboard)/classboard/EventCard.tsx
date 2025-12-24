@@ -226,7 +226,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                     previousEvent={previousEvent} 
                     requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} 
                     updateMode="updateNow" 
-                    wrapperClassName="w-full bg-muted/30 border-t border-border py-1 flex justify-center"
+                    wrapperClassName="w-full px-4 pb-4 pt-0"
                 />
             )}
 

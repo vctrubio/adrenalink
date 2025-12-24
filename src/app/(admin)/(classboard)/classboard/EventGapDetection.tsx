@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getMinutesFromISO, minutesToTime, createISODateTime } from "@/getters/queue-getter";
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
@@ -72,24 +72,24 @@ export default function EventGapDetection({
         switch (gapStatus.state) {
             case "overlap":
                 return {
-                    className: "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 opacity-75 hover:bg-red-200 dark:hover:bg-red-900/30 cursor-pointer",
-                    icon: <AlertTriangle className="w-3 h-3 flex-shrink-0" />,
-                    text: `Overlap by ${getPrettyDuration(gapStatus.durationMinutes)}`,
-                    title: `Overlap: ${getPrettyDuration(gapStatus.durationMinutes)}`,
+                    className: "bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20",
+                    icon: <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />,
+                    text: `Overlap: ${getPrettyDuration(gapStatus.durationMinutes)}`,
+                    title: `Fix overlap (${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
             case "overdue":
                 return {
-                    className: "bg-orange-100 dark:bg-orange-900/20 text-orange-400 border-orange-200 dark:border-orange-800 opacity-75 hover:bg-orange-200 dark:hover:bg-orange-900/30 cursor-pointer",
-                    icon: null,
-                    text: `+${getPrettyDuration(gapStatus.durationMinutes)} overdue`,
-                    title: `Click to adjust gap (+${getPrettyDuration(gapStatus.durationMinutes)})`,
+                    className: "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20",
+                    icon: <Clock className="w-3.5 h-3.5 flex-shrink-0" />,
+                    text: `Overdue: ${getPrettyDuration(gapStatus.durationMinutes)}`,
+                    title: `Adjust gap (+${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
             case "gap":
                 return {
-                    className: "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 opacity-75 hover:bg-blue-200 dark:hover:bg-blue-900/30 cursor-pointer",
-                    icon: null,
-                    text: `+${getPrettyDuration(gapStatus.durationMinutes)} gap`,
-                    title: `Click to remove gap (-${getPrettyDuration(gapStatus.durationMinutes)})`,
+                    className: "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20",
+                    icon: <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />,
+                    text: `Gap: ${getPrettyDuration(gapStatus.durationMinutes)}`,
+                    title: `Remove gap (-${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
             default:
                 return null;
@@ -104,12 +104,12 @@ export default function EventGapDetection({
     const button = (
         <button
             onClick={handleClick}
-            className={`text-xs px-1.5 py-0.5 rounded border whitespace-nowrap flex items-center gap-1 transition-colors pointer-events-auto ${buttonProps.className}`}
+            className={`w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200 pointer-events-auto ${buttonProps.className}`}
             title={buttonProps.title}
             style={{ pointerEvents: "auto", zIndex: 10 }}
         >
             {buttonProps.icon}
-            {buttonProps.text}
+            <span>{buttonProps.text}</span>
         </button>
     );
 

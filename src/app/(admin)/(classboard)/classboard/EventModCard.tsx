@@ -237,10 +237,6 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
     return (
         <div className="w-full bg-card border border-border rounded-xl overflow-visible shadow-sm relative">
-             {/* Gap Detection - Rendered at Top if needed to match other cards or logic, but user said bottom. 
-                However, for Edit Mode, visual flow might be better if errors are prominent. 
-                Let's put it at bottom as requested. */}
-            
             {/* Header: Student & Controls */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/10">
                 <div className="scale-90 origin-left">
@@ -258,24 +254,23 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
             {/* Footer: Location & Meta */}
             <div className="px-4 pb-4 pt-0 flex items-end justify-between">
                 <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
-                
-                <div className="flex items-center gap-3">
-                     {!isFirst && previousEvent && (
-                        <EventGapDetection
-                            currentEvent={event}
-                            previousEvent={previousEvent}
-                            requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
-                            updateMode="updateOnSave"
-                            onGapAdjust={() => {
-                                queueController.addGap(eventId);
-                                handleRefresh();
-                            }}
-                            wrapperClassName=""
-                        />
-                    )}
-                    <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
-                </div>
+                <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
             </div>
+
+            {/* Gap Detection - Full Width Bottom */}
+            {!isFirst && previousEvent && (
+                <EventGapDetection
+                    currentEvent={event}
+                    previousEvent={previousEvent}
+                    requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
+                    updateMode="updateOnSave"
+                    onGapAdjust={() => {
+                        queueController.addGap(eventId);
+                        handleRefresh();
+                    }}
+                    wrapperClassName="w-full px-4 pb-4 pt-0"
+                />
+            )}
         </div>
     );
 }
