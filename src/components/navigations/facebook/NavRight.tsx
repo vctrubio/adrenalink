@@ -2,8 +2,7 @@
 import { Plus, Search, Sun, Moon } from "lucide-react";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useMemo } from "react";
 import { useSearch } from "@/src/providers/search-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
@@ -16,7 +15,6 @@ import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm
 import Equipment4SchoolForm from "@/src/components/forms/school/Equipment4SchoolForm";
 import { studentFormSchema, defaultStudentForm, teacherFormSchema, defaultTeacherForm, packageFormSchema, defaultPackageForm, equipmentFormSchema, defaultEquipmentForm, type StudentFormData, type TeacherFormData, type PackageFormData, type EquipmentFormData } from "@/types/form-entities";
 import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage } from "@/actions/register-action";
-import toast from "react-hot-toast";
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 
@@ -28,7 +26,6 @@ const ActionButton = ({ icon: Icon, children, onClick }: { icon?: React.ElementT
 );
 
 export const NavRight = () => {
-    const router = useRouter();
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
     const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(null);
@@ -51,13 +48,8 @@ export const NavRight = () => {
 
     // Submit handlers
     const handleStudentSubmit = useCallback(async () => {
-        if (!isStudentFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-        setIsLoadingSubmit(true);
         try {
-            const result = await createAndLinkStudent({
+            await createAndLinkStudent({
                 firstName: studentFormData.firstName,
                 lastName: studentFormData.lastName,
                 passport: studentFormData.passport,
@@ -65,32 +57,16 @@ export const NavRight = () => {
                 phone: studentFormData.phone,
                 languages: studentFormData.languages,
             }, studentFormData.canRent, studentFormData.description || undefined);
-            if (!result.success) {
-                toast.error(result.error || "Failed to create student");
-                setIsLoadingSubmit(false);
-                return;
-            }
-            toast.success("Student created successfully");
             setStudentFormData(defaultStudentForm);
             setSelectedCreateEntity(null);
-            router.push(`/register?studentId=${result.data.id}`);
-            setIsLoadingSubmit(false);
         } catch (error) {
             console.error("Student creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setIsLoadingSubmit(false);
         }
-    }, [isStudentFormValid, studentFormData, router]);
+    }, [studentFormData]);
 
     const handleTeacherSubmit = useCallback(async () => {
-        if (!isTeacherFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-        setIsLoadingSubmit(true);
         try {
-            const result = await createAndLinkTeacher(
+            await createAndLinkTeacher(
                 {
                     firstName: teacherFormData.firstName,
                     lastName: teacherFormData.lastName,
@@ -106,32 +82,16 @@ export const NavRight = () => {
                     commissionDescription: c.commissionDescription,
                 }))
             );
-            if (!result.success) {
-                toast.error(result.error || "Failed to create teacher");
-                setIsLoadingSubmit(false);
-                return;
-            }
-            toast.success("Teacher created successfully");
             setTeacherFormData(defaultTeacherForm);
             setSelectedCreateEntity(null);
-            router.push(`/register?add=teacher:${result.data.teacher.id}`);
-            setIsLoadingSubmit(false);
         } catch (error) {
             console.error("Teacher creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setIsLoadingSubmit(false);
         }
-    }, [isTeacherFormValid, teacherFormData, router]);
+    }, [teacherFormData]);
 
     const handlePackageSubmit = useCallback(async () => {
-        if (!isPackageFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-        setIsLoadingSubmit(true);
         try {
-            const result = await createSchoolPackage({
+            await createSchoolPackage({
                 durationMinutes: packageFormData.durationMinutes,
                 description: packageFormData.description,
                 pricePerStudent: packageFormData.pricePerStudent,
@@ -141,44 +101,23 @@ export const NavRight = () => {
                 packageType: packageFormData.packageType,
                 isPublic: packageFormData.isPublic,
             });
-            if (!result.success) {
-                toast.error(result.error || "Failed to create package");
-                setIsLoadingSubmit(false);
-                return;
-            }
-            toast.success("Package created successfully");
             setPackageFormData(defaultPackageForm);
             setSelectedCreateEntity(null);
-            router.push(`/register?add=package:${result.data.id}`);
-            setIsLoadingSubmit(false);
         } catch (error) {
             console.error("Package creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setIsLoadingSubmit(false);
         }
-    }, [isPackageFormValid, packageFormData, router]);
+    }, [packageFormData]);
 
     const handleEquipmentSubmit = useCallback(async () => {
-        if (!isEquipmentFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-        setIsLoadingSubmit(true);
         try {
             // TODO: Create equipment server action
-            // const result = await createEquipment({...});
-            toast.success("Equipment created successfully");
+            // await createEquipment({...});
             setEquipmentFormData(defaultEquipmentForm);
             setSelectedCreateEntity(null);
-            setIsLoadingSubmit(false);
         } catch (error) {
             console.error("Equipment creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setIsLoadingSubmit(false);
         }
-    }, [isEquipmentFormValid, equipmentFormData]);
+    }, [equipmentFormData]);
 
     const createEntities = ENTITY_DATA.filter((entity) => CREATE_ENTITIES.includes(entity.id));
     const createDropdownItems: DropdownItemProps[] = createEntities.map((entity) => ({
