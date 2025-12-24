@@ -2,38 +2,26 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
-import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 import StudentClassDaily from "./StudentClassDaily";
 import LessonFlagClassDaily from "./LessonFlagClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
+import ClassboardHeader from "./ClassboardHeader";
+import ClassboardController from "./ClassboardController";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { createClassboardEvent } from "@/actions/classboard-action";
-import { ENTITY_DATA } from "@/config/entities";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
 
 interface ClientClassboardProps {
     data: ClassboardModel;
 }
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
-    const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
+    const { selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
 
     const [refreshKey, setRefreshKey] = useState(0);
-    const [dayOfWeek, setDayOfWeek] = useState("");
-
-    // Format selected date to show day of week
-    const getDayOfWeek = (dateString: string) => {
-        const date = new Date(dateString);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        return days[date.getDay()];
-    };
-
-    useEffect(() => {
-        setDayOfWeek(getDayOfWeek(selectedDate));
-    }, [selectedDate]);
+    const [isControllerCollapsed, setIsControllerCollapsed] = useState(true);
 
     // Create global flag instance
     const globalFlag = useMemo(
@@ -102,21 +90,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             {/* Constrained sections */}
             <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
                 {/* Header */}
-                <div className="flex items-center justify-between p-2.5">
-                    <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                    <div className="flex items-center gap-3">
-                        {(() => {
-                            const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
-                            return bookingEntity ? (
-                                <div className="flex items-center gap-2">
-                                    <BookingIcon className="w-5 h-5" style={{ color: bookingEntity.color }} />
-                                    <span className="text-sm font-semibold text-foreground">{draggableBookings.length}</span>
-                                </div>
-                            ) : null;
-                        })()}
-                        <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
-                    </div>
-                </div>
+                <ClassboardHeader selectedDate={selectedDate} onDateChange={setSelectedDate} draggableBookings={draggableBookings} classboardStats={classboardStats} />
 
                 {/* Students */}
                 <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
@@ -136,6 +110,14 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                         setOnNewBooking={setOnNewBooking}
                     />
                 </div>
+
+                {/* Controller */}
+                <ClassboardController
+                    controller={controller}
+                    setController={setController}
+                    isCollapsed={isControllerCollapsed}
+                    onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)}
+                />
 
                 {/* Lesson Flag */}
                 <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />

@@ -3,11 +3,28 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  getRelativeDateLabel,
   formatDateForInput,
   getTodayDateString,
   addDays,
 } from "@/getters/date-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
+
+function getRelativeDateLabel(selectedDate: string): string {
+  const selectedDateObj = new Date(selectedDate);
+  const todayObj = new Date(getTodayDateString());
+  selectedDateObj.setHours(0, 0, 0, 0);
+  todayObj.setHours(0, 0, 0, 0);
+
+  const diffTime = selectedDateObj.getTime() - todayObj.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays > 0) {
+    return `+${getCompactNumber(diffDays)}d`;
+  } else if (diffDays < 0) {
+    return `${getCompactNumber(diffDays)}d`;
+  }
+  return "";
+}
 
 interface SingleDatePickerProps {
   selectedDate?: string;
@@ -30,11 +47,8 @@ export function SingleDatePicker({
   const pathname = usePathname();
   const [isToday, setIsToday] = useState(false);
   const [relativeLabel, setRelativeLabel] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-
     const today = getTodayDateString();
     const todayCheck = selectedDate === today;
     setIsToday(todayCheck);
@@ -93,11 +107,11 @@ export function SingleDatePicker({
     <div className={`space-y-2 ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
       <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {showTodayButton && isMounted && isToday ? (
+          {showTodayButton && isToday ? (
             <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">
               Today
             </span>
-          ) : showTodayButton && isMounted && !isToday ? (
+          ) : showTodayButton && !isToday ? (
             <button
               type="button"
               onClick={() => updateDate(getTodayDateString())}
@@ -108,7 +122,7 @@ export function SingleDatePicker({
             </button>
           ) : null}
         </div>
-        {isMounted && relativeLabel && !isToday && (
+        {relativeLabel && !isToday && (
           <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">
             {relativeLabel}
           </span>
