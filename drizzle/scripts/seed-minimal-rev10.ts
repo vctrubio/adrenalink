@@ -236,8 +236,8 @@ const main = async () => {
         console.log(`   Students: ${students.length}`);
         console.log(`   Packages: ${packages.length}`);
         console.log(`   Equipment: ${equipmentRecords.length} items`);
-        console.log(`   Teacher-Equipment Relations: ✅`);
-        console.log(`   Realtime: Configured`);
+        console.log("   Teacher-Equipment Relations: ✅");
+        console.log("   Realtime: Configured");
         console.log("\n🎯 Ready for testing the register route!");
     } catch (error) {
         console.error("❌ Seed failed:", error);

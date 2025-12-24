@@ -40,7 +40,7 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                     <input
                         type="text"
                         placeholder="Search..."
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none transition-all"
+                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none transition-all focus:bg-background"
                         onFocus={(e) => (e.currentTarget.style.boxShadow = `0 0 0 2px ${entity.color}40`)}
                         onBlur={(e) => (e.currentTarget.style.boxShadow = "")}
                     />

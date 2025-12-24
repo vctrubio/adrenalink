@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useMemo, memo, useState } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
-import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
+import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { languagesEnum } from "@/drizzle/schema";
-import TeacherCommissionForm from "./TeacherCommissionForm";
+import TeacherCommissionForm from "../TeacherCommissionForm";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
+import { MasterSchoolForm } from "./MasterSchoolForm";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
@@ -43,7 +43,7 @@ interface TeacherFormProps {
 }
 
 // Sub-component: Name Fields
-function NameFields({
+const NameFields = memo(function NameFields({
     firstName,
     lastName,
     onFirstNameChange,
@@ -97,10 +97,10 @@ function NameFields({
             </FormField>
         </div>
     );
-}
+});
 
 // Sub-component: Username Field
-function UsernameField({
+const UsernameField = memo(function UsernameField({
     username,
     onUsernameChange,
     usernameError,
@@ -130,10 +130,10 @@ function UsernameField({
             </p>
         </FormField>
     );
-}
+});
 
 // Sub-component: Passport Field
-function PassportField({
+const PassportField = memo(function PassportField({
     passport,
     onPassportChange,
     passportError,
@@ -160,10 +160,10 @@ function PassportField({
             />
         </FormField>
     );
-}
+});
 
 // Sub-component: Languages Selection
-function LanguagesField({
+const LanguagesField = memo(function LanguagesField({
     languages,
     onLanguageToggle,
     onCustomLanguageAdd,
@@ -177,24 +177,26 @@ function LanguagesField({
     const [customLanguage, setCustomLanguage] = useState("");
     const [showOtherInput, setShowOtherInput] = useState(false);
 
-    const handleAddCustomLanguage = () => {
+    const handleAddCustomLanguage = useCallback(() => {
         if (customLanguage.trim()) {
             onCustomLanguageAdd(customLanguage.trim());
             setCustomLanguage("");
             setShowOtherInput(false);
         }
-    };
+    }, [customLanguage, onCustomLanguageAdd]);
 
-    const handleRemoveLanguage = (language: string) => {
+    const handleRemoveLanguage = useCallback((language: string) => {
         onLanguageToggle(language);
-    };
+    }, [onLanguageToggle]);
 
-    const standardLanguages = languages.filter((lang) => 
-        LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
-    );
-    const customLanguages = languages.filter((lang) => 
-        !LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
-    );
+    const { standardLanguages, customLanguages } = useMemo(() => ({
+        standardLanguages: languages.filter((lang) =>
+            LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
+        ),
+        customLanguages: languages.filter((lang) =>
+            !LANGUAGE_OPTIONS.includes(lang as typeof LANGUAGE_OPTIONS[number])
+        ),
+    }), [languages]);
 
     return (
         <FormField
@@ -283,12 +285,17 @@ function LanguagesField({
             </div>
         </FormField>
     );
-}
+});
 
 // Main component - ONLY RENDERS
 export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: TeacherFormProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
-    const TeacherIcon = teacherEntity?.icon;
+
+    // Memoize entity title to prevent re-renders on keystroke
+    const entityTitle = useMemo(() => {
+        const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
+        return name || "New Teacher";
+    }, [formData.firstName, formData.lastName]);
 
     const handleLanguageToggle = useCallback((language: string) => {
         onFormDataChange((prevData: TeacherFormData) => {
@@ -331,33 +338,8 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
         return getFieldError(field) === undefined && !!formData[field];
     };
 
-    return (
-        <div className="space-y-6">
-            {/* Header with Icon */}
-            <div className="flex items-center gap-3">
-                {TeacherIcon && (
-                    <div
-                        className="w-10 h-10 flex items-center justify-center transition-all duration-300"
-                        style={{
-                            color: isFormReady ? teacherEntity?.color : "#94a3b8",
-                        }}
-                    >
-                        <TeacherIcon className="w-10 h-10 transition-all duration-300" />
-                    </div>
-                )}
-                <motion.h2
-                    className="text-2xl font-bold text-foreground"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    key={formData.firstName && formData.lastName ? "named" : "new"}
-                >
-                    {formData.firstName && formData.lastName
-                        ? `${formData.firstName} ${formData.lastName}`
-                        : "New Teacher"}
-                </motion.h2>
-            </div>
-
+    const formContent = (
+        <>
             {/* Name Fields */}
             <NameFields
                 firstName={formData.firstName}
@@ -412,6 +394,21 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
                 commissions={formData.commissions}
                 onCommissionsChange={(commissions) => onFormDataChange((prevData) => ({ ...prevData, commissions }))}
             />
-        </div>
+        </>
+    );
+
+    return (
+        <MasterSchoolForm
+            icon={teacherEntity?.icon}
+            color={teacherEntity?.color}
+            entityTitle={entityTitle}
+            isFormReady={isFormReady}
+            onSubmit={onSubmit || (() => Promise.resolve())}
+            onCancel={() => {}}
+            isLoading={isLoading}
+            submitLabel="Add Teacher"
+        >
+            {formContent}
+        </MasterSchoolForm>
     );
 }

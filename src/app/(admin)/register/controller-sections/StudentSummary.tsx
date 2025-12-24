@@ -1,4 +1,4 @@
-import type { StudentFormData } from "@/src/components/forms/Student4SchoolForm";
+import type { StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 interface StudentSummaryProps {

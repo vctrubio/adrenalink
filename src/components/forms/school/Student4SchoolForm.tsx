@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useMemo, memo, useState } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
-import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
+import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { languagesEnum } from "@/drizzle/schema";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
+import { MasterSchoolForm } from "./MasterSchoolForm";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
@@ -37,7 +37,7 @@ interface StudentFormProps {
 }
 
 // Sub-component: Name Fields
-function NameFields({
+const NameFields = memo(function NameFields({
     firstName,
     lastName,
     onFirstNameChange,
@@ -68,36 +68,38 @@ function NameFields({
             </FormField>
         </div>
     );
-}
+});
 
 // Sub-component: Passport Field
-function PassportField({ passport, onPassportChange, passportError, passportIsValid }: { passport: string; onPassportChange: (value: string) => void; passportError?: string; passportIsValid?: boolean }) {
+const PassportField = memo(function PassportField({ passport, onPassportChange, passportError, passportIsValid }: { passport: string; onPassportChange: (value: string) => void; passportError?: string; passportIsValid?: boolean }) {
     return (
         <FormField label="Passport" required error={passportError} isValid={passportIsValid}>
             <FormInput type="text" value={passport} onChange={(e) => onPassportChange(e.target.value)} placeholder="Enter passport number" error={!!passportError} />
         </FormField>
     );
-}
+});
 
 // Sub-component: Languages Selection
-function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, languagesError }: { languages: string[]; onLanguageToggle: (language: string) => void; onCustomLanguageAdd: (language: string) => void; languagesError?: string }) {
+const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, languagesError }: { languages: string[]; onLanguageToggle: (language: string) => void; onCustomLanguageAdd: (language: string) => void; languagesError?: string }) {
     const [customLanguage, setCustomLanguage] = useState("");
     const [showOtherInput, setShowOtherInput] = useState(false);
 
-    const handleAddCustomLanguage = () => {
+    const handleAddCustomLanguage = useCallback(() => {
         if (customLanguage.trim()) {
             onCustomLanguageAdd(customLanguage.trim());
             setCustomLanguage("");
             setShowOtherInput(false);
         }
-    };
+    }, [customLanguage, onCustomLanguageAdd]);
 
-    const handleRemoveLanguage = (language: string) => {
+    const handleRemoveLanguage = useCallback((language: string) => {
         onLanguageToggle(language);
-    };
+    }, [onLanguageToggle]);
 
-    const standardLanguages = languages.filter((lang) => LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number]));
-    const customLanguages = languages.filter((lang) => !LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number]));
+    const { standardLanguages, customLanguages } = useMemo(() => ({
+        standardLanguages: languages.filter((lang) => LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number])),
+        customLanguages: languages.filter((lang) => !LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number])),
+    }), [languages]);
 
     return (
         <FormField label="Languages" required error={languagesError} isValid={languages.length > 0}>
@@ -167,10 +169,10 @@ function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, lang
             </div>
         </FormField>
     );
-}
+});
 
 // Sub-component: Description Field
-function DescriptionField({ description, onDescriptionChange }: { description: string; onDescriptionChange: (value: string) => void }) {
+const DescriptionField = memo(function DescriptionField({ description, onDescriptionChange }: { description: string; onDescriptionChange: (value: string) => void }) {
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">Description</label>
@@ -183,10 +185,10 @@ function DescriptionField({ description, onDescriptionChange }: { description: s
             />
         </div>
     );
-}
+});
 
 // Sub-component: Can Rent Toggle
-function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRentChange: (value: boolean) => void }) {
+const CanRentField = memo(function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRentChange: (value: boolean) => void }) {
     return (
         <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Independent (Can Rent)</label>
@@ -199,13 +201,17 @@ function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRen
             />
         </div>
     );
-}
+});
 
 // Main component - ONLY RENDERS
 export default function StudentForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false }: StudentFormProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-    const StudentIcon = studentEntity?.icon;
 
+    // Memoize entity title to prevent re-renders on keystroke
+    const entityTitle = useMemo(() => {
+        const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
+        return name || "New Student";
+    }, [formData.firstName, formData.lastName]);
 
     const handleLanguageToggle = useCallback((language: string) => {
         onFormDataChange((prevData: StudentFormData) => {
@@ -248,33 +254,8 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
         return getFieldError(field) === undefined && !!formData[field];
     };
 
-    return (
-        <div className="space-y-6">
-            {/* Header with Icon */}
-            <div className="flex items-center gap-3">
-                {StudentIcon && (
-                    <div
-                        className="w-10 h-10 flex items-center justify-center transition-all duration-300"
-                        style={{
-                            color: isFormReady ? studentEntity?.color : "#94a3b8",
-                        }}
-                    >
-                        <StudentIcon className="w-10 h-10 transition-all duration-300" />
-                    </div>
-                )}
-                <motion.h2
-                    className="text-2xl font-bold text-foreground"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    key={formData.firstName && formData.lastName ? "named" : "new"}
-                >
-                    {formData.firstName && formData.lastName
-                        ? `${formData.firstName} ${formData.lastName}`
-                        : "New Student"}
-                </motion.h2>
-            </div>
-
+    const formContent = (
+        <>
             {/* Name Fields */}
             <NameFields
                 firstName={formData.firstName}
@@ -310,6 +291,21 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
 
             {/* Can Rent */}
             <CanRentField canRent={formData.canRent} onCanRentChange={(value) => updateField("canRent", value)} />
-        </div>
+        </>
+    );
+
+    return (
+        <MasterSchoolForm
+            icon={studentEntity?.icon}
+            color={studentEntity?.color}
+            entityTitle={entityTitle}
+            isFormReady={isFormReady}
+            onSubmit={onSubmit || (() => Promise.resolve())}
+            onCancel={() => {}}
+            isLoading={isLoading}
+            submitLabel="Add Student"
+        >
+            {formContent}
+        </MasterSchoolForm>
     );
 }

@@ -39,7 +39,7 @@ export function ReferralTable({
 
     // Filter and sort referrals
     const filteredReferrals = useMemo(() => {
-        let filtered = referrals.filter((referral) => {
+        const filtered = referrals.filter((referral) => {
             const searchLower = search.toLowerCase();
             return referral.code.toLowerCase().includes(searchLower);
         });

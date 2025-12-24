@@ -1,4 +1,4 @@
-import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
+import type { PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";

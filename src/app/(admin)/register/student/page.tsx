@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useRegisterActions, useStudentFormState, useFormRegistration } from "../RegisterContext";
-import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/Student4SchoolForm";
+import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
 import { createAndLinkStudent } from "@/actions/register-action";
 import toast from "react-hot-toast";
 
@@ -19,7 +18,6 @@ const defaultStudentForm: StudentFormData = {
 };
 
 export default function StudentPage() {
-    const router = useRouter();
     const { addToQueue } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
@@ -71,8 +69,6 @@ export default function StudentPage() {
                 type: "student",
             });
 
-            toast.success(`Student added: ${formData.firstName} ${formData.lastName}`);
-
             // Reset form but keep country and phone for next entry
             setFormData({
                 firstName: "",
@@ -89,7 +85,7 @@ export default function StudentPage() {
             const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
             toast.error(errorMessage);
         }
-    }, [isFormValid, formData, addToQueue, setContextForm]);
+    }, [isFormValid, formData, addToQueue]);
 
     // Register submit handler in context
     useEffect(() => {
@@ -99,7 +95,13 @@ export default function StudentPage() {
     return (
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
-                <StudentForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />
+                <StudentForm
+                    formData={formData}
+                    onFormDataChange={setFormData}
+                    isFormReady={isFormValid}
+                    onSubmit={handleSubmit}
+                    isLoading={false}
+                />
             </div>
         </div>
     );

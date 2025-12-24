@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
-import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/Teacher4SchoolForm";
+import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/actions/register-action";
 import toast from "react-hot-toast";
 
@@ -73,9 +73,11 @@ export default function TeacherPage() {
                 name: result.data.teacher.username,
                 timestamp: Date.now(),
                 type: "teacher",
+                metadata: {
+                    ...result.data.teacher,
+                    commissions: result.data.teacher.commissions || [],
+                },
             });
-
-            toast.success(`Teacher added: ${formData.firstName} ${formData.lastName}`);
 
             // Reset form but keep country and phone for next entry
             setFormData({
@@ -103,7 +105,13 @@ export default function TeacherPage() {
     return (
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
-                <TeacherForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />
+                <TeacherForm
+                    formData={formData}
+                    onFormDataChange={setFormData}
+                    isFormReady={isFormValid}
+                    onSubmit={handleSubmit}
+                    isLoading={false}
+                />
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
+import type { TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 
 interface TeacherSummaryProps {

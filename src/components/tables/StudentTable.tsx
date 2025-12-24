@@ -56,7 +56,7 @@ export function StudentTable({
 
     // Filter and sort students
     const filteredStudents = useMemo(() => {
-        let filtered = students.filter((schoolStudent) => {
+        const filtered = students.filter((schoolStudent) => {
             const student = schoolStudent.student;
             const searchLower = search.toLowerCase();
 

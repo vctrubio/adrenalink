@@ -16,8 +16,8 @@ interface BookingTagProps {
 export const BookingTag = ({ icon, dateStart, dateEnd, status, link }: BookingTagProps) => {
     const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
 
-    const startDateStr = typeof dateStart === 'string' ? dateStart : dateStart.toISOString();
-    const endDateStr = typeof dateEnd === 'string' ? dateEnd : dateEnd.toISOString();
+    const startDateStr = typeof dateStart === "string" ? dateStart : dateStart.toISOString();
+    const endDateStr = typeof dateEnd === "string" ? dateEnd : dateEnd.toISOString();
 
     const isCompleted = status === "completed";
     const color = isCompleted ? bookingEntity.color : "#9ca3af";

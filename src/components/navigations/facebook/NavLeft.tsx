@@ -37,18 +37,7 @@ export const NavLeft = () => {
     return (
         <div className="flex items-center gap-1">
             <Link href="/" className="flex items-center">
-                {logoUrl ? (
-                    <Image
-                        src={logoUrl}
-                        alt={schoolUsername || "School Logo"}
-                        width={40}
-                        height={40}
-                        className="rounded-full object-cover"
-                        priority
-                    />
-                ) : (
-                    <AdranlinkIcon size={40} className="text-secondary" />
-                )}
+                {logoUrl ? <Image src={logoUrl} alt={schoolUsername || "School Logo"} width={40} height={40} className="rounded-full object-cover" priority /> : <AdranlinkIcon size={40} className="text-secondary" />}
             </Link>
             {routesToRender.map((route) => {
                 let isActive = false;
@@ -71,13 +60,7 @@ export const NavLeft = () => {
                                 }}
                                 variant="nav"
                             />
-                            <Dropdown
-                                isOpen={isDropdownOpen}
-                                onClose={() => setIsDropdownOpen(false)}
-                                items={databoardDropdownItems}
-                                align="center"
-                                initialFocusedId={activeDropdownItem?.id}
-                            />
+                            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={databoardDropdownItems} align="center" initialFocusedId={activeDropdownItem?.id} />
                         </div>
                     );
                 }

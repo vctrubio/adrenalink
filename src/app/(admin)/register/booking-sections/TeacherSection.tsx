@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
@@ -8,9 +8,9 @@ import { ENTITY_DATA } from "@/config/entities";
 import { TeacherTable } from "@/src/components/tables/TeacherTable";
 import { TeacherCommissionBadge } from "@/src/components/ui/badge";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
-import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
+import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/actions/register-action";
-import { useRegisterActions } from "../RegisterContext";
+import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 
 interface Commission {
     id: string;
@@ -60,12 +60,14 @@ export function TeacherSection({
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
     const pathname = usePathname();
     const router = useRouter();
-    const { addTeacher } = useRegisterActions();
+    const { addTeacher, addToQueue } = useRegisterActions();
+    const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
+    const { setFormValidity } = useFormRegistration();
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<TeacherFormData>({
+    const [formData, setFormData] = useState<TeacherFormData>(contextForm || {
         firstName: "",
         lastName: "",
         username: "",
@@ -75,6 +77,20 @@ export function TeacherSection({
         languages: ["English"],
         commissions: [],
     });
+
+    // Update context when form data changes
+    useEffect(() => {
+        setContextForm(formData);
+    }, [formData, setContextForm]);
+
+    const isFormValid = useMemo(() => {
+        return teacherFormSchema.safeParse(formData).success;
+    }, [formData]);
+
+    // Update form validity in context
+    useEffect(() => {
+        setFormValidity(isFormValid);
+    }, [isFormValid, setFormValidity]);
 
     const title = selectedTeacher && selectedCommission
         ? (
@@ -87,9 +103,8 @@ export function TeacherSection({
         ? `${selectedTeacher.firstName} - Select Commission`
         : "Teacher";
 
-    const handleSubmit = async () => {
-        const validation = teacherFormSchema.safeParse(formData);
-        if (!validation.success) {
+    const handleSubmit = useCallback(async () => {
+        if (!isFormValid) {
             toast.error("Please fill all required fields");
             return;
         }
@@ -104,13 +119,31 @@ export function TeacherSection({
                 country: formData.country,
                 phone: formData.phone,
                 languages: formData.languages,
-            });
+            },
+            formData.commissions.map(c => ({
+                commissionType: c.commissionType,
+                commissionValue: c.commissionValue,
+                commissionDescription: c.commissionDescription,
+            }))
+            );
 
             if (!result.success) {
                 toast.error(result.error || "Failed to create teacher");
                 setLoading(false);
                 return;
             }
+
+            // Add to queue with full teacher data
+            addToQueue("teachers", {
+                id: result.data.teacher.id,
+                name: result.data.teacher.username,
+                timestamp: Date.now(),
+                type: "teacher",
+                metadata: {
+                    ...result.data.teacher,
+                    commissions: result.data.teacher.commissions || [],
+                },
+            });
 
             // Optimistic update to data
             const newTeacher = {
@@ -144,10 +177,12 @@ export function TeacherSection({
 
             setLoading(false);
         } catch (error) {
-            toast.error("Unexpected error");
+            console.error("Teacher creation error:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+            toast.error(errorMessage);
             setLoading(false);
         }
-    };
+    }, [isFormValid, formData, addTeacher, addToQueue, pathname, router]);
 
     return (
         <>
@@ -186,26 +221,10 @@ export function TeacherSection({
                 <TeacherForm
                     formData={formData}
                     onFormDataChange={setFormData}
-                    isFormReady={teacherFormSchema.safeParse(formData).success}
+                    isFormReady={isFormValid}
+                    onSubmit={handleSubmit}
+                    isLoading={loading}
                 />
-
-                {/* Submit button */}
-                <div className="mt-6 flex gap-3">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading || !teacherFormSchema.safeParse(formData).success}
-                        className="flex-1 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {loading ? "Creating..." : "Add Teacher"}
-                    </button>
-                    <button
-                        onClick={() => setIsDialogOpen(false)}
-                        disabled={loading}
-                        className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                </div>
             </EntityAddDialog>
         </>
     );

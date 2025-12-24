@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
-import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData } from "./RegisterContext";
+import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues } from "./RegisterContext";
 import { DateSection } from "./booking-sections/DateSection";
 import { PackageSection } from "./booking-sections/PackageSection";
 import { StudentsSection } from "./booking-sections/StudentsSection";
@@ -37,6 +37,7 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const { removeFromQueue, refreshData, isRefreshing } = useRegisterActions();
     const contextData = useRegisterData();
     const bookingForm = useBookingForm();
+    const queues = useRegisterQueues();
 
     // Use context data (updated by refreshData) or fall back to props for initial load
     const currentStudents = contextData.students || students;
@@ -85,14 +86,17 @@ export default function BookingForm({ school, schoolPackages, students, teachers
 
     // Refresh data when add param is detected for the first time
     useEffect(() => {
-        if (addParam && processedParamRef.current !== addParam) {
+        if (addParam && refreshInitiatedRef.current !== addParam) {
+            refreshInitiatedRef.current = addParam;
             refreshData();
         }
     }, [addParam, refreshData]);
 
     // Handle ?add=entity:id param to auto-select entities from queue
+    // Wait for data to refresh first
     useEffect(() => {
         if (!addParam || processedParamRef.current === addParam) return;
+        if (isRefreshing) return; // Wait for refresh to complete
 
         processedParamRef.current = addParam;
 
@@ -110,7 +114,8 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
             setExpandedSections(prev => new Set([...prev, "teacher-section"]));
-            const teacher = currentTeachers.find(t => t.id === entityId);
+            const queueItem = queues.teachers.find((item: any) => item.id === entityId);
+            const teacher = queueItem?.metadata || currentTeachers.find(t => t.id === entityId);
             if (teacher) {
                 bookingForm.setForm({ selectedTeacher: teacher });
                 if (extraId) {
@@ -124,14 +129,15 @@ export default function BookingForm({ school, schoolPackages, students, teachers
             router.replace("/register", { scroll: false });
         } else if (entityType === "package") {
             setExpandedSections(prev => new Set([...prev, "package-section"]));
-            const pkg = currentPackages.find(p => p.id === entityId);
+            const queueItem = queues.packages.find((item: any) => item.id === entityId);
+            const pkg = queueItem?.metadata || currentPackages.find(p => p.id === entityId);
             if (pkg) {
                 bookingForm.setForm({ selectedPackage: pkg });
             }
             removeFromQueue("packages", entityId);
             router.replace("/register", { scroll: false });
         }
-    }, [addParam, selectedStudentIds, currentTeachers, currentPackages, removeFromQueue, router, bookingForm]);
+    }, [addParam, isRefreshing, selectedStudentIds, currentTeachers, currentPackages, queues, removeFromQueue, router, bookingForm]);
 
     const selectedStudentsList = currentStudents
         .map(ss => ss.student)
@@ -250,7 +256,6 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 students={currentStudents}
                 selectedStudentIds={selectedStudentIds}
                 onToggle={handleStudentToggle}
-                preSelectedId={studentIdParam}
                 isExpanded={expandedSections.has("students-section")}
                 onSectionToggle={() => toggleSection("students-section")}
                 studentStatsMap={studentBookingStats}

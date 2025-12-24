@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { ENTITY_DATA } from "@/config/entities";
 import { SchoolHeader } from "./controller-sections/SchoolHeader";
 import { FormSelector } from "./controller-sections/FormSelector";
 import { StudentSummary } from "./controller-sections/StudentSummary";
@@ -13,13 +12,7 @@ import { TeacherSummary } from "./controller-sections/TeacherSummary";
 import { PackageSummary } from "./controller-sections/PackageSummary";
 import { BookingSummary } from "./controller-sections/BookingSummary";
 import { ControllerActions } from "./controller-sections/ControllerActions";
-import {
-    useRegisterQueues,
-    useBookingForm,
-    useStudentFormState,
-    useTeacherFormState,
-    usePackageFormState
-} from "./RegisterContext";
+import { useBookingForm, useStudentFormState, useTeacherFormState, usePackageFormState } from "./RegisterContext";
 import RegisterQueue from "./RegisterQueue";
 
 type FormType = "booking" | "student" | "package" | "teacher";
@@ -125,15 +118,7 @@ export default function RegisterController({
                 {activeForm === "student" && studentFormData && (
                     <div className="space-y-4">
                         <StudentSummary studentFormData={studentFormData} />
-                        <ControllerActions 
-                            onSubmit={handleActionSubmit} 
-                            onReset={onReset} 
-                            loading={isActionLoading} 
-                            canSubmit={isFormValid} 
-                            submitLabel="Create Student" 
-                            resetLabel="Cancel" 
-                            error={error} 
-                        />
+                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Student" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -141,15 +126,7 @@ export default function RegisterController({
                 {activeForm === "teacher" && teacherFormData && (
                     <div className="space-y-4">
                         <TeacherSummary teacherFormData={teacherFormData} />
-                        <ControllerActions 
-                            onSubmit={handleActionSubmit} 
-                            onReset={onReset} 
-                            loading={isActionLoading} 
-                            canSubmit={isFormValid} 
-                            submitLabel="Create Teacher" 
-                            resetLabel="Cancel" 
-                            error={error} 
-                        />
+                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Teacher" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -157,15 +134,7 @@ export default function RegisterController({
                 {activeForm === "package" && packageFormData && (
                     <div className="space-y-4">
                         <PackageSummary packageFormData={packageFormData} />
-                        <ControllerActions 
-                            onSubmit={handleActionSubmit} 
-                            onReset={onReset} 
-                            loading={isActionLoading} 
-                            canSubmit={isFormValid} 
-                            submitLabel="Create Package" 
-                            resetLabel="Cancel" 
-                            error={error} 
-                        />
+                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Package" resetLabel="Cancel" error={error} />
                     </div>
                 )}
 
@@ -230,14 +199,14 @@ export default function RegisterController({
                                 </div>
                             </div>
                         )}
-                        <ControllerActions 
-                            onSubmit={handleActionSubmit} 
-                            onReset={onReset} 
-                            loading={isActionLoading} 
-                            canSubmit={isFormValid} 
-                            submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"} 
-                            resetLabel="Reset" 
-                            error={error} 
+                        <ControllerActions
+                            onSubmit={handleActionSubmit}
+                            onReset={onReset}
+                            loading={isActionLoading}
+                            canSubmit={isFormValid}
+                            submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"}
+                            resetLabel="Reset"
+                            error={error}
                         />
                     </div>
                 )}

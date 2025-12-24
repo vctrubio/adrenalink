@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
-import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/Package4SchoolForm";
+import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
 import { createSchoolPackage } from "@/actions/register-action";
 import toast from "react-hot-toast";
 
@@ -67,9 +67,17 @@ export default function PackagePage() {
                 name: formData.description,
                 timestamp: Date.now(),
                 type: "package",
+                metadata: {
+                    id: result.data.id,
+                    description: result.data.description,
+                    durationMinutes: result.data.durationMinutes,
+                    pricePerStudent: result.data.pricePerStudent,
+                    capacityStudents: result.data.capacityStudents,
+                    capacityEquipment: result.data.capacityEquipment,
+                    categoryEquipment: result.data.categoryEquipment,
+                    isPublic: result.data.isPublic,
+                },
             });
-
-            toast.success(`Package added: ${formData.description}`);
 
             // Reset form
             setFormData({
@@ -97,7 +105,13 @@ export default function PackagePage() {
     return (
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
-                <Package4SchoolForm formData={formData} onFormDataChange={setFormData} isFormReady={isFormValid} />
+                <Package4SchoolForm
+                    formData={formData}
+                    onFormDataChange={setFormData}
+                    isFormReady={isFormValid}
+                    onSubmit={handleSubmit}
+                    isLoading={false}
+                />
             </div>
         </div>
     );

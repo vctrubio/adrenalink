@@ -3,9 +3,9 @@
 import { createContext, useContext, ReactNode, useState, useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import type { RegisterTables } from "@/supabase/server";
-import type { StudentFormData } from "@/src/components/forms/Student4SchoolForm";
-import type { TeacherFormData } from "@/src/components/forms/Teacher4SchoolForm";
-import type { PackageFormData } from "@/src/components/forms/Package4SchoolForm";
+import type { StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
+import type { TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
+import type { PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
 
 interface QueueItem {
     id: string;
