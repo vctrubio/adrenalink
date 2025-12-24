@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { ActiveStudentBookingTab } from "@/src/components/tabs/ActiveStudentBookingTab";
+import StudentBookingCard from "./StudentBookingCard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -94,7 +94,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         const bookingData = classboardData[booking.bookingId];
                         if (!bookingData) return null;
 
-                        return <ActiveStudentBookingTab key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
+                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
                     })
                 ) : (
                     <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No {filter} students</div>
