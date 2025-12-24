@@ -43,6 +43,8 @@ export const DataboardRowsSection = <T extends { id: string }>({
         controller.onGroupChange,
         controller.activity,
         entityId,
+        controller.search,
+        controller.onSearchChange,
     );
 
     // Calculate filtered data count - flatten all groups
@@ -90,6 +92,7 @@ export const DataboardRowsSection = <T extends { id: string }>({
             setExpandedRow={setExpandedRow}
             entityId={entityId}
             entityColor={entityColor}
+            calculateStats={calculateStats as any}
         />
     );
 };

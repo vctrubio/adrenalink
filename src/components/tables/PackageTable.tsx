@@ -9,6 +9,7 @@ import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
+import { filterBySearch } from "@/types/searching-entities";
 
 interface Package {
     id: string;
@@ -62,14 +63,9 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
 
     // Filter and sort packages
     const processedPackages = useMemo(() => {
-        const filtered = packagesWithMatch.filter((pkg) => {
-            const searchLower = search.toLowerCase();
-
-            // Search filter
-            if (!pkg.description?.toLowerCase().includes(searchLower)) {
-                return false;
-            }
-
+        let filtered = filterBySearch(packagesWithMatch, search, (pkg) => pkg.description);
+        
+        filtered = filtered.filter((pkg) => {
             // Public/Private filter
             if (publicPrivateFilter === "Public" && !pkg.isPublic) {
                 return false;

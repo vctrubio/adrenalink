@@ -7,6 +7,7 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
+import { filterBySearch } from "@/types/searching-entities";
 
 interface Commission {
     id: string;
@@ -50,14 +51,9 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
 
     // Filter and sort teachers
     const filteredTeachers = useMemo(() => {
-        const filtered = teachers.filter((teacher) => {
-            const searchLower = search.toLowerCase();
+        let filtered = filterBySearch(teachers, search, (teacher) => teacher.username);
 
-            // Search filter
-            const matchesSearch = teacher.username.toLowerCase().includes(searchLower);
-
-            if (!matchesSearch) return false;
-
+        filtered = filtered.filter((teacher) => {
             // Status filter
             const stats = teacherStatsMap[teacher.id];
             if (statusFilter === "New") {

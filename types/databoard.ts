@@ -17,6 +17,8 @@ export interface DataboardController {
 	onGroupChange: (value: DataboardGroupByDate | string) => void;
 	activity: DataboardActivityFilter;
 	onActivityChange: (value: DataboardActivityFilter) => void;
+	search: string;
+	onSearchChange: (value: string) => void;
 	isSelectionMode: boolean;
 	onSelectionModeToggle: (enabled: boolean) => void;
 	selectedCount: number;

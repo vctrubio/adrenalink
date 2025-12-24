@@ -24,6 +24,7 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const [filter, setFilter] = useState<DataboardFilterByDate>("All");
     const [group, setGroup] = useState<DataboardGroupByDate | string>("All");
     const [activity, setActivity] = useState<DataboardActivityFilter>("All");
+    const [search, setSearch] = useState("");
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [counts, setCounts] = useState<Record<string, number>>({});
@@ -55,6 +56,8 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         onGroupChange: setGroup,
         activity,
         onActivityChange: setActivity,
+        search,
+        onSearchChange: setSearch,
         isSelectionMode,
         onSelectionModeToggle: handleSelectionModeToggle,
         selectedCount,

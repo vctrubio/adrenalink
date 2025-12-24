@@ -20,18 +20,22 @@ export const useDataboard = <T>(
     onExternalGroupChange?: (value: DataboardGroupByDate | string) => void,
     externalActivity?: DataboardActivityFilter,
     entityId?: string,
+    externalSearch?: string,
+    onExternalSearchChange?: (value: string) => void,
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
     const [localGroup, setLocalGroup] = useState<DataboardGroupByDate | string>("All");
+    const [localSearch, setLocalSearch] = useState<string>("");
 
     const filter = externalFilter ?? localFilter;
     const setFilter = onExternalFilterChange ?? setLocalFilter;
     const group = externalGroup ?? localGroup;
     const setGroup = onExternalGroupChange ?? setLocalGroup;
+    const search = externalSearch ?? localSearch;
+    const setSearch = onExternalSearchChange ?? setLocalSearch;
 
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
-    const [search, setSearch] = useState<string>("");
     const [entityFilter, setEntityFilter] = useState<Record<string, string>>({});
     const [isSelectionMode, setIsSelectionMode] = useState<boolean>(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

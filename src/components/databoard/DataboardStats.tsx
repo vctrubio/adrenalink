@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { type StatItem } from "@/src/components/ui/row";
+import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
 
 interface DataboardStatsProps {
     stats: StatItem[];
@@ -40,7 +41,9 @@ export const DataboardStats = memo(function DataboardStats({ stats, isLoading = 
                         {/* Icon + Value */}
                         <div className="flex items-center gap-1" style={{ color: stat.color }}>
                             <span className="w-5 h-5 flex-shrink-0 [&>svg]:w-full [&>svg]:h-full opacity-80 group-hover:opacity-100 transition-opacity">{stat.icon}</span>
-                            <span className="text-lg font-bold">{stat.value}</span>
+                            <span className="text-lg font-bold">
+                                <AnimatedCounter value={stat.value} />
+                            </span>
                         </div>
                     </div>
                 </div>

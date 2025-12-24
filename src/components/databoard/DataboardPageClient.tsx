@@ -19,16 +19,11 @@ export function DataboardPageClient<T>({
     calculateStats,
 }: DataboardPageClientProps<T>) {
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                key={entityId}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-            >
-                <DataboardRowsSection entityId={entityId} data={data} rowComponent={rowComponent} calculateStats={calculateStats} />
-            </motion.div>
-        </AnimatePresence>
+        <DataboardRowsSection 
+            entityId={entityId} 
+            data={data} 
+            rowComponent={rowComponent} 
+            calculateStats={calculateStats} 
+        />
     );
 }

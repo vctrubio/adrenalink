@@ -38,7 +38,11 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
             {/* Search + Filter Controls */}
             <div className="flex items-center gap-3">
                 <div className="flex-1">
-                    <SearchInput entityColor={entity.color} />
+                    <SearchInput
+                        entityColor={entity.color}
+                        value={controller.search}
+                        onChange={(e) => controller.onSearchChange(e.target.value)}
+                    />
                 </div>
 
                 <div className="flex items-center gap-2">

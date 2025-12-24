@@ -2,6 +2,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
+import { filterBySearch } from "@/types/searching-entities";
 
 interface Referral {
     id: string;
@@ -41,10 +42,7 @@ export function ReferralTable({
 
     // Filter and sort referrals
     const filteredReferrals = useMemo(() => {
-        const filtered = referrals.filter((referral) => {
-            const searchLower = search.toLowerCase();
-            return referral.code.toLowerCase().includes(searchLower);
-        });
+        const filtered = filterBySearch(referrals, search, (referral) => referral.code);
 
         if (sortColumn) {
             filtered.sort((a, b) => {

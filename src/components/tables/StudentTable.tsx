@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
+import { filterBySearch } from "@/types/searching-entities";
 
 interface Student {
     id: string;
@@ -57,18 +58,13 @@ export function StudentTable({
 
     // Filter and sort students
     const filteredStudents = useMemo(() => {
-        const filtered = students.filter((schoolStudent) => {
+        let filtered = filterBySearch(students, search, (schoolStudent) => {
+             const s = schoolStudent.student;
+             return `${s.firstName} ${s.lastName} ${s.passport}`;
+        });
+
+        filtered = filtered.filter((schoolStudent) => {
             const student = schoolStudent.student;
-            const searchLower = search.toLowerCase();
-
-            // Search filter
-            const matchesSearch = (
-                student.firstName.toLowerCase().includes(searchLower) ||
-                student.lastName.toLowerCase().includes(searchLower) ||
-                student.passport.toLowerCase().includes(searchLower)
-            );
-
-            if (!matchesSearch) return false;
 
             // Status filter
             const stats = studentStatsMap[student.id];
