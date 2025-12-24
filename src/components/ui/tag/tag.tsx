@@ -30,11 +30,11 @@ export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon
 
     return (
         <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 border-2 min-w-20 ${link ? "cursor-pointer" : ""} bg-gray-200 dark:bg-gray-800 ${className || ""}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105 border-2 ${link ? "cursor-pointer" : ""} bg-gray-200 dark:bg-gray-800 ${className || ""}`}
             style={{ borderColor: borderColorHex } as React.CSSProperties}
             onClick={link ? handleClick : undefined}
         >
-            <div style={{ color }}>{icon}</div>
+            <div style={{ color }} className="[&>svg]:w-5 [&>svg]:h-5">{icon}</div>
             <span className="text-foreground text-sm">{name}</span>
             
             {eventCount !== undefined && eventCount > 0 && (

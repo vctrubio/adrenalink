@@ -125,9 +125,8 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
             }}
             action={
                 <BookingCreateTag 
-                    icon={<BookingIcon className="w-3 h-3" />} 
+                    icon={<BookingIcon className="w-4 h-4" />} 
                     link={`/register?add=package:${schoolPackage.schema.id}`}
-                    className="px-4 py-2 text-sm"
                 />
             }
             popover={undefined}

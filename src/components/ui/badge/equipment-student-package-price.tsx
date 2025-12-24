@@ -1,27 +1,33 @@
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import PPHIcon from "@/public/appSvgs/PPHIcon";
 
-interface EquipmentStudentPriceBadgeProps {
-  categoryIcon: React.ComponentType<{ size?: number }>;
+interface EquipmentStudentPackagePriceBadgeProps {
+  categoryIcon?: React.ComponentType<{ size?: number }>;
   equipmentCapacity: number;
   studentCapacity: number;
+  packageDurationHours: number;
+  packageIcon: React.ComponentType<{ size?: number }>;
+  packageColor: string;
   pricePerHour: number;
 }
 
-export function EquipmentStudentPriceBadge({
+export function EquipmentStudentPackagePriceBadge({
   categoryIcon: CategoryIcon,
   equipmentCapacity,
   studentCapacity,
+  packageDurationHours,
+  packageIcon: PackageIcon,
+  packageColor,
   pricePerHour,
-}: EquipmentStudentPriceBadgeProps) {
-  const studentColor = "#eab308"; // Student entity color
-  const equipmentColor = "#a855f7"; // Equipment entity color
-  const priceColor = "#f97316"; // Orange color for price as requested
+}: EquipmentStudentPackagePriceBadgeProps) {
+  const studentColor = "#eab308"; 
+  const equipmentColor = "#a855f7"; 
+  const priceColor = "#f97316"; 
 
   return (
     <div className="flex items-center justify-start gap-4">
-      {/* Equipment Segment */}
-      {equipmentCapacity > 0 && (
+      {/* Equipment */}
+      {equipmentCapacity > 0 && CategoryIcon && (
         <div className="flex items-center gap-1.5">
           <div style={{ color: equipmentColor }}>
             <CategoryIcon size={16} />
@@ -34,7 +40,7 @@ export function EquipmentStudentPriceBadge({
         </div>
       )}
 
-      {/* Student Segment */}
+      {/* Student */}
       <div className="flex items-center gap-1.5">
         <div style={{ color: studentColor }}>
           <HelmetIcon size={16} />
@@ -46,7 +52,20 @@ export function EquipmentStudentPriceBadge({
         )}
       </div>
 
-      {/* Price Segment */}
+      {/* Package Duration */}
+      <div className="flex items-center gap-1.5">
+        <div style={{ color: packageColor }}>
+          <PackageIcon size={16} />
+        </div>
+        <div className="flex items-baseline gap-0.5">
+          <span className="text-sm text-foreground">
+            {packageDurationHours}
+          </span>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
+        </div>
+      </div>
+
+      {/* Price */}
       <div className="flex items-center gap-1.5">
         <div style={{ color: priceColor }}>
           <PPHIcon size={16} />

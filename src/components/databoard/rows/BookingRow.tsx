@@ -14,6 +14,9 @@ import type { BookingModel } from "@/backend/models";
 import { BookingDropdownRow } from "./BookingDropdownRow";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { getFullDuration } from "@/getters/duration-getter";
+import PPHIcon from "@/public/appSvgs/PPHIcon";
+import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 
 export const calculateBookingGroupStats = DataboardBookingStats.getStats;
 
@@ -25,14 +28,27 @@ const BookingAction = ({ booking }: { booking: BookingModel }) => {
     return (
         <div className="flex flex-wrap gap-2">
             {hasNoLesson ? (
-                <TeacherBookingCreateTag icon={<HeadsetIcon className="w-3 h-3" />} onClick={() => console.log("Assigning teacher...")} />
+                <TeacherBookingCreateTag icon={<HeadsetIcon className="w-4 h-4" />} onClick={() => console.log("Assigning teacher...")} />
             ) : (
                 <>
                     {lessons.map((lesson) => {
                         const teacher = lesson.teacher;
                         if (!teacher) return null;
 
-                        return <TeacherBookingTag key={lesson.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} link={`/teachers/${teacher.username}`} />;
+                        const events = lesson.events || [];
+                        const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+                        const duration = getFullDuration(totalMinutes);
+
+                        return (
+                            <TeacherBookingTag 
+                                key={lesson.id} 
+                                icon={<HeadsetIcon className="w-4 h-4" />} 
+                                username={teacher.username} 
+                                link={`/teachers/${teacher.username}`}
+                                duration={duration}
+                                eventCount={events.length}
+                            />
+                        );
                     })}
                 </>
             )}
@@ -99,6 +115,8 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
     const actualStudents = bookingStudents.length || 0;
     const studentCapacity = schoolPackage?.capacityStudents || 0;
     const packageDurationHours = schoolPackage?.durationMinutes ? Math.round(schoolPackage.durationMinutes / 60) : 0;
+    const durationHours = schoolPackage?.durationMinutes ? schoolPackage.durationMinutes / 60 : 0;
+    const pricePerHour = durationHours > 0 ? (schoolPackage?.pricePerStudent || 0) / durationHours : 0;
 
     const EquipmentIcon = equipmentCategory?.icon;
     const StudentIcon = studentEntity.icon;
@@ -130,24 +148,15 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             }}
             str={{
                 label: (
-                    <div className="flex items-center gap-2">
-                        {EquipmentIcon && (
-                            <>
-                                <div style={{ color: equipmentCategory?.color }}>
-                                    <EquipmentIcon className="w-4 h-4" />
-                                </div>
-                                <span>{equipmentCapacity}</span>
-                            </>
-                        )}
-                        <div style={{ color: studentEntity.color }}>
-                            <StudentIcon className="w-4 h-4" />
-                        </div>
-                        <span>{studentCapacity}</span>
-                        <div style={{ color: packageEntity.color }}>
-                            <PackageIcon className="w-4 h-4" />
-                        </div>
-                        <span>{packageDurationHours}h</span>
-                    </div>
+                    <EquipmentStudentPackagePriceBadge 
+                        categoryIcon={EquipmentIcon}
+                        equipmentCapacity={equipmentCapacity}
+                        studentCapacity={studentCapacity}
+                        packageDurationHours={packageDurationHours}
+                        packageIcon={PackageIcon}
+                        packageColor={packageEntity.color}
+                        pricePerHour={pricePerHour}
+                    />
                 ),
                 items: strItems,
             }}

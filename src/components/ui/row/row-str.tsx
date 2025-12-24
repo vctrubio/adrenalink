@@ -30,7 +30,7 @@ export const RowStr = ({ label, items, entityColor }: RowStrProps) => {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
                 }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors border-2 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors border-2 ${
                     isOpen ? "bg-muted" : ""
                 } hover:bg-muted`}
                 style={{ borderColor: entityColor }}

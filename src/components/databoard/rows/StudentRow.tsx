@@ -24,9 +24,8 @@ const StudentAction = ({ student }: { student: StudentModel }) => {
         <div className="flex flex-wrap gap-2">
             {!hasActiveBooking && (
                 <BookingCreateTag 
-                    icon={<BookingIcon className="w-3 h-3" />} 
+                    icon={<BookingIcon className="w-4 h-4" />} 
                     link={`/register?add=student:${student.schema.id}`}
-                    className="px-4 py-2 text-sm"
                 />
             )}
             {bookingStudents.length > 0 && (
@@ -38,7 +37,7 @@ const StudentAction = ({ student }: { student: StudentModel }) => {
                         return (
                             <BookingTag 
                                 key={booking.id} 
-                                icon={<BookingIcon className="w-3 h-3" />} 
+                                icon={<BookingIcon className="w-4 h-4" />} 
                                 dateStart={booking.dateStart} 
                                 dateEnd={booking.dateEnd} 
                                 status={booking.status as any} 
@@ -125,7 +124,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
             str={{
                 label: (
                     <div className="flex items-center gap-2">
-                        <IdIcon size={16} />
+                        <IdIcon size={20} />
                         <span>{student.schema.passport}</span>
                     </div>
                 ),

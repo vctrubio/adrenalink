@@ -13,6 +13,7 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { TeacherModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import IdIcon from "@/public/appSvgs/IdIcon";
 
 export const calculateTeacherGroupStats = DataboardTeacherStats.getStats;
 
@@ -28,21 +29,34 @@ const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
                 const duration = getFullDuration(totalMinutes);
 
                 const categoryEquipment = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
-                                        const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
-                                        const EquipmentIcon = equipmentCategory?.icon || DefaultEquipmentIcon;
-                
-                                        return (
-                                            <LessonTag 
-                                                key={lesson.id} 
-                                                icon={<EquipmentIcon className="w-3 h-3" />} 
-                                                createdAt={lesson.createdAt} 
-                                                status={lesson.status} 
-                                                duration={duration} 
-                                                eventCount={events.length} 
-                                                link={`/bookings/${lesson.bookingId}`}
-                                            />
-                                        );
-                                    })}        </div>
+                                                        const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
+                                                        const EquipmentIcon = equipmentCategory?.icon || DefaultEquipmentIcon;
+                                        
+                                                                                        return (
+                                        
+                                                                                            <LessonTag 
+                                        
+                                                                                                key={lesson.id} 
+                                        
+                                                                                                icon={<EquipmentIcon className="w-4 h-4" />} 
+                                        
+                                                                                                createdAt={lesson.createdAt} 
+                                        
+                                                                                                status={lesson.status} 
+                                        
+                                                                                                duration={duration} 
+                                        
+                                                                                                eventCount={events.length} 
+                                        
+                                                                                                link={`/bookings/${lesson.bookingId}`}
+                                        
+                                                                                                studentName={(lesson as any).booking?.leaderStudentName}
+                                        
+                                                                                                capacity={(lesson as any).booking?.studentPackage?.schoolPackage?.capacityStudents}
+                                        
+                                                                                            />
+                                        
+                                                                                        );                                    })}        </div>
     );
 };
 
@@ -115,7 +129,12 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: teacher.schema.username,
+                label: (
+                    <div className="flex items-center gap-2">
+                        <IdIcon size={20} />
+                        <span>{teacher.schema.username}</span>
+                    </div>
+                ),
                 items: strItems,
             }}
             action={<TeacherAction teacher={teacher} />}
