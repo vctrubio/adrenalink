@@ -13,7 +13,6 @@ import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import EventGapDetection from "./EventGapDetection";
 import { getHMDuration } from "@/getters/duration-getter";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { CardList } from "@/src/components/ui/card/card-list";
 import { ENTITY_DATA } from "@/config/entities";
 
 const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
@@ -31,15 +30,18 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    
     const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
+    const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     const eventId = event.id;
     const startTime = getTimeFromISO(event.eventData.date);
     const duration = event.eventData.duration;
     const location = event.eventData.location;
     const categoryEquipment = event.packageData?.categoryEquipment || "";
+    const capacityEquipment = event.packageData?.capacityEquipment || 0;
     
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
@@ -47,6 +49,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     // Student Data
     const leaderStudentName = event.leaderStudentName || "Booking abc";
     const students = event.bookingStudents || [];
+    const hasMultipleStudents = students.length > 1;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
 
@@ -104,7 +107,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         }
     };
 
-    const dropdownItems: DropdownItemProps[] = [
+    const statusDropdownItems: DropdownItemProps[] = [
         ...EVENT_STATUSES.map((statusOption) => ({
             id: statusOption,
             label: statusOption,
@@ -116,10 +119,11 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         { id: "delete", label: isDeleting ? "Deleting..." : "Delete", icon: Trash2, color: "#ef4444", onClick: () => handleDelete(false) },
     ];
 
-    // Create fields for CardList from student data
-    const studentFields = students.map((student, index) => ({
-        label: `Student ${index + 1}`,
-        value: `${student.firstName} ${student.lastName}`,
+    const studentDropdownItems: DropdownItemProps[] = students.map((student, index) => ({
+        id: student.id || index,
+        label: `${student.firstName} ${student.lastName}`,
+        icon: HelmetIcon,
+        color: studentColor,
     }));
 
     return (
@@ -150,15 +154,21 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                         <button 
                             ref={dropdownTriggerRef}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border"
+                            className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"
                             style={{ color: EVENT_STATUS_CONFIG[currentStatus].color }}
                         >
                             <EquipmentIcon size={24} />
+                            {/* Capacity Badge */}
+                            {capacityEquipment > 1 && (
+                                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">
+                                    x{capacityEquipment}
+                                </span>
+                            )}
                         </button>
                         <Dropdown 
                             isOpen={isDropdownOpen} 
                             onClose={() => setIsDropdownOpen(false)} 
-                            items={dropdownItems} 
+                            items={statusDropdownItems} 
                             align="right" 
                             initialFocusedId={currentStatus}
                             triggerRef={dropdownTriggerRef}
@@ -167,11 +177,14 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 )}
             </div>
 
-            {/* Footer / Toggle Trigger */}
+            {/* Footer / Student Toggle Trigger */}
             <div className="px-4 pb-4">
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="w-full flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors border border-border/50 text-left"
+                    ref={studentTriggerRef}
+                    onClick={() => hasMultipleStudents && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                    className={`w-full flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${
+                        hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"
+                    }`}
                 >
                     {/* Leader Student */}
                     <div className="flex items-center gap-2">
@@ -179,7 +192,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                             <HelmetIcon size={20} />
                         </div>
                         <span className="text-sm font-semibold text-foreground truncate max-w-[150px]">{leaderStudentName}</span>
-                        {students.length > 1 && <span className="text-xs text-muted-foreground font-medium">+{students.length - 1}</span>}
+                        {hasMultipleStudents && <span className="text-xs text-muted-foreground font-medium">+{students.length - 1}</span>}
                     </div>
 
                     {showLocation && location && (
@@ -193,24 +206,18 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                         </>
                     )}
                 </button>
-            </div>
 
-            {/* Expanded Student List */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden px-4 pb-4"
-                    >
-                        <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                            <CardList fields={studentFields} />
-                        </div>
-                    </motion.div>
+                {/* Student Dropdown - Only if multiple students */}
+                {hasMultipleStudents && (
+                    <Dropdown 
+                        isOpen={isStudentDropdownOpen}
+                        onClose={() => setIsStudentDropdownOpen(false)}
+                        items={studentDropdownItems}
+                        align="left"
+                        triggerRef={studentTriggerRef}
+                    />
                 )}
-            </AnimatePresence>
+            </div>
 
              {/* Gap Detection - Now at the Bottom */}
              {previousEvent && (
