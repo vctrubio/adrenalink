@@ -85,9 +85,7 @@ export const DataboardRowsSection = <T extends { id: string }>({
     return (
         <GroupDataRows
             groupedData={groupedData}
-            renderRow={(item: AbstractModel<T>, isExpanded, onToggle) => {
-                return <RowComponent key={item.schema.id} item={item} isExpanded={isExpanded} onToggle={onToggle} />;
-            }}
+            RowComponent={RowComponent as any}
             expandedRow={expandedRow}
             setExpandedRow={setExpandedRow}
             entityId={entityId}
