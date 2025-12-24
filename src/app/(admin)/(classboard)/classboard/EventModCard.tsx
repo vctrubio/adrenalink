@@ -11,11 +11,14 @@ import type { QueueController } from "@/backend/QueueController";
 
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
-import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
 import EventGapDetection from "./EventGapDetection";
 import type { ControllerSettings } from "@/backend/TeacherQueue";
 import { ENTITY_DATA } from "@/config/entities";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
+
+const HEADING_PADDING = "py-1.5";
+const ROW_MARGIN = "mx-4";
+const ROW_PADDING = "py-2";
 
 interface EventModCardProps {
     eventId: string;

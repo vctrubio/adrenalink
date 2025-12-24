@@ -15,6 +15,7 @@ interface EventGapDetectionProps {
     updateMode: "updateNow" | "updateOnSave";
     onStateChange?: (state: GapDetectionState, duration: number) => void;
     onGapAdjust?: () => void;
+    wrapperClassName?: string;
 }
 
 export default function EventGapDetection({
@@ -24,6 +25,7 @@ export default function EventGapDetection({
     updateMode,
     onStateChange,
     onGapAdjust,
+    wrapperClassName,
 }: EventGapDetectionProps) {
     const [gapState, setGapState] = useState<GapDetectionState>("none");
 
@@ -99,7 +101,7 @@ export default function EventGapDetection({
         return null;
     }
 
-    return (
+    const button = (
         <button
             onClick={handleClick}
             className={`text-xs px-1.5 py-0.5 rounded border whitespace-nowrap flex items-center gap-1 transition-colors pointer-events-auto ${buttonProps.className}`}
@@ -110,4 +112,10 @@ export default function EventGapDetection({
             {buttonProps.text}
         </button>
     );
+
+    if (wrapperClassName) {
+        return <div className={wrapperClassName}>{button}</div>;
+    }
+
+    return button;
 }
