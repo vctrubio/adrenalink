@@ -99,6 +99,13 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
         const result = await db.query.booking.findMany({
             where: eq(booking.schoolId, schoolHeader.id),
+            columns: {
+                id: true,
+                dateStart: true,
+                dateEnd: true,
+                schoolId: true,
+                leaderStudentName: true,
+            },
             with: classboardWithRelations,
             orderBy: [desc(booking.createdAt)],
         });

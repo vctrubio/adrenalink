@@ -7,10 +7,10 @@ export interface SortOption {
     isCustom?: boolean; // For fields like bookingCount that aren't direct schema properties
 }
 
-export type SortConfig = {
+export interface SortConfig {
     field: string | null;
     direction: SortDirection;
-};
+}
 
 export const SORT_OPTIONS_DEFAULT: SortOption[] = [
     { label: "Newest", field: "createdAt", direction: "desc" },

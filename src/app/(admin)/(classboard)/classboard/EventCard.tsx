@@ -13,6 +13,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, DropdownItem, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { LeaderStudent } from "@/src/components/LeaderStudent";
 import EventGapDetection from "./EventGapDetection";
 
 const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
@@ -248,7 +249,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 onDelete={handleDelete}
             />
 
-            {students.length > 0 ? students.map((student, index) => <StudentRow key={student.id || index} student={student} />) : <div className={`${ROW_MARGIN} ${ROW_PADDING} text-sm text-muted-foreground`}>No students</div>}
+            <LeaderStudent leaderStudentName={event.leaderStudentName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
 
             <LocationFooter location={location} showLocation={showLocation} />
 

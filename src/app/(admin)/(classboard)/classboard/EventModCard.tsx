@@ -15,6 +15,7 @@ import { HEADING_PADDING, ROW_MARGIN, ROW_PADDING } from "./EventCard";
 import EventGapDetection from "./EventGapDetection";
 import type { ControllerSettings } from "@/backend/TeacherQueue";
 import { ENTITY_DATA } from "@/config/entities";
+import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 interface EventModCardProps {
     eventId: string;
@@ -25,22 +26,6 @@ interface EventModCardProps {
 const STUDENT_ICON_SIZE = "w-8 h-8";
 
 // Sub-components
-const StudentGrid = ({ students }: { students: any[] }) => {
-    const studentCount = students.length;
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-
-    if (!studentEntity) return null;
-
-    return (
-        <div className={`flex-shrink-0 ${studentCount === 4 ? "grid grid-cols-2 gap-1" : "flex gap-1"}`}>
-            {students.map((_, index) => (
-                <div key={index} style={{ color: studentEntity.color }}>
-                    <HelmetIcon className={STUDENT_ICON_SIZE} />
-                </div>
-            ))}
-        </div>
-    );
-};
 
 const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController }) => {
     const [isDeleting, setIsDeleting] = useState(false);
@@ -237,8 +222,6 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
 
     const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
-    const students = event.studentData || [];
-    const studentNames = students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 
     // Get previous event for gap detection
     let previousEvent: EventNode | undefined;
@@ -253,12 +236,9 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
     return (
         <div className={`w-full ${HEADING_PADDING} bg-background dark:bg-card border border-border rounded-lg overflow-visible relative`}>
-            {/* Student Names and Queue Controls */}
-            <div className={`flex items-center gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
-                <StudentGrid students={students} />
-                <div className="flex-1 overflow-x-auto">
-                    <span className="text-base font-medium text-foreground whitespace-nowrap">{studentNames}</span>
-                </div>
+            {/* Leader Student and Queue Controls */}
+            <div className={`flex items-center justify-between gap-3 ${ROW_MARGIN} ${ROW_PADDING}`}>
+                <LeaderStudent leaderStudentName={event.leaderStudentName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
                 <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
             </div>
 

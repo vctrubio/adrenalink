@@ -69,7 +69,7 @@ export const GroupDataRows = <T,>({
                                     <div className="flex items-center gap-3">
                                         <div 
                                             className="transition-transform duration-200"
-                                            style={{ transform: isGroupExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                            style={{ transform: isGroupExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
                                         >
                                             <AdranlinkIcon className="w-4 h-4 -translate-y-0.5" style={{ color: entityColor }} />
                                         </div>

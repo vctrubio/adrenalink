@@ -7,6 +7,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
+import { LeaderStudent } from "@/src/components/LeaderStudent";
 import { ENTITY_DATA } from "@/config/entities";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
@@ -240,69 +241,6 @@ const BookingHeader = ({ bookingData, month, day, tabs, selectedDate }: BookingH
     );
 };
 
-// --- Student Item Component ---
-
-interface StudentItemProps {
-    bookingStudent: ClassboardData["bookingStudents"][0];
-    tabs: BookingTabsContent;
-}
-
-const StudentItem = ({ bookingStudent, tabs }: StudentItemProps) => {
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-    const studentColor = studentEntity?.color;
-    const isSelected = tabs.activeTab === "student" && tabs.selectedStudentId === bookingStudent.student.id;
-
-    return (
-        <button
-            onClick={() => {
-                if (isSelected) {
-                    tabs.onTabClick("student");
-                } else if (tabs.activeTab === "student") {
-                    tabs.onStudentSelect(bookingStudent.student.id);
-                } else {
-                    tabs.onStudentSelect(bookingStudent.student.id);
-                    tabs.onTabClick("student");
-                }
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg transition-colors cursor-pointer"
-            style={{
-                backgroundColor: isSelected ? `${studentColor}30` : "transparent",
-                color: isSelected ? studentColor : "inherit",
-            }}
-            onMouseEnter={(e) => {
-                if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = `${studentColor}15`;
-                }
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = isSelected ? `${studentColor}30` : "transparent";
-            }}
-        >
-            <div style={{ color: studentColor }}>
-                <HelmetIcon size={ICON_SIZE} />
-            </div>
-            <span className="font-medium whitespace-nowrap max-w-[89px] overflow-x-auto">
-                {bookingStudent.student.firstName} {bookingStudent.student.lastName}
-            </span>
-        </button>
-    );
-};
-
-// --- Students Component ---
-
-interface BookingStudentsProps {
-    bookingStudents: ClassboardData["bookingStudents"];
-    tabs: BookingTabsContent;
-}
-
-const BookingStudents = ({ bookingStudents, tabs }: BookingStudentsProps) => (
-    <div className="flex flex-wrap gap-2">
-        {bookingStudents.map((bookingStudent) => (
-            <StudentItem key={bookingStudent.student.id} bookingStudent={bookingStudent} tabs={tabs} />
-        ))}
-    </div>
-);
-
 // --- Tab Content Wrapper Component ---
 
 const TabContentWrapper = ({ children }: { children: React.ReactNode }) => <div className="border-t border-border bg-muted/40 p-4">{children}</div>;
@@ -434,7 +372,7 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
                     <div className="p-3 space-y-3">
                         <BookingHeader bookingData={bookingData} month={month} day={day} tabs={tabs} selectedDate={selectedDate} />
                         <div className="border-b border-border"></div>
-                        <BookingStudents bookingStudents={bookingData.bookingStudents} tabs={tabs} />
+                        <LeaderStudent leaderStudentName={bookingData.booking.leaderStudentName} bookingId={id} bookingStudents={bookingData.bookingStudents.map((bs) => ({ id: bs.student.id, firstName: bs.student.firstName, lastName: bs.student.lastName, passport: bs.student.passport || "", country: bs.student.country || "", phone: bs.student.phone || "" }))} />
                     </div>
                     <ActiveButtonsFooter bookingId={id} lessons={bookingData.lessons} onAddLessonEvent={handleAddLessonEvent} loadingLessonId={loadingLessonId} bookingStatus={bookingData.booking.dateStart} />
                     <BookingTabContent data={bookingData} tabs={tabs} />

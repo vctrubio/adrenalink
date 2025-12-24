@@ -26,6 +26,8 @@ export interface EventNode {
     id: string;
     lessonId: string;
     bookingId: string;
+    leaderStudentName?: string;
+    bookingStudents?: StudentData[];
     commission: CommissionInfo;
     eventData: {
         date: string;

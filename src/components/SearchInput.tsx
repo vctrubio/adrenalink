@@ -16,8 +16,8 @@ export function SearchInput({ entityColor, className, placeholder = "Search...",
         
         if (props.onChange) {
             // Create a synthetic event compatible with React.ChangeEvent<HTMLInputElement>
-            const nativeEvent = new Event('change', { bubbles: true });
-            const target = document.createElement('input');
+            const nativeEvent = new Event("change", { bubbles: true });
+            const target = document.createElement("input");
             target.value = "";
             
             const syntheticEvent = {
@@ -27,7 +27,7 @@ export function SearchInput({ entityColor, className, placeholder = "Search...",
                 preventDefault: () => {},
                 stopPropagation: () => {},
                 nativeEvent: nativeEvent,
-                type: 'change'
+                type: "change"
             } as unknown as React.ChangeEvent<HTMLInputElement>;
             
             props.onChange(syntheticEvent);

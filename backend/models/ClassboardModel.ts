@@ -5,6 +5,7 @@ export interface ClassboardBooking {
     dateStart: string;
     dateEnd: string;
     schoolId: string;
+    leaderStudentName?: string;
 }
 
 export type ClassboardSchoolPackage = SchoolPackageType;

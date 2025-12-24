@@ -10,6 +10,7 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState, DragCompatibility } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
 import type { ClassboardStats } from "@/backend/ClassboardStats";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 function TeacherColumn({
     queue,
@@ -56,12 +57,11 @@ function TeacherColumn({
             // Exit queue mode when global adjustment mode is deactivated
             handleReset();
             setColumnViewMode("view");
-            originalQueueState.current = [];
         }
 
         // Update ref for next render
         wasInAdjustmentModeRef.current = isInAdjustmentMode;
-    }, [globalFlag, columnViewMode, isPendingParentUpdate]);
+    }, [globalFlag, columnViewMode]);
 
     // Exit queue editor mode if queue becomes empty
     useEffect(() => {
@@ -132,9 +132,8 @@ function TeacherColumn({
                 }
             }
 
-            // Clear original state and exit edit mode
+            // Exit edit mode (original state will be cleared by effect)
             setColumnViewMode("view");
-            originalQueueState.current = [];
         } catch (error) {
             console.error("Error submitting queue changes:", error);
         }

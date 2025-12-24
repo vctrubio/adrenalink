@@ -241,6 +241,8 @@ export function useClassboard(initialData: ClassboardModel) {
                             id: event.id,
                             lessonId: lesson.id,
                             bookingId: booking.booking.id,
+                            leaderStudentName: booking.booking.leaderStudentName,
+                            bookingStudents: studentData,
                             commission: {
                                 type: lesson.commission.type as "fixed" | "percentage",
                                 cph: parseFloat(lesson.commission.cph),

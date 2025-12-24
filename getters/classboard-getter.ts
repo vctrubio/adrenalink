@@ -15,7 +15,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
     const result: ClassboardModel = {};
 
     for (const bookingData of bookingsData) {
-        const { id, dateStart, dateEnd, schoolId, studentPackage, bookingStudents, lessons } = bookingData;
+        const { id, dateStart, dateEnd, schoolId, leaderStudentName, studentPackage, bookingStudents, lessons } = bookingData;
 
         result[id] = {
             booking: {
@@ -23,6 +23,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                 dateStart,
                 dateEnd,
                 schoolId,
+                leaderStudentName,
             },
             schoolPackage: studentPackage.schoolPackage,
             bookingStudents: bookingStudents.map((bs: any) => {

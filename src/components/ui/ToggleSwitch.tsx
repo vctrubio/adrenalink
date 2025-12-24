@@ -1,6 +1,7 @@
 "use client";
 
 import { Switch } from "@headlessui/react";
+import { useId } from "react";
 
 interface ToggleSwitchProps {
     value: string;
@@ -29,35 +30,45 @@ const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintC
     const isRight = value === values.right;
     const colorClasses = colorMap[color];
     const baseColor = tintColor || colorClasses?.base || "#3b82f6";
+    const id = useId();
 
     return (
         <div className="flex items-center gap-2">
             <span
-                className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors"
+                className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                    !isRight ? "scale-110 ring-2 ring-offset-1" : "text-muted-foreground opacity-50 scale-90 grayscale"
+                }`}
                 style={{
                     backgroundColor: !isRight ? baseColor : undefined,
                     color: !isRight ? "#ffffff" : undefined,
+                    borderColor: !isRight ? baseColor : undefined,
+                    boxShadow: !isRight ? `0 0 0 2px ${baseColor}40` : undefined, // fallback ring if ring classes fail or for custom colors
                 }}
             >
                 {showLabels ? values.left.charAt(0).toUpperCase() + values.left.slice(1) : counts[values.left]}
             </span>
 
             <Switch
+                id={id}
                 checked={isRight}
                 onChange={(checked) => onChange(checked ? values.right : values.left)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                     colorClasses?.ring || "focus:ring-blue-500"
-                } ${isRight ? "" : "bg-muted-foreground/40"}`}
+                } ${isRight ? "" : "bg-muted-foreground/30"}`}
                 style={{ backgroundColor: isRight ? baseColor : undefined }}
             >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${isRight ? "translate-x-6" : "translate-x-1"}`} />
             </Switch>
 
             <span
-                className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-colors"
+                className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                    isRight ? "scale-110 ring-2 ring-offset-1" : "text-muted-foreground opacity-50 scale-90 grayscale"
+                }`}
                 style={{
                     backgroundColor: isRight ? baseColor : undefined,
                     color: isRight ? "#ffffff" : undefined,
+                    borderColor: isRight ? baseColor : undefined,
+                    boxShadow: isRight ? `0 0 0 2px ${baseColor}40` : undefined,
                 }}
             >
                 {showLabels ? values.right.charAt(0).toUpperCase() + values.right.slice(1) : counts[values.right]}
