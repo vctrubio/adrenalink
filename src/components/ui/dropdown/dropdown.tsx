@@ -49,12 +49,12 @@ export default function Dropdown({
 			};
 			
 			updatePosition();
-			window.addEventListener('resize', updatePosition);
-			window.addEventListener('scroll', updatePosition, true);
+			window.addEventListener("resize", updatePosition);
+			window.addEventListener("scroll", updatePosition, true);
 			
 			return () => {
-				window.removeEventListener('resize', updatePosition);
-				window.removeEventListener('scroll', updatePosition, true);
+				window.removeEventListener("resize", updatePosition);
+				window.removeEventListener("scroll", updatePosition, true);
 			};
 		}
 	}, [isOpen, triggerRef]);
@@ -168,7 +168,7 @@ export default function Dropdown({
     // If triggerRef is provided, use Portal
     if (triggerRef) {
         // Safe check for document.body
-        if (typeof document === 'undefined') return null;
+        if (typeof document === "undefined") return null;
 
         return createPortal(
             <AnimatePresence>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import { ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { ChevronDown, ChevronUp, Clock, MapPin, Users, History } from "lucide-react";
 import { addMinutesToTime } from "@/getters/queue-getter";
 import { getPrettyDuration, adjustDuration } from "@/getters/duration-getter";
 import type { ControllerSettings as ControllerSettingsType } from "@/backend/TeacherQueue";
+import { cn } from "@/drizzle/schema"; // Assuming cn exists or I'll use template literals if not found, let's use standard template literals to be safe as I didn't check for cn utility.
 
 export const LOCATION_OPTIONS = ["Beach", "Lagoon", "Bay", "Ocean"];
 
@@ -14,27 +14,72 @@ interface ControllerSettingsProps {
     onControllerChange: (controller: ControllerSettingsType) => void;
 }
 
-// Sub-components for grouped sections
-const TimeAdjustButton = ({ onClick, children }: { onClick: (e: React.MouseEvent) => void; children: React.ReactNode }) => (
-    <button onClick={onClick} className="w-8 h-8 flex items-center justify-center border border-border hover:bg-muted rounded transition-colors">
-        {children}
-    </button>
-);
-
-const SettingRow = ({ label, icon: Icon, isFlagIcon, children }: { label: string; icon?: React.ElementType; isFlagIcon?: boolean; children: React.ReactNode }) => (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
-        <div className="flex items-center gap-3 min-w-0">
-            {isFlagIcon ? <FlagIcon className="w-4 h-4 flex-shrink-0" /> : Icon ? <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : null}
-            <span className="text-sm text-muted-foreground">{label}</span>
+const MinimalStepper = ({
+    value,
+    onDecrease,
+    onIncrease,
+    label,
+    icon: Icon,
+}: {
+    value: string | number;
+    onDecrease: (e: React.MouseEvent) => void;
+    onIncrease: (e: React.MouseEvent) => void;
+    label: string;
+    icon?: React.ElementType;
+}) => (
+    <div className="flex items-center justify-between group h-8">
+        <div className="flex items-center gap-2 text-muted-foreground min-w-[80px]">
+            {Icon && <Icon className="w-3.5 h-3.5" />}
+            <span className="text-xs font-medium truncate">{label}</span>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">{children}</div>
+        <div className="flex items-center gap-1">
+            <button
+                onClick={onDecrease}
+                className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            >
+                <ChevronDown className="w-3 h-3" />
+            </button>
+            <div className="min-w-[3.5rem] text-center font-mono text-xs font-medium text-foreground">
+                {value}
+            </div>
+            <button
+                onClick={onIncrease}
+                className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            >
+                <ChevronUp className="w-3 h-3" />
+            </button>
+        </div>
     </div>
 );
 
-const SettingGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="space-y-0.5">
-        <h3 className="text-xs font-semibold text-foreground/70 uppercase tracking-wider px-0.5 pt-1 pb-0.5">{title}</h3>
-        <div className="divide-y divide-border">{children}</div>
+const LocationSelector = ({
+    options,
+    value,
+    onChange,
+}: {
+    options: string[];
+    value: string;
+    onChange: (val: string) => void;
+}) => (
+    <div className="flex items-center h-8 gap-1">
+        <MapPin className="w-3.5 h-3.5 text-muted-foreground mr-1" />
+        <div className="flex flex-1 gap-0.5">
+            {options.map((option) => {
+                const isActive = value === option;
+                return (
+                    <button
+                        key={option}
+                        onClick={() => onChange(option)}
+                        className={`
+                            px-2 py-1 text-[10px] uppercase tracking-wide font-medium rounded transition-all flex-1
+                            ${isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}
+                        `}
+                    >
+                        {option}
+                    </button>
+                );
+            })}
+        </div>
     </div>
 );
 
@@ -55,144 +100,93 @@ export default function ControllerSettings({ controller, onControllerChange }: C
         [controller, updateController],
     );
 
-    const adjustTimeUp = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newTime = addMinutesToTime(controller.submitTime, 30);
+    const adjustTime = useCallback(
+        (minutes: number) => {
+            const newTime = addMinutesToTime(controller.submitTime, minutes);
             updateController({ submitTime: newTime });
         },
         [controller.submitTime, updateController],
     );
 
-    const adjustTimeDown = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newTime = addMinutesToTime(controller.submitTime, -30);
-            updateController({ submitTime: newTime });
+    const adjustSetting = useCallback(
+        (key: "gapMinutes" | "stepDuration", increment: number, min: number, max: number) => {
+            const current = controller[key] || 0;
+            const newValue = Math.min(max, Math.max(min, current + increment));
+            updateController({ [key]: newValue });
         },
-        [controller.submitTime, updateController],
-    );
-
-    const handleLocationChange = useCallback(
-        (e: React.ChangeEvent<HTMLSelectElement>) => {
-            e.stopPropagation();
-            updateController({ location: e.target.value });
-        },
-        [updateController],
-    );
-
-    const adjustGapUp = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newGap = Math.min(120, (controller.gapMinutes || 0) + 15);
-            updateController({ gapMinutes: newGap });
-        },
-        [controller.gapMinutes, updateController],
-    );
-
-    const adjustGapDown = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newGap = Math.max(0, (controller.gapMinutes || 0) - 15);
-            updateController({ gapMinutes: newGap });
-        },
-        [controller.gapMinutes, updateController],
-    );
-
-    const adjustStepUp = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newStep = Math.min(60, (controller.stepDuration || 30) + 15);
-            updateController({ stepDuration: newStep });
-        },
-        [controller.stepDuration, updateController],
-    );
-
-    const adjustStepDown = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            const newStep = Math.max(15, (controller.stepDuration || 30) - 15);
-            updateController({ stepDuration: newStep });
-        },
-        [controller.stepDuration, updateController],
+        [controller, updateController],
     );
 
     return (
-        <div className="space-y-3">
-            {/* WHEN Section - Time and Location */}
-            <SettingGroup title="When">
-                <SettingRow label="Submit Time" isFlagIcon>
-                    <TimeAdjustButton onClick={adjustTimeDown}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.submitTime}</span>
-                    <TimeAdjustButton onClick={adjustTimeUp}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-                <SettingRow label="Location" icon={MapPin}>
-                    <select value={controller.location} onChange={handleLocationChange} className="text-sm font-medium bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer min-w-[60px]">
-                        {LOCATION_OPTIONS.map((location) => (
-                            <option key={location} value={location}>
-                                {location}
-                            </option>
-                        ))}
-                    </select>
-                </SettingRow>
-            </SettingGroup>
+        <div className="flex flex-col gap-4">
+            {/* Top Row: Context (Time & Location) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 pb-4 border-b border-border/50">
+                <div className="flex items-center justify-between h-8">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium">Start Time</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => adjustTime(-30)} className="hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground">
+                            <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="font-mono text-sm font-semibold w-12 text-center">{controller.submitTime}</span>
+                        <button onClick={() => adjustTime(30)} className="hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground">
+                            <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </div>
+                
+                <LocationSelector 
+                    options={LOCATION_OPTIONS} 
+                    value={controller.location} 
+                    onChange={(val) => updateController({ location: val })} 
+                />
+            </div>
 
-            {/* GROUP Section - Lesson Types */}
-            <SettingGroup title="Group">
-                <SettingRow label="Private" icon={() => <span className="text-xs font-bold">1</span>}>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapOne", -(controller.stepDuration || 30))}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapOne)}</span>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapOne", controller.stepDuration || 30)}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-                <SettingRow label="Semi-Private" icon={() => <span className="text-xs font-bold">2</span>}>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapTwo", -(controller.stepDuration || 30))}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapTwo)}</span>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapTwo", controller.stepDuration || 30)}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-                <SettingRow label="Group" icon={() => <span className="text-xs font-bold">3+</span>}>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapThree", -(controller.stepDuration || 30))}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-14 text-center">{getPrettyDuration(controller.durationCapThree)}</span>
-                    <TimeAdjustButton onClick={() => adjustDurationSetting("durationCapThree", controller.stepDuration || 30)}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-            </SettingGroup>
+            {/* Bottom Row: Settings Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+                <div className="space-y-1">
+                    <span className="text-[10px] uppercase text-muted-foreground/50 font-bold tracking-wider mb-2 block">Durations</span>
+                    <MinimalStepper
+                        label="Private (1p)"
+                        value={getPrettyDuration(controller.durationCapOne)}
+                        onDecrease={() => adjustDurationSetting("durationCapOne", -(controller.stepDuration || 30))}
+                        onIncrease={() => adjustDurationSetting("durationCapOne", controller.stepDuration || 30)}
+                        icon={Users}
+                    />
+                    <MinimalStepper
+                        label="Semi (2p)"
+                        value={getPrettyDuration(controller.durationCapTwo)}
+                        onDecrease={() => adjustDurationSetting("durationCapTwo", -(controller.stepDuration || 30))}
+                        onIncrease={() => adjustDurationSetting("durationCapTwo", controller.stepDuration || 30)}
+                    />
+                    <MinimalStepper
+                        label="Group (3p+)"
+                        value={getPrettyDuration(controller.durationCapThree)}
+                        onDecrease={() => adjustDurationSetting("durationCapThree", -(controller.stepDuration || 30))}
+                        onIncrease={() => adjustDurationSetting("durationCapThree", controller.stepDuration || 30)}
+                    />
+                </div>
 
-            {/* TIME Section - Step and Gap */}
-            <SettingGroup title="Time">
-                <SettingRow label="Step" icon={Clock}>
-                    <TimeAdjustButton onClick={adjustStepDown}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.stepDuration || 30}m</span>
-                    <TimeAdjustButton onClick={adjustStepUp}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-                <SettingRow label="Gap" icon={Clock}>
-                    <TimeAdjustButton onClick={adjustGapDown}>
-                        <ChevronDown className="w-4 h-4" />
-                    </TimeAdjustButton>
-                    <span className="text-sm font-mono font-semibold w-12 text-center">{controller.gapMinutes || 0}m</span>
-                    <TimeAdjustButton onClick={adjustGapUp}>
-                        <ChevronUp className="w-4 h-4" />
-                    </TimeAdjustButton>
-                </SettingRow>
-            </SettingGroup>
+                <div className="space-y-1">
+                    <span className="text-[10px] uppercase text-muted-foreground/50 font-bold tracking-wider mb-2 block md:mt-0 mt-4">Queue Logic</span>
+                    <MinimalStepper
+                        label="Step Size"
+                        value={`${controller.stepDuration || 30}m`}
+                        onDecrease={() => adjustSetting("stepDuration", -15, 15, 60)}
+                        onIncrease={() => adjustSetting("stepDuration", 15, 15, 60)}
+                        icon={History}
+                    />
+                    <MinimalStepper
+                        label="Gap"
+                        value={`${controller.gapMinutes || 0}m`}
+                        onDecrease={() => adjustSetting("gapMinutes", -15, 0, 120)}
+                        onIncrease={() => adjustSetting("gapMinutes", 15, 0, 120)}
+                        icon={Clock}
+                    />
+                </div>
+            </div>
         </div>
     );
 }
