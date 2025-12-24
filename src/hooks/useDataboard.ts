@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
+import type { SortConfig } from "@/types/sort";
 
 export interface DataboardGroup<T> {
     label: string;
@@ -22,11 +23,14 @@ export const useDataboard = <T>(
     entityId?: string,
     externalSearch?: string,
     onExternalSearchChange?: (value: string) => void,
+    externalSort?: SortConfig,
+    onExternalSortChange?: (value: SortConfig) => void,
 ) => {
     // Use external state if provided, otherwise use local state
     const [localFilter, setLocalFilter] = useState<DataboardFilterByDate>("All");
     const [localGroup, setLocalGroup] = useState<DataboardGroupByDate | string>("All");
     const [localSearch, setLocalSearch] = useState<string>("");
+    const [localSort, setLocalSort] = useState<SortConfig>({ field: null, direction: "desc" });
 
     const filter = externalFilter ?? localFilter;
     const setFilter = onExternalFilterChange ?? setLocalFilter;
@@ -34,6 +38,8 @@ export const useDataboard = <T>(
     const setGroup = onExternalGroupChange ?? setLocalGroup;
     const search = externalSearch ?? localSearch;
     const setSearch = onExternalSearchChange ?? setLocalSearch;
+    const sort = externalSort ?? localSort;
+    const setSort = onExternalSortChange ?? setLocalSort;
 
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [entityFilter, setEntityFilter] = useState<Record<string, string>>({});
@@ -208,17 +214,42 @@ export const useDataboard = <T>(
         return Array.from(groups.entries()).map(([label, data]) => ({ label, data }));
     };
 
+    const sortData = (items: AbstractModel<T>[]): AbstractModel<T>[] => {
+        if (!sort.field) return items;
+
+        return [...items].sort((a, b) => {
+            const field = sort.field as keyof typeof a.schema;
+            const valA = a.schema[field];
+            const valB = b.schema[field];
+
+            if (valA === valB) return 0;
+            
+            // Handle nulls/undefined
+            if (valA == null) return 1;
+            if (valB == null) return -1;
+
+            let comparison = 0;
+            if (valA < valB) comparison = -1;
+            if (valA > valB) comparison = 1;
+
+            return sort.direction === "asc" ? comparison : -comparison;
+        });
+    };
+
     const groupData = (items: AbstractModel<T>[]): DataboardGroup<T>[] => {
+        // Sort items before grouping to ensure group contents are sorted
+        const sortedItems = sortData(items);
+
         if (group === "All") {
-            return [{ label: "All", data: items }];
+            return [{ label: "All", data: sortedItems }];
         }
 
         const isDateGroup = ["Daily", "Weekly", "Monthly"].includes(String(group));
         if (isDateGroup) {
-            return groupDataByDate(items);
+            return groupDataByDate(sortedItems);
         }
 
-        return groupDataByField(items, String(group));
+        return groupDataByField(sortedItems, String(group));
     };
 
     const searchedData = filterDataBySearch(data);
@@ -234,6 +265,8 @@ export const useDataboard = <T>(
         setGroup,
         search,
         setSearch,
+        sort,
+        setSort,
         expandedRow,
         setExpandedRow,
         entityFilter,

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { StatItem } from "@/src/components/ui/row";
+import type { SortConfig } from "./sort";
 
 export type DataboardFilterByDate = "All" | "Last 7 days" | "Last 30 days" | "Active";
 
@@ -13,6 +14,8 @@ export interface DataboardController {
 	stats: StatItem[];
 	filter: DataboardFilterByDate;
 	onFilterChange: (value: DataboardFilterByDate) => void;
+	sort: SortConfig;
+	onSortChange: (value: SortConfig) => void;
 	group: DataboardGroupByDate | string;
 	onGroupChange: (value: DataboardGroupByDate | string) => void;
 	activity: DataboardActivityFilter;

@@ -4,6 +4,7 @@ import { useState, ReactNode } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
+import type { SortConfig } from "@/types/sort";
 import { usePathname } from "next/navigation";
 
 interface DataboardLayoutWrapperProps {
@@ -25,6 +26,7 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const [group, setGroup] = useState<DataboardGroupByDate | string>("All");
     const [activity, setActivity] = useState<DataboardActivityFilter>("All");
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState<SortConfig>({ field: null, direction: "desc" });
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [counts, setCounts] = useState<Record<string, number>>({});
@@ -58,6 +60,8 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         onActivityChange: setActivity,
         search,
         onSearchChange: setSearch,
+        sort,
+        onSortChange: setSort,
         isSelectionMode,
         onSelectionModeToggle: handleSelectionModeToggle,
         selectedCount,
