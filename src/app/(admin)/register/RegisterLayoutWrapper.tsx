@@ -136,6 +136,7 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
                     error={error}
                     submitHandler={registeredSubmitHandler}
                     isFormValid={activeForm === "booking" ? canCreateBooking : formIsValid}
+                    referrals={data.referrals}
                 />
             }
             form={children}

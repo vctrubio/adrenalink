@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
@@ -344,11 +345,17 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
                         <TeacherIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 className="text-2xl font-bold text-foreground">
+                <motion.h2
+                    className="text-2xl font-bold text-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    key={formData.firstName && formData.lastName ? "named" : "new"}
+                >
                     {formData.firstName && formData.lastName
                         ? `${formData.firstName} ${formData.lastName}`
                         : "New Teacher"}
-                </h2>
+                </motion.h2>
             </div>
 
             {/* Name Fields */}

@@ -10,7 +10,7 @@ import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/src/components/forms/Package4SchoolForm";
-import { createAndLinkPackage } from "@/actions/register-action";
+import { createSchoolPackage } from "@/actions/register-action";
 import { useRegisterActions } from "../RegisterContext";
 
 interface Package {
@@ -55,9 +55,9 @@ export function PackageSection({
         pricePerStudent: 0,
         capacityStudents: 1,
         capacityEquipment: 1,
-        categoryEquipment: "kite",
-        packageType: "lessons",
-        isPublic: false,
+        categoryEquipment: "" as any,
+        packageType: "" as any,
+        isPublic: true,
     });
 
     const title = selectedPackage
@@ -91,7 +91,7 @@ export function PackageSection({
 
         setLoading(true);
         try {
-            const result = await createAndLinkPackage({
+            const result = await createSchoolPackage({
                 durationMinutes: formData.durationMinutes,
                 description: formData.description,
                 pricePerStudent: formData.pricePerStudent,
@@ -134,9 +134,9 @@ export function PackageSection({
                     pricePerStudent: 0,
                     capacityStudents: 1,
                     capacityEquipment: 1,
-                    categoryEquipment: "kite",
-                    packageType: "lessons",
-                    isPublic: false,
+                    categoryEquipment: "" as any,
+                    packageType: "" as any,
+                    isPublic: true,
                 });
             }
 

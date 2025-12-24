@@ -270,14 +270,16 @@ export default function BookingForm({ school, schoolPackages, students, teachers
                 onClose={() => closeSection("teacher-section")}
             />
 
-            <ReferralSection
-                referrals={referrals}
-                selectedReferral={selectedReferral}
-                onSelect={handleReferralSelect}
-                isExpanded={expandedSections.has("referral-section")}
-                onToggle={() => toggleSection("referral-section")}
-                onClose={() => closeSection("referral-section")}
-            />
+            {referrals && referrals.length > 0 && (
+                <ReferralSection
+                    referrals={referrals}
+                    selectedReferral={selectedReferral}
+                    onSelect={handleReferralSelect}
+                    isExpanded={expandedSections.has("referral-section")}
+                    onToggle={() => toggleSection("referral-section")}
+                    onClose={() => closeSection("referral-section")}
+                />
+            )}
 
             {error && (
                 <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">

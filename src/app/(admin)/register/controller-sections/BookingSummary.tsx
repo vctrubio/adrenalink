@@ -14,9 +14,10 @@ interface BookingSummaryProps {
     selectedReferral: any;
     selectedTeacher: any;
     selectedCommission: any;
+    hasReferrals?: boolean;
 }
 
-export function BookingSummary({ dateRange, selectedPackage, selectedStudents, selectedReferral, selectedTeacher, selectedCommission }: BookingSummaryProps) {
+export function BookingSummary({ dateRange, selectedPackage, selectedStudents, selectedReferral, selectedTeacher, selectedCommission, hasReferrals = true }: BookingSummaryProps) {
     const hasDates = dateRange.startDate && dateRange.endDate;
     const hasPackage = !!selectedPackage;
     const hasStudents = selectedStudents.length > 0;
@@ -136,28 +137,30 @@ export function BookingSummary({ dateRange, selectedPackage, selectedStudents, s
                 </div>
 
                 {/* Referral */}
-                <div
-                    className={`w-full text-left p-3 rounded-lg border ${hasReferral ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        }`}
-                >
-                    <div className="flex items-center gap-2 mb-1">
-                        <LinkIcon size={16} color={hasReferral ? "#22c55e" : "#9ca3af"} />
-                        <span className="text-xs font-medium" style={{ color: hasReferral ? "#22c55e" : "#6b7280" }}>
-                            Referral {hasReferral ? "" : "(Optional)"}
-                        </span>
+                {hasReferrals && (
+                    <div
+                        className={`w-full text-left p-3 rounded-lg border ${hasReferral ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                            }`}
+                    >
+                        <div className="flex items-center gap-2 mb-1">
+                            <LinkIcon size={16} color={hasReferral ? "#22c55e" : "#9ca3af"} />
+                            <span className="text-xs font-medium" style={{ color: hasReferral ? "#22c55e" : "#6b7280" }}>
+                                Referral {hasReferral ? "" : "(Optional)"}
+                            </span>
+                        </div>
+                        {hasReferral ? (
+                            <>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium">{selectedReferral.code}</span>
+                                    <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
+                                </div>
+                                {selectedReferral.description && <div className="text-xs text-muted-foreground">{selectedReferral.description}</div>}
+                            </>
+                        ) : (
+                            <div className="text-xs text-muted-foreground">Skip to book without referral</div>
+                        )}
                     </div>
-                    {hasReferral ? (
-                        <>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{selectedReferral.code}</span>
-                                <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
-                            </div>
-                            {selectedReferral.description && <div className="text-xs text-muted-foreground">{selectedReferral.description}</div>}
-                        </>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">Skip to book without referral</div>
-                    )}
-                </div>
+                )}
 
                 {/* Commission */}
                 {hasTeacher && !hasCommission && (

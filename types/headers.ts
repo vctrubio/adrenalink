@@ -80,12 +80,17 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
     const headersList = await headers();
     const username = headersList.get("x-school-username");
 
+    console.log("getSchoolHeader: x-school-username header value::::::::::::::::::::", username);
     if (!username) {
         return null;
     }
 
     const schoolData = await getSchoolByUsername(username);
 
+    console.log("getSchoolHeader: schoolData fetched from DB::::::::::::::::::::", schoolData);
+
+    // schoolData?.timezone = "America/New_York"; // DEV OVERRIDE
+    
     if (!schoolData || !schoolData.timezone) {
         if (!schoolData) {
             console.warn(`[getSchoolHeader] School with username "${username}" not found in database.`);
@@ -109,6 +114,7 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
  * to ensure that subsequent calls to `getSchoolHeader` fetch fresh data.
  */
 export function revalidateSchoolCache(): void {
+    // @ts-expect-error - Next.js 16 types mismatch for revalidateTag
     revalidateTag("school");
     console.log("DEV:DEBUG ✅ Revalidated 'school' cache tag.");
 }

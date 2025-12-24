@@ -77,12 +77,10 @@ function SummaryItem({
 }) {
     const isComplete = !!value;
 
-    // Use required colors for completed required fields, otherwise use optional colors if not required
+    // Use required colors only when data exists, otherwise use muted
     const colors = isComplete
         ? FORM_SUMMARY_COLORS.required
-        : isRequired
-            ? FORM_SUMMARY_COLORS.required
-            : FORM_SUMMARY_COLORS.optional;
+        : FORM_SUMMARY_COLORS.muted;
 
     return (
         <div className={`p-3 rounded-lg border ${colors.bg} ${colors.border}`}>

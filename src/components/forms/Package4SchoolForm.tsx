@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { z } from "zod";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { ENTITY_DATA } from "@/config/entities";
@@ -68,12 +69,14 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
                         <PackageIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 className="text-2xl font-bold text-foreground">
+                <motion.h2 className="text-2xl font-bold text-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} key={formData.description ? "named" : "new"}>
                     {formData.description || "New Package"}
-                </h2>
+                </motion.h2>
             </div>
 
             <div className="space-y-6">
+                <DescriptionField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("description")} isValid={isFieldValid("description")} />
+
                 {/* Package Type & Visibility Together */}
                 <PackageTypeAndVisibilityField formData={formData} onFormDataChange={onFormDataChange} typeError={getFieldError("packageType")} typeIsValid={isFieldValid("packageType")} />
 
@@ -92,10 +95,8 @@ export default function Package4SchoolForm({ formData, onFormDataChange, isFormR
                     capacityIsValid={isFieldValid("capacityStudents")}
                 />
 
-                <DescriptionField formData={formData} onFormDataChange={onFormDataChange} error={getFieldError("description")} isValid={isFieldValid("description")} />
-
                 {/* Revenue Summary - Like Commission Border */}
-                <PackageRevenueSummary formData={formData} />
+                {/* <PackageRevenueSummary formData={formData} /> */}
             </div>
         </div>
     );
@@ -115,11 +116,19 @@ function PackageTypeAndVisibilityField({ formData, onFormDataChange, typeError, 
         <div className="space-y-4">
             <FormField label="Package Type" required error={typeError} isValid={typeIsValid}>
                 <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => handleTypeChange("lessons")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}>
+                    <button
+                        type="button"
+                        onClick={() => handleTypeChange("lessons")}
+                        className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
+                    >
                         <div className="font-medium">Lessons</div>
                         <div className="text-sm text-muted-foreground">Teaching sessions</div>
                     </button>
-                    <button type="button" onClick={() => handleTypeChange("rental")} className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}>
+                    <button
+                        type="button"
+                        onClick={() => handleTypeChange("rental")}
+                        className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
+                    >
                         <div className="font-medium">Rental</div>
                         <div className="text-sm text-muted-foreground">Equipment rental only</div>
                     </button>
@@ -129,14 +138,7 @@ function PackageTypeAndVisibilityField({ formData, onFormDataChange, typeError, 
             {/* Visibility Toggle */}
             <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Visibility</label>
-                <ToggleSwitch
-                    value={formData.isPublic ? "public" : "private"}
-                    onChange={(value) => handleVisibilityToggle()}
-                    values={{ left: "public", right: "private" }}
-                    counts={{ public: 0, private: 0 }}
-                    tintColor="#3b82f6"
-                    showLabels={true}
-                />
+                <ToggleSwitch value={formData.isPublic ? "public" : "private"} onChange={(value) => handleVisibilityToggle()} values={{ left: "public", right: "private" }} counts={{ public: 0, private: 0 }} tintColor="#3b82f6" showLabels={true} />
             </div>
         </div>
     );

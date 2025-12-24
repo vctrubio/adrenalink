@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "./CountryFlagPhoneSubForm";
@@ -188,12 +189,13 @@ function DescriptionField({ description, onDescriptionChange }: { description: s
 function CanRentField({ canRent, onCanRentChange }: { canRent: boolean; onCanRentChange: (value: boolean) => void }) {
     return (
         <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Student Can Rent</label>
+            <label className="text-sm font-medium text-foreground">Independent (Can Rent)</label>
             <ToggleSwitch
                 value={canRent ? "yes" : "no"}
                 onChange={(value) => onCanRentChange(value === "yes")}
                 values={{ left: "no", right: "yes" }}
                 counts={{ no: 1, yes: 1 }}
+                showLabels={true}
             />
         </div>
     );
@@ -260,11 +262,17 @@ export default function StudentForm({ formData, onFormDataChange, isFormReady = 
                         <StudentIcon className="w-10 h-10 transition-all duration-300" />
                     </div>
                 )}
-                <h2 className="text-2xl font-bold text-foreground">
+                <motion.h2
+                    className="text-2xl font-bold text-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    key={formData.firstName && formData.lastName ? "named" : "new"}
+                >
                     {formData.firstName && formData.lastName
                         ? `${formData.firstName} ${formData.lastName}`
                         : "New Student"}
-                </h2>
+                </motion.h2>
             </div>
 
             {/* Name Fields */}

@@ -326,11 +326,12 @@ export async function createAndLinkTeacher(
  * @param packageData - Package information (duration, price, capacity, etc.)
  * @returns Created package record
  */
-export async function createAndLinkPackage(packageData: Omit<SchoolPackageForm, "schoolId">): Promise<ApiActionResponseModel<typeof schoolPackage.$inferSelect>> {
+export async function createSchoolPackage(packageData: Omit<SchoolPackageForm, "schoolId">): Promise<ApiActionResponseModel<typeof schoolPackage.$inferSelect>> {
     try {
         // Get school ID from header
         const schoolHeader = await getSchoolHeader();
 
+        console.log("Creating package school HEader DEBUG..........:", schoolHeader);
         if (!schoolHeader) {
             return { success: false, error: "School not found in headers - check x-school-username header" };
         }

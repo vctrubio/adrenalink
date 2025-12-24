@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/Package4SchoolForm";
-import { createAndLinkPackage } from "@/actions/register-action";
+import { createSchoolPackage } from "@/actions/register-action";
 import toast from "react-hot-toast";
 
 const defaultPackageForm: PackageFormData = {
@@ -45,7 +45,7 @@ export default function PackagePage() {
         if (!isFormValid) return;
 
         try {
-            const result = await createAndLinkPackage({
+            const result = await createSchoolPackage({
                 durationMinutes: formData.durationMinutes,
                 description: formData.description || null,
                 pricePerStudent: formData.pricePerStudent,

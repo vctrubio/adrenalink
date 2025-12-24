@@ -16,6 +16,7 @@ export interface SchoolFormData {
     phone: string;
     latitude?: number;
     longitude?: number;
+    timezone?: string;
     googlePlaceId?: string;
     equipmentCategories: ("kite" | "wing" | "windsurf")[];
     iconFile?: File;
@@ -96,15 +97,15 @@ export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLoc
                 </FormField>
 
                 <FormField label="Instagram" error={errors.instagramUrl?.message}>
-                    <div className="relative">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                            <Instagram className="w-4 h-4" />
+                    <div className="flex">
+                        <div className="h-10 px-3 bg-muted border border-r-0 border-input flex items-center rounded-l-md text-sm text-muted-foreground whitespace-nowrap">
+                            @
                         </div>
                         <FormInput 
-                            type="url" 
-                            placeholder="https://instagram.com/..." 
+                            type="text" 
+                            placeholder="username" 
                             {...register("instagramUrl")} 
-                            className="pl-10"
+                            className="rounded-l-none"
                         />
                     </div>
                 </FormField>

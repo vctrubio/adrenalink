@@ -27,6 +27,7 @@ const schoolSchema = z.object({
     phone: z.string().min(1, "Phone number is required"),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
+    timezone: z.string().min(1, "Timezone is required"),
     googlePlaceId: z.string().optional(),
     equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf"])).min(1, "Select at least one equipment category"),
     iconFile: z.instanceof(File, { message: "Icon file is required" }).refine((file) => file && file.type.startsWith("image/"), "Icon must be an image file"),
@@ -74,9 +75,10 @@ export function WelcomeSchoolForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [isNameRegistered, setIsNameRegistered] = useState(false);
     const [isResultView, setIsResultView] = useState(false);
+    const [createdSchoolUsername, setCreatedSchoolUsername] = useState("");
 
     const methods = useForm<SchoolFormData>({
-        resolver: zodResolver(schoolSchema),
+        resolver: zodResolver(schoolSchema) as any,
         defaultValues: {
             name: "",
             username: "",
@@ -84,6 +86,7 @@ export function WelcomeSchoolForm() {
             phone: "",
             latitude: undefined,
             longitude: undefined,
+            timezone: "",
             googlePlaceId: "",
             equipmentCategories: [],
             iconFile: undefined,
@@ -165,10 +168,11 @@ export function WelcomeSchoolForm() {
     };
 
     const handleLocationChange = useCallback(
-        (location: { latitude?: number; longitude?: number; googlePlaceId?: string }) => {
+        (location: { latitude?: number; longitude?: number; googlePlaceId?: string; timezone?: string }) => {
             if (location.latitude !== undefined) setValue("latitude", location.latitude);
             if (location.longitude !== undefined) setValue("longitude", location.longitude);
             if (location.googlePlaceId) setValue("googlePlaceId", location.googlePlaceId);
+            setValue("timezone", location.timezone || "");
         },
         [setValue],
     );
@@ -271,6 +275,11 @@ export function WelcomeSchoolForm() {
             const schoolData = {
                 ...data,
                 equipmentCategories: data.equipmentCategories.join(","),
+                latitude: data.latitude?.toString(),
+                longitude: data.longitude?.toString(),
+                instagramUrl: data.instagramUrl && !data.instagramUrl.includes("instagram.com") 
+                    ? `https://www.instagram.com/${data.instagramUrl.replace(/^@/, "")}` 
+                    : data.instagramUrl,
                 // Remove file objects before sending to database
                 iconFile: undefined,
                 bannerFile: undefined,
@@ -290,20 +299,15 @@ export function WelcomeSchoolForm() {
 
             console.log("✅ School created successfully:", result.data);
 
-            // Direct redirect to production subdomain
-            window.location.href = `https://${data.username}.adrenalink.tech/`;
+            // Save username for the success button redirect
+            setCreatedSchoolUsername(data.username);
 
-            // Reset logic (fallback if redirect takes time)
-            const lastCountry = data.country;
-            methods.reset();
-            setValue("country", lastCountry);
-            triggerPhoneClear();
-            setUsernameStatus(null);
+            // We do NOT reset the form here, so MultiFormContainer can show the success view.
+            // The redirection happens when the user clicks the success button.
+            
             setPendingToBucket(false);
             setUploadStatus("");
             setUploadStarted(false);
-            setCurrentStep(0);
-            setIsNameRegistered(false);
         } catch (error) {
             console.error("Error in school creation flow:", error);
             setUploadStatus("");
@@ -358,7 +362,7 @@ export function WelcomeSchoolForm() {
     return (
         <div className="w-full max-w-3xl mx-auto space-y-6">
             {/* Live Header Preview - Always visible to encourage completion */}
-            <WelcomeHeader formData={formValues} showPreview={isNameRegistered && !isResultView} />
+            {!isResultView && <WelcomeHeader formData={formValues} showPreview={isNameRegistered} />}
 
             {!isNameRegistered ? (
                 <WelcomeSchoolNameRegistration
@@ -385,8 +389,8 @@ export function WelcomeSchoolForm() {
                     successMessage="We will get back to you in 1 business day. Thank you."
                     successButtonText="Go to School"
                     onSuccessButtonClick={() => {
-                        const username = methods.getValues("username");
-                        window.location.href = `https://${username}.adrenalink.tech/`;
+                        const targetUsername = createdSchoolUsername || methods.getValues("username");
+                        window.location.href = `https://${targetUsername}.adrenalink.tech/`;
                     }}
                     onStateChange={(state) => setIsResultView(state.isSubmitted || state.isError)}
                 />

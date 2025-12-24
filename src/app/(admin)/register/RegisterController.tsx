@@ -41,6 +41,7 @@ interface RegisterControllerProps {
     onLeaderStudentChange?: (studentId: string) => void;
     submitHandler?: () => Promise<void>;
     isFormValid?: boolean;
+    referrals?: any[];
 }
 
 export default function RegisterController({
@@ -60,6 +61,7 @@ export default function RegisterController({
     onLeaderStudentChange,
     submitHandler,
     isFormValid = false,
+    referrals,
 }: RegisterControllerProps) {
     const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
     const leaderDropdownRef = useRef<HTMLDivElement>(null);
@@ -177,6 +179,7 @@ export default function RegisterController({
                             selectedReferral={selectedReferral}
                             selectedTeacher={selectedTeacher}
                             selectedCommission={selectedCommission}
+                            hasReferrals={referrals && referrals.length > 0}
                         />
                         {selectedStudents.length > 0 && (
                             <div className="border-t border-border pt-4">

@@ -8,6 +8,13 @@
       "when": 1766091798128,
       "tag": "0000_military_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766533892100,
+      "tag": "0001_marvelous_yellowjacket",
+      "breakpoints": true
     }
   ]
 }
