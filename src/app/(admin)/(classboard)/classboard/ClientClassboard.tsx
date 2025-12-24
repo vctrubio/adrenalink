@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { SingleDatePicker } from "@/src/components/pickers/SingleDatePicker";
 import StudentClassDaily from "./StudentClassDaily";
@@ -20,6 +20,34 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
 
     const [refreshKey, setRefreshKey] = useState(0);
+    const [currentTime, setCurrentTime] = useState("");
+    const [dayOfWeek, setDayOfWeek] = useState("");
+
+    // Format selected date to show day of week
+    const getDayOfWeek = (dateString: string) => {
+        const date = new Date(dateString);
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        return days[date.getDay()];
+    };
+
+    useEffect(() => {
+        setDayOfWeek(getDayOfWeek(selectedDate));
+    }, [selectedDate]);
+
+    // Get current time
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, "0");
+            const minutes = now.getMinutes().toString().padStart(2, "0");
+            setCurrentTime(`${hours}:${minutes}`);
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 60000); // Update every minute
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Create global flag instance
     const globalFlag = useMemo(
@@ -86,9 +114,12 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     return (
         <div className="max-w-7xl mx-auto flex flex-col gap-4">
             {/* Header */}
-            <div className="flex justify-between items-center p-2.5">
+            <div className="flex items-center justify-between p-2.5">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
+                    <div className="text-sm text-muted-foreground font-medium">{currentTime}</div>
+                </div>
                 <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} selectedDate={selectedDate} />
             </div>
 
             {/* Students */}
@@ -110,16 +141,15 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 />
             </div>
 
-            {/* Teachers */}
-            <div className="flex-1 overflow-hidden">
+            {/* Teachers & Lesson Flag */}
+            <div className="flex-1 overflow-hidden flex flex-col gap-4">
+                <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
                 <TeacherClassDaily
                     key={refreshKey}
                     teacherQueues={teacherQueues}
                     draggedBooking={draggedBooking}
                     isLessonTeacher={isLessonTeacher}
-                    classboardStats={classboardStats}
                     controller={controller}
-                    selectedDate={selectedDate}
                     onEventDeleted={handleEventDeleted}
                     onAddLessonEvent={handleAddLessonEvent}
                     globalFlag={globalFlag}

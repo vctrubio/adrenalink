@@ -9,7 +9,6 @@ import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/Teac
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { DragState, DragCompatibility } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
-import type { ClassboardStats } from "@/backend/ClassboardStats";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 function TeacherColumn({
@@ -20,7 +19,6 @@ function TeacherColumn({
     controller,
     onEventDeleted,
     onParentRefresh,
-    isFirst = false,
 }: {
     queue: TeacherQueue;
     dragState: DragState;
@@ -29,7 +27,6 @@ function TeacherColumn({
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onParentRefresh?: () => void;
-    isFirst?: boolean;
 }) {
     const [columnViewMode, setColumnViewMode] = useState<"view" | "queue">("view");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -158,7 +155,6 @@ function TeacherColumn({
         // Discard changes and return to view mode
         handleReset();
         setColumnViewMode("view");
-        originalQueueState.current = [];
 
         // If in global adjustment mode, opt this teacher out so they're not affected by further changes
         if (globalFlag.isAdjustmentMode()) {
@@ -188,13 +184,7 @@ function TeacherColumn({
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${
-                isDragOver && isCompatible
-                    ? "border-2 border-yellow-500"
-                    : isDragOver && isIncompatible
-                      ? "border-2 border-muted"
-                      : "border-2 border-transparent"
-            }`}
+            className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${isDragOver && isCompatible ? "border-2 border-yellow-500" : isDragOver && isIncompatible ? "border-2 border-muted" : "border-2 border-transparent"}`}
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 
@@ -223,14 +213,13 @@ interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
     draggedBooking: DraggableBooking | null;
     isLessonTeacher: (bookingId: string, teacherUsername: string) => boolean;
-    classboardStats: ClassboardStats;
     controller: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
     globalFlag: GlobalFlag;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, classboardStats, controller, onEventDeleted, onAddLessonEvent, globalFlag }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag }: TeacherClassDailyProps) {
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<DragCompatibility>(null);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -312,16 +301,11 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                 </div>
             ) : (
                 <div className="h-full flex overflow-x-auto pb-2 gap-4">
-                    {teacherQueues.map((queue, index) => {
-                            const stats = classboardStats.getTeacherStats(queue.teacher.username);
-                            if (!stats) return null;
-
-                            return (
-                                <React.Fragment key={queue.teacher.username}>
-                                    <TeacherColumn
-                                        queue={queue}
-                                        stats={stats}
-                                        isFirst={index === 0}
+                    {teacherQueues.map((queue) => {
+                        return (
+                            <React.Fragment key={queue.teacher.username}>
+                                <TeacherColumn
+                                    queue={queue}
                                     dragState={{
                                         dragOverTeacher,
                                         dragCompatibility,
@@ -337,8 +321,8 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                                     onEventDeleted={onEventDeleted}
                                     onParentRefresh={() => setRefreshKey((prev) => prev + 1)}
                                 />
-                                </React.Fragment>
-                            );
+                            </React.Fragment>
+                        );
                     })}
                 </div>
             )}

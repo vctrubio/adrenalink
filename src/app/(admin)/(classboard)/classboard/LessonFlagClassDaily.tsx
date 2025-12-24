@@ -16,7 +16,6 @@ interface LessonFlagClassDailyProps {
     globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
     onSubmit: () => Promise<void>;
-    selectedDate: string;
 }
 
 function TimeAdjustmentSection({ stepDuration, adjustmentTime, isLockFlagTime, lockCount, totalTeachers, onAdjustTime, onLockToggle, onCustomTimeEdit }: { stepDuration: number; adjustmentTime: string | null; isLockFlagTime: boolean; lockCount: number; totalTeachers: number; onAdjustTime: (increment: boolean) => void; onLockToggle: () => void; onCustomTimeEdit: (newTime: string) => void }) {
@@ -149,32 +148,7 @@ function LocationSection({ globalLocation, adaptedLocationCount, totalLocationEv
     );
 }
 
-export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubmit, selectedDate }: LessonFlagClassDailyProps) {
-    // Format selected date to show day of week
-    const getDayOfWeek = (dateString: string) => {
-        const date = new Date(dateString);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        return days[date.getDay()];
-    };
-
-    const dayOfWeek = getDayOfWeek(selectedDate);
-
-    // Get current time
-    const [currentTime, setCurrentTime] = useState<string>("");
-
-    useEffect(() => {
-        const updateTime = () => {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, "0");
-            const minutes = now.getMinutes().toString().padStart(2, "0");
-            setCurrentTime(`${hours}:${minutes}`);
-        };
-
-        updateTime();
-        const interval = setInterval(updateTime, 60000); // Update every minute
-
-        return () => clearInterval(interval);
-    }, []);
+export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubmit }: LessonFlagClassDailyProps) {
 
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
@@ -421,14 +395,7 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
     }, [teacherQueues, globalFlag, globalLocation]);
 
     return (
-        <div className="flex gap-4">
-            {/* Day of Week Header */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
-                <div className="text-sm text-muted-foreground font-medium">{currentTime}</div>
-            </div>
-
-            {/* Main Content */}
+        <div>
             {isAdjustmentMode ? (
                 <div className="flex gap-3 flex-1">
                     <TimeAdjustmentSection stepDuration={stepDuration} adjustmentTime={adjustmentTime} isLockFlagTime={isLockFlagTime} lockCount={lockCount} totalTeachers={totalTeachers} onAdjustTime={handleAdjustTime} onLockToggle={handleLockToggle} onCustomTimeEdit={handleCustomTimeEdit} />

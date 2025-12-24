@@ -349,6 +349,14 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
             e.preventDefault();
             return;
         }
+        const bookingJson = JSON.stringify(draggableBooking);
+        try {
+            e.dataTransfer.setData("application/json", bookingJson);
+            e.dataTransfer.setData("text/plain", bookingJson);
+        } catch (err) {
+            console.warn("dataTransfer setData error:", err);
+        }
+        e.dataTransfer.effectAllowed = "move";
         classboard.onDragStart(draggableBooking);
         setIsDragging(true);
     };
