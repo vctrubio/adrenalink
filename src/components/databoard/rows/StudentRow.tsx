@@ -3,7 +3,7 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { BookingTag, BookingCreateTag, UrlParamAddTag } from "@/src/components/tags";
+import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
 import { StudentRowStats as DataboardStudentStats } from "@/src/components/databoard/stats";
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
@@ -12,25 +12,39 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import { StudentDropdownRow } from "./StudentDropdownRow";
 import type { StudentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import IdIcon from "@/public/appSvgs/IdIcon";
 
 export const calculateStudentGroupStats = DataboardStudentStats.getStats;
 
 const StudentAction = ({ student }: { student: StudentModel }) => {
     const bookingStudents = student.relations?.bookingStudents || [];
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const hasActiveBooking = bookingStudents.some(bs => bs.booking?.status === "active");
 
     return (
         <div className="flex flex-wrap gap-2">
-            <UrlParamAddTag type="student" id={student.schema.id} color={studentEntity.color} />
-            {bookingStudents.length === 0 ? (
-                <BookingCreateTag icon={<BookingIcon className="w-3 h-3" />} onClick={() => console.log("Creating new booking...")} />
-            ) : (
+            {!hasActiveBooking && (
+                <BookingCreateTag 
+                    icon={<BookingIcon className="w-3 h-3" />} 
+                    link={`/register?add=student:${student.schema.id}`}
+                    className="px-4 py-2 text-sm"
+                />
+            )}
+            {bookingStudents.length > 0 && (
                 <>
                     {bookingStudents.map((bookingStudent) => {
                         const booking = bookingStudent.booking;
                         if (!booking) return null;
 
-                        return <BookingTag key={booking.id} icon={<BookingIcon className="w-3 h-3" />} dateStart={booking.dateStart} dateEnd={booking.dateEnd} status="active" link={`/bookings/${booking.id}`} />;
+                        return (
+                            <BookingTag 
+                                key={booking.id} 
+                                icon={<BookingIcon className="w-3 h-3" />} 
+                                dateStart={booking.dateStart} 
+                                dateEnd={booking.dateEnd} 
+                                status={booking.status as any} 
+                                link={`/bookings/${booking.id}`} 
+                            />
+                        );
                     })}
                 </>
             )}
@@ -46,7 +60,6 @@ interface StudentRowProps {
 }
 
 function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
-    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
     return true;
 }
 
@@ -60,7 +73,6 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
     const fullName = `${student.schema.firstName} ${student.schema.lastName}`;
 
     const strItems = [
-        { label: "Passport", value: student.schema.passport },
         { label: "Country", value: student.schema.country },
         { label: "Phone", value: student.schema.phone },
         { label: "Languages", value: student.schema.languages.join(", ") },
@@ -111,7 +123,12 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: "Details",
+                label: (
+                    <div className="flex items-center gap-2">
+                        <IdIcon size={16} />
+                        <span>{student.schema.passport}</span>
+                    </div>
+                ),
                 items: strItems,
             }}
             action={<StudentAction student={student} />}

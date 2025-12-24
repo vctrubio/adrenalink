@@ -5,7 +5,7 @@ import { type ReactNode } from "react";
 
 interface TagProps {
     icon: ReactNode;
-    name: string;
+    name: string | ReactNode;
     bgColor: string;
     borderColorHex: string;
     color: string;
@@ -14,9 +14,10 @@ interface TagProps {
     eventCount?: number;
     durationIcon?: ReactNode;
     duration?: string;
+    className?: string;
 }
 
-export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon, eventCount, durationIcon, duration }: TagProps) => {
+export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon, eventCount, durationIcon, duration, className }: TagProps) => {
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -29,16 +30,26 @@ export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon
 
     return (
         <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 border-2 min-w-20 ${link ? "cursor-pointer" : ""} bg-gray-200 dark:bg-gray-800`}
+            className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all hover:scale-105 border-2 min-w-20 ${link ? "cursor-pointer" : ""} bg-gray-200 dark:bg-gray-800 ${className || ""}`}
             style={{ borderColor: borderColorHex } as React.CSSProperties}
             onClick={link ? handleClick : undefined}
         >
             <div style={{ color }}>{icon}</div>
             <span className="text-foreground text-sm">{name}</span>
-            {flagIcon && <div style={{ color }}>{flagIcon}</div>}
-            {eventCount && <span className="text-foreground text-sm">{eventCount}</span>}
-            {durationIcon && <div style={{ color }}>{durationIcon}</div>}
-            {duration && <span className="text-foreground text-sm">{duration}</span>}
+            
+            {eventCount !== undefined && eventCount > 0 && (
+                <div className="flex items-center gap-1 ml-1.5">
+                    {flagIcon && <div style={{ color }}>{flagIcon}</div>}
+                    <span className="text-foreground text-xs">{eventCount}</span>
+                </div>
+            )}
+
+            {duration !== undefined && duration !== "0:00" && duration !== "" && (
+                <div className="flex items-center gap-1 ml-1.5">
+                    {durationIcon && <div style={{ color }}>{durationIcon}</div>}
+                    <span className="text-foreground text-xs">{duration}</span>
+                </div>
+            )}
         </div>
     );
 };

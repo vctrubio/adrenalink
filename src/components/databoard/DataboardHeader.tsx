@@ -53,7 +53,6 @@ export function DataboardHeader({ controller, entityId, stats }: DataboardHeader
                         options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking} 
                         onChange={controller.onSortChange} 
                         entityColor={entity.color} 
-                        entityName={entity.name}
                     />
                     <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
                     <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />

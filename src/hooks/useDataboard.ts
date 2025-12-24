@@ -234,6 +234,9 @@ export const useDataboard = <T>(
             } else if (sort.field === "eventDuration") {
                 valA = (a.relations as any)?.equipmentEvents?.reduce((acc: number, ee: any) => acc + (ee.event?.duration || 0), 0) || 0;
                 valB = (b.relations as any)?.equipmentEvents?.reduce((acc: number, ee: any) => acc + (ee.event?.duration || 0), 0) || 0;
+            } else if (sort.field === "eventCount") {
+                valA = (a.relations as any)?.lessons?.reduce((acc: number, l: any) => acc + (l.events?.length || 0), 0) || 0;
+                valB = (b.relations as any)?.lessons?.reduce((acc: number, l: any) => acc + (l.events?.length || 0), 0) || 0;
             } else {
                 const field = sort.field as keyof typeof a.schema;
                 valA = a.schema[field];

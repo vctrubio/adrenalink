@@ -10,10 +10,9 @@ interface SortDropdownProps {
     options: SortOption[];
     onChange: (config: SortConfig) => void;
     entityColor: string;
-    entityName: string;
 }
 
-export function SortDropdown({ value, options, onChange, entityColor, entityName }: SortDropdownProps) {
+export function SortDropdown({ value, options, onChange, entityColor }: SortDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownRect, setDropdownRect] = useState({ top: 0, right: 0 });
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -59,6 +58,10 @@ export function SortDropdown({ value, options, onChange, entityColor, entityName
         displayLabel = "Lessons";
     } else if (value.field === "eventDuration") {
         displayLabel = "Usage";
+    } else if (value.field === "capacityStudents") {
+        displayLabel = "Capacity";
+    } else if (value.field === "eventCount") {
+        displayLabel = "Events";
     } else {
         const activeOption = options.find(o => o.field === value.field && o.direction === value.direction);
         displayLabel = activeOption ? activeOption.label : "Sort";

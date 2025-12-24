@@ -3,10 +3,9 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { LessonTag, LessonCreateTag, UrlParamAddTag, TeacherAddButton } from "@/src/components/tags";
+import { LessonTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
 import { TeacherDropdownRow } from "./TeacherDropdownRow";
-import { isTeacherLessonReady } from "@/getters/teachers-getter";
 import { TeacherStats as DataboardTeacherStats } from "@/src/components/databoard/stats";
 import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
 import { updateTeacherActive } from "@/actions/teachers-action";
@@ -19,39 +18,31 @@ export const calculateTeacherGroupStats = DataboardTeacherStats.getStats;
 
 const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
     const lessons = teacher.relations?.lessons || [];
-    const lessonReady = isTeacherLessonReady(teacher);
     const DefaultEquipmentIcon = EQUIPMENT_CATEGORIES[0].icon;
-    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     return (
         <div className="flex flex-wrap gap-2">
-            <TeacherAddButton teacher={teacher} color={teacherEntity.color} />
-            {lessons.length === 0 && !lessonReady ? null : (
-                <>
-                    {lessonReady && <LessonCreateTag icon={<DefaultEquipmentIcon className="w-3 h-3" />} onClick={() => console.log("Creating new lesson...")} />}
-                    {lessons.map((lesson) => {
-                        const events = lesson.events || [];
-                        const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
-                        const duration =getFullDuration(totalMinutes);
+            {lessons.map((lesson) => {
+                const events = lesson.events || [];
+                const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+                const duration = getFullDuration(totalMinutes);
 
-                        const categoryEquipment = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
-                        const equipmentCategory = EQUIPMENT_CATEGORIES.find(cat => cat.id === categoryEquipment);
-                        const EquipmentIcon = equipmentCategory?.icon || DefaultEquipmentIcon;
-
-                        return (
-                            <LessonTag
-                                key={lesson.id}
-                                icon={<EquipmentIcon className="w-3 h-3" />}
-                                createdAt={lesson.createdAt}
-                                status={lesson.status}
-                                duration={duration}
-                                eventCount={events.length}
-                            />
-                        );
-                    })}
-                </>
-            )}
-        </div>
+                const categoryEquipment = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
+                                        const equipmentCategory = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
+                                        const EquipmentIcon = equipmentCategory?.icon || DefaultEquipmentIcon;
+                
+                                        return (
+                                            <LessonTag 
+                                                key={lesson.id} 
+                                                icon={<EquipmentIcon className="w-3 h-3" />} 
+                                                createdAt={lesson.createdAt} 
+                                                status={lesson.status} 
+                                                duration={duration} 
+                                                eventCount={events.length} 
+                                                link={`/bookings/${lesson.bookingId}`}
+                                            />
+                                        );
+                                    })}        </div>
     );
 };
 
@@ -62,7 +53,6 @@ interface TeacherRowProps {
 }
 
 function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): boolean {
-    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
     return true;
 }
 

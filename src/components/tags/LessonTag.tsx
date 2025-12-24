@@ -17,14 +17,13 @@ interface LessonTagProps {
 }
 
 export const LessonTag = ({ icon, createdAt, status, link, duration, eventCount }: LessonTagProps) => {
-    const lessonEntity = ENTITY_DATA.find(e => e.id === "lesson")!;
-    const formattedDate = formatDate(createdAt);
-    
-    const flagIcon = eventCount ? <FlagIcon className="w-3 h-3" /> : null;
-    const durationIcon = duration ? <DurationIcon className="w-3 h-3" /> : null;
-    
-    const displayName = formattedDate;
-
+    const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
+        const formattedDate = formatDate(createdAt);
+        
+        const flagIcon = eventCount !== undefined ? <FlagIcon size={12} className="w-3 h-3" /> : null;
+        const durationIcon = duration !== undefined ? <DurationIcon size={12} className="w-3 h-3" /> : null;
+        
+        const displayName = formattedDate;
     const isCompleted = status === "completed";
     const color = isCompleted ? lessonEntity.color : "#9ca3af";
     const bgColor = isCompleted ? lessonEntity.bgColor : "#e5e7eb";

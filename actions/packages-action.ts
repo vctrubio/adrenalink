@@ -237,3 +237,20 @@ export async function updateSchoolPackageActive(packageId: string, active: boole
         return { success: false, error: "Failed to update package active status" };
     }
 }
+
+// UPDATE SCHOOL PACKAGE PUBLIC STATUS
+export async function updateSchoolPackagePublic(packageId: string, isPublic: boolean): Promise<ApiActionResponseModel<SchoolPackageType>> {
+    try {
+        const result = await db.update(schoolPackage).set({ isPublic }).where(eq(schoolPackage.id, packageId)).returning();
+
+        if (!result[0]) {
+            return { success: false, error: "Package not found" };
+        }
+
+        revalidatePath("/packages");
+        return { success: true, data: result[0] };
+    } catch (error) {
+        console.error("Error updating package public status:", error);
+        return { success: false, error: "Failed to update package public status" };
+    }
+}

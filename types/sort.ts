@@ -34,12 +34,18 @@ export const ENTITY_SORT_OPTIONS: Record<string, SortOption[]> = {
         ...SORT_OPTIONS_DEFAULT,
         { label: "Most Popular", field: "studentPackageCount", direction: "desc", isCustom: true },
         { label: "Least Popular", field: "studentPackageCount", direction: "asc", isCustom: true },
+        { label: "Highest Capacity", field: "capacityStudents", direction: "desc" },
+        { label: "Lowest Capacity", field: "capacityStudents", direction: "asc" },
     ],
     equipment: [
         ...SORT_OPTIONS_DEFAULT,
         { label: "Most Used (Time)", field: "eventDuration", direction: "desc", isCustom: true },
         { label: "Least Used (Time)", field: "eventDuration", direction: "asc", isCustom: true },
     ],
-    booking: SORT_OPTIONS_DEFAULT,
+    booking: [
+        ...SORT_OPTIONS_DEFAULT,
+        { label: "Most Events", field: "eventCount", direction: "desc", isCustom: true },
+        { label: "Least Events", field: "eventCount", direction: "asc", isCustom: true },
+    ],
     event: SORT_OPTIONS_DEFAULT,
 };

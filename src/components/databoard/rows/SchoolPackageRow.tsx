@@ -3,14 +3,18 @@
 import { Row } from "@/src/components/ui/row";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
-import { UrlParamAddTag } from "@/src/components/tags";
+import { BookingCreateTag } from "@/src/components/tags";
 import { SchoolPackageStats as DataboardSchoolPackageStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
 import { PackageDropdownRow } from "./PackageDropdownRow";
 import { SCHOOL_PACKAGE_STATUS_CONFIG, type SchoolPackageStatus } from "@/types/status";
-import { updateSchoolPackageActive } from "@/actions/packages-action";
+import { updateSchoolPackageActive, updateSchoolPackagePublic } from "@/actions/packages-action";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EquipmentStudentPriceBadge } from "@/src/components/ui/badge/equipment-student-price";
 import type { SchoolPackageModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import { Globe, Lock } from "lucide-react";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
 
 export const calculateSchoolPackageGroupStats = DataboardSchoolPackageStats.getStats;
 
@@ -20,8 +24,7 @@ interface SchoolPackageRowProps {
     onToggle: (id: string) => void;
 }
 
-function validateActivity(fromStatus: SchoolPackageStatus, toStatus: SchoolPackageStatus): boolean {
-    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
+function validateActivity(fromStatus: string, toStatus: string): boolean {
     return true;
 }
 
@@ -38,17 +41,40 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
     const currentStatus = schoolPackage.schema.active ? "active" : "inactive";
     const currentStatusConfig = SCHOOL_PACKAGE_STATUS_CONFIG[currentStatus];
 
-    const statusDropdownItems: DropdownItemProps[] = (["active", "inactive"] as const).map((status) => ({
-        id: status,
-        label: SCHOOL_PACKAGE_STATUS_CONFIG[status].label,
-        icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: SCHOOL_PACKAGE_STATUS_CONFIG[status].color }} />,
-        color: SCHOOL_PACKAGE_STATUS_CONFIG[status].color,
-        onClick: async () => {
-            if (validateActivity(currentStatus, status)) {
-                await updateSchoolPackageActive(schoolPackage.schema.id, status === "active");
-            }
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === schoolPackage.schema.categoryEquipment);
+    const EquipmentIcon = equipmentConfig?.icon;
+
+    const statusDropdownItems: DropdownItemProps[] = [
+        ...(["active", "inactive"] as const).map((status) => ({
+            id: status,
+            label: SCHOOL_PACKAGE_STATUS_CONFIG[status].label,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: SCHOOL_PACKAGE_STATUS_CONFIG[status].color }} />,
+            color: SCHOOL_PACKAGE_STATUS_CONFIG[status].color,
+            onClick: async () => {
+                if (validateActivity(currentStatus, status)) {
+                    await updateSchoolPackageActive(schoolPackage.schema.id, status === "active");
+                }
+            },
+        })),
+        {
+            id: "public",
+            label: "Public",
+            icon: () => <Globe size={12} />,
+            color: "#3b82f6",
+            onClick: async () => {
+                await updateSchoolPackagePublic(schoolPackage.schema.id, true);
+            },
         },
-    }));
+        {
+            id: "private",
+            label: "Private",
+            icon: () => <Lock size={12} />,
+            color: "#f97316",
+            onClick: async () => {
+                await updateSchoolPackagePublic(schoolPackage.schema.id, false);
+            },
+        },
+    ];
 
     const strItems = [
         { label: "Package Type", value: schoolPackage.schema.packageType || "unknown" },
@@ -57,6 +83,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
         { label: "Duration", value: `${durationHours} hours` },
         { label: "Price Per Hour", value: `$${pricePerHour.toFixed(2)}` },
         { label: "Created", value: formatDate(schoolPackage.schema.createdAt) },
+        { label: "Access", value: schoolPackage.schema.isPublic ? "Public" : "Private" },
     ];
 
     const stats = DataboardSchoolPackageStats.getStats(schoolPackage, false);
@@ -86,10 +113,23 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
                 statusColor: currentStatusConfig.color,
             }}
             str={{
-                label: schoolPackage.schema.isPublic ? "Public" : "Internal",
+                label: EquipmentIcon ? (
+                    <EquipmentStudentPriceBadge 
+                        categoryIcon={EquipmentIcon} 
+                        equipmentCapacity={schoolPackage.schema.capacityEquipment} 
+                        studentCapacity={schoolPackage.schema.capacityStudents} 
+                        pricePerHour={pricePerHour}
+                    />
+                ) : "No Icon",
                 items: strItems,
             }}
-            action={<UrlParamAddTag type="package" id={schoolPackage.schema.id} color={packageEntity.color} />}
+            action={
+                <BookingCreateTag 
+                    icon={<BookingIcon className="w-3 h-3" />} 
+                    link={`/register?add=package:${schoolPackage.schema.id}`}
+                    className="px-4 py-2 text-sm"
+                />
+            }
             popover={undefined}
             stats={stats}
         />

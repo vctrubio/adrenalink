@@ -7,16 +7,16 @@ import { ENTITY_DATA } from "@/config/entities";
 interface BookingCreateTagProps {
     icon: ReactNode;
     onClick?: () => void;
+    link?: string;
+    className?: string;
 }
 
-export const BookingCreateTag = ({ icon, onClick }: BookingCreateTagProps) => {
+export const BookingCreateTag = ({ icon, onClick, link, className }: BookingCreateTagProps) => {
     const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
 
     const handleClick = () => {
         if (onClick) {
             onClick();
-        } else {
-            console.log("Creating new booking...");
         }
     };
 
@@ -28,6 +28,8 @@ export const BookingCreateTag = ({ icon, onClick }: BookingCreateTagProps) => {
                 bgColor="#e5e7eb"
                 borderColorHex={bookingEntity.color}
                 color="#4b5563"
+                link={link}
+                className={className}
             />
         </div>
     );

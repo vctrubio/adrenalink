@@ -22,7 +22,7 @@ interface RowProps {
         statusDisabled?: boolean;
     };
     str?: {
-        label: string;
+        label: string | ReactNode;
         items: {
             label: string;
             value: string | number;

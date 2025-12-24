@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { DropdownDictItem, type DropdownDictItemProps } from "@/src/components/ui/dropdown";
 import DropdownBullsIcon from "@/public/appSvgs/DropdownBullsIcon.jsx";
 
 interface RowStrProps {
-    label: string;
+    label: ReactNode;
     items: {
         label: string;
         value: string | number;
