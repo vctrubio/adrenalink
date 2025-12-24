@@ -300,7 +300,7 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
                     </div>
                 </div>
             ) : (
-                <div className="h-full flex overflow-x-auto pb-2 gap-4">
+                <div className="h-full flex flex-wrap justify-center overflow-x-auto pb-2 gap-4">
                     {teacherQueues.map((queue) => {
                         return (
                             <React.Fragment key={queue.teacher.username}>

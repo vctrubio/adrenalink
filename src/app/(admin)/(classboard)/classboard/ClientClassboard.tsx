@@ -11,6 +11,8 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { createClassboardEvent } from "@/actions/classboard-action";
+import { ENTITY_DATA } from "@/config/entities";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
 
 interface ClientClassboardProps {
     data: ClassboardModel;
@@ -20,7 +22,6 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { selectedDate, setSelectedDate, controller, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
 
     const [refreshKey, setRefreshKey] = useState(0);
-    const [currentTime, setCurrentTime] = useState("");
     const [dayOfWeek, setDayOfWeek] = useState("");
 
     // Format selected date to show day of week
@@ -33,21 +34,6 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     useEffect(() => {
         setDayOfWeek(getDayOfWeek(selectedDate));
     }, [selectedDate]);
-
-    // Get current time
-    useEffect(() => {
-        const updateTime = () => {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, "0");
-            const minutes = now.getMinutes().toString().padStart(2, "0");
-            setCurrentTime(`${hours}:${minutes}`);
-        };
-
-        updateTime();
-        const interval = setInterval(updateTime, 60000); // Update every minute
-
-        return () => clearInterval(interval);
-    }, []);
 
     // Create global flag instance
     const globalFlag = useMemo(
@@ -112,38 +98,51 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     };
 
     return (
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
-            {/* Header */}
-            <div className="flex items-center justify-between p-2.5">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
-                    <div className="text-sm text-muted-foreground font-medium">{currentTime}</div>
+        <div className="flex flex-col gap-4 h-full">
+            {/* Constrained sections */}
+            <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
+                {/* Header */}
+                <div className="flex items-center justify-between p-2.5">
+                    <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                    <div className="flex items-center gap-3">
+                        {(() => {
+                            const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking");
+                            return bookingEntity ? (
+                                <div className="flex items-center gap-2">
+                                    <BookingIcon className="w-5 h-5" style={{ color: bookingEntity.color }} />
+                                    <span className="text-sm font-semibold text-foreground">{draggableBookings.length}</span>
+                                </div>
+                            ) : null;
+                        })()}
+                        <div className="text-2xl font-bold text-foreground">{dayOfWeek}</div>
+                    </div>
                 </div>
-                <SingleDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-            </div>
 
-            {/* Students */}
-            <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
-                <StudentClassDaily
-                    bookings={draggableBookings}
-                    classboardData={classboardData}
-                    selectedDate={selectedDate}
-                    classboard={{
-                        onDragStart: (booking) => {
-                            setDraggedBooking(booking);
-                        },
-                        onDragEnd: () => {
-                            setDraggedBooking(null);
-                        },
-                        onAddLessonEvent: handleAddLessonEvent,
-                    }}
-                    setOnNewBooking={setOnNewBooking}
-                />
-            </div>
+                {/* Students */}
+                <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
+                    <StudentClassDaily
+                        bookings={draggableBookings}
+                        classboardData={classboardData}
+                        selectedDate={selectedDate}
+                        classboard={{
+                            onDragStart: (booking) => {
+                                setDraggedBooking(booking);
+                            },
+                            onDragEnd: () => {
+                                setDraggedBooking(null);
+                            },
+                            onAddLessonEvent: handleAddLessonEvent,
+                        }}
+                        setOnNewBooking={setOnNewBooking}
+                    />
+                </div>
 
-            {/* Teachers & Lesson Flag */}
-            <div className="flex-1 overflow-hidden flex flex-col gap-4">
+                {/* Lesson Flag */}
                 <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+            </div>
+
+            {/* Teachers section - full width */}
+            <div className="flex-1 overflow-hidden flex justify-center">
                 <TeacherClassDaily
                     key={refreshKey}
                     teacherQueues={teacherQueues}

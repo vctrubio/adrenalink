@@ -94,7 +94,7 @@ export function SingleDatePicker({
       <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
         <div className="flex items-center gap-2">
           {showTodayButton && isMounted && isToday ? (
-            <span className="text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-md text-green-700 dark:text-green-300">
+            <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">
               Today
             </span>
           ) : showTodayButton && isMounted && !isToday ? (
@@ -109,7 +109,7 @@ export function SingleDatePicker({
           ) : null}
         </div>
         {isMounted && relativeLabel && !isToday && (
-          <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">
+          <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">
             {relativeLabel}
           </span>
         )}
