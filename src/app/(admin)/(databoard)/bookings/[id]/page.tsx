@@ -1,11 +1,8 @@
 import { getEntityId } from "@/actions/id-actions";
 import { getSchoolHeader } from "@/types/headers";
 import type { BookingModel } from "@/backend/models";
-import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
-import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
-import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
+import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { BookingV2LeftColumn } from "./BookingV2LeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
@@ -43,17 +40,9 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
 
     return (
         <EntityIdLayout
-            header={
-                <EntityHeaderRow
-                    entityId="booking"
-                    entityName={<DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />}
-                    stats={bookingStats}
-                    shouldAnimate={false}
-                    secondaryContent={<BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBar.background} />}
-                />
-            }
-            leftColumn={<BookingV2LeftColumn booking={booking} />}
-            rightColumn={<BookingRightColumn booking={booking} />}
+            header={null}
+            leftColumn={<BookingV2LeftColumn booking={booking} usedMinutes={usedMinutes} totalMinutes={totalMinutes} progressBar={progressBar} />}
+            rightColumn={<BookingRightColumn booking={booking} stats={bookingStats} />}
         />
     );
 }

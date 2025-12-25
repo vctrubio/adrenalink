@@ -2,6 +2,8 @@
 
 import { LeftColumnCard } from "@/src/components/ids/LeftColumnCard";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
+import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -13,12 +15,16 @@ import type { LeftColumnCardData } from "@/types/left-column";
 
 interface BookingV2LeftColumnProps {
   booking: BookingModel;
+  usedMinutes: number;
+  totalMinutes: number;
+  progressBar: { background: string };
 }
 
-export function BookingV2LeftColumn({ booking }: BookingV2LeftColumnProps) {
+export function BookingV2LeftColumn({ booking, usedMinutes, totalMinutes, progressBar }: BookingV2LeftColumnProps) {
   const credentials = useSchoolCredentials();
   const currency = credentials?.currency || "YEN";
 
+  const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
   const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
   const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
   const receiptEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
@@ -29,6 +35,7 @@ export function BookingV2LeftColumn({ booking }: BookingV2LeftColumnProps) {
 
   const StudentIcon = studentEntity.icon;
   const PackageIcon = packageEntity.icon;
+  const BookingIcon = bookingEntity.icon;
 
   // Student Fields
   const studentFields = bookingStudents.map((bs, index) => {
@@ -102,6 +109,27 @@ export function BookingV2LeftColumn({ booking }: BookingV2LeftColumnProps) {
   const due = dueStat?.value || 0;
 
   // Card Data
+  const bookingCardData: LeftColumnCardData = {
+    name: <DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />,
+    status: <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBar.background} />,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
+        <BookingIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: [
+      {
+        label: "Status",
+        value: booking.schema.status || "Unknown",
+      },
+      {
+        label: "Created",
+        value: formatDate(booking.schema.createdAt),
+      },
+    ],
+    accentColor: bookingEntity.color,
+  };
+
   const leaderCardData: LeftColumnCardData = {
     name: booking.schema.leaderStudentName,
     status: "Leader",
@@ -152,10 +180,11 @@ export function BookingV2LeftColumn({ booking }: BookingV2LeftColumnProps) {
   };
 
   return (
-    <>
+    <div className="h-full overflow-y-auto space-y-4">
+      <LeftColumnCard {...bookingCardData} />
       <LeftColumnCard {...leaderCardData} />
       {packageCardData && <LeftColumnCard {...packageCardData} />}
       <LeftColumnCard {...paymentCardData} />
-    </>
+    </div>
   );
 }
