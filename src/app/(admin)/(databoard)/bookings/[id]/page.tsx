@@ -4,7 +4,7 @@ import type { BookingModel } from "@/backend/models";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
-import { BookingV2LeftColumn } from "./BookingV2LeftColumn";
+import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
 
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,20 +12,20 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
-        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>School context not found</div>} rightColumn={null} />;
+        return <EntityIdLayout header={null} leftColumn={<div>School context not found</div>} rightColumn={null} />;
     }
 
     const result = await getEntityId("booking", id);
 
     if (!result.success) {
-        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>Booking not found</div>} rightColumn={null} />;
+        return <EntityIdLayout header={null} leftColumn={<div>Booking not found</div>} rightColumn={null} />;
     }
 
     const booking = result.data as BookingModel;
 
     // Verify booking belongs to the school
     if (booking.schema.schoolId !== schoolHeader.id) {
-        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>You do not have permission to view this booking</div>} rightColumn={null} />;
+        return <EntityIdLayout header={null} leftColumn={<div>You do not have permission to view this booking</div>} rightColumn={null} />;
     }
 
     const allBookingStats = BookingIdStats.getStats(booking);
@@ -42,7 +42,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     return (
         <EntityIdLayout
             header={null}
-            leftColumn={<BookingV2LeftColumn booking={booking} usedMinutes={usedMinutes} totalMinutes={totalMinutes} progressBar={progressBar} />}
+            leftColumn={<BookingLeftColumn booking={booking} usedMinutes={usedMinutes} totalMinutes={totalMinutes} progressBar={progressBar} />}
             rightColumn={<BookingRightColumn booking={booking} stats={bookingStats} />}
         />
     );

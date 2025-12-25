@@ -1,150 +1,188 @@
 "use client";
 
-import { useState } from "react";
-import { ENTITY_DATA } from "@/config/entities";
-import { updateBooking } from "@/actions/bookings-action";
-import { DoubleDatePicker, type DateRange } from "@/src/components/pickers/DoubleDatePicker";
+import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
+import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
+import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
+import { ENTITY_DATA } from "@/config/entities";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
 import type { BookingModel } from "@/backend/models";
+import type { LeftColumnCardData } from "@/types/left-column";
 
-function BookingViewMode({ booking, onEdit }: { booking: BookingModel; onEdit: () => void }) {
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-
-    return (
-        <>
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onEdit}
-                    style={{ borderColor: bookingEntity.color }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors"
-                >
-                    Edit
-                </button>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Status</p>
-                        <p className="font-medium text-foreground">{booking.schema.status || "Active"}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Referral</p>
-                        <p className="font-medium text-foreground">{booking.relations?.studentPackage?.referral?.code || "Nobody"}</p>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
+interface BookingLeftColumnProps {
+  booking: BookingModel;
+  usedMinutes: number;
+  totalMinutes: number;
+  progressBar: { background: string };
 }
 
-function BookingEditMode({ booking, onCancel, onSubmit }: { booking: BookingModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-    const initialFormData = {
-        dateStart: booking.schema.dateStart,
-        dateEnd: booking.schema.dateEnd,
-        status: booking.schema.status,
+export function BookingLeftColumn({ booking, usedMinutes, totalMinutes, progressBar }: BookingLeftColumnProps) {
+  const credentials = useSchoolCredentials();
+  const currency = credentials?.currency || "YEN";
+
+  const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+  const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+  const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+  const receiptEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
+
+  const bookingStudents = booking.relations?.bookingStudents || [];
+  const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
+  const studentPackage = booking.relations?.studentPackage;
+
+  const StudentIcon = studentEntity.icon;
+  const PackageIcon = packageEntity.icon;
+  const BookingIcon = bookingEntity.icon;
+
+  // Student Fields
+  const studentFields = bookingStudents.map((bs, index) => {
+    const studentName = bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown";
+    const studentId = bs.student?.id;
+    const isLeader = studentName === booking.schema.leaderStudentName;
+    return {
+      label: isLeader ? "Leader" : (
+        studentId ? (
+          <HoverToEntity entity={studentEntity} id={studentId}>
+            {studentName}
+          </HoverToEntity>
+        ) : (
+          studentName
+        )
+      ),
+      value: isLeader && studentId ? (
+        <HoverToEntity entity={studentEntity} id={studentId}>
+          {studentName}
+        </HoverToEntity>
+      ) : isLeader ? (
+        studentName
+      ) : (
+        String(index + 1)
+      ),
     };
+  });
 
-    const [formData, setFormData] = useState(initialFormData);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  // Package Fields
+  const packageDurationHours = schoolPackage?.durationMinutes ? Math.round(schoolPackage.durationMinutes / 60) : 0;
+  const durationHours = schoolPackage?.durationMinutes ? schoolPackage.durationMinutes / 60 : 0;
+  const pricePerHour = durationHours > 0 ? (schoolPackage?.pricePerStudent || 0) / durationHours : 0;
 
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  const packageFields = studentPackage
+    ? [
+        {
+          label: "Status",
+          value: studentPackage.status || "Unknown",
+        },
+        {
+          label: "Requested Start",
+          value: formatDate(studentPackage.requestedDateStart),
+        },
+        {
+          label: "Requested End",
+          value: formatDate(studentPackage.requestedDateEnd),
+        },
+        {
+          label: "Referral",
+          value: studentPackage.relations?.referral?.code || "None",
+        },
+        {
+          label: "Wallet ID",
+          value: studentPackage.walletId.slice(0, 8),
+        },
+      ]
+    : [];
 
-    const handleReset = () => {
-        setFormData(initialFormData);
-    };
+  // Payment Fields
+  const paymentFields =
+    booking.relations?.studentBookingPayments && booking.relations.studentBookingPayments.length > 0
+      ? booking.relations.studentBookingPayments.map((payment) => ({
+          label: formatDate(payment.createdAt),
+          value: payment.amount + " " + currency,
+        }))
+      : [{ label: "Payments", value: "No Payments done" }];
 
-    const handleSubmit = async () => {
-        setIsSubmitting(true);
-        try {
-            await onSubmit(formData);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  // Stats
+  const bookingStats = BookingIdStats.getStats(booking);
+  const dueStat = bookingStats.find((stat) => stat.label === "Due");
+  const due = dueStat?.value || 0;
 
-    const handleDateRangeChange = (dateRange: DateRange) => {
-        setFormData({ ...formData, dateStart: dateRange.startDate, dateEnd: dateRange.endDate });
-    };
+  // Card Data
+  const bookingCardData: LeftColumnCardData = {
+    name: <DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />,
+    status: <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBar.background} />,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
+        <BookingIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: [
+      {
+        label: "Status",
+        value: booking.schema.status || "Unknown",
+      },
+      {
+        label: "Created",
+        value: formatDate(booking.schema.createdAt),
+      },
+    ],
+    accentColor: bookingEntity.color,
+  };
 
-    return (
-        <>
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onCancel}
-                    disabled={isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleReset}
-                    disabled={!hasChanges || isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Reset
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!hasChanges || isSubmitting}
-                    style={{ borderColor: bookingEntity.color }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50"
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${bookingEntity.color}15`;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                </button>
-            </div>
+  const leaderCardData: LeftColumnCardData = {
+    name: booking.schema.leaderStudentName,
+    status: "Leader",
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: studentEntity.color }}>
+        <StudentIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: studentFields.length > 0 ? studentFields : [{ label: "Students", value: "No students assigned" }],
+    accentColor: studentEntity.color,
+    isEditable: true,
+  };
 
-            {/* Form */}
-            <div className="space-y-4">
-                <DoubleDatePicker
-                    dateRange={{ startDate: formData.dateStart, endDate: formData.dateEnd }}
-                    onDateRangeChange={handleDateRangeChange}
-                    allowPastDates={true}
-                    showNavigationButtons={true}
-                    showDayCounter={true}
-                />
+  const packageCardData: LeftColumnCardData | null = schoolPackage
+    ? {
+        name: schoolPackage.description || "No Package",
+        status: (
+          <EquipmentStudentPackagePriceBadge
+            categoryEquipment={schoolPackage.categoryEquipment}
+            equipmentCapacity={schoolPackage.capacityEquipment || 0}
+            studentCapacity={schoolPackage.capacityStudents || 0}
+            packageDurationHours={packageDurationHours}
+            pricePerHour={pricePerHour}
+          />
+        ),
+        avatar: (
+          <div className="flex-shrink-0" style={{ color: packageEntity.color }}>
+            <PackageIcon className="w-10 h-10" />
+          </div>
+        ),
+        fields: packageFields,
+        accentColor: packageEntity.color,
+        isEditable: false,
+      }
+    : null;
 
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground">Status</label>
-                    <input
-                        type="text"
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Active"
-                    />
-                </div>
-            </div>
-        </>
-    );
-}
+  const paymentCardData: LeftColumnCardData = {
+    name: "Payments",
+    status: `${due} ${currency} Due`,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: receiptEntity.color }}>
+        <CreditIcon size={40} />
+      </div>
+    ),
+    fields: paymentFields,
+    accentColor: receiptEntity.color,
+    isAddable: true,
+  };
 
-export function BookingLeftColumn({ booking, className }: { booking: BookingModel; className?: string }) {
-    const [isEditing, setIsEditing] = useState(false);
-
-    const handleSubmit = async (formData: any) => {
-        const result = await updateBooking(booking.schema.id, formData);
-        if (result.success) {
-            setIsEditing(false);
-        } else {
-            console.error("Error updating booking:", result.error);
-        }
-    };
-
-    const content = isEditing ? (
-        <BookingEditMode booking={booking} onCancel={() => setIsEditing(false)} onSubmit={handleSubmit} />
-    ) : (
-        <BookingViewMode booking={booking} onEdit={() => setIsEditing(true)} />
-    );
-
-    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
+  return (
+    <EntityLeftColumn
+      header={`Booking ${booking.schema.id.slice(0, 4)}`}
+      cards={[bookingCardData, leaderCardData, packageCardData, paymentCardData]}
+    />
+  );
 }
