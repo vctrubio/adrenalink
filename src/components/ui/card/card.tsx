@@ -23,7 +23,7 @@ export const Card = ({ children, accentColor = "#3b82f6", className = "", stats,
                 }}
             >
                 {stats && <CardStats stats={stats} accentColor={accentColor} isActionable={isActionable} />}
-                <div className="p-8 bg-card text-card-foreground">{children}</div>
+                <div className="p-4 bg-card text-card-foreground">{children}</div>
             </div>
         </div>
     );
