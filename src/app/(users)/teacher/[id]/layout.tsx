@@ -1,45 +1,31 @@
+import { ReactNode } from "react";
 import { getTeachers } from "@/actions/teacher-action";
 import { getSchoolHeader } from "@/types/headers";
 import UserNavBar from "@/src/components/navigations/users/UserNavBar";
 
-interface LayoutProps {
+interface TeacherLayoutProps {
 	params: Promise<{ id: string }>;
-	children: React.ReactNode;
+	children: ReactNode;
 }
 
-export default async function TeacherLayout({
-	params,
-	children,
-}: LayoutProps) {
+export default async function TeacherLayout({ params, children }: TeacherLayoutProps) {
 	const { id } = await params;
-
-	// Fetch teacher data
-	const result = await getTeachers();
-
-	if (!result.success) {
-		return <div className="p-6 text-destructive">Error loading teacher data</div>;
-	}
-
-	const teacher = result.data.find((t) => t.schema.id === id);
-
-	if (!teacher) {
-		return <div className="p-6 text-destructive">Teacher not found</div>;
-	}
-
 	const schoolHeader = await getSchoolHeader();
 
+	// Fetch current teacher data
+	const result = await getTeachers();
+	const teacher = result.success ? result.data.find((t) => t.schema.id === id) : null;
+
 	return (
-		<div>
+		<div className="flex flex-col h-screen bg-background">
 			<UserNavBar
 				schoolUsername={schoolHeader?.name}
 				userRole="teacher"
 				userId={id}
-				firstName={teacher.schema.firstName}
-				lastName={teacher.schema.lastName}
+				firstName={teacher?.schema.firstName}
+				lastName={teacher?.schema.lastName}
 			/>
-			<div className="container mx-auto px-6">
-				{children}
-			</div>
+			<main className="flex-1 overflow-y-auto">{children}</main>
 		</div>
 	);
 }

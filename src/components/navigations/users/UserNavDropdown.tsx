@@ -1,24 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { getStudentDropdownItems } from "@/config/student-nav-routes";
 import { getTeacherDropdownItems } from "@/config/teacher-nav-routes";
-import { Dropdown } from "@/src/components/ui/dropdown";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
 interface UserNavDropdownProps {
-	role: "student" | "teacher";
+	role: "student" | "teacher" | null;
 	userId?: string;
 }
 
 export default function UserNavDropdown({ role, userId }: UserNavDropdownProps) {
 	const [isOpen, setIsOpen] = useState(false);
+	const buttonRef = useRef<HTMLButtonElement>(null);
 
 	// Get base dropdown items from config
-	const baseDropdownItems = role === "student" ? getStudentDropdownItems() : getTeacherDropdownItems();
+	const baseDropdownItems = role === "student" ? getStudentDropdownItems() : role === "teacher" ? getTeacherDropdownItems() : [];
 
 	// Convert relative URLs to absolute if userId is provided
-	const dropdownItems = useMemo(() => {
+	const dropdownItems: DropdownItemProps[] = useMemo(() => {
 		if (!userId) return baseDropdownItems;
 
 		const basePath = `/${role}/${userId}`;
@@ -30,18 +31,20 @@ export default function UserNavDropdown({ role, userId }: UserNavDropdownProps) 
 
 	const roleConfig = ENTITY_DATA.find((entity) => entity.id === role);
 
-	if (!roleConfig) return null;
+	if (!roleConfig || !role) return null;
 
 	const RoleIcon = roleConfig.icon;
 
 	return (
 		<div className="relative">
 			<button
+				ref={buttonRef}
 				onClick={() => setIsOpen(!isOpen)}
-				className="flex h-14 w-24 items-center justify-center text-muted-foreground transition-colors hover:bg-accent rounded-lg"
+				className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
 				style={isOpen ? { color: roleConfig.color } : {}}
+				aria-label="Navigation menu"
 			>
-				<RoleIcon className="w-6 h-6" />
+				<RoleIcon className="w-5 h-5" />
 			</button>
 
 			<Dropdown
@@ -49,6 +52,7 @@ export default function UserNavDropdown({ role, userId }: UserNavDropdownProps) 
 				onClose={() => setIsOpen(false)}
 				items={dropdownItems}
 				align="right"
+				triggerRef={buttonRef}
 			/>
 		</div>
 	);

@@ -1,3 +1,8 @@
+"use client";
+
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 import UserNavDropdown from "./UserNavDropdown";
 import UserHeader from "./UserHeader";
 import UserTabs from "./UserTabs";
@@ -20,6 +25,30 @@ const CenterSection = ({ schoolUsername }: { schoolUsername?: string }) => (
     </div>
 );
 
+const RightSection = ({ userRole, userId }: { userRole: "student" | "teacher" | null; userId?: string }) => {
+    const { theme, setTheme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
+
+    return (
+        <div className="flex-1 flex items-center justify-end gap-2">
+            <button
+                onClick={() => setTheme(isDarkMode ? "light" : "dark")}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
+                aria-label="Toggle theme"
+            >
+                {mounted && (isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
+            </button>
+            {userRole && <UserNavDropdown role={userRole} userId={userId} />}
+        </div>
+    );
+};
+
 export default function UserNavBar({ schoolUsername, userRole, userId, firstName, lastName }: UserNavBarProps) {
     return (
         <>
@@ -28,7 +57,7 @@ export default function UserNavBar({ schoolUsername, userRole, userId, firstName
                 <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 mx-auto">
                     <LeftSection />
                     <CenterSection schoolUsername={schoolUsername} />
-                    <div className="flex-1 flex items-center justify-end">{userRole && <UserNavDropdown role={userRole} userId={userId} />}</div>
+                    <RightSection userRole={userRole} userId={userId} />
                 </div>
             </header>
 
