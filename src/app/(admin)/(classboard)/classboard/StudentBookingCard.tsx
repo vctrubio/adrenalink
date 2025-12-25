@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { MoreVertical, Plus, Receipt } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -18,6 +17,7 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+
 // --- Sub-components ---
 
 const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardLesson[]; durationMinutes: number }) => {
@@ -246,22 +246,20 @@ const InstructorList = ({
 };
 
 const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpanded: boolean; schoolPackage: ClassboardData["schoolPackage"]; bookingId: string }) => {
+    if (!isExpanded) return null;
+    
     return (
-        <AnimatePresence>
-            {isExpanded && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-muted/30 border-t border-border/50">
-                    <div className="p-4">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-2">
-                                <PackageIcon size={16} className="text-muted-foreground" />
-                                <span className="text-sm font-semibold text-foreground">Package</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground">{schoolPackage.description || "N/A"}</span>
-                        </div>
+        <div className="bg-muted/30 border-t border-border/50">
+            <div className="p-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                        <PackageIcon size={16} className="text-muted-foreground" />
+                        <span className="text-sm font-semibold text-foreground">Package</span>
                     </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                    <span className="text-sm text-muted-foreground">{schoolPackage.description || "N/A"}</span>
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -331,8 +329,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
     };
 
     return (
-        <motion.div
-            layout
+        <div
             draggable
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -361,6 +358,6 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
             </div>
 
             <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
-        </motion.div>
+        </div>
     );
 }

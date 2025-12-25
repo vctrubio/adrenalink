@@ -109,7 +109,9 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         );
                     })
                 ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No {filter} students</div>
+                    <div className="flex items-center justify-center w-full h-32 text-xs text-muted-foreground">
+                        No {filter} students
+                    </div>
                 )}
             </div>
         </div>

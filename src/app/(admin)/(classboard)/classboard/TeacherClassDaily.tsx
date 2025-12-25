@@ -184,7 +184,7 @@ function TeacherColumn({
             onDragEnter={(e) => dragState.onDragEnter(e, queue.teacher.username)}
             onDragLeave={dragState.onDragLeave}
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
-            className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl transition-all duration-200 ${isDragOver && isCompatible ? "border-2 border-yellow-500" : isDragOver && isIncompatible ? "border-2 border-muted" : "border-2 border-transparent"}`}
+            className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl border-2 ${isDragOver && isCompatible ? "border-yellow-500" : isDragOver && isIncompatible ? "border-muted" : "border-transparent"}`}
         >
             <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
 

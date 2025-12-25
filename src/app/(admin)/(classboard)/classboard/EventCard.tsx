@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
@@ -127,12 +126,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }));
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+        <div
             className="group relative w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg"
         >
             {/* Header */}
@@ -236,7 +230,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             )}
-        </motion.div>
+        </div>
     );
 }
 
