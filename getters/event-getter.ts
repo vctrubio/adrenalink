@@ -6,8 +6,35 @@
 
 import type { EventNode } from "@/backend/TeacherQueue";
 import type { EventModel } from "@/backend/models";
+import type { EventData, LessonEventRowData } from "@/types/booking-lesson-event";
 import { getMinutesFromISO, minutesToTime } from "./queue-getter";
 import { calculateCommission } from "./commission-calculator";
+import { getPrettyDuration } from "./duration-getter";
+
+/**
+ * Transform raw event data to display row format
+ */
+export function transformEventToRow(event: EventData): LessonEventRowData {
+    const eventDate = new Date(event.date);
+    return {
+        eventId: event.id,
+        date: eventDate,
+        time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        dayOfWeek: eventDate.toLocaleDateString("en-US", { weekday: "short" }),
+        duration: event.duration,
+        durationLabel: getPrettyDuration(event.duration),
+        location: event.location || "-",
+        status: event.status,
+    };
+}
+
+/**
+ * Transform multiple events to display rows and sort by date
+ */
+export function transformEventsToRows(events: EventData[]): LessonEventRowData[] {
+    return events.map(transformEventToRow).sort((a, b) => a.date.getTime() - b.date.getTime());
+}
 
 /**
  * Get event end time as HH:MM string

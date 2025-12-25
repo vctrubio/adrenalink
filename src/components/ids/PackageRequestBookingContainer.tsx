@@ -113,6 +113,8 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { LessonEventRow, type LessonEventRowData } from "@/src/components/ids/LessonEventRow";
 import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
+import { transformEventsToRows } from "@/getters/event-getter";
+import type { EventData } from "@/types/booking-lesson-event";
 
 // Sub-component: Booking Card
 function BookingCard({ booking, schoolPackage, formatCurrency, currency, referral }: { booking: BookingData; schoolPackage: SchoolPackageModel; formatCurrency: (num: number) => string; currency: string; referral?: ReferralData }) {
@@ -140,19 +142,7 @@ function BookingCard({ booking, schoolPackage, formatCurrency, currency, referra
     }, 0);
 
     const teacherLessonRows = lessons.map((lesson) => {
-        const events = (lesson.events || []).map((event) => {
-            const eventDate = new Date(event.date);
-            return {
-                eventId: event.id,
-                date: eventDate,
-                time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
-                dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                duration: event.duration,
-                durationLabel: getPrettyDuration(event.duration),
-                location: event.location || "-",
-                status: event.status,
-            };
-        });
+        const events = transformEventsToRows((lesson.events || []) as EventData[]);
 
         const totalDuration = events.reduce((sum, e) => sum + (e.duration || 0), 0);
         const commission = lesson.commission;

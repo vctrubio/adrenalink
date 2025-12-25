@@ -3,8 +3,8 @@
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { LessonEventRow, type LessonEventRowData } from "@/src/components/ids/LessonEventRow";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 
 export interface TeacherComissionLessonData {
     lessonId: string;
@@ -41,10 +41,7 @@ export function TeacherComissionLessonTable({ lesson, formatCurrency, currency, 
 
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1.5" style={{ color: "#22c55e" }}>
-                            <HandshakeIcon size={14} />
-                            <span className="font-bold text-green-600 dark:text-green-400">{lesson.commissionType === "percentage" ? `${lesson.cph}%` : `${lesson.cph} ${currency}`}</span>
-                        </div>
+                        <TeacherLessonComissionValue commissionType={lesson.commissionType} cph={lesson.cph} currency={currency} />
                         <span className="text-muted-foreground">×</span>
                         <LessonEventDurationBadge status={lesson.status} events={lesson.eventCount} hours={lesson.duration / 60} />
                         <span className="text-muted-foreground">=</span>

@@ -16,6 +16,9 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { MapPin, Calendar, List } from "lucide-react";
 import { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEvent, type LessonEventRowData, TeacherBookingLessonTable, type TeacherBookingLessonTableData } from "@/src/components/ids";
 import { getHMDuration } from "@/getters/duration-getter";
+import { transformEventsToRows } from "@/getters/event-getter";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import type { EventData } from "@/types/booking-lesson-event";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
 
@@ -33,21 +36,9 @@ interface LessonRow {
     totalHours: number;
     totalEarning: number;
     eventCount: number;
-    events: EventRow[];
+    events: LessonEventRowData[];
     equipmentCategory: string;
     studentCapacity: number;
-}
-
-interface EventRow {
-    eventId: string;
-    date: Date;
-    time: string;
-    dateLabel: string;
-    dayOfWeek: string;
-    duration: number;
-    durationLabel: string;
-    location: string;
-    status: string;
 }
 
 interface Totals {
@@ -118,10 +109,11 @@ function CommissionHeader({ commission, formatCurrency }: { commission: Commissi
         <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-2">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div style={{ color: "#22c55e" }}>
-                        <HandshakeIcon size={16} />
-                    </div>
-                    <span className="text-sm font-bold text-green-600 dark:text-green-400">{commission.type === "percentage" ? `${commission.cph}%` : `${commission.cph} ${currency}`}</span>
+                    <TeacherLessonComissionValue 
+                        commissionType={commission.type} 
+                        cph={commission.cph} 
+                        currency={currency} 
+                    />
                     <span className="text-sm font-semibold text-muted-foreground capitalize">{commission.type === "fixed" ? "Fixed" : "Percentage"}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -271,7 +263,7 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
     const timelineEvents: TimelineEvent[] = [];
 
     for (const lesson of lessons) {
-        const events = lesson.events || [];
+        const events = (lesson.events || []) as EventData[];
         const booking = lesson.booking;
         const commission = lesson.commission;
         const schoolPackage = booking?.studentPackage?.schoolPackage;
@@ -282,42 +274,26 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
         const commissionType = commission?.commissionType || "fixed";
         const totalEarning = commissionType === "fixed" ? cph * totalHours : cph * totalHours;
 
-        const eventRows: EventRow[] = [];
+        const eventRows = transformEventsToRows(events);
 
-        for (const event of events) {
-            const eventDate = new Date(event.date);
-            const eventDuration = event.duration || 0;
-            const eventHours = eventDuration / 60;
-            const eventEarning = commissionType === "fixed" ? cph * eventHours : cph * eventHours;
-
-            const eventRow: EventRow = {
-                eventId: event.id,
-                date: eventDate,
-                time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
-                dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                dayOfWeek: eventDate.toLocaleDateString("en-US", { weekday: "short" }),
-                duration: eventDuration,
-                durationLabel: getPrettyDuration(eventDuration),
-                location: event.location || "-",
-                status: event.status,
-            };
-            eventRows.push(eventRow);
+        for (const eventRow of eventRows) {
+            const eventEarning = commissionType === "fixed" ? cph * (eventRow.duration / 60) : cph * (eventRow.duration / 60);
 
             // Build timeline event
             timelineEvents.push({
-                eventId: event.id,
+                eventId: eventRow.eventId,
                 lessonId: lesson.id,
-                date: eventDate,
+                date: eventRow.date,
                 time: eventRow.time,
                 dateLabel: eventRow.dateLabel,
-                dayOfWeek: eventRow.dayOfWeek,
-                duration: eventDuration,
+                dayOfWeek: eventRow.dayOfWeek || "",
+                duration: eventRow.duration,
                 durationLabel: eventRow.durationLabel,
                 location: eventRow.location,
                 teacherId: teacher.schema.id,
                 teacherName: teacher.schema.firstName || "Unknown",
                 teacherUsername: teacher.schema.username,
-                eventStatus: event.status,
+                eventStatus: eventRow.status,
                 lessonStatus: lesson.status,
                 teacherEarning: eventEarning,
                 schoolRevenue: 0, // Not calculated for teacher view
@@ -330,8 +306,6 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
                 capacityStudents: schoolPackage?.capacityStudents,
             });
         }
-
-        eventRows.sort((a, b) => a.date.getTime() - b.date.getTime());
 
         lessonRows.push({
             lessonId: lesson.id,

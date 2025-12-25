@@ -11,10 +11,13 @@ import { formatBookingReceiptText, formatBookingDate } from "@/getters/bookings-
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { Timeline, type TimelineEvent } from "@/src/components/timeline";
-import { ByTeacherView, type ByTeacherLesson, type ByTeacherEvent } from "@/src/components/ui/ByTeacherView";
+import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
+import { BookingReceipt, type BookingReceiptEventRow } from "@/src/components/ids/BookingReceipt";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { Share2, Copy, Check } from "lucide-react";
+import { transformEventsToRows } from "@/getters/event-getter";
+import type { EventData } from "@/types/booking-lesson-event";
 
 type ViewMode = "timeline" | "by-teacher" | "table" | "receipt";
 
@@ -40,8 +43,19 @@ interface EventRow {
     commissionCph: number;
 }
 
-interface TeacherStat extends ByTeacherLesson {
+interface TeacherStat {
+    lessonId: string;
+    id: string;
+    name: string;
+    username: string;
     events: EventRow[];
+    totalDuration: number;
+    totalHours: number;
+    totalEarning: number;
+    eventCount: number;
+    commissionType: string;
+    cph: number;
+    lessonStatus: string;
 }
 
 interface Totals {
@@ -50,6 +64,7 @@ interface Totals {
     schoolRevenue: number;
     totalRevenue: number;
 }
+// ... (rest of imports and types)
 
 // Sub-component: View Toggle
 function ViewToggle({ viewMode, setViewMode }: { viewMode: ViewMode; setViewMode: (mode: ViewMode) => void }) {
@@ -70,91 +85,6 @@ function ViewToggle({ viewMode, setViewMode }: { viewMode: ViewMode; setViewMode
         </div>
     );
 }
-
-// Sub-component: Receipt View
-function ReceiptView({ booking, eventRows, totals, schoolPackage, formatCurrency, currency }: { booking: BookingModel; eventRows: EventRow[]; totals: Totals; schoolPackage: any; formatCurrency: (num: number) => string; currency: string }) {
-    const [copied, setCopied] = useState(false);
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-
-    const packageDescription = schoolPackage?.description || "No Package";
-    const packageHours = schoolPackage ? Math.round(schoolPackage.durationMinutes / 60) : 0;
-    const packageCategory = schoolPackage?.categoryEquipment || "No Category";
-    const equipmentCapacity = schoolPackage?.capacityEquipment || 0;
-    const studentCapacity = schoolPackage?.capacityStudents || 0;
-    const totalHours = totals.duration / 60;
-
-    let packageTypeStr = packageCategory;
-    if (equipmentCapacity > 1) {
-        packageTypeStr += ` (x${equipmentCapacity})`;
-    }
-
-    const bookingStartDate = formatBookingDate(booking.schema.dateStart);
-    const bookingEndDate = formatBookingDate(booking.schema.dateEnd);
-    const pricePerStudent = studentCapacity > 1 ? totals.totalRevenue / studentCapacity : totals.totalRevenue;
-
-    const bookingStudents = booking.relations?.bookingStudents || [];
-    const students = bookingStudents.map((bs) => ({
-        firstName: bs.student?.firstName || "Unknown",
-        lastName: bs.student?.lastName || "",
-        passport: bs.student?.passport || undefined,
-    }));
-
-    const receiptText = formatBookingReceiptText(bookingStartDate, bookingEndDate, students, packageDescription, packageHours, packageTypeStr, studentCapacity, totalHours, formatCurrency, totals.totalRevenue, pricePerStudent, eventRows);
-
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(receiptText);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <motion.div key="receipt" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-            <div className="rounded-xl border border-border overflow-hidden bg-card">
-                {/* Booking Details Header */}
-                <div className="px-4 py-3 border-b border-border bg-muted/30">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div style={{ color: studentEntity.color }}>
-                            <HelmetIcon size={20} />
-                        </div>
-                        <span className="font-semibold">{booking.schema.leaderStudentName}</span>
-                        {bookingStudents.length > 1 && (
-                            <span className="text-xs text-muted-foreground">+{bookingStudents.length - 1} students</span>
-                        )}
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span>{packageDescription}</span>
-                        <span>|</span>
-                        <span>{packageHours}h package</span>
-                        <span>|</span>
-                        <span>{packageTypeStr}</span>
-                        {studentCapacity > 1 && (
-                            <>
-                                <span>|</span>
-                                <span>x{studentCapacity} students</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* Receipt Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                    <div className="flex items-center gap-2">
-                        <Share2 size={20} className="text-primary" />
-                        <span className="font-semibold">Receipt</span>
-                    </div>
-                    <button onClick={handleCopy} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                        {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                        <span className={copied ? "text-green-600" : ""}>{copied ? "Copied!" : "Copy to clipboard"}</span>
-                    </button>
-                </div>
-                <div className="p-5 bg-muted/20">
-                    <pre className="font-mono text-sm whitespace-pre-wrap text-foreground leading-relaxed">{receiptText}</pre>
-                </div>
-            </div>
-        </motion.div>
-    );
-}
-
 
 // Sub-component: Table View
 function TableView({ eventRows, teacherEntity, TeacherIcon, totals }: { eventRows: EventRow[]; teacherEntity: any; TeacherIcon: any; totals: Totals }) {
@@ -247,33 +177,33 @@ export function BookingRightColumnV2({ booking, stats }: BookingRightColumnV2Pro
     // Build event rows with all financial data
     const eventRows: EventRow[] = lessons
         .flatMap((lesson: any) => {
-            const events = lesson.events || [];
+            const events = (lesson.events || []) as EventData[];
             const lessonDurationMinutes = events.reduce((sum: number, event: any) => sum + (event.duration || 0), 0);
             const lessonRevenue = schoolPackage ? calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, lessonDurationMinutes, schoolPackage.durationMinutes) : 0;
             const commissionType = (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed";
             const cph = parseFloat(lesson.commission?.cph || "0");
+            
+            const basicRows = transformEventsToRows(events);
 
-            return events.map((event: any) => {
-                const eventDate = new Date(event.date);
-                const eventDurationMinutes = event.duration || 0;
-                const eventProportion = lessonDurationMinutes > 0 ? eventDurationMinutes / lessonDurationMinutes : 0;
+            return basicRows.map((row) => {
+                const eventProportion = lessonDurationMinutes > 0 ? row.duration / lessonDurationMinutes : 0;
                 const eventRevenue = lessonRevenue * eventProportion;
-                const eventCommission = calculateCommission(eventDurationMinutes, { type: commissionType, cph }, eventRevenue, schoolPackage?.durationMinutes || 60);
+                const eventCommission = calculateCommission(row.duration, { type: commissionType, cph }, eventRevenue, schoolPackage?.durationMinutes || 60);
 
                 return {
-                    eventId: event.id,
+                    eventId: row.eventId,
                     lessonId: lesson.id,
-                    date: eventDate,
-                    time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
-                    dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                    dayOfWeek: eventDate.toLocaleDateString("en-US", { weekday: "short" }),
-                    duration: eventDurationMinutes,
-                    durationLabel: getPrettyDuration(eventDurationMinutes),
-                    location: event.location || "-",
+                    date: row.date,
+                    time: row.time,
+                    dateLabel: row.dateLabel,
+                    dayOfWeek: row.dayOfWeek || "",
+                    duration: row.duration,
+                    durationLabel: row.durationLabel,
+                    location: row.location,
                     teacherId: lesson.teacher?.id || "",
                     teacherName: lesson.teacher?.firstName || "Unknown",
                     teacherUsername: lesson.teacher?.username || "unknown",
-                    eventStatus: event.status,
+                    eventStatus: row.status,
                     lessonStatus: lesson.status,
                     teacherEarning: eventCommission.earned,
                     schoolRevenue: eventRevenue - eventCommission.earned,
@@ -335,15 +265,43 @@ export function BookingRightColumnV2({ booking, stats }: BookingRightColumnV2Pro
                     <Timeline events={timelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={true} showFinancials={true} />
                 )}
                 {viewMode === "by-teacher" && (
-                    <motion.div key="by-teacher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                        <ByTeacherView lessons={teacherStats} expandedLesson={expandedTeacher} setExpandedLesson={setExpandedTeacher} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} showEarnings={true} />
+                    <motion.div key="by-teacher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
+                        {teacherStats.map((teacher) => {
+                            const lessonData: TeacherComissionLessonData = {
+                                lessonId: teacher.lessonId,
+                                teacherUsername: teacher.username,
+                                status: teacher.lessonStatus,
+                                commissionType: teacher.commissionType,
+                                cph: teacher.cph,
+                                eventCount: teacher.eventCount,
+                                duration: teacher.totalDuration,
+                                earned: teacher.totalEarning,
+                                events: teacher.events.map((e) => ({
+                                    eventId: e.eventId,
+                                    date: e.date,
+                                    time: e.time,
+                                    dateLabel: e.dateLabel,
+                                    dayOfWeek: e.dayOfWeek,
+                                    duration: e.duration,
+                                    durationLabel: e.durationLabel,
+                                    location: e.location,
+                                    status: e.eventStatus,
+                                })),
+                            };
+
+                            return (
+                                <div key={teacher.lessonId} className="rounded-xl border border-border overflow-hidden bg-card">
+                                    <TeacherComissionLessonTable lesson={lessonData} formatCurrency={formatCurrency} currency={currency} teacherEntity={teacherEntity} />
+                                </div>
+                            );
+                        })}
                     </motion.div>
                 )}
                 {viewMode === "table" && (
                     <TableView eventRows={eventRows} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} totals={totals} />
                 )}
                 {viewMode === "receipt" && (
-                    <ReceiptView booking={booking} eventRows={eventRows} totals={totals} schoolPackage={schoolPackage} formatCurrency={formatCurrency} currency={currency} />
+                    <BookingReceipt booking={booking} eventRows={eventRows as BookingReceiptEventRow[]} totals={totals} schoolPackage={schoolPackage} formatCurrency={formatCurrency} currency={currency} />
                 )}
             </AnimatePresence>
         </div>

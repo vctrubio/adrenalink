@@ -14,12 +14,14 @@ import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
+import { transformEventsToRows } from "@/getters/event-getter";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { MapPin } from "lucide-react";
+import type { LessonEventRowData } from "@/types/booking-lesson-event";
 
 export interface BookingData {
     id: string;
@@ -101,18 +103,7 @@ interface TeacherLessonRow {
     totalHours: number;
     totalEarning: number;
     eventCount: number;
-    events: EventRow[];
-}
-
-interface EventRow {
-    eventId: string;
-    date: Date;
-    time: string;
-    dateLabel: string;
-    duration: number;
-    durationLabel: string;
-    location: string;
-    status: string;
+    events: LessonEventRowData[];
 }
 
 interface Totals {
@@ -204,21 +195,7 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
         const commissionInfo: CommissionInfo = { type: commissionType, cph };
         const commission = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, schoolPackage.durationMinutes);
 
-        const eventRows: EventRow[] = events
-            .map((event) => {
-                const eventDate = new Date(event.date);
-                return {
-                    eventId: event.id,
-                    date: eventDate,
-                    time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
-                    dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                    duration: event.duration,
-                    durationLabel: getPrettyDuration(event.duration),
-                    location: event.location || "-",
-                    status: event.status,
-                };
-            })
-            .sort((a, b) => a.date.getTime() - b.date.getTime());
+        const eventRows = transformEventsToRows(events);
 
         return {
             lessonId: lesson.id,

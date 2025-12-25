@@ -16,6 +16,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 
 export interface TeacherLessonCardEvent {
     eventId: string;
@@ -87,12 +88,11 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1.5" style={{ color: "#22c55e" }}>
-                            <HandshakeIcon size={14} />
-                            <span className="font-bold text-green-600 dark:text-green-400">
-                                {lesson.commissionType === "percentage" ? `${lesson.cph}%` : `${lesson.cph} ${currency}`}
-                            </span>
-                        </div>
+                        <TeacherLessonComissionValue 
+                            commissionType={lesson.commissionType} 
+                            cph={lesson.cph} 
+                            currency={currency} 
+                        />
                         <span className="text-muted-foreground">×</span>
                         <LessonEventDurationBadge status={lesson.lessonStatus} events={lesson.eventCount} hours={lesson.totalHours} />
                         <span className="text-muted-foreground">=</span>

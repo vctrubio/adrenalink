@@ -5,3 +5,4 @@ export { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEv
 export { LessonEventRow, type LessonEventRowData } from "./LessonEventRow";
 export { TeacherBookingLessonTable, type TeacherBookingLessonTableData } from "./TeacherBookingLessonTable";
 export { TeacherComissionLessonTable, type TeacherComissionLessonData } from "./TeacherComissionLessonTable";
+export { BookingReceipt, type BookingReceiptEventRow } from "./BookingReceipt";

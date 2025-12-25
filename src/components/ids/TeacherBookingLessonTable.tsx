@@ -11,6 +11,8 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+
 export interface TeacherBookingLessonTableData {
     lessonId: string;
     bookingId: string;
@@ -65,10 +67,11 @@ export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookin
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1.5" style={{ color: "#22c55e" }}>
-                            <HandshakeIcon size={14} />
-                            <span className="font-bold text-green-600 dark:text-green-400">{lesson.commissionType === "percentage" ? `${lesson.cph}%` : `${lesson.cph} ${currency}`}</span>
-                        </div>
+                        <TeacherLessonComissionValue 
+                            commissionType={lesson.commissionType} 
+                            cph={lesson.cph} 
+                            currency={currency} 
+                        />
                         <span className="text-muted-foreground">×</span>
                         <LessonEventDurationBadge status={lesson.lessonStatus} events={lesson.eventCount} hours={lesson.totalHours} />
                         <span className="text-muted-foreground">=</span>
