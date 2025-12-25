@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { AnimatedEntityName } from "./AnimatedEntityName";
 import { AnimatedEntityStats } from "./AnimatedEntityStats";
@@ -6,7 +7,7 @@ import type { StatItem } from "@/src/components/ui/row";
 
 interface EntityHeaderRowProps {
     entityId: string;
-    entityName?: string;
+    entityName?: ReactNode;
     stats: StatItem[];
     isLoading?: boolean;
     shouldAnimate?: boolean;

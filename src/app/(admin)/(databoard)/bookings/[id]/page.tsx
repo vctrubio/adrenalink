@@ -4,7 +4,7 @@ import type { BookingModel } from "@/backend/models";
 import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { formatDate } from "@/getters/date-getter";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
 
@@ -30,9 +30,6 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     }
 
     const bookingStats = BookingIdStats.getStats(booking);
-    const dateStart = formatDate(booking.schema.dateStart);
-    const dateEnd = formatDate(booking.schema.dateEnd);
-    const entityName = `${dateStart} - ${dateEnd}`;
 
-    return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={entityName} stats={bookingStats} shouldAnimate={false} />} leftColumn={<BookingLeftColumn booking={booking} />} rightColumn={<BookingRightColumn booking={booking} />} />;
+    return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={<DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />} stats={bookingStats} shouldAnimate={false} />} leftColumn={<BookingLeftColumn booking={booking} />} rightColumn={<BookingRightColumn booking={booking} />} />;
 }

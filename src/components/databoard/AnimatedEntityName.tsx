@@ -1,10 +1,10 @@
 "use client";
 
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AnimatedEntityNameProps {
-    name: string;
+    name: ReactNode;
     isLoading?: boolean;
 }
 
@@ -29,13 +29,13 @@ export const AnimatedEntityName = memo(function AnimatedEntityName({ name, isLoa
                 />
             ) : (
                 <motion.h1
-                    key={`name-${name}`}
+                    key="entity-name"
                     variants={fadeSlide}
                     initial="initial"
                     animate="animate"
                     exit="exit"
                     transition={{ duration: 0.2 }}
-                    className="text-2xl sm:text-3xl font-bold text-foreground"
+                    className="entity-header"
                 >
                     {name}
                 </motion.h1>

@@ -27,3 +27,8 @@
     outline: none !important;
     box-shadow: none !important;
 }
+
+/* Entity Header Typography */
+.entity-header {
+    @apply text-2xl sm:text-3xl font-bold text-foreground;
+}
