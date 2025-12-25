@@ -44,31 +44,19 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
     return (
         <div className="flex items-center gap-1">
             {!isFirst && (
-                <button 
-                    onClick={() => queueController.moveUp(eventId)} 
-                    className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" 
-                    title="Move front in queue"
-                >
+                <button onClick={() => queueController.moveUp(eventId)} className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" title="Move front in queue">
                     <ArrowUp className="w-4 h-4" />
                 </button>
             )}
             {!isLast && (
-                <button 
-                    onClick={() => queueController.moveDown(eventId)} 
-                    className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" 
-                    title="Move back in queue"
-                >
+                <button onClick={() => queueController.moveDown(eventId)} className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" title="Move back in queue">
                     <ArrowDown className="w-4 h-4" />
                 </button>
             )}
             <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className={`p-1.5 rounded-lg transition-colors border border-border/20 ${
-                    isDeleting 
-                    ? "opacity-50 cursor-not-allowed text-red-400" 
-                    : "bg-muted/50 hover:bg-red-50 text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
-                }`}
+                className={`p-1.5 rounded-lg transition-colors border border-border/20 ${isDeleting ? "opacity-50 cursor-not-allowed text-red-400" : "bg-muted/50 hover:bg-red-50 text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"}`}
                 title={isDeleting ? "Deleting..." : "Delete event"}
             >
                 <X className="w-4 h-4" />
@@ -79,15 +67,15 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
 
 const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueController }) => {
     const startTime = getTimeFromISO(event.eventData.date);
-    
+
     const handleTimeChange = (increment: boolean) => {
         queueController.adjustTime(eventId, increment);
     };
 
     return (
         <div className="flex items-center gap-3">
-             <span className="text-4xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
-             <div className="flex flex-col gap-1">
+            <span className="text-4xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
+            <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Start</span>
                 <div className="flex gap-1">
                     <button
@@ -107,7 +95,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
                         <ChevronRight className="w-3 h-3" />
                     </button>
                 </div>
-             </div>
+            </div>
         </div>
     );
 };
@@ -124,14 +112,9 @@ const DurationControls = ({ duration, eventId, queueController, controller }: { 
 
     return (
         <div className="flex flex-col items-center">
-             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Duration</span>
-             <div className="flex items-center gap-2 bg-muted/30 rounded-lg p-1 border border-border/50">
-                <button
-                    onClick={() => handleDurationAdjustment(false)}
-                    disabled={duration <= minDuration}
-                    className="p-1 rounded hover:bg-background disabled:opacity-30 transition-colors"
-                    title="Decrease duration"
-                >
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Duration</span>
+            <div className="flex items-center gap-2 bg-muted/30 rounded-lg p-1 border border-border/50">
+                <button onClick={() => handleDurationAdjustment(false)} disabled={duration <= minDuration} className="p-1 rounded hover:bg-background disabled:opacity-30 transition-colors" title="Decrease duration">
                     <ChevronDown className="w-4 h-4" />
                 </button>
                 <span className="text-sm font-bold min-w-[3rem] text-center">+{getHMDuration(duration)}</span>
@@ -160,12 +143,7 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
 
     return (
         <div className="relative">
-            <button
-                ref={triggerRef}
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border/50"
-                title="Change location"
-            >
+            <button ref={triggerRef} onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border/50" title="Change location">
                 <MapPin className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium">{currentLocation || "Set Location"}</span>
                 <ChevronDown className="w-3 h-3 text-muted-foreground" />
@@ -183,9 +161,7 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
                             item.onClick?.();
                             setIsOpen(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                            item.label === currentLocation ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50"
-                        }`}
+                        className={`w-full text-left px-3 py-2 text-xs transition-colors ${item.label === currentLocation ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50"}`}
                     >
                         {item.label}
                     </button>
@@ -201,11 +177,10 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     return (
         <div className="flex flex-col items-end">
             <span className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
-                {remainingMinutes < 0 ? "-" : "+"}{getPrettyDuration(Math.abs(remainingMinutes))}
+                {remainingMinutes < 0 ? "-" : "+"}
+                {getPrettyDuration(Math.abs(remainingMinutes))}
             </span>
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                {remainingMinutes < 0 ? "Over" : "Left"}
-            </span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{remainingMinutes < 0 ? "Over" : "Left"}</span>
         </div>
     );
 };
@@ -220,7 +195,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
     const cardProps = queueController.getEventModCardProps(eventId);
 
     if (!cardProps || !eventId) {
-            return null;
+        return null;
     }
 
     const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
@@ -236,7 +211,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
     }
 
     return (
-        <div className="w-full bg-card border border-border rounded-xl overflow-visible shadow-sm relative">
+        <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">
             {/* Header: Student & Controls */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/10">
                 <div className="scale-90 origin-left">
@@ -247,8 +222,8 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
 
             {/* Main Body: Time & Duration */}
             <div className="p-4 flex items-center justify-between gap-4">
-                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
-                 <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} controller={queueController.getSettings()} />
+                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
+                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} controller={queueController.getSettings()} />
             </div>
 
             {/* Footer: Location & Meta */}

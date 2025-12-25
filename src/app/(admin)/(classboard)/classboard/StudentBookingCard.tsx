@@ -247,7 +247,7 @@ const InstructorList = ({
 
 const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpanded: boolean; schoolPackage: ClassboardData["schoolPackage"]; bookingId: string }) => {
     if (!isExpanded) return null;
-    
+
     return (
         <div className="bg-muted/30 border-t border-border/50">
             <div className="p-4">
@@ -333,7 +333,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
             draggable
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            className={`group relative w-[300px] flex-shrink-0 bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
+            className={`group relative w-[300px] flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
         >
             <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 

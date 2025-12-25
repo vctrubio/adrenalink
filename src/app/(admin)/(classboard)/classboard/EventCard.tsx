@@ -31,7 +31,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    
+
     const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -41,7 +41,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const location = event.eventData.location;
     const categoryEquipment = event.packageData?.categoryEquipment || "";
     const capacityEquipment = event.packageData?.capacityEquipment || 0;
-    
+
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
@@ -63,7 +63,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }
 
     const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
-    
+
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
         if (newStatus === currentStatus || isUpdating) return;
@@ -87,7 +87,10 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 const allEvents = queue.getAllEvents();
                 const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
                 if (currentEventIndex !== -1) {
-                    const subsequentEventIds = allEvents.slice(currentEventIndex + 1).map((e) => e.id).filter((id: string) => id);
+                    const subsequentEventIds = allEvents
+                        .slice(currentEventIndex + 1)
+                        .map((e) => e.id)
+                        .filter((id: string) => id);
                     await onDeleteWithCascade(eventId, duration, subsequentEventIds);
                     onDeleteComplete?.();
                     return;
@@ -126,9 +129,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }));
 
     return (
-        <div
-            className="group relative w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg"
-        >
+        <div className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5">
                 {/* Left Side: Time and Duration Stacked */}
@@ -136,16 +137,14 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                     <span className="text-4xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
                     <div className="flex flex-col justify-center">
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Start</span>
-                        <span className="text-sm font-bold text-foreground/80 mt-1 leading-none whitespace-nowrap">
-                            +{getHMDuration(duration)}
-                        </span>
+                        <span className="text-sm font-bold text-foreground/80 mt-1 leading-none whitespace-nowrap">+{getHMDuration(duration)}</span>
                     </div>
                 </div>
 
                 {/* Right Side: Equipment Icon (Dropdown Trigger) */}
                 {EquipmentIcon && (
                     <div className="relative">
-                        <button 
+                        <button
                             ref={dropdownTriggerRef}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"
@@ -153,20 +152,9 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                         >
                             <EquipmentIcon size={24} />
                             {/* Capacity Badge */}
-                            {capacityEquipment > 1 && (
-                                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">
-                                    x{capacityEquipment}
-                                </span>
-                            )}
+                            {capacityEquipment > 1 && <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">x{capacityEquipment}</span>}
                         </button>
-                        <Dropdown 
-                            isOpen={isDropdownOpen} 
-                            onClose={() => setIsDropdownOpen(false)} 
-                            items={statusDropdownItems} 
-                            align="right" 
-                            initialFocusedId={currentStatus}
-                            triggerRef={dropdownTriggerRef}
-                        />
+                        <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={statusDropdownItems} align="right" initialFocusedId={currentStatus} triggerRef={dropdownTriggerRef} />
                     </div>
                 )}
             </div>
@@ -176,9 +164,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 <button
                     ref={studentTriggerRef}
                     onClick={() => hasMultipleStudents && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                    className={`w-full flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${
-                        hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"
-                    }`}
+                    className={`w-full flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"}`}
                 >
                     {/* Leader Student */}
                     <div className="flex items-center gap-2">
@@ -202,27 +188,11 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 </button>
 
                 {/* Student Dropdown - Only if multiple students */}
-                {hasMultipleStudents && (
-                    <Dropdown 
-                        isOpen={isStudentDropdownOpen}
-                        onClose={() => setIsStudentDropdownOpen(false)}
-                        items={studentDropdownItems}
-                        align="left"
-                        triggerRef={studentTriggerRef}
-                    />
-                )}
+                {hasMultipleStudents && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
             </div>
 
-             {/* Gap Detection - Now at the Bottom */}
-             {previousEvent && (
-                <EventGapDetection 
-                    currentEvent={event} 
-                    previousEvent={previousEvent} 
-                    requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} 
-                    updateMode="updateNow" 
-                    wrapperClassName="w-full px-4 pb-4 pt-0"
-                />
-            )}
+            {/* Gap Detection - Now at the Bottom */}
+            {previousEvent && <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} updateMode="updateNow" wrapperClassName="w-full px-4 pb-4 pt-0" />}
 
             {/* Loading Overlay */}
             {isDeleting && (
