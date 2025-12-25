@@ -3,27 +3,31 @@
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { motion } from "framer-motion";
 
-export const ClassboardSkeleton = () => (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0a0f1e] z-50">
+interface ClassboardSkeletonProps {
+    error?: boolean;
+}
+
+export const ClassboardSkeleton = ({ error }: ClassboardSkeletonProps) => (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50">
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col items-center gap-12"
+            className="flex flex-col items-center gap-16"
         >
-            {/* LARGE WHITE OUTLINE ICON */}
-            <div className="text-white">
+            {/* LARGE OUTLINE ICON */}
+            <div className="text-foreground">
                 <AdranlinkIcon size={450} />
             </div>
 
-            {/* CATCHPHRASE BELOW */}
+            {/* CATCHPHRASE / ERROR MESSAGE */}
             <motion.p 
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 1 }}
-                className="text-white font-medium tracking-[0.3em] text-xs uppercase"
+                className={`font-bold tracking-[0.2em] text-xl uppercase text-center max-w-lg leading-relaxed ${error ? "text-red-500" : "text-muted-foreground/60"}`}
             >
-                Managing your Lessons
+                {error ? "Sorry, there has been a problem..." : "Managing your Lessons"}
             </motion.p>
         </motion.div>
     </div>

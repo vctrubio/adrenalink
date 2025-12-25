@@ -23,7 +23,7 @@ interface ClientClassboardProps {
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
-    const { teachers: allSchoolTeachers, loading: teachersLoading } = useSchoolTeachers();
+    const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
 
     const [refreshKey, setRefreshKey] = useState(0);
     const [isControllerCollapsed, setIsControllerCollapsed] = useState(true);
@@ -132,9 +132,10 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         }));
     }, [allSchoolTeachers]);
 
-    // Show splash screen if not mounted OR waiting for timer
-    if (!mounted || showSplash) {
-        return <ClassboardSkeleton />;
+    // Show splash screen if not mounted OR waiting for timer OR if there's a critical error
+    // If there is an error, we keep the skeleton but show the error state
+    if (!mounted || showSplash || teachersError) {
+        return <ClassboardSkeleton error={!!teachersError} />;
     }
 
     return (
@@ -193,7 +194,6 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     onEventDeleted={handleEventDeleted}
                     onAddLessonEvent={handleAddLessonEvent}
                     globalFlag={globalFlag}
-                    isLoading={teachersLoading}
                 />
             </div>
         </motion.div>
