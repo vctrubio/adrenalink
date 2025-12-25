@@ -20,53 +20,36 @@ interface ClassboardHeaderProps {
     classboardStats: ClassboardStats;
 }
 
-function StatCard({ label, icon: Icon, value, color }: { label: string; icon: typeof BookingIcon; value: number; color: string }) {
+// Reusable Stat Card Component
+function StatCard({ 
+    label, 
+    icon: Icon, 
+    value, 
+    color 
+}: { 
+    label: string; 
+    icon: React.ComponentType<{ className?: string, size?: number }>; 
+    value: number | string; 
+    color: string 
+}) {
     return (
-        <motion.div
-            className="h-20 w-28 rounded-lg border border-border/50 backdrop-blur-sm p-3 flex flex-col justify-between shadow-md hover:shadow-lg transition-all duration-300 group cursor-default hover:scale-105"
+        <div
+            className="h-20 w-32 rounded-lg border border-border/50 backdrop-blur-sm p-3 flex flex-col justify-between shadow-md transition-shadow duration-300 cursor-default"
             style={{
                 background: `linear-gradient(135deg, ${color}15, ${color}05)`,
                 borderColor: `${color}40`,
             }}
-            whileHover={{ scale: 1.05 }}
         >
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
-            <div className="flex items-center gap-1" style={{ color }}>
-                <span className="w-5 h-5 flex-shrink-0 [&>svg]:w-full [&>svg]:h-full opacity-80 group-hover:opacity-100 transition-opacity">
-                    <Icon className="w-5 h-5" />
+            <div className="flex items-center gap-1.5" style={{ color }}>
+                <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center opacity-80">
+                    <Icon className="w-5 h-5" size={18} />
                 </span>
-                <span className="text-lg font-bold">
-                    <AnimatedCounter value={value} />
+                <span className="text-lg font-bold whitespace-nowrap">
+                    {typeof value === "number" ? <AnimatedCounter value={value} /> : value}
                 </span>
             </div>
-        </motion.div>
-    );
-}
-
-function LessonsStatCard({ eventCount, totalMinutes }: { eventCount: number; totalMinutes: number }) {
-    return (
-        <motion.div
-            className="h-20 w-28 rounded-lg border border-border/50 backdrop-blur-sm p-3 flex flex-col justify-between shadow-md hover:shadow-lg transition-all duration-300 group cursor-default hover:scale-105"
-            style={{
-                background: "linear-gradient(135deg, #9ca3af15, #9ca3af05)",
-                borderColor: "#9ca3af40",
-            }}
-            whileHover={{ scale: 1.05 }}
-        >
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Lessons</span>
-            <div className="flex items-center" style={{ color: "#9ca3af" }}>
-                <div className="flex items-center gap-0.5">
-                    <FlagIcon className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <span className="text-lg font-bold">
-                        <AnimatedCounter value={eventCount} />
-                    </span>
-                </div>
-                <div className="flex items-center gap-0.5">
-                    <DurationIcon size={20} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <span className="text-lg font-bold">{getHMDuration(totalMinutes)}</span>
-                </div>
-            </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -74,16 +57,49 @@ export default function ClassboardHeader({ selectedDate, onDateChange, draggable
     const globalStats = classboardStats.getGlobalStats();
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
+    // Common color for Lessons and Duration
+    const secondaryStatColor = "#9ca3af"; // Slate-400
+
     return (
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="max-w-md">
                 <SingleDatePicker selectedDate={selectedDate} onDateChange={onDateChange} />
             </div>
             <div className="flex flex-wrap justify-center md:justify-end gap-3 items-center pb-2 px-4 py-3">
-                <StatCard label="Bookings" icon={BookingIcon} value={draggableBookings.length} color={bookingEntity.color} />
-                <LessonsStatCard eventCount={globalStats.totalEvents} totalMinutes={globalStats.totalHours * 60} />
-                <StatCard label="Commission" icon={HandshakeIcon} value={Math.round(globalStats.totalEarnings.teacher)} color="#10b981" />
-                <StatCard label="Revenue" icon={TrendingUp} value={Math.round(globalStats.totalEarnings.school)} color="#f97316" />
+                <StatCard 
+                    label="Bookings" 
+                    icon={BookingIcon} 
+                    value={draggableBookings.length} 
+                    color={bookingEntity.color} 
+                />
+                
+                <StatCard 
+                    label="Lessons" 
+                    icon={FlagIcon} 
+                    value={globalStats.totalEvents} 
+                    color={secondaryStatColor}
+                />
+
+                <StatCard 
+                    label="Duration" 
+                    icon={DurationIcon} 
+                    value={getHMDuration(globalStats.totalHours * 60)} 
+                    color={secondaryStatColor}
+                />
+
+                <StatCard 
+                    label="Commission" 
+                    icon={HandshakeIcon} 
+                    value={Math.round(globalStats.totalEarnings.teacher)} 
+                    color="#10b981" 
+                />
+                
+                <StatCard 
+                    label="Revenue" 
+                    icon={TrendingUp} 
+                    value={Math.round(globalStats.totalEarnings.school)} 
+                    color="#f97316" 
+                />
             </div>
         </div>
     );
