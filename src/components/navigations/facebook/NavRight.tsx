@@ -2,7 +2,7 @@
 import { Plus, Search, Sun, Moon } from "lucide-react";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 import { useTheme } from "next-themes";
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useSearch } from "@/src/providers/search-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import FacebookSearch from "@/src/components/modals/FacebookSearch";
@@ -34,6 +34,7 @@ export const NavRight = () => {
     const [packageFormData, setPackageFormData] = useState<PackageFormData>(defaultPackageForm);
     const [equipmentFormData, setEquipmentFormData] = useState<EquipmentFormData>(defaultEquipmentForm);
     const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { onOpen } = useSearch();
     const credentials = useSchoolCredentials();
@@ -41,7 +42,11 @@ export const NavRight = () => {
     const createButtonRef = useRef<HTMLButtonElement>(null);
     const adminButtonRef = useRef<HTMLButtonElement>(null);
 
-    const isDarkMode = theme === "dark" || resolvedTheme === "dark";
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
 
     // Form validity checks
     const isStudentFormValid = useMemo(() => studentFormSchema.safeParse(studentFormData).success, [studentFormData]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { formatDateForInput, getTodayDateString, addDays } from "@/getters/date-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 
@@ -34,20 +34,18 @@ interface SingleDatePickerProps {
 export function SingleDatePicker({ selectedDate, onDateChange, disabled = false, allowPastDates = true, showNavigationButtons = true, showTodayButton = true }: SingleDatePickerProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const [isToday, setIsToday] = useState(false);
-    const [relativeLabel, setRelativeLabel] = useState("");
 
-    useEffect(() => {
+    // Calculate state during render to avoid flashing/re-rendering lag
+    const { isToday, relativeLabel } = useMemo(() => {
         const today = getTodayDateString();
         const todayCheck = selectedDate === today;
-        setIsToday(todayCheck);
-
+        
+        let label = "";
         if (selectedDate && !todayCheck) {
-            const label = getRelativeDateLabel(selectedDate);
-            setRelativeLabel(label);
-        } else {
-            setRelativeLabel("");
+            label = getRelativeDateLabel(selectedDate);
         }
+        
+        return { isToday: todayCheck, relativeLabel: label };
     }, [selectedDate]);
 
     const updateDate = (newDate: string) => {

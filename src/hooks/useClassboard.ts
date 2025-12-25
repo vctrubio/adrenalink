@@ -24,6 +24,7 @@ const DEFAULT_CONTROLLER: ControllerSettings = {
 };
 
 export function useClassboard(initialData: ClassboardModel) {
+    const [mounted, setMounted] = useState(false);
     // Initialize with today's date (server/client match)
     const [selectedDate, setSelectedDate] = useState(() => getTodayDateString());
     const [searchQuery, setSearchQuery] = useState("");
@@ -38,12 +39,14 @@ export function useClassboard(initialData: ClassboardModel) {
         if (stored) {
             setSelectedDate(stored);
         }
+        setMounted(true);
     }, []);
 
     // Save selected date to localStorage whenever it changes
     useEffect(() => {
+        if (!mounted) return;
         localStorage.setItem(STORAGE_KEY_DATE, selectedDate);
-    }, [selectedDate]);
+    }, [selectedDate, mounted]);
 
     // Get school ID from first booking
     const schoolId = useMemo(() => {
@@ -111,8 +114,9 @@ export function useClassboard(initialData: ClassboardModel) {
 
     // Save controller settings to localStorage whenever they change
     useEffect(() => {
+        if (!mounted) return;
         localStorage.setItem(STORAGE_KEY_CONTROLLER, JSON.stringify(controller));
-    }, [controller]);
+    }, [controller, mounted]);
 
     const bookingsArray = useMemo(() => {
         const bookings = Object.entries(classboardData).map(([bookingId, bookingData]) => ({
@@ -314,6 +318,7 @@ export function useClassboard(initialData: ClassboardModel) {
     };
 
     return {
+        mounted,
         selectedDate,
         setSelectedDate,
         searchQuery,

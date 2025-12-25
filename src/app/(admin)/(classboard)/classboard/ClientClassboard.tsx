@@ -20,7 +20,7 @@ interface ClientClassboardProps {
 }
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
-    const { selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
+    const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
     const { teachers: allSchoolTeachers } = useSchoolTeachers();
 
     const [refreshKey, setRefreshKey] = useState(0);
@@ -122,6 +122,11 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             firstName: t.schema.firstName
         }));
     }, [allSchoolTeachers]);
+
+    // Conditional render moved to the end to respect hook rules
+    if (!mounted) {
+        return <div className="flex flex-col gap-4 h-full animate-pulse opacity-50" />;
+    }
 
     return (
         <div className="flex flex-col gap-4 h-full">
