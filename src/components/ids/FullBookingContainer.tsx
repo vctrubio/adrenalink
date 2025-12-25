@@ -1,0 +1,372 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ENTITY_DATA } from "@/config/entities";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG } from "@/types/status";
+import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
+import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
+import { formatDate } from "@/getters/date-getter";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
+import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
+import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { MapPin } from "lucide-react";
+
+export interface BookingData {
+    id: string;
+    status: string;
+    leaderStudentName: string;
+    dateStart: string;
+    dateEnd: string;
+    createdAt: string;
+    lessons?: LessonData[];
+    studentPackage?: StudentPackageData;
+    bookingStudents?: BookingStudentData[];
+    studentBookingPayments?: PaymentData[];
+}
+
+export interface LessonData {
+    id: string;
+    status: string;
+    teacher?: {
+        id: string;
+        username: string;
+        firstName?: string;
+    };
+    events?: EventData[];
+    commission?: {
+        commissionType: string;
+        cph: string;
+    };
+}
+
+export interface EventData {
+    id: string;
+    date: string;
+    duration: number;
+    location?: string;
+    status: string;
+}
+
+export interface StudentPackageData {
+    id: string;
+    status: string;
+    walletId: string;
+    schoolPackage?: SchoolPackageData;
+    referral?: { code: string };
+}
+
+export interface SchoolPackageData {
+    id: string;
+    description: string;
+    durationMinutes: number;
+    pricePerStudent: number;
+    capacityStudents: number;
+    capacityEquipment: number;
+    categoryEquipment: string;
+}
+
+export interface BookingStudentData {
+    student?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+    };
+}
+
+export interface PaymentData {
+    id: string;
+    amount: number;
+    createdAt: string;
+}
+
+interface TeacherLessonRow {
+    lessonId: string;
+    teacherId: string;
+    teacherName: string;
+    teacherUsername: string;
+    lessonStatus: string;
+    commissionType: string;
+    cph: number;
+    totalDuration: number;
+    totalHours: number;
+    totalEarning: number;
+    eventCount: number;
+    events: EventRow[];
+}
+
+interface EventRow {
+    eventId: string;
+    date: Date;
+    time: string;
+    dateLabel: string;
+    duration: number;
+    durationLabel: string;
+    location: string;
+    status: string;
+}
+
+interface Totals {
+    duration: number;
+    hours: number;
+    events: number;
+    teacherEarnings: number;
+    totalRevenue: number;
+    schoolRevenue: number;
+}
+
+// Sub-component: Payments Section
+function PaymentsSection({ payments, currency }: { payments: PaymentData[]; currency: string }) {
+    const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
+    const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <div style={{ color: paymentEntity.color }}>
+                    <CreditIcon size={14} />
+                </div>
+                <span>Payments</span>
+                {payments.length > 0 && <span className="text-muted-foreground">({payments.length})</span>}
+            </div>
+            {payments.length > 0 ? (
+                <div className="space-y-1 pl-4">
+                    {payments.map((payment) => (
+                        <div key={payment.id} className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">{formatDate(payment.createdAt)}</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">
+                                {payment.amount} {currency}
+                            </span>
+                        </div>
+                    ))}
+                    <div className="flex items-center justify-between text-xs pt-1.5 border-t border-border mt-1">
+                        <span className="font-medium text-foreground">Total Paid</span>
+                        <span className="font-bold text-green-600 dark:text-green-400">
+                            {totalPaid} {currency}
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div className="text-xs text-muted-foreground pl-4 py-1">No payments recorded</div>
+            )}
+        </div>
+    );
+}
+
+// Main Component
+interface FullBookingCardProps {
+    bookingData: BookingData;
+    currency: string;
+    formatCurrency: (num: number) => string;
+}
+
+export function FullBookingCard({ bookingData, currency, formatCurrency }: FullBookingCardProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+    const bookingEntity_color = bookingEntity.color;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+    const TeacherIcon = teacherEntity.icon;
+
+    const lessons = bookingData.lessons || [];
+    const schoolPackage = bookingData.studentPackage?.schoolPackage;
+    const payments = bookingData.studentBookingPayments || [];
+    const studentCount = bookingData.bookingStudents?.length || 1;
+
+    if (!schoolPackage) {
+        return <div className="rounded-xl border border-border p-4 text-muted-foreground">Booking missing package information</div>;
+    }
+
+    // Calculate progress bar
+    const progressBar = getBookingProgressBar(lessons as any, schoolPackage.durationMinutes);
+    const usedMinutes = lessons.reduce((sum, lesson) => {
+        const lessonMinutes = lesson.events?.reduce((acc, event) => acc + (event.duration || 0), 0) || 0;
+        return sum + lessonMinutes;
+    }, 0);
+
+    // Build teacher lesson rows
+    const teacherLessons: TeacherLessonRow[] = lessons.map((lesson) => {
+        const events = lesson.events || [];
+        const lessonDurationMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
+        const lessonRevenue = calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, lessonDurationMinutes, schoolPackage.durationMinutes);
+
+        const commissionType = (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed";
+        const cph = parseFloat(lesson.commission?.cph || "0");
+        const commissionInfo: CommissionInfo = { type: commissionType, cph };
+        const commission = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, schoolPackage.durationMinutes);
+
+        const eventRows: EventRow[] = events
+            .map((event) => {
+                const eventDate = new Date(event.date);
+                return {
+                    eventId: event.id,
+                    date: eventDate,
+                    time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+                    dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                    duration: event.duration,
+                    durationLabel: getPrettyDuration(event.duration),
+                    location: event.location || "-",
+                    status: event.status,
+                };
+            })
+            .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        return {
+            lessonId: lesson.id,
+            teacherId: lesson.teacher?.id || "",
+            teacherName: lesson.teacher?.firstName || lesson.teacher?.username || "Unknown",
+            teacherUsername: lesson.teacher?.username || "unknown",
+            lessonStatus: lesson.status,
+            commissionType,
+            cph,
+            totalDuration: lessonDurationMinutes,
+            totalHours: lessonDurationMinutes / 60,
+            totalEarning: commission.earned,
+            eventCount: events.length,
+            events: eventRows,
+        };
+    });
+
+    // Calculate totals
+    const totals: Totals = teacherLessons.reduce(
+        (acc, lesson) => ({
+            duration: acc.duration + lesson.totalDuration,
+            hours: acc.hours + lesson.totalHours,
+            events: acc.events + lesson.eventCount,
+            teacherEarnings: acc.teacherEarnings + lesson.totalEarning,
+            totalRevenue: acc.totalRevenue,
+            schoolRevenue: acc.schoolRevenue,
+        }),
+        { duration: 0, hours: 0, events: 0, teacherEarnings: 0, totalRevenue: 0, schoolRevenue: 0 },
+    );
+
+    // Calculate total revenue and school revenue
+    const totalRevenue = calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, totals.duration, schoolPackage.durationMinutes);
+    totals.totalRevenue = totalRevenue;
+    totals.schoolRevenue = totalRevenue - totals.teacherEarnings;
+
+    const packageDurationHours = Math.round(schoolPackage.durationMinutes / 60);
+
+    return (
+        <button onClick={() => setIsExpanded(!isExpanded)} className="w-full text-left outline-none cursor-pointer">
+            <div className="rounded-xl border border-border overflow-hidden bg-card">
+                {/* Progress Bar */}
+                <div className="h-2" style={{ background: progressBar.background }} />
+
+                {/* Header - Always Visible */}
+                <div className="px-4 py-3 border-b border-border hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                            {/* Date and Progress Badge */}
+                            <div className="flex items-center justify-between">
+                                <HoverToEntity entity={bookingEntity} id={bookingData.id}>
+                                    <div className="flex items-center gap-2 cursor-pointer hover:opacity-80">
+                                        <DateRangeBadge startDate={bookingData.dateStart} endDate={bookingData.dateEnd} />
+                                    </div>
+                                </HoverToEntity>
+                                <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.durationMinutes} background={progressBar.background} />
+                            </div>
+
+                            {/* Package Info Badge */}
+                            <EquipmentStudentPackagePriceBadge
+                                categoryEquipment={schoolPackage.categoryEquipment}
+                                equipmentCapacity={schoolPackage.capacityEquipment}
+                                studentCapacity={schoolPackage.capacityStudents}
+                                packageDurationHours={packageDurationHours}
+                                pricePerHour={schoolPackage.pricePerStudent}
+                            />
+                        </div>
+
+                        {/* Icon */}
+                        <motion.div
+                            animate={{ rotate: isExpanded ? 180 : 0, scale: 1 }}
+                            whileHover={{ rotate: isExpanded ? 200 : -20, scale: 1.15 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            className="origin-center flex-shrink-0"
+                            style={{ color: bookingEntity_color }}
+                        >
+                            <AdranlinkIcon size={20} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Expanded Content */}
+                <AnimatePresence>
+                    {isExpanded && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            <div className="p-4 space-y-3 border-t border-border">
+                                {/* Package Description */}
+                                <div className="space-y-1.5">
+                                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Package</div>
+                                    {schoolPackage && (
+                                        <HoverToEntity entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!} id={schoolPackage.id}>
+                                            <div className="text-sm font-semibold text-foreground cursor-pointer" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
+                                                {schoolPackage.description}
+                                            </div>
+                                        </HoverToEntity>
+                                    )}
+                                </div>
+
+                                {/* Students */}
+                                {bookingData.bookingStudents && bookingData.bookingStudents.length > 0 && (
+                                    <div className="space-y-1.5">
+                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Students</div>
+                                        <div className="space-y-1">
+                                            {bookingData.bookingStudents.map((bs) => {
+                                                const student = bs.student;
+                                                const studentName = student ? `${student.firstName} ${student.lastName}` : "Unknown";
+                                                const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+                                                return (
+                                                    <HoverToEntity key={student?.id || "unknown"} entity={studentEntity} id={student?.id || ""}>
+                                                        <div className="flex items-center gap-2 text-xs cursor-pointer py-1">
+                                                            <div style={{ color: studentEntity.color }}>
+                                                                <HelmetIcon size={14} />
+                                                            </div>
+                                                            <span className="font-medium text-foreground">{studentName}</span>
+                                                        </div>
+                                                    </HoverToEntity>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Payments */}
+                                <PaymentsSection payments={payments} currency={currency} />
+
+                                {/* Lessons by Teacher */}
+                                {teacherLessons.length > 0 && (
+                                    <div className="space-y-1.5">
+                                        {teacherLessons.map((lesson) => {
+                                            const lessonData: TeacherComissionLessonData = {
+                                                lessonId: lesson.lessonId,
+                                                teacherUsername: lesson.teacherUsername,
+                                                status: lesson.lessonStatus,
+                                                commissionType: lesson.commissionType,
+                                                cph: lesson.cph,
+                                                eventCount: lesson.eventCount,
+                                                duration: lesson.totalDuration,
+                                                earned: lesson.totalEarning,
+                                                events: lesson.events,
+                                            };
+                                            return <TeacherComissionLessonTable key={lesson.lessonId} lesson={lessonData} formatCurrency={formatCurrency} currency={currency} teacherEntity={teacherEntity} />;
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </button>
+    );
+}
