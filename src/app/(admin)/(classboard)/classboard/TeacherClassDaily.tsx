@@ -11,6 +11,29 @@ import type { DragState, DragCompatibility } from "@/types/drag-state";
 import { getDragOverTeacherColumnColor } from "@/types/drag-state";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
+// --- Skeleton Component ---
+const TeacherColumnSkeleton = () => (
+    <div className="flex-shrink-0 w-[340px] flex flex-col rounded-xl border-2 border-transparent bg-card h-full animate-pulse">
+        {/* Header Skeleton */}
+        <div className="p-4 px-6.5 border-b border-border space-y-3">
+            <div className="flex justify-between items-center gap-4">
+                <div className="h-5 w-24 bg-muted/50 rounded" />
+                <div className="h-8 w-8 bg-muted/50 rounded" />
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="h-8 w-8 rounded-full bg-muted/50" />
+                <div className="h-6 w-32 bg-muted/50 rounded" />
+            </div>
+        </div>
+        {/* Body Skeleton */}
+        <div className="p-3 space-y-3 flex-1">
+            <div className="h-32 w-full bg-muted/30 rounded-xl" />
+            <div className="h-24 w-full bg-muted/30 rounded-xl" />
+            <div className="h-32 w-full bg-muted/30 rounded-xl" />
+        </div>
+    </div>
+);
+
 function TeacherColumn({
     queue,
     dragState,
@@ -217,9 +240,10 @@ interface TeacherClassDailyProps {
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
     globalFlag: GlobalFlag;
+    isLoading?: boolean;
 }
 
-export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, isLoading }: TeacherClassDailyProps) {
     const [dragOverTeacher, setDragOverTeacher] = useState<string | null>(null);
     const [dragCompatibility, setDragCompatibility] = useState<DragCompatibility>(null);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -228,6 +252,20 @@ export default function TeacherClassDaily({ teacherQueues, draggedBooking, isLes
     useEffect(() => {
         globalFlag.updateTeacherQueues(teacherQueues);
     }, [teacherQueues, globalFlag]);
+
+    // Show skeletons while loading or if we have queues but they might still be hydrating/updating
+    if (isLoading) {
+        return (
+            <div className="flex flex-col h-full">
+                <div className="h-full flex flex-wrap justify-center overflow-x-auto pb-2 gap-4">
+                    {/* Render a fixed number of skeletons to simulate content */}
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <TeacherColumnSkeleton key={`skeleton-${i}`} />
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     if (teacherQueues.length === 0) {
         return <div className="p-8 text-center text-muted-foreground border border-border rounded-lg bg-muted/10">No teachers available</div>;

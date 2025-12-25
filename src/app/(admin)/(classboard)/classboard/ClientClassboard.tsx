@@ -19,9 +19,35 @@ interface ClientClassboardProps {
     data: ClassboardModel;
 }
 
+const ClassboardSkeleton = () => (
+    <div className="flex flex-col gap-4 h-full animate-pulse">
+        <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
+            {/* Header Skeleton */}
+            <div className="flex flex-col md:flex-row gap-3">
+                <div className="h-10 w-48 bg-muted/50 rounded-lg" />
+                <div className="flex gap-3 ml-auto">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="h-20 w-32 bg-muted/50 rounded-lg" />
+                    ))}
+                </div>
+            </div>
+            {/* Student Section Skeleton */}
+            <div className="w-full h-40 bg-muted/30 rounded-xl" />
+            {/* Controller Skeleton */}
+            <div className="w-full h-12 bg-muted/30 rounded-lg" />
+        </div>
+        {/* Teacher Columns Skeleton */}
+        <div className="flex-1 flex justify-center gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-[340px] h-full bg-muted/20 rounded-xl" />
+            ))}
+        </div>
+    </div>
+);
+
 export default function ClientClassboard({ data }: ClientClassboardProps) {
     const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, setOnNewBooking } = useClassboard(data);
-    const { teachers: allSchoolTeachers } = useSchoolTeachers();
+    const { teachers: allSchoolTeachers, loading: teachersLoading } = useSchoolTeachers();
 
     const [refreshKey, setRefreshKey] = useState(0);
     const [isControllerCollapsed, setIsControllerCollapsed] = useState(true);
@@ -125,7 +151,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
     // Conditional render moved to the end to respect hook rules
     if (!mounted) {
-        return <div className="flex flex-col gap-4 h-full animate-pulse opacity-50" />;
+        return <ClassboardSkeleton />;
     }
 
     return (
@@ -179,6 +205,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     onEventDeleted={handleEventDeleted}
                     onAddLessonEvent={handleAddLessonEvent}
                     globalFlag={globalFlag}
+                    isLoading={teachersLoading}
                 />
             </div>
         </div>
