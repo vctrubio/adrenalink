@@ -7,7 +7,7 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
-import { BookingLeftColumn } from "./BookingLeftColumn";
+import { BookingV2LeftColumn } from "./BookingV2LeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
 
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -52,7 +52,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
                     secondaryContent={<BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBar.background} />}
                 />
             }
-            leftColumn={<BookingLeftColumn booking={booking} />}
+            leftColumn={<BookingV2LeftColumn booking={booking} />}
             rightColumn={<BookingRightColumn booking={booking} />}
         />
     );

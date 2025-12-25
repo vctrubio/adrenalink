@@ -17,10 +17,9 @@ export const Card = ({ children, accentColor = "#3b82f6", className = "", stats,
     return (
         <div className={className || "max-w-md mx-auto"}>
             <div
-                className="relative rounded-2xl overflow-hidden border-2 shadow-2xl backdrop-blur-xl"
+                className="relative rounded-2xl overflow-hidden border-2"
                 style={{
                     borderColor: accentColor,
-                    boxShadow: `0 20px 60px ${accentColor}40, 0 0 0 4px ${accentColor}20`,
                 }}
             >
                 {stats && <CardStats stats={stats} accentColor={accentColor} isActionable={isActionable} />}

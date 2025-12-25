@@ -13,7 +13,7 @@ export function EntityIdLayout({ header, leftColumn, rightColumn }: EntityIdLayo
             
             {/* Mobile Layout */}
             <div className="lg:hidden space-y-6">
-                <div className="bg-card p-6 space-y-6">
+                <div className="space-y-6">
                     {leftColumn}
                 </div>
                 <div className="space-y-4">
@@ -27,7 +27,7 @@ export function EntityIdLayout({ header, leftColumn, rightColumn }: EntityIdLayo
                     {/* Left Column */}
                     <div className="col-span-4">
                         <div className="sticky top-8">
-                            <div className="bg-card p-6 space-y-6">
+                            <div className="space-y-6">
                                 {leftColumn}
                             </div>
                         </div>
