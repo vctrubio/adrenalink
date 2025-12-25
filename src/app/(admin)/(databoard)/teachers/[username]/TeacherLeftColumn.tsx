@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ReactCountryFlag from "react-country-flag";
 import { ENTITY_DATA } from "@/config/entities";
 import { UrlParamAddTag } from "@/src/components/tags";
@@ -57,6 +58,9 @@ function TeacherViewMode({ teacher, onEdit }: { teacher: TeacherModel; onEdit: (
             {/* Buttons */}
             <div className="flex items-center gap-2">
                 <UrlParamAddTag type="teacher" id={teacher.schema.id} color={teacherEntity.color} />
+                <Link href={`/teacher/${teacher.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
+                    View Profile
+                </Link>
                 <button onClick={onEdit} style={{ borderColor: teacherEntity.color }} className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors">
                     Edit
                 </button>
@@ -170,6 +174,9 @@ function TeacherEditMode({ teacher, onCancel, onSubmit }: { teacher: TeacherMode
         <>
             {/* Buttons */}
             <div className="flex items-center gap-2">
+                <Link href={`/teacher/${teacher.schema.id}`} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium whitespace-nowrap">
+                    View Profile
+                </Link>
                 <button onClick={onCancel} disabled={isSubmitting} className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap">
                     Cancel
                 </button>

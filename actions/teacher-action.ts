@@ -157,11 +157,21 @@ export async function getTeacherCommissions(
       return { success: true, data: [] };
     }
 
-    // Fetch all lessons for this teacher with events
+    // Fetch all lessons for this teacher with events and booking info
     const lessonsResult = await db.query.lesson.findMany({
       where: eq(lesson.teacherId, teacherId),
       with: {
         events: true,
+        booking: {
+          with: {
+            studentPackage: {
+              with: {
+                schoolPackage: true,
+              },
+            },
+            bookingStudents: true,
+          },
+        },
       },
     });
 

@@ -272,7 +272,13 @@ const BookingTabContent = ({ data, tabs }: BookingTabContentProps) => {
         }
         return (
             <TabContentWrapper>
-                <BookingTeacherLessonTab lessons={data.lessons} selectedTeacherId={selectedTeacherData.id} pricePerStudent={packageInfo.pricePerStudent} packageDurationMinutes={packageInfo.durationMinutes} />
+                <BookingTeacherLessonTab 
+                    lessons={data.lessons} 
+                    selectedTeacherId={selectedTeacherData.id} 
+                    pricePerStudent={packageInfo.pricePerStudent} 
+                    packageDurationMinutes={packageInfo.durationMinutes} 
+                    studentCount={data.bookingStudents.length}
+                />
             </TabContentWrapper>
         );
     }

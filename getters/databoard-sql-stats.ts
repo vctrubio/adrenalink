@@ -61,7 +61,13 @@ export function buildBookingStatsQuery(schoolId?: string) {
                 (sp.price_per_student * sp.capacity_students) *
                 (e.duration::decimal / NULLIF(sp.duration_minutes, 0))
             ), 0)::integer as money_in,
-            COALESCE(SUM((e.duration::decimal / 60) * tc.cph), 0)::integer as money_out
+            COALESCE(SUM(
+                CASE 
+                    WHEN tc.commission_type = 'fixed' THEN (e.duration::decimal / 60) * tc.cph
+                    WHEN tc.commission_type = 'percentage' THEN ((tc.cph / 100.0) * sp.price_per_student) * (e.duration::decimal / NULLIF(sp.duration_minutes, 0))
+                    ELSE 0
+                END
+            ), 0)::integer as money_out
         FROM booking b
         LEFT JOIN lesson l ON l.booking_id = b.id
         LEFT JOIN event e ON e.lesson_id = l.id

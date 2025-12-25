@@ -3,8 +3,7 @@
 import type { TeacherModel } from "@/backend/models";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
-import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
-import type { TeacherCommissionType } from "@/drizzle/schema";
+import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 
 export interface TeacherLessonStatsData {
     lessonId: string;
@@ -20,12 +19,6 @@ export interface TeacherLessonStatsData {
     formula: string;
 }
 
-// Minimal type definition based on what getTeacherLessonCommission expects
-interface CommissionData {
-    type: "fixed" | "percentage";
-    cph: number | string;
-}
-
 export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStatsData[] {
     if (!teacher.relations?.lessons) {
         return [];
@@ -35,29 +28,43 @@ export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStats
         const events = lesson.events || [];
         const booking = lesson.booking;
         const schoolPackage = booking?.studentPackage?.schoolPackage;
+        const studentCount = booking?.bookingStudents?.length || 0;
         
         const commissionModel = teacher.relations?.commissions?.find(c => c.id === lesson.commissionId);
         
-        // Adapt TeacherCommissionType to the expected CommissionData interface
-        const commissionForCalc: CommissionData | undefined = commissionModel ? {
-            type: commissionModel.commissionType,
-            cph: commissionModel.cph,
-        } : undefined;
-
-        const commissionResult = getTeacherLessonCommission(
-            events,
-            commissionForCalc,
-            schoolPackage?.pricePerStudent,
-            schoolPackage?.durationMinutes
-        );
-
         const durationMinutes = events.reduce((acc, event) => acc + (event.duration || 0), 0);
         const durationHours = durationMinutes / 60;
+
+        let moneyToPay = 0;
+        let formula = "No commission data";
+
+        if (commissionModel && schoolPackage) {
+            const lessonRevenue = calculateLessonRevenue(
+                schoolPackage.pricePerStudent,
+                studentCount,
+                durationMinutes,
+                schoolPackage.durationMinutes
+            );
+
+            const commissionInfo: CommissionInfo = {
+                type: commissionModel.commissionType,
+                cph: commissionModel.cph,
+            };
+
+            const calculation = calculateCommission(
+                durationMinutes,
+                commissionInfo,
+                lessonRevenue,
+                schoolPackage.durationMinutes
+            );
+
+            moneyToPay = calculation.earned;
+            formula = `${calculation.commissionRate} × ${calculation.hours} = ${calculation.earnedDisplay}`;
+        }
         
         // NOTE: moneyPaid logic will depend on how payments are associated with lessons.
         // This is a placeholder.
         const moneyPaid = 0;
-        const moneyToPay = commissionResult.total;
         const balance = moneyToPay - moneyPaid;
 
         return {
@@ -71,7 +78,7 @@ export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStats
             moneyToPay: moneyToPay,
             moneyPaid: moneyPaid,
             balance: balance,
-            formula: commissionResult.formula,
+            formula: formula,
         };
     });
 

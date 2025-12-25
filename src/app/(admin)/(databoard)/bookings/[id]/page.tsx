@@ -13,56 +13,20 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
-        return (
-            <EntityIdLayout
-                header={
-                    <EntityHeaderRow
-                        entityId="booking"
-                        entityName={`Booking ${id}`}
-                        stats={[]}
-                    />
-                }
-                leftColumn={<div>School context not found</div>}
-                rightColumn={null}
-            />
-        );
+        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>School context not found</div>} rightColumn={null} />;
     }
 
     const result = await getEntityId("booking", id);
 
     if (!result.success) {
-        return (
-            <EntityIdLayout
-                header={
-                    <EntityHeaderRow
-                        entityId="booking"
-                        entityName={`Booking ${id}`}
-                        stats={[]}
-                    />
-                }
-                leftColumn={<div>Booking not found</div>}
-                rightColumn={null}
-            />
-        );
+        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>Booking not found</div>} rightColumn={null} />;
     }
 
     const booking = result.data as BookingModel;
 
     // Verify booking belongs to the school
     if (booking.schema.schoolId !== schoolHeader.id) {
-        return (
-            <EntityIdLayout
-                header={
-                    <EntityHeaderRow
-                        entityId="booking"
-                        entityName={`Booking ${id}`}
-                        stats={[]}
-                    />
-                }
-                leftColumn={<div>You do not have permission to view this booking</div>}
-                rightColumn={null}
-            />
-        );
+        return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>You do not have permission to view this booking</div>} rightColumn={null} />;
     }
 
     const bookingStats = BookingIdStats.getStats(booking);
@@ -70,17 +34,5 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const dateEnd = formatDate(booking.schema.dateEnd);
     const entityName = `${dateStart} - ${dateEnd}`;
 
-    return (
-        <EntityIdLayout
-            header={
-                <EntityHeaderRow
-                    entityId="booking"
-                    entityName={entityName}
-                    stats={bookingStats}
-                />
-            }
-            leftColumn={<BookingLeftColumn booking={booking} />}
-            rightColumn={<BookingRightColumn booking={booking} />}
-        />
-    );
+    return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={entityName} stats={bookingStats} shouldAnimate={false} />} leftColumn={<BookingLeftColumn booking={booking} />} rightColumn={<BookingRightColumn booking={booking} />} />;
 }

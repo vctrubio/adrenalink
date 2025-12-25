@@ -16,6 +16,7 @@ import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getFullDuration } from "@/getters/duration-getter";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 
 export const calculateBookingGroupStats = DataboardBookingStats.getStats;
 
@@ -118,7 +119,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
                         {booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
                     </HoverToEntity>
                 ),
-                status: currentStatusConfig.label,
+                status: <DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,
             }}

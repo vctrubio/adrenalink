@@ -1,5 +1,5 @@
 import { getTeacherCommissions } from "@/actions/teacher-action";
-import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
+import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 
 interface CommissionPageProps {
 	params: Promise<{ id: string }>;
@@ -67,14 +67,30 @@ export default async function CommissionPage({ params }: CommissionPageProps) {
 											{lessons.map((lessonData) => {
 												const lesson = lessonData.lesson;
 												const events = lessonData.events;
+                                                const booking = (lesson as any).booking;
+                                                const schoolPackage = booking?.studentPackage?.schoolPackage;
+                                                const studentCount = booking?.bookingStudents?.length || 0;
+
+                                                const durationMinutes = events.reduce((acc, e) => acc + (e.duration || 0), 0);
 
 												// Calculate commission for this lesson
-												const commissionCalc = getTeacherLessonCommission(
-													events,
-													{
-														type: commission.commissionType as any,
-														cph: commission.cph as any,
-													},
+                                                const lessonRevenue = schoolPackage ? calculateLessonRevenue(
+                                                    schoolPackage.pricePerStudent,
+                                                    studentCount,
+                                                    durationMinutes,
+                                                    schoolPackage.durationMinutes
+                                                ) : 0;
+
+                                                const commissionInfo: CommissionInfo = {
+                                                    type: commission.commissionType as any,
+                                                    cph: commission.cph as any,
+                                                };
+
+												const commissionCalc = calculateCommission(
+													durationMinutes,
+													commissionInfo,
+                                                    lessonRevenue,
+                                                    schoolPackage?.durationMinutes || 0
 												);
 
 												return (
@@ -89,6 +105,10 @@ export default async function CommissionPage({ params }: CommissionPageProps) {
 															<span
 																className="text-xs px-2 py-1 rounded-full"
 																style={{
+																	backgroundColor:
+																		lesson.status === "active"
+																			? "#22c55e20"
+																			: "#ef444420",
 																	backgroundColor:
 																		lesson.status === "active"
 																			? "#22c55e20"
@@ -123,14 +143,14 @@ export default async function CommissionPage({ params }: CommissionPageProps) {
 																Calculation
 															</p>
 															<p className="font-mono text-sm text-foreground mb-3">
-																{commissionCalc.formula}
+                                                                {commissionCalc.commissionRate} × {commissionCalc.hours} = {commissionCalc.earnedDisplay}
 															</p>
 															<div className="flex justify-between items-center">
 																<span className="text-foreground font-medium">
 																	Earned:
 																</span>
 																<span className="text-lg font-bold text-primary">
-																	{commissionCalc.earned}
+																	{commissionCalc.earnedDisplay}
 																</span>
 															</div>
 														</div>

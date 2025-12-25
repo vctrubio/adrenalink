@@ -1,4 +1,5 @@
 import type { BookingModel } from "@/backend/models";
+import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "./commission-calculator";
 
 // ============ BOOKING STATS NAMESPACE ============
 // Reads from pre-calculated stats in databoard models
@@ -22,13 +23,46 @@ export const BookingStats = {
         return payments.reduce((total, payment) => total + (payment.amount || 0), 0);
     },
     getTeacherCommissions: (booking: BookingModel): number => {
-        const lessons = booking.relations?.lessons || [];
+        const lessons = booking.relations?.lessons;
+        if (!lessons) throw new Error(`Booking ${booking.schema.id} has no lessons loaded`);
+
+        const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
+        if (!schoolPackage) throw new Error(`Booking ${booking.schema.id} has no schoolPackage loaded`);
+
+        const pricePerStudent = schoolPackage.pricePerStudent;
+        const packageDurationMinutes = schoolPackage.durationMinutes;
+        
+        const studentCount = booking.relations?.bookingStudents?.length;
+        if (studentCount === undefined) throw new Error(`Booking ${booking.schema.id} has no bookingStudents loaded`);
+
         return lessons.reduce((total, lesson) => {
             const events = lesson.events || [];
-            const durationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
-            const durationHours = durationMinutes / 60;
-            const cph = parseFloat(lesson.commission?.cph || "0");
-            return total + (durationHours * cph);
+            const lessonDurationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+            
+            // Calculate revenue portion for this lesson (based on duration and student count)
+            const lessonRevenue = calculateLessonRevenue(
+                pricePerStudent,
+                studentCount,
+                lessonDurationMinutes,
+                packageDurationMinutes
+            );
+
+            if (!lesson.commission) throw new Error(`Lesson ${lesson.id} has no commission data`);
+
+            // Construct CommissionInfo object (handling potential missing/wrong types)
+            const commissionInfo: CommissionInfo = {
+                type: (lesson.commission.commissionType as "fixed" | "percentage"),
+                cph: parseFloat(lesson.commission.cph)
+            };
+
+            const commissionResult = calculateCommission(
+                lessonDurationMinutes,
+                commissionInfo,
+                lessonRevenue,
+                packageDurationMinutes
+            );
+            
+            return total + commissionResult.earned;
         }, 0);
     },
     getNetProfit: (booking: BookingModel): number => {

@@ -1,6 +1,7 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { AnimatedEntityName } from "./AnimatedEntityName";
 import { AnimatedEntityStats } from "./AnimatedEntityStats";
+import { EntityIdStats } from "./EntityIdStats";
 import type { StatItem } from "@/src/components/ui/row";
 
 interface EntityHeaderRowProps {
@@ -8,9 +9,10 @@ interface EntityHeaderRowProps {
     entityName?: string;
     stats: StatItem[];
     isLoading?: boolean;
+    shouldAnimate?: boolean;
 }
 
-export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false }: EntityHeaderRowProps) {
+export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false, shouldAnimate = true }: EntityHeaderRowProps) {
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     if (!entity) return null;
 
@@ -34,7 +36,11 @@ export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false
             </div>
 
             {/* Stats - client component for animation */}
-            <AnimatedEntityStats entityId={entityId} stats={stats} isLoading={isLoading} />
+            {shouldAnimate ? (
+                <AnimatedEntityStats entityId={entityId} stats={stats} isLoading={isLoading} />
+            ) : (
+                <EntityIdStats stats={stats} />
+            )}
         </div>
     );
 }

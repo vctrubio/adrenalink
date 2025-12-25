@@ -15,7 +15,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
-import { getTeacherLessonCommission } from "@/getters/teacher-commission-getter";
+import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
 import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -257,9 +257,10 @@ function BookingInfoCapacity({ bookingDays, bookingId, equipmentCategory, capaci
 interface LessonRowProps {
     lessons: ClassboardLesson[];
     schoolPackage: SchoolPackageType;
+    studentCount: number;
 }
 
-function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
+function LessonRow({ lessons, schoolPackage, studentCount }: LessonRowProps) {
     const router = useRouter();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const TeacherIcon = teacherEntity?.icon;
@@ -282,7 +283,27 @@ function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
     return (
         <div className="space-y-4">
             {lessons.map((lesson) => {
-                const commission = getTeacherLessonCommission(lesson.events || [], lesson.commission, schoolPackage.pricePerStudent, schoolPackage.durationMinutes);
+                const events = lesson.events || [];
+                const lessonDurationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
+                
+                const lessonRevenue = calculateLessonRevenue(
+                    schoolPackage.pricePerStudent,
+                    studentCount,
+                    lessonDurationMinutes,
+                    schoolPackage.durationMinutes
+                );
+
+                const commissionInfo: CommissionInfo = {
+                    type: (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed",
+                    cph: parseFloat(lesson.commission?.cph || "0")
+                };
+
+                const commission = calculateCommission(
+                    lessonDurationMinutes,
+                    commissionInfo,
+                    lessonRevenue,
+                    schoolPackage.durationMinutes
+                );
 
                 const lessonStatusItems: DropdownItemProps[] = (["active", "rest", "completed", "uncompleted"] as const).map((status) => ({
                     id: status,
@@ -313,7 +334,7 @@ function LessonRow({ lessons, schoolPackage }: LessonRowProps) {
                                 />
                             </div>
                             <span className="text-xs text-muted-foreground">
-                                {commission.commissionRate} × {commission.hours} = {commission.earned}
+                                {commission.commissionRate} × {commission.hours} = {commission.earnedDisplay}
                             </span>
                         </div>
                         {lesson.events && lesson.events.length > 0 && (
@@ -442,7 +463,7 @@ export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStu
                         capacityStudents={schoolPackage.capacityStudents}
                     />
                 </div>
-                {lessons.length > 0 && <LessonRow lessons={lessons} schoolPackage={schoolPackage} />}
+                {lessons.length > 0 && <LessonRow lessons={lessons} schoolPackage={schoolPackage} studentCount={students.length} />}
             </div>
             <BookingFooter onReceiptClick={onReceiptClick} onAddStudentPayment={onAddStudentPayment} onAddTeacherPayment={onAddTeacherPayment} />
         </div>

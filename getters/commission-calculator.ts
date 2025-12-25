@@ -37,14 +37,14 @@ export function calculateCommission(
 ): CommissionCalculation {
     const totalHours = durationMinutes / 60;
     const hours = formatDuration(durationMinutes);
+    const cph = typeof commission.cph === 'string' ? parseFloat(commission.cph) : commission.cph;
 
     if (commission.type === "fixed") {
         // FIXED: rate/hr × hours = earnings
-        const cph = parseFloat(commission.cph as any);
         const earned = cph * totalHours;
         return {
             type: "fixed",
-            commissionRate: "Fixed Rate",
+            commissionRate: `$${cph.toFixed(2)}/hr`,
             pricePerHour: `$${cph.toFixed(2)}/hr`,
             hours,
             earned,
@@ -52,15 +52,14 @@ export function calculateCommission(
         };
     } else {
         // PERCENTAGE: rate% × lessonRevenue = earnings
-        const cph = parseFloat(commission.cph as any);
         const earned = (cph / 100) * lessonRevenue;
         const packageHours = packageDurationMinutes > 0 ? packageDurationMinutes / 60 : 1;
-        const pricePerHourValue = lessonRevenue / packageHours;
+        const pricePerHourValue = lessonRevenue / (durationMinutes / 60); // Revenue per hour for this specific lesson
 
         return {
             type: "percentage",
             commissionRate: `${cph.toFixed(2)}%`,
-            pricePerHour: `$${pricePerHourValue.toFixed(2)}/hr`,
+            pricePerHour: `$${pricePerHourValue.toFixed(2)}/hr`, // Effective revenue per hour
             hours,
             earned,
             earnedDisplay: `$${earned.toFixed(2)}`,
