@@ -31,10 +31,23 @@ export function getFullDuration(durationMinutes: number): string {
 
 // ============ DURATION HM FORMAT ============
 // Converts minutes to compact format (e.g., "4h", "4h30m", "30m")
-export function getHMDuration(durationMinutes: number): string {
+// Set withUnits to false to return without unit suffix (e.g., "4", "4:30", "30")
+export function getHMDuration(durationMinutes: number, withUnits: boolean = true): string {
     const totalMinutes = Math.round(durationMinutes);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
+
+    if (!withUnits) {
+        if (hours === 0) {
+            return `${minutes}`;
+        }
+
+        if (minutes === 0) {
+            return `${hours}`;
+        }
+
+        return `${hours}:${minutes.toString().padStart(2, "0")}`;
+    }
 
     if (hours === 0) {
         return `${minutes}m`;

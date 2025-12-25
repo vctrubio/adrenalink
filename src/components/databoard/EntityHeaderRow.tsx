@@ -11,9 +11,10 @@ interface EntityHeaderRowProps {
     stats: StatItem[];
     isLoading?: boolean;
     shouldAnimate?: boolean;
+    secondaryContent?: ReactNode;
 }
 
-export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false, shouldAnimate = true }: EntityHeaderRowProps) {
+export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false, shouldAnimate = true, secondaryContent }: EntityHeaderRowProps) {
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     if (!entity) return null;
 
@@ -32,8 +33,11 @@ export function EntityHeaderRow({ entityId, entityName, stats, isLoading = false
                     <Icon />
                 </div>
 
-                {/* Name - client component for animation */}
-                <AnimatedEntityName name={displayName} isLoading={isLoading} />
+                {/* Name + Secondary Content - client component for animation */}
+                <div className="flex flex-col gap-3">
+                    <AnimatedEntityName name={displayName} isLoading={isLoading} />
+                    {secondaryContent}
+                </div>
             </div>
 
             {/* Stats - client component for animation */}

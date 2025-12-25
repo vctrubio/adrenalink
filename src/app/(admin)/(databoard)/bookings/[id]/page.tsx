@@ -5,6 +5,8 @@ import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
+import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
+import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
 
@@ -31,5 +33,27 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
 
     const bookingStats = BookingIdStats.getStats(booking);
 
-    return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={<DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />} stats={bookingStats} shouldAnimate={false} />} leftColumn={<BookingLeftColumn booking={booking} />} rightColumn={<BookingRightColumn booking={booking} />} />;
+    const lessons = booking.relations?.lessons || [];
+    const studentPackage = booking.relations?.studentPackage;
+    const totalMinutes = studentPackage?.schoolPackage?.durationMinutes || 0;
+    const progressBar = getBookingProgressBar(lessons, totalMinutes);
+
+    const allEvents = lessons.flatMap((lesson) => lesson.events || []);
+    const usedMinutes = allEvents.reduce((sum, event) => sum + (event.duration || 0), 0);
+
+    return (
+        <EntityIdLayout
+            header={
+                <EntityHeaderRow
+                    entityId="booking"
+                    entityName={<DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />}
+                    stats={bookingStats}
+                    shouldAnimate={false}
+                    secondaryContent={<BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBar.background} />}
+                />
+            }
+            leftColumn={<BookingLeftColumn booking={booking} />}
+            rightColumn={<BookingRightColumn booking={booking} />}
+        />
+    );
 }
