@@ -139,7 +139,7 @@ const BookingSummaryBadges = ({
 
                 <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 shrink-0 pl-2 border-l border-border/50">
                     <Receipt size={16} />
-                    <span className="text-sm font-bold">{totalPayment.toFixed(0)}€</span>
+                    <span className="text-sm font-bold">{totalPayment.toFixed(0)}</span>
                 </div>
             </button>
 

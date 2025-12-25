@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import StudentClassDaily from "./StudentClassDaily";
+import ExportSettingController from "./ExportSettingController";
 import LessonFlagClassDaily from "./LessonFlagClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
 import ClassboardHeader from "./ClassboardHeader";
@@ -149,6 +150,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
                 {/* Header */}
                 <ClassboardHeader selectedDate={selectedDate} onDateChange={setSelectedDate} draggableBookings={draggableBookings} classboardStats={classboardStats} />
+
+                <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
 
                 {/* Students */}
                 <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">

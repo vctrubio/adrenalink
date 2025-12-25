@@ -1,64 +1,99 @@
-import { getPrettyDuration } from "@/getters/duration-getter";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
-import type { SchoolPackageType } from "@/drizzle/schema";
+interface StudentInfo {
+    firstName: string;
+    lastName: string;
+    passport?: string;
+}
 
-interface ReceiptEvent {
-    index: number;
-    teacherName: string;
-    eventDate: string;
-    eventTime: string;
-    duration: string;
+interface EventRow {
+    eventId: string;
+    lessonId: string;
+    date: Date;
+    time: string;
+    dateLabel: string;
+    dayOfWeek: string;
+    duration: number;
+    durationLabel: string;
     location: string;
+    teacherId: string;
+    teacherName: string;
+    teacherUsername: string;
+    eventStatus: string;
+    lessonStatus: string;
+    teacherEarning: number;
+    schoolRevenue: number;
+    totalRevenue: number;
 }
 
-interface BookingReceipt {
-    studentName: string;
-    packageHours: number;
-    totalEventHours: number;
-    pricePerHour: number;
-    totalPrice: number;
-    startDate: string;
-    events: ReceiptEvent[];
-}
-
-export function getBookingReceipt(
-    lessons: ClassboardLesson[],
-    schoolPackage: SchoolPackageType,
-    studentName: string,
-    pricePerStudent: number,
-    bookingDateStart: string,
-): BookingReceipt {
-    const packageHours = schoolPackage.durationMinutes / 60;
-    const allEvents = lessons.flatMap((lesson) => lesson.events);
-    const totalEventMinutes = allEvents.reduce((sum, e) => sum + e.duration, 0);
-    const totalEventHours = totalEventMinutes / 60;
-    const pricePerHour = pricePerStudent;
-    const totalPrice = totalEventHours * pricePerHour;
-    const startDate = new Date(bookingDateStart).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-
-    const events: ReceiptEvent[] = allEvents.map((event, i) => {
-        const lesson = lessons.find((l) => l.events.some((e) => e.id === event.id));
-        const teacherName = lesson?.teacher.firstName || lesson?.teacher.username || "Unknown";
-        const eventDate = new Date(event.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
-        const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-
-        return {
-            index: i + 1,
-            teacherName,
-            eventDate,
-            eventTime,
-            duration: getPrettyDuration(event.duration),
-            location: event.location || "No location",
-        };
-    });
-
-    return {
-        studentName,
-        packageHours,
-        totalEventHours,
-        pricePerHour,
-        totalPrice,
-        startDate,
-        events,
+export const formatBookingDate = (date: any): string => {
+    if (!date) return "N/A";
+    const d = new Date(date);
+    const day = d.getDate();
+    const month = d.toLocaleDateString("en-US", { month: "long" });
+    const year = d.getFullYear().toString().slice(-2);
+    const ordinal = (n: number) => {
+        if (n > 3 && n < 21) return "th";
+        switch (n % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
+        }
     };
+    return `${day}${ordinal(day)} ${month} ${year}'`;
+};
+
+export function formatBookingReceiptText(
+    bookingStartDate: string,
+    bookingEndDate: string,
+    students: StudentInfo[],
+    packageDescription: string,
+    packageHours: number,
+    packageTypeStr: string,
+    studentCapacity: number,
+    totalHours: number,
+    formatCurrency: (num: number) => string,
+    totalRevenue: number,
+    pricePerStudent: number,
+    eventRows: EventRow[],
+): string {
+    const today = new Date();
+    const todayFormatted = formatBookingDate(today);
+
+    const studentsList = students
+        .map((s) => `${s.firstName} ${s.lastName}${s.passport ? ` (${s.passport})` : ""}`)
+        .join("\n");
+
+    return `Booking Start Date: ${bookingStartDate}
+Booking End Date: ${bookingEndDate}
+
+---
+
+Students:
+${studentsList}
+
+---
+
+Package Description: ${packageDescription}
+Package Hours: ${packageHours}h
+Package Type: ${packageTypeStr}
+Student Capacity: (x${studentCapacity})
+
+---
+
+Total Hours: ${totalHours.toFixed(1)}h
+Total Price to Pay: ${formatCurrency(totalRevenue)}${studentCapacity > 1 ? `
+Total Price per Student: ${formatCurrency(pricePerStudent)}` : ""}
+As of Date: ${todayFormatted}
+
+*** RECEIPT ***
+${eventRows
+        .map((event, idx) => {
+            const eventDate = formatBookingDate(event.date);
+            return `${idx + 1}. ${event.teacherName}, ${eventDate}, ${event.time}, ${event.durationLabel}, ${event.location} (${event.eventStatus})`;
+        })
+        .join("\n")}`;
 }

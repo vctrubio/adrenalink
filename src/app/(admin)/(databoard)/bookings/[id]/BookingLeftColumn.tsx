@@ -38,28 +38,26 @@ export function BookingLeftColumn({ booking, usedMinutes, totalMinutes, progress
   const BookingIcon = bookingEntity.icon;
 
   // Student Fields
-  const studentFields = bookingStudents.map((bs, index) => {
+  const sortedBookingStudents = [...bookingStudents].sort((a, b) => {
+    const aName = a.student ? `${a.student.firstName} ${a.student.lastName}` : "Unknown";
+    const bName = b.student ? `${b.student.firstName} ${b.student.lastName}` : "Unknown";
+    const aIsLeader = aName === booking.schema.leaderStudentName;
+    const bIsLeader = bName === booking.schema.leaderStudentName;
+    return aIsLeader ? -1 : bIsLeader ? 1 : 0;
+  });
+
+  const studentFields = sortedBookingStudents.map((bs, index) => {
     const studentName = bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown";
     const studentId = bs.student?.id;
     const isLeader = studentName === booking.schema.leaderStudentName;
     return {
-      label: isLeader ? "Leader" : (
-        studentId ? (
-          <HoverToEntity entity={studentEntity} id={studentId}>
-            {studentName}
-          </HoverToEntity>
-        ) : (
-          studentName
-        )
-      ),
-      value: isLeader && studentId ? (
+      label: isLeader ? "Leader" : String(index + 1),
+      value: studentId ? (
         <HoverToEntity entity={studentEntity} id={studentId}>
           {studentName}
         </HoverToEntity>
-      ) : isLeader ? (
-        studentName
       ) : (
-        String(index + 1)
+        studentName
       ),
     };
   });

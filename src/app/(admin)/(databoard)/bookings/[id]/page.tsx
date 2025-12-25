@@ -5,7 +5,7 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { BookingLeftColumn } from "./BookingLeftColumn";
-import { BookingRightColumn } from "./BookingRightColumn";
+import { BookingRightColumnV2 } from "./BookingRightColumnV2";
 
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -43,7 +43,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         <EntityIdLayout
             header={null}
             leftColumn={<BookingLeftColumn booking={booking} usedMinutes={usedMinutes} totalMinutes={totalMinutes} progressBar={progressBar} />}
-            rightColumn={<BookingRightColumn booking={booking} stats={bookingStats} />}
+            rightColumn={<BookingRightColumnV2 booking={booking} stats={bookingStats} />}
         />
     );
 }
