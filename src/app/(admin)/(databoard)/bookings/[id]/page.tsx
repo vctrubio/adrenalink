@@ -28,7 +28,8 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         return <EntityIdLayout header={<EntityHeaderRow entityId="booking" entityName={`Booking ${id}`} stats={[]} />} leftColumn={<div>You do not have permission to view this booking</div>} rightColumn={null} />;
     }
 
-    const bookingStats = BookingIdStats.getStats(booking);
+    const allBookingStats = BookingIdStats.getStats(booking);
+    const bookingStats = allBookingStats.filter((stat) => stat.label !== "Due");
 
     const lessons = booking.relations?.lessons || [];
     const studentPackage = booking.relations?.studentPackage;
