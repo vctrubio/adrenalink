@@ -74,11 +74,13 @@ const entityRelations = {
                             with: {
                                 teacher: true,
                                 events: true,
+                                commission: true,
                             },
                         },
                         studentPackage: {
                             with: {
                                 schoolPackage: true,
+                                referral: true,
                             },
                         },
                         bookingStudents: {
@@ -86,6 +88,7 @@ const entityRelations = {
                                 student: true,
                             },
                         },
+                        studentBookingPayments: true,
                     },
                 },
             },
@@ -97,6 +100,7 @@ const entityRelations = {
         lessons: {
             with: {
                 events: true,
+                commission: true,
                 booking: {
                     with: {
                         lessons: {
@@ -185,11 +189,19 @@ const entityRelations = {
                         student: true,
                     },
                 },
+                referral: true,
                 bookings: {
                     with: {
                         lessons: {
                             with: {
+                                teacher: true,
+                                commission: true,
                                 events: true,
+                            },
+                        },
+                        bookingStudents: {
+                            with: {
+                                student: true,
                             },
                         },
                     },

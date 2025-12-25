@@ -2,15 +2,14 @@
 
 import { useState, useRef } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
-import { getTimeFromISO } from "@/getters/queue-getter";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
 import type { QueueController } from "@/backend/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
 import EventGapDetection from "./EventGapDetection";
-import { getHMDuration } from "@/getters/duration-getter";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
@@ -36,7 +35,6 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     const eventId = event.id;
-    const startTime = getTimeFromISO(event.eventData.date);
     const duration = event.eventData.duration;
     const location = event.eventData.location;
     const categoryEquipment = event.packageData?.categoryEquipment || "";
@@ -132,14 +130,8 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         <div className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5">
-                {/* Left Side: Time and Duration Stacked */}
-                <div className="flex items-center gap-2">
-                    <span className="text-4xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
-                    <div className="flex flex-col justify-center">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Start</span>
-                        <span className="text-sm font-bold text-foreground/80 mt-1 leading-none whitespace-nowrap">+{getHMDuration(duration)}</span>
-                    </div>
-                </div>
+                {/* Left Side: Time and Duration */}
+                <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
                 {/* Right Side: Equipment Icon (Dropdown Trigger) */}
                 {EquipmentIcon && (

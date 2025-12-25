@@ -5,7 +5,7 @@ import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { TeacherIdStats } from "@/src/components/databoard/stats/TeacherIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
-import { TeacherRightColumn } from "./TeacherRightColumn";
+import { TeacherRightColumnV2 } from "./TeacherRightColumnV2";
 
 export default async function TeacherDetailPage({ params }: { params: Promise<{ username: string }> }) {
     const { username } = await params;
@@ -77,7 +77,7 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
                 />
             }
             leftColumn={<TeacherLeftColumn teacher={teacher} />}
-            rightColumn={<TeacherRightColumn teacher={teacher} />}
+            rightColumn={<TeacherRightColumnV2 teacher={teacher} />}
         />
     );
 }

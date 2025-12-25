@@ -1,3 +1,5 @@
+import { getHMDuration } from "./duration-getter";
+
 interface StudentInfo {
     firstName: string;
     lastName: string;
@@ -46,6 +48,12 @@ export const formatBookingDate = (date: any): string => {
     return `${day}${ordinal(day)} ${month} ${year}'`;
 };
 
+export const getEventReceiptDateTime = (date: any, duration: number): string => {
+    const time = new Date(date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const durationFormatted = getHMDuration(duration);
+    return `${formatBookingDate(date)}, ${time}, ${durationFormatted}`;
+};
+
 export function formatBookingReceiptText(
     bookingStartDate: string,
     bookingEndDate: string,
@@ -92,8 +100,8 @@ As of Date: ${todayFormatted}
 *** RECEIPT ***
 ${eventRows
         .map((event, idx) => {
-            const eventDate = formatBookingDate(event.date);
-            return `${idx + 1}. ${event.teacherName}, ${eventDate}, ${event.time}, ${event.durationLabel}, ${event.location} (${event.eventStatus})`;
+            const eventDateTime = getEventReceiptDateTime(event.date, event.duration);
+            return `${idx + 1}. ${event.teacherName}, ${eventDateTime}, ${event.location} (${event.eventStatus})`;
         })
         .join("\n")}`;
 }

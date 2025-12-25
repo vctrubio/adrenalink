@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { CardList } from "@/src/components/ui/card/card-list";
-import { getHMDuration, minutesToHours } from "@/getters/duration-getter";
-import { getTimeFromISO } from "@/getters/queue-getter";
+import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
+import { minutesToHours } from "@/getters/duration-getter";
 import { MapPin } from "lucide-react";
 
 interface EventStudentCardProps {
@@ -34,7 +34,6 @@ export function EventStudentCard({
     pricePerHour = 0,
 }: EventStudentCardProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const startTime = getTimeFromISO(date);
     const teacherFirstName = teacherName.split(" ")[0];
 
     // Format equipment string: "Wing (x2)" or just "Wing"
@@ -60,16 +59,8 @@ export function EventStudentCard({
         >
             {/* High Contrast Header */}
             <div className="flex items-center justify-between bg-zinc-900 px-6 py-5 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                {/* Left Side: Time and Duration Stacked */}
-                <div className="flex items-center gap-2">
-                    <span className="text-4xl font-black tracking-tighter leading-none">{startTime}</span>
-                    <div className="flex flex-col justify-center">
-                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-widest leading-none">Start</span>
-                        <span className="text-sm font-bold opacity-80 mt-1 leading-none whitespace-nowrap">
-                            +{getHMDuration(duration)}
-                        </span>
-                    </div>
-                </div>
+                {/* Left Side: Time and Duration */}
+                <EventStartDurationTime date={date} duration={duration} />
 
                 {/* Right Side: School Icon Placeholder */}
                 <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm dark:bg-zinc-900/10 dark:border-zinc-900/20" />

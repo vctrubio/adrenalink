@@ -4,7 +4,7 @@ import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { StudentIdStats } from "@/src/components/databoard/stats/StudentIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { StudentLeftColumn } from "./StudentLeftColumn";
-import { StudentRightColumn } from "./StudentRightColumn";
+import { StudentRightColumnV2 } from "./StudentRightColumnV2";
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -40,7 +40,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                 />
             }
             leftColumn={<StudentLeftColumn student={student} />}
-            rightColumn={<StudentRightColumn student={student} />}
+            rightColumn={<StudentRightColumnV2 student={student} />}
         />
     );
 }
