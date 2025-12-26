@@ -4,7 +4,7 @@ import type { SchoolPackageModel } from "@/backend/models";
 import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { PackageIdStats } from "@/src/components/databoard/stats/PackageIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { PackageLeftColumn } from "./PackageLeftColumn";
+import { PackageLeftColumnV2 } from "./PackageLeftColumnV2";
 import { PackageRightColumn } from "./PackageRightColumn";
 
 export default async function PackageDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -76,7 +76,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
                     stats={packageStats}
                 />
             }
-            leftColumn={<PackageLeftColumn schoolPackage={schoolPackage} />}
+            leftColumn={<PackageLeftColumnV2 schoolPackage={schoolPackage} />}
             rightColumn={<PackageRightColumn schoolPackage={schoolPackage} />}
         />
     );
