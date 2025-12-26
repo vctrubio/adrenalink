@@ -126,10 +126,10 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     };
 
     const availableTeachers = useMemo(() => {
-        return allSchoolTeachers.map(t => ({
+        return allSchoolTeachers.map((t) => ({
             id: t.schema.id,
             username: t.schema.username,
-            firstName: t.schema.firstName
+            firstName: t.schema.firstName,
         }));
     }, [allSchoolTeachers]);
 
@@ -140,50 +140,39 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     }
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="flex flex-col gap-4 h-full"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: "easeOut" }} className="flex flex-col gap-4 h-full">
             {/* Constrained sections */}
             <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
                 {/* Header */}
                 <ClassboardHeader selectedDate={selectedDate} onDateChange={setSelectedDate} draggableBookings={draggableBookings} classboardStats={classboardStats} />
 
-                <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
-
-                {/* Students */}
-                <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-h-[40vh]">
-                    <StudentClassDaily
-                        bookings={draggableBookings}
-                        classboardData={classboardData}
-                        selectedDate={selectedDate}
-                        classboard={{
-                            onDragStart: (booking) => {
-                                setDraggedBooking(booking);
-                            },
-                            onDragEnd: () => {
-                                setDraggedBooking(null);
-                            },
-                            onAddLessonEvent: handleAddLessonEvent,
-                            onAddTeacher: handleAddTeacher,
-                            availableTeachers: availableTeachers
-                        }}
-                        setOnNewBooking={setOnNewBooking}
-                    />
-                </div>
+                {/* <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} /> */}
 
                 {/* Controller */}
-                <ClassboardController
-                    controller={controller}
-                    setController={setController}
-                    isCollapsed={isControllerCollapsed}
-                    onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)}
-                />
+                <ClassboardController controller={controller} setController={setController} isCollapsed={isControllerCollapsed} onToggleCollapse={() => setIsControllerCollapsed(!isControllerCollapsed)} />
 
                 {/* Lesson Flag */}
                 <LessonFlagClassDaily globalFlag={globalFlag} teacherQueues={teacherQueues} onSubmit={handleGlobalSubmit} />
+            </div>
+
+            <div className="w-full bg-card rounded-xl shadow-sm overflow-y-auto max-w-6xl max-h-[40vh] mx-auto">
+                <StudentClassDaily
+                    bookings={draggableBookings}
+                    classboardData={classboardData}
+                    selectedDate={selectedDate}
+                    classboard={{
+                        onDragStart: (booking) => {
+                            setDraggedBooking(booking);
+                        },
+                        onDragEnd: () => {
+                            setDraggedBooking(null);
+                        },
+                        onAddLessonEvent: handleAddLessonEvent,
+                        onAddTeacher: handleAddTeacher,
+                        availableTeachers: availableTeachers,
+                    }}
+                    setOnNewBooking={setOnNewBooking}
+                />
             </div>
 
             {/* Teachers section - full width */}

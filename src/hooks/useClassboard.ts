@@ -9,6 +9,7 @@ import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { useSchoolTeachers } from "./useSchoolTeachers";
+import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
 const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
@@ -32,6 +33,7 @@ export function useClassboard(initialData: ClassboardModel) {
 
     // Get all active teachers from the school
     const { teachers: allSchoolTeachers } = useSchoolTeachers();
+    const { order: teacherSortOrder } = useTeacherSortOrder();
 
     // Load from localStorage after hydration
     useEffect(() => {
@@ -281,8 +283,22 @@ export function useClassboard(initialData: ClassboardModel) {
         });
 
         const queues = Array.from(teacherMap.values());
+
+        // Apply custom sort order from context
+        if (teacherSortOrder.length > 0) {
+            queues.sort((a, b) => {
+                const aTeacher = allSchoolTeachers.find(t => t.schema.username === a.teacher.username);
+                const bTeacher = allSchoolTeachers.find(t => t.schema.username === b.teacher.username);
+                const aIndex = aTeacher ? teacherSortOrder.indexOf(aTeacher.schema.id) : -1;
+                const bIndex = bTeacher ? teacherSortOrder.indexOf(bTeacher.schema.id) : -1;
+                if (aIndex === -1) return 1;
+                if (bIndex === -1) return -1;
+                return aIndex - bIndex;
+            });
+        }
+
         return queues;
-    }, [bookingsForSelectedDate, selectedDate, allSchoolTeachers, controller.gapMinutes]);
+    }, [bookingsForSelectedDate, selectedDate, allSchoolTeachers, controller.gapMinutes, teacherSortOrder]);
 
     const teacherLessonCounts = useMemo(() => {
         const counts = new Map<string, number>();

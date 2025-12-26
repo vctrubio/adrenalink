@@ -1,14 +1,15 @@
 "use client";
-import { Plus, Search, Sun, Moon } from "lucide-react";
+import { Plus, Sun, Moon } from "lucide-react";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { useTheme } from "next-themes";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useSearch } from "@/src/providers/search-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import FacebookSearch from "@/src/components/modals/FacebookSearch";
+import { TeacherSortPriorityManModal } from "@/src/components/modals/admin";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
+import { NavigationFloatingTable } from "./NavigationFloatingTable";
 import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm";
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
@@ -41,6 +42,8 @@ const ActionButton = ({ icon: Icon, children, onClick, buttonRef }: { icon?: Rea
 export const NavRight = () => {
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
+    const [isTeacherSortModalOpen, setIsTeacherSortModalOpen] = useState(false);
+    const [isNavigationFloatingOpen, setIsNavigationFloatingOpen] = useState(false);
     const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(null);
     const [studentFormData, setStudentFormData] = useState<StudentFormData>(defaultStudentForm);
     const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>(defaultTeacherForm);
@@ -49,7 +52,6 @@ export const NavRight = () => {
     const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
-    const { onOpen } = useSearch();
     const credentials = useSchoolCredentials();
 
     const createButtonRef = useRef<HTMLButtonElement>(null);
@@ -58,7 +60,26 @@ export const NavRight = () => {
     useEffect(() => {
         setMounted(true);
     }, []);
+    // Cmd+J keyboard listener
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            console.log("Key pressed:", e.key, "Meta:", e.metaKey, "Ctrl:", e.ctrlKey);
+            if ((e.metaKey || e.ctrlKey) && e.key === "j") {
+                e.preventDefault();
+                console.log("Cmd+J triggered - opening navigation");
+                setIsNavigationFloatingOpen((prev) => {
+                    const newState = !prev;
+                    console.log("State changed to:", newState);
+                    return newState;
+                });
+            }
+        };
 
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    
     const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
 
     // Form validity checks
@@ -164,23 +185,23 @@ export const NavRight = () => {
 
     const adminDropdownItems: DropdownItemProps[] = credentials
         ? [
-              {
-                  id: "username",
-                  label: `Username: ${credentials.username}`,
-              },
-              {
-                  id: "currency",
-                  label: `Currency: ${credentials.currency}`,
-              },
-              {
-                  id: "status",
-                  label: `Status: ${credentials.status}`,
-              },
-              {
-                  id: "ownerId",
-                  label: `Owner ID: ${credentials.ownerId}`,
-              },
-          ]
+            {
+                id: "username",
+                label: `Username: ${credentials.username}`,
+            },
+            {
+                id: "currency",
+                label: `Currency: ${credentials.currency}`,
+            },
+            {
+                id: "status",
+                label: `Status: ${credentials.status}`,
+            },
+            {
+                id: "ownerId",
+                label: `Owner ID: ${credentials.ownerId}`,
+            },
+        ]
         : [];
 
     const renderCredentialItem = (item: DropdownItemProps) => {
@@ -193,23 +214,25 @@ export const NavRight = () => {
         );
     };
 
+
+            <NavigationFloatingTable isOpen={isNavigationFloatingOpen} onClose={() => setIsNavigationFloatingOpen(false)} />
     return (
         <>
             <div className="flex items-center gap-2">
+                <ActionButton icon={HeadsetIcon} onClick={() => setIsTeacherSortModalOpen(true)} />
                 <div className="relative">
                     <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
                     <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" triggerRef={createButtonRef} />
                 </div>
                 <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
-                    <ActionButton icon={Search} onClick={onOpen} />
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
                     </ActionButton>
                     <Dropdown isOpen={isAdminDropdownOpen} onClose={() => setIsAdminDropdownOpen(false)} items={adminDropdownItems} renderItem={renderCredentialItem} align="right" triggerRef={adminButtonRef} />
                 </div>
             </div>
-            <FacebookSearch />
+            <TeacherSortPriorityManModal isOpen={isTeacherSortModalOpen} onClose={() => setIsTeacherSortModalOpen(false)} />
 
             <EntityAddDialog isOpen={selectedCreateEntity === "student"} onClose={() => setSelectedCreateEntity(null)}>
                 <Student4SchoolForm formData={studentFormData} onFormDataChange={setStudentFormData} isFormReady={isStudentFormValid} onSubmit={handleStudentSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />

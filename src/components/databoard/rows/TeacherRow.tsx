@@ -14,6 +14,9 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { TeacherModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import IdIcon from "@/public/appSvgs/IdIcon";
+import type { TableRenderers } from "../DataboardTableSection";
+import { RowHead } from "@/src/components/ui/row/row-head";
+import { RowStr } from "@/src/components/ui/row/row-str";
 
 export const calculateTeacherGroupStats = DataboardTeacherStats.getStats;
 
@@ -60,14 +63,76 @@ const TeacherAction = ({ teacher }: { teacher: TeacherModel }) => {
     );
 };
 
+function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): boolean {
+    return true;
+}
+
+export const teacherRenderers: TableRenderers<TeacherModel> = {
+    renderEntity: (teacher) => {
+        const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+        const TeacherIcon = teacherEntity.icon;
+
+        const currentStatus = teacher.schema.active ? "active" : "inactive";
+        const currentStatusConfig = TEACHER_STATUS_CONFIG[currentStatus];
+
+        const statusDropdownItems: DropdownItemProps[] = (["active", "inactive"] as const).map((status) => ({
+            id: status,
+            label: TEACHER_STATUS_CONFIG[status].label,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: TEACHER_STATUS_CONFIG[status].color }} />,
+            color: TEACHER_STATUS_CONFIG[status].color,
+            onClick: async () => {
+                if (validateActivity(currentStatus, status)) {
+                    await updateTeacherActive(teacher.schema.id, status === "active");
+                }
+            },
+        }));
+
+        return (
+            <RowHead
+                avatar={
+                    <div style={{ color: teacherEntity.color }}>
+                        <TeacherIcon className="w-8 h-8" />
+                    </div>
+                }
+                name={
+                    <HoverToEntity entity={teacherEntity} id={teacher.schema.username}>
+                        {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
+                    </HoverToEntity>
+                }
+                status={currentStatusConfig.label}
+                dropdownItems={statusDropdownItems}
+                statusColor={currentStatusConfig.color}
+            />
+        );
+    },
+    renderStr: (teacher) => {
+        const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+        return (
+            <RowStr
+                label={
+                    <div className="flex items-center gap-2">
+                        <IdIcon size={16} />
+                        <span className="text-xs">{teacher.schema.username}</span>
+                    </div>
+                }
+                items={[
+                    { label: "Phone", value: teacher.schema.phone },
+                    { label: "Passport", value: teacher.schema.passport },
+                    { label: "Country", value: teacher.schema.country },
+                    { label: "Languages", value: teacher.schema.languages.join(", ") },
+                ]}
+                entityColor={teacherEntity.bgColor}
+            />
+        );
+    },
+    renderAction: (teacher) => <TeacherAction teacher={teacher} />,
+    renderStats: (teacher) => DataboardTeacherStats.getStats(teacher, false),
+};
+
 interface TeacherRowProps {
     item: TeacherModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-}
-
-function validateActivity(fromStatus: TeacherStatus, toStatus: TeacherStatus): boolean {
-    return true;
 }
 
 export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowProps) => {

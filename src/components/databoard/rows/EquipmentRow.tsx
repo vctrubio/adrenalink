@@ -16,6 +16,9 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { EquipmentDropdownRow } from "./EquipmentDropdownRow";
 import type { EquipmentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
+import type { TableRenderers } from "../DataboardTableSection";
+import { RowHead } from "@/src/components/ui/row/row-head";
+import { RowStr } from "@/src/components/ui/row/row-str";
 
 export const calculateEquipmentGroupStats = DataboardEquipmentStats.getStats;
 
@@ -34,15 +37,82 @@ const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
     );
 };
 
+function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus): boolean {
+    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
+    return true;
+}
+
+export const equipmentRenderers: TableRenderers<EquipmentModel> = {
+    renderEntity: (equipment) => {
+        const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+        const equipmentName = getEquipmentName(equipment);
+        const category = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
+        const CategoryIcon = category?.icon;
+        
+        const currentStatus = equipment.schema.status as EquipmentStatus;
+        const currentStatusConfig = EQUIPMENT_STATUS_CONFIG[currentStatus];
+
+        const statusDropdownItems: DropdownItemProps[] = (Object.keys(EQUIPMENT_STATUS_CONFIG) as EquipmentStatus[]).map((status) => ({
+            id: status,
+            label: EQUIPMENT_STATUS_CONFIG[status].label,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EQUIPMENT_STATUS_CONFIG[status].color }} />,
+            color: EQUIPMENT_STATUS_CONFIG[status].color,
+            onClick: async () => {
+                if (validateActivity(currentStatus, status)) {
+                    await updateEquipmentStatus(equipment.schema.id, status);
+                }
+            },
+        }));
+
+        return (
+            <RowHead
+                avatar={<div style={{ color: equipmentEntity.color }}>{CategoryIcon ? <CategoryIcon className="w-8 h-8" /> : <div className="w-8 h-8" />}</div>}
+                name={
+                    <HoverToEntity entity={equipmentEntity} id={equipment.schema.id}>
+                        {equipmentName}
+                    </HoverToEntity>
+                }
+                status={currentStatusConfig.label}
+                dropdownItems={statusDropdownItems}
+                statusColor={currentStatusConfig.color}
+            />
+        );
+    },
+    renderStr: (equipment) => {
+        const teachers = getEquipmentTeachers(equipment);
+        const teacherUsernames = teachers.map(({ teacher }) => teacher.username);
+        const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+
+        return (
+            <RowStr
+                label={equipment.schema.color || "N/A"}
+                items={[
+                    {
+                        label: "Teachers",
+                        value: (
+                            <div className="flex flex-col text-xs">
+                                {teacherUsernames.length > 0 ? (
+                                    teacherUsernames.map((username, index) => <span key={index}>{username}</span>)
+                                ) : (
+                                    <span>No teachers</span>
+                                )}
+                            </div>
+                        )
+                    }
+                ]}
+                entityColor={equipmentEntity.color}
+            />
+        );
+    },
+    renderAction: (equipment) => <EquipmentAction equipment={equipment} />,
+    renderStats: (equipment) => DataboardEquipmentStats.getStats(equipment, false),
+    renderColor: (equipment) => equipment.schema.color || ENTITY_DATA.find((e) => e.id === "equipment")?.color || "#a855f7",
+};
+
 interface EquipmentRowProps {
     item: EquipmentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-}
-
-function validateActivity(fromStatus: EquipmentStatus, toStatus: EquipmentStatus): boolean {
-    console.log(`checking validation for status update ${fromStatus} to ${toStatus}`);
-    return true;
 }
 
 export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {

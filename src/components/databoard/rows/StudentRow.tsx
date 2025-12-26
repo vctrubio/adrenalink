@@ -13,6 +13,9 @@ import { StudentDropdownRow } from "./StudentDropdownRow";
 import type { StudentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import IdIcon from "@/public/appSvgs/IdIcon";
+import type { TableRenderers } from "../DataboardTableSection";
+import { RowHead } from "@/src/components/ui/row/row-head";
+import { RowStr } from "@/src/components/ui/row/row-str";
 
 export const calculateStudentGroupStats = DataboardStudentStats.getStats;
 
@@ -51,15 +54,78 @@ const StudentAction = ({ student }: { student: StudentModel }) => {
     );
 };
 
+function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
+    return true;
+}
+
+export const studentRenderers: TableRenderers<StudentModel> = {
+    renderEntity: (student) => {
+        const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+        const StudentIcon = studentEntity.icon;
+        const fullName = `${student.schema.firstName} ${student.schema.lastName}`;
+        const isActive = student.updateForm.active;
+        const currentStatus = isActive ? "active" : "inactive";
+        const currentStatusConfig = SCHOOL_STUDENT_STATUS_CONFIG[currentStatus];
+
+        const statusDropdownItems: DropdownItemProps[] = (["active", "inactive"] as const).map((status) => ({
+            id: status,
+            label: SCHOOL_STUDENT_STATUS_CONFIG[status].label,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: SCHOOL_STUDENT_STATUS_CONFIG[status].color }} />,
+            color: SCHOOL_STUDENT_STATUS_CONFIG[status].color,
+            onClick: async () => {
+                if (validateActivity(currentStatus, status)) {
+                    await updateSchoolStudentActive(student.schema.id, status === "active");
+                }
+            },
+        }));
+
+        return (
+            <RowHead
+                avatar={
+                    <div style={{ color: studentEntity.color }}>
+                        <StudentIcon className="w-8 h-8" />
+                    </div>
+                }
+                name={
+                    <HoverToEntity entity={studentEntity} id={student.schema.id}>
+                        {fullName}
+                    </HoverToEntity>
+                }
+                status={currentStatusConfig.label}
+                dropdownItems={statusDropdownItems}
+                statusColor={currentStatusConfig.color}
+            />
+        );
+    },
+    renderStr: (student) => {
+        const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+        return (
+            <RowStr
+                label={
+                    <div className="flex items-center gap-2">
+                        <IdIcon size={16} />
+                        <span className="text-xs">{student.schema.passport}</span>
+                    </div>
+                }
+                items={[
+                    { label: "Country", value: student.schema.country },
+                    { label: "Phone", value: student.schema.phone },
+                    { label: "Languages", value: student.schema.languages.join(", ") },
+                    { label: "Joined", value: new Date(student.schema.createdAt).toLocaleDateString() },
+                ]}
+                entityColor={studentEntity.bgColor}
+            />
+        );
+    },
+    renderAction: (student) => <StudentAction student={student} />,
+    renderStats: (student) => DataboardStudentStats.getStats(student, false),
+};
+
 interface StudentRowProps {
     item: StudentModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
     onStatusChange?: () => void;
-}
-
-function validateActivity(fromStatus: SchoolStudentStatus, toStatus: SchoolStudentStatus): boolean {
-    return true;
 }
 
 export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {

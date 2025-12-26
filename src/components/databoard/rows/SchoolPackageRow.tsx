@@ -14,17 +14,113 @@ import type { SchoolPackageModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { Globe, Lock } from "lucide-react";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
+import type { TableRenderers } from "../DataboardTableSection";
+import { RowHead } from "@/src/components/ui/row/row-head";
+import { RowStr } from "@/src/components/ui/row/row-str";
 
 export const calculateSchoolPackageGroupStats = DataboardSchoolPackageStats.getStats;
+
+function validateActivity(fromStatus: string, toStatus: string): boolean {
+    return true;
+}
+
+export const schoolPackageRenderers: TableRenderers<SchoolPackageModel> = {
+    renderEntity: (schoolPackage) => {
+        const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+        const PackageIconComponent = packageEntity.icon;
+
+        const currentStatus = schoolPackage.schema.active ? "active" : "inactive";
+        const currentStatusConfig = SCHOOL_PACKAGE_STATUS_CONFIG[currentStatus];
+
+        const statusDropdownItems: DropdownItemProps[] = [
+            ...(["active", "inactive"] as const).map((status) => ({
+                id: status,
+                label: SCHOOL_PACKAGE_STATUS_CONFIG[status].label,
+                icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: SCHOOL_PACKAGE_STATUS_CONFIG[status].color }} />,
+                color: SCHOOL_PACKAGE_STATUS_CONFIG[status].color,
+                onClick: async () => {
+                    if (validateActivity(currentStatus, status)) {
+                        await updateSchoolPackageActive(schoolPackage.schema.id, status === "active");
+                    }
+                },
+            })),
+            {
+                id: "public",
+                label: "Public",
+                icon: () => <Globe size={12} />,
+                color: "#3b82f6",
+                onClick: async () => {
+                    await updateSchoolPackagePublic(schoolPackage.schema.id, true);
+                },
+            },
+            {
+                id: "private",
+                label: "Private",
+                icon: () => <Lock size={12} />,
+                color: "#f97316",
+                onClick: async () => {
+                    await updateSchoolPackagePublic(schoolPackage.schema.id, false);
+                },
+            },
+        ];
+
+        return (
+            <RowHead
+                avatar={
+                    <div style={{ color: packageEntity.color }}>
+                        <PackageIconComponent className="w-8 h-8" />
+                    </div>
+                }
+                name={
+                    <HoverToEntity entity={packageEntity} id={schoolPackage.schema.id}>
+                        {schoolPackage.schema.description || "No description"}
+                    </HoverToEntity>
+                }
+                status={currentStatusConfig.label}
+                dropdownItems={statusDropdownItems}
+                statusColor={currentStatusConfig.color}
+            />
+        );
+    },
+    renderStr: (schoolPackage) => {
+        const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+        const durationHours = schoolPackage.schema.durationMinutes / 60;
+        const pricePerHour = durationHours > 0 ? schoolPackage.schema.pricePerStudent / durationHours : 0;
+
+        return (
+            <RowStr
+                label={
+                    <EquipmentStudentPackagePriceBadge 
+                        categoryEquipment={schoolPackage.schema.categoryEquipment} 
+                        equipmentCapacity={schoolPackage.schema.capacityEquipment} 
+                        studentCapacity={schoolPackage.schema.capacityStudents} 
+                        packageDurationHours={durationHours}
+                        pricePerHour={pricePerHour}
+                    />
+                }
+                items={[
+                    { label: "Package Type", value: schoolPackage.schema.packageType || "unknown" },
+                    { label: "Price Per Student", value: `$${schoolPackage.schema.pricePerStudent}` },
+                    { label: "Created", value: formatDate(schoolPackage.schema.createdAt) },
+                    { label: "Access", value: schoolPackage.schema.isPublic ? "Public" : "Private" },
+                ]}
+                entityColor={packageEntity.bgColor}
+            />
+        );
+    },
+    renderAction: (schoolPackage) => (
+        <BookingCreateTag 
+            icon={<BookingIcon className="w-4 h-4" />} 
+            link={`/register?add=package:${schoolPackage.schema.id}`}
+        />
+    ),
+    renderStats: (schoolPackage) => DataboardSchoolPackageStats.getStats(schoolPackage, false),
+};
 
 interface SchoolPackageRowProps {
     item: SchoolPackageModel;
     isExpanded: boolean;
     onToggle: (id: string) => void;
-}
-
-function validateActivity(fromStatus: string, toStatus: string): boolean {
-    return true;
 }
 
 export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: SchoolPackageRowProps) => {

@@ -85,12 +85,27 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
         return null;
     }
 
-    const schoolData = await getSchoolByUsername(username);
+    let schoolData = await getSchoolByUsername(username);
 
-    console.log("getSchoolHeader: schoolData fetched from DB::::::::::::::::::::", schoolData);
+    console.log("getSchoolHeader: schoolData fetched from cache::::::::::::::::::::", schoolData);
+
+    // If cached value is null or missing timezone, bypass cache and fetch directly
+    if (!schoolData || !schoolData.timezone) {
+        console.log("getSchoolHeader: Cached value null or missing timezone, fetching directly from DB...");
+
+        try {
+            schoolData = await db.query.school.findFirst({
+                where: eq(school.username, username),
+            });
+            console.log("getSchoolHeader: Fresh data from DB::::::::::::::::::::", schoolData);
+        } catch (error) {
+            console.error(`Error fetching school by username "${username}" from DB:`, error);
+            return null;
+        }
+    }
 
     // schoolData?.timezone = "America/New_York"; // DEV OVERRIDE
-    
+
     if (!schoolData || !schoolData.timezone) {
         if (!schoolData) {
             console.warn(`[getSchoolHeader] School with username "${username}" not found in database.`);
