@@ -9,6 +9,7 @@ import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-a
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
+import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import EventGapDetection from "./EventGapDetection";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
@@ -27,11 +28,9 @@ interface EventCardProps {
 export default function EventCard({ event, queue, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     const eventId = event.id;
@@ -69,7 +68,6 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         try {
             await updateEventStatus(eventId, newStatus);
             setCurrentStatus(newStatus);
-            setIsDropdownOpen(false);
         } catch (error) {
             console.error("Error updating status:", error);
         } finally {
@@ -107,18 +105,6 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         }
     };
 
-    const statusDropdownItems: DropdownItemProps[] = [
-        ...EVENT_STATUSES.map((statusOption) => ({
-            id: statusOption,
-            label: statusOption,
-            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[statusOption].color }} />,
-            color: EVENT_STATUS_CONFIG[statusOption].color,
-            onClick: () => handleStatusClick(statusOption),
-        })),
-        ...(canShiftQueue ? [{ id: "delete-cascade", label: isDeleting ? "Deleting..." : "Delete & Shift Queue", icon: Trash2, color: "#ef4444", onClick: () => handleDelete(true) }] : []),
-        { id: "delete", label: isDeleting ? "Deleting..." : "Delete", icon: Trash2, color: "#ef4444", onClick: () => handleDelete(false) },
-    ];
-
     const studentDropdownItems: DropdownItemProps[] = students.map((student, index) => ({
         id: student.id || index,
         label: `${student.firstName} ${student.lastName}`,
@@ -135,19 +121,15 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
 
                 {/* Right Side: Equipment Icon (Dropdown Trigger) */}
                 {EquipmentIcon && (
-                    <div className="relative">
-                        <button
-                            ref={dropdownTriggerRef}
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"
-                            style={{ color: EVENT_STATUS_CONFIG[currentStatus].color }}
-                        >
-                            <EquipmentIcon size={24} />
-                            {/* Capacity Badge */}
-                            {capacityEquipment > 1 && <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">x{capacityEquipment}</span>}
-                        </button>
-                        <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={statusDropdownItems} align="right" initialFocusedId={currentStatus} triggerRef={dropdownTriggerRef} />
-                    </div>
+                    <EventStatusLabel
+                        status={currentStatus}
+                        onStatusChange={handleStatusClick}
+                        onDelete={handleDelete}
+                        isDeleting={isDeleting}
+                        canShiftQueue={canShiftQueue}
+                        icon={EquipmentIcon}
+                        capacity={capacityEquipment}
+                    />
                 )}
             </div>
 

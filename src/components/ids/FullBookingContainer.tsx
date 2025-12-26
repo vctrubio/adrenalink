@@ -12,7 +12,7 @@ import { formatDate } from "@/getters/date-getter";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
-import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { EquipmentStudentPaymentsBadge } from "@/src/components/ui/badge/equipment-student-payments";
 import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
 import { transformEventsToRows } from "@/getters/event-getter";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
@@ -20,8 +20,9 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { MapPin } from "lucide-react";
+import { MapPin, TrendingUpDown } from "lucide-react";
 import type { LessonEventRowData } from "@/types/booking-lesson-event";
+import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 
 export interface BookingData {
     id: string;
@@ -247,20 +248,29 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                             <div className="flex items-center justify-between">
                                 <HoverToEntity entity={bookingEntity} id={bookingData.id}>
                                     <div className="flex items-center gap-2 cursor-pointer hover:opacity-80">
-                                        <DateRangeBadge startDate={bookingData.dateStart} endDate={bookingData.dateEnd} />
+                                        <BookingStatusLabel status={bookingData.status} startDate={bookingData.dateStart} endDate={bookingData.dateEnd} />
                                     </div>
                                 </HoverToEntity>
                                 <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.durationMinutes} background={progressBar.background} />
                             </div>
 
-                            {/* Package Info Badge */}
-                            <EquipmentStudentPackagePriceBadge
-                                categoryEquipment={schoolPackage.categoryEquipment}
-                                equipmentCapacity={schoolPackage.capacityEquipment}
-                                studentCapacity={schoolPackage.capacityStudents}
-                                packageDurationHours={packageDurationHours}
-                                pricePerHour={schoolPackage.pricePerStudent}
-                            />
+                            {/* Package Info and Revenue Row */}
+                            <div className="flex items-center justify-between gap-4">
+                                <EquipmentStudentPaymentsBadge
+                                    categoryEquipment={schoolPackage.categoryEquipment}
+                                    equipmentCapacity={schoolPackage.capacityEquipment}
+                                    studentCapacity={schoolPackage.capacityStudents}
+                                    packageDurationHours={packageDurationHours}
+                                    pricePerHour={schoolPackage.pricePerStudent}
+                                    currency={currency}
+                                />
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border border-border/50 text-xs font-bold whitespace-nowrap">
+                                    <TrendingUpDown size={14} className="text-muted-foreground" />
+                                    <span className="text-foreground">
+                                        {formatCurrency(totals.totalRevenue)} {currency}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Icon */}
@@ -286,7 +296,7 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Package</div>
                                     {schoolPackage && (
                                         <HoverToEntity entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!} id={schoolPackage.id}>
-                                            <div className="text-sm font-semibold text-foreground cursor-pointer" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
+                                            <div className="text-sm font-semibold text-foreground cursor-pointer transition-colors hover:opacity-80" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
                                                 {schoolPackage.description}
                                             </div>
                                         </HoverToEntity>

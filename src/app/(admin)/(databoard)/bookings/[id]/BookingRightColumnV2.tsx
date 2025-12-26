@@ -7,15 +7,16 @@ import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { getHMDuration, getPrettyDuration } from "@/getters/duration-getter";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
-import { formatBookingReceiptText, formatBookingDate } from "@/getters/bookings-receipt-getter";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { Timeline, type TimelineEvent } from "@/src/components/timeline";
 import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
 import { BookingReceipt, type BookingReceiptEventRow } from "@/src/components/ids/BookingReceipt";
+import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { Share2, Copy, Check } from "lucide-react";
+import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
+import { Share2, Copy, Check, Calendar, List, Table } from "lucide-react";
 import { transformEventsToRows } from "@/getters/event-getter";
 import type { EventData } from "@/types/booking-lesson-event";
 
@@ -63,27 +64,6 @@ interface Totals {
     teacherEarnings: number;
     schoolRevenue: number;
     totalRevenue: number;
-}
-// ... (rest of imports and types)
-
-// Sub-component: View Toggle
-function ViewToggle({ viewMode, setViewMode }: { viewMode: ViewMode; setViewMode: (mode: ViewMode) => void }) {
-    const modes: Array<{ id: ViewMode; label: string }> = [
-        { id: "timeline", label: "Timeline" },
-        { id: "by-teacher", label: "By Teacher" },
-        { id: "table", label: "Table" },
-        { id: "receipt", label: "Receipt" },
-    ];
-
-    return (
-        <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl w-fit">
-            {modes.map((mode) => (
-                <button key={mode.id} onClick={() => setViewMode(mode.id)} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === mode.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                    {mode.label}
-                </button>
-            ))}
-        </div>
-    );
 }
 
 // Sub-component: Table View
@@ -258,7 +238,16 @@ export function BookingRightColumnV2({ booking, stats }: BookingRightColumnV2Pro
 
     return (
         <div className="space-y-6">
-            <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+            <ToggleBar
+                value={viewMode}
+                onChange={(v) => setViewMode(v as ViewMode)}
+                options={[
+                    { id: "timeline", label: "Timeline", icon: Calendar },
+                    { id: "by-teacher", label: "By Teacher", icon: HandshakeIcon },
+                    { id: "table", label: "Table", icon: Table },
+                    { id: "receipt", label: "Receipt", icon: List },
+                ]}
+            />
 
             <AnimatePresence mode="wait">
                 {viewMode === "timeline" && (

@@ -5,11 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { TeacherModel } from "@/backend/models";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getPrettyDuration } from "@/getters/duration-getter";
-import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG } from "@/types/status";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { Timeline, type TimelineEvent } from "@/src/components/timeline";
+import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -18,6 +15,8 @@ import { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEv
 import { getHMDuration } from "@/getters/duration-getter";
 import { transformEventsToRows } from "@/getters/event-getter";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import { SearchInput } from "@/src/components/SearchInput";
+import { calculateLessonRevenue } from "@/getters/commission-calculator";
 import type { EventData } from "@/types/booking-lesson-event";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
@@ -48,30 +47,6 @@ interface Totals {
     events: number;
 }
 
-// Sub-component: View Toggle
-function ViewToggle({ viewMode, setViewMode }: { viewMode: ViewMode; setViewMode: (mode: ViewMode) => void }) {
-    const views: { id: ViewMode; label: string; icon: any }[] = [
-        { id: "lessons", label: "By Lesson", icon: List },
-        { id: "commissions", label: "By Commission", icon: HandshakeIcon },
-        { id: "timeline", label: "Timeline", icon: Calendar },
-    ];
-
-    return (
-        <div className="flex gap-2">
-            {views.map(({ id, label, icon: Icon }) => (
-                <button
-                    key={id}
-                    onClick={() => setViewMode(id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === id ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
-                >
-                    <Icon size={16} />
-                    <span>{label}</span>
-                </button>
-            ))}
-        </div>
-    );
-}
-
 // Sub-component: Summary Header
 function SummaryHeader({ totals, formatCurrency }: { totals: Totals; formatCurrency: (num: number) => string }) {
     return (
@@ -79,18 +54,17 @@ function SummaryHeader({ totals, formatCurrency }: { totals: Totals; formatCurre
             <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1.5">
                     <FlagIcon size={16} className="text-muted-foreground" />
-                    <span className="font-semibold">{totals.events} events</span>
+                    <span className="font-semibold text-foreground">{totals.events} events</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <DurationIcon size={16} className="text-muted-foreground" />
-                    <span className="font-semibold">{totals.hours.toFixed(1)}h</span>
+                    <span className="font-semibold text-foreground">{totals.hours.toFixed(1)}h</span>
                 </div>
             </div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(Math.round(totals.earning * 100) / 100)}</div>
         </div>
     );
 }
-
 
 // Sub-component: Commission Header
 interface CommissionStats {
@@ -109,11 +83,7 @@ function CommissionHeader({ commission, formatCurrency }: { commission: Commissi
         <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-2">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <TeacherLessonComissionValue 
-                        commissionType={commission.type} 
-                        cph={commission.cph} 
-                        currency={currency} 
-                    />
+                    <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={currency} />
                     <span className="text-sm font-semibold text-muted-foreground capitalize">{commission.type === "fixed" ? "Fixed" : "Percentage"}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -246,8 +216,9 @@ interface TeacherRightColumnV2Props {
 }
 
 export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
-    const [viewMode, setViewMode] = useState<ViewMode>("lessons");
+    const [viewMode, setViewMode] = useState<ViewMode>("timeline");
     const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
 
@@ -279,6 +250,14 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
         for (const eventRow of eventRows) {
             const eventEarning = commissionType === "fixed" ? cph * (eventRow.duration / 60) : cph * (eventRow.duration / 60);
 
+            // Calculate revenues
+            const studentCount = booking?.bookingStudents?.length || 1;
+            const pricePerStudent = schoolPackage?.pricePerStudent || 0;
+            const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
+
+            const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
+            const schoolRevenue = eventRevenue - eventEarning;
+
             // Build timeline event
             timelineEvents.push({
                 eventId: eventRow.eventId,
@@ -296,11 +275,11 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
                 eventStatus: eventRow.status,
                 lessonStatus: lesson.status,
                 teacherEarning: eventEarning,
-                schoolRevenue: 0, // Not calculated for teacher view
-                totalRevenue: 0, // Not calculated for teacher view
+                schoolRevenue,
+                totalRevenue: eventRevenue,
                 commissionType,
                 commissionCph: cph,
-                bookingStudents: booking?.bookingStudents,
+                bookingStudents: booking?.bookingStudents?.map((bs: any) => bs.student) || [],
                 equipmentCategory: schoolPackage?.categoryEquipment,
                 capacityEquipment: schoolPackage?.capacityEquipment,
                 capacityStudents: schoolPackage?.capacityStudents,
@@ -319,6 +298,7 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
             cph,
             totalDuration,
             totalHours,
+            totalHours: totalDuration / 60,
             totalEarning,
             eventCount: events.length,
             events: eventRows,
@@ -329,8 +309,32 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
 
     timelineEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    // Calculate totals
-    const totals: Totals = lessonRows.reduce(
+    // Filter based on search query
+    const filteredLessonRows = lessonRows.filter((row) => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        // Check leader name
+        if (row.leaderName.toLowerCase().includes(query)) return true;
+
+        // Check student names (need to find original booking to get students, or use what we have)
+        // Since we don't have full student list in LessonRow easily accessible beyond leader,
+        // we might want to check the timeline events for this lesson or modify LessonRow to include student names string.
+        // For now, let's filter by leader name which is the primary student.
+        return false;
+    });
+
+    const filteredTimelineEvents = timelineEvents.filter((event) => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        // Check booking students
+        if (event.bookingStudents) {
+            return event.bookingStudents.some((s) => s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query));
+        }
+        return false;
+    });
+
+    // Re-calculate totals based on filtered data
+    const totals: Totals = filteredLessonRows.reduce(
         (acc, lesson) => ({
             duration: acc.duration + lesson.totalDuration,
             hours: acc.hours + lesson.totalHours,
@@ -346,13 +350,24 @@ export function TeacherRightColumnV2({ teacher }: TeacherRightColumnV2Props) {
 
     return (
         <div className="space-y-4">
-            <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
-            <SummaryHeader totals={totals} formatCurrency={formatCurrency} />
+            <div className="flex ">
+                <ToggleBar
+                    value={viewMode}
+                    onChange={(v) => setViewMode(v as ViewMode)}
+                    options={[
+                        { id: "lessons", label: "By Lesson", icon: List },
+                        { id: "commissions", label: "By Commission", icon: HandshakeIcon },
+                        { id: "timeline", label: "Timeline", icon: Calendar },
+                    ]}
+                />
+            </div>
+
+            {viewMode !== "timeline" && <SummaryHeader totals={totals} formatCurrency={formatCurrency} />}
 
             <AnimatePresence mode="wait">
-                {viewMode === "lessons" && <LessonsView lessonRows={lessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}
-                {viewMode === "commissions" && <CommissionsView lessonRows={lessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} formatCurrency={formatCurrency} />}
-                {viewMode === "timeline" && <Timeline events={timelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={false} showFinancials={true} />}
+                {viewMode === "lessons" && <LessonsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}
+                {viewMode === "commissions" && <CommissionsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} formatCurrency={formatCurrency} />}
+                {viewMode === "timeline" && <Timeline events={filteredTimelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={false} showFinancials={true} searchPlaceholder="Search student names or locations..." />}
             </AnimatePresence>
         </div>
     );

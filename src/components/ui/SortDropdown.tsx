@@ -10,9 +10,10 @@ interface SortDropdownProps {
     options: SortOption[];
     onChange: (config: SortConfig) => void;
     entityColor: string;
+    toggleMode?: boolean; // If true, clicking toggles between first two options instead of opening dropdown
 }
 
-export function SortDropdown({ value, options, onChange, entityColor }: SortDropdownProps) {
+export function SortDropdown({ value, options, onChange, entityColor, toggleMode = false }: SortDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownRect, setDropdownRect] = useState({ top: 0, right: 0 });
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,19 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
         setIsOpen(false);
     };
 
+    const handleButtonClick = () => {
+        if (toggleMode && options.length >= 2) {
+            // Find current index
+            const currentIndex = options.findIndex(o => o.field === value.field && o.direction === value.direction);
+            // Toggle to the other option (0 -> 1, or anything else -> 0)
+            const nextIndex = currentIndex === 0 ? 1 : 0;
+            const nextOption = options[nextIndex];
+            onChange({ field: nextOption.field, direction: nextOption.direction });
+        } else {
+            setIsOpen(!isOpen);
+        }
+    };
+
     // Determine display label based on selected config
     let displayLabel = "Sort";
     
@@ -62,6 +76,8 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
         displayLabel = "Capacity";
     } else if (value.field === "eventCount") {
         displayLabel = "Events";
+    } else if (value.field === "date") {
+        displayLabel = value.direction === "desc" ? "Newest" : "Oldest";
     } else {
         const activeOption = options.find(o => o.field === value.field && o.direction === value.direction);
         displayLabel = activeOption ? activeOption.label : "Sort";
@@ -71,7 +87,7 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
         <div ref={dropdownRef} className="relative">
             <button
                 ref={buttonRef}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleButtonClick}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
             >
                 <div className="flex items-center -space-x-0.5">
@@ -93,7 +109,7 @@ export function SortDropdown({ value, options, onChange, entityColor }: SortDrop
             </button>
 
             <AnimatePresence>
-                {isOpen && (
+                {isOpen && !toggleMode && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}

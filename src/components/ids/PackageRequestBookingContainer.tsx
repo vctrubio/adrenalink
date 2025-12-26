@@ -167,29 +167,6 @@ function BookingCard({ booking, schoolPackage, formatCurrency, currency, referra
 
     return (
         <>
-            {/* Booking Header */}
-            <div className="flex items-start gap-3 pb-3">
-                {/* Booking Icon */}
-                <div className="flex-shrink-0 mt-1" style={{ color: bookingEntity.color }}>
-                    <BookingIcon size={32} />
-                </div>
-
-                {/* Booking Info */}
-                <div className="flex-1 space-y-2">
-                    {/* Date Range */}
-                    <DateRangeBadge startDate={booking.dateStart} endDate={booking.dateEnd} />
-
-                    {/* Booking Progress */}
-                    <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={packageDurationMinutes} background={bookingProgress.background} />
-
-                    {/* Booking Status */}
-                    <div className="flex items-center gap-2">
-                        <BookingStatusLabel status={booking.status} size={14} />
-                        <span className="text-xs text-muted-foreground">{booking.createdAt ? `Created ${formatDate(booking.createdAt)}` : ""}</span>
-                    </div>
-                </div>
-            </div>
-
             {/* Lessons Table */}
             {teacherLessonRows.length > 0 && (
                 <div className="border-t border-border/50 mt-2 pt-2 bg-card/50 rounded-lg overflow-hidden">
@@ -317,15 +294,13 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                                     }, 0);
 
                                     return (
-                                        <div key={booking.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
-                                            <div className="flex-shrink-0 mt-0.5" style={{ color: bookingEntity.color }}>
-                                                <BookingIcon size={20} />
+                                        <div key={booking.id} className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30">
+                                            <div className="w-fit">
+                                                <BookingStatusLabel status={booking.status} startDate={booking.dateStart} endDate={booking.dateEnd} size={20} />
                                             </div>
                                             <div className="flex-1 space-y-1.5 min-w-0">
-                                                <DateRangeBadge startDate={booking.dateStart} endDate={booking.dateEnd} />
                                                 <BookingProgressBadge usedMinutes={usedMins} totalMinutes={packageDurationMinutes} background={progress.background} />
                                                 <div className="flex items-center gap-2">
-                                                    <BookingStatusLabel status={booking.status} size={12} />
                                                     <span className="text-xs text-muted-foreground">
                                                         {booking.createdAt ? `Created ${formatDate(booking.createdAt)}` : ""}
                                                     </span>

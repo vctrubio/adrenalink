@@ -1,0 +1,96 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { Trash2 } from "lucide-react";
+import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+
+const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
+
+interface EventStatusLabelProps {
+    status: EventStatus;
+    onStatusChange: (newStatus: EventStatus) => void;
+    onDelete: (cascade: boolean) => void;
+    isDeleting?: boolean;
+    canShiftQueue?: boolean;
+    icon?: React.ComponentType<{ size?: number }>;
+    capacity?: number;
+    className?: string;
+}
+
+export function EventStatusLabel({
+    status,
+    onStatusChange,
+    onDelete,
+    isDeleting = false,
+    canShiftQueue = false,
+    icon: Icon,
+    capacity = 0,
+    className = "",
+}: EventStatusLabelProps) {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
+
+    const statusConfig = EVENT_STATUS_CONFIG[status] || EVENT_STATUS_CONFIG.planned;
+
+    const dropdownItems: DropdownItemProps[] = [
+        ...EVENT_STATUSES.map((statusOption) => ({
+            id: statusOption,
+            label: statusOption,
+            icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[statusOption].color }} />,
+            color: EVENT_STATUS_CONFIG[statusOption].color,
+            onClick: () => {
+                onStatusChange(statusOption);
+                setIsDropdownOpen(false);
+            },
+        })),
+        ...(canShiftQueue ? [{ 
+            id: "delete-cascade", 
+            label: isDeleting ? "Deleting..." : "Delete & Shift Queue", 
+            icon: Trash2, 
+            color: "#ef4444", 
+            onClick: () => {
+                onDelete(true);
+                setIsDropdownOpen(false);
+            } 
+        }] : []),
+        { 
+            id: "delete", 
+            label: isDeleting ? "Deleting..." : "Delete", 
+            icon: Trash2, 
+            color: "#ef4444", 
+            onClick: () => {
+                onDelete(false);
+                setIsDropdownOpen(false);
+            } 
+        },
+    ];
+
+    return (
+        <div className={`relative ${className}`}>
+            <button
+                ref={dropdownTriggerRef}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"
+                style={{ color: statusConfig.color }}
+            >
+                {Icon ? <Icon size={24} /> : <div className="w-4 h-4 rounded-full" style={{ backgroundColor: statusConfig.color }} />}
+                
+                {/* Capacity Badge */}
+                {capacity > 1 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">
+                        x{capacity}
+                    </span>
+                )}
+            </button>
+            <Dropdown
+                isOpen={isDropdownOpen}
+                onClose={() => setIsDropdownOpen(false)}
+                items={dropdownItems}
+                align="right"
+                initialFocusedId={status}
+                triggerRef={dropdownTriggerRef}
+            />
+        </div>
+    );
+}

@@ -1,57 +1,34 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { StudentModel } from "@/backend/models";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { FullBookingCard } from "@/src/components/ids";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-
-interface Totals {
-    bookings: number;
-    events: number;
-    hours: number;
-}
-
-// Sub-component: Summary Header
-function SummaryHeader({ totals }: { totals: Totals }) {
-    return (
-        <div className="flex items-center gap-6 px-4 py-3 rounded-xl bg-muted/30 border border-border">
-            <div className="flex items-center gap-2 text-sm">
-                <span className="font-semibold">{totals.bookings}</span>
-                <span className="text-muted-foreground">bookings</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-                <FlagIcon size={16} className="text-muted-foreground" />
-                <span className="font-semibold">{totals.events}</span>
-                <span className="text-muted-foreground">events</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-                <DurationIcon size={16} className="text-muted-foreground" />
-                <span className="font-semibold">{totals.hours.toFixed(1)}h</span>
-                <span className="text-muted-foreground">total</span>
-            </div>
-        </div>
-    );
-}
-
-// Sub-component: Empty State
-function EmptyState() {
-    return (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-            No bookings found for this student
-        </div>
-    );
-}
+import { TimelineHeader, type EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
+import type { TimelineStats } from "@/types/timeline-stats";
+import type { SortConfig, SortOption } from "@/types/sort";
 
 // Main Component
 interface StudentRightColumnV2Props {
     student: StudentModel;
 }
 
+const SORT_OPTIONS: SortOption[] = [
+    { field: "createdAt", direction: "desc", label: "Newest" },
+    { field: "createdAt", direction: "asc", label: "Oldest" },
+    { field: "dateStart", direction: "desc", label: "Start Date" },
+];
+
+const FILTER_OPTIONS = ["All", "Active", "Completed", "Uncompleted"];
+
 export function StudentRightColumnV2({ student }: StudentRightColumnV2Props) {
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
+    
+    const [search, setSearch] = useState("");
+    const [sort, setSort] = useState<SortConfig>({ field: "dateStart", direction: "desc" });
+    const [filter, setFilter] = useState<EventStatusFilter>("all");
 
     const formatCurrency = (num: number): string => {
         const rounded = Math.round(num * 100) / 100;
@@ -60,46 +37,99 @@ export function StudentRightColumnV2({ student }: StudentRightColumnV2Props) {
 
     const bookingStudents = student.relations?.bookingStudents || [];
 
-    if (bookingStudents.length === 0) {
-        return <EmptyState />;
-    }
+    // Filter and Sort Bookings
+    const filteredBookingStudents = useMemo(() => {
+        let result = [...bookingStudents];
 
-    // Calculate totals across all bookings
-    const totals: Totals = bookingStudents.reduce(
-        (acc, bs) => {
+        // Filter by status
+        if (filter !== "all") {
+            result = result.filter((bs) => bs.booking?.status === filter);
+        }
+
+        // Search filter
+        if (search) {
+            const query = search.toLowerCase();
+            result = result.filter((bs) => {
+                const leaderMatch = bs.booking?.leaderStudentName.toLowerCase().includes(query);
+                const packageMatch = bs.booking?.studentPackage?.schoolPackage?.description.toLowerCase().includes(query);
+                return leaderMatch || packageMatch;
+            });
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            let valA: number, valB: number;
+
+            if (sort.field === "createdAt") {
+                valA = new Date(a.booking?.createdAt || 0).getTime();
+                valB = new Date(b.booking?.createdAt || 0).getTime();
+            } else {
+                // Default to dateStart
+                valA = new Date(a.booking?.dateStart || 0).getTime();
+                valB = new Date(b.booking?.dateStart || 0).getTime();
+            }
+
+            return sort.direction === "desc" ? valB - valA : valA - valB;
+        });
+
+        return result;
+    }, [bookingStudents, filter, sort, search]);
+
+    // Calculate Stats
+    const stats: TimelineStats = useMemo(() => {
+        let eventCount = 0;
+        let totalDuration = 0;
+
+        filteredBookingStudents.forEach((bs) => {
             const booking = bs.booking;
-            if (!booking) return acc;
+            if (!booking) return;
 
             const lessons = booking.lessons || [];
-            const events = lessons.reduce((sum: number, lesson: any) => {
+            eventCount += lessons.reduce((sum: number, lesson: any) => {
                 return sum + (lesson.events?.length || 0);
             }, 0);
-            const minutes = lessons.reduce((sum: number, lesson: any) => {
+            totalDuration += lessons.reduce((sum: number, lesson: any) => {
                 return sum + (lesson.events?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0);
             }, 0);
+        });
 
-            return {
-                bookings: acc.bookings + 1,
-                events: acc.events + events,
-                hours: acc.hours + minutes / 60,
-            };
-        },
-        { bookings: 0, events: 0, hours: 0 }
-    );
+        return {
+            eventCount,
+            totalDuration,
+            totalCommission: 0, // Not calculated for this view
+            totalRevenue: 0, // Not calculated for this view
+            bookingCount: filteredBookingStudents.length,
+        };
+    }, [filteredBookingStudents]);
 
-    // Sort bookings by date (most recent first)
-    const sortedBookingStudents = [...bookingStudents].sort((a, b) => {
-        const dateA = new Date(a.booking?.dateStart || 0).getTime();
-        const dateB = new Date(b.booking?.dateStart || 0).getTime();
-        return dateB - dateA;
-    });
+    if (bookingStudents.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+                No bookings found for this student
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
-            <SummaryHeader totals={totals} />
+            <TimelineHeader
+                search={search}
+                onSearchChange={setSearch}
+                sort={sort}
+                onSortChange={setSort}
+                filter={filter}
+                onFilterChange={(v) => setFilter(v as EventStatusFilter)}
+                stats={stats}
+                currency={currency}
+                formatCurrency={formatCurrency}
+                showFinancials={false} // Don't show financial stats in header for now, focus on activity
+                searchPlaceholder="Search bookings..."
+                sortOptions={SORT_OPTIONS}
+                filterOptions={FILTER_OPTIONS}
+            />
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                {sortedBookingStudents.map((bs) => {
+                {filteredBookingStudents.map((bs) => {
                     if (!bs.booking) return null;
 
                     return (
@@ -111,6 +141,11 @@ export function StudentRightColumnV2({ student }: StudentRightColumnV2Props) {
                         />
                     );
                 })}
+                {filteredBookingStudents.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                        No bookings match your filters
+                    </div>
+                )}
             </motion.div>
         </div>
     );

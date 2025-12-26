@@ -1,14 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
-import { EVENT_STATUS_CONFIG } from "@/types/status";
+import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
 import { TeacherUsernameCommissionBadge } from "@/src/components/ui/badge/teacher-username-commission";
-import { EquipmentStudentCommissionBadge } from "@/src/components/ui/badge/equipment-student-commission";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { StudentUsernameBadge } from "@/src/components/ui/badge/student-username";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { getTimeFromISO } from "@/getters/queue-getter";
+import { getHMDuration } from "@/getters/duration-getter";
+import { EventDurationTag } from "@/src/components/tags/EventDurationTag";
+import { updateEventStatus } from "@/actions/classboard-action";
+import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import type { TimelineEvent } from "./types";
 
 interface TimelineEventCardProps {
@@ -20,31 +25,53 @@ interface TimelineEventCardProps {
 }
 
 export function TimelineEventCard({ event, currency, formatCurrency, showTeacher = true, showFinancials = true }: TimelineEventCardProps) {
+    const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventStatus as EventStatus);
+    const [isUpdating, setIsUpdating] = useState(false);
+
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const TeacherIcon = teacherEntity.icon;
-    const statusConfig = EVENT_STATUS_CONFIG[event.eventStatus as keyof typeof EVENT_STATUS_CONFIG];
+    const statusConfig = EVENT_STATUS_CONFIG[currentStatus] || EVENT_STATUS_CONFIG.planned;
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === event.equipmentCategory);
+    const EquipmentIcon = equipmentConfig?.icon;
+
+    const handleStatusChange = async (newStatus: EventStatus) => {
+        if (newStatus === currentStatus || isUpdating) return;
+        setIsUpdating(true);
+        try {
+            await updateEventStatus(event.eventId, newStatus);
+            setCurrentStatus(newStatus);
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async (cascade: boolean) => {
+        console.log("Delete requested for event", event.eventId, "cascade:", cascade);
+    };
 
     return (
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="relative group">
-            <div className="absolute -left-[31px] top-3 w-4 h-4 rounded-full border-2 border-background" style={{ backgroundColor: statusConfig?.color }} />
+            <div className="absolute -left-[31px] top-3 w-4 h-4 rounded-full border-2 border-background" style={{ backgroundColor: statusConfig.color }} />
             <div className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                    <EventStartDurationTime date={event.date.toISOString()} duration={event.duration} />
                     <div className="flex items-center gap-2">
-                        {!showTeacher && event.bookingStudents && event.bookingStudents.length > 0 && (
-                            <span className="text-sm font-semibold text-foreground">{event.bookingStudents[0].firstName}</span>
-                        )}
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: `${statusConfig?.color}20`, color: statusConfig?.color }}>
-                            {event.eventStatus}
-                        </span>
+                        <span className="text-4xl font-black tracking-tighter leading-none text-foreground">{getTimeFromISO(event.date.toISOString())}</span>
+                        <EventDurationTag icon={<MapPin size={10} />} location={event.location} duration={getHMDuration(event.duration)} />
                     </div>
+
+                    {!showTeacher ? (
+                        <EventStatusLabel status={currentStatus} onStatusChange={handleStatusChange} onDelete={handleDelete} icon={EquipmentIcon} capacity={event.capacityEquipment || 0} />
+                    ) : (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider" style={{ backgroundColor: `${statusConfig.color}20`, color: statusConfig.color }}>
+                            {currentStatus}
+                        </span>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap text-sm mb-4">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <MapPin size={14} />
-                        <span>{event.location}</span>
-                    </div>
+                <div className="flex items-center gap-3 flex-wrap text-sm mb-4">
                     {showTeacher && (
                         <HoverToEntity entity={teacherEntity} id={event.teacherUsername}>
                             <TeacherUsernameCommissionBadge
@@ -57,28 +84,12 @@ export function TimelineEventCard({ event, currency, formatCurrency, showTeacher
                             />
                         </HoverToEntity>
                     )}
-                    {!showTeacher && event.equipmentCategory && event.capacityEquipment && event.capacityStudents && (
-                        <EquipmentStudentCommissionBadge
-                            categoryEquipment={event.equipmentCategory}
-                            equipmentCapacity={event.capacityEquipment}
-                            studentCapacity={event.capacityStudents}
-                            commissionType={event.commissionType as "fixed" | "percentage"}
-                            commissionValue={event.commissionCph}
-                        />
-                    )}
                 </div>
 
                 {!showTeacher && event.bookingStudents && event.bookingStudents.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap mb-3 text-sm">
                         {event.bookingStudents.map((student) => (
-                            <HoverToEntity key={student.id} entity={ENTITY_DATA.find((e) => e.id === "student")!} id={student.id}>
-                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors">
-                                    <div style={{ color: ENTITY_DATA.find((e) => e.id === "student")?.color }}>
-                                        <HelmetIcon size={14} />
-                                    </div>
-                                    <span className="text-xs font-medium">{student.firstName} {student.lastName}</span>
-                                </div>
-                            </HoverToEntity>
+                            <StudentUsernameBadge key={student.id} id={student.id} firstName={student.firstName} lastName={student.lastName} color={studentEntity.color} />
                         ))}
                     </div>
                 )}
