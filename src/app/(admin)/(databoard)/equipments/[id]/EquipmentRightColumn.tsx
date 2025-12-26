@@ -5,11 +5,11 @@ import { TeachersUsingEquipmentCard } from "@/src/components/cards/TeachersUsing
 import { EquipmentRepairsCard } from "@/src/components/cards/EquipmentRepairsCard";
 import { EquipmentStatsColumns } from "./EquipmentStatsColumns";
 
-interface EquipmentRightColumnV2Props {
+interface EquipmentRightColumnProps {
   equipment: EquipmentModel;
 }
 
-export function EquipmentRightColumnV2({ equipment }: EquipmentRightColumnV2Props) {
+export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
   return (
     <div className="space-y-4">
       <EquipmentStatsColumns equipment={equipment} />

@@ -1,239 +1,193 @@
 "use client";
 
-import { useState } from "react";
+import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
+import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
+import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
+import { updateEquipment } from "@/actions/equipments-action";
+import { formatDate } from "@/getters/date-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { updateEquipment } from "@/actions/equipments-action";
-import { DataHeader } from "@/src/components/databoard/DataHeader";
-import { formatDate } from "@/getters/date-getter";
 import type { EquipmentModel } from "@/backend/models";
+import type { LeftColumnCardData } from "@/types/left-column";
+import type { EquipmentStatus } from "@/types/status";
+import type { EquipmentIdStats } from "@/getters/databoard-sql-equipment";
 
-function EquipmentViewMode({ equipment, onEdit }: { equipment: EquipmentModel; onEdit: () => void }) {
-    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
-    const categoryColor = categoryConfig?.color || equipmentEntity.color;
-
-    const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
-
-    return (
-        <>
-            <DataHeader
-                icon={categoryConfig?.icon ? <categoryConfig.icon /> : <equipmentEntity.icon />}
-                color={categoryColor}
-                title={equipmentName}
-                subtitle={`Created ${formatDate(equipment.schema.createdAt)}`}
-            />
-
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onEdit}
-                    style={{ borderColor: categoryColor }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors"
-                >
-                    Edit
-                </button>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">SKU</p>
-                        <p className="font-medium text-foreground">{equipment.schema.sku}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Status</p>
-                        <p className="font-medium text-foreground">{equipment.schema.status || "Unknown"}</p>
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Size</p>
-                        <p className="font-medium text-foreground">{equipment.schema.size ? `${equipment.schema.size}m` : "N/A"}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Color</p>
-                        <p className="font-medium text-foreground">{equipment.schema.color || "N/A"}</p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">Category</p>
-                    <p className="font-medium text-foreground">{equipment.schema.category}</p>
-                </div>
-            </div>
-        </>
-    );
+interface EquipmentLeftColumnProps {
+  equipment: EquipmentModel;
+  equipmentStats: EquipmentIdStats;
 }
 
-function EquipmentEditMode({ equipment, onCancel, onSubmit }: { equipment: EquipmentModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
-    const categoryColor = categoryConfig?.color || equipmentEntity.color;
+const MOCK_RENTAL_PPH = 21; // Mock price per hour for rentals
 
-    const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
+export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeftColumnProps) {
+  const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+  const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+  const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+  const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental")!;
+  const repairsEntity = ENTITY_DATA.find((e) => e.id === "repairs")!;
 
-    const initialFormData = {
-        model: equipment.schema.model,
-        sku: equipment.schema.sku,
-        size: equipment.schema.size || "",
-        color: equipment.schema.color || "",
-        category: equipment.schema.category,
-        status: equipment.schema.status,
+  const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
+  const categoryColor = categoryConfig?.color || equipmentEntity.color;
+  const CategoryIcon = categoryConfig?.icon || equipmentEntity.icon;
+
+  const TeacherIcon = teacherEntity.icon;
+  const StudentIcon = studentEntity.icon;
+  const RentalIcon = rentalEntity.icon;
+  const RepairsIcon = repairsEntity.icon;
+
+  // Equipment Card
+  const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
+
+  const handleStatusChange = async (newStatus: EquipmentStatus) => {
+    const result = await updateEquipment(equipment.schema.id, {
+      status: newStatus,
+    });
+    if (!result.success) {
+      console.error("Error updating equipment status:", result.error);
+    }
+  };
+
+  const equipmentCardData: LeftColumnCardData = {
+    name: equipmentName,
+    status: (
+      <EquipmentStatusLabel
+        status={equipment.schema.status as EquipmentStatus}
+        onStatusChange={handleStatusChange}
+      />
+    ),
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: categoryColor }}>
+        <CategoryIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: [
+      {
+        label: "SKU",
+        value: equipment.schema.sku,
+      },
+      {
+        label: "Category",
+        value: equipment.schema.category,
+      },
+      {
+        label: "Size",
+        value: equipment.schema.size ? `${equipment.schema.size}m` : "N/A",
+      },
+      {
+        label: "Color",
+        value: equipment.schema.color || "N/A",
+      },
+      {
+        label: "Created",
+        value: formatDate(equipment.schema.createdAt),
+      },
+    ],
+    accentColor: categoryColor,
+    isEditable: true,
+  };
+
+  // Teachers Card
+  const teacherEquipments = equipment.relations?.teacherEquipments || [];
+  const teachers = teacherEquipments.map((te: any) => te.teacher).filter(Boolean);
+
+  const teacherFields = teachers.map((teacher: any) => ({
+    label: teacher.username,
+    value: `${teacher.firstName} ${teacher.lastName}`,
+  }));
+
+  const teachersCardData: LeftColumnCardData = {
+    name: "Teachers",
+    status: `${teachers.length} Assigned`,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
+        <TeacherIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: teacherFields.length > 0 ? teacherFields : [{ label: "Teachers", value: "No teachers assigned" }],
+    accentColor: teacherEntity.color,
+    isAddable: true,
+  };
+
+  // Students Card (Events with this equipment)
+  const studentsCardData: LeftColumnCardData = {
+    name: "Students",
+    status: (
+      <LessonEventRevenueBadge
+        lessonCount={equipmentStats.lessons_count}
+        duration={getFullDuration(equipmentStats.total_duration_minutes)}
+        revenue={Math.round(equipmentStats.total_revenue)}
+      />
+    ),
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: studentEntity.color }}>
+        <StudentIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: [{ label: "Events", value: equipmentStats.events_count.toString() }],
+    accentColor: studentEntity.color,
+    isAddable: false,
+  };
+
+  // Rentals Card
+  const rentals = equipment.relations?.rentals || [];
+
+  // Calculate rental stats
+  const rentalCount = rentals.length;
+  const totalRentalDuration = rentals.reduce((sum: number, rental: any) => sum + (rental.duration || 0), 0);
+  const rentalRevenue = Math.round((totalRentalDuration / 60) * MOCK_RENTAL_PPH);
+
+  const rentalFields = rentals.map((rental: any) => {
+    const studentName = rental.student ? `${rental.student.firstName} ${rental.student.lastName}` : "Unknown";
+    return {
+      label: formatDate(rental.date),
+      value: studentName,
     };
+  });
 
-    const [formData, setFormData] = useState(initialFormData);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const rentalsCardData: LeftColumnCardData = {
+    name: "Rentals",
+    status: (
+      <LessonEventRevenueBadge
+        lessonCount={rentalCount}
+        duration={getFullDuration(totalRentalDuration)}
+        revenue={rentalRevenue}
+      />
+    ),
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: rentalEntity.color }}>
+        <RentalIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: rentalFields.length > 0 ? rentalFields : [{ label: "Rentals", value: "No rentals" }],
+    accentColor: rentalEntity.color,
+    isAddable: true,
+  };
 
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  // Repairs Card
+  const repairs = equipment.relations?.equipmentRepairs || [];
 
-    const handleReset = () => {
-        setFormData(initialFormData);
-    };
+  const repairFields = repairs.map((repair: any) => ({
+    label: formatDate(repair.date),
+    value: repair.description || "No description",
+  }));
 
-    const handleSubmit = async () => {
-        setIsSubmitting(true);
-        try {
-            await onSubmit(formData);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  const repairsCardData: LeftColumnCardData = {
+    name: "Repairs",
+    status: `${repairs.length} Total`,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: repairsEntity.color }}>
+        <RepairsIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: repairFields.length > 0 ? repairFields : [{ label: "Repairs", value: "No repairs" }],
+    accentColor: repairsEntity.color,
+    isAddable: true,
+  };
 
-    return (
-        <>
-            <DataHeader
-                icon={categoryConfig?.icon ? <categoryConfig.icon /> : <equipmentEntity.icon />}
-                color={categoryColor}
-                title={equipmentName}
-                subtitle={`Created ${formatDate(equipment.schema.createdAt)}`}
-            />
-
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onCancel}
-                    disabled={isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleReset}
-                    disabled={!hasChanges || isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Reset
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!hasChanges || isSubmitting}
-                    style={{ borderColor: categoryColor }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50"
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${categoryColor}15`;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                </button>
-            </div>
-
-            {/* Form */}
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Model</label>
-                        <input
-                            type="text"
-                            value={formData.model}
-                            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Model"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">SKU</label>
-                        <input
-                            type="text"
-                            value={formData.sku}
-                            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="SKU"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Size (m)</label>
-                        <input
-                            type="number"
-                            step="0.1"
-                            value={formData.size}
-                            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Size"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Color</label>
-                        <input
-                            type="text"
-                            value={formData.color}
-                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Color"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Category</label>
-                        <input
-                            type="text"
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Category"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Status</label>
-                        <input
-                            type="text"
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Status"
-                        />
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
-
-export function EquipmentLeftColumn({ equipment, className }: { equipment: EquipmentModel, className?: string }) {
-    const [isEditing, setIsEditing] = useState(false);
-
-    const handleSubmit = async (formData: any) => {
-        const result = await updateEquipment(equipment.schema.id, formData);
-        if (result.success) {
-            setIsEditing(false);
-        } else {
-            console.error("Error updating equipment:", result.error);
-        }
-    };
-
-    const content = isEditing ? (
-        <EquipmentEditMode equipment={equipment} onCancel={() => setIsEditing(false)} onSubmit={handleSubmit} />
-    ) : (
-        <EquipmentViewMode equipment={equipment} onEdit={() => setIsEditing(true)} />
-    );
-
-    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
+  return (
+    <EntityLeftColumn
+      cards={[equipmentCardData, teachersCardData, studentsCardData, rentalsCardData, repairsCardData]}
+    />
+  );
 }

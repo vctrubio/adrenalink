@@ -1,278 +1,136 @@
 "use client";
 
-import { useState } from "react";
-import { ENTITY_DATA } from "@/config/entities";
-import { UrlParamAddTag } from "@/src/components/tags";
-import { updateSchoolPackageDetail } from "@/actions/packages-action";
-import type { SchoolPackageModel } from "@/backend/models";
+import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
+import { getPrettyDuration } from "@/getters/duration-getter";
+import { ENTITY_DATA } from "@/config/entities";
+import type { SchoolPackageModel } from "@/backend/models";
+import type { LeftColumnCardData } from "@/types/left-column";
 
-function PackageViewMode({ schoolPackage, onEdit }: { schoolPackage: SchoolPackageModel; onEdit: () => void }) {
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
-
-    // Calculate hours from durationMinutes
-    const hours = schoolPackage.schema.durationMinutes / 60;
-    const pricePerHour = schoolPackage.schema.pricePerStudent / hours;
-    const packageName = `${hours}h - $${pricePerHour.toFixed(0)}/h`;
-
-    return (
-        <>
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <UrlParamAddTag type="package" id={schoolPackage.schema.id} color={packageEntity.color} />
-                <button
-                    onClick={onEdit}
-                    style={{ borderColor: packageEntity.color }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap hover:bg-muted/50 transition-colors"
-                >
-                    Edit
-                </button>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-4 text-sm">
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">Package Style</p>
-                    <p className="font-medium text-foreground">{packageName}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Duration (minutes)</p>
-                        <p className="font-medium text-foreground">{schoolPackage.schema.durationMinutes}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Price Per Student</p>
-                        <p className="font-medium text-foreground">${schoolPackage.schema.pricePerStudent}</p>
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Capacity Students</p>
-                        <p className="font-medium text-foreground">{schoolPackage.schema.capacityStudents}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Capacity Equipment</p>
-                        <p className="font-medium text-foreground">{schoolPackage.schema.capacityEquipment}</p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">Category Equipment</p>
-                    <p className="font-medium text-foreground">{schoolPackage.schema.categoryEquipment}</p>
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">Package Type</p>
-                    <p className="font-medium text-foreground">{schoolPackage.schema.packageType}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Public</p>
-                        <p className="font-medium text-foreground">{schoolPackage.schema.isPublic ? "Yes" : "No"}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground mb-1">Active</p>
-                        <p className="font-medium text-foreground">{schoolPackage.schema.active ? "Yes" : "No"}</p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
-                    <p className="font-medium text-foreground">{formatDate(schoolPackage.schema.updatedAt)}</p>
-                </div>
-            </div>
-        </>
-    );
+interface PackageLeftColumnProps {
+  schoolPackage: SchoolPackageModel;
 }
 
-function PackageEditMode({ schoolPackage, onCancel, onSubmit }: { schoolPackage: SchoolPackageModel; onCancel: () => void; onSubmit: (data: any) => Promise<void> }) {
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+export function PackageLeftColumn({ schoolPackage }: PackageLeftColumnProps) {
+  const credentials = useSchoolCredentials();
+  const currency = credentials?.currency || "YEN";
 
-    const initialFormData = {
-        description: schoolPackage.updateForm.description,
-        durationMinutes: schoolPackage.updateForm.durationMinutes,
-        pricePerStudent: schoolPackage.updateForm.pricePerStudent,
-        capacityStudents: schoolPackage.updateForm.capacityStudents,
-        capacityEquipment: schoolPackage.updateForm.capacityEquipment,
-        categoryEquipment: schoolPackage.updateForm.categoryEquipment,
-        packageType: schoolPackage.updateForm.packageType,
-        isPublic: Boolean(schoolPackage.updateForm.isPublic),
-        active: Boolean(schoolPackage.updateForm.active),
+  const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
+  const studentPackageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
+
+  const PackageIcon = packageEntity.icon;
+  const StudentPackageIcon = studentPackageEntity.icon;
+
+  // Package calculations
+  const durationHours = schoolPackage.schema.durationMinutes ? schoolPackage.schema.durationMinutes / 60 : 0;
+  const pricePerHour = durationHours > 0 ? (schoolPackage.schema.pricePerStudent || 0) / durationHours : 0;
+
+  // Status badges
+  const statusElements = [];
+  if (schoolPackage.schema.isPublic) {
+    statusElements.push("Public");
+  }
+  if (schoolPackage.schema.active) {
+    statusElements.push("Active");
+  }
+  const packageStatus = statusElements.length > 0 ? statusElements.join(" | ") : "Inactive";
+
+  // Package Card
+  const packageCardData: LeftColumnCardData = {
+    name: schoolPackage.schema.description || "Package",
+    status: packageStatus,
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: packageEntity.color }}>
+        <PackageIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: [
+      {
+        label: "Equipment Category",
+        value: schoolPackage.schema.categoryEquipment,
+      },
+      {
+        label: "Equipment Capacity",
+        value: schoolPackage.schema.capacityEquipment?.toString() || "0",
+      },
+      {
+        label: "Student Capacity",
+        value: schoolPackage.schema.capacityStudents?.toString() || "0",
+      },
+      {
+        label: "Duration",
+        value: getPrettyDuration(schoolPackage.schema.durationMinutes),
+      },
+      {
+        label: "Price Per Student",
+        value: `${schoolPackage.schema.pricePerStudent} ${currency}`,
+      },
+      {
+        label: "Price Per Hour",
+        value: `${Math.round(pricePerHour)} ${currency}`,
+      },
+      {
+        label: "Package Type",
+        value: schoolPackage.schema.packageType,
+      },
+      {
+        label: "Created",
+        value: formatDate(schoolPackage.schema.createdAt),
+      },
+    ],
+    accentColor: packageEntity.color,
+    isEditable: true,
+  };
+
+  // Student Packages Card
+  const studentPackages = schoolPackage.relations?.studentPackages || [];
+
+  // Calculate stats for progress bar
+  const requested = studentPackages.filter((sp: any) => sp.status === "requested").length;
+  const accepted = studentPackages.filter((sp: any) => sp.status === "accepted").length;
+  const rejected = studentPackages.filter((sp: any) => sp.status === "rejected").length;
+  const totalRequests = studentPackages.length;
+
+  // Calculate progress percentage (accepted / total)
+  const progressPercentage = totalRequests > 0 ? (accepted / totalRequests) * 100 : 0;
+  const requestProgressBar = {
+    background: `linear-gradient(to right, ${studentPackageEntity.color} ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`,
+  };
+
+  // Individual request fields with date and status
+  const studentPackageFields = studentPackages.map((sp: any) => {
+    const status = sp.status.charAt(0).toUpperCase() + sp.status.slice(1);
+    const referralId = sp.referral?.id || "N/A";
+    return {
+      label: `${formatDate(sp.createdAt)} | ${referralId}`,
+      value: status,
     };
+  });
 
-    const [formData, setFormData] = useState(initialFormData);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const studentPackageCardData: LeftColumnCardData = {
+    name: "Requests",
+    status: (
+      <div className="flex items-center gap-3">
+        <div className="h-2 flex-1 rounded-full overflow-hidden" style={{ background: requestProgressBar.background }} />
+        <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold text-foreground bg-muted">
+          {accepted}/{totalRequests}
+        </span>
+      </div>
+    ),
+    avatar: (
+      <div className="flex-shrink-0" style={{ color: studentPackageEntity.color }}>
+        <StudentPackageIcon className="w-10 h-10" />
+      </div>
+    ),
+    fields: studentPackageFields.length > 0 ? studentPackageFields : [{ label: "Requests", value: "No requests created" }],
+    accentColor: studentPackageEntity.color,
+    isAddable: true,
+  };
 
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-
-    const handleReset = () => {
-        setFormData(initialFormData);
-    };
-
-    const handleSubmit = async () => {
-        setIsSubmitting(true);
-        try {
-            await onSubmit(formData);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <>
-            {/* Buttons */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onCancel}
-                    disabled={isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleReset}
-                    disabled={!hasChanges || isSubmitting}
-                    className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50 text-sm font-medium whitespace-nowrap"
-                >
-                    Reset
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!hasChanges || isSubmitting}
-                    style={{ borderColor: packageEntity.color }}
-                    className="px-4 py-2 rounded-lg border text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50"
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${packageEntity.color}15`;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                </button>
-            </div>
-
-            {/* Form */}
-            <div className="space-y-4">
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground">Description</label>
-                    <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-                        placeholder="Package description"
-                        rows={3}
-                    />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Duration (minutes)</label>
-                        <input
-                            type="number"
-                            value={formData.durationMinutes}
-                            onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) || 0 })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="120"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Price Per Student</label>
-                        <input
-                            type="number"
-                            value={formData.pricePerStudent}
-                            onChange={(e) => setFormData({ ...formData, pricePerStudent: parseInt(e.target.value) || 0 })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="60"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Capacity Students</label>
-                        <input
-                            type="number"
-                            value={formData.capacityStudents}
-                            onChange={(e) => setFormData({ ...formData, capacityStudents: parseInt(e.target.value) || 0 })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="10"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-muted-foreground">Capacity Equipment</label>
-                        <input
-                            type="number"
-                            value={formData.capacityEquipment}
-                            onChange={(e) => setFormData({ ...formData, capacityEquipment: parseInt(e.target.value) || 0 })}
-                            className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="5"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground">Category Equipment</label>
-                    <input
-                        type="text"
-                        value={formData.categoryEquipment}
-                        onChange={(e) => setFormData({ ...formData, categoryEquipment: e.target.value })}
-                        className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Equipment category"
-                    />
-                </div>
-
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground">Package Type</label>
-                    <input
-                        type="text"
-                        value={formData.packageType}
-                        onChange={(e) => setFormData({ ...formData, packageType: e.target.value })}
-                        className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Package type"
-                    />
-                </div>
-
-                <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                        <input
-                            type="checkbox"
-                            checked={formData.isPublic}
-                            onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
-                            className="size-4 rounded border border-input bg-background cursor-pointer accent-primary"
-                        />
-                        <label className="text-sm font-medium text-foreground cursor-pointer">Public</label>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <input
-                            type="checkbox"
-                            checked={formData.active}
-                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                            className="size-4 rounded border border-input bg-background cursor-pointer accent-primary"
-                        />
-                        <label className="text-sm font-medium text-foreground cursor-pointer">Active</label>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
-
-export function PackageLeftColumn({ schoolPackage, className }: { schoolPackage: SchoolPackageModel, className?: string }) {
-    const [isEditing, setIsEditing] = useState(false);
-
-    const handleSubmit = async (formData: any) => {
-        const result = await updateSchoolPackageDetail({ ...schoolPackage.updateForm, ...formData });
-        if (result.success) {
-            setIsEditing(false);
-        } else {
-            console.error("Error updating package:", result.error);
-        }
-    };
-
-    const content = isEditing ? (
-        <PackageEditMode schoolPackage={schoolPackage} onCancel={() => setIsEditing(false)} onSubmit={handleSubmit} />
-    ) : (
-        <PackageViewMode schoolPackage={schoolPackage} onEdit={() => setIsEditing(true)} />
-    );
-
-    return <div className={`space-y-4 ${className || ""}`.trim()}>{content}</div>;
+  return (
+    <EntityLeftColumn
+      cards={[packageCardData, studentPackageCardData]}
+    />
+  );
 }
