@@ -25,11 +25,11 @@ export function BookingStatusLabel({ status, size = 16, startDate, endDate }: Bo
     };
 
     return (
-        <button onClick={handleClick} className="flex items-center gap-2 p-1 rounded transition-colors cursor-pointer hover:bg-opacity-20">
+        <div onClick={handleClick} className="flex items-center gap-2 p-1 rounded transition-colors cursor-pointer hover:bg-opacity-20">
             <div style={{ color: bookingIconColor }}>
                 <BookingIcon size={size} />
             </div>
             {startDate && endDate && <DateRangeBadge startDate={startDate} endDate={endDate} />}
-        </button>
+        </div>
     );
 }

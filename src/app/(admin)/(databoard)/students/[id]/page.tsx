@@ -3,7 +3,7 @@ import type { StudentModel } from "@/backend/models";
 import { EntityHeaderRow } from "@/src/components/databoard/EntityHeaderRow";
 import { StudentIdStats } from "@/src/components/databoard/stats/StudentIdStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { StudentLeftColumn } from "./StudentLeftColumn";
+import { StudentLeftColumnV2 } from "./StudentLeftColumnV2";
 import { StudentRightColumnV2 } from "./StudentRightColumnV2";
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +39,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     stats={studentStats}
                 />
             }
-            leftColumn={<StudentLeftColumn student={student} />}
+            leftColumn={<StudentLeftColumnV2 student={student} />}
             rightColumn={<StudentRightColumnV2 student={student} />}
         />
     );
