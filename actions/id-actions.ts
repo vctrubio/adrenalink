@@ -101,6 +101,7 @@ const entityRelations = {
             with: {
                 events: true,
                 commission: true,
+                teacherLessonPayments: true,
                 booking: {
                     with: {
                         lessons: {
