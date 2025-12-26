@@ -170,6 +170,38 @@ const entityRelations = {
                 },
             },
         },
+        rentals: {
+            with: {
+                student: true,
+            },
+        },
+        equipmentEvents: {
+            with: {
+                event: {
+                    with: {
+                        lesson: {
+                            with: {
+                                booking: {
+                                    with: {
+                                        studentPackage: {
+                                            with: {
+                                                schoolPackage: true,
+                                            },
+                                        },
+                                        bookingStudents: {
+                                            with: {
+                                                student: true,
+                                            },
+                                        },
+                                    },
+                                },
+                                commission: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
         equipmentRepairs: true,
     },
     studentPackage: {
