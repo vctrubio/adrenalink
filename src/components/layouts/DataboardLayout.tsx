@@ -4,6 +4,7 @@ import { ReactNode, createContext, useContext } from "react";
 import type { DataboardController as DataboardControllerType } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
 import { DataboardHeader } from "@/src/components/databoard/DataboardHeader";
+import { DataboardNavigationRoutes } from "@/src/components/databoard/DataboardNavigationRoutes";
 
 const DataboardContext = createContext<DataboardControllerType | null>(null);
 
@@ -25,7 +26,8 @@ interface DataboardLayoutProps {
 export function DataboardLayout({ children, controller, entityId, stats }: DataboardLayoutProps) {
     return (
         <DataboardContext.Provider value={controller}>
-            <div className="max-w-7xl mx-auto space-y-2">
+            <div className="max-w-7xl mx-auto space-y-4">
+                <DataboardNavigationRoutes />
                 <DataboardHeader controller={controller} entityId={entityId} stats={stats} />
                 {children}
             </div>
