@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
 import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
+import { EquipmentTeacherManModal } from "@/src/components/modals/admin";
 import { updateEquipment } from "@/actions/equipments-action";
 import { formatDate } from "@/getters/date-getter";
 import { getFullDuration } from "@/getters/duration-getter";
@@ -21,6 +23,8 @@ interface EquipmentLeftColumnProps {
 const MOCK_RENTAL_PPH = 21; // Mock price per hour for rentals
 
 export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeftColumnProps) {
+  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+
   const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
   const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -107,6 +111,7 @@ export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeft
     fields: teacherFields.length > 0 ? teacherFields : [{ label: "Teachers", value: "No teachers assigned" }],
     accentColor: teacherEntity.color,
     isAddable: true,
+    onAdd: () => setIsTeacherModalOpen(true),
   };
 
   // Students Card (Events with this equipment)
@@ -186,8 +191,15 @@ export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeft
   };
 
   return (
-    <EntityLeftColumn
-      cards={[equipmentCardData, teachersCardData, studentsCardData, rentalsCardData, repairsCardData]}
-    />
+    <>
+      <EntityLeftColumn
+        cards={[equipmentCardData, teachersCardData, studentsCardData, rentalsCardData, repairsCardData]}
+      />
+      <EquipmentTeacherManModal
+        isOpen={isTeacherModalOpen}
+        onClose={() => setIsTeacherModalOpen(false)}
+        equipment={equipment}
+      />
+    </>
   );
 }

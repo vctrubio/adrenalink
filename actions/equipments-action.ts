@@ -1,9 +1,9 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import { equipment, type EquipmentForm, type EquipmentType } from "@/drizzle/schema";
+import { equipment, teacherEquipment, type EquipmentForm, type EquipmentType } from "@/drizzle/schema";
 import { createEquipmentModel, type EquipmentModel } from "@/backend/models";
 import type { ApiActionResponseModel } from "@/types/actions";
 import type { EquipmentStatus } from "@/types/status";
@@ -126,5 +126,37 @@ export async function updateEquipmentStatus(equipmentId: string, status: Equipme
     } catch (error) {
         console.error("Error updating equipment status:", error);
         return { success: false, error: "Failed to update equipment status" };
+    }
+}
+
+// LINK TEACHER TO EQUIPMENT
+export async function linkTeacherToEquipment(equipmentId: string, teacherId: string): Promise<ApiActionResponseModel<null>> {
+    try {
+        await db.insert(teacherEquipment).values({
+            equipmentId,
+            teacherId,
+        });
+        revalidatePath("/equipments");
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Error linking teacher to equipment:", error);
+        return { success: false, error: "Failed to link teacher to equipment" };
+    }
+}
+
+// REMOVE TEACHER FROM EQUIPMENT
+export async function removeTeacherFromEquipment(equipmentId: string, teacherId: string): Promise<ApiActionResponseModel<null>> {
+    try {
+        await db.delete(teacherEquipment).where(
+            and(
+                eq(teacherEquipment.equipmentId, equipmentId),
+                eq(teacherEquipment.teacherId, teacherId)
+            )
+        );
+        revalidatePath("/equipments");
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Error removing teacher from equipment:", error);
+        return { success: false, error: "Failed to remove teacher from equipment" };
     }
 }

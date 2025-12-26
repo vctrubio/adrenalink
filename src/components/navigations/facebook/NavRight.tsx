@@ -13,7 +13,20 @@ import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
 import Equipment4SchoolForm from "@/src/components/forms/school/Equipment4SchoolForm";
-import { studentFormSchema, defaultStudentForm, teacherFormSchema, defaultTeacherForm, packageFormSchema, defaultPackageForm, equipmentFormSchema, defaultEquipmentForm, type StudentFormData, type TeacherFormData, type PackageFormData, type EquipmentFormData } from "@/types/form-entities";
+import {
+    studentFormSchema,
+    defaultStudentForm,
+    teacherFormSchema,
+    defaultTeacherForm,
+    packageFormSchema,
+    defaultPackageForm,
+    equipmentFormSchema,
+    defaultEquipmentForm,
+    type StudentFormData,
+    type TeacherFormData,
+    type PackageFormData,
+    type EquipmentFormData,
+} from "@/types/form-entities";
 import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, createSchoolEquipment } from "@/actions/register-action";
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
@@ -57,14 +70,18 @@ export const NavRight = () => {
     // Submit handlers
     const handleStudentSubmit = useCallback(async () => {
         try {
-            await createAndLinkStudent({
-                firstName: studentFormData.firstName,
-                lastName: studentFormData.lastName,
-                passport: studentFormData.passport,
-                country: studentFormData.country,
-                phone: studentFormData.phone,
-                languages: studentFormData.languages,
-            }, studentFormData.canRent, studentFormData.description || undefined);
+            await createAndLinkStudent(
+                {
+                    firstName: studentFormData.firstName,
+                    lastName: studentFormData.lastName,
+                    passport: studentFormData.passport,
+                    country: studentFormData.country,
+                    phone: studentFormData.phone,
+                    languages: studentFormData.languages,
+                },
+                studentFormData.canRent,
+                studentFormData.description || undefined,
+            );
             setStudentFormData(defaultStudentForm);
             setSelectedCreateEntity(null);
         } catch (error) {
@@ -84,11 +101,11 @@ export const NavRight = () => {
                     phone: teacherFormData.phone,
                     languages: teacherFormData.languages,
                 },
-                teacherFormData.commissions.map(c => ({
+                teacherFormData.commissions.map((c) => ({
                     commissionType: c.commissionType,
                     commissionValue: c.commissionValue,
                     commissionDescription: c.commissionDescription,
-                }))
+                })),
             );
             setTeacherFormData(defaultTeacherForm);
             setSelectedCreateEntity(null);
@@ -147,23 +164,23 @@ export const NavRight = () => {
 
     const adminDropdownItems: DropdownItemProps[] = credentials
         ? [
-            {
-                id: "username",
-                label: `Username: ${credentials.username}`,
-            },
-            {
-                id: "currency",
-                label: `Currency: ${credentials.currency}`,
-            },
-            {
-                id: "status",
-                label: `Status: ${credentials.status}`,
-            },
-            {
-                id: "ownerId",
-                label: `Owner ID: ${credentials.ownerId}`,
-            },
-        ]
+              {
+                  id: "username",
+                  label: `Username: ${credentials.username}`,
+              },
+              {
+                  id: "currency",
+                  label: `Currency: ${credentials.currency}`,
+              },
+              {
+                  id: "status",
+                  label: `Status: ${credentials.status}`,
+              },
+              {
+                  id: "ownerId",
+                  label: `Owner ID: ${credentials.ownerId}`,
+              },
+          ]
         : [];
 
     const renderCredentialItem = (item: DropdownItemProps) => {
@@ -181,86 +198,33 @@ export const NavRight = () => {
             <div className="flex items-center gap-2">
                 <div className="relative">
                     <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
-                    <Dropdown 
-                        isOpen={isCreateDropdownOpen} 
-                        onClose={() => setIsCreateDropdownOpen(false)} 
-                        items={createDropdownItems} 
-                        align="right"
-                        triggerRef={createButtonRef}
-                    />
+                    <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" triggerRef={createButtonRef} />
                 </div>
-                <ActionButton icon={Search} onClick={onOpen} />
                 <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
+                    <ActionButton icon={Search} onClick={onOpen} />
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
                     </ActionButton>
-                    <Dropdown 
-                        isOpen={isAdminDropdownOpen} 
-                        onClose={() => setIsAdminDropdownOpen(false)} 
-                        items={adminDropdownItems} 
-                        renderItem={renderCredentialItem} 
-                        align="right" 
-                        triggerRef={adminButtonRef}
-                    />
+                    <Dropdown isOpen={isAdminDropdownOpen} onClose={() => setIsAdminDropdownOpen(false)} items={adminDropdownItems} renderItem={renderCredentialItem} align="right" triggerRef={adminButtonRef} />
                 </div>
             </div>
             <FacebookSearch />
 
-            <EntityAddDialog
-                isOpen={selectedCreateEntity === "student"}
-                onClose={() => setSelectedCreateEntity(null)}
-            >
-                <Student4SchoolForm
-                    formData={studentFormData}
-                    onFormDataChange={setStudentFormData}
-                    isFormReady={isStudentFormValid}
-                    onSubmit={handleStudentSubmit}
-                    isLoading={isLoadingSubmit}
-                    onClose={() => setSelectedCreateEntity(null)}
-                />
+            <EntityAddDialog isOpen={selectedCreateEntity === "student"} onClose={() => setSelectedCreateEntity(null)}>
+                <Student4SchoolForm formData={studentFormData} onFormDataChange={setStudentFormData} isFormReady={isStudentFormValid} onSubmit={handleStudentSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
             </EntityAddDialog>
 
-            <EntityAddDialog
-                isOpen={selectedCreateEntity === "teacher"}
-                onClose={() => setSelectedCreateEntity(null)}
-            >
-                <TeacherForm
-                    formData={teacherFormData}
-                    onFormDataChange={setTeacherFormData}
-                    isFormReady={isTeacherFormValid}
-                    onSubmit={handleTeacherSubmit}
-                    isLoading={isLoadingSubmit}
-                    onClose={() => setSelectedCreateEntity(null)}
-                />
+            <EntityAddDialog isOpen={selectedCreateEntity === "teacher"} onClose={() => setSelectedCreateEntity(null)}>
+                <TeacherForm formData={teacherFormData} onFormDataChange={setTeacherFormData} isFormReady={isTeacherFormValid} onSubmit={handleTeacherSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
             </EntityAddDialog>
 
-            <EntityAddDialog
-                isOpen={selectedCreateEntity === "schoolPackage"}
-                onClose={() => setSelectedCreateEntity(null)}
-            >
-                <Package4SchoolForm
-                    formData={packageFormData}
-                    onFormDataChange={setPackageFormData}
-                    isFormReady={isPackageFormValid}
-                    onSubmit={handlePackageSubmit}
-                    isLoading={isLoadingSubmit}
-                    onClose={() => setSelectedCreateEntity(null)}
-                />
+            <EntityAddDialog isOpen={selectedCreateEntity === "schoolPackage"} onClose={() => setSelectedCreateEntity(null)}>
+                <Package4SchoolForm formData={packageFormData} onFormDataChange={setPackageFormData} isFormReady={isPackageFormValid} onSubmit={handlePackageSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
             </EntityAddDialog>
 
-            <EntityAddDialog
-                isOpen={selectedCreateEntity === "equipment"}
-                onClose={() => setSelectedCreateEntity(null)}
-            >
-                <Equipment4SchoolForm
-                    formData={equipmentFormData}
-                    onFormDataChange={setEquipmentFormData}
-                    isFormReady={isEquipmentFormValid}
-                    onSubmit={handleEquipmentSubmit}
-                    isLoading={isLoadingSubmit}
-                    onClose={() => setSelectedCreateEntity(null)}
-                />
+            <EntityAddDialog isOpen={selectedCreateEntity === "equipment"} onClose={() => setSelectedCreateEntity(null)}>
+                <Equipment4SchoolForm formData={equipmentFormData} onFormDataChange={setEquipmentFormData} isFormReady={isEquipmentFormValid} onSubmit={handleEquipmentSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
             </EntityAddDialog>
         </>
     );
