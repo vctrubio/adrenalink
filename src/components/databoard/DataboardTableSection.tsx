@@ -9,7 +9,7 @@ import { useDataboardController } from "@/src/components/layouts/DataboardLayout
 import { WizardTable, type WizardColumn } from "@/src/components/ui/wizzard/WizardTable";
 import { StatItem, RowStats } from "@/src/components/ui/row";
 import { DataboardStats } from "./DataboardStats";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
 import { useRouter } from "next/navigation";
@@ -64,7 +64,6 @@ export const DataboardTableSection = <T,>({
     const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
     const prevStatsRef = useRef<StatItem[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
     const { groupedData } = useDataboard(
         data,
@@ -252,35 +251,17 @@ export const DataboardTableSection = <T,>({
             getRowAccentColor={(item) => renderers.renderColor?.(item) || accentColor}
             selectedId={selectedId || undefined}
             accentColor={accentColor}
-            groupHeader={(label, count) => {
-                const isExpanded = expandedGroups.has(label);
-                
+            groupHeader={(label, count, isExpanded) => {
                 return (
                     <div 
                         className="flex items-center justify-between w-full cursor-pointer rounded-lg transition-all hover:bg-accent/10 dark:hover:bg-white/5" 
-                        onClick={() => {
-                            const newSet = new Set(expandedGroups);
-                            if (newSet.has(label)) {
-                                newSet.delete(label);
-                            } else {
-                                newSet.add(label);
-                            }
-                            setExpandedGroups(newSet);
-                        }}
                     >
                         <div className="flex items-center gap-3">
-                            <motion.div
-                                animate={{ 
-                                    rotate: isExpanded ? 180 : 0,
-                                    scale: isExpanded ? 1.1 : 1
-                                }}
-                                whileHover={{ scale: 1.2 }}
-                                transition={{ duration: 0.4, ease: "easeInOut" }}
-                                className="origin-center ml-4"
-                                style={{ color: accentColor }}
-                            >
-                                <AdranlinkIcon size={18} />
-                            </motion.div>
+                            <ToggleAdranalinkIcon 
+                                isOpen={isExpanded} 
+                                color={accentColor} 
+                                className="ml-4"
+                            />
                             <span className="font-bold">{label}</span>
                         </div>
                         <DataboardStats stats={statsData.groupStatsMap[label] || []} />

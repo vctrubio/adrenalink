@@ -13,7 +13,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -346,15 +346,10 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                                 </div>
                             </div>
                         )}
-                        <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0, scale: 1 }}
-                            whileHover={{ rotate: isExpanded ? 200 : -20, scale: 1.15 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="origin-center"
-                            style={{ color: packageEntity.color }}
-                        >
-                            <AdranlinkIcon size={20} />
-                        </motion.div>
+                        <ToggleAdranalinkIcon 
+                            isOpen={isExpanded} 
+                            color={packageEntity.color} 
+                        />
                     </div>
                 </div>
 

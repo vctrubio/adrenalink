@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
 export interface WizardColumn<T> {
     id: string;
@@ -17,7 +18,7 @@ interface WizardTableProps<T> {
     columns: WizardColumn<T>[];
     onRowClick?: (item: T) => void;
     groupBy?: (item: T) => string;
-    groupHeader?: (groupKey: string, count: number) => ReactNode;
+    groupHeader?: (groupKey: string, count: number, isExpanded: boolean) => ReactNode;
     getRowId?: (item: T) => string;
     getRowAccentColor?: (item: T) => string;
     selectedId?: string;
@@ -116,9 +117,13 @@ export function WizardTable<T>({
                                 )}
                                 <div className="flex items-center relative z-[1] col-span-full">
                                     {groupHeader ? (
-                                        groupHeader(groupKey, groupData.length)
+                                        groupHeader(groupKey, groupData.length, expandedGroups.has(groupKey))
                                     ) : (
                                         <div className="flex items-center gap-2">
+                                            <ToggleAdranalinkIcon 
+                                                isOpen={expandedGroups.has(groupKey)} 
+                                                color={accentColor} 
+                                            />
                                             <span className="font-bold text-lg tracking-tight" style={{ color: accentColor }}>
                                                 {groupKey}
                                             </span>

@@ -10,7 +10,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getHMDuration } from "@/getters/duration-getter";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -98,9 +98,10 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
                         <span className="text-muted-foreground">=</span>
                         <span className="text-green-600 dark:text-green-400 font-bold">{(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}</span>
                     </div>
-                    <div className={`text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}>
-                        <AdranlinkIcon size={18} />
-                    </div>
+                    <ToggleAdranalinkIcon 
+                        isOpen={isExpanded} 
+                        className="text-muted-foreground"
+                    />
                 </div>
             </button>
 

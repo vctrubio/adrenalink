@@ -9,7 +9,7 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 
@@ -78,9 +78,10 @@ export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookin
                             {(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}
                         </span>
                     </div>
-                    <div className={`text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}>
-                        <AdranlinkIcon size={18} />
-                    </div>
+                    <ToggleAdranalinkIcon 
+                        isOpen={isExpanded} 
+                        className="text-muted-foreground"
+                    />
                 </div>
             </button>
 
