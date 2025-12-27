@@ -8,21 +8,20 @@ import { EquipmentTeacherManModal } from "@/src/components/modals/admin";
 import { updateEquipment } from "@/actions/equipments-action";
 import { formatDate } from "@/getters/date-getter";
 import { getFullDuration } from "@/getters/duration-getter";
+import { EquipmentDataboard } from "@/getters/databoard-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { EquipmentModel } from "@/backend/models";
 import type { LeftColumnCardData } from "@/types/left-column";
 import type { EquipmentStatus } from "@/types/status";
-import type { EquipmentIdStats } from "@/getters/databoard-sql-equipment";
 
 interface EquipmentLeftColumnProps {
   equipment: EquipmentModel;
-  equipmentStats: EquipmentIdStats;
 }
 
 const MOCK_RENTAL_PPH = 21; // Mock price per hour for rentals
 
-export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeftColumnProps) {
+export function EquipmentLeftColumn({ equipment }: EquipmentLeftColumnProps) {
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
 
   const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
@@ -39,6 +38,11 @@ export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeft
   const StudentIcon = studentEntity.icon;
   const RentalIcon = rentalEntity.icon;
   const RepairsIcon = repairsEntity.icon;
+
+  // Calculate stats using databoard-getter
+  const eventsCount = EquipmentDataboard.getEventCount(equipment);
+  const durationMinutes = EquipmentDataboard.getDurationMinutes(equipment);
+  const revenue = EquipmentDataboard.getRevenue(equipment);
 
   // Equipment Card
   const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
@@ -119,9 +123,9 @@ export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeft
     name: "Students",
     status: (
       <LessonEventRevenueBadge
-        lessonCount={equipmentStats.lessons_count}
-        duration={getFullDuration(equipmentStats.total_duration_minutes)}
-        revenue={Math.round(equipmentStats.total_revenue)}
+        lessonCount={eventsCount}
+        duration={getFullDuration(durationMinutes)}
+        revenue={Math.round(revenue)}
       />
     ),
     avatar: (
@@ -129,7 +133,7 @@ export function EquipmentLeftColumn({ equipment, equipmentStats }: EquipmentLeft
         <StudentIcon className="w-10 h-10" />
       </div>
     ),
-    fields: [{ label: "Events", value: equipmentStats.events_count.toString() }],
+    fields: [{ label: "Event Count", value: eventsCount.toString() }],
     accentColor: studentEntity.color,
     isAddable: false,
   };

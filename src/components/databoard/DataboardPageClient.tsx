@@ -8,6 +8,7 @@ import { teacherRenderers, calculateTeacherGroupStats } from "./rows/TeacherRow"
 import { bookingRenderers, calculateBookingGroupStats } from "./rows/BookingRow";
 import { equipmentRenderers, calculateEquipmentGroupStats } from "./rows/EquipmentRow";
 import { eventRenderers, calculateEventGroupStats } from "./rows/EventRow";
+import { calculateSchoolPackageGroupStats } from "./rows/SchoolPackageRow";
 import type { StatItem } from "@/src/components/ui/row";
 
 interface DataboardPageClientProps<T extends { id: string }> {
@@ -21,6 +22,7 @@ const statsMap: Record<string, (data: any[]) => StatItem[]> = {
     booking: calculateBookingGroupStats,
     equipment: calculateEquipmentGroupStats,
     event: calculateEventGroupStats,
+    schoolPackage: calculateSchoolPackageGroupStats,
 };
 
 export function DataboardPageClient<T extends { id: string }>({

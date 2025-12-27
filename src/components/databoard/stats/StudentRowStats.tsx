@@ -1,84 +1,38 @@
-import { ENTITY_DATA } from "@/config/entities";
-import { StudentStats as StudentStatsGetter } from "@/getters/students-getter";
-import { getFullDuration } from "@/getters/duration-getter";
-import { getCompactNumber } from "@/getters/integer-getter";
-import { calculateLessonRevenue } from "@/getters/commission-calculator";
-import { transformEventsToRows } from "@/getters/event-getter";
-import { TrendingUp } from "lucide-react";
+import { StudentDataboard } from "@/getters/databoard-getter";
+import { createStat } from "./stat-factory";
 import type { StatItem } from "@/src/components/ui/row";
 import type { StudentModel } from "@/backend/models";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
 
 export const StudentRowStats = {
 	getStats: (items: StudentModel | StudentModel[], includeCount = true): StatItem[] => {
 		const isArray = Array.isArray(items);
 		const students = isArray ? items : [items];
 
-		const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-		const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-		const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+		// Aggregate stats across all students
+		const totalBookings = students.reduce((sum, student) => sum + StudentDataboard.getBookingCount(student), 0);
+		const totalEvents = students.reduce((sum, student) => sum + StudentDataboard.getEventCount(student), 0);
+		const totalDurationMinutes = students.reduce((sum, student) => sum + StudentDataboard.getDurationMinutes(student), 0);
+		const totalSchoolNet = students.reduce((sum, student) => sum + StudentDataboard.getSchoolNet(student), 0);
 
-		const totalBookings = students.reduce((sum, student) => sum + StudentStatsGetter.getBookingsCount(student), 0);
-
-		let totalEvents = 0;
-		let totalDurationMinutes = 0;
-		let totalSchoolRevenue = 0;
-
-		for (const student of students) {
-			const bookingStudents = student.relations?.bookingStudents || [];
-			for (const bs of bookingStudents) {
-				const booking = bs.booking;
-				if (!booking) continue;
-
-				const lessons = booking.lessons || [];
-				for (const lesson of lessons) {
-					const events = lesson.events || [];
-					totalEvents += events.length;
-
-					const schoolPackage = booking.studentPackage?.schoolPackage;
-					const studentCount = booking.bookingStudents?.length || 1;
-					const pricePerStudent = schoolPackage?.pricePerStudent || 0;
-					const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
-
-					const eventRows = transformEventsToRows(events);
-					for (const eventRow of eventRows) {
-						totalDurationMinutes += eventRow.duration;
-						const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
-						totalSchoolRevenue += eventRevenue;
-					}
-				}
-			}
-		}
-
+		// Build stats using stat-factory as single source of truth
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			stats.push({ icon: <HelmetIcon className="w-5 h-5" />, value: students.length, label: "Students", color: studentEntity.color });
+			const studentStat = createStat("student", students.length, "Students");
+			if (studentStat) stats.push(studentStat);
 		}
 
-		if (totalBookings > 0) {
-			stats.push({ icon: <BookingIcon className="w-5 h-5" />, value: totalBookings, label: "Bookings", color: bookingEntity.color });
-		}
+		const bookingsStat = createStat("bookings", totalBookings, "Bookings");
+		if (bookingsStat) stats.push(bookingsStat);
 
-		if (totalEvents > 0) {
-			stats.push({ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color });
-		}
+		const eventsStat = createStat("events", totalEvents, "Events");
+		if (eventsStat) stats.push(eventsStat);
 
-		if (totalDurationMinutes > 0) {
-			stats.push({ icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(totalDurationMinutes), label: "Duration", color: "#4b5563" });
-		}
+		const durationStat = createStat("duration", totalDurationMinutes, "Duration");
+		if (durationStat) stats.push(durationStat);
 
-		if (totalSchoolRevenue > 0) {
-			stats.push({
-				icon: <TrendingUp size={20} />,
-				value: getCompactNumber(totalSchoolRevenue),
-				label: "Revenue",
-				color: "rgb(251, 146, 60)"
-			});
-		}
+		const netStat = createStat("schoolNet", totalSchoolNet, "Net");
+		if (netStat) stats.push(netStat);
 
 		return stats;
 	},

@@ -6,7 +6,6 @@ import { ENTITY_DATA } from "@/config/entities";
 import { BookingCreateTag } from "@/src/components/tags";
 import { SchoolPackageStats as DataboardSchoolPackageStats } from "@/src/components/databoard/stats";
 import { formatDate } from "@/getters/date-getter";
-import { PackageDropdownRow } from "./PackageDropdownRow";
 import { SCHOOL_PACKAGE_STATUS_CONFIG, type SchoolPackageStatus } from "@/types/status";
 import { updateSchoolPackageActive, updateSchoolPackagePublic } from "@/actions/packages-action";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
@@ -119,16 +118,15 @@ export const schoolPackageRenderers: TableRenderers<SchoolPackageModel> = {
 
 interface SchoolPackageRowProps {
     item: SchoolPackageModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: SchoolPackageRowProps) => {
+export const SchoolPackageRow = ({ item: schoolPackage }: SchoolPackageRowProps) => {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const PackageIconComponent = packageEntity.icon;
     const entityColor = packageEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const isActive = schoolPackage.schema.active;
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const durationHours = schoolPackage.schema.durationMinutes / 60;
     const pricePerHour = durationHours > 0 ? schoolPackage.schema.pricePerStudent / durationHours : 0;
@@ -186,9 +184,7 @@ export const SchoolPackageRow = ({ item: schoolPackage, isExpanded, onToggle }: 
             entityData={schoolPackage.schema}
             entityBgColor={packageEntity.bgColor}
             entityColor={packageEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<PackageDropdownRow item={schoolPackage} />}
+            isActive={isActive}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

@@ -11,7 +11,6 @@ import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import { updateBooking } from "@/actions/bookings-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import type { BookingModel } from "@/backend/models";
-import { BookingDropdownRow } from "./BookingDropdownRow";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getFullDuration } from "@/getters/duration-getter";
@@ -137,17 +136,16 @@ export const bookingRenderers: TableRenderers<BookingModel> = {
 
 interface BookingRowProps {
     item: BookingModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowProps) => {
+export const BookingRow = ({ item: booking }: BookingRowProps) => {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const entityColor = bookingEntity.color;
     const entityBgColor = bookingEntity.bgColor;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const isActive = booking.schema.status === "active";
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const BookingIconComponent = bookingEntity.icon;
 
@@ -197,9 +195,7 @@ export const BookingRow = ({ item: booking, isExpanded, onToggle }: BookingRowPr
             entityData={booking.schema}
             entityBgColor={entityBgColor}
             entityColor={entityColor}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<BookingDropdownRow item={booking} />}
+            isActive={isActive}
             head={{
                 avatar: <div style={{ color: iconColor }}>{EquipmentIcon ? <EquipmentIcon className="w-10 h-10" /> : <BookingIconComponent className="w-10 h-10" />}</div>,
                 name: (

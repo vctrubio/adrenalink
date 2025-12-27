@@ -3,7 +3,7 @@ import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
 import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, createSchoolPackageModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel, type SchoolPackageModel } from "@/backend/models";
-import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
+import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, buildSchoolPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 export async function getDataboardCounts(): Promise<ApiActionResponseModel<Record<string, number>>> {
@@ -132,7 +132,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
-        // 1. Fetch ORM relations (lessons with events and booking for row-action tags)
+        // 1. Fetch ORM relations (lessons with events, commission, and booking for commission/revenue calculations)
         const teachersQuery = schoolId
             ? db.query.teacher.findMany({
                   where: eq(teacher.schoolId, schoolId),
@@ -140,6 +140,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                       lessons: {
                           with: {
                               events: true,
+                              commission: true,
                               booking: {
                                   with: {
                                       studentPackage: {
@@ -147,6 +148,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                                               schoolPackage: true,
                                           },
                                       },
+                                      bookingStudents: true,
                                   },
                               },
                           },
@@ -158,6 +160,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                       lessons: {
                           with: {
                               events: true,
+                              commission: true,
                               booking: {
                                   with: {
                                       studentPackage: {
@@ -165,6 +168,7 @@ export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel
                                               schoolPackage: true,
                                           },
                                       },
+                                      bookingStudents: true,
                                   },
                               },
                           },
@@ -416,14 +420,26 @@ export async function getSchoolPackages(): Promise<ApiActionResponseModel<School
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
+        // 1. Fetch ORM query
         const packagesQuery = schoolId
             ? db.query.schoolPackage.findMany({
                   where: eq(schoolPackage.schoolId, schoolId),
               })
             : db.query.schoolPackage.findMany();
 
-        const packagesResult = await packagesQuery;
-        const packages: SchoolPackageModel[] = packagesResult.map((pkgData) => createSchoolPackageModel(pkgData));
+        // 2. Execute ORM query and SQL stats in parallel
+        const statsQuery = db.execute(buildSchoolPackageStatsQuery(schoolId));
+        const [packagesResult, statsResult] = await Promise.all([packagesQuery, statsQuery]);
+
+        // 3. Create stats map
+        const statsRows = Array.isArray(statsResult) ? statsResult : (statsResult as any).rows || [];
+        const statsMap = createStatsMap(statsRows);
+
+        // 4. Merge stats into models
+        const packages: SchoolPackageModel[] = packagesResult.map((pkgData) => ({
+            ...createSchoolPackageModel(pkgData),
+            stats: statsMap.get(pkgData.id),
+        }));
 
         return { success: true, data: packages };
     } catch (error) {

@@ -13,7 +13,6 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
 import { updateEquipmentStatus } from "@/actions/equipments-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import { EquipmentDropdownRow } from "./EquipmentDropdownRow";
 import type { EquipmentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import type { TableRenderers } from "../DataboardTableSection";
@@ -111,17 +110,16 @@ export const equipmentRenderers: TableRenderers<EquipmentModel> = {
 
 interface EquipmentRowProps {
     item: EquipmentModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: EquipmentRowProps) => {
+export const EquipmentRow = ({ item: equipment }: EquipmentRowProps) => {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
     const equipmentName = getEquipmentName(equipment);
     const category = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
     const CategoryIcon = category?.icon;
-    const iconColor = isExpanded ? equipmentEntity.color : "#9ca3af";
+    const isActive = equipment.schema.status === "available" || equipment.schema.status === "in-use";
+    const iconColor = isActive ? equipmentEntity.color : "#9ca3af";
 
     const currentStatus = equipment.schema.status as EquipmentStatus;
     const currentStatusConfig = EQUIPMENT_STATUS_CONFIG[currentStatus];
@@ -164,9 +162,7 @@ export const EquipmentRow = ({ item: equipment, isExpanded, onToggle }: Equipmen
             entityData={equipment.schema}
             entityBgColor={equipmentEntity.bgColor}
             entityColor={equipmentEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<EquipmentDropdownRow item={equipment} />}
+            isActive={isActive}
             head={{
                 avatar: <div style={{ color: iconColor }}>{CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}</div>,
                 name: (

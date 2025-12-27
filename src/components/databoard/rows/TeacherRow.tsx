@@ -5,7 +5,6 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { LessonTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
-import { TeacherDropdownRow } from "./TeacherDropdownRow";
 import { TeacherStats as DataboardTeacherStats } from "@/src/components/databoard/stats";
 import { TEACHER_STATUS_CONFIG, type TeacherStatus } from "@/types/status";
 import { updateTeacherActive } from "@/actions/teachers-action";
@@ -131,16 +130,15 @@ export const teacherRenderers: TableRenderers<TeacherModel> = {
 
 interface TeacherRowProps {
     item: TeacherModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowProps) => {
+export const TeacherRow = ({ item: teacher }: TeacherRowProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     const TeacherIcon = teacherEntity.icon;
     const entityColor = teacherEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const isActive = teacher.schema.active;
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const currentStatus = teacher.schema.active ? "active" : "inactive";
     const currentStatusConfig = TEACHER_STATUS_CONFIG[currentStatus];
@@ -175,9 +173,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
             entityData={teacher.schema}
             entityBgColor={teacherEntity.bgColor}
             entityColor={teacherEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<TeacherDropdownRow item={teacher} />}
+            isActive={isActive}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

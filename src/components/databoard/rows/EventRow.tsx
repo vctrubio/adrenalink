@@ -12,7 +12,6 @@ import { updateEvent } from "@/actions/events-action";
 import type { EventModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EventDropdownRow } from "./EventDropdownRow";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EquipmentCreateTag, EquipmentTag } from "@/src/components/tags";
 import type { TableRenderers } from "../DataboardTableSection";
@@ -170,18 +169,17 @@ export const eventRenderers: TableRenderers<EventModel> = {
 
 interface EventRowProps {
     item: EventModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) => {
+export const EventRow = ({ item: event }: EventRowProps) => {
     const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const EventIconComponent = eventEntity.icon;
     const entityColor = eventEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const isActive = event.schema.status === "completed" || event.schema.status === "planned";
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const packageDesc = EventStatsGetters.getPackageDescription(event);
     const capacity = EventStatsGetters.getStudentCapacity(event);
@@ -242,9 +240,7 @@ export const EventRow = ({ item: event, isExpanded, onToggle }: EventRowProps) =
             entityData={event.schema}
             entityBgColor={eventEntity.bgColor}
             entityColor={eventEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<EventDropdownRow item={event} />}
+            isActive={isActive}
             head={{
                 avatar: (
                     <div className="group" style={{ color: iconColor }}>

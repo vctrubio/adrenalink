@@ -19,7 +19,6 @@ import {
     createTeacherModel,
     createBookingModel,
     createEquipmentModel,
-    createStudentPackageModel,
     createSchoolPackageModel,
     createReferralModel,
     createRentalModel,
@@ -28,7 +27,6 @@ import {
     type TeacherModel,
     type BookingModel,
     type EquipmentModel,
-    type StudentPackageModel,
     type SchoolPackageModel,
     type ReferralModel,
     type RentalModel,
@@ -47,7 +45,7 @@ import {
 } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
-type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | StudentPackageModel | SchoolPackageModel | ReferralModel | RentalModel | EventModel;
+type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel |   SchoolPackageModel | ReferralModel | RentalModel | EventModel;
 
 // Entity relation configurations
 const entityRelations = {

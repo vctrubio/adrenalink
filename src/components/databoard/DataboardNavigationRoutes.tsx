@@ -29,12 +29,13 @@ export function DataboardNavigationRoutes() {
                         >
                             <div
                                 className="w-5 h-5 transition-colors [&>svg]:w-full [&>svg]:h-full"
-                                style={{ color: isActive || isHovered ? entity.color : undefined }}
+                                style={{ color: isActive || (isHovered && !isActive) ? entity.color : undefined }}
                             >
                                 <Icon />
                             </div>
                             <span
                                 className={`text-sm hidden sm:inline transition-colors ${isActive ? "font-bold" : "font-medium"}`}
+                                style={{ color: isHovered ? entity.color : undefined }}
                             >
                                 {entity.name}
                             </span>

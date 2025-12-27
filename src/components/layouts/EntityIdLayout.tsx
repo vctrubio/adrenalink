@@ -1,43 +1,31 @@
-import { ReactNode } from "react";
+"use client";
+
+import { useEffect, type ReactNode } from "react";
+import { useDataboardController } from "@/src/components/layouts/DataboardLayout";
+import type { StatItem } from "@/src/components/ui/row";
 
 interface EntityIdLayoutProps {
-    header: ReactNode;
+    stats: StatItem[];
     leftColumn: ReactNode;
     rightColumn: ReactNode | null;
 }
 
-export function EntityIdLayout({ header, leftColumn, rightColumn }: EntityIdLayoutProps) {
+export function EntityIdLayout({ stats, leftColumn, rightColumn }: EntityIdLayoutProps) {
+    const controller = useDataboardController();
+
+    useEffect(() => {
+        controller.onStatsChange(stats);
+    }, [stats, controller.onStatsChange]);
+
     return (
-        <div className="space-y-8">
-            {header}
-            
-            {/* Mobile Layout */}
-            <div className="lg:hidden space-y-6">
-                <div className="space-y-6">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-8 space-y-6 lg:space-y-0">
+            <div className="lg:col-span-4">
+                <div className="sticky top-8">
                     {leftColumn}
                 </div>
-                <div className="space-y-4">
-                    {rightColumn}
-                </div>
             </div>
-
-            {/* Desktop Layout */}
-            <div className="hidden lg:block">
-                <div className="grid grid-cols-12 gap-8">
-                    {/* Left Column */}
-                    <div className="col-span-4">
-                        <div className="sticky top-8">
-                            <div className="space-y-6">
-                                {leftColumn}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className="col-span-8 space-y-4">
-                        {rightColumn}
-                    </div>
-                </div>
+            <div className="lg:col-span-8">
+                {rightColumn}
             </div>
         </div>
     );

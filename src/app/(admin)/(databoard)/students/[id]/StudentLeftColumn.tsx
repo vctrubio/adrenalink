@@ -2,7 +2,6 @@
 
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
-import { StudentIdStats } from "@/src/components/databoard/stats/StudentIdStats";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { getFullDuration } from "@/getters/duration-getter";

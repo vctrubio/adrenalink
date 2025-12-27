@@ -9,7 +9,6 @@ import { StudentRowStats as DataboardStudentStats } from "@/src/components/datab
 import { SCHOOL_STUDENT_STATUS_CONFIG, type SchoolStudentStatus } from "@/types/status";
 import { updateSchoolStudentActive } from "@/actions/students-action";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
-import { StudentDropdownRow } from "./StudentDropdownRow";
 import type { StudentModel } from "@/backend/models";
 import type { DropdownItemProps } from "@/src/components/ui/dropdown";
 import IdIcon from "@/public/appSvgs/IdIcon";
@@ -63,7 +62,7 @@ export const studentRenderers: TableRenderers<StudentModel> = {
         const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
         const StudentIcon = studentEntity.icon;
         const fullName = `${student.schema.firstName} ${student.schema.lastName}`;
-        const isActive = student.updateForm.active;
+        const isActive = student.schema.active;
         const currentStatus = isActive ? "active" : "inactive";
         const currentStatusConfig = SCHOOL_STUDENT_STATUS_CONFIG[currentStatus];
 
@@ -123,17 +122,16 @@ export const studentRenderers: TableRenderers<StudentModel> = {
 
 interface StudentRowProps {
     item: StudentModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
     onStatusChange?: () => void;
 }
 
-export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange }: StudentRowProps) => {
+export const StudentRow = ({ item: student, onStatusChange }: StudentRowProps) => {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     const StudentIcon = studentEntity.icon;
     const entityColor = studentEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const isActive = student.schema.active;
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const fullName = `${student.schema.firstName} ${student.schema.lastName}`;
 
@@ -146,7 +144,6 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
 
     const stats = DataboardStudentStats.getStats(student, false);
 
-    const isActive = student.updateForm.active;
     const currentStatus = isActive ? "active" : "inactive";
     const currentStatusConfig = SCHOOL_STUDENT_STATUS_CONFIG[currentStatus];
 
@@ -169,9 +166,7 @@ export const StudentRow = ({ item: student, isExpanded, onToggle, onStatusChange
             entityData={student}
             entityBgColor={studentEntity.bgColor}
             entityColor={studentEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
-            expandedContent={<StudentDropdownRow item={student} />}
+            isActive={isActive}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

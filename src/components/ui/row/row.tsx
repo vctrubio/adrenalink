@@ -8,15 +8,14 @@ import type { DropdownItemProps } from "../dropdown";
 
 interface RowProps {
     id: string;
-    entityData: any;
+    entityData: unknown;
     entityBgColor: string;
     entityColor?: string;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
+    isActive?: boolean;
     head: {
         avatar: ReactNode;
         name: string | ReactNode;
-        status: string;
+        status: string | ReactNode;
         dropdownItems?: DropdownItemProps[];
         statusColor?: string;
         statusDisabled?: boolean;
@@ -33,14 +32,13 @@ interface RowProps {
     popover?: ReactNode;
     rightAction?: ReactNode;
     stats?: StatItem[];
-    expandedContent?: ReactNode;
 }
 
-export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, onToggle, head, str, action, popover, rightAction, stats, expandedContent }: RowProps) => {
+export const Row = ({ id, entityData, entityBgColor, entityColor, isActive, head, str, action, popover, rightAction, stats }: RowProps) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
-        if (!isExpanded && rowRef.current) {
+        if (rowRef.current) {
             const avatarDiv = rowRef.current.querySelector(".avatar-wrapper > div") as HTMLElement;
             if (avatarDiv) {
                 avatarDiv.style.color = entityColor || entityBgColor;
@@ -49,7 +47,7 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
     };
 
     const handleMouseLeave = () => {
-        if (!isExpanded && rowRef.current) {
+        if (rowRef.current) {
             const avatarDiv = rowRef.current.querySelector(".avatar-wrapper > div") as HTMLElement;
             if (avatarDiv) {
                 avatarDiv.style.color = "#9ca3af";
@@ -59,7 +57,7 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
 
     return (
         <div className="bg-card overflow-visible">
-            <div ref={rowRef} className="px-4 py-6 hover:bg-accent/20 transition-colors cursor-pointer relative" onClick={() => onToggle(id)} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <div ref={rowRef} className="px-4 py-6 hover:bg-accent/20 transition-colors relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
                     {/* Head */}
                     <div className="flex-shrink-0">
@@ -97,12 +95,6 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
                     )}
                 </div>
             </div>
-
-            {isExpanded && expandedContent && (
-                <div className="bg-accent/20">
-                    {expandedContent}
-                </div>
-            )}
         </div>
     );
 };

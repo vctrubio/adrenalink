@@ -3,7 +3,8 @@
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
 import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress";
-import { TeacherIdStats } from "@/src/components/databoard/stats/TeacherIdStats";
+import { TeacherDataboard } from "@/getters/databoard-getter";
+import { createStat } from "@/src/components/databoard/stats/stat-factory";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
@@ -47,13 +48,11 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   };
 
   // Teacher Stats
-  const teacherStats = TeacherIdStats.getStats(teacher);
-  const commissionsStats = teacherStats.find((stat) => stat.label === "Commissions");
-  const revenueStats = teacherStats.find((stat) => stat.label === "Revenue");
+  const commissionsStats = createStat("commission", TeacherDataboard.getCommission(teacher), "Commission");
+  const revenueStats = createStat("revenue", TeacherDataboard.getSchoolRevenue(teacher), "School Revenue");
 
   // Teacher Card
   const teacherCardData: LeftColumnCardData = {
-    name: teacher.updateForm.username,
     status: teacher.updateForm.active ? "Active" : "Inactive",
     avatar: (
       <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>

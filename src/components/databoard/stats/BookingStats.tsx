@@ -1,39 +1,35 @@
-import { ENTITY_DATA } from "@/config/entities";
-import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
-import { getFullDuration } from "@/getters/duration-getter";
+import { BookingDataboard } from "@/getters/databoard-getter";
+import { createStat } from "./stat-factory";
 import type { StatItem } from "@/src/components/ui/row";
 import type { BookingModel } from "@/backend/models";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
 
 export const BookingStats = {
 	getStats: (items: BookingModel | BookingModel[], includeCount = true): StatItem[] => {
 		const isArray = Array.isArray(items);
 		const bookings = isArray ? items : [items];
 
-		const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-		const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+		// Aggregate stats across all bookings using databoard-getter
+		const totalEvents = bookings.reduce((sum, booking) => sum + BookingDataboard.getEventCount(booking), 0);
+		const totalDurationMinutes = bookings.reduce((sum, booking) => sum + BookingDataboard.getDurationMinutes(booking), 0);
+		const totalRevenue = bookings.reduce((sum, booking) => sum + BookingDataboard.getRevenue(booking), 0);
 
-		const totalEvents = bookings.reduce((sum, booking) => sum + BookingStatsGetter.getEventsCount(booking), 0);
-		const totalMinutes = bookings.reduce((sum, booking) => sum + (booking.stats?.total_duration_minutes || 0), 0);
-		const totalMoneyIn = bookings.reduce((sum, booking) => sum + BookingStatsGetter.getMoneyIn(booking), 0);
-		const totalMoneyOut = bookings.reduce((sum, booking) => sum + BookingStatsGetter.getMoneyOut(booking), 0);
-		const netRevenue = totalMoneyIn - totalMoneyOut;
-		const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
-
+		// Build stats using stat-factory as single source of truth
+		// Bookings page shows: Events, Duration, Revenue (with TrendingUp/Down)
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			stats.push({ icon: <BookingIcon className="w-5 h-5" />, value: bookings.length, label: "Bookings", color: bookingEntity.color });
+			const bookingStat = createStat("bookings", bookings.length, "Bookings");
+			if (bookingStat) stats.push(bookingStat);
 		}
 
-		stats.push(
-			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(totalMinutes), label: "Duration", color: "#4b5563" },
-			{ icon: <BankIcon className="w-5 h-5" />, value: Math.abs(netRevenue), label: "Revenue", color: bankColor }
-		);
+		const eventsStat = createStat("events", totalEvents, "Events");
+		if (eventsStat) stats.push(eventsStat);
+
+		const durationStat = createStat("duration", totalDurationMinutes, "Duration");
+		if (durationStat) stats.push(durationStat);
+
+		const revenueStat = createStat("revenue", totalRevenue, "Revenue");
+		if (revenueStat) stats.push(revenueStat);
 
 		return stats;
 	},

@@ -4,7 +4,7 @@ import { DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropd
 interface RowHeadProps {
     avatar: ReactNode;
     name: string | ReactNode;
-    status: string;
+    status: string | ReactNode;
     dropdownItems?: DropdownItemProps[];
     statusColor?: string;
     statusDisabled?: boolean;

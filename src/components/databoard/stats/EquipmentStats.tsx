@@ -1,41 +1,35 @@
-import { ENTITY_DATA } from "@/config/entities";
-import { EquipmentStats as EquipmentStatsGetter } from "@/getters/equipments-getter";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { EquipmentDataboard } from "@/getters/databoard-getter";
+import { createStat } from "./stat-factory";
 import type { StatItem } from "@/src/components/ui/row";
 import type { EquipmentModel } from "@/backend/models";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 export const EquipmentStats = {
 	getStats: (items: EquipmentModel | EquipmentModel[], includeCount = true): StatItem[] => {
 		const isArray = Array.isArray(items);
 		const equipments = isArray ? items : [items];
 
-		const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-		const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
+		// Aggregate stats across all equipment using databoard-getter
+		const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getEventCount(equipment), 0);
+		const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getRentalsCount(equipment), 0);
+		const totalNet = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getMoneyIn(equipment), 0);
 
-		const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentStatsGetter.getEventsCount(equipment), 0);
-		const totalMinutes = equipments.reduce((sum, equipment) => sum + (equipment.stats?.total_duration_minutes || 0), 0);
-		const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentStatsGetter.getRentalsCount(equipment), 0);
-		const totalMoneyIn = equipments.reduce((sum, equipment) => sum + EquipmentStatsGetter.getMoneyIn(equipment), 0);
-		const totalMoneyOut = equipments.reduce((sum, equipment) => sum + EquipmentStatsGetter.getMoneyOut(equipment), 0);
-		const netRevenue = totalMoneyIn - totalMoneyOut;
-		const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
-
+		// Build stats using stat-factory as single source of truth
+		// Equipment page shows: Equipment count, Events, Rentals, Net (money in)
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			stats.push({ icon: <EquipmentIcon className="w-5 h-5" />, value: equipments.length, label: "Equipment", color: equipmentEntity.color });
+			const equipmentStat = createStat("equipment", equipments.length, "Equipment");
+			stats.push(equipmentStat!);
 		}
 
-		stats.push(
-			{ icon: <FlagIcon className="w-5 h-5" />, value: totalEvents, label: "Events", color: eventEntity.color },
-			{ icon: <HelmetIcon className="w-5 h-5" />, value: totalRentals, label: "Rentals", color: "#ef4444" },
-			{ icon: <BankIcon className="w-5 h-5" />, value: Math.abs(Math.round(netRevenue)), label: "Revenue", color: bankColor }
-		);
+		const eventsStat = createStat("events", totalEvents, "Events");
+		stats.push(eventsStat!);
+
+		const rentalsStat = createStat("rentals", totalRentals, "Rentals");
+		stats.push(rentalsStat!);
+
+		const netStat = createStat("schoolNet", totalNet, "Net");
+		stats.push(netStat!);
 
 		return stats;
 	},

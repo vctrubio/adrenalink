@@ -5,27 +5,27 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { BookingLeftColumn } from "./BookingLeftColumn";
-import { BookingRightColumnV2 } from "./BookingRightColumnV2";
+import { BookingRightColumn } from "./BookingRightColumn";
 
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const schoolHeader = await getSchoolHeader();
 
     if (!schoolHeader) {
-        return <EntityIdLayout header={null} leftColumn={<div>School context not found</div>} rightColumn={null} />;
+        return <div>School context not found</div>;
     }
 
     const result = await getEntityId("booking", id);
 
     if (!result.success) {
-        return <EntityIdLayout header={null} leftColumn={<div>Booking not found</div>} rightColumn={null} />;
+        return <div>Booking not found</div>;
     }
 
     const booking = result.data as BookingModel;
 
     // Verify booking belongs to the school
     if (booking.schema.schoolId !== schoolHeader.id) {
-        return <EntityIdLayout header={null} leftColumn={<div>You do not have permission to view this booking</div>} rightColumn={null} />;
+        return <div>You do not have permission to view this booking</div>;
     }
 
     const allBookingStats = BookingIdStats.getStats(booking);
@@ -41,9 +41,9 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
 
     return (
         <EntityIdLayout
-            header={null}
+            stats={bookingStats}
             leftColumn={<BookingLeftColumn booking={booking} usedMinutes={usedMinutes} totalMinutes={totalMinutes} progressBar={progressBar} />}
-            rightColumn={<BookingRightColumnV2 booking={booking} stats={bookingStats} />}
+            rightColumn={<BookingRightColumn booking={booking} stats={bookingStats} />}
         />
     );
 }

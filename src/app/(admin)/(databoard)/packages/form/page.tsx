@@ -7,7 +7,7 @@ export default function CreateSchoolPackagePage() {
                 <h1 className="text-3xl font-bold">Create Package</h1>
                 <p className="text-muted-foreground mt-2">Add a new school package to the system</p>
             </div>
-            <SchoolPackageForm />
+            <>to csv import</>
         </div>
     );
 }

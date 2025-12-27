@@ -3,7 +3,7 @@
 import { ReactNode, createContext, useContext } from "react";
 import type { DataboardController as DataboardControllerType } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
-import { DataboardHeader } from "@/src/components/databoard/DataboardHeader";
+import { DataboardSearchQueryHeader } from "@/src/components/databoard/DataboardSearchQueryHeader";
 import { DataboardNavigationRoutes } from "@/src/components/databoard/DataboardNavigationRoutes";
 import { DataboardHeaderStats } from "@/src/components/databoard/DataboardHeaderStats";
 
@@ -37,7 +37,7 @@ export function DataboardLayout({ children, controller, entityId, stats }: Datab
                 </div>
 
                 {/* Search + Filter Controls */}
-                <DataboardHeader controller={controller} entityId={entityId} />
+                <DataboardSearchQueryHeader controller={controller} entityId={entityId} />
                 {children}
             </div>
         </DataboardContext.Provider>

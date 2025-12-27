@@ -1,38 +1,31 @@
-import { ENTITY_DATA } from "@/config/entities";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { SchoolPackageDataboard } from "@/getters/databoard-getter";
+import { createStat } from "./stat-factory";
 import type { StatItem } from "@/src/components/ui/row";
 import type { SchoolPackageModel } from "@/backend/models";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { BookmarkIcon } from "lucide-react";
 
 export const SchoolPackageStats = {
 	getStats: (items: SchoolPackageModel | SchoolPackageModel[], includeCount = true): StatItem[] => {
 		const isArray = Array.isArray(items);
 		const packages = isArray ? items : [items];
 
-		const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
-		const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
-		const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+		// Aggregate stats across all packages using databoard-getter
+		const totalStudents = packages.reduce((sum, pkg) => sum + SchoolPackageDataboard.getStudentCount(pkg), 0);
+		const totalRevenue = packages.reduce((sum, pkg) => sum + SchoolPackageDataboard.getRevenue(pkg), 0);
 
-		const totalPackages = packages.length;
-		const totalStudents = packages.reduce((sum, pkg) => sum + (pkg.stats?.student_count || 0), 0);
-		const totalEvents = packages.reduce((sum, pkg) => sum + (pkg.stats?.events_count || 0), 0);
-		const totalMinutes = packages.reduce((sum, pkg) => sum + (pkg.stats?.total_duration_minutes || 0), 0);
-		const totalRevenue = packages.reduce((sum, pkg) => sum + (pkg.stats?.money_in || 0), 0);
-
+		// Build stats using stat-factory as single source of truth
+		// Packages page shows: Students, Revenue (always positive)
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			stats.push({ icon: <BookmarkIcon className="w-5 h-5" />, value: totalPackages, label: "Packages", color: packageEntity.color });
+			const packageStat = createStat("package", packages.length, "Packages");
+			if (packageStat) stats.push(packageStat);
 		}
 
-		stats.push(
-			{ icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents, label: "Students", color: studentEntity.color },
-			{ icon: <BankIcon className="w-5 h-5" />, value: totalRevenue, label: "Revenue", color: "#10b981" }
-		);
+		const studentsStat = createStat("student", totalStudents, "Students");
+		if (studentsStat) stats.push(studentsStat);
+
+		const revenueStat = createStat("revenue", totalRevenue, "Revenue");
+		if (revenueStat) stats.push(revenueStat);
 
 		return stats;
 	},

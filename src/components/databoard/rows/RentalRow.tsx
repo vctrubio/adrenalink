@@ -11,16 +11,16 @@ import BankIcon from "@/public/appSvgs/BankIcon";
 
 interface RentalRowProps {
     item: RentalModel;
-    isExpanded: boolean;
-    onToggle: (id: string) => void;
 }
 
-export const RentalRow = ({ item: rental, isExpanded, onToggle }: RentalRowProps) => {
+export const RentalRow = ({ item: rental }: RentalRowProps) => {
     const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental")!;
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
     const RentalIcon = rentalEntity.icon;
     const entityColor = rentalEntity.color;
-    const iconColor = isExpanded ? entityColor : "#9ca3af";
+    const status = getRentalStatus(rental);
+    const isActive = status === "active" || status === "Active";
+    const iconColor = isActive ? entityColor : "#9ca3af";
 
     const studentName = getStudentName(rental);
     const status = getRentalStatus(rental);
@@ -63,8 +63,7 @@ export const RentalRow = ({ item: rental, isExpanded, onToggle }: RentalRowProps
             entityData={rental.schema}
             entityBgColor={rentalEntity.bgColor}
             entityColor={rentalEntity.color}
-            isExpanded={isExpanded}
-            onToggle={onToggle}
+            isActive={isActive}
             head={{
                 avatar: (
                     <div style={{ color: iconColor }}>

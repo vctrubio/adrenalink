@@ -1,22 +1,8 @@
 import type { TeacherModel } from "@/backend/models";
 
-// ============ TEACHER STATS NAMESPACE ============
-// Reads from pre-calculated stats in databoard models
-// Falls back to relation traversal for non-databoard usage
-
-export const TeacherStats = {
-    getMoneyIn: (teacher: TeacherModel): number => teacher.stats?.money_in || 0,
-    getMoneyOut: (teacher: TeacherModel): number => teacher.stats?.money_out || 0,
-    getEventsCount: (teacher: TeacherModel): number => teacher.stats?.events_count || 0,
-    getTotalHours: (teacher: TeacherModel): number => (teacher.stats?.total_duration_minutes || 0) / 60,
-    getLessonsCount: (teacher: TeacherModel): number => teacher.stats?.lessons_count || 0,
-    getMoneyEarned: (teacher: TeacherModel): number => TeacherStats.getMoneyIn(teacher) - TeacherStats.getMoneyOut(teacher),
-    getTotalCommissions: (teacher: TeacherModel): number => TeacherStats.getMoneyIn(teacher), // money_in = commissions earned (duration * cph)
-    getTotalRevenue: (teacher: TeacherModel): number => TeacherStats.getMoneyOut(teacher), // money_out = payments received
-};
-
-// ============ LEGACY RELATION-BASED GETTERS ============
-// Used for non-databoard contexts where stats aren't available
+// ============ TEACHER HELPER FUNCTIONS ============
+// DEPRECATED: For new databoard stats, use TeacherDataboard in /getters/databoard-getter.ts
+// These functions are only for non-databoard contexts (popovers, etc.)
 
 export function getTeacherUnfinishedEvents(teacher: TeacherModel): { id: string; equipmentCategory: string | null }[] {
     const lessons = teacher.relations?.lessons || [];
