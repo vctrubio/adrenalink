@@ -11,7 +11,6 @@ interface DataboardLayoutWrapperProps {
     children: ReactNode;
 }
 
-const DATABOARD_LIST_PAGES = ["students", "teachers", "bookings", "packages", "equipments", "events"];
 const ENTITY_ID_MAP: Record<string, string> = {
     students: "student",
     teachers: "teacher",

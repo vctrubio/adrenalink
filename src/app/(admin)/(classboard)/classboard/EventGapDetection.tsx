@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, Clock } from "lucide-react";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import { getMinutesFromISO, minutesToTime, createISODateTime } from "@/getters/queue-getter";
+import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import { updateEventStartTime } from "@/actions/classboard-action";
@@ -52,7 +52,7 @@ export default function EventGapDetection({
         const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
         const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
 
-        const datePart = currentEvent.eventData.date.split("T")[0];
+        const datePart = getDatePartFromISO(currentEvent.eventData.date);
         const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
 
         if (updateMode === "updateNow") {

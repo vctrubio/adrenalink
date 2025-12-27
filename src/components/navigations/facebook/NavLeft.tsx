@@ -9,7 +9,7 @@ import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { DropdownItem } from "@/src/components/ui/dropdown";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { NavigationWizardModal } from "@/src/components/modals/NavigationWizardModal";
+import { NavigationWizardModal } from "@/src/components/modals/admin/NavigationWizardModal";
 
 const NAV_IDS = ["info", "classboard", "data", "users"] as const;
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];

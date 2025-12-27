@@ -60,6 +60,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }
 
     const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
+    const isPosting = eventId.startsWith("temp-");
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
@@ -113,7 +114,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }));
 
     return (
-        <div className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg">
+        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting ? "opacity-70 animate-pulse pointer-events-none" : ""}`}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5">
                 {/* Left Side: Time and Duration */}

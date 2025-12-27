@@ -5,7 +5,7 @@
 
 import { TeacherQueue, type ControllerSettings, type EventNode } from "./TeacherQueue";
 import type { EventCardProps } from "@/types/classboard-teacher-queue";
-import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime } from "@/getters/queue-getter";
+import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 
 export type { EventCardProps } from "@/types/classboard-teacher-queue";
 
@@ -347,7 +347,7 @@ export class QueueController {
     private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
         const currentMinutes = getMinutesFromISO(eventNode.eventData.date);
         const newMinutes = currentMinutes + changeMinutes;
-        const datePart = eventNode.eventData.date.split("T")[0];
+        const datePart = getDatePartFromISO(eventNode.eventData.date);
         eventNode.eventData.date = createISODateTime(datePart, minutesToTime(newMinutes));
     }
 
@@ -365,7 +365,7 @@ export class QueueController {
 
         for (let i = startIndex; i < events.length; i++) {
             const event = events[i];
-            const datePart = event.eventData.date.split("T")[0];
+            const datePart = getDatePartFromISO(event.eventData.date);
             event.eventData.date = createISODateTime(datePart, minutesToTime(currentTimeMinutes));
             currentTimeMinutes += event.eventData.duration;
 

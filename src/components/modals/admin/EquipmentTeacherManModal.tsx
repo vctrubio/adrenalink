@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import Modal from "../Modal";
-import { SearchInput } from "@/src/components/SearchInput";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
+import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/actions/equipments-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import type { EquipmentModel, TeacherModel } from "@/backend/models";
+import type { EquipmentModel } from "@/backend/models";
+import { Check, X } from "lucide-react";
+import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
+import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
+import { Modal, TeacherModalListRow } from "@/src/components/modals";
 
 interface EquipmentTeacherManModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ export function EquipmentTeacherManModal({
   onClose,
   equipment,
 }: EquipmentTeacherManModalProps) {
-  const [search, setSearch] = useState("");
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { teachers } = useSchoolTeachers();
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
   const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
@@ -36,13 +37,6 @@ export function EquipmentTeacherManModal({
   const linkedTeacherIds = new Set(
     equipment.relations?.teacherEquipments?.map((te: any) => te.teacher?.id).filter(Boolean) || []
   );
-
-  // Filter teachers based on search
-  const filteredTeachers = teachers.filter((teacher) =>
-    teacher.schema.username.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const linkedCount = filteredTeachers.filter((t) => linkedTeacherIds.has(t.schema.id)).length;
 
   const handleAddTeacher = async (teacherId: string) => {
     const result = await linkTeacherToEquipment(equipment.schema.id, teacherId);
@@ -58,53 +52,81 @@ export function EquipmentTeacherManModal({
     }
   };
 
+  const handleToggleLink = (teacher: typeof teachers[number]) => {
+    const isLinked = linkedTeacherIds.has(teacher.schema.id);
+    if (isLinked) {
+      handleRemoveTeacher(teacher.schema.id);
+    } else {
+      handleAddTeacher(teacher.schema.id);
+    }
+  };
+
+  // Keyboard navigation
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredItems: filteredTeachers,
+    focusedIndex,
+    setFocusedIndex
+  } = useModalNavigation({
+    items: teachers,
+    filterField: (teacher) => teacher.schema.username,
+    isOpen,
+    isActive: true,
+    onSelect: handleToggleLink,
+    onTabSelect: handleToggleLink,
+  });
+
+  const linkedCount = filteredTeachers.filter((t) => linkedTeacherIds.has(t.schema.id)).length;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Assign Teachers"
+      subtitle={equipmentDisplayName}
       entityId="teacher"
-      equipmentIcon={EquipmentIcon}
-      equipmentIconColor={equipmentColor}
-      equipmentName={equipmentDisplayName}
+      icon={EquipmentIcon && <EquipmentIcon size={32} />}
+      iconColor={equipmentColor}
       maxWidth="2xl"
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-4"
-      >
-        {/* Search Input with Results Count */}
+      <div className="flex flex-col gap-4">
+        {/* Search with Counter */}
         <div className="flex items-center gap-3">
-          <SearchInput
-            placeholder="Search teachers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            entityColor={teacherEntity?.color}
+          <PopUpSearch
+            value={searchQuery}
+            onChange={setSearchQuery}
             className="flex-1"
           />
           {filteredTeachers.length > 0 && (
-            <div className="flex-shrink-0 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground" style={{ backgroundColor: `${teacherEntity?.color}15` }}>
+            <div className="flex-shrink-0 px-3 py-2.5 rounded-lg text-sm font-medium popup-text-secondary" style={{ backgroundColor: `${teacherEntity?.color}15` }}>
               {linkedCount}/{filteredTeachers.length}
             </div>
           )}
         </div>
 
         {/* Teachers List */}
-        <div className="space-y-0 max-h-[400px] overflow-y-auto">
+        <div className="overflow-y-auto custom-scrollbar max-h-[400px] flex flex-col gap-3">
           {filteredTeachers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No teachers found
+            <div className="popup-loading py-8">
+              <span>No teachers found</span>
             </div>
           ) : (
             filteredTeachers.map((teacher, index) => {
               const isLinked = linkedTeacherIds.has(teacher.schema.id);
-              const iconColor = isLinked ? "#22c55e" : "#9ca3af";
+              const isFocused = index === focusedIndex;
+              const isHovered = index === hoveredIndex;
 
               return (
-                <div
+                <TeacherModalListRow
                   key={teacher.schema.id}
+                  teacher={teacher}
+                  index={index}
+                  isFocused={isFocused}
+                  isHovered={isHovered}
+                  onFocus={() => setFocusedIndex(index)}
+                  onHover={() => setHoveredIndex(index)}
+                  onHoverEnd={() => setHoveredIndex(null)}
                   onClick={() => {
                     if (isLinked) {
                       handleRemoveTeacher(teacher.schema.id);
@@ -112,26 +134,32 @@ export function EquipmentTeacherManModal({
                       handleAddTeacher(teacher.schema.id);
                     }
                   }}
-                  className="flex items-center justify-between px-4 py-3 border-b border-border last:border-b-0 cursor-pointer transition-all group hover:bg-muted/30 gap-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div style={{ color: iconColor }} className="flex-shrink-0">
-                      <HeadsetIcon size={18} className="transition-colors" />
-                    </div>
-                    <p className="font-medium text-foreground">
-                      {teacher.schema.username}
-                    </p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground transition-all flex-shrink-0">
-                    {isLinked ? "Dlt Relation" : "Add Relation"}
-                  </p>
-                </div>
+                  iconColor={isLinked ? "#22c55e" : teacherEntity?.color}
+                  layoutId="equipment-teacher-indicator"
+                  statusBadge={
+                    isLinked ? (
+                      <div className="popup-badge-success">
+                        <Check size={14} />
+                        <span className="text-xs font-bold">Linked</span>
+                      </div>
+                    ) : (
+                      <div className="popup-badge-inactive">
+                        <X size={14} />
+                        <span className="text-xs font-bold">Not Linked</span>
+                      </div>
+                    )
+                  }
+                />
               );
             })
           )}
         </div>
-      </motion.div>
+
+        {/* Keyboard Hint */}
+        {filteredTeachers.length > 0 && (
+          <KeyboardHint keys="TAB" action="to toggle link" className="mt-4" />
+        )}
+      </div>
     </Modal>
   );
 }

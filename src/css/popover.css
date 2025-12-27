@@ -1,0 +1,86 @@
+/* Popup/Modal Shared Styles - DRY approach for consistent modal/popup UI */
+
+/* Row/Item States */
+.popup-row {
+  @apply bg-card/80 dark:bg-white/5 border-border/20 dark:border-white/5;
+  @apply hover:bg-accent/10 dark:hover:bg-white/10 hover:border-border/30 dark:hover:border-white/10;
+  @apply transition-all;
+}
+
+.popup-row-focused {
+  @apply bg-accent/20 dark:bg-white/10 border-border/40 dark:border-white/20;
+  @apply shadow-xl scale-[1.02] z-10;
+}
+
+/* Text States */
+.popup-text-primary {
+  @apply text-foreground;
+}
+
+.popup-text-secondary {
+  @apply text-muted-foreground;
+}
+
+.popup-text-tertiary {
+  @apply text-muted-foreground/60;
+}
+
+.popup-text-inactive {
+  @apply text-muted-foreground/50;
+}
+
+/* Keyboard Hints */
+.popup-hint-container {
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full;
+  @apply bg-muted/20 dark:bg-white/5 border border-border/20 dark:border-white/5;
+  @apply text-[10px] font-mono text-muted-foreground/60 dark:text-white/40;
+}
+
+.popup-hint-key {
+  @apply bg-muted/50 dark:bg-white/10 px-1 py-0.5 rounded;
+  @apply text-muted-foreground dark:text-white/60 font-bold;
+}
+
+/* Button States */
+.popup-button-disabled {
+  @apply bg-muted/50 dark:bg-white/5;
+  @apply text-muted-foreground/50 dark:text-white/30;
+  @apply cursor-not-allowed;
+}
+
+/* Background Overlays */
+.popup-backdrop {
+  @apply fixed inset-0 bg-black/60 dark:bg-black/60 backdrop-blur-sm;
+}
+
+/* Status Toggle */
+.popup-toggle-unchecked {
+  @apply bg-muted/50 dark:bg-white/10;
+}
+
+/* Headers/Titles */
+.popup-header-title {
+  @apply text-foreground font-bold tracking-tight;
+}
+
+.popup-header-subtitle {
+  @apply text-muted-foreground/60 text-sm font-medium;
+}
+
+/* Loading States */
+.popup-loading {
+  @apply flex items-center justify-center text-muted-foreground/60;
+}
+
+/* Status Badges */
+.popup-badge-success {
+  @apply flex items-center gap-1.5 px-2 py-1 rounded-full;
+  @apply bg-green-500/20 text-green-400;
+  @apply dark:bg-green-500/20 dark:text-green-400;
+}
+
+.popup-badge-inactive {
+  @apply flex items-center gap-1.5 px-2 py-1 rounded-full;
+  @apply bg-muted/50 dark:bg-white/5;
+  @apply text-muted-foreground/50 dark:text-white/30;
+}

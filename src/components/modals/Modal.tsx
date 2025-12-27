@@ -2,27 +2,35 @@
 
 import { Fragment, type ReactNode } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { X } from "lucide-react";
+import { motion } from "framer-motion";
+import { ENTITY_DATA } from "@/config/entities";
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
+    subtitle?: string;
     children: ReactNode;
     maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
     entityId?: string;
-    subtitle?: string;
-    entityIconColor?: string;
-    equipmentIcon?: React.ComponentType<any>;
-    equipmentIconColor?: string;
-    equipmentName?: string;
+    icon?: ReactNode;
+    iconColor?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children, maxWidth = "2xl", entityId, subtitle, equipmentIcon: EquipmentIcon, equipmentIconColor, equipmentName, entityIconColor }: ModalProps) {
-    const { ENTITY_DATA } = require("@/config/entities");
-    const entity = entityId ? ENTITY_DATA.find((e: any) => e.id === entityId) : null;
-    const Icon = entity?.icon;
-    const color = entityIconColor || entity?.color || "#6366f1";
+export default function Modal({
+    isOpen,
+    onClose,
+    title,
+    subtitle,
+    children,
+    maxWidth = "2xl",
+    entityId,
+    icon,
+    iconColor
+}: ModalProps) {
+    const entity = entityId ? ENTITY_DATA.find((e) => e.id === entityId) : null;
+    const EntityIcon = entity?.icon;
+    const color = iconColor || entity?.color || "#6366f1";
 
     const maxWidthClass = {
         sm: "max-w-sm",
@@ -35,79 +43,94 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "2x
         "5xl": "max-w-5xl",
     }[maxWidth];
 
-    const hasHeader = title || entityId;
-
     return (
-        <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition show={isOpen} as={Fragment}>
+            <Dialog onClose={onClose} className="relative z-50">
                 <Transition.Child
                     as={Fragment}
-                    enter="ease-out duration-300"
+                    enter="ease-out duration-200"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-200"
+                    leave="ease-in duration-150"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/50" />
+                    <div className="popup-backdrop" />
                 </Transition.Child>
 
-                <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center p-4">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
-                            leaveTo="opacity-0 scale-95"
-                        >
-                            <Dialog.Panel
-                                className={`w-full ${maxWidthClass} transform overflow-hidden rounded-lg bg-card border border-border text-left align-middle shadow-xl transition-all`}
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95 translate-y-4"
+                        enterTo="opacity-100 scale-100 translate-y-0"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100 scale-100 translate-y-0"
+                        leaveTo="opacity-0 scale-95 translate-y-4"
+                    >
+                        <Dialog.Panel className={`w-full ${maxWidthClass} outline-none`}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                className="relative flex flex-col max-h-[85vh]"
                             >
-                                {/* Header with LeftColumnCard-style layout */}
-                                {hasHeader && (
-                                    <div className="flex items-center justify-between gap-6 px-8 py-6 border-b border-border">
-                                        {/* Entity Icon (Avatar style - Teacher) */}
-                                        <div className="flex-shrink-0">
-                                            {Icon && (
-                                                <div style={{ color }}>
-                                                    <Icon className="w-10 h-10" />
-                                                </div>
+                                {/* Header */}
+                                {(title || EntityIcon || icon) && (
+                                    <div className="mb-6 flex flex-col items-center text-center">
+                                        <div className="flex items-center gap-4 mb-2">
+                                            {(icon || EntityIcon) && (
+                                                <motion.div
+                                                    initial={{ scale: 0.9, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
+                                                    style={{ color }}
+                                                >
+                                                    {icon || (EntityIcon && <EntityIcon size={32} />)}
+                                                </motion.div>
+                                            )}
+                                            {title && (
+                                                <motion.h2
+                                                    initial={{ opacity: 0, x: -5 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
+                                                    className="text-2xl popup-header-title"
+                                                >
+                                                    {title}
+                                                </motion.h2>
                                             )}
                                         </div>
-
-                                        {/* Title and Equipment Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <Dialog.Title as="h3" className="text-xl font-bold text-foreground">
-                                                {title}
-                                            </Dialog.Title>
-                                            {equipmentName && EquipmentIcon && (
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <EquipmentIcon size={14} style={{ color: equipmentIconColor }} />
-                                                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                                                        {equipmentName}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Close Button */}
-                                        <button
-                                            type="button"
-                                            onClick={onClose}
-                                            className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-muted rounded flex-shrink-0"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
+                                        {subtitle && (
+                                            <p className="popup-header-subtitle">{subtitle}</p>
+                                        )}
                                     </div>
                                 )}
 
-                                <div className="p-6">{children}</div>
-                            </Dialog.Panel>
-                        </Transition.Child>
-                    </div>
+                                {/* Content */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15, duration: 0.3, ease: "easeOut" }}
+                                    className="flex-1 min-h-0"
+                                >
+                                    {children}
+                                </motion.div>
+
+                                {/* Footer Hint */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="mt-4 text-center"
+                                >
+                                    <div className="popup-hint-container bg-transparent">
+                                        <span className="popup-hint-key">ESC</span>
+                                        <span>to close</span>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        </Dialog.Panel>
+                    </Transition.Child>
                 </div>
             </Dialog>
         </Transition>

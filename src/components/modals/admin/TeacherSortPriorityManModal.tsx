@@ -12,6 +12,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";
 import { PopUpHeader } from "@/src/components/ui/popup/PopUpHeader";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
+import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { DragSortList } from "@/src/components/ui/DragSortList";
 import type { TeacherModel } from "@/backend/models";
@@ -143,7 +144,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+                    <div className="popup-backdrop" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -195,13 +196,10 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                 const isHovered = index === hoveredIndex;
 
                                                 return (
-                                                    <motion.div 
+                                                    <motion.div
                                                         className={`
-                                                            flex items-center justify-between px-4 py-3 gap-4 mb-2 rounded-xl border transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden
-                                                            ${isFocused 
-                                                                ? "bg-white/10 border-white/20 shadow-xl scale-[1.02] z-10" 
-                                                                : "bg-white/5 border-white/5 hover:bg-white/10"
-                                                            }
+                                                            flex items-center justify-between px-4 py-3 gap-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing group relative overflow-hidden
+                                                            ${isFocused ? "popup-row-focused" : "popup-row"}
                                                         `}
                                                         onClick={() => setFocusedIndex(index)}
                                                         onMouseEnter={() => setHoveredIndex(index)}
@@ -229,11 +227,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                 {item.icon}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black text-white" : `font-medium ${item.isActive ? "text-white" : "text-white/50"}`}`}>
+                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black popup-text-primary" : `font-medium ${item.isActive ? "popup-text-primary" : "popup-text-secondary"}`}`}>
                                                                     {item.title}
                                                                  </span>
                                                                  {item.subtitle && (
-                                                                     <span className={`text-xs truncate transition-colors ${isFocused ? "text-white/60" : "text-white/40"}`}>
+                                                                     <span className={`text-xs truncate transition-colors ${isFocused ? "popup-text-secondary" : "popup-text-tertiary"}`}>
                                                                          {item.subtitle}
                                                                      </span>
                                                                  )}
@@ -248,7 +246,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                     setFocusedIndex(index);
                                                                 }}
                                                                 color={item.color}
-                                                                className="data-[state=unchecked]:bg-white/10"
+                                                                className="popup-toggle-unchecked"
                                                             />
                                                             
                                                             <GoToAdranlink 
@@ -271,9 +269,9 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                         style={{ backgroundColor: hasChanges || statusChanges.size > 0 ? teacherEntity?.color : undefined }}
                                         className={`
                                             flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all
-                                            ${hasChanges || statusChanges.size > 0 
-                                                ? "text-white shadow-lg hover:opacity-90" 
-                                                : "bg-white/5 text-white/30 cursor-not-allowed"
+                                            ${hasChanges || statusChanges.size > 0
+                                                ? "text-white shadow-lg hover:opacity-90"
+                                                : "popup-button-disabled"
                                             }
                                         `}
                                      >
@@ -286,12 +284,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                         )}
                                      </button>
 
-                                     <div className="flex justify-center text-[10px] font-mono text-white/30">
-                                         <div className="flex items-center gap-1.5">
-                                            <span className="bg-white/10 px-1 py-0.5 rounded text-white/60 font-bold">ESC</span>
-                                            <span>to close</span>
-                                        </div>
-                                     </div>
+                                     <KeyboardHint keys="ESC" action="to close" />
                                 </div>
                             </motion.div>
                         </Dialog.Panel>

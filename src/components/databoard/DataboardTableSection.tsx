@@ -1,15 +1,24 @@
 "use client";
 
 import { useLayoutEffect, useRef, useMemo, ReactNode, useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
 import { DATABOARD_ENTITY_SEARCH_FIELDS } from "@/config/databoard";
 import { useDataboard } from "@/src/hooks/useDataboard";
 import { useDataboardController } from "@/src/components/layouts/DataboardLayout";
 import { WizardTable, type WizardColumn } from "@/src/components/ui/wizzard/WizardTable";
 import { StatItem, RowStats } from "@/src/components/ui/row";
+import { DataboardStats } from "./DataboardStats";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
 import { useRouter } from "next/navigation";
+import { studentRenderers, calculateStudentGroupStats } from "./rows/StudentRow";
+import { teacherRenderers, calculateTeacherGroupStats } from "./rows/TeacherRow";
+import { bookingRenderers, calculateBookingGroupStats } from "./rows/BookingRow";
+import { equipmentRenderers, calculateEquipmentGroupStats } from "./rows/EquipmentRow";
+import { eventRenderers, calculateEventGroupStats } from "./rows/EventRow";
+import { schoolPackageRenderers } from "./rows/SchoolPackageRow";
 
 export interface TableRenderers<T> {
     renderEntity: (item: T) => ReactNode;
@@ -19,24 +28,43 @@ export interface TableRenderers<T> {
     renderColor?: (item: T) => string;
 }
 
-interface DataboardTableSectionProps<T extends { id: string }> {
+const renderersMap: Record<string, TableRenderers<any>> = {
+    student: studentRenderers,
+    teacher: teacherRenderers,
+    booking: bookingRenderers,
+    equipment: equipmentRenderers,
+    event: eventRenderers,
+    schoolPackage: schoolPackageRenderers,
+};
+
+const statsMap: Record<string, (data: any[]) => StatItem[]> = {
+    student: calculateStudentGroupStats,
+    teacher: calculateTeacherGroupStats,
+    booking: calculateBookingGroupStats,
+    equipment: calculateEquipmentGroupStats,
+    event: calculateEventGroupStats,
+};
+
+interface DataboardTableSectionProps<T> {
     entityId: string;
     data: AbstractModel<T>[];
-    renderers: TableRenderers<AbstractModel<T>>;
     calculateStats: (data: AbstractModel<T>[]) => StatItem[];
 }
 
-export const DataboardTableSection = <T extends { id: string }>({
+export const DataboardTableSection = <T,>({
     entityId,
     data,
-    renderers,
     calculateStats,
 }: DataboardTableSectionProps<T>) => {
     const controller = useDataboardController();
     const router = useRouter();
+    const entity = ENTITY_DATA.find((e) => e.id === entityId);
+    const renderers = renderersMap[entityId];
+    
     const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
     const prevStatsRef = useRef<StatItem[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
     const { groupedData } = useDataboard(
         data,
@@ -55,10 +83,20 @@ export const DataboardTableSection = <T extends { id: string }>({
         controller.onSortChange,
     );
 
-    // Calculate filtered data count - flatten all groups
+    // Calculate filtered data - flatten all groups
     const filteredData = useMemo(() => {
         return groupedData.flatMap(group => group.data);
     }, [groupedData]);
+
+    // Calculate stats for all data and per group
+    const statsData = useMemo(() => {
+        const allStats = calculateStats(filteredData);
+        const groupStatsMap: Record<string, StatItem[]> = {};
+        groupedData.forEach(group => {
+            groupStatsMap[group.label] = calculateStats(group.data);
+        });
+        return { allStats, groupStatsMap };
+    }, [filteredData, groupedData, calculateStats]);
 
     // Update count for this entity when filtered data changes
     useLayoutEffect(() => {
@@ -73,14 +111,15 @@ export const DataboardTableSection = <T extends { id: string }>({
     // Update stats based on filtered data
     useLayoutEffect(() => {
         if (controller.onStatsChange) {
-            const stats = calculateStats(filteredData);
-            const hasChanged = JSON.stringify(stats) !== JSON.stringify(prevStatsRef.current);
+            const statsValues = statsData.allStats.map(s => ({ label: s.label, value: s.value, color: s.color }));
+            const prevValues = prevStatsRef.current.map(s => ({ label: s.label, value: s.value, color: s.color }));
+            const hasChanged = JSON.stringify(statsValues) !== JSON.stringify(prevValues);
             if (hasChanged) {
-                prevStatsRef.current = stats;
-                controller.onStatsChange(stats);
+                prevStatsRef.current = statsData.allStats;
+                controller.onStatsChange(statsData.allStats);
             }
         }
-    }, [filteredData, calculateStats, controller.onStatsChange]);
+    }, [statsData.allStats, controller.onStatsChange]);
 
     // Reset selection when search changes
     useEffect(() => {
@@ -159,8 +198,10 @@ export const DataboardTableSection = <T extends { id: string }>({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [filteredData, selectedId, entityId, router]);
 
-    const entity = ENTITY_DATA.find((e) => e.id === entityId);
-    if (!entity) return null;
+    // Early return after all hooks
+    if (!entity) {
+        return <div>Missing configuration for entity: {entityId}</div>;
+    }
 
     const rainbowEntity = RAINBOW_ENTITIES.find(e => e.id === entityId);
     const accentColor = rainbowEntity ? RAINBOW_COLORS[rainbowEntity.shadeId].fill : entity.color;
@@ -169,7 +210,7 @@ export const DataboardTableSection = <T extends { id: string }>({
     const columns: WizardColumn<AbstractModel<T>>[] = [
         {
             id: "entity",
-            header: "Entity",
+            header: entity.name,
             cell: (item) => renderers.renderEntity(item),
             width: "2fr",
         },
@@ -188,7 +229,21 @@ export const DataboardTableSection = <T extends { id: string }>({
         },
         {
             id: "stats",
-            header: "Stats",
+            header: (
+                <div className="flex items-center gap-2">
+                    <span>Stats</span>
+                    {statsData.allStats.length > 0 && (
+                        <div className="flex gap-1">
+                            {statsData.allStats.map((stat, i) => (
+                                <div key={i} className="flex items-center gap-0.5 text-xs" style={{ color: stat.color }}>
+                                    <span className="w-3.5 h-3.5 [&>svg]:w-full [&>svg]:h-full">{stat.icon}</span>
+                                    <span className="font-semibold">{stat.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ),
             cell: (item) => <RowStats stats={renderers.renderStats(item)} />,
             width: "1.5fr",
             align: "right",
@@ -211,13 +266,41 @@ export const DataboardTableSection = <T extends { id: string }>({
             getRowAccentColor={(item) => renderers.renderColor?.(item) || accentColor}
             selectedId={selectedId || undefined}
             accentColor={accentColor}
-            groupHeader={(label, count) => (
-                <div className="flex items-center gap-2">
-                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-                     <span className="font-bold">{label}</span>
-                     <span className="text-muted-foreground text-xs">({count})</span>
-                </div>
-            )}
+            groupHeader={(label, count) => {
+                const isExpanded = expandedGroups.has(label);
+                
+                return (
+                    <div 
+                        className="flex items-center justify-between w-full cursor-pointer rounded-lg transition-all hover:bg-accent/10 dark:hover:bg-white/5" 
+                        onClick={() => {
+                            const newSet = new Set(expandedGroups);
+                            if (newSet.has(label)) {
+                                newSet.delete(label);
+                            } else {
+                                newSet.add(label);
+                            }
+                            setExpandedGroups(newSet);
+                        }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <motion.div
+                                animate={{ 
+                                    rotate: isExpanded ? 180 : 0,
+                                    scale: isExpanded ? 1.1 : 1
+                                }}
+                                whileHover={{ scale: 1.2 }}
+                                transition={{ duration: 0.4, ease: "easeInOut" }}
+                                className="origin-center ml-4"
+                                style={{ color: accentColor }}
+                            >
+                                <AdranlinkIcon size={18} />
+                            </motion.div>
+                            <span className="font-bold">{label}</span>
+                        </div>
+                        <DataboardStats stats={statsData.groupStatsMap[label] || []} />
+                    </div>
+                );
+            }}
             onRowClick={(item) => {
                 if (item.updateForm?.id) {
                     router.push(`/${entityId}s/${item.updateForm.id}`);

@@ -1,6 +1,5 @@
 import { getStudents } from "@/actions/databoard-action";
 import { DataboardPageClient } from "@/src/components/databoard/DataboardPageClient";
-import { studentRenderers, calculateStudentGroupStats } from "@/src/components/databoard/rows/StudentRow";
 
 export default async function StudentsPage() {
     const result = await getStudents();
@@ -9,12 +8,5 @@ export default async function StudentsPage() {
         return <div>Error loading students: {result.error}</div>;
     }
 
-    return (
-        <DataboardPageClient
-            entityId="student"
-            data={result.data}
-            renderers={studentRenderers}
-            calculateStats={calculateStudentGroupStats}
-        />
-    );
+    return <DataboardPageClient entityId="student" data={result.data} />;
 }

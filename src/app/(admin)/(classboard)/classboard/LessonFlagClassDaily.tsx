@@ -155,11 +155,12 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
     const [locationIndex, setLocationIndex] = useState(0);
     const [originalLocationIndex, setOriginalLocationIndex] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isLockFlagTime, setIsLockFlagTime] = useState(false);
-    const [isLockFlagLocation, setIsLockFlagLocation] = useState(false);
-    const [lockCount, setLockCount] = useState(0);
-    const [lockLocationCount, setLockLocationCount] = useState(0);
-    const [totalLocationEventsForLock, setTotalLocationEventsForLock] = useState(0);
+    
+    // Derived state from model
+    const pendingTeachers = globalFlag.getPendingTeachers();
+    const totalTeachers = pendingTeachers.size;
+    const { isLockFlagTime, lockCount } = globalFlag.getLockStatusTime();
+    const { isLockFlagLocation, lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation();
 
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
     const stepDuration = globalFlag.getController().stepDuration || 30;
@@ -182,39 +183,6 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
         }
     }, [isAdjustmentMode, globalLocation, adjustmentLocation]);
 
-    const pendingTeachers = globalFlag.getPendingTeachers();
-    const totalTeachers = pendingTeachers.size;
-    const teachersEarliestTimesKey = teacherQueues.map((q) => `${q.teacher.username}:${q.getEarliestEventTime()}`).join("|");
-
-    const { isLockFlagTime: computedIsLockFlagTime, lockCount: computedLockCount } = useMemo(() => {
-        const pendingTeachersTimes = teacherQueues
-            .filter((q) => pendingTeachers.has(q.teacher.username))
-            .map((q) => ({ username: q.teacher.username, earliestTime: q.getEarliestEventTime() }))
-            .filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
-
-        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
-            return { isLockFlagTime: false, lockCount: 0 };
-        }
-
-        const newGlobalEarliest = pendingTeachersTimes.reduce((min, t) => {
-            const minMinutes = timeToMinutes(min);
-            const tMinutes = timeToMinutes(t.earliestTime);
-            return tMinutes < minMinutes ? t.earliestTime : min;
-        }, pendingTeachersTimes[0].earliestTime);
-
-        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === newGlobalEarliest).length;
-
-        return {
-            isLockFlagTime: synchronizedCount === totalTeachers,
-            lockCount: synchronizedCount,
-        };
-    }, [teachersEarliestTimesKey, pendingTeachers, totalTeachers]);
-
-    useEffect(() => {
-        setIsLockFlagTime(computedIsLockFlagTime);
-        setLockCount(computedLockCount);
-    }, [computedIsLockFlagTime, computedLockCount]);
-
     useEffect(() => {
         if (isAdjustmentMode) {
             const currentGlobalEarliest = globalEarliestTime;
@@ -223,65 +191,6 @@ export default function LessonFlagClassDaily({ globalFlag, teacherQueues, onSubm
             }
         }
     }, [globalEarliestTime, isAdjustmentMode]);
-
-    const teachersLocationsKey = teacherQueues
-        .map((q) => {
-            const events = q.getAllEvents();
-            const locations = events.map((e) => e.eventData.location).join(",") || "none";
-            return `${q.teacher.username}:${locations}`;
-        })
-        .join("|");
-
-    const { isLockFlagLocation: computedIsLockFlagLocation, lockLocationCount: computedLockLocationCount, totalLocationEventsForLock: computedTotalLocationEventsForLock } = useMemo(() => {
-        let totalEventsForLock = 0;
-        let synchronizedEventsCount = 0;
-        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
-
-        teacherQueues
-            .filter((q) => pendingTeachers.has(q.teacher.username))
-            .forEach((q) => {
-                const events = q.getAllEvents();
-                const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
-                const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
-
-                totalEventsForLock += events.length;
-
-                if (allMatch) {
-                    pendingTeachersLocations.push({ username: q.teacher.username, location: allLocations[0] });
-                } else {
-                    pendingTeachersLocations.push({ username: q.teacher.username, location: null });
-                }
-            });
-
-        const firstSynchronizedTeacher = pendingTeachersLocations.find((t) => t.location !== null);
-        const newGlobalLocation = firstSynchronizedTeacher?.location;
-
-        if (newGlobalLocation) {
-            teacherQueues
-                .filter((q) => pendingTeachers.has(q.teacher.username))
-                .forEach((q) => {
-                    const events = q.getAllEvents();
-                    const queueSynchronized = pendingTeachersLocations.find((t) => t.username === q.teacher.username)?.location === newGlobalLocation;
-                    if (queueSynchronized) {
-                        synchronizedEventsCount += events.length;
-                    }
-                });
-        }
-
-        const allSynchronized = pendingTeachersLocations.every((t) => t.location === newGlobalLocation && t.location !== null);
-
-        return {
-            isLockFlagLocation: allSynchronized && newGlobalLocation !== null,
-            lockLocationCount: synchronizedEventsCount,
-            totalLocationEventsForLock: totalEventsForLock,
-        };
-    }, [teachersLocationsKey, pendingTeachers, totalTeachers]);
-
-    useEffect(() => {
-        setIsLockFlagLocation(computedIsLockFlagLocation);
-        setLockLocationCount(computedLockLocationCount);
-        setTotalLocationEventsForLock(computedTotalLocationEventsForLock);
-    }, [computedIsLockFlagLocation, computedLockLocationCount, computedTotalLocationEventsForLock]);
 
     const { adaptedCount: globalAdaptedCount, totalTeachers: globalTotalTeachers } = useMemo(() => {
         const teachersWithEvents = teacherQueues.filter((queue) => queue.getAllEvents().length > 0);

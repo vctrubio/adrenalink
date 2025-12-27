@@ -5,6 +5,7 @@ interface UseModalNavigationProps<T> {
     filterField: keyof T | ((item: T) => string);
     onSelect?: (item: T) => void;
     onShiftSelect?: (item: T) => void;
+    onTabSelect?: (item: T) => void;
     isOpen: boolean;
     isActive?: boolean; // New prop to control listener
 }
@@ -14,6 +15,7 @@ export function useModalNavigation<T extends { id: string }>({
     filterField,
     onSelect,
     onShiftSelect,
+    onTabSelect,
     isOpen,
     isActive = true,
 }: UseModalNavigationProps<T>) {
@@ -68,12 +70,18 @@ export function useModalNavigation<T extends { id: string }>({
                         onSelect(focusedItem);
                     }
                 }
+            } else if (e.key === "Tab" && onTabSelect) {
+                e.preventDefault();
+                const focusedItem = filteredItems[focusedIndex];
+                if (focusedItem) {
+                    onTabSelect(focusedItem);
+                }
             }
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, isActive, filteredItems, focusedIndex, onSelect, onShiftSelect]);
+    }, [isOpen, isActive, filteredItems, focusedIndex, onSelect, onShiftSelect, onTabSelect]);
 
     return {
         searchQuery,

@@ -11,6 +11,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { TeacherLessonCreateModal } from "@/src/components/modals/admin";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
@@ -151,42 +152,30 @@ const BookingSummaryBadges = ({
 const InstructorList = ({
     lessons,
     onAddEvent,
-    onAddTeacher,
-    availableTeachers = [],
+    bookingId,
     loadingLessonId,
 }: {
     lessons: ClassboardLesson[];
     onAddEvent: (username: string) => void;
-    onAddTeacher?: (username: string) => void;
-    availableTeachers?: { username: string; firstName: string }[];
+    bookingId: string;
     loadingLessonId: string | null;
 }) => {
-    const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
-    const addTeacherTriggerRef = useRef<HTMLButtonElement>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
 
-    const existingTeacherUsernames = new Set(lessons.map((l) => l.teacher.username));
-    const teachersToDisplay = availableTeachers.filter((t) => !existingTeacherUsernames.has(t.username));
-
-    const teacherItems: DropdownItemProps[] = teachersToDisplay.map((t) => ({
-        id: t.username,
-        label: t.username,
-        icon: HeadsetIcon,
-        color: teacherColor,
-        onClick: () => onAddTeacher?.(t.username),
+    const existingLessons = lessons.map((l) => ({
+        teacherUsername: l.teacher.username,
+        lessonId: l.id,
     }));
 
     return (
         <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
-                <div className="relative">
-                    <button ref={addTeacherTriggerRef} onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)} className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors" title="Add teacher to booking">
-                        <Plus size={14} />
-                    </button>
-                    <Dropdown isOpen={isAddTeacherOpen} onClose={() => setIsAddTeacherOpen(false)} items={teacherItems} align="right" triggerRef={addTeacherTriggerRef} />
-                </div>
+                <button onClick={() => setIsModalOpen(true)} className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors" title="Add teacher to booking">
+                    <Plus size={14} />
+                </button>
             </div>
             <div className="flex flex-wrap gap-2">
                 {lessons.map((lesson) => {
@@ -230,8 +219,7 @@ const InstructorList = ({
                 })}
                 {lessons.length === 0 && (
                     <button
-                        ref={addTeacherTriggerRef}
-                        onClick={() => setIsAddTeacherOpen(!isAddTeacherOpen)}
+                        onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group"
                     >
                         <div className="flex items-center justify-center w-4 h-4 rounded-full bg-background group-hover:text-primary transition-colors">
@@ -241,6 +229,13 @@ const InstructorList = ({
                     </button>
                 )}
             </div>
+
+            <TeacherLessonCreateModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                bookingId={bookingId}
+                existingLessons={existingLessons}
+            />
         </div>
     );
 };
@@ -354,7 +349,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                     <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
                 </div>
 
-                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} onAddTeacher={handleAddTeacher} availableTeachers={classboard.availableTeachers} loadingLessonId={loadingLessonId} />
+                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} bookingId={booking.id} loadingLessonId={loadingLessonId} />
             </div>
 
             <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />

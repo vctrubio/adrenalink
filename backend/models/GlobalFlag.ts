@@ -151,6 +151,79 @@ export class GlobalFlag {
         return mostCommonLocation;
     }
 
+    // ============ LOCK STATUS CALCULATION ============
+
+    getLockStatusTime() {
+        const totalTeachers = this.pendingTeachers.size;
+        
+        const pendingTeachersTimes = this.teacherQueues
+            .filter((q) => this.pendingTeachers.has(q.teacher.username))
+            .map((q) => ({ username: q.teacher.username, earliestTime: q.getEarliestEventTime() }))
+            .filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
+
+        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
+            return { isLockFlagTime: false, lockCount: 0 };
+        }
+
+        const newGlobalEarliest = pendingTeachersTimes.reduce((min, t) => {
+            const minMinutes = timeToMinutes(min);
+            const tMinutes = timeToMinutes(t.earliestTime);
+            return tMinutes < minMinutes ? t.earliestTime : min;
+        }, pendingTeachersTimes[0].earliestTime);
+
+        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === newGlobalEarliest).length;
+
+        return {
+            isLockFlagTime: synchronizedCount === totalTeachers,
+            lockCount: synchronizedCount,
+        };
+    }
+
+    getLockStatusLocation() {
+        let totalEventsForLock = 0;
+        let synchronizedEventsCount = 0;
+        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
+
+        this.teacherQueues
+            .filter((q) => this.pendingTeachers.has(q.teacher.username))
+            .forEach((q) => {
+                const events = q.getAllEvents();
+                const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
+                const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
+
+                totalEventsForLock += events.length;
+
+                if (allMatch) {
+                    pendingTeachersLocations.push({ username: q.teacher.username, location: allLocations[0] });
+                } else {
+                    pendingTeachersLocations.push({ username: q.teacher.username, location: null });
+                }
+            });
+
+        const firstSynchronizedTeacher = pendingTeachersLocations.find((t) => t.location !== null);
+        const newGlobalLocation = firstSynchronizedTeacher?.location;
+
+        if (newGlobalLocation) {
+            this.teacherQueues
+                .filter((q) => this.pendingTeachers.has(q.teacher.username))
+                .forEach((q) => {
+                    const events = q.getAllEvents();
+                    const queueSynchronized = pendingTeachersLocations.find((t) => t.username === q.teacher.username)?.location === newGlobalLocation;
+                    if (queueSynchronized) {
+                        synchronizedEventsCount += events.length;
+                    }
+                });
+        }
+
+        const allSynchronized = pendingTeachersLocations.every((t) => t.location === newGlobalLocation && t.location !== null);
+
+        return {
+            isLockFlagLocation: allSynchronized && newGlobalLocation !== null,
+            lockLocationCount: synchronizedEventsCount,
+            totalLocationEventsForLock: totalEventsForLock,
+        };
+    }
+
     // ============ STATE MANAGEMENT ============
 
     /**

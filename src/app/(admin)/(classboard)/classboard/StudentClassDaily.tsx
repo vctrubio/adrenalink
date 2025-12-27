@@ -18,22 +18,12 @@ interface StudentClassDailyProps {
         onAddTeacher?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
         availableTeachers?: { username: string; firstName: string; id: string }[];
     };
-    setOnNewBooking?: (callback: () => void) => void;
 }
 
 type StudentBookingFilter = "available" | "onboard";
 
-export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard, setOnNewBooking }: StudentClassDailyProps) {
+export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
-
-    // Register a no-op callback with parent (just for compatibility)
-    useEffect(() => {
-        if (setOnNewBooking) {
-            setOnNewBooking(() => {
-                // No-op
-            });
-        }
-    }, [setOnNewBooking]);
 
     const { filteredBookings, counts } = useMemo(() => {
         // All bookings (onboard)

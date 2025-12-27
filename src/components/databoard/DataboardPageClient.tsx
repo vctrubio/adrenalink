@@ -1,26 +1,31 @@
 "use client";
 
-import { ComponentType, useMemo } from "react";
-import { DataboardRowsSection } from "./ClientDataHeader";
-import { DataboardTableSection, type TableRenderers } from "./DataboardTableSection";
+import { useMemo } from "react";
+import { DataboardTableSection } from "./DataboardTableSection";
 import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
+import { studentRenderers, calculateStudentGroupStats } from "./rows/StudentRow";
+import { teacherRenderers, calculateTeacherGroupStats } from "./rows/TeacherRow";
+import { bookingRenderers, calculateBookingGroupStats } from "./rows/BookingRow";
+import { equipmentRenderers, calculateEquipmentGroupStats } from "./rows/EquipmentRow";
+import { eventRenderers, calculateEventGroupStats } from "./rows/EventRow";
 import type { StatItem } from "@/src/components/ui/row";
-import type { AbstractModel } from "@/backend/models/AbstractModel";
 
 interface DataboardPageClientProps<T extends { id: string }> {
     entityId: string;
-    data: T[]; // AbstractModel<T>[] essentially
-    rowComponent?: ComponentType<{ item: any }>; // making optional
-    renderers?: TableRenderers<AbstractModel<T>>; // New prop
-    calculateStats: (data: any[]) => StatItem[];
+    data: T[];
 }
+
+const statsMap: Record<string, (data: any[]) => StatItem[]> = {
+    student: calculateStudentGroupStats,
+    teacher: calculateTeacherGroupStats,
+    booking: calculateBookingGroupStats,
+    equipment: calculateEquipmentGroupStats,
+    event: calculateEventGroupStats,
+};
 
 export function DataboardPageClient<T extends { id: string }>({
     entityId,
     data,
-    rowComponent,
-    renderers,
-    calculateStats
 }: DataboardPageClientProps<T>) {
     const { order: teacherSortOrder } = useTeacherSortOrder();
 
@@ -38,27 +43,17 @@ export function DataboardPageClient<T extends { id: string }>({
         });
     }, [data, entityId, teacherSortOrder]);
 
-    if (renderers) {
-        return (
-            <DataboardTableSection
-                entityId={entityId}
-                data={sortedData as any}
-                renderers={renderers}
-                calculateStats={calculateStats}
-            />
-        );
+    const calculateStats = statsMap[entityId];
+
+    if (!calculateStats) {
+        return <div>Missing stats for entity: {entityId}</div>;
     }
 
-    if (rowComponent) {
-        return (
-            <DataboardRowsSection
-                entityId={entityId}
-                data={sortedData as any}
-                rowComponent={rowComponent as any}
-                calculateStats={calculateStats}
-            />
-        );
-    }
-
-    return <div>Missing row configuration</div>;
+    return (
+        <DataboardTableSection
+            entityId={entityId}
+            data={sortedData as any}
+            calculateStats={calculateStats}
+        />
+    );
 }

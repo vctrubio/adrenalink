@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 import { headers } from "next/headers";
-import { AdminSideBar } from "@/src/components/navigations/AdminSideBar";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import FacebookNav from "@/src/components/navigations/FacebookNav";
@@ -103,7 +102,6 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="flex flex-col h-screen bg-background">
                     <FacebookNav />
                     <div className="flex flex-1 overflow-hidden">
-                        {/* <AdminSideBar schoolName={schoolHeader?.name} /> */}
                         <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
                     </div>
                 </div>

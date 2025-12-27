@@ -32,7 +32,7 @@ import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, create
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 
 const ActionButton = ({ icon: Icon, children, onClick, buttonRef }: { icon?: React.ElementType; children?: React.ReactNode; onClick?: () => void; buttonRef?: React.RefObject<HTMLButtonElement> }) => (
-    <button ref={buttonRef} onClick={onClick} className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent active:scale-95">
+    <button ref={buttonRef} onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
         {Icon && <Icon className="h-5 w-5" />}
         {children}
     </button>
@@ -56,7 +56,6 @@ export const NavRight = () => {
     const adminButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -207,106 +206,22 @@ export const NavRight = () => {
         );
     };
 
-    const mobileMenuItems: DropdownItemProps[] = [
-        {
-            id: "headset",
-            label: "Teacher Sort",
-            icon: HeadsetIcon,
-            onClick: () => {
-                setIsTeacherSortModalOpen(true);
-                setIsAdminDropdownOpen(false);
-            },
-        },
-        {
-            id: "create",
-            label: "Create",
-            icon: Plus,
-            onClick: () => {
-                setIsCreateDropdownOpen(true);
-                setIsAdminDropdownOpen(false);
-            },
-        },
-        {
-            id: "theme",
-            label: isDarkMode ? "Light Mode" : "Dark Mode",
-            icon: isDarkMode ? Sun : Moon,
-            onClick: () => {
-                setTheme(isDarkMode ? "light" : "dark");
-                setIsAdminDropdownOpen(false);
-            },
-        },
-    ];
-
     return (
         <>
-            <div className="flex items-center gap-1.5 md:gap-2">
-                {/* Desktop buttons */}
-                <div className="hidden md:flex items-center gap-2">
-                    <ActionButton icon={HeadsetIcon} onClick={() => setIsTeacherSortModalOpen(true)} />
-                    <div className="relative">
-                        <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
-                        <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" triggerRef={createButtonRef} />
-                    </div>
-                    <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
+            <div className="flex items-center gap-2">
+                <ActionButton icon={HeadsetIcon} onClick={() => setIsTeacherSortModalOpen(true)} />
+                <div className="relative">
+                    <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
+                    <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" triggerRef={createButtonRef} />
                 </div>
-
-                {/* Mobile & Desktop admin button with dropdown */}
+                <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
                     </ActionButton>
-                    <Dropdown
-                        isOpen={isAdminDropdownOpen}
-                        onClose={() => setIsAdminDropdownOpen(false)}
-                        items={[
-                            ...mobileMenuItems,
-                            { id: "divider", label: "" },
-                            ...adminDropdownItems,
-                        ]}
-                        renderItem={(item) => {
-                            if (item.id === "divider") {
-                                return <div className="md:hidden h-px bg-border my-1"></div>;
-                            }
-                            if (mobileMenuItems.some((mi) => mi.id === item.id)) {
-                                return (
-                                    <button onClick={item.onClick} className="md:hidden w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors">
-                                        {item.icon && <item.icon className="h-4 w-4 text-muted-foreground" />}
-                                        <span className="text-foreground">{item.label}</span>
-                                    </button>
-                                );
-                            }
-                            return renderCredentialItem(item);
-                        }}
-                        align="right"
-                        triggerRef={adminButtonRef}
-                    />
+                    <Dropdown isOpen={isAdminDropdownOpen} onClose={() => setIsAdminDropdownOpen(false)} items={adminDropdownItems} renderItem={renderCredentialItem} align="right" triggerRef={adminButtonRef} />
                 </div>
             </div>
-
-            {/* Create entity dropdown - positioned relative to create button */}
-            <div className="md:hidden">
-                {isCreateDropdownOpen && (
-                    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
-                        <div className="absolute inset-0 bg-black/20" onClick={() => setIsCreateDropdownOpen(false)}></div>
-                        <div className="relative bg-card border border-border rounded-lg shadow-lg min-w-[200px] max-w-[90vw]">
-                            {createDropdownItems.map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => {
-                                        item.onClick?.();
-                                        setIsCreateDropdownOpen(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors first:rounded-t-lg last:rounded-b-lg"
-                                >
-                                    {item.icon && <item.icon className="h-4 w-4" style={{ color: item.color }} />}
-                                    <span className="text-foreground">{item.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-
             <TeacherSortPriorityManModal isOpen={isTeacherSortModalOpen} onClose={() => setIsTeacherSortModalOpen(false)} />
 
             <EntityAddDialog isOpen={selectedCreateEntity === "student"} onClose={() => setSelectedCreateEntity(null)}>

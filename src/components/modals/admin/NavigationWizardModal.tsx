@@ -13,6 +13,7 @@ import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { getWizardEntities, type WizardEntity } from "@/actions/wizard-sql-action";
 import { PopUpRows } from "@/src/components/ui/popup/PopUpRows";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
+import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import React from "react";
 
 interface NavigationWizardModalProps {
@@ -171,8 +172,8 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
             width: "1fr",
             cell: (entity) => (
                 <div className="flex flex-col">
-                    <span className="font-bold text-lg">{entity.name}</span>
-                    <span className="text-xs text-muted-foreground">{entity.description[0]}</span>
+                    <span className="font-bold text-lg popup-text-primary">{entity.name}</span>
+                    <span className="text-xs popup-text-tertiary">{entity.description[0]}</span>
                 </div>
             )
         },
@@ -203,7 +204,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+                    <div className="popup-backdrop" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -240,21 +241,21 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                         initial={{ scale: 0.9, opacity: 0 }}
                                                         animate={{ scale: 1, opacity: 1 }}
                                                         transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
-                                                        className="text-white"
+                                                        className="popup-text-primary"
                                                     >
                                                         <AdranlinkIcon size={32} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
                                                     </motion.div>
-                                                    
-                                                    <motion.h2 
+
+                                                    <motion.h2
                                                         initial={{ opacity: 0, x: -5 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
-                                                        className="text-3xl font-bold tracking-tight text-white"
+                                                        className="text-3xl popup-header-title"
                                                     >
                                                         Adrenalink
                                                     </motion.h2>
                                                 </div>
-                                                <p className="text-white/40 text-sm font-medium">Navigate your way</p>
+                                                <p className="popup-header-subtitle">Navigate your way</p>
                                             </motion.div>
                                         ) : (
                                             <motion.div
@@ -269,7 +270,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     setTimeout(() => searchInputRef.current?.focus(), 50);
                                                 }}
                                             >
-                                                <div className="flex items-center gap-3 mb-1 text-white/50 group-hover:text-white transition-colors">
+                                                <div className="flex items-center gap-3 mb-1 popup-text-secondary group-hover:popup-text-primary transition-colors">
                                                     <motion.div
                                                         initial={{ rotate: 0 }}
                                                         animate={{ rotate: -90 }} // Updated to -90
@@ -279,11 +280,11 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     </motion.div>
                                                     <span className="text-xl font-bold tracking-tight">Adrenalink</span>
                                                 </div>
-                                                
-                                                <h2 className="text-4xl font-black tracking-tight text-white mb-1">
+
+                                                <h2 className="text-4xl font-black tracking-tight popup-text-primary mb-1">
                                                     {expandedEntityName}
                                                 </h2>
-                                                <p className="text-white/40 text-sm font-medium">Select an item</p>
+                                                <p className="popup-header-subtitle">Select an item</p>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -317,16 +318,12 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                             
                                             {/* Tab Hint */}
                                             {mainNav.selectedItem && (
-                                                <motion.div 
+                                                <motion.div
                                                     initial={{ opacity: 0 }}
                                                     animate={{ opacity: 1 }}
-                                                    className="mt-4 text-center"
+                                                    className="mt-4"
                                                 >
-                                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-white/40">
-                                                        <span>Press</span>
-                                                        <span className="bg-white/10 px-1 py-0.5 rounded text-white/60 font-bold">TAB</span>
-                                                        <span>to browse {mainNav.selectedItem.name}</span>
-                                                    </div>
+                                                    <KeyboardHint keys="TAB" action={`to browse ${mainNav.selectedItem.name}`} />
                                                 </motion.div>
                                             )}
                                         </motion.div>
@@ -348,7 +345,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
 
                                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar max-h-[50vh]">
                                                 {isLoadingSubList ? (
-                                                    <div className="flex items-center justify-center h-32 text-white/40">
+                                                    <div className="popup-loading h-32">
                                                         <Loader2 className="w-6 h-6 animate-spin" />
                                                     </div>
                                                 ) : (
@@ -367,14 +364,14 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                         renderItem={(item, isSelected) => (
                                                             <div className="flex items-center justify-between px-4 py-3 gap-4">
                                                                 <div className="flex flex-col">
-                                                                    <span className={`font-medium ${isSelected ? "text-white" : "text-white/60"}`}>
+                                                                    <span className={`font-medium ${isSelected ? "popup-text-primary" : "popup-text-secondary"}`}>
                                                                         {item.title}
                                                                     </span>
-                                                                    <span className="text-xs text-white/30">
+                                                                    <span className="text-xs popup-text-tertiary">
                                                                         {item.subtitle}
                                                                     </span>
                                                                 </div>
-                                                                <div className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${item.isActive ? "bg-green-500/20 text-green-400" : "bg-white/5 text-white/30"}`}>
+                                                                <div className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${item.isActive ? "bg-green-500/20 text-green-400 dark:bg-green-500/20 dark:text-green-400" : "popup-button-disabled"}`}>
                                                                     {item.isActive ? "Active" : "Inactive"}
                                                                 </div>
                                                             </div>
@@ -384,32 +381,25 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                             </div>
 
                                             {/* Back Hint */}
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className="mt-4 text-center"
+                                                className="mt-4"
                                             >
-                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-white/40">
-                                                    <span>Press</span>
-                                                    <span className="bg-white/10 px-1 py-0.5 rounded text-white/60 font-bold">Shift + TAB</span>
-                                                    <span>to go back</span>
-                                                </div>
+                                                <KeyboardHint keys={["Shift", "TAB"]} action="to go back" />
                                             </motion.div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
 
                                 {/* Footer Hint (Always visible) */}
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.4 }}
-                                    className="mt-2 text-center"
+                                    className="mt-2"
                                 >
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-transparent text-[10px] font-mono text-white/20">
-                                        <span className="bg-white/5 px-1 py-0.5 rounded text-white/40 font-bold">ESC</span>
-                                        <span>to close</span>
-                                    </div>
+                                    <KeyboardHint keys="ESC" action="to close" />
                                 </motion.div>
                             </motion.div>
                         </Dialog.Panel>
