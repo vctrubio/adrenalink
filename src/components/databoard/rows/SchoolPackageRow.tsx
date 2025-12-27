@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingCreateTag } from "@/src/components/tags";
 import { SchoolPackageStats as DataboardSchoolPackageStats } from "@/src/components/databoard/stats";
@@ -70,11 +69,7 @@ export const schoolPackageRenderers: TableRenderers<SchoolPackageModel> = {
                         <PackageIconComponent className="w-8 h-8" />
                     </div>
                 }
-                name={
-                    <HoverToEntity entity={packageEntity} id={schoolPackage.schema.id}>
-                        {schoolPackage.schema.description || "No description"}
-                    </HoverToEntity>
-                }
+                name={schoolPackage.schema.description || "No description"}
                 status={currentStatusConfig.label}
                 dropdownItems={statusDropdownItems}
                 statusColor={currentStatusConfig.color}
@@ -191,11 +186,7 @@ export const SchoolPackageRow = ({ item: schoolPackage }: SchoolPackageRowProps)
                         <PackageIconComponent className="w-10 h-10" />
                     </div>
                 ),
-                name: (
-                    <HoverToEntity entity={packageEntity} id={schoolPackage.schema.id}>
-                        {schoolPackage.schema.description || "No description"}
-                    </HoverToEntity>
-                ),
+                name: schoolPackage.schema.description || "No description",
                 status: currentStatusConfig.label,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,

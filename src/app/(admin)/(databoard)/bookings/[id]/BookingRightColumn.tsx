@@ -162,7 +162,7 @@ export function BookingRightColumn({ booking, stats }: BookingRightColumnProps) 
             const lessonRevenue = schoolPackage ? calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, lessonDurationMinutes, schoolPackage.durationMinutes) : 0;
             const commissionType = (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed";
             const cph = parseFloat(lesson.commission?.cph || "0");
-            
+
             const basicRows = transformEventsToRows(events);
 
             return basicRows.map((row) => {
@@ -250,9 +250,7 @@ export function BookingRightColumn({ booking, stats }: BookingRightColumnProps) 
             />
 
             <AnimatePresence mode="wait">
-                {viewMode === "timeline" && (
-                    <Timeline events={timelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={true} showFinancials={true} />
-                )}
+                {viewMode === "timeline" && <Timeline events={timelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={true} showFinancials={true} />}
                 {viewMode === "by-teacher" && (
                     <motion.div key="by-teacher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
                         {teacherStats.map((teacher) => {
@@ -286,12 +284,8 @@ export function BookingRightColumn({ booking, stats }: BookingRightColumnProps) 
                         })}
                     </motion.div>
                 )}
-                {viewMode === "table" && (
-                    <TableView eventRows={eventRows} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} totals={totals} />
-                )}
-                {viewMode === "receipt" && (
-                    <BookingReceipt booking={booking} eventRows={eventRows as BookingReceiptEventRow[]} totals={totals} schoolPackage={schoolPackage} formatCurrency={formatCurrency} currency={currency} />
-                )}
+                {viewMode === "table" && <TableView eventRows={eventRows} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} totals={totals} />}
+                {viewMode === "receipt" && <BookingReceipt booking={booking} eventRows={eventRows as BookingReceiptEventRow[]} totals={totals} schoolPackage={schoolPackage} formatCurrency={formatCurrency} currency={currency} />}
             </AnimatePresence>
         </div>
     );

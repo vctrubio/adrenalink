@@ -2,6 +2,7 @@
 
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
+import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress";
 import { TeacherDataboard } from "@/getters/databoard-getter";
 import { createStat } from "@/src/components/databoard/stats/stat-factory";
@@ -53,6 +54,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
 
   // Teacher Card
   const teacherCardData: LeftColumnCardData = {
+    name: teacher.schema.username,
     status: teacher.updateForm.active ? "Active" : "Inactive",
     avatar: (
       <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
@@ -60,6 +62,10 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
       </div>
     ),
     fields: [
+      {
+        label: "Username",
+        value: teacher.schema.username,
+      },
       {
         label: "First Name",
         value: teacher.updateForm.firstName,

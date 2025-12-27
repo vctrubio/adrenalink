@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/actions/equipments-action";
@@ -9,7 +10,6 @@ import { ENTITY_DATA } from "@/config/entities";
 import type { EquipmentModel } from "@/backend/models";
 import { Check, X } from "lucide-react";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
-import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import { Modal, TeacherModalListRow } from "@/src/components/modals";
 
 interface EquipmentTeacherManModalProps {
@@ -23,7 +23,9 @@ export function EquipmentTeacherManModal({
   onClose,
   equipment,
 }: EquipmentTeacherManModalProps) {
+  const router = useRouter();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [filterMode, setFilterMode] = useState<"active" | "all">("all");
   const { teachers } = useSchoolTeachers();
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
   const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
@@ -61,6 +63,16 @@ export function EquipmentTeacherManModal({
     }
   };
 
+  const handleNavigate = (teacher: typeof teachers[number]) => {
+    router.push(`/teachers/${teacher.schema.id}`);
+    onClose();
+  };
+
+  const displayTeachers = useMemo(() => {
+    if (filterMode === "all") return teachers;
+    return teachers.filter(t => t.schema.active);
+  }, [teachers, filterMode]);
+
   // Keyboard navigation
   const {
     searchQuery,
@@ -69,15 +81,17 @@ export function EquipmentTeacherManModal({
     focusedIndex,
     setFocusedIndex
   } = useModalNavigation({
-    items: teachers,
+    items: displayTeachers,
     filterField: (teacher) => teacher.schema.username,
     isOpen,
     isActive: true,
-    onSelect: handleToggleLink,
+    onSelect: handleNavigate,
+    onShiftSelect: handleToggleLink,
     onTabSelect: handleToggleLink,
   });
 
   const linkedCount = filteredTeachers.filter((t) => linkedTeacherIds.has(t.schema.id)).length;
+  const activeCount = teachers.filter(t => t.schema.active).length;
 
   return (
     <Modal
@@ -91,13 +105,29 @@ export function EquipmentTeacherManModal({
       maxWidth="2xl"
     >
       <div className="flex flex-col gap-4">
-        {/* Search with Counter */}
-        <div className="flex items-center gap-3">
+        {/* Search and Filter */}
+        <div className="flex flex-wrap items-center gap-3">
           <PopUpSearch
             value={searchQuery}
             onChange={setSearchQuery}
-            className="flex-1"
+            className="flex-1 min-w-[200px]"
           />
+
+          <div className="flex p-1 bg-muted/30 rounded-xl border border-border/50 flex-shrink-0">
+            <button 
+                onClick={() => setFilterMode("all")}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "all" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+                All ({teachers.length})
+            </button>
+            <button 
+                onClick={() => setFilterMode("active")}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+                Active ({activeCount})
+            </button>
+          </div>
+
           {filteredTeachers.length > 0 && (
             <div className="flex-shrink-0 px-3 py-2.5 rounded-lg text-sm font-medium popup-text-secondary" style={{ backgroundColor: `${teacherEntity?.color}15` }}>
               {linkedCount}/{filteredTeachers.length}
@@ -117,6 +147,10 @@ export function EquipmentTeacherManModal({
               const isFocused = index === focusedIndex;
               const isHovered = index === hoveredIndex;
 
+              const lessons = teacher.relations?.lessons || [];
+              const totalLessons = lessons.length;
+              const plannedLessons = lessons.filter(l => l.status === "active" || l.status === "rest").length;
+
               return (
                 <TeacherModalListRow
                   key={teacher.schema.id}
@@ -127,13 +161,7 @@ export function EquipmentTeacherManModal({
                   onFocus={() => setFocusedIndex(index)}
                   onHover={() => setHoveredIndex(index)}
                   onHoverEnd={() => setHoveredIndex(null)}
-                  onClick={() => {
-                    if (isLinked) {
-                      handleRemoveTeacher(teacher.schema.id);
-                    } else {
-                      handleAddTeacher(teacher.schema.id);
-                    }
-                  }}
+                  onClick={() => handleToggleLink(teacher)}
                   iconColor={isLinked ? "#22c55e" : teacherEntity?.color}
                   layoutId="equipment-teacher-indicator"
                   statusBadge={
@@ -155,10 +183,35 @@ export function EquipmentTeacherManModal({
           )}
         </div>
 
-        {/* Keyboard Hint */}
-        {filteredTeachers.length > 0 && (
-          <KeyboardHint keys="TAB" action="to toggle link" className="mt-4" />
-        )}
+        {/* Keyboard Hints */}
+        <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-border/20">
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Go-To</span>
+                <span className="popup-hint-key text-[10px]">ENTER</span>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Submit</span>
+                <div className="flex gap-1">
+                    <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                    <span className="popup-hint-key text-[10px]">ENTER</span>
+                </div>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Toggle</span>
+                <span className="popup-hint-key text-[10px]">TAB</span>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Reset</span>
+                <div className="flex gap-1">
+                    <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                    <span className="popup-hint-key text-[10px]">TAB</span>
+                </div>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Close</span>
+                <span className="popup-hint-key text-[10px]">ESC</span>
+            </div>
+        </div>
       </div>
     </Modal>
   );

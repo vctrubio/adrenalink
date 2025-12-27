@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { LessonTag } from "@/src/components/tags";
 import { TeacherEventEquipmentPopover } from "@/src/components/popover/TeacherEventEquipmentPopover";
@@ -93,11 +92,7 @@ export const teacherRenderers: TableRenderers<TeacherModel> = {
                         <TeacherIcon className="w-8 h-8" />
                     </div>
                 }
-                name={
-                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
-                        {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
-                    </HoverToEntity>
-                }
+                name={`${teacher.schema.firstName} ${teacher.schema.lastName}`}
                 status={currentStatusConfig.label}
                 dropdownItems={statusDropdownItems}
                 statusColor={currentStatusConfig.color}
@@ -180,11 +175,7 @@ export const TeacherRow = ({ item: teacher }: TeacherRowProps) => {
                         <TeacherIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: (
-                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
-                        {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
-                    </HoverToEntity>
-                ),
+                name: `${teacher.schema.firstName} ${teacher.schema.lastName}`,
                 status: currentStatusConfig.label,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,

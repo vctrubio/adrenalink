@@ -159,3 +159,9 @@ export function getBookingDays(booking: BookingModel): number {
         (1000 * 60 * 60 * 24)
     ) + 1;
 }
+
+export function getBookingStudentNames(booking: BookingModel): string {
+    const bookingStudents = booking.relations?.bookingStudents || [];
+    const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
+    return studentNames.join(" ");
+}

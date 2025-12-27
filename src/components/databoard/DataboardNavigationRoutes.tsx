@@ -18,25 +18,11 @@ export function DataboardNavigationRoutes() {
                     const Icon = entity.icon;
 
                     return (
-                        <Link
-                            key={entity.id}
-                            href={entity.link}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
-                                isActive ? "bg-card shadow-sm" : ""
-                            }`}
-                            onMouseEnter={() => setHoveredId(entity.id)}
-                            onMouseLeave={() => setHoveredId(null)}
-                        >
-                            <div
-                                className="w-5 h-5 transition-colors [&>svg]:w-full [&>svg]:h-full"
-                                style={{ color: isActive || (isHovered && !isActive) ? entity.color : undefined }}
-                            >
+                        <Link key={entity.id} href={entity.link} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${isActive ? "bg-card shadow-sm" : ""}`} onMouseEnter={() => setHoveredId(entity.id)} onMouseLeave={() => setHoveredId(null)}>
+                            <div className="w-5 h-5 transition-colors [&>svg]:w-full [&>svg]:h-full" style={{ color: isActive || (isHovered && !isActive) ? entity.color : undefined }}>
                                 <Icon />
                             </div>
-                            <span
-                                className={`text-sm hidden sm:inline transition-colors ${isActive ? "font-bold" : "font-medium"}`}
-                                style={{ color: isHovered ? entity.color : undefined }}
-                            >
+                            <span className={`text-sm hidden sm:inline transition-colors ${isActive ? "font-bold" : "font-medium"}`} style={{ color: isHovered ? entity.color : undefined }}>
                                 {entity.name}
                             </span>
                         </Link>

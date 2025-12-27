@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { TeacherBookingTag, TeacherBookingCreateTag } from "@/src/components/tags";
 import { BookingCompletionPopover } from "@/src/components/popover/BookingCompletionPopover";
@@ -72,11 +71,7 @@ export const bookingRenderers: TableRenderers<BookingModel> = {
         return (
             <RowHead
                 avatar={<div style={{ color: bookingEntity.color }}>{EquipmentIcon ? <EquipmentIcon className="w-8 h-8" /> : <BookingIconComponent className="w-8 h-8" />}</div>}
-                name={
-                    <HoverToEntity entity={bookingEntity} id={booking.schema.id}>
-                        {booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
-                    </HoverToEntity>
-                }
+                name={booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
                 status={<DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />}
                 dropdownItems={statusDropdownItems}
                 statusColor={currentStatusConfig.color}
@@ -198,11 +193,7 @@ export const BookingRow = ({ item: booking }: BookingRowProps) => {
             isActive={isActive}
             head={{
                 avatar: <div style={{ color: iconColor }}>{EquipmentIcon ? <EquipmentIcon className="w-10 h-10" /> : <BookingIconComponent className="w-10 h-10" />}</div>,
-                name: (
-                    <HoverToEntity entity={bookingEntity} id={booking.schema.id}>
-                        {booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`}
-                    </HoverToEntity>
-                ),
+                name: booking.schema.leaderStudentName || `Booking ${booking.schema.id.slice(0, 8)}`,
                 status: <DateRangeBadge startDate={booking.schema.dateStart} endDate={booking.schema.dateEnd} />,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,

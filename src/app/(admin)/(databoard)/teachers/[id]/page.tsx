@@ -29,7 +29,7 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
     }
 
     const stats = [
-        createStat("teacher", teacher.schema.username, teacher.schema.username),
+        createStat("teacher", `${teacher.schema.firstName} ${teacher.schema.lastName}`, teacher.schema.firstName),
         createStat("lessons", TeacherDataboard.getLessonCount(teacher), "Lessons"),
         createStat("events", TeacherDataboard.getEventCount(teacher), "Events"),
         createStat("duration", TeacherDataboard.getDurationMinutes(teacher), "Duration"),

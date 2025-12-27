@@ -1,7 +1,6 @@
 "use client";
 
 import { Row, type StatItem } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { RentalStats, getStudentName, getRentalDateString, getRentalLocation, getRentalStatus, getEquipmentInfo } from "@/getters/rentals-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
@@ -70,11 +69,7 @@ export const RentalRow = ({ item: rental }: RentalRowProps) => {
                         <RentalIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: (
-                    <HoverToEntity entity={rentalEntity} id={rental.schema.id}>
-                        {studentName}
-                    </HoverToEntity>
-                ),
+                name: studentName,
                 status,
             }}
             str={{

@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
@@ -25,6 +26,7 @@ interface WizardTableProps<T> {
     accentColor?: string;
     hideHeader?: boolean;
     className?: string;
+    entityId?: string;
 }
 
 export function WizardTable<T>({
@@ -39,9 +41,23 @@ export function WizardTable<T>({
     accentColor = "#3b82f6", // Default blue
     hideHeader = false,
     className = "",
+    entityId,
 }: WizardTableProps<T>) {
+    const router = useRouter();
     const getId = (item: T) => (getRowId ? getRowId(item) : (item as any).id);
     const getRowColor = (item: T) => (getRowAccentColor ? getRowAccentColor(item) : accentColor);
+
+    const handleRowClick = (item: T) => {
+        if (entityId) {
+            const id = getId(item);
+            const routeMap: Record<string, string> = {
+                schoolPackage: "packages",
+            };
+            const route = routeMap[entityId] || `${entityId}s`;
+            router.push(`/${route}/${id}`);
+        }
+        onRowClick?.(item);
+    };
 
     const grouped = groupBy
         ? data.reduce(
@@ -157,6 +173,7 @@ export function WizardTable<T>({
                                         return (
                                             <motion.div
                                                 key={uniqueKey}
+                                                data-row-id={rowId}
                                                 layout
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{
@@ -165,10 +182,10 @@ export function WizardTable<T>({
                                                     scale: 1,
                                                 }}
                                                 transition={{ duration: 0.3, ease: "easeOut" }}
-                                                onClick={() => onRowClick?.(item)}
+                                                onClick={() => handleRowClick(item)}
                                                 onMouseEnter={() => setHoveredId(uniqueKey)}
                                                 onMouseLeave={() => setHoveredId(null)}
-                                                className={`grid px-4 py-3 transition-all relative group rounded-xl border ${isSelected ? "popup-row-focused" : "popup-row"} ${onRowClick ? "cursor-pointer" : ""}`}
+                                                className={`grid px-4 py-3 transition-all relative group rounded-xl border ${isSelected ? "popup-row-focused" : "popup-row"} ${entityId || onRowClick ? "cursor-pointer" : ""}`}
                                                 style={{
                                                     gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
                                                 }}

@@ -3,11 +3,11 @@
 import { useMemo } from "react";
 import { DataboardTableSection } from "./DataboardTableSection";
 import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
-import { studentRenderers, calculateStudentGroupStats } from "./rows/StudentRow";
-import { teacherRenderers, calculateTeacherGroupStats } from "./rows/TeacherRow";
-import { bookingRenderers, calculateBookingGroupStats } from "./rows/BookingRow";
-import { equipmentRenderers, calculateEquipmentGroupStats } from "./rows/EquipmentRow";
-import { eventRenderers, calculateEventGroupStats } from "./rows/EventRow";
+import { calculateStudentGroupStats } from "./rows/StudentRow";
+import { calculateTeacherGroupStats } from "./rows/TeacherRow";
+import { calculateBookingGroupStats } from "./rows/BookingRow";
+import { calculateEquipmentGroupStats } from "./rows/EquipmentRow";
+import { calculateEventGroupStats } from "./rows/EventRow";
 import { calculateSchoolPackageGroupStats } from "./rows/SchoolPackageRow";
 import type { StatItem } from "@/src/components/ui/row";
 
@@ -25,10 +25,7 @@ const statsMap: Record<string, (data: any[]) => StatItem[]> = {
     schoolPackage: calculateSchoolPackageGroupStats,
 };
 
-export function DataboardPageClient<T extends { id: string }>({
-    entityId,
-    data,
-}: DataboardPageClientProps<T>) {
+export function DataboardPageClient<T extends { id: string }>({ entityId, data }: DataboardPageClientProps<T>) {
     const { order: teacherSortOrder } = useTeacherSortOrder();
 
     const sortedData = useMemo(() => {
@@ -51,11 +48,5 @@ export function DataboardPageClient<T extends { id: string }>({
         return <div>Missing stats for entity: {entityId}</div>;
     }
 
-    return (
-        <DataboardTableSection
-            entityId={entityId}
-            data={sortedData as any}
-            calculateStats={calculateStats}
-        />
-    );
+    return <DataboardTableSection entityId={entityId} data={sortedData as any} calculateStats={calculateStats} />;
 }

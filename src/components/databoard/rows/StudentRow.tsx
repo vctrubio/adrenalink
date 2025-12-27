@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingTag, BookingCreateTag } from "@/src/components/tags";
 import { StudentPackagePopover } from "@/src/components/popover/StudentPackagePopover";
@@ -85,11 +84,7 @@ export const studentRenderers: TableRenderers<StudentModel> = {
                         <StudentIcon className="w-8 h-8" />
                     </div>
                 }
-                name={
-                    <HoverToEntity entity={studentEntity} id={student.schema.id}>
-                        {fullName}
-                    </HoverToEntity>
-                }
+                name={fullName}
                 status={currentStatusConfig.label}
                 dropdownItems={statusDropdownItems}
                 statusColor={currentStatusConfig.color}
@@ -173,11 +168,7 @@ export const StudentRow = ({ item: student, onStatusChange }: StudentRowProps) =
                         <StudentIcon className="w-10 h-10" />
                     </div>
                 ),
-                name: (
-                    <HoverToEntity entity={studentEntity} id={student.schema.id}>
-                        {fullName}
-                    </HoverToEntity>
-                ),
+                name: fullName,
                 status: currentStatusConfig.label,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,

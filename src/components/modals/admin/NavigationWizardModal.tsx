@@ -32,13 +32,9 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
     const [subItems, setSubItems] = useState<WizardEntity[]>([]);
     const [isLoadingSubList, setIsLoadingSubList] = useState(false);
 
-    const allEntities = useMemo(() => TARGET_ENTITIES.map(id => 
-        ENTITY_DATA.find(e => e.id === id)
-    ).filter((e): e is typeof ENTITY_DATA[number] => !!e), []);
+    const allEntities = useMemo(() => TARGET_ENTITIES.map((id) => ENTITY_DATA.find((e) => e.id === id)).filter((e): e is (typeof ENTITY_DATA)[number] => !!e), []);
 
-    const expandedEntityName = useMemo(() => 
-        allEntities.find(e => e.id === expandedEntityId)?.name, 
-    [expandedEntityId, allEntities]);
+    const expandedEntityName = useMemo(() => allEntities.find((e) => e.id === expandedEntityId)?.name, [expandedEntityId, allEntities]);
 
     // Reset state when closing
     const handleClose = useCallback(() => {
@@ -56,7 +52,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
         onSelect: (item) => {
             handleClose();
             router.push(item.link);
-        }
+        },
     });
 
     // SUB NAVIGATION
@@ -67,8 +63,12 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
         isActive: !!expandedEntityId,
         onSelect: (item) => {
             handleClose();
-            router.push(`/${expandedEntityId}s/${item.id}`);
-        }
+            const routeMap: Record<string, string> = {
+                schoolPackage: "packages",
+            };
+            const route = routeMap[expandedEntityId || ""] || `${expandedEntityId}s`;
+            router.push(`/${route}/${item.id}`);
+        },
     });
 
     // Fetch sub-list data
@@ -120,16 +120,16 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                 // If it's a hotkey map
                 const key = e.key.toLowerCase();
                 const map: Record<string, string> = {
-                    "s": "student",
-                    "t": "teacher",
-                    "p": "schoolPackage",
-                    "b": "booking",
-                    "e": "equipment"
+                    s: "student",
+                    t: "teacher",
+                    p: "schoolPackage",
+                    b: "booking",
+                    e: "equipment",
                 };
-                
+
                 // If key matches a mapped entity, focus it directly
                 if (map[key]) {
-                    const index = allEntities.findIndex(entity => entity.id === map[key]);
+                    const index = allEntities.findIndex((entity) => entity.id === map[key]);
                     if (index !== -1) {
                         mainNav.setFocusedIndex(index);
                     }
@@ -144,14 +144,14 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
     // Initial sync
     useEffect(() => {
         if (isOpen && !expandedEntityId) {
-            const currentIndex = allEntities.findIndex(e => pathname.startsWith(e.link));
+            const currentIndex = allEntities.findIndex((e) => pathname.startsWith(e.link));
             if (currentIndex !== -1) {
                 mainNav.setFocusedIndex(currentIndex);
             }
         }
     }, [isOpen, pathname, allEntities, mainNav.setFocusedIndex, expandedEntityId]);
 
-    const columns: WizardColumn<typeof ENTITY_DATA[number]>[] = [
+    const columns: WizardColumn<(typeof ENTITY_DATA)[number]>[] = [
         {
             id: "icon",
             header: "",
@@ -164,7 +164,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                         <Icon className="w-6 h-6" />
                     </div>
                 );
-            }
+            },
         },
         {
             id: "name",
@@ -175,35 +175,21 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                     <span className="font-bold text-lg popup-text-primary">{entity.name}</span>
                     <span className="text-xs popup-text-tertiary">{entity.description[0]}</span>
                 </div>
-            )
+            ),
         },
         {
             id: "action",
             header: "",
             width: "40px",
             align: "center",
-            cell: (entity, { isHovered }) => (
-                <GoToAdranlink 
-                    href={entity.link} 
-                    onNavigate={handleClose} 
-                    isHovered={isHovered}
-                />
-            )
-        }
+            cell: (entity, { isHovered }) => <GoToAdranlink href={entity.link} onNavigate={handleClose} isHovered={isHovered} />,
+        },
     ];
 
     return (
         <Transition show={isOpen} as={Fragment}>
             <Dialog onClose={handleClose} className="relative z-50">
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-200"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-150"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
+                <Transition.Child as={Fragment} enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0">
                     <div className="popup-backdrop" />
                 </Transition.Child>
 
@@ -218,40 +204,18 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                         leaveTo="opacity-0 scale-95 translate-y-4"
                     >
                         <Dialog.Panel className="w-full max-w-2xl outline-none">
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="relative flex flex-col max-h-[85vh]"
-                            >
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="relative flex flex-col max-h-[85vh]">
                                 {/* Dynamic Header */}
                                 <div className="mb-6 flex flex-col items-center">
                                     <AnimatePresence mode="wait">
                                         {!expandedEntityId ? (
-                                            <motion.div
-                                                key="header-main"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.2 }}
-                                                className="flex flex-col items-center"
-                                            >
+                                            <motion.div key="header-main" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="flex flex-col items-center">
                                                 <div className="flex items-center gap-4 mb-1">
-                                                    <motion.div
-                                                        initial={{ scale: 0.9, opacity: 0 }}
-                                                        animate={{ scale: 1, opacity: 1 }}
-                                                        transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
-                                                        className="popup-text-primary"
-                                                    >
+                                                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }} className="popup-text-primary">
                                                         <AdranlinkIcon size={32} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
                                                     </motion.div>
 
-                                                    <motion.h2
-                                                        initial={{ opacity: 0, x: -5 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
-                                                        className="text-3xl popup-header-title"
-                                                    >
+                                                    <motion.h2 initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }} className="text-3xl popup-header-title">
                                                         Adrenalink
                                                     </motion.h2>
                                                 </div>
@@ -281,9 +245,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     <span className="text-xl font-bold tracking-tight">Adrenalink</span>
                                                 </div>
 
-                                                <h2 className="text-4xl font-black tracking-tight popup-text-primary mb-1">
-                                                    {expandedEntityName}
-                                                </h2>
+                                                <h2 className="text-4xl font-black tracking-tight popup-text-primary mb-1">{expandedEntityName}</h2>
                                                 <p className="popup-header-subtitle">Select an item</p>
                                             </motion.div>
                                         )}
@@ -292,14 +254,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
 
                                 <AnimatePresence mode="wait">
                                     {!expandedEntityId ? (
-                                        <motion.div
-                                            key="main-list"
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -20 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="flex flex-col flex-1 min-h-0"
-                                        >
+                                        <motion.div key="main-list" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="flex flex-col flex-1 min-h-0">
                                             <div className="flex-1 min-h-0">
                                                 <WizardTable
                                                     data={mainNav.filteredItems}
@@ -315,33 +270,18 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     className="max-h-[50vh]"
                                                 />
                                             </div>
-                                            
+
                                             {/* Tab Hint */}
                                             {mainNav.selectedItem && (
-                                                <motion.div
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="mt-4"
-                                                >
+                                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
                                                     <KeyboardHint keys="TAB" action={`to browse ${mainNav.selectedItem.name}`} />
                                                 </motion.div>
                                             )}
                                         </motion.div>
                                     ) : (
-                                        <motion.div
-                                            key="sub-list"
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="flex flex-col flex-1 min-h-0"
-                                        >
+                                        <motion.div key="sub-list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }} className="flex flex-col flex-1 min-h-0">
                                             {/* Sub List Search */}
-                                            <PopUpSearch 
-                                                value={subNav.searchQuery}
-                                                onChange={subNav.setSearchQuery}
-                                                className="mb-4"
-                                            />
+                                            <PopUpSearch value={subNav.searchQuery} onChange={subNav.setSearchQuery} className="mb-4" />
 
                                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar max-h-[50vh]">
                                                 {isLoadingSubList ? (
@@ -350,7 +290,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     </div>
                                                 ) : (
                                                     <PopUpRows
-                                                        items={subNav.filteredItems.map(item => ({
+                                                        items={subNav.filteredItems.map((item) => ({
                                                             id: item.id,
                                                             title: item.title,
                                                             subtitle: item.subtitle,
@@ -359,19 +299,21 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                         selectedId={subNav.selectedItem?.id}
                                                         onSelect={(item) => {
                                                             handleClose();
-                                                            router.push(`/${expandedEntityId}s/${item.id}`);
+                                                            const routeMap: Record<string, string> = {
+                                                                schoolPackage: "packages",
+                                                            };
+                                                            const route = routeMap[expandedEntityId || ""] || `${expandedEntityId}s`;
+                                                            router.push(`/${route}/${item.id}`);
                                                         }}
                                                         renderItem={(item, isSelected) => (
                                                             <div className="flex items-center justify-between px-4 py-3 gap-4">
                                                                 <div className="flex flex-col">
-                                                                    <span className={`font-medium ${isSelected ? "popup-text-primary" : "popup-text-secondary"}`}>
-                                                                        {item.title}
-                                                                    </span>
-                                                                    <span className="text-xs popup-text-tertiary">
-                                                                        {item.subtitle}
-                                                                    </span>
+                                                                    <span className={`font-medium ${isSelected ? "popup-text-primary" : "popup-text-secondary"}`}>{item.title}</span>
+                                                                    <span className="text-xs popup-text-tertiary">{item.subtitle}</span>
                                                                 </div>
-                                                                <div className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${item.isActive ? "bg-green-500/20 text-green-400 dark:bg-green-500/20 dark:text-green-400" : "popup-button-disabled"}`}>
+                                                                <div
+                                                                    className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${item.isActive ? "bg-green-500/20 text-green-400 dark:bg-green-500/20 dark:text-green-400" : "popup-button-disabled"}`}
+                                                                >
                                                                     {item.isActive ? "Active" : "Inactive"}
                                                                 </div>
                                                             </div>
@@ -381,26 +323,97 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                             </div>
 
                                             {/* Back Hint */}
-                                            <motion.div
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                className="mt-4"
-                                            >
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
                                                 <KeyboardHint keys={["Shift", "TAB"]} action="to go back" />
                                             </motion.div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
 
-                                {/* Footer Hint (Always visible) */}
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="mt-2"
-                                >
-                                    <KeyboardHint keys="ESC" action="to close" />
-                                </motion.div>
+                                {/* Keyboard Status Bar Footer */}
+                                <div className="grid grid-cols-5 gap-2 mt-6 pt-4 border-t border-border/20">
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                        <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Go-To</span>
+                                        <span className="popup-hint-key text-[10px]">ENTER</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                        <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Submit</span>
+                                        <div className="flex gap-1">
+                                            <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                                            <span className="popup-hint-key text-[10px]">ENTER</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                        <AnimatePresence mode="wait">
+                                            {!expandedEntityId ? (
+                                                <motion.div 
+                                                    key="hint-browse"
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -5 }}
+                                                    className="flex items-center justify-between w-full"
+                                                >
+                                                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight truncate mr-2">
+                                                        Toggle
+                                                    </span>
+                                                    <span className="popup-hint-key text-[10px]">TAB</span>
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div 
+                                                    key="hint-toggle-disabled"
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -5 }}
+                                                    className="flex items-center justify-between w-full opacity-30"
+                                                >
+                                                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Toggle</span>
+                                                    <span className="popup-hint-key text-[10px]">TAB</span>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                        <AnimatePresence mode="wait">
+                                            {expandedEntityId ? (
+                                                <motion.div 
+                                                    key="hint-reset"
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -5 }}
+                                                    className="flex items-center justify-between w-full"
+                                                >
+                                                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Reset</span>
+                                                    <div className="flex gap-1">
+                                                        <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                                                        <span className="popup-hint-key text-[10px]">TAB</span>
+                                                    </div>
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div 
+                                                    key="hint-reset-disabled"
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -5 }}
+                                                    className="flex items-center justify-between w-full opacity-30"
+                                                >
+                                                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Reset</span>
+                                                    <div className="flex gap-1">
+                                                        <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                                                        <span className="popup-hint-key text-[10px]">TAB</span>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                        <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Close</span>
+                                        <span className="popup-hint-key text-[10px]">ESC</span>
+                                    </div>
+                                </div>
                             </motion.div>
                         </Dialog.Panel>
                     </Transition.Child>

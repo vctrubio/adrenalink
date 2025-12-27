@@ -6,7 +6,6 @@ import type { StudentModel } from "@/backend/models";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { FullBookingCard } from "@/src/components/ids";
 import { TimelineHeader, type EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
-import type { TimelineStats } from "@/types/timeline-stats";
 import type { SortConfig, SortOption } from "@/types/sort";
 
 // Main Component
@@ -75,33 +74,6 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         return result;
     }, [bookingStudents, filter, sort, search]);
 
-    // Calculate Stats
-    const stats: TimelineStats = useMemo(() => {
-        let eventCount = 0;
-        let totalDuration = 0;
-
-        filteredBookingStudents.forEach((bs) => {
-            const booking = bs.booking;
-            if (!booking) return;
-
-            const lessons = booking.lessons || [];
-            eventCount += lessons.reduce((sum: number, lesson: any) => {
-                return sum + (lesson.events?.length || 0);
-            }, 0);
-            totalDuration += lessons.reduce((sum: number, lesson: any) => {
-                return sum + (lesson.events?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0);
-            }, 0);
-        });
-
-        return {
-            eventCount,
-            totalDuration,
-            totalCommission: 0, // Not calculated for this view
-            totalRevenue: 0, // Not calculated for this view
-            bookingCount: filteredBookingStudents.length,
-        };
-    }, [filteredBookingStudents]);
-
     if (bookingStudents.length === 0) {
         return <div className="flex items-center justify-center h-64 text-muted-foreground">No bookings found for this student</div>;
     }
@@ -115,10 +87,6 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                 onSortChange={setSort}
                 filter={filter}
                 onFilterChange={(v) => setFilter(v as EventStatusFilter)}
-                stats={stats}
-                currency={currency}
-                formatCurrency={formatCurrency}
-                showFinancials={false} // Don't show financial stats in header for now, focus on activity
                 searchPlaceholder="Search bookings..."
                 sortOptions={SORT_OPTIONS}
                 filterOptions={FILTER_OPTIONS}

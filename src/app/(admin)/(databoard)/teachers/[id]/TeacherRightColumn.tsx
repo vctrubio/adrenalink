@@ -313,17 +313,15 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     return (
         <div className="space-y-4">
-            <div className="flex ">
-                <ToggleBar
-                    value={viewMode}
-                    onChange={(v) => setViewMode(v as ViewMode)}
-                    options={[
-                        { id: "lessons", label: "By Lesson", icon: List },
-                        { id: "commissions", label: "By Commission", icon: HandshakeIcon },
-                        { id: "timeline", label: "Timeline", icon: Calendar },
-                    ]}
-                />
-            </div>
+            <ToggleBar
+                value={viewMode}
+                onChange={(v) => setViewMode(v as ViewMode)}
+                options={[
+                    { id: "timeline", label: "Timeline", icon: Calendar },
+                    { id: "lessons", label: "By Lesson", icon: List },
+                    { id: "commissions", label: "By Commission", icon: HandshakeIcon },
+                ]}
+            />
 
             <AnimatePresence mode="wait">
                 {viewMode === "lessons" && <LessonsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}

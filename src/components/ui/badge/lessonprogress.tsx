@@ -1,4 +1,4 @@
-import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { TeacherActiveLesson } from "./teacher-active-lesson";
 
 interface LessonProgressBadgeProps {
   planned: number;
@@ -14,9 +14,7 @@ export function LessonProgressBadge({ planned, completed, uncompleted, backgroun
   return (
     <div className="flex items-center gap-3">
       <div className="h-2 flex-1 rounded-full overflow-hidden" style={{ background }} />
-      <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold text-foreground bg-muted">
-        {done}/{total} <FlagIcon size={12} className="scale-x-[-1]" />
-      </span>
+      <TeacherActiveLesson totalLessons={total} completedLessons={done} />
     </div>
   );
 }

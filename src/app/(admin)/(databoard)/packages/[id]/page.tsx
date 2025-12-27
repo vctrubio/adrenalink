@@ -27,7 +27,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
         return <div>You do not have permission to view this package</div>;
     }
 
-    const stats = PackageIdStats.getStats(schoolPackage);
+    const stats = await PackageIdStats.getStats(id);
 
     return (
         <EntityIdLayout

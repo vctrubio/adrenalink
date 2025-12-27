@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { EventStats as EventStatsGetters } from "@/getters/event-getter";
 import { EventStats as DataboardEventStats } from "@/src/components/databoard/stats";
@@ -76,9 +75,7 @@ export const eventRenderers: TableRenderers<EventModel> = {
                 }
                 name={
                     <div className="flex items-baseline gap-2">
-                        <HoverToEntity entity={eventEntity} id={event.schema.id}>
-                            <span className="text-lg font-bold">{formatEventTime(event.schema.date)}</span>
-                        </HoverToEntity>
+                        <span className="text-lg font-bold">{formatEventTime(event.schema.date)}</span>
                         <span className="text-muted-foreground text-sm">
                             {new Date(event.schema.date).getDate()}-{new Date(event.schema.date).toLocaleString("en-US", { month: "short" })}
                         </span>
@@ -249,9 +246,7 @@ export const EventRow = ({ item: event }: EventRowProps) => {
                 ),
                 name: (
                     <div className="flex items-baseline gap-2">
-                        <HoverToEntity entity={eventEntity} id={event.schema.id}>
-                            <span className="text-lg font-bold">{formatEventTime(event.schema.date)}</span>
-                        </HoverToEntity>
+                        <span className="text-lg font-bold">{formatEventTime(event.schema.date)}</span>
                         <span className="text-muted-foreground text-sm">
                             {new Date(event.schema.date).getDate()}-{new Date(event.schema.date).toLocaleString("en-US", { month: "short" })}
                         </span>

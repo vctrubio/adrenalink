@@ -1,4 +1,5 @@
 import { BookingDataboard } from "@/getters/databoard-getter";
+import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
 import { createStat } from "./stat-factory";
 import type { StatItem } from "@/src/components/ui/row";
 import type { BookingModel } from "@/backend/models";
@@ -12,9 +13,11 @@ export const BookingStats = {
 		const totalEvents = bookings.reduce((sum, booking) => sum + BookingDataboard.getEventCount(booking), 0);
 		const totalDurationMinutes = bookings.reduce((sum, booking) => sum + BookingDataboard.getDurationMinutes(booking), 0);
 		const totalRevenue = bookings.reduce((sum, booking) => sum + BookingDataboard.getRevenue(booking), 0);
+		const totalStudentPayments = bookings.reduce((sum, booking) => sum + BookingStatsGetter.getStudentPayments(booking), 0);
+		const totalDue = totalRevenue - totalStudentPayments;
 
 		// Build stats using stat-factory as single source of truth
-		// Bookings page shows: Events, Duration, Revenue (with TrendingUp/Down)
+		// Bookings page shows: Events, Duration, Revenue, Due
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
@@ -30,6 +33,9 @@ export const BookingStats = {
 
 		const revenueStat = createStat("revenue", totalRevenue, "Revenue");
 		if (revenueStat) stats.push(revenueStat);
+
+		const dueStat = createStat("moneyToPay", totalDue, "Due");
+		if (dueStat) stats.push(dueStat);
 
 		return stats;
 	},

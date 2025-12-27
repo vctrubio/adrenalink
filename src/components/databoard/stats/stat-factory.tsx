@@ -11,6 +11,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
 import { Bookmark } from "lucide-react";
 
 const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
@@ -22,6 +23,7 @@ const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
 const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental")!;
+const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment");
 
 type StatType =
     | "student"
@@ -92,8 +94,8 @@ const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => getCompactNumber(value),
     },
     moneyToPay: {
-        icon: <TrendingUp size={20} />,
-        color: "rgb(251, 146, 60)",
+        icon: <CreditIcon />,
+        color: paymentEntity?.color || "rgb(251, 146, 60)",
         formatter: (value) => getCompactNumber(value),
     },
     moneyPaid: {
@@ -134,7 +136,7 @@ export function createStat(
         };
     }
 
-    // Handle trending down for negative revenue (booking bank logic)
+    // Handle trending down for negative revenue only (keep orange color)
     if (type === "revenue" && value < 0) {
         const config = STAT_CONFIGS[type];
         return {

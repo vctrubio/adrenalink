@@ -1,6 +1,7 @@
 import type { BookingModel } from "@/backend/models";
 import type { StatItem } from "@/src/components/ui/row";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -27,11 +28,11 @@ export const BookingIdStats = {
         
         // 4. Net: Revenue - Commissions (Profit)
         const net = revenue - commissions;
-        
+
         // 5. Due: Revenue - Student Payments (Outstanding balance)
         const due = revenue - studentPayments;
 
-        const netColor = net >= 0 ? "#10b981" : "#ef4444";
+        const netColor = "rgb(251, 146, 60)"; // Always orange for net
         const dueColor = due > 0 ? "#ef4444" : "#10b981"; // Red if they owe money, Green if fully paid
 
         const CommissionIcon = commissionEntity.icon;
@@ -76,7 +77,7 @@ export const BookingIdStats = {
             {
                 label: "Net",
                 icon: net >= 0 ? <TrendingUp /> : <TrendingDown />,
-                value: Math.abs(net),
+                value: getCompactNumber(net),
                 color: netColor,
                 rawValue: net
             },

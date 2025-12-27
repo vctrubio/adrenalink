@@ -12,13 +12,13 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";
 import { PopUpHeader } from "@/src/components/ui/popup/PopUpHeader";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
-import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { DragSortList } from "@/src/components/ui/DragSortList";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import type { TeacherModel } from "@/backend/models";
 import { Check } from "lucide-react";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
+import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 
 interface TeacherSortPriorityManModalProps {
     isOpen: boolean;
@@ -45,7 +45,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     const [hasChanges, setHasChanges] = useState(false);
     const [statusChanges, setStatusChanges] = useState<Map<string, boolean>>(new Map());
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-    const [filterMode, setFilterMode] = useState<"active" | "all">("active");
+    const [filterMode, setFilterMode] = useState<"active" | "all">("all");
 
     // Initialize items based on order
     const initializeItems = useCallback(() => {
@@ -152,8 +152,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         filterField: "title",
         isOpen,
         isActive: true,
-        onSelect: handleSubmit,
-        onShiftSelect: (item) => handleStatusToggle(item.id, !item.isActive),
+        onSelect: (item) => {
+            router.push(`/teachers/${item.id}`);
+            onClose();
+        },
+        onShiftSelect: () => handleSubmit(),
         onTabSelect: (item) => handleStatusToggle(item.id, !item.isActive)
     });
 
@@ -212,16 +215,16 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
 
                                     <div className="flex p-1 bg-muted/30 rounded-xl border border-border/50 flex-shrink-0">
                                         <button 
-                                            onClick={() => setFilterMode("active")}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                                        >
-                                            Active ({activeCount})
-                                        </button>
-                                        <button 
                                             onClick={() => setFilterMode("all")}
                                             className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "all" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
                                             All ({items.length})
+                                        </button>
+                                        <button 
+                                            onClick={() => setFilterMode("active")}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                        >
+                                            Active ({activeCount})
                                         </button>
                                     </div>
                                 </div>
@@ -284,6 +287,13 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         </div>
                                                         
                                                         <div className="flex items-center gap-3 flex-shrink-0">
+                                                            {(() => {
+                                                                const lessons = item.teacher.relations?.lessons || [];
+                                                                const totalLessons = lessons.length;
+                                                                const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
+                                                                return <TeacherActiveLesson totalLessons={totalLessons} completedLessons={completedLessons} />;
+                                                            })()}
+
                                                             <StatusToggle
                                                                 isActive={item.isActive || false}
                                                                 onToggle={(active) => {
@@ -322,7 +332,34 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                         )}
                                      />
 
-                                     <KeyboardHint keys="ESC" action="to close" />
+                                     <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-border/20">
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Go-To</span>
+                                            <span className="popup-hint-key text-[10px]">ENTER</span>
+                                        </div>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Submit</span>
+                                            <div className="flex gap-1">
+                                                <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                                                <span className="popup-hint-key text-[10px]">ENTER</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Toggle</span>
+                                            <span className="popup-hint-key text-[10px]">TAB</span>
+                                        </div>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Reset</span>
+                                            <div className="flex gap-1">
+                                                <span className="popup-hint-key text-[9px] px-1">⇧</span>
+                                                <span className="popup-hint-key text-[10px]">TAB</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
+                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Close</span>
+                                            <span className="popup-hint-key text-[10px]">ESC</span>
+                                        </div>
+                                     </div>
                                 </div>
                             </motion.div>
                         </Dialog.Panel>

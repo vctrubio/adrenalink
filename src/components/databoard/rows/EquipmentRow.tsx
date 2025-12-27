@@ -1,7 +1,6 @@
 "use client";
 
 import { Row } from "@/src/components/ui/row";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { EquipmentTeacherTag } from "@/src/components/tags";
 import { EquipmentRepairPopover } from "@/src/components/popover/EquipmentRepairPopover";
@@ -66,11 +65,7 @@ export const equipmentRenderers: TableRenderers<EquipmentModel> = {
         return (
             <RowHead
                 avatar={<div style={{ color: equipmentEntity.color }}>{CategoryIcon ? <CategoryIcon className="w-8 h-8" /> : <div className="w-8 h-8" />}</div>}
-                name={
-                    <HoverToEntity entity={equipmentEntity} id={equipment.schema.id}>
-                        {equipmentName}
-                    </HoverToEntity>
-                }
+                name={equipmentName}
                 status={currentStatusConfig.label}
                 dropdownItems={statusDropdownItems}
                 statusColor={currentStatusConfig.color}
@@ -165,11 +160,7 @@ export const EquipmentRow = ({ item: equipment }: EquipmentRowProps) => {
             isActive={isActive}
             head={{
                 avatar: <div style={{ color: iconColor }}>{CategoryIcon ? <CategoryIcon className="w-10 h-10" /> : <div className="w-10 h-10" />}</div>,
-                name: (
-                    <HoverToEntity entity={equipmentEntity} id={equipment.schema.id}>
-                        {equipmentName}
-                    </HoverToEntity>
-                ),
+                name: equipmentName,
                 status: currentStatusConfig.label,
                 dropdownItems: statusDropdownItems,
                 statusColor: currentStatusConfig.color,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useMemo, ReactNode, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
 import { DATABOARD_ENTITY_SEARCH_FIELDS } from "@/config/databoard";
@@ -12,7 +13,6 @@ import { DataboardStats } from "./DataboardStats";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
-import { useRouter } from "next/navigation";
 import { studentRenderers, calculateStudentGroupStats } from "./rows/StudentRow";
 import { teacherRenderers, calculateTeacherGroupStats } from "./rows/TeacherRow";
 import { bookingRenderers, calculateBookingGroupStats } from "./rows/BookingRow";
@@ -56,8 +56,8 @@ export const DataboardTableSection = <T,>({
     data,
     calculateStats,
 }: DataboardTableSectionProps<T>) => {
-    const controller = useDataboardController();
     const router = useRouter();
+    const controller = useDataboardController();
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     const renderers = renderersMap[entityId];
     
@@ -120,12 +120,10 @@ export const DataboardTableSection = <T,>({
         }
     }, [statsData.allStats, controller.onStatsChange]);
 
-    // Reset selection when search changes
+    // Clear search when entityId changes
     useEffect(() => {
-        if (controller.search && filteredData.length > 0) {
-            setSelectedId(null);
-        }
-    }, [controller.search]);
+        controller.onSearchChange("");
+    }, [entityId]);
 
     // Keyboard Navigation
     useEffect(() => {
@@ -141,58 +139,26 @@ export const DataboardTableSection = <T,>({
                 return;
             }
 
-            // Navigation logic
-            if (!isSearchFocused) {
-                if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    if (filteredData.length === 0) return;
-
-                    if (!selectedId) {
-                        // Select first row if none selected
-                        const firstId = filteredData[0].updateForm?.id;
-                        if (firstId) setSelectedId(firstId);
-                    } else {
-                        // Move to next row
-                        const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
-                        if (currentIndex < filteredData.length - 1) {
-                            const nextId = filteredData[currentIndex + 1].updateForm?.id;
-                            if (nextId) setSelectedId(nextId);
-                        }
-                    }
-                } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    if (filteredData.length === 0) return;
-
-                    if (selectedId) {
-                        // Move to prev row
-                        const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
-                        if (currentIndex > 0) {
-                            const prevId = filteredData[currentIndex - 1].updateForm?.id;
-                            if (prevId) setSelectedId(prevId);
-                        }
-                    }
-                } else if (e.key === "Enter" && selectedId) {
-                    e.preventDefault();
-                    router.push(`/${entityId}s/${selectedId}`);
-                }
-            }
-
-            // Special case: Search IS focused and ArrowDown pressed -> go to first row
-            if (isSearchFocused && e.key === "ArrowDown") {
+            // Enter in search: if exactly 1 result, navigate to it
+            if (isSearchFocused && e.key === "Enter") {
                 e.preventDefault();
-                searchInput?.blur();
-                if (filteredData.length > 0) {
-                    const firstId = filteredData[0].updateForm?.id;
-                    if (firstId) {
-                        setSelectedId(firstId);
+                if (filteredData.length === 1) {
+                    const resultId = filteredData[0].updateForm?.id;
+                    if (resultId) {
+                        const routeMap: Record<string, string> = {
+                            schoolPackage: "packages",
+                        };
+                        const route = routeMap[entityId] || `${entityId}s`;
+                        router.push(`/${route}/${resultId}`);
                     }
                 }
+                return;
             }
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [filteredData, selectedId, entityId, router]);
+    }, [filteredData, selectedId, entityId]);
 
     // Early return after all hooks
     if (!entity) {
@@ -248,15 +214,16 @@ export const DataboardTableSection = <T,>({
             getRowAccentColor={(item) => renderers.renderColor?.(item) || accentColor}
             selectedId={selectedId || undefined}
             accentColor={accentColor}
+            entityId={entityId}
             groupHeader={(label, count, isExpanded) => {
                 return (
-                    <div 
-                        className="flex items-center justify-between w-full cursor-pointer rounded-lg transition-all hover:bg-accent/10 dark:hover:bg-white/5" 
+                    <div
+                        className="flex items-center justify-between w-full cursor-pointer rounded-lg transition-all hover:bg-accent/10 dark:hover:bg-white/5"
                     >
                         <div className="flex items-center gap-3">
-                            <ToggleAdranalinkIcon 
-                                isOpen={isExpanded} 
-                                color={accentColor} 
+                            <ToggleAdranalinkIcon
+                                isOpen={isExpanded}
+                                color={accentColor}
                                 className="ml-4"
                             />
                             <span className="font-bold">{label}</span>
@@ -264,11 +231,6 @@ export const DataboardTableSection = <T,>({
                         <DataboardStats stats={statsData.groupStatsMap[label] || []} />
                     </div>
                 );
-            }}
-            onRowClick={(item) => {
-                if (item.updateForm?.id) {
-                    router.push(`/${entityId}s/${item.updateForm.id}`);
-                }
             }}
         />
     );
