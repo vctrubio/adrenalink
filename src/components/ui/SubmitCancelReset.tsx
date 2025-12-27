@@ -1,7 +1,6 @@
 import React from "react";
 import { ACTION_BUTTON_CONFIG } from "@/types/status";
-import { Zap, RefreshCw } from "lucide-react";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
+import { Zap, RefreshCw, X } from "lucide-react";
 
 interface SubmitCancelResetProps {
     onSubmit: () => void;
@@ -33,9 +32,7 @@ export function SubmitCancelReset({
                 className={`flex items-center justify-center p-3 rounded-xl transition-all duration-200 active:scale-95 ${ACTION_BUTTON_CONFIG.cancel.className}`}
                 title={ACTION_BUTTON_CONFIG.cancel.label}
             >
-                <div className="-rotate-90">
-                    <AdranlinkIcon size={20} />
-                </div>
+                <span className="font-bold text-xs">Cancel</span>
             </button>
             <button 
                 onClick={onReset} 
