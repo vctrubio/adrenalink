@@ -177,6 +177,19 @@ function TeacherColumn({
     const isCompatible = dragState.dragCompatibility === "compatible";
     const isIncompatible = dragState.dragCompatibility === "incompatible";
 
+    // Calculate changes for UI feedback
+    const changedEvents = events.filter((currentEvent) => {
+        const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
+        if (!originalEvent) return false;
+        const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+        const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+        const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
+        return dateChanged || durationChanged || locationChanged;
+    });
+
+    const hasChanges = changedEvents.length > 0;
+    const changedCount = changedEvents.length;
+
     return (
         <div
             key={queue.teacher.username}
@@ -186,7 +199,17 @@ function TeacherColumn({
             onDrop={(e) => dragState.onDrop(e, queue.teacher.username)}
             className={`bg-card flex-shrink-0 w-[340px] flex flex-col rounded-xl border-2 ${isDragOver && isCompatible ? "border-yellow-500" : isDragOver && isIncompatible ? "border-muted" : "border-transparent"}`}
         >
-            <TeacherColumnController columnViewMode={columnViewMode} queue={queue} onEditSchedule={handleEditSchedule} onSubmit={handleSubmit} onReset={handleReset} onCancel={handleCancel} onDeleteComplete={handleDeleteComplete} />
+            <TeacherColumnController 
+                columnViewMode={columnViewMode} 
+                queue={queue} 
+                onEditSchedule={handleEditSchedule} 
+                onSubmit={handleSubmit} 
+                onReset={handleReset} 
+                onCancel={handleCancel} 
+                onDeleteComplete={handleDeleteComplete} 
+                hasChanges={hasChanges}
+                changedCount={changedCount}
+            />
 
             <div className="p-3">
                 {columnViewMode === "view" ? (

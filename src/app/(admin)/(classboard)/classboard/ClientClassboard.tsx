@@ -19,10 +19,7 @@ interface ClientClassboardProps {
 }
 
 export default function ClientClassboard({ data }: ClientClassboardProps) {
-    const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues,         classboardStats, 
-        isLessonTeacher, 
-        addOptimisticEvent 
-    } = useClassboard(data);
+    const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, classboardStats, isLessonTeacher, addOptimisticEvent } = useClassboard(data);
 
     const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
 
@@ -106,24 +103,24 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
             <div className="flex-1 flex flex-row gap-4 overflow-hidden min-h-0">
                 {/* Students section - flexible */}
-                <div className="flex-1 w-full bg-card rounded-xl shadow-sm overflow-y-auto min-h-0">
-                    <StudentClassDaily
-                        bookings={draggableBookings}
-                        classboardData={classboardData}
-                        selectedDate={selectedDate}
-                        classboard={{
-                            onDragStart: (booking) => {
-                                setDraggedBooking(booking);
-                            },
-                            onDragEnd: () => {
-                                setDraggedBooking(null);
-                            },
-                            onAddLessonEvent: handleAddLessonEvent,
-                            onAddTeacher: handleAddTeacher,
-                            availableTeachers: availableTeachers,
-                        }}
-                    />
-                </div>
+                {/* <div className="flex-1 w-full bg-card rounded-xl shadow-sm overflow-y-auto min-h-0"> */}
+                {/*     <StudentClassDaily */}
+                {/*         bookings={draggableBookings} */}
+                {/*         classboardData={classboardData} */}
+                {/*         selectedDate={selectedDate} */}
+                {/*         classboard={{ */}
+                {/*             onDragStart: (booking) => { */}
+                {/*                 setDraggedBooking(booking); */}
+                {/*             }, */}
+                {/*             onDragEnd: () => { */}
+                {/*                 setDraggedBooking(null); */}
+                {/*             }, */}
+                {/*             onAddLessonEvent: handleAddLessonEvent, */}
+                {/*             onAddTeacher: handleAddTeacher, */}
+                {/*             availableTeachers: availableTeachers, */}
+                {/*         }} */}
+                {/*     /> */}
+                {/* </div> */}
 
                 {/* Teachers section - flexible */}
                 <div className="flex-1 overflow-hidden flex justify-center min-h-0">

@@ -8,13 +8,13 @@ import DurationIcon from "@/public/appSvgs/DurationIcon.jsx";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon.jsx";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { ACTION_BUTTON_CONFIG } from "@/types/status";
 import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { bulkDeleteClassboardEvents, bulkUpdateEventStatus } from "@/actions/classboard-bulk-action";
 import { EVENT_STATUS_CONFIG, type EventStatus, STATUS_PURPLE, STATUS_GREEN, STATUS_GREY } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { ENTITY_DATA } from "@/config/entities";
 import { DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 
 interface TeacherColumnControllerProps {
     columnViewMode: "view" | "queue";
@@ -24,9 +24,33 @@ interface TeacherColumnControllerProps {
     onReset: () => void;
     onCancel: () => void;
     onDeleteComplete?: () => void;
+    hasChanges?: boolean;
+    changedCount?: number;
 }
 
-function TeacherColumnHeader({ queue, allEvents, columnViewMode, onDeleteComplete, onEditSchedule, onSubmit, onReset, onCancel }: { queue: TeacherQueue; allEvents: any[]; columnViewMode: "view" | "queue"; onDeleteComplete?: () => void; onEditSchedule: () => void; onSubmit: () => void; onReset: () => void; onCancel: () => void }) {
+function TeacherColumnHeader({
+    queue,
+    allEvents,
+    columnViewMode,
+    onDeleteComplete,
+    onEditSchedule,
+    onSubmit,
+    onReset,
+    onCancel,
+    hasChanges = false,
+    changedCount = 0,
+}: {
+    queue: TeacherQueue;
+    allEvents: any[];
+    columnViewMode: "view" | "queue";
+    onDeleteComplete?: () => void;
+    onEditSchedule: () => void;
+    onSubmit: () => void;
+    onReset: () => void;
+    onCancel: () => void;
+    hasChanges?: boolean;
+    changedCount?: number;
+}) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const completedCount = allEvents.filter((e) => e.eventData.status === "completed").length;
@@ -96,26 +120,26 @@ function TeacherColumnHeader({ queue, allEvents, columnViewMode, onDeleteComplet
         return (
             <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex gap-2 flex-1">
-                        <button onClick={onCancel} className={`px-4 py-2 ${ACTION_BUTTON_CONFIG.cancel.className} rounded-md text-sm font-medium`}>
-                            {ACTION_BUTTON_CONFIG.cancel.label}
-                        </button>
-                        <button onClick={onReset} className={`px-4 py-2 ${ACTION_BUTTON_CONFIG.reset.className} rounded-md text-sm font-medium`}>
-                            {ACTION_BUTTON_CONFIG.reset.label}
-                        </button>
-                        <button onClick={onSubmit} className={`flex-1 px-4 py-2 ${ACTION_BUTTON_CONFIG.submit.className} rounded-md text-sm font-medium`}>
-                            {ACTION_BUTTON_CONFIG.submit.label}
-                        </button>
-                    </div>
+                    <SubmitCancelReset
+                        onSubmit={onSubmit}
+                        onCancel={onCancel}
+                        onReset={onReset}
+                        hasChanges={hasChanges}
+                        submitLabel="Save"
+                        className="flex-1"
+                        extraContent={changedCount > 0 && <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">{changedCount}</span>}
+                    />
                 </div>
                 <div className="flex items-center gap-4">
                     <HeadsetIcon className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    {teacherEntity && (
-                        <HoverToEntity entity={teacherEntity} id={queue.teacher.username}>
-                            <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>
-                        </HoverToEntity>
-                    )}
-                    {!teacherEntity && <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>}
+                    <div className="flex-1 min-w-0">
+                        {teacherEntity && (
+                            <HoverToEntity entity={teacherEntity} id={queue.teacher.username}>
+                                <div className="text-xl font-bold text-foreground truncate cursor-pointer hover:opacity-80 transition-opacity">{queue.teacher.username}</div>
+                            </HoverToEntity>
+                        )}
+                        {!teacherEntity && <div className="text-xl font-bold text-foreground truncate">{queue.teacher.username}</div>}
+                    </div>
                     <div className="ml-auto">{hasEvents && <DropdownLabel value={`${completedCount}/${totalEvents}`} items={dropdownItems} color={statusColor} />}</div>
                 </div>
             </div>
@@ -166,12 +190,23 @@ function TeacherColumnHeader({ queue, allEvents, columnViewMode, onDeleteComplet
     );
 }
 
-export default function TeacherColumnController({ columnViewMode, queue, onEditSchedule, onSubmit, onReset, onCancel, onDeleteComplete }: TeacherColumnControllerProps) {
+export default function TeacherColumnController({ columnViewMode, queue, onEditSchedule, onSubmit, onReset, onCancel, onDeleteComplete, hasChanges, changedCount }: TeacherColumnControllerProps) {
     const allEvents = queue.getAllEvents();
 
     return (
         <div className="p-4 px-6.5 border-b border-border space-y-3">
-            <TeacherColumnHeader queue={queue} allEvents={allEvents} columnViewMode={columnViewMode} onDeleteComplete={onDeleteComplete} onEditSchedule={onEditSchedule} onSubmit={onSubmit} onReset={onReset} onCancel={onCancel} />
+            <TeacherColumnHeader
+                queue={queue}
+                allEvents={allEvents}
+                columnViewMode={columnViewMode}
+                onDeleteComplete={onDeleteComplete}
+                onEditSchedule={onEditSchedule}
+                onSubmit={onSubmit}
+                onReset={onReset}
+                onCancel={onCancel}
+                hasChanges={hasChanges}
+                changedCount={changedCount}
+            />
         </div>
     );
 }

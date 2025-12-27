@@ -3,7 +3,7 @@ import { getSchoolHeader } from "@/types/headers";
 import type { TeacherModel } from "@/backend/models";
 import { TeacherDataboard } from "@/getters/databoard-getter";
 import { createStat } from "@/src/components/databoard/stats/stat-factory";
-import { EntityStatsWrapper } from "@/src/components/databoard/EntityStatsWrapper";
+import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
 import { TeacherRightColumn } from "./TeacherRightColumn";
 
@@ -38,17 +38,10 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
     ].filter(Boolean) as any[];
 
     return (
-        <EntityStatsWrapper stats={stats}>
-            <div className="lg:grid lg:grid-cols-12 lg:gap-8 space-y-6 lg:space-y-0">
-                <div className="lg:col-span-4">
-                    <div className="sticky top-8">
-                        <TeacherLeftColumn teacher={teacher} />
-                    </div>
-                </div>
-                <div className="lg:col-span-8">
-                    <TeacherRightColumn teacher={teacher} />
-                </div>
-            </div>
-        </EntityStatsWrapper>
+        <EntityIdLayout
+            stats={stats}
+            leftColumn={<TeacherLeftColumn teacher={teacher} />}
+            rightColumn={<TeacherRightColumn teacher={teacher} />}
+        />
     );
 }

@@ -32,22 +32,12 @@ export function DataboardSearchQueryHeader({ controller, entityId }: DataboardSe
         <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
-                <SearchInput
-                    id="databoard-search-input"
-                    entityColor={entity.color}
-                    value={controller.search}
-                    onChange={(e) => controller.onSearchChange(e.target.value)}
-                />
+                <SearchInput id="databoard-search-input" entityColor={entity.color} value={controller.search} onChange={(e) => controller.onSearchChange(e.target.value)} />
             </div>
 
             {/* Sort & Filter Controls */}
             <div className="flex items-center gap-2">
-                <SortDropdown
-                    value={controller.sort}
-                    options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking}
-                    onChange={controller.onSortChange}
-                    entityColor={entity.color}
-                />
+                <SortDropdown value={controller.sort} options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking} onChange={controller.onSortChange} entityColor={entity.color} />
                 <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
                 <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />
                 <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v as DataboardActivityFilter)} entityColor={entity.color} />

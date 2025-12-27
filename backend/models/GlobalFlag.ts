@@ -153,7 +153,7 @@ export class GlobalFlag {
 
     // ============ LOCK STATUS CALCULATION ============
 
-    getLockStatusTime() {
+    getLockStatusTime(targetTime?: string | null) {
         const totalTeachers = this.pendingTeachers.size;
         
         const pendingTeachersTimes = this.teacherQueues
@@ -165,13 +165,14 @@ export class GlobalFlag {
             return { isLockFlagTime: false, lockCount: 0 };
         }
 
-        const newGlobalEarliest = pendingTeachersTimes.reduce((min, t) => {
+        // If targetTime is provided, use it. Otherwise find the earliest among pending.
+        const referenceTime = targetTime || pendingTeachersTimes.reduce((min, t) => {
             const minMinutes = timeToMinutes(min);
             const tMinutes = timeToMinutes(t.earliestTime);
             return tMinutes < minMinutes ? t.earliestTime : min;
         }, pendingTeachersTimes[0].earliestTime);
 
-        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === newGlobalEarliest).length;
+        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === referenceTime).length;
 
         return {
             isLockFlagTime: synchronizedCount === totalTeachers,
@@ -179,7 +180,7 @@ export class GlobalFlag {
         };
     }
 
-    getLockStatusLocation() {
+    getLockStatusLocation(targetLocation?: string | null) {
         let totalEventsForLock = 0;
         let synchronizedEventsCount = 0;
         const pendingTeachersLocations: { username: string; location: string | null }[] = [];
@@ -189,6 +190,8 @@ export class GlobalFlag {
             .forEach((q) => {
                 const events = q.getAllEvents();
                 const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
+                
+                // A teacher is "locally synchronized" if all their own events match the FIRST event's location
                 const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
 
                 totalEventsForLock += events.length;
@@ -200,25 +203,27 @@ export class GlobalFlag {
                 }
             });
 
-        const firstSynchronizedTeacher = pendingTeachersLocations.find((t) => t.location !== null);
-        const newGlobalLocation = firstSynchronizedTeacher?.location;
+        // Use targetLocation if provided, otherwise find first non-null location among pending
+        const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
 
-        if (newGlobalLocation) {
+        if (referenceLocation) {
             this.teacherQueues
                 .filter((q) => this.pendingTeachers.has(q.teacher.username))
                 .forEach((q) => {
                     const events = q.getAllEvents();
-                    const queueSynchronized = pendingTeachersLocations.find((t) => t.username === q.teacher.username)?.location === newGlobalLocation;
-                    if (queueSynchronized) {
-                        synchronizedEventsCount += events.length;
-                    }
+                    // Count events that match the reference location
+                    events.forEach(e => {
+                        if (e.eventData.location === referenceLocation) {
+                            synchronizedEventsCount++;
+                        }
+                    });
                 });
         }
 
-        const allSynchronized = pendingTeachersLocations.every((t) => t.location === newGlobalLocation && t.location !== null);
+        const allSynchronized = referenceLocation ? pendingTeachersLocations.every((t) => t.location === referenceLocation) : false;
 
         return {
-            isLockFlagLocation: allSynchronized && newGlobalLocation !== null,
+            isLockFlagLocation: allSynchronized && referenceLocation !== null,
             lockLocationCount: synchronizedEventsCount,
             totalLocationEventsForLock: totalEventsForLock,
         };
@@ -512,18 +517,38 @@ export class GlobalFlag {
     }
 
     /**
-     * Get current global location
+     * Get total count of changed events across all pending teachers
      */
-    getGlobalLocationAdjustment(): string | null {
-        return this.globalLocation;
+    getChangedEventsCount(): number {
+        let count = 0;
+        this.teacherQueues.forEach((queue) => {
+            if (!this.pendingTeachers.has(queue.teacher.username)) return;
+
+            const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
+            const currentEvents = queue.getAllEvents();
+
+            currentEvents.forEach((currentEvent) => {
+                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
+                if (!originalEvent) return;
+
+                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+                const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
+
+                if (dateChanged || durationChanged || locationChanged) {
+                    count++;
+                }
+            });
+        });
+        return count;
     }
 
     /**
      * Collect all changed events from pending teachers
      * Compares current state against original state to find changes
      */
-    collectChanges(): { id: string; date: string; duration: number }[] {
-        const allUpdates: { id: string; date: string; duration: number }[] = [];
+    collectChanges(): { id: string; date: string; duration: number; location: string }[] {
+        const allUpdates: { id: string; date: string; duration: number; location: string }[] = [];
 
         this.teacherQueues.forEach((queue) => {
             if (!this.pendingTeachers.has(queue.teacher.username)) {
@@ -537,15 +562,17 @@ export class GlobalFlag {
                 const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
                 if (!originalEvent) return; // New event
 
-                // Check if date or duration changed
+                // Check if date, duration or location changed
                 const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
                 const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+                const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
 
-                if (dateChanged || durationChanged) {
+                if (dateChanged || durationChanged || locationChanged) {
                     allUpdates.push({
                         id: currentEvent.id,
                         date: currentEvent.eventData.date,
                         duration: currentEvent.eventData.duration,
+                        location: currentEvent.eventData.location,
                     });
                 }
             });

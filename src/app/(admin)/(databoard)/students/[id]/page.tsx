@@ -2,7 +2,7 @@ import { getEntityId } from "@/actions/id-actions";
 import type { StudentModel } from "@/backend/models";
 import { StudentDataboard } from "@/getters/databoard-getter";
 import { createStat } from "@/src/components/databoard/stats/stat-factory";
-import { EntityStatsWrapper } from "@/src/components/databoard/EntityStatsWrapper";
+import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { StudentLeftColumn } from "./StudentLeftColumn";
 import { StudentRightColumn } from "./StudentRightColumn";
 
@@ -26,17 +26,10 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     ].filter(Boolean) as any[];
 
     return (
-        <EntityStatsWrapper stats={stats}>
-            <div className="lg:grid lg:grid-cols-12 lg:gap-8 space-y-6 lg:space-y-0">
-                <div className="lg:col-span-4">
-                    <div className="sticky top-8">
-                        <StudentLeftColumn student={student} />
-                    </div>
-                </div>
-                <div className="lg:col-span-8">
-                    <StudentRightColumn student={student} />
-                </div>
-            </div>
-        </EntityStatsWrapper>
+        <EntityIdLayout
+            stats={stats}
+            leftColumn={<StudentLeftColumn student={student} />}
+            rightColumn={<StudentRightColumn student={student} />}
+        />
     );
 }

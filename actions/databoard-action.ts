@@ -297,11 +297,16 @@ export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentM
                   with: {
                       teacherEquipments: {
                           with: {
-                              teacher: {
+                              teacher: true,
+                          },
+                      },
+                      equipmentEvents: {
+                          with: {
+                              event: {
                                   with: {
-                                      lessons: {
+                                      lesson: {
                                           with: {
-                                              events: true,
+                                              teacher: true,
                                           },
                                       },
                                   },
@@ -333,17 +338,14 @@ export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentM
                 money_out: 0,
             };
 
-            // Calculate teacher hours from relations
+            // Calculate teacher hours from equipmentEvents (hours using THIS equipment only)
             const teacherHours: Record<string, number> = {};
-            const teacherEquipments = equipmentData.teacherEquipments || [];
-            for (const te of teacherEquipments) {
-                if (te.teacher) {
-                    const lessons = te.teacher.lessons || [];
-                    const totalMinutes = lessons.reduce((sum: number, lesson: any) => {
-                        const events = lesson.events || [];
-                        return sum + events.reduce((eventSum: number, event: any) => eventSum + (event.duration || 0), 0);
-                    }, 0);
-                    teacherHours[te.teacher.id] = totalMinutes;
+            const equipmentEvents = equipmentData.equipmentEvents || [];
+            for (const ee of equipmentEvents) {
+                if (ee.event?.lesson?.teacher) {
+                    const teacherId = ee.event.lesson.teacher.id;
+                    const duration = ee.event.duration || 0;
+                    teacherHours[teacherId] = (teacherHours[teacherId] || 0) + duration;
                 }
             }
 
