@@ -48,7 +48,7 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
         const schoolHeader = await getSchoolHeader();
         const schoolId = schoolHeader?.id;
 
-        // 1. Fetch shallow ORM relations (for row-action tags and popover)
+        // 1. Fetch ORM relations (for row-action tags and school revenue calculation)
         const studentsQuery = schoolId
             ? db.query.student.findMany({
                   where: exists(
@@ -61,12 +61,21 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
                       schoolStudents: true,
                       bookingStudents: {
                           with: {
-                              booking: true,
-                          },
-                      },
-                      studentPackageStudents: {
-                          with: {
-                              studentPackage: true,
+                              booking: {
+                                  with: {
+                                      lessons: {
+                                          with: {
+                                              events: true,
+                                          },
+                                      },
+                                      studentPackage: {
+                                          with: {
+                                              schoolPackage: true,
+                                          },
+                                      },
+                                      bookingStudents: true,
+                                  },
+                              },
                           },
                       },
                   },
@@ -76,12 +85,21 @@ export async function getStudents(): Promise<ApiActionResponseModel<StudentModel
                       schoolStudents: true,
                       bookingStudents: {
                           with: {
-                              booking: true,
-                          },
-                      },
-                      studentPackageStudents: {
-                          with: {
-                              studentPackage: true,
+                              booking: {
+                                  with: {
+                                      lessons: {
+                                          with: {
+                                              events: true,
+                                          },
+                                      },
+                                      studentPackage: {
+                                          with: {
+                                              schoolPackage: true,
+                                          },
+                                      },
+                                      bookingStudents: true,
+                                  },
+                              },
                           },
                       },
                   },

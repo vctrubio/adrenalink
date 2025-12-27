@@ -3,10 +3,10 @@ import type { StatItem } from "@/src/components/ui/row";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { ENTITY_DATA } from "@/config/entities";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
 
 export const StudentIdStats = {
     getStats: (student: StudentModel): StatItem[] => {
@@ -68,15 +68,15 @@ export const StudentIdStats = {
             },
             {
                 label: "Total To Pay",
-                icon: <BankIcon />,
+                icon: totals.moneyToPay >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
                 value: getCompactNumber(totals.moneyToPay),
-                color: "#4b5563",
+                color: "rgb(251, 146, 60)",
             },
             {
                 label: "Total Paid",
-                icon: <BankIcon />,
+                icon: totals.moneyPaid >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
                 value: getCompactNumber(totals.moneyPaid),
-                color: "#4b5563",
+                color: "rgb(251, 146, 60)",
             },
         ];
     }

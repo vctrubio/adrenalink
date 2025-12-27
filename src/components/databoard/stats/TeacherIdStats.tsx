@@ -91,7 +91,7 @@ export const TeacherIdStats = {
             {
                 label: "School Revenue",
                 icon: totals.schoolRevenue >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
-                value: getCompactNumber(Math.abs(totals.schoolRevenue)),
+                value: getCompactNumber(totals.schoolRevenue),
                 color: "rgb(251, 146, 60)",
             },
         ];

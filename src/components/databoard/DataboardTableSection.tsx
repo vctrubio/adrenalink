@@ -229,21 +229,7 @@ export const DataboardTableSection = <T,>({
         },
         {
             id: "stats",
-            header: (
-                <div className="flex items-center gap-2">
-                    <span>Stats</span>
-                    {statsData.allStats.length > 0 && (
-                        <div className="flex gap-1">
-                            {statsData.allStats.map((stat, i) => (
-                                <div key={i} className="flex items-center gap-0.5 text-xs" style={{ color: stat.color }}>
-                                    <span className="w-3.5 h-3.5 [&>svg]:w-full [&>svg]:h-full">{stat.icon}</span>
-                                    <span className="font-semibold">{stat.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ),
+            header: "Stats",
             cell: (item) => <RowStats stats={renderers.renderStats(item)} />,
             width: "1.5fr",
             align: "right",

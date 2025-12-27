@@ -1,13 +1,16 @@
 /**
  * Format large numbers to compact notation (max 3 digits)
  * Examples: 12 → "12", 999 → "999", 1000 → "1k", 2500 → "2.5k", 12000 → "12k"
+ * Handles both positive and negative numbers, returns absolute value formatted
  */
 export function getCompactNumber(num: number): string {
-  if (num < 1000) {
-    return Math.round(num).toString();
+  const absNum = Math.abs(num);
+
+  if (absNum < 1000) {
+    return Math.round(absNum).toString();
   }
 
-  const divided = num / 1000;
+  const divided = absNum / 1000;
   const rounded = Math.round(divided * 10) / 10;
 
   // If it's a whole number after rounding, don't show decimal

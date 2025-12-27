@@ -72,7 +72,7 @@ export function WizardTable<T>({
         <div className={`w-full overflow-hidden rounded-2xl border border-border/30 dark:border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl ${className}`}>
             {!hideHeader && (
                 <div
-                    className="grid border-b border-border/30 dark:border-white/10 bg-muted/30 dark:bg-white/5 py-4 px-6 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/80"
+                    className="grid border-b border-border/30 dark:border-white/10 bg-muted/30 dark:bg-white/5 py-4 px-12 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/80"
                     style={{
                         gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
                     }}

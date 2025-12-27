@@ -1,13 +1,14 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { TeacherStats as TeacherStatsGetter } from "@/getters/teachers-getter";
 import { getFullDuration, getPrettyDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import type { StatItem } from "@/src/components/ui/row";
 import type { TeacherModel } from "@/backend/models";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import BankIcon from "@/public/appSvgs/BankIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 
 export const TeacherStats = {
@@ -34,8 +35,13 @@ export const TeacherStats = {
 
 		stats.push(
 			{ icon: <LessonIcon className="w-5 h-5" />, value: totalLessons, label: "Lessons", color: lessonEntity.color },
-			{ icon: <HandshakeIcon className="w-5 h-5" />, value: totalCommissions.toFixed(2), label: "Commissions", color: commissionEntity?.color || "#a78bfa" },
-			{ icon: <BankIcon className="w-5 h-5" />, value: totalRevenue.toFixed(2), label: "Revenue", color: "#10b981" }
+			{ icon: <HandshakeIcon className="w-5 h-5" />, value: getCompactNumber(totalCommissions), label: "Commissions", color: commissionEntity?.color || "#a78bfa" },
+			{
+				icon: totalRevenue >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
+				value: getCompactNumber(totalRevenue),
+				label: "Revenue",
+				color: "rgb(251, 146, 60)"
+			}
 		);
 
 		return stats;
