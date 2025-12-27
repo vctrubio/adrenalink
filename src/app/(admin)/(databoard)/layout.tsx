@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useCallback } from "react";
 import { DataboardLayout } from "@/src/components/layouts/DataboardLayout";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController } from "@/types/databoard";
 import type { StatItem } from "@/src/components/ui/row";
@@ -36,18 +36,20 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
     const lastSegment = pathSegments[pathSegments.length - 1];
     const entityId = ENTITY_ID_MAP[lastSegment] || lastSegment;
 
-
-    const handleSelectionModeToggle = (enabled: boolean) => {
+    const handleSelectionModeToggle = useCallback((enabled: boolean) => {
         setIsSelectionMode(enabled);
         if (!enabled) {
             setSelectedCount(0);
         }
-    };
+    }, []);
 
-    const handleAddClick = () => {
-        // TODO: Open modal for adding new entity
+    const handleAddClick = useCallback(() => {
         console.log("Add button clicked for:", lastSegment);
-    };
+    }, [lastSegment]);
+
+    const handleStatsChange = useCallback((newStats: StatItem[]) => {
+        setStats(newStats);
+    }, []);
 
     const controller: DataboardController = {
         stats,
@@ -67,7 +69,7 @@ export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrap
         onAddClick: handleAddClick,
         counts,
         onCountsChange: setCounts,
-        onStatsChange: setStats,
+        onStatsChange: handleStatsChange,
     };
 
     return (

@@ -40,32 +40,6 @@ interface LessonRow {
     studentCapacity: number;
 }
 
-interface Totals {
-    duration: number;
-    hours: number;
-    earning: number;
-    events: number;
-}
-
-// Sub-component: Summary Header
-function SummaryHeader({ totals, formatCurrency }: { totals: Totals; formatCurrency: (num: number) => string }) {
-    return (
-        <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/30 border border-border">
-            <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5">
-                    <FlagIcon size={16} className="text-muted-foreground" />
-                    <span className="font-semibold text-foreground">{totals.events} events</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <DurationIcon size={16} className="text-muted-foreground" />
-                    <span className="font-semibold text-foreground">{totals.hours.toFixed(1)}h</span>
-                </div>
-            </div>
-            <div className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(Math.round(totals.earning * 100) / 100)}</div>
-        </div>
-    );
-}
-
 // Sub-component: Commission Header
 interface CommissionStats {
     type: string;
@@ -333,17 +307,6 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         return false;
     });
 
-    // Re-calculate totals based on filtered data
-    const totals: Totals = filteredLessonRows.reduce(
-        (acc, lesson) => ({
-            duration: acc.duration + lesson.totalDuration,
-            hours: acc.hours + lesson.totalHours,
-            earning: acc.earning + lesson.totalEarning,
-            events: acc.events + lesson.eventCount,
-        }),
-        { duration: 0, hours: 0, earning: 0, events: 0 },
-    );
-
     if (lessonRows.length === 0) {
         return <div className="flex items-center justify-center h-64 text-muted-foreground">No lessons found for this teacher</div>;
     }
@@ -361,8 +324,6 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                     ]}
                 />
             </div>
-
-            {viewMode !== "timeline" && <SummaryHeader totals={totals} formatCurrency={formatCurrency} />}
 
             <AnimatePresence mode="wait">
                 {viewMode === "lessons" && <LessonsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}

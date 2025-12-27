@@ -45,6 +45,9 @@
 
 	--color-request: rgb(var(--request));
 	--color-request-foreground: rgb(var(--request-foreground));
+	--color-primary-orange: rgb(var(--primary-orange));
+	--color-primary-blue: rgb(var(--primary-blue));
+	--color-primary-green: rgb(var(--primary-green));
 }
 
 @layer base {
@@ -83,6 +86,9 @@
 		--facebook-border: 226 232 240;
 		--request: 34 197 94;
 		--request-foreground: 255 255 255;
+		--primary-orange: 251 146 60;
+		--primary-blue: 59 130 246;
+		--primary-green: 22 97 14;
 	}
 
 	.dark {
@@ -120,5 +126,8 @@
 		--facebook-border: 51 65 85;
 		--request: 74 222 128;
 		--request-foreground: 15 23 42;
+		--primary-orange: 251 146 60;
+		--primary-blue: 59 130 246;
+		--primary-green: 22 97 14;
 	}
 }

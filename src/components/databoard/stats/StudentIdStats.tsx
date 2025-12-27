@@ -1,6 +1,7 @@
 import type { StudentModel } from "@/backend/models";
 import type { StatItem } from "@/src/components/ui/row";
 import { getPrettyDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -68,13 +69,13 @@ export const StudentIdStats = {
             {
                 label: "Total To Pay",
                 icon: <BankIcon />,
-                value: `$${totals.moneyToPay}`,
+                value: getCompactNumber(totals.moneyToPay),
                 color: "#4b5563",
             },
             {
                 label: "Total Paid",
                 icon: <BankIcon />,
-                value: `$${totals.moneyPaid}`,
+                value: getCompactNumber(totals.moneyPaid),
                 color: "#4b5563",
             },
         ];
