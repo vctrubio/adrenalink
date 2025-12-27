@@ -29,10 +29,10 @@ export function PopUpSearch({ value, onChange, placeholder = "Search...", classN
             <input
                 ref={inputRef}
                 type="text"
-                placeholder={placeholder}
+                placeholder="Search..."
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all backdrop-blur-md shadow-lg"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/50 transition-all backdrop-blur-md shadow-lg"
             />
         </motion.div>
     );

@@ -162,7 +162,7 @@ export function WizardTable<T>({
                                                 animate={{
                                                     opacity: 1,
                                                     x: 0,
-                                                    scale: isSelected ? 1.02 : 1,
+                                                    scale: 1,
                                                 }}
                                                 transition={{ duration: 0.3, ease: "easeOut" }}
                                                 onClick={() => onRowClick?.(item)}
@@ -176,7 +176,7 @@ export function WizardTable<T>({
                                                 {isSelected && (
                                                     <motion.div
                                                         layoutId="wizard-selection-indicator"
-                                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
                                                         style={{ backgroundColor: rowColor }}
                                                         initial={{ opacity: 0 }}
                                                         animate={{ opacity: 1 }}

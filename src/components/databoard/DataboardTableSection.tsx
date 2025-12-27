@@ -141,40 +141,37 @@ export const DataboardTableSection = <T,>({
                 return;
             }
 
-            // Shift+Down to select first row
-            if (e.shiftKey && e.key === "ArrowDown") {
-                e.preventDefault();
-                if (isSearchFocused) searchInput?.blur();
-                if (filteredData.length > 0) {
-                    const firstId = filteredData[0].updateForm?.id;
-                    if (firstId) {
-                        setSelectedId(firstId);
-                    }
-                }
-                return;
-            }
-
-            // Navigation when rows are focused (search NOT focused)
-            if (!isSearchFocused && selectedId) {
+            // Navigation logic
+            if (!isSearchFocused) {
                 if (e.key === "ArrowDown") {
                     e.preventDefault();
-                    const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
-                    if (currentIndex < filteredData.length - 1) {
-                        const nextId = filteredData[currentIndex + 1].updateForm?.id;
-                        if (nextId) {
-                            setSelectedId(nextId);
+                    if (filteredData.length === 0) return;
+
+                    if (!selectedId) {
+                        // Select first row if none selected
+                        const firstId = filteredData[0].updateForm?.id;
+                        if (firstId) setSelectedId(firstId);
+                    } else {
+                        // Move to next row
+                        const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
+                        if (currentIndex < filteredData.length - 1) {
+                            const nextId = filteredData[currentIndex + 1].updateForm?.id;
+                            if (nextId) setSelectedId(nextId);
                         }
                     }
                 } else if (e.key === "ArrowUp") {
                     e.preventDefault();
-                    const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
-                    if (currentIndex > 0) {
-                        const prevId = filteredData[currentIndex - 1].updateForm?.id;
-                        if (prevId) {
-                            setSelectedId(prevId);
+                    if (filteredData.length === 0) return;
+
+                    if (selectedId) {
+                        // Move to prev row
+                        const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
+                        if (currentIndex > 0) {
+                            const prevId = filteredData[currentIndex - 1].updateForm?.id;
+                            if (prevId) setSelectedId(prevId);
                         }
                     }
-                } else if (e.key === "Enter") {
+                } else if (e.key === "Enter" && selectedId) {
                     e.preventDefault();
                     router.push(`/${entityId}s/${selectedId}`);
                 }

@@ -9,7 +9,7 @@
 
 .popup-row-focused {
   @apply bg-accent/20 dark:bg-white/10 border-border/40 dark:border-white/20;
-  @apply shadow-xl scale-[1.02] z-10;
+  @apply shadow-xl z-10;
 }
 
 /* Text States */

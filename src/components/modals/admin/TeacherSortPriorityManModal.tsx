@@ -15,6 +15,7 @@ import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
 import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { DragSortList } from "@/src/components/ui/DragSortList";
+import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import type { TeacherModel } from "@/backend/models";
 import { Check } from "lucide-react";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
@@ -44,10 +45,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     const [hasChanges, setHasChanges] = useState(false);
     const [statusChanges, setStatusChanges] = useState<Map<string, boolean>>(new Map());
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [filterMode, setFilterMode] = useState<"active" | "all">("active");
 
     // Initialize items based on order
-    useEffect(() => {
-        if (isOpen && allTeachers.length > 0) {
+    const initializeItems = useCallback(() => {
+        if (allTeachers.length > 0) {
             let sorted = [...allTeachers];
             if (savedOrder.length > 0) {
                 sorted = sorted.sort((a, b) => {
@@ -62,7 +64,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
                 id: teacher.schema.id,
                 title: teacher.schema.username,
-                subtitle: `${teacher.schema.firstName} ${teacher.schema.lastName}`,
+                subtitle: "",
                 icon: <HeadsetIcon size={20} />,
                 isActive: teacher.schema.active,
                 color: teacherEntity?.color || "#fff",
@@ -73,12 +75,26 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             setHasChanges(false);
             setStatusChanges(new Map());
         }
-    }, [isOpen, allTeachers, savedOrder, teacherEntity]);
+    }, [allTeachers, savedOrder, teacherEntity]);
+
+    useEffect(() => {
+        if (isOpen) {
+            initializeItems();
+        }
+    }, [isOpen, initializeItems]);
 
     const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
+        // Find original status to check if it's a real change
+        const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
+        const originalActive = originalTeacher?.schema.active;
+
         setStatusChanges((prev) => {
             const newChanges = new Map(prev);
-            newChanges.set(teacherId, active);
+            if (originalActive === active) {
+                newChanges.delete(teacherId);
+            } else {
+                newChanges.set(teacherId, active);
+            }
             return newChanges;
         });
         
@@ -89,7 +105,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                     : item
             )
         );
-    }, []);
+    }, [allTeachers]);
 
     const handleSubmit = useCallback(async () => {
         try {
@@ -111,6 +127,20 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         }
     }, [items, setOrder, refetch, statusChanges, onClose]);
 
+    const handleReset = useCallback(() => {
+        initializeItems();
+    }, [initializeItems]);
+
+    const handleCancel = useCallback(() => {
+        initializeItems();
+        onClose();
+    }, [initializeItems, onClose]);
+
+    const displayItems = useMemo(() => {
+        if (filterMode === "all") return items;
+        return items.filter(item => item.isActive);
+    }, [items, filterMode]);
+
     const {
         searchQuery,
         setSearchQuery,
@@ -118,23 +148,26 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         focusedIndex,
         setFocusedIndex
     } = useModalNavigation({
-        items,
+        items: displayItems,
         filterField: "title",
         isOpen,
         isActive: true,
         onSelect: handleSubmit,
-        onShiftSelect: (item) => handleStatusToggle(item.id, !item.isActive)
+        onShiftSelect: (item) => handleStatusToggle(item.id, !item.isActive),
+        onTabSelect: (item) => handleStatusToggle(item.id, !item.isActive)
     });
 
     const handleReorder = (newItems: TeacherSortItem[]) => {
-        if (searchQuery) return;
+        if (searchQuery || filterMode === "active") return;
         setItems(newItems);
         setHasChanges(true);
     };
 
+    const activeCount = items.filter(i => i.isActive).length;
+
     return (
         <Transition show={isOpen} as={Fragment}>
-            <Dialog onClose={onClose} className="relative z-50">
+            <Dialog onClose={handleCancel} className="relative z-50">
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200"
@@ -170,11 +203,28 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                     icon={<HeadsetIcon size={32} />}
                                 />
 
-                                <PopUpSearch
-                                    value={searchQuery}
-                                    onChange={(val) => setSearchQuery(val)}
-                                    className="mb-4"
-                                />
+                                <div className="flex flex-wrap items-center gap-3 mb-4">
+                                    <PopUpSearch
+                                        value={searchQuery}
+                                        onChange={(val) => setSearchQuery(val)}
+                                        className="flex-1 min-w-[200px]"
+                                    />
+
+                                    <div className="flex p-1 bg-muted/30 rounded-xl border border-border/50 flex-shrink-0">
+                                        <button 
+                                            onClick={() => setFilterMode("active")}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                        >
+                                            Active ({activeCount})
+                                        </button>
+                                        <button 
+                                            onClick={() => setFilterMode("all")}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "all" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                        >
+                                            All ({items.length})
+                                        </button>
+                                    </div>
+                                </div>
 
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
@@ -208,7 +258,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         {isFocused && (
                                                             <motion.div
                                                                 layoutId="active-indicator"
-                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
                                                                 style={{ backgroundColor: item.color }}
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}
@@ -230,11 +280,6 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                  <span className={`transition-colors truncate ${isFocused ? "font-black popup-text-primary" : `font-medium ${item.isActive ? "popup-text-primary" : "popup-text-secondary"}`}`}>
                                                                     {item.title}
                                                                  </span>
-                                                                 {item.subtitle && (
-                                                                     <span className={`text-xs truncate transition-colors ${isFocused ? "popup-text-secondary" : "popup-text-tertiary"}`}>
-                                                                         {item.subtitle}
-                                                                     </span>
-                                                                 )}
                                                             </div>
                                                         </div>
                                                         
@@ -263,26 +308,19 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                 </motion.div>
 
                                 <div className="flex flex-col gap-4">
-                                     <button
-                                        onClick={handleSubmit}
-                                        disabled={!hasChanges && statusChanges.size === 0}
-                                        style={{ backgroundColor: hasChanges || statusChanges.size > 0 ? teacherEntity?.color : undefined }}
-                                        className={`
-                                            flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all
-                                            ${hasChanges || statusChanges.size > 0
-                                                ? "text-white shadow-lg hover:opacity-90"
-                                                : "popup-button-disabled"
-                                            }
-                                        `}
-                                     >
-                                        <Check size={20} />
-                                        <span>Apply Changes</span>
-                                        {(statusChanges.size > 0 || hasChanges) && (
-                                            <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">
-                                                {statusChanges.size + (hasChanges ? 1 : 0)} updates
+                                     <SubmitCancelReset
+                                        onSubmit={handleSubmit}
+                                        onCancel={handleCancel}
+                                        onReset={handleReset}
+                                        hasChanges={hasChanges || statusChanges.size > 0}
+                                        submitLabel="Apply Changes"
+                                        color={teacherEntity?.color}
+                                        extraContent={(statusChanges.size > 0 || hasChanges) && (
+                                            <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.1)] border border-white/10">
+                                                {statusChanges.size + (hasChanges ? 1 : 0)}
                                             </span>
                                         )}
-                                     </button>
+                                     />
 
                                      <KeyboardHint keys="ESC" action="to close" />
                                 </div>

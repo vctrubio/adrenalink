@@ -35,7 +35,7 @@ export function PopUpRows<T extends PopUpItem>({ items, renderItem, selectedId, 
                                 {isSelected && (
                                     <motion.div
                                         layoutId="popup-selection-indicator"
-                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
