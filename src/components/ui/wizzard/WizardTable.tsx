@@ -7,7 +7,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 export interface WizardColumn<T> {
   id: string;
   header: ReactNode;
-  cell: (item: T) => ReactNode;
+  cell: (item: T, context: { isFocused: boolean; isHovered: boolean }) => ReactNode;
   width?: string;
   align?: "left" | "center" | "right";
   className?: string;
@@ -21,7 +21,9 @@ interface WizardTableProps<T> {
   groupHeader?: (groupKey: string, count: number) => ReactNode;
   getRowId?: (item: T) => string;
   getRowAccentColor?: (item: T) => string;
+  selectedId?: string;
   accentColor?: string;
+  hideHeader?: boolean;
   className?: string;
 }
 
@@ -33,16 +35,14 @@ export function WizardTable<T>({
   groupHeader,
   getRowId,
   getRowAccentColor,
+  selectedId,
   accentColor = "#3b82f6", // Default blue
+  hideHeader = false,
   className = "",
 }: WizardTableProps<T>) {
-  // Helper to get ID
   const getId = (item: T) => getRowId ? getRowId(item) : (item as any).id;
-  
-  // Helper to get row accent color
   const getRowColor = (item: T) => getRowAccentColor ? getRowAccentColor(item) : accentColor;
 
-  // Simple grouping logic
   const grouped = groupBy
     ? data.reduce((acc, item) => {
         const key = groupBy(item);
@@ -56,6 +56,8 @@ export function WizardTable<T>({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(groups.map(([key]) => key))
   );
+  
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const toggleGroup = (key: string) => {
     setExpandedGroups((prev) => {
@@ -68,24 +70,23 @@ export function WizardTable<T>({
 
   return (
     <div className={`w-full overflow-hidden rounded-2xl border border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl ${className}`}>
-      {/* Table Header */}
-      <div className="grid border-b border-white/10 bg-white/5 py-4 px-6 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/80"
-        style={{
-           gridTemplateColumns: columns.map(c => c.width || "1fr").join(" ")
-        }}
-      >
-        {columns.map((col) => (
-          <div key={col.id} className={`flex items-center ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
-            {col.header}
-          </div>
-        ))}
-      </div>
+      {!hideHeader && (
+        <div className="grid border-b border-white/10 bg-white/5 py-4 px-6 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/80"
+          style={{
+            gridTemplateColumns: columns.map(c => c.width || "1fr").join(" ")
+          }}
+        >
+          {columns.map((col) => (
+            <div key={col.id} className={`flex items-center ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
+              {col.header}
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Table Body */}
       <div className="custom-scrollbar overflow-y-auto max-h-[70vh]">
         {groups.map(([groupKey, groupData]) => (
           <div key={groupKey} className="flex flex-col">
-            {/* Group Header (if grouped) */}
             {groupBy && groupKey !== "All" && (
               <div
                 onClick={() => toggleGroup(groupKey)}
@@ -110,7 +111,6 @@ export function WizardTable<T>({
               </div>
             )}
 
-            {/* Group Rows */}
             <AnimatePresence initial={false}>
                {(groupBy === undefined || expandedGroups.has(groupKey)) && (
                  <motion.div
@@ -122,38 +122,49 @@ export function WizardTable<T>({
                         collapsed: { opacity: 0, height: 0 }
                     }}
                     transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                    className="overflow-hidden flex flex-col gap-3 p-4"
+                    className="overflow-hidden flex flex-col gap-2 p-3"
                  >
                     {groupData.map((item, idx) => {
                       const rowId = getId(item);
                       const rowColor = getRowColor(item);
+                      const isSelected = selectedId === rowId;
+                      const uniqueKey = rowId && rowId !== "" ? rowId : `row-${groupKey}-${idx}`;
+                      const isHovered = hoveredId === uniqueKey;
+                      
                       return (
                       <motion.div
-                        key={rowId}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.01 }}
+                        key={uniqueKey}
+                        layout
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ 
+                            opacity: 1, 
+                            x: 0,
+                            scale: isSelected ? 1.02 : 1,
+                            backgroundColor: isSelected ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.05)"
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                         onClick={() => onRowClick?.(item)}
-                        className={`grid px-6 py-4 transition-all relative group rounded-2xl border border-white/5 hover:border-white/20 bg-card hover:bg-muted/50 ${onRowClick ? "cursor-pointer" : ""}`}
+                        onMouseEnter={() => setHoveredId(uniqueKey)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        className={`grid px-4 py-3 transition-all relative group rounded-xl border ${isSelected ? "border-white/20 z-10 shadow-xl" : "border-white/5 hover:bg-white/10 hover:border-white/10"} ${onRowClick ? "cursor-pointer" : ""}`}
                         style={{
                            gridTemplateColumns: columns.map(c => c.width || "1fr").join(" "),
                         }}
                       >
-                         {/* Glow Effect on Hover */}
-                         <div 
-                            className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                            style={{ 
-                                boxShadow: `0 0 20px ${rowColor}15, inset 0 0 10px ${rowColor}05`,
-                                border: `1px solid ${rowColor}30`
-                            }}
-                         />
-
-                         {/* Hover indicator (left bar) */}
-                         <div className="absolute left-0 top-4 bottom-4 w-1 bg-transparent group-hover:bg-current transition-all duration-300 rounded-r-full" style={{ color: rowColor }} />
+                         {isSelected && (
+                            <motion.div
+                                layoutId="wizard-selection-indicator"
+                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                style={{ backgroundColor: rowColor }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.2 }}
+                            />
+                         )}
 
                         {columns.map((col) => (
-                          <div key={`${rowId}-${col.id}`} className={`flex items-center relative z-[1] ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
-                            {col.cell(item)}
+                          <div key={`${uniqueKey}-${col.id}`} className={`flex items-center relative z-[1] ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
+                            {col.cell(item, { isFocused: isSelected, isHovered })}
                           </div>
                         ))}
                       </motion.div>

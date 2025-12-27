@@ -1,147 +1,302 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
-import Modal from "../Modal";
-import { DragSortList, type DragSortItem } from "@/src/components/ui/DragSortList";
+import { Dialog, Transition } from "@headlessui/react";
+import { useRouter } from "next/navigation";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
+import { updateTeacherActive } from "@/actions/teachers-action";
 import { ENTITY_DATA } from "@/config/entities";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";
+import { PopUpHeader } from "@/src/components/ui/popup/PopUpHeader";
+import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
+import { StatusToggle } from "@/src/components/ui/StatusToggle";
+import { DragSortList } from "@/src/components/ui/DragSortList";
 import type { TeacherModel } from "@/backend/models";
+import { Check } from "lucide-react";
+import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 
 interface TeacherSortPriorityManModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
-export const TEACHER_SORT_STORAGE_KEY = "teacher-sort-priority";
-
-interface TeacherSortItem extends DragSortItem {
-  teacher: TeacherModel;
+interface TeacherSortItem {
+    id: string;
+    teacher: TeacherModel;
+    title: string;
+    subtitle: string;
+    icon: React.ReactNode;
+    isActive: boolean;
+    color: string;
 }
 
-export function TeacherSortPriorityManModal({
-  isOpen,
-  onClose,
-}: TeacherSortPriorityManModalProps) {
-  const { teachers } = useSchoolTeachers();
-  const { order: savedOrder, setOrder } = useTeacherSortOrder();
-  const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
-  const [pendingItems, setPendingItems] = useState<TeacherSortItem[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPriorityManModalProps) {
+    const { allTeachers, refetch } = useSchoolTeachers();
+    const { order: savedOrder, setOrder } = useTeacherSortOrder();
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
+    const router = useRouter();
+    
+    const [items, setItems] = useState<TeacherSortItem[]>([]);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [statusChanges, setStatusChanges] = useState<Map<string, boolean>>(new Map());
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Load priority order from context on mount
-  useEffect(() => {
-    if (isOpen && teachers.length > 0) {
-      let sorted = [...teachers];
+    // Initialize items based on order
+    useEffect(() => {
+        if (isOpen && allTeachers.length > 0) {
+            let sorted = [...allTeachers];
+            if (savedOrder.length > 0) {
+                sorted = sorted.sort((a, b) => {
+                    const aIndex = savedOrder.indexOf(a.schema.id);
+                    const bIndex = savedOrder.indexOf(b.schema.id);
+                    if (aIndex === -1) return 1;
+                    if (bIndex === -1) return -1;
+                    return aIndex - bIndex;
+                });
+            }
 
-      if (savedOrder.length > 0) {
-        sorted = sorted.sort((a, b) => {
-          const aIndex = savedOrder.indexOf(a.schema.id);
-          const bIndex = savedOrder.indexOf(b.schema.id);
-          if (aIndex === -1) return 1;
-          if (bIndex === -1) return -1;
-          return aIndex - bIndex;
+            const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
+                id: teacher.schema.id,
+                title: teacher.schema.username,
+                subtitle: `${teacher.schema.firstName} ${teacher.schema.lastName}`,
+                icon: <HeadsetIcon size={20} />,
+                isActive: teacher.schema.active,
+                color: teacherEntity?.color || "#fff",
+                teacher,
+            }));
+
+            setItems(popUpItems);
+            setHasChanges(false);
+            setStatusChanges(new Map());
+        }
+    }, [isOpen, allTeachers, savedOrder, teacherEntity]);
+
+    const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
+        setStatusChanges((prev) => {
+            const newChanges = new Map(prev);
+            newChanges.set(teacherId, active);
+            return newChanges;
         });
-      }
+        
+        setItems((prev) =>
+            prev.map((item) =>
+                item.id === teacherId
+                    ? { ...item, isActive: active, teacher: { ...item.teacher, schema: { ...item.teacher.schema, active } } }
+                    : item
+            )
+        );
+    }, []);
 
-      const items: TeacherSortItem[] = sorted.map((teacher) => ({
-        id: teacher.schema.id,
-        teacher,
-      }));
-      setPendingItems(items);
-      setHasChanges(false);
-    }
-  }, [isOpen, teachers, savedOrder]);
+    const handleSubmit = useCallback(async () => {
+        try {
+            if (statusChanges.size > 0) {
+                for (const [teacherId, active] of statusChanges.entries()) {
+                    await updateTeacherActive(teacherId, active);
+                }
+            }
 
-  const handleReorder = (items: TeacherSortItem[]) => {
-    setPendingItems(items);
-    setHasChanges(true);
-  };
+            const ids = items.map((item) => item.id);
+            setOrder(ids);
+            await refetch();
 
-  const handleSubmit = useCallback(() => {
-    const ids = pendingItems.map((item) => item.teacher.schema.id);
-    setOrder(ids);
-    setHasChanges(false);
-    onClose();
-  }, [pendingItems, setOrder, onClose]);
+            setHasChanges(false);
+            setStatusChanges(new Map());
+            onClose();
+        } catch (error) {
+            console.error("Error submitting changes:", error);
+        }
+    }, [items, setOrder, refetch, statusChanges, onClose]);
 
-  // Keyboard handler for Shift+Enter
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (isOpen && hasChanges && event.key === "Enter" && event.shiftKey) {
-        event.preventDefault();
-        handleSubmit();
-      }
+    const {
+        searchQuery,
+        setSearchQuery,
+        filteredItems,
+        focusedIndex,
+        setFocusedIndex
+    } = useModalNavigation({
+        items,
+        filterField: "title",
+        isOpen,
+        onSelect: handleSubmit,
+        onShiftSelect: (item) => handleStatusToggle(item.id, !item.isActive)
+    });
+
+    const handleReorder = (newItems: TeacherSortItem[]) => {
+        if (searchQuery) return;
+        setItems(newItems);
+        setHasChanges(true);
     };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [isOpen, hasChanges, handleSubmit]);
+    return (
+        <Transition show={isOpen} as={Fragment}>
+            <Dialog onClose={onClose} className="relative z-50">
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-200"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-150"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+                </Transition.Child>
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Sort Teachers"
-      entityId="teacher"
-      maxWidth="2xl"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-4"
-      >
-        {/* Teachers List */}
-        <div className="max-h-[500px] overflow-y-auto">
-          {pendingItems.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No teachers found
-            </div>
-          ) : (
-            <DragSortList
-              items={pendingItems}
-              onReorder={handleReorder}
-              renderItem={(item) => (
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border last:border-b-0 hover:bg-muted/30 transition-all gap-4">
-                  <div className="flex items-center gap-3">
-                    <div style={{ color: teacherEntity?.color }}>
-                      <HeadsetIcon size={18} />
-                    </div>
-                    <p className="font-medium text-foreground">
-                      {item.teacher.schema.username}
-                    </p>
-                  </div>
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95 translate-y-4"
+                        enterTo="opacity-100 scale-100 translate-y-0"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100 scale-100 translate-y-0"
+                        leaveTo="opacity-0 scale-95 translate-y-4"
+                    >
+                        <Dialog.Panel className="w-full max-w-2xl outline-none">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                className="relative flex flex-col max-h-[85vh]"
+                            >
+                                <PopUpHeader
+                                    title="Manage Teachers"
+                                    subtitle="Sort priority & toggle availability"
+                                    icon={<HeadsetIcon size={32} />}
+                                />
+
+                                <PopUpSearch
+                                    value={searchQuery}
+                                    onChange={(val) => setSearchQuery(val)}
+                                    className="mb-4"
+                                />
+
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.25, duration: 0.3, ease: "easeOut" }}
+                                    className="flex-1 min-h-0 overflow-y-auto custom-scrollbar mb-6 p-1"
+                                >
+                                    {filteredItems.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            No teachers found
+                                        </div>
+                                    ) : (
+                                        <DragSortList
+                                            items={filteredItems}
+                                            onReorder={handleReorder}
+                                            renderItem={(item, isDragging) => {
+                                                const index = filteredItems.findIndex(i => i.id === item.id);
+                                                const isFocused = index === focusedIndex;
+                                                const isHovered = index === hoveredIndex;
+
+                                                return (
+                                                    <motion.div 
+                                                        className={`
+                                                            flex items-center justify-between px-4 py-3 gap-4 mb-2 rounded-xl border transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden
+                                                            ${isFocused 
+                                                                ? "bg-white/10 border-white/20 shadow-xl scale-[1.02] z-10" 
+                                                                : "bg-white/5 border-white/5 hover:bg-white/10"
+                                                            }
+                                                        `}
+                                                        onClick={() => setFocusedIndex(index)}
+                                                        onMouseEnter={() => setHoveredIndex(index)}
+                                                        onMouseLeave={() => setHoveredIndex(null)}
+                                                    >
+                                                        {isFocused && (
+                                                            <motion.div
+                                                                layoutId="active-indicator"
+                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                                                style={{ backgroundColor: item.color }}
+                                                                initial={{ opacity: 0 }}
+                                                                animate={{ opacity: 1 }}
+                                                                transition={{ duration: 0.2 }}
+                                                            />
+                                                        )}
+
+                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                            <div
+                                                                style={{
+                                                                    color: item.isActive ? item.color : "#9ca3af",
+                                                                    opacity: item.isActive ? 1 : 0.5,
+                                                                }}
+                                                                className="transition-all duration-200 flex-shrink-0"
+                                                            >
+                                                                {item.icon}
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black text-white" : `font-medium ${item.isActive ? "text-white" : "text-white/50"}`}`}>
+                                                                    {item.title}
+                                                                 </span>
+                                                                 {item.subtitle && (
+                                                                     <span className={`text-xs truncate transition-colors ${isFocused ? "text-white/60" : "text-white/40"}`}>
+                                                                         {item.subtitle}
+                                                                     </span>
+                                                                 )}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                                            <StatusToggle
+                                                                isActive={item.isActive || false}
+                                                                onToggle={(active) => {
+                                                                    handleStatusToggle(item.id, active);
+                                                                    setFocusedIndex(index);
+                                                                }}
+                                                                color={item.color}
+                                                                className="data-[state=unchecked]:bg-white/10"
+                                                            />
+                                                            
+                                                            <GoToAdranlink 
+                                                                href={`/teachers/${item.teacher.schema.username}`}
+                                                                onNavigate={onClose}
+                                                                isHovered={isHovered}
+                                                            />
+                                                        </div>
+                                                    </motion.div>
+                                                );
+                                            }}
+                                        />
+                                    )}
+                                </motion.div>
+
+                                <div className="flex flex-col gap-4">
+                                     <button
+                                        onClick={handleSubmit}
+                                        disabled={!hasChanges && statusChanges.size === 0}
+                                        style={{ backgroundColor: hasChanges || statusChanges.size > 0 ? teacherEntity?.color : undefined }}
+                                        className={`
+                                            flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all
+                                            ${hasChanges || statusChanges.size > 0 
+                                                ? "text-white shadow-lg hover:opacity-90" 
+                                                : "bg-white/5 text-white/30 cursor-not-allowed"
+                                            }
+                                        `}
+                                     >
+                                        <Check size={20} />
+                                        <span>Apply Changes</span>
+                                        {(statusChanges.size > 0 || hasChanges) && (
+                                            <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">
+                                                {statusChanges.size + (hasChanges ? 1 : 0)} updates
+                                            </span>
+                                        )}
+                                     </button>
+
+                                     <div className="flex justify-center text-[10px] font-mono text-white/30">
+                                         <div className="flex items-center gap-1.5">
+                                            <span className="bg-white/10 px-1 py-0.5 rounded text-white/60 font-bold">ESC</span>
+                                            <span>to close</span>
+                                        </div>
+                                     </div>
+                                </div>
+                            </motion.div>
+                        </Dialog.Panel>
+                    </Transition.Child>
                 </div>
-              )}
-              className="space-y-0"
-            />
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex gap-2 pt-4 border-t border-border">
-          <button
-            onClick={handleSubmit}
-            disabled={!hasChanges}
-            style={{ backgroundColor: hasChanges ? teacherEntity?.color : undefined }}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 text-white"
-          >
-            <Check size={18} />
-            Apply Order
-          </button>
-        </div>
-
-        {/* Keyboard hint */}
-        <div className="text-xs text-muted-foreground text-center">
-          Press Shift+Enter to apply
-        </div>
-      </motion.div>
-    </Modal>
-  );
+            </Dialog>
+        </Transition>
+    );
 }

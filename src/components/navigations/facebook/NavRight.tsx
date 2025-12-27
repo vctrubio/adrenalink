@@ -9,7 +9,6 @@ import { TeacherSortPriorityManModal } from "@/src/components/modals/admin";
 import { ENTITY_DATA } from "@/config/entities";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
-import { NavigationFloatingTable } from "./NavigationFloatingTable";
 import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm";
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
@@ -43,7 +42,6 @@ export const NavRight = () => {
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
     const [isTeacherSortModalOpen, setIsTeacherSortModalOpen] = useState(false);
-    const [isNavigationFloatingOpen, setIsNavigationFloatingOpen] = useState(false);
     const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(null);
     const [studentFormData, setStudentFormData] = useState<StudentFormData>(defaultStudentForm);
     const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>(defaultTeacherForm);
@@ -60,18 +58,13 @@ export const NavRight = () => {
     useEffect(() => {
         setMounted(true);
     }, []);
-    // Cmd+J keyboard listener
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            console.log("Key pressed:", e.key, "Meta:", e.metaKey, "Ctrl:", e.ctrlKey);
-            if ((e.metaKey || e.ctrlKey) && e.key === "j") {
+            // Note: Cmd+J handler moved to NavLeft
+            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
-                console.log("Cmd+J triggered - opening navigation");
-                setIsNavigationFloatingOpen((prev) => {
-                    const newState = !prev;
-                    console.log("State changed to:", newState);
-                    return newState;
-                });
+                setIsTeacherSortModalOpen((prev) => !prev);
             }
         };
 
@@ -79,7 +72,6 @@ export const NavRight = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    
     const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
 
     // Form validity checks
@@ -214,8 +206,6 @@ export const NavRight = () => {
         );
     };
 
-
-            <NavigationFloatingTable isOpen={isNavigationFloatingOpen} onClose={() => setIsNavigationFloatingOpen(false)} />
     return (
         <>
             <div className="flex items-center gap-2">

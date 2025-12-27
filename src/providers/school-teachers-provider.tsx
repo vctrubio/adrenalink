@@ -6,6 +6,7 @@ import type { TeacherModel } from "@/backend/models";
 
 interface SchoolTeachersContextType {
     teachers: TeacherModel[];
+    allTeachers: TeacherModel[];
     loading: boolean;
     error: string | null;
     refetch: () => Promise<void>;
@@ -19,6 +20,7 @@ interface SchoolTeachersProviderProps {
 
 export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps) {
     const [teachers, setTeachers] = useState<TeacherModel[]>([]);
+    const [allTeachers, setAllTeachers] = useState<TeacherModel[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,9 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
             const result = await getTeachers();
 
             if (result.success && result.data) {
-                // Filter for active teachers only
+                // Store all teachers (including inactive)
+                setAllTeachers(result.data);
+                // Filter for active teachers only (for classboard/default use)
                 const activeTeachers = result.data.filter((teacher) => teacher.schema.active);
                 setTeachers(activeTeachers);
             } else {
@@ -49,7 +53,7 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
     }, []);
 
     return (
-        <SchoolTeachersContext.Provider value={{ teachers, loading, error, refetch: fetchTeachers }}>
+        <SchoolTeachersContext.Provider value={{ teachers, allTeachers, loading, error, refetch: fetchTeachers }}>
             {children}
         </SchoolTeachersContext.Provider>
     );

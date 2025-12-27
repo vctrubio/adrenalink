@@ -31,11 +31,12 @@ interface RowProps {
     };
     action?: ReactNode;
     popover?: ReactNode;
+    rightAction?: ReactNode;
     stats?: StatItem[];
     expandedContent?: ReactNode;
 }
 
-export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, onToggle, head, str, action, popover, stats, expandedContent }: RowProps) => {
+export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, onToggle, head, str, action, popover, rightAction, stats, expandedContent }: RowProps) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
@@ -82,9 +83,10 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isExpanded, on
                         </div>
                     )}
 
-                    {/* Stats and Popover - always on the right */}
-                    {(stats || popover) && (
+                    {/* Stats, Popover, and Right Action - always on the right */}
+                    {(stats || popover || rightAction) && (
                         <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
+                            {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
                             {popover && <div className="flex-shrink-0">{popover}</div>}
                             {stats && (
                                 <div className="flex-shrink-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useMemo, ReactNode } from "react";
+import { useLayoutEffect, useRef, useMemo, ReactNode, useState, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { DATABOARD_ENTITY_SEARCH_FIELDS } from "@/config/databoard";
 import { useDataboard } from "@/src/hooks/useDataboard";
@@ -9,6 +9,7 @@ import { WizardTable, type WizardColumn } from "@/src/components/ui/wizzard/Wiza
 import { StatItem, RowStats } from "@/src/components/ui/row";
 import type { AbstractModel } from "@/backend/models/AbstractModel";
 import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
+import { useRouter } from "next/navigation";
 
 export interface TableRenderers<T> {
     renderEntity: (item: T) => ReactNode;
@@ -32,8 +33,10 @@ export const DataboardTableSection = <T extends { id: string }>({
     calculateStats,
 }: DataboardTableSectionProps<T>) => {
     const controller = useDataboardController();
+    const router = useRouter();
     const searchFields = DATABOARD_ENTITY_SEARCH_FIELDS[entityId] || [];
     const prevStatsRef = useRef<StatItem[]>([]);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const { groupedData } = useDataboard(
         data,
@@ -79,6 +82,83 @@ export const DataboardTableSection = <T extends { id: string }>({
         }
     }, [filteredData, calculateStats, controller.onStatsChange]);
 
+    // Reset selection when search changes
+    useEffect(() => {
+        if (controller.search && filteredData.length > 0) {
+            setSelectedId(null);
+        }
+    }, [controller.search]);
+
+    // Keyboard Navigation
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const searchInput = document.getElementById("databoard-search-input");
+            const isSearchFocused = document.activeElement === searchInput;
+
+            // Cmd+. to focus search
+            if ((e.metaKey || e.ctrlKey) && e.key === ".") {
+                e.preventDefault();
+                searchInput?.focus();
+                setSelectedId(null);
+                return;
+            }
+
+            // Shift+Down to select first row
+            if (e.shiftKey && e.key === "ArrowDown") {
+                e.preventDefault();
+                if (isSearchFocused) searchInput?.blur();
+                if (filteredData.length > 0) {
+                    const firstId = filteredData[0].updateForm?.id;
+                    if (firstId) {
+                        setSelectedId(firstId);
+                    }
+                }
+                return;
+            }
+
+            // Navigation when rows are focused (search NOT focused)
+            if (!isSearchFocused && selectedId) {
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
+                    if (currentIndex < filteredData.length - 1) {
+                        const nextId = filteredData[currentIndex + 1].updateForm?.id;
+                        if (nextId) {
+                            setSelectedId(nextId);
+                        }
+                    }
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    const currentIndex = filteredData.findIndex(item => item.updateForm?.id === selectedId);
+                    if (currentIndex > 0) {
+                        const prevId = filteredData[currentIndex - 1].updateForm?.id;
+                        if (prevId) {
+                            setSelectedId(prevId);
+                        }
+                    }
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    router.push(`/${entityId}s/${selectedId}`);
+                }
+            }
+
+            // Special case: Search IS focused and ArrowDown pressed -> go to first row
+            if (isSearchFocused && e.key === "ArrowDown") {
+                e.preventDefault();
+                searchInput?.blur();
+                if (filteredData.length > 0) {
+                    const firstId = filteredData[0].updateForm?.id;
+                    if (firstId) {
+                        setSelectedId(firstId);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [filteredData, selectedId, entityId, router]);
+
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     if (!entity) return null;
 
@@ -115,20 +195,6 @@ export const DataboardTableSection = <T extends { id: string }>({
         },
     ];
 
-    // Prepare data for WizardTable (flattened but tracking groups if needed)
-    // WizardTable supports internal grouping via 'groupBy' prop if we pass a flat list
-    // OR we can map our 'groupedData' structure.
-    // 'groupedData' is { label: string, data: T[] }[]
-    // To use WizardTable's groupBy, we need to flatten and attach the label.
-    // But groupedData is already grouped.
-    // Let's adapt groupedData to WizardTable.
-    
-    // Actually WizardTable takes `data` and optional `groupBy`. 
-    // If I pass flattened data and a groupBy function, it re-groups.
-    // But `groupedData` from `useDataboard` already does complex grouping logic.
-    // So I should probably just iterate over `groupedData` and render multiple tables or
-    // modify WizardTable to accept pre-grouped data.
-    
     // For now, let's just flatten and use the group label as the key.
     const flatDataWithGroups = useMemo(() => {
         return groupedData.flatMap(group => 
@@ -141,17 +207,22 @@ export const DataboardTableSection = <T extends { id: string }>({
             data={flatDataWithGroups}
             columns={columns}
             groupBy={(item: any) => item.__groupLabel}
-            getRowId={(item) => item.updateForm.id}
+            getRowId={(item) => item.updateForm?.id || ""}
             getRowAccentColor={(item) => renderers.renderColor?.(item) || accentColor}
+            selectedId={selectedId || undefined}
             accentColor={accentColor}
             groupHeader={(label, count) => (
                 <div className="flex items-center gap-2">
                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
                      <span className="font-bold">{label}</span>
                      <span className="text-muted-foreground text-xs">({count})</span>
-                     {/* We could add group stats here if we want */}
                 </div>
             )}
+            onRowClick={(item) => {
+                if (item.updateForm?.id) {
+                    router.push(`/${entityId}s/${item.updateForm.id}`);
+                }
+            }}
         />
     );
 };
