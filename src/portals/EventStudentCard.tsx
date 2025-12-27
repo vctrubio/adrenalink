@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
 import { minutesToHours } from "@/getters/duration-getter";
 import { MapPin } from "lucide-react";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
 interface EventStudentCardProps {
     teacherName: string;
@@ -34,10 +34,6 @@ export function EventStudentCard({
 }: EventStudentCardProps) {
     const [isOpen, setIsOpen] = useState(false);
     const teacherFirstName = teacherName.split(" ")[0];
-
-    const handleToggle = () => {
-        setIsOpen(!isOpen);
-    };
 
     const equipmentLabel = categoryEquipment
         ? `${categoryEquipment.charAt(0).toUpperCase() + categoryEquipment.slice(1)}${capacityEquipment ? ` (x${capacityEquipment})` : ""}`
@@ -110,32 +106,7 @@ export function EventStudentCard({
 
                 <div className="flex-1" />
 
-                <button
-                    onClick={handleToggle}
-                    className="relative flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors duration-300 outline-none ml-4"
-                >
-                    <AnimatePresence>
-                        {isOpen && (
-                            <motion.span
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 10 }}
-                                className="text-xs font-bold uppercase tracking-widest text-primary"
-                            >
-                                Details
-                            </motion.span>
-                        )}
-                    </AnimatePresence>
-                    
-                    <motion.div 
-                        animate={{ rotate: isOpen ? 180 : 360 }}
-                        whileHover={{ rotate: isOpen ? 192 : 372 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                        className="origin-center"
-                    >
-                        <AdranlinkIcon size={32} />
-                    </motion.div>
-                </button>
+                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
             </div>
         </motion.div>
     );

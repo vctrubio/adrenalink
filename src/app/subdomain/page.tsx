@@ -32,9 +32,9 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             return <NoSchoolFound username={username} schools={schools} />;
         }
 
-        const { school, packages } = result.data;
+        const { school, packages, assets } = result.data;
 
-        return <SubDomainHomePage school={school} packages={packages} />;
+        return <SubDomainHomePage school={school} packages={packages} assets={assets || { iconUrl: null, bannerUrl: null }} />;
     } catch (error) {
         console.error("💥 Error in subdomain content:", error);
         return (

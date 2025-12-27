@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
 import { minutesToHours } from "@/getters/duration-getter";
 import { MapPin } from "lucide-react";
 import { EquipmentStudentCommissionBadge } from "@/src/components/ui/badge/equipment-student-commission";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
 interface EventTeacherCardProps {
     students: string[];
@@ -121,20 +121,7 @@ export function EventTeacherCard({
                 {/* Spacer to push icon right if info is hidden */}
                 <div className="flex-1" />
 
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="relative text-foreground/80 hover:text-primary transition-colors duration-300 outline-none ml-4"
-                    aria-label={isOpen ? "Collapse details" : "Expand details"}
-                >
-                    <motion.div 
-                        animate={{ rotate: isOpen ? 180 : 0 }}
-                        whileHover={{ rotate: isOpen ? 192 : 12 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                        className="origin-center"
-                    >
-                        <AdranlinkIcon size={32} />
-                    </motion.div>
-                </button>
+                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
             </div>
         </motion.div>
     );

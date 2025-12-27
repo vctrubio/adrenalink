@@ -5,6 +5,7 @@ import type { DataboardController as DataboardControllerType } from "@/types/dat
 import type { StatItem } from "@/src/components/ui/row";
 import { DataboardHeader } from "@/src/components/databoard/DataboardHeader";
 import { DataboardNavigationRoutes } from "@/src/components/databoard/DataboardNavigationRoutes";
+import { DataboardHeaderStats } from "@/src/components/databoard/DataboardHeaderStats";
 
 const DataboardContext = createContext<DataboardControllerType | null>(null);
 
@@ -24,11 +25,19 @@ interface DataboardLayoutProps {
 }
 
 export function DataboardLayout({ children, controller, entityId, stats }: DataboardLayoutProps) {
+    const isLoading = stats.length === 0;
+
     return (
         <DataboardContext.Provider value={controller}>
             <div className="max-w-7xl mx-auto space-y-4">
-                <DataboardNavigationRoutes />
-                <DataboardHeader controller={controller} entityId={entityId} stats={stats} />
+                {/* Navigation + Stats Row */}
+                <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
+                    <DataboardNavigationRoutes />
+                    <DataboardHeaderStats stats={stats} isLoading={isLoading} />
+                </div>
+
+                {/* Search + Filter Controls */}
+                <DataboardHeader controller={controller} entityId={entityId} />
                 {children}
             </div>
         </DataboardContext.Provider>

@@ -1,13 +1,11 @@
 "use client";
 
 import { ENTITY_DATA } from "@/config/entities";
-import { EntityHeaderRow } from "./EntityHeaderRow";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
 import { ENTITY_SORT_OPTIONS } from "@/types/sort";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter, DataboardController as DataboardControllerType } from "@/types/databoard";
-import type { StatItem } from "@/src/components/ui/row";
 
 const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
 const FILTER_OPTIONS_EQUIPMENT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days", "Active"];
@@ -22,43 +20,37 @@ const getActivityOptions = (entityId: string) => {
 interface DataboardHeaderProps {
     controller: DataboardControllerType;
     entityId: string;
-    stats: StatItem[];
 }
 
-export function DataboardHeader({ controller, entityId, stats }: DataboardHeaderProps) {
+export function DataboardHeader({ controller, entityId }: DataboardHeaderProps) {
     const entity = ENTITY_DATA.find((e) => e.id === entityId);
     if (!entity) return null;
 
     const filterOptions = entityId === "equipment" ? FILTER_OPTIONS_EQUIPMENT : FILTER_OPTIONS_DEFAULT;
-    const isLoading = stats.length === 0;
 
     return (
-        <div className="space-y-4">
-            {/* Top Row: Icon + Name | Stats */}
-            <EntityHeaderRow entityId={entityId} stats={stats} isLoading={isLoading} />
+        <div className="flex flex-wrap items-center gap-3">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+                <SearchInput
+                    id="databoard-search-input"
+                    entityColor={entity.color}
+                    value={controller.search}
+                    onChange={(e) => controller.onSearchChange(e.target.value)}
+                />
+            </div>
 
-            {/* Search + Filter Controls */}
-            <div className="flex items-center gap-3">
-                <div className="flex-1">
-                    <SearchInput
-                        id="databoard-search-input"
-                        entityColor={entity.color}
-                        value={controller.search}
-                        onChange={(e) => controller.onSearchChange(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <SortDropdown 
-                        value={controller.sort} 
-                        options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking} 
-                        onChange={controller.onSortChange} 
-                        entityColor={entity.color} 
-                    />
-                    <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
-                    <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />
-                    <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v as DataboardActivityFilter)} entityColor={entity.color} />
-                </div>
+            {/* Sort & Filter Controls */}
+            <div className="flex items-center gap-2">
+                <SortDropdown
+                    value={controller.sort}
+                    options={ENTITY_SORT_OPTIONS[entityId] || ENTITY_SORT_OPTIONS.booking}
+                    onChange={controller.onSortChange}
+                    entityColor={entity.color}
+                />
+                <FilterDropdown label="Filter" value={controller.filter} options={filterOptions} onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} entityColor={entity.color} />
+                <FilterDropdown label="Group" value={controller.group} options={GROUP_OPTIONS} onChange={controller.onGroupChange} entityColor={entity.color} />
+                <FilterDropdown label="Status" value={controller.activity} options={getActivityOptions(entityId)} onChange={(v) => controller.onActivityChange(v as DataboardActivityFilter)} entityColor={entity.color} />
             </div>
         </div>
     );
