@@ -121,7 +121,7 @@ export function EventTeacherCard({
                 {/* Spacer to push icon right if info is hidden */}
                 <div className="flex-1" />
 
-                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
+                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} variant="lg" />
             </div>
         </motion.div>
     );

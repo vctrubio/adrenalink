@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { Card } from "@/src/components/ui/card";
 import { CardList } from "@/src/components/ui/card/card-list";
 
@@ -72,15 +71,10 @@ export function LeftColumnCard({ name, status, avatar, fields, accentColor, isEd
                 Add
               </div>
             )}
-            <motion.div
-              animate={{ rotate: isOpen ? 180 : 0, scale: 1 }}
-              whileHover={{ rotate: isOpen ? 200 : -20, scale: 1.15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="origin-center"
-              style={{ color: accentColor }}
-            >
-              <AdranlinkIcon size={20} />
-            </motion.div>
+            <ToggleAdranalinkIcon 
+              isOpen={isOpen} 
+              color={accentColor} 
+            />
           </div>
         </div>
         <div className="h-1 w-full rounded-full my-4" style={{ backgroundColor: accentColor }} />

@@ -15,7 +15,7 @@ import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress"
 import { EquipmentStudentPaymentsBadge } from "@/src/components/ui/badge/equipment-student-payments";
 import { TeacherComissionLessonTable, type TeacherComissionLessonData } from "@/src/components/ids/TeacherComissionLessonTable";
 import { transformEventsToRows } from "@/getters/event-getter";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
@@ -274,15 +274,11 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                         </div>
 
                         {/* Icon */}
-                        <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0, scale: 1 }}
-                            whileHover={{ rotate: isExpanded ? 200 : -20, scale: 1.15 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="origin-center flex-shrink-0"
-                            style={{ color: bookingEntity_color }}
-                        >
-                            <AdranlinkIcon size={20} />
-                        </motion.div>
+                        <ToggleAdranalinkIcon 
+                            isOpen={isExpanded} 
+                            color={bookingEntity_color} 
+                            className="flex-shrink-0"
+                        />
                     </div>
                 </div>
 

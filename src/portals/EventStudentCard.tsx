@@ -106,7 +106,7 @@ export function EventStudentCard({
 
                 <div className="flex-1" />
 
-                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
+                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} variant="lg" />
             </div>
         </motion.div>
     );
