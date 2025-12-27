@@ -61,13 +61,13 @@ export interface LessonData {
                 categoryEquipment: string;
             };
         };
-        bookingStudents?: Array<{
+        bookingStudents?: {
             student?: {
                 id: string;
                 firstName: string;
                 lastName: string;
             };
-        }>;
+        }[];
     };
 }
 

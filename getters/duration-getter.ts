@@ -32,7 +32,7 @@ export function getFullDuration(durationMinutes: number): string {
 // ============ DURATION HM FORMAT ============
 // Converts minutes to compact format (e.g., "4h", "4h30m", "30m")
 // Set withUnits to false to return without unit suffix (e.g., "4", "4:30", "30")
-export function getHMDuration(durationMinutes: number, withUnits: boolean = true): string {
+export function getHMDuration(durationMinutes: number, withUnits = true): string {
     const totalMinutes = Math.round(durationMinutes);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;

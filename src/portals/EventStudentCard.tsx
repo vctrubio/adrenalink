@@ -14,7 +14,6 @@ interface EventStudentCardProps {
     location: string;
     date: string;
     duration: number;
-    // We keep these props to match the interface even if unused or partially used
     capacity?: number;
     packageDescription?: string;
     pricePerHour?: number;
@@ -36,7 +35,6 @@ export function EventStudentCard({
     const [isOpen, setIsOpen] = useState(false);
     const teacherFirstName = teacherName.split(" ")[0];
 
-    // Format equipment string: "Wing (x2)" or just "Wing"
     const equipmentLabel = categoryEquipment
         ? `${categoryEquipment.charAt(0).toUpperCase() + categoryEquipment.slice(1)}${capacityEquipment ? ` (x${capacityEquipment})` : ""}`
         : "None";
@@ -59,10 +57,7 @@ export function EventStudentCard({
         >
             {/* High Contrast Header */}
             <div className="flex items-center justify-between bg-zinc-900 px-6 py-5 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={date} duration={duration} />
-
-                {/* Right Side: School Icon Placeholder */}
                 <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm dark:bg-zinc-900/10 dark:border-zinc-900/20" />
             </div>
 
@@ -73,7 +68,7 @@ export function EventStudentCard({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-hidden"
                     >
                         <div className="p-5 pt-2">
@@ -84,47 +79,62 @@ export function EventStudentCard({
             </AnimatePresence>
 
             {/* Footer / Toggle Trigger */}
-            <div className="p-4 flex items-center justify-between min-h-[64px]">
-                {/* Teacher & Location Info visible only when CLOSED */}
-                <AnimatePresence>
-                    {!isOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            transition={{ duration: 0.2 }}
-                            className="flex items-center gap-5 text-muted-foreground"
-                        >
-                            <div className="flex items-center gap-2">
-                                <HeadsetIcon size={24} className="text-green-500" />
-                                <span className="text-sm font-medium">{teacherFirstName}</span>
-                            </div>
+            <div className="p-4 flex items-center justify-between min-h-[64px] border-t border-border/50">
+                <div className="flex items-center gap-5">
+                    {/* Info moves/fades but stays present or transforms */}
+                    <motion.div
+                        layout
+                        className="flex items-center gap-5 text-muted-foreground"
+                    >
+                        <div className="flex items-center gap-2">
+                            <HeadsetIcon size={20} className="text-green-500" />
+                            <span className={`text-sm font-medium transition-colors ${isOpen ? "text-foreground" : ""}`}>
+                                {teacherFirstName}
+                            </span>
+                        </div>
 
-                            <div className="h-4 w-px bg-border" />
+                        <div className="h-4 w-px bg-border" />
 
-                            <div className="flex items-center gap-2">
-                                <MapPin size={20} className="text-foreground/70" />
-                                <span className="text-sm font-medium truncate max-w-[120px]">{location}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        <div className="flex items-center gap-2">
+                            <MapPin size={18} className="text-foreground/70" />
+                            <span className={`text-sm font-medium truncate max-w-[120px] transition-colors ${isOpen ? "text-foreground" : ""}`}>
+                                {location}
+                            </span>
+                        </div>
+                    </motion.div>
+                </div>
 
-                {/* Spacer to push icon right if info is hidden */}
                 <div className="flex-1" />
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="relative text-foreground/80 hover:text-primary transition-colors duration-300 outline-none ml-4"
-                    aria-label={isOpen ? "Collapse details" : "Expand details"}
+                    className="relative flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors duration-300 outline-none ml-4"
                 >
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.span
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                className="text-xs font-bold uppercase tracking-widest text-primary"
+                            >
+                                Details
+                            </motion.span>
+                        )}
+                    </AnimatePresence>
+                    
                     <motion.div 
-                        animate={{ rotate: isOpen ? 180 : 0 }}
-                        whileHover={{ rotate: isOpen ? 192 : 12 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                        animate={{ 
+                            rotate: isOpen ? 135 : 0, // Rotates "down" (45 + 90 = 135)
+                            scale: isOpen ? 1.1 : 1
+                        }}
+                        whileHover={{ scale: 1.2 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
                         className="origin-center"
                     >
-                        <AdranlinkIcon size={32} />
+                        <div className="rotate-45">
+                            <AdranlinkIcon size={28} />
+                        </div>
                     </motion.div>
                 </button>
             </div>

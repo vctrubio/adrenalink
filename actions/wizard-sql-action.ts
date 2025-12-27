@@ -4,12 +4,12 @@ import { sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
 
-export type WizardEntity = {
+export interface WizardEntity {
     id: string;
     title: string;
     subtitle: string;
     status?: string;
-};
+}
 
 export async function getWizardEntities(entityType: string): Promise<WizardEntity[]> {
     try {
@@ -29,7 +29,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
                         s.country as subtitle,
                         CASE WHEN s.active THEN 'Active' ELSE 'Inactive' END as status
                     FROM student s
-                    JOIN school_student ss ON ss.student_id = s.id
+                    JOIN school_students ss ON ss.student_id = s.id
                     WHERE ss.school_id = ${schoolId}
                     ORDER BY s.created_at DESC
                     LIMIT 50

@@ -18,7 +18,7 @@ export interface TimelineEvent {
     totalRevenue: number;
     commissionType: string;
     commissionCph: number;
-    bookingStudents?: Array<{ id: string; firstName: string; lastName: string }> | null;
+    bookingStudents?: { id: string; firstName: string; lastName: string }[] | null;
     equipmentCategory?: string | null;
     capacityEquipment?: number | null;
     capacityStudents?: number | null;

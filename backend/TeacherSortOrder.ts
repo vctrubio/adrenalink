@@ -1,9 +1,9 @@
 export class TeacherSortOrder {
   private order: string[] = [];
-  private subscribers: Set<(order: string[]) => void> = new Set();
+  private subscribers = new Set<(order: string[]) => void>();
   private storageKey: string;
 
-  constructor(storageKey: string = "teacher-sort-priority") {
+  constructor(storageKey = "teacher-sort-priority") {
     this.storageKey = storageKey;
     this.loadFromStorage();
   }

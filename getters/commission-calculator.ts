@@ -37,7 +37,7 @@ export function calculateCommission(
 ): CommissionCalculation {
     const totalHours = durationMinutes / 60;
     const hours = formatDuration(durationMinutes);
-    const cph = typeof commission.cph === 'string' ? parseFloat(commission.cph) : commission.cph;
+    const cph = typeof commission.cph === "string" ? parseFloat(commission.cph) : commission.cph;
 
     if (commission.type === "fixed") {
         // FIXED: rate/hr × hours = earnings

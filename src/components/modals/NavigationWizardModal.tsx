@@ -119,11 +119,11 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                 // If it's a hotkey map
                 const key = e.key.toLowerCase();
                 const map: Record<string, string> = {
-                    's': 'student',
-                    't': 'teacher',
-                    'p': 'schoolPackage',
-                    'b': 'booking',
-                    'e': 'equipment'
+                    "s": "student",
+                    "t": "teacher",
+                    "p": "schoolPackage",
+                    "b": "booking",
+                    "e": "equipment"
                 };
                 
                 // If key matches a mapped entity, focus it directly
@@ -131,11 +131,6 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                     const index = allEntities.findIndex(entity => entity.id === map[key]);
                     if (index !== -1) {
                         mainNav.setFocusedIndex(index);
-                        // Optional: Clear any previous search to ensure we see all items but focused on the right one?
-                        // Or just filter? The user said "s for student", implying quick selection.
-                        // Jumping focus is cleaner than filtering for single letters if we want to keep the list visible.
-                        // But if we want to filter, we'd do mainNav.setSearchQuery(key).
-                        // Let's go with Focus jumping because it feels faster/smoother than filtering UI churn for 5 items.
                     }
                 }
             }
@@ -143,7 +138,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, expandedEntityId, mainNav.selectedItem, allEntities, mainNav.setFocusedIndex, mainNav.setSearchQuery]);
+    }, [isOpen, expandedEntityId, mainNav.selectedItem, allEntities, mainNav.setFocusedIndex, mainNav.setSearchQuery, handleClose]);
 
     // Initial sync
     useEffect(() => {
@@ -228,62 +223,70 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                 transition={{ duration: 0.3, ease: "easeOut" }}
                                 className="relative flex flex-col max-h-[85vh]"
                             >
-                                {/* Header with Breadcrumbs */}
+                                {/* Dynamic Header */}
                                 <div className="mb-6 flex flex-col items-center">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <motion.div
-                                            className="flex items-center gap-2 cursor-pointer group"
-                                            onClick={() => {
-                                                if (expandedEntityId) {
-                                                    setExpandedEntityId(null);
-                                                }
-                                            }}
-                                            whileHover={expandedEntityId ? { scale: 1.05 } : undefined}
-                                        >
+                                    <AnimatePresence mode="wait">
+                                        {!expandedEntityId ? (
                                             <motion.div
-                                                initial={{ scale: 0.9, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
-                                                className="text-white"
+                                                key="header-main"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex flex-col items-center"
                                             >
-                                                <AdranlinkIcon size={32} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                                                <div className="flex items-center gap-4 mb-1">
+                                                    <motion.div
+                                                        initial={{ scale: 0.9, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
+                                                        className="text-white"
+                                                    >
+                                                        <AdranlinkIcon size={32} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                                                    </motion.div>
+                                                    
+                                                    <motion.h2 
+                                                        initial={{ opacity: 0, x: -5 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
+                                                        className="text-3xl font-bold tracking-tight text-white"
+                                                    >
+                                                        Adrenalink
+                                                    </motion.h2>
+                                                </div>
+                                                <p className="text-white/40 text-sm font-medium">Navigate your way</p>
                                             </motion.div>
-                                            
-                                            <motion.h2 
-                                                initial={{ opacity: 0, x: -5 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
-                                                className={`text-3xl font-bold tracking-tight text-white ${expandedEntityId ? "group-hover:text-white/80 transition-colors" : ""}`}
+                                        ) : (
+                                            <motion.div
+                                                key="header-sub"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex flex-col items-center cursor-pointer group"
+                                                onClick={() => {
+                                                    setExpandedEntityId(null);
+                                                    setTimeout(() => searchInputRef.current?.focus(), 50);
+                                                }}
                                             >
-                                                Adrenalink
-                                            </motion.h2>
-                                        </motion.div>
-
-                                        <AnimatePresence>
-                                            {expandedEntityId && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    exit={{ opacity: 0, x: -10 }}
-                                                    className="flex items-center gap-2"
-                                                >
-                                                    <ChevronRight className="text-white/40 w-6 h-6" />
-                                                    <h2 className="text-3xl font-bold tracking-tight text-white/60">
-                                                        {expandedEntityName}
-                                                    </h2>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                    
-                                    <motion.p
-                                        initial={{ opacity: 0, y: 3 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.15, duration: 0.3, ease: "easeOut" }}
-                                        className="text-white/40 text-sm font-medium"
-                                    >
-                                        {expandedEntityId ? "Select an item" : "Navigate your way"}
-                                    </motion.p>
+                                                <div className="flex items-center gap-3 mb-1 text-white/50 group-hover:text-white transition-colors">
+                                                    <motion.div
+                                                        initial={{ rotate: 0 }}
+                                                        animate={{ rotate: -90 }} // Updated to -90
+                                                        transition={{ duration: 0.4, ease: "backOut" }}
+                                                    >
+                                                        <AdranlinkIcon size={24} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                                                    </motion.div>
+                                                    <span className="text-xl font-bold tracking-tight">Adrenalink</span>
+                                                </div>
+                                                
+                                                <h2 className="text-4xl font-black tracking-tight text-white mb-1">
+                                                    {expandedEntityName}
+                                                </h2>
+                                                <p className="text-white/40 text-sm font-medium">Select an item</p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 <AnimatePresence mode="wait">
@@ -296,8 +299,6 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                             transition={{ duration: 0.2 }}
                                             className="flex flex-col flex-1 min-h-0"
                                         >
-                                            {/* No Main Search Input anymore */}
-                                            
                                             <div className="flex-1 min-h-0">
                                                 <WizardTable
                                                     data={mainNav.filteredItems}
@@ -356,7 +357,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                             id: item.id,
                                                             title: item.title,
                                                             subtitle: item.subtitle,
-                                                            isActive: item.status === 'Active',
+                                                            isActive: item.status === "Active",
                                                         }))}
                                                         selectedId={subNav.selectedItem?.id}
                                                         onSelect={(item) => {

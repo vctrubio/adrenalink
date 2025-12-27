@@ -104,7 +104,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                     <FacebookNav />
                     <div className="flex flex-1 overflow-hidden">
                         {/* <AdminSideBar schoolName={schoolHeader?.name} /> */}
-                        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
                     </div>
                 </div>
             </SchoolTeachersProvider>

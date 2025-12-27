@@ -41,44 +41,49 @@ export const NavLeft = () => {
         <>
             <div className="flex items-center gap-1">
                 <Link href="/" className="flex items-center">
-                    {logoUrl ? <Image src={logoUrl} alt={schoolUsername || "School Logo"} width={40} height={40} className="rounded-full object-cover" priority /> : <AdranlinkIcon size={40} className="text-secondary" />}
+                    {logoUrl ? <Image src={logoUrl} alt={schoolUsername || "School Logo"} width={36} height={36} className="rounded-full object-cover md:w-10 md:h-10" priority /> : <AdranlinkIcon size={36} className="text-secondary md:hidden" />}
+                    {!logoUrl && <AdranlinkIcon size={40} className="text-secondary hidden md:block" />}
                 </Link>
-                {routesToRender.map((route) => {
-                    let isActive = false;
-                    if (route.id === "data") {
-                        isActive = databoardPaths.some((path) => pathname.startsWith(path));
-                    } else if (route.id === "info") {
-                        isActive = pathname.startsWith("/home");
-                    } else {
-                        isActive = pathname.startsWith(route.href);
-                    }
 
-                    if (route.id === "data") {
+                {/* Desktop navigation */}
+                <div className="hidden md:flex items-center gap-1">
+                    {routesToRender.map((route) => {
+                        let isActive = false;
+                        if (route.id === "data") {
+                            isActive = databoardPaths.some((path) => pathname.startsWith(path));
+                        } else if (route.id === "info") {
+                            isActive = pathname.startsWith("/home");
+                        } else {
+                            isActive = pathname.startsWith(route.href);
+                        }
+
+                        if (route.id === "data") {
+                            return (
+                                <DropdownItem
+                                    key={route.href}
+                                    item={{
+                                        icon: route.icon,
+                                        active: isActive,
+                                        onClick: () => setIsNavModalOpen(true),
+                                    }}
+                                    variant="nav"
+                                />
+                            );
+                        }
+
                         return (
                             <DropdownItem
                                 key={route.href}
                                 item={{
+                                    href: route.id === "info" ? "/home" : route.href,
                                     icon: route.icon,
                                     active: isActive,
-                                    onClick: () => setIsNavModalOpen(true),
                                 }}
                                 variant="nav"
                             />
                         );
-                    }
-
-                    return (
-                        <DropdownItem
-                            key={route.href}
-                            item={{
-                                href: route.id === "info" ? "/home" : route.href,
-                                icon: route.icon,
-                                active: isActive,
-                            }}
-                            variant="nav"
-                        />
-                    );
-                })}
+                    })}
+                </div>
             </div>
             <NavigationWizardModal isOpen={isNavModalOpen} onClose={() => setIsNavModalOpen(false)} />
         </>

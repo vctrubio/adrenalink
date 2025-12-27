@@ -3,7 +3,7 @@ import { BookingContainer } from "@/src/components/ids/BookingContainer";
 
 interface BookingRightColumnProps {
     booking: BookingModel;
-    stats: Array<{ label: string; value: string | number; icon?: React.ReactNode }>;
+    stats: { label: string; value: string | number; icon?: React.ReactNode }[];
 }
 
 export function BookingRightColumn({ booking, stats }: BookingRightColumnProps) {
