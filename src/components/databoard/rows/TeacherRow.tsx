@@ -95,7 +95,7 @@ export const teacherRenderers: TableRenderers<TeacherModel> = {
                     </div>
                 }
                 name={
-                    <HoverToEntity entity={teacherEntity} id={teacher.schema.username}>
+                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
                         {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
                     </HoverToEntity>
                 }
@@ -185,7 +185,7 @@ export const TeacherRow = ({ item: teacher, isExpanded, onToggle }: TeacherRowPr
                     </div>
                 ),
                 name: (
-                    <HoverToEntity entity={teacherEntity} id={teacher.schema.username}>
+                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
                         {`${teacher.schema.firstName} ${teacher.schema.lastName}`}
                     </HoverToEntity>
                 ),

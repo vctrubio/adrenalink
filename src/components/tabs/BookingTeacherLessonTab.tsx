@@ -36,7 +36,7 @@ const CommissionDisplay = ({ calculation, commissionColor }: { commission: Commi
 
 const TeacherHeader = ({ teacher, calculation, commissionColor, teacherColor }: { teacher: ClassboardLesson["teacher"]; calculation: CommissionCalculation; commissionColor?: string; teacherColor?: string }) => (
     <div className="flex items-center gap-3 pb-2 border-b border-border">
-        <Link href={`/teachers/${teacher.username}`}>
+        <Link href={`/teachers/${teacher.id}`}>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: `${teacherColor}20`, color: teacherColor }}>
                 <HeadsetIcon size={24} />
             </div>

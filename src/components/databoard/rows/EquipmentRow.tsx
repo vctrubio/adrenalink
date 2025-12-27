@@ -31,7 +31,7 @@ const EquipmentAction = ({ equipment }: { equipment: EquipmentModel }) => {
                 const totalMinutes = totalHours * 60;
                 const duration = getFullDuration(totalMinutes);
 
-                return <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.username}`} duration={duration} />;
+                return <EquipmentTeacherTag key={teacher.id} icon={<HeadsetIcon className="w-3 h-3" />} username={teacher.username} hours={totalHours} link={`/teachers/${teacher.id}`} duration={duration} />;
             })}
         </div>
     );

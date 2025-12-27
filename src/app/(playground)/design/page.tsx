@@ -7,6 +7,7 @@ import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
 import ClassboardIcon from "@/public/appSvgs/ClassboardIcon.jsx";
 import TableIcon from "@/public/appSvgs/TableIcon.jsx";
+import { WindToggle } from "@/src/components/themes/WindToggle";
 
 // Data Components
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
@@ -94,6 +95,11 @@ const mockEvent: EventNode = {
 export default function DesignPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-8">
+            {/* Theme Toggle - Absolute Right */}
+            <div className="absolute top-6 right-6 z-50 bg-card/80 backdrop-blur-md rounded-xl border border-border shadow-lg">
+                <WindToggle compact={true} />
+            </div>
+
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-100">Adrenalink Design System</h1>
 

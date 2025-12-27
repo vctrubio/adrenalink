@@ -353,7 +353,7 @@ export async function getEntityId(
 
             case "teacher":
                 entityData = await db.query.teacher.findFirst({
-                    where: eq(teacher.username, id),
+                    where: eq(teacher.id, id),
                     with: entityRelations.teacher,
                 });
                 statsQuery = buildTeacherStatsQuery();

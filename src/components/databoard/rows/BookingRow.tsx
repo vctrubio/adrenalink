@@ -42,7 +42,7 @@ const BookingAction = ({ booking }: { booking: BookingModel }) => {
                         const totalMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
                         const duration = getFullDuration(totalMinutes);
 
-                        return <TeacherBookingTag key={lesson.id} icon={<HeadsetIcon className="w-4 h-4" />} username={teacher.username} link={`/teachers/${teacher.username}`} duration={duration} eventCount={events.length} />;
+                        return <TeacherBookingTag key={lesson.id} icon={<HeadsetIcon className="w-4 h-4" />} username={teacher.username} link={`/teachers/${teacher.id}`} duration={duration} eventCount={events.length} />;
                     })}
                 </>
             )}

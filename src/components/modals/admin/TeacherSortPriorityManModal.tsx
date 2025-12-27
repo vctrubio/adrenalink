@@ -249,8 +249,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                 className="popup-toggle-unchecked"
                                                             />
                                                             
-                                                            <GoToAdranlink 
-                                                                href={`/teachers/${item.teacher.schema.username}`}
+                                                            <GoToAdranlink
+                                                                href={`/teachers/${item.teacher.schema.id}`}
                                                                 onNavigate={onClose}
                                                                 isHovered={isHovered}
                                                             />

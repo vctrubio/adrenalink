@@ -35,6 +35,10 @@ export function EventStudentCard({
     const [isOpen, setIsOpen] = useState(false);
     const teacherFirstName = teacherName.split(" ")[0];
 
+    const handleToggle = () => {
+        setIsOpen(!isOpen);
+    };
+
     const equipmentLabel = categoryEquipment
         ? `${categoryEquipment.charAt(0).toUpperCase() + categoryEquipment.slice(1)}${capacityEquipment ? ` (x${capacityEquipment})` : ""}`
         : "None";
@@ -107,7 +111,7 @@ export function EventStudentCard({
                 <div className="flex-1" />
 
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={handleToggle}
                     className="relative flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors duration-300 outline-none ml-4"
                 >
                     <AnimatePresence>
@@ -124,17 +128,12 @@ export function EventStudentCard({
                     </AnimatePresence>
                     
                     <motion.div 
-                        animate={{ 
-                            rotate: isOpen ? 135 : 0, // Rotates "down" (45 + 90 = 135)
-                            scale: isOpen ? 1.1 : 1
-                        }}
-                        whileHover={{ scale: 1.2 }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        animate={{ rotate: isOpen ? 180 : 360 }}
+                        whileHover={{ rotate: isOpen ? 192 : 372 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
                         className="origin-center"
                     >
-                        <div className="rotate-45">
-                            <AdranlinkIcon size={28} />
-                        </div>
+                        <AdranlinkIcon size={32} />
                     </motion.div>
                 </button>
             </div>

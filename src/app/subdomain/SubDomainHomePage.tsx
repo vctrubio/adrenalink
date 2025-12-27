@@ -6,6 +6,7 @@ import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment"; 
 import type { SchoolModel } from "@/backend/models/SchoolModel";
 import type { SchoolPackageModel } from "@/backend/models/SchoolPackageModel";
+import { WindToggle } from "@/src/components/themes/WindToggle";
 
 // Style Constants
 const SOCIAL_BUTTON_STYLE = "w-12 h-12 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md hover:bg-black/60 text-white/70 hover:text-white transition-all border border-white/10";
@@ -31,6 +32,11 @@ export function SubDomainHomePage({ school }: SubDomainHomePageProps) {
     return (
         <div className="h-screen bg-background flex flex-col items-center p-4 md:p-8 overflow-hidden">
             
+            {/* Theme Toggle - Absolute Right */}
+            <div className="absolute top-6 right-6 z-50 bg-card/80 backdrop-blur-md rounded-xl border border-border shadow-lg">
+                <WindToggle compact={true} />
+            </div>
+
             {/* Full Height Card Container */}
             <div className="w-full max-w-7xl flex-1 bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative">
                 
