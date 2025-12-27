@@ -6,6 +6,7 @@ interface UseModalNavigationProps<T> {
     onSelect?: (item: T) => void;
     onShiftSelect?: (item: T) => void;
     isOpen: boolean;
+    isActive?: boolean; // New prop to control listener
 }
 
 export function useModalNavigation<T extends { id: string }>({
@@ -14,6 +15,7 @@ export function useModalNavigation<T extends { id: string }>({
     onSelect,
     onShiftSelect,
     isOpen,
+    isActive = true,
 }: UseModalNavigationProps<T>) {
     const [searchQuery, setSearchQuery] = useState("");
     const [focusedIndex, setFocusedIndex] = useState(0);
@@ -29,13 +31,23 @@ export function useModalNavigation<T extends { id: string }>({
 
     // Reset focus when search changes or modal opens
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && isActive) {
             setFocusedIndex(0);
         }
-    }, [searchQuery, isOpen]);
+    }, [searchQuery, isOpen, isActive]); // Added isActive to dependency to reset when becoming active? Maybe not desired for "Back" action. 
+    // Actually, when going back, we might want to preserve focus. 
+    // But for search changes, yes. 
+    // Let's refine: Reset focusedIndex only if searchQuery changes. 
+    // On open, we usually want reset or sync.
+    // I'll keep it simple: reset on search change.
+    
+    useEffect(() => {
+        setFocusedIndex(0);
+    }, [searchQuery]);
+
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !isActive) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (filteredItems.length === 0) return;
@@ -61,7 +73,7 @@ export function useModalNavigation<T extends { id: string }>({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, filteredItems, focusedIndex, onSelect, onShiftSelect]);
+    }, [isOpen, isActive, filteredItems, focusedIndex, onSelect, onShiftSelect]);
 
     return {
         searchQuery,

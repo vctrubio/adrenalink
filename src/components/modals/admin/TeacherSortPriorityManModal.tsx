@@ -120,6 +120,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         items,
         filterField: "title",
         isOpen,
+        isActive: true,
         onSelect: handleSubmit,
         onShiftSelect: (item) => handleStatusToggle(item.id, !item.isActive)
     });
