@@ -9,6 +9,7 @@ import BankIcon from "@/public/appSvgs/BankIcon";
 
 export const StudentIdStats = {
     getStats: (student: StudentModel): StatItem[] => {
+        const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
         const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
         const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
         const bookingStudents = student.relations?.bookingStudents || [];
@@ -37,7 +38,15 @@ export const StudentIdStats = {
             { bookings: 0, events: 0, durationMinutes: 0, moneyToPay: 0, moneyPaid: 0 },
         );
 
+        const StudentIcon = studentEntity.icon;
+
         return [
+            {
+                label: `${student.schema.firstName} ${student.schema.lastName}`,
+                icon: <StudentIcon />,
+                value: student.schema.firstName,
+                color: studentEntity.color,
+            },
             {
                 label: "Bookings",
                 icon: <BookingIcon />,

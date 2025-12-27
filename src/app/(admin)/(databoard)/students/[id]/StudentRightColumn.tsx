@@ -25,7 +25,7 @@ const FILTER_OPTIONS = ["All", "Active", "Completed", "Uncompleted"];
 export function StudentRightColumn({ student }: StudentRightColumnProps) {
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
-    
+
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<SortConfig>({ field: "dateStart", direction: "desc" });
     const [filter, setFilter] = useState<EventStatusFilter>("all");
@@ -103,11 +103,7 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
     }, [filteredBookingStudents]);
 
     if (bookingStudents.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-                No bookings found for this student
-            </div>
-        );
+        return <div className="flex items-center justify-center h-64 text-muted-foreground">No bookings found for this student</div>;
     }
 
     return (
@@ -132,20 +128,9 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                 {filteredBookingStudents.map((bs) => {
                     if (!bs.booking) return null;
 
-                    return (
-                        <FullBookingCard
-                            key={bs.booking.id}
-                            bookingData={bs.booking}
-                            currency={currency}
-                            formatCurrency={formatCurrency}
-                        />
-                    );
+                    return <FullBookingCard key={bs.booking.id} bookingData={bs.booking} currency={currency} formatCurrency={formatCurrency} />;
                 })}
-                {filteredBookingStudents.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                        No bookings match your filters
-                    </div>
-                )}
+                {filteredBookingStudents.length === 0 && <div className="text-center py-8 text-muted-foreground">No bookings match your filters</div>}
             </motion.div>
         </div>
     );

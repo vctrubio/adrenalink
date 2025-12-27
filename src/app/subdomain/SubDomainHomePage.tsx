@@ -45,7 +45,14 @@ export function SubDomainHomePage({ school, assets }: SubDomainHomePageProps) {
             <div className="w-full max-w-7xl flex-1 bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative">
                 
                 {/* 1. Banner Section */}
-                <div className="relative w-full h-48 md:h-80 bg-muted group shrink-0">
+                <div className="relative w-full h-48 md:h-80 group shrink-0">
+                    {/* Loading placeholder - behind image */}
+                    <div className="absolute inset-0 bg-background/30 backdrop-blur-3xl flex items-center justify-center">
+                        <div className="opacity-10">
+                            <AdranlinkIcon size={120} />
+                        </div>
+                    </div>
+                    
                     <Image 
                         src={bannerUrl} 
                         alt={`${name} Banner`} 
@@ -58,7 +65,7 @@ export function SubDomainHomePage({ school, assets }: SubDomainHomePageProps) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                     {/* Location Badge */}
-                    <div className="absolute top-6 right-6">
+                    <div className="absolute top-6 right-6 z-10">
                         <div className="flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-sm font-bold text-white shadow-lg">
                             <MapPin size={16} className="text-primary" />
                             <span className="uppercase tracking-wide">{country}</span>
