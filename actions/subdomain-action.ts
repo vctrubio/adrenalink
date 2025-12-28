@@ -182,6 +182,8 @@ export async function getAllSchools() {
                 name: school.name,
                 username: school.username,
                 country: school.country,
+                currency: school.currency,
+                equipmentCategories: school.equipmentCategories,
                 status: school.status,
             })
             .from(school)

@@ -313,11 +313,11 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => {
-                                                    const [h, m] = controller.submitTime.split(':').map(Number);
+                                                    const [h, m] = controller.submitTime.split(":").map(Number);
                                                     const totalMins = h * 60 + m - (controller.stepDuration || 15);
                                                     const newH = Math.max(0, Math.floor(totalMins / 60)) % 24;
                                                     const newM = Math.max(0, totalMins % 60);
-                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}` });
+                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}` });
                                                 }}
                                                 className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
                                             >
@@ -331,11 +331,11 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                                             />
                                             <button
                                                 onClick={() => {
-                                                    const [h, m] = controller.submitTime.split(':').map(Number);
+                                                    const [h, m] = controller.submitTime.split(":").map(Number);
                                                     const totalMins = h * 60 + m + (controller.stepDuration || 15);
                                                     const newH = Math.floor(totalMins / 60) % 24;
                                                     const newM = totalMins % 60;
-                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}` });
+                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}` });
                                                 }}
                                                 className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
                                             >

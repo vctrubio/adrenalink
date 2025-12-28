@@ -2,6 +2,7 @@
 @import "./colors.css";
 @import "./customs.css";
 @import "./popover.css";
+@import "./animations.css";
 
 @variant dark (.dark &);
 

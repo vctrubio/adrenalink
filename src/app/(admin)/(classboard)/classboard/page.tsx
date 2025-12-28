@@ -8,5 +8,5 @@ export default function ClassBoardPage() {
 return <div className="h-full mx-auto max-w-[2699px]">
 
     <ClientClassboardV2 data={data} />
-</div>
+</div>;
 }

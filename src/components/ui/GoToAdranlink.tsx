@@ -5,30 +5,46 @@ import { useRouter } from "next/navigation";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 interface GoToAdranlinkProps {
-    href: string;
+    href?: string;
     onNavigate?: () => void;
+    onClick?: (e: React.MouseEvent) => void;
     className?: string;
     size?: number;
     isHovered?: boolean;
 }
 
-export function GoToAdranlink({ href, onNavigate, className = "", size = 20, isHovered = false }: GoToAdranlinkProps) {
+export function GoToAdranlink({ 
+    href, 
+    onNavigate, 
+    onClick,
+    className = "", 
+    size = 20, 
+    isHovered = false 
+}: GoToAdranlinkProps) {
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+        
+        if (onClick) {
+            onClick(e);
+            return;
+        }
+
         if (onNavigate) {
             onNavigate();
         }
-        router.push(href);
+        
+        if (href) {
+            router.push(href);
+        }
     };
 
     return (
         <motion.div
-            className={`text-white/40 hover:text-white cursor-pointer p-1 inline-flex items-center justify-center ${className}`}
+            className={`cursor-pointer inline-flex items-center justify-center ${className}`}
             animate={{ 
                 rotate: isHovered ? 45 : 0, 
-                color: isHovered ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.4)" 
             }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
             onClick={handleClick}
