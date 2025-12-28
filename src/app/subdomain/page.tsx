@@ -29,7 +29,7 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
         if (!result.success || !result.data) {
             const schoolsResult = await getAllSchools();
             const schools = schoolsResult.success ? schoolsResult.data || [] : [];
-            return <NoSchoolFound username={username} schools={schools} />;
+            return <NoSchoolFound schools={schools} />;
         }
 
         const { school, packages, assets } = result.data;

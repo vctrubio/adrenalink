@@ -1,8 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
+import { useClassboardActions } from "@/src/hooks/useClassboardActions";
+import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import { getHMDuration } from "@/getters/duration-getter";
@@ -10,6 +12,8 @@ import { getCompactNumber } from "@/getters/integer-getter";
 import StudentClassDailyV2 from "./StudentClassDailyV2";
 import TeacherClassDailyV2 from "./TeacherClassDailyV2";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
+import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import { Settings2, MapPin, Clock, TrendingUp, Minus, Plus } from "lucide-react";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -18,7 +22,6 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import type { ClassboardHeaderStats } from "@/backend/ClassboardStatistics";
 
 interface ClientClassboardV2Props {
     data: ClassboardModel;
@@ -26,18 +29,79 @@ interface ClientClassboardV2Props {
 
 export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [showSplash, setShowSplash] = useState(true);
     
     const { 
+        mounted,
         selectedDate, 
         setSelectedDate, 
+        controller,
+        setController,
+        draggedBooking,
+        setDraggedBooking,
+        classboardData,
+        setClassboardData,
         draggableBookings, 
         teacherQueues,
-        controller,
-        setController
+        isLessonTeacher,
+        addOptimisticEvent
     } = useClassboard(data);
 
-    const bookingCount = draggableBookings.length;
-    const teacherQueueCount = teacherQueues.length;
+    const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
+
+    // Enforce minimum splash screen duration
+    useEffect(() => {
+        const timer = setTimeout(() => setShowSplash(false), 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Create global flag instance
+    const globalFlag = useMemo(
+        () =>
+            new GlobalFlag(teacherQueues, controller, () => {
+                setRefreshKey((prev) => prev + 1);
+            }),
+        [teacherQueues, controller],
+    );
+
+    const { handleGlobalSubmit, handleAddLessonEvent, handleAddTeacher } = useClassboardActions({
+        globalFlag,
+        teacherQueues,
+        controller,
+        selectedDate,
+        allSchoolTeachers,
+        addOptimisticEvent,
+    });
+
+    const handleEventDeleted = (eventId: string) => {
+        // Remove the event from classboardData by rebuilding the object
+        setClassboardData((prevData) => {
+            const updatedData = { ...prevData };
+
+            // Iterate through bookings to find and remove the event
+            Object.keys(updatedData).forEach((bookingId) => {
+                const booking = updatedData[bookingId];
+                if (booking.lessons) {
+                    booking.lessons.forEach((lesson) => {
+                        if (lesson.events) {
+                            lesson.events = lesson.events.filter((e) => e.id !== eventId);
+                        }
+                    });
+                }
+            });
+
+            return updatedData;
+        });
+    };
+
+    const availableTeachers = useMemo(() => {
+        return allSchoolTeachers.map((t) => ({
+            id: t.schema.id,
+            username: t.schema.username,
+            firstName: t.schema.firstName,
+        }));
+    }, [allSchoolTeachers]);
 
     // Compute stats using ClassboardStatistics
     const stats = useMemo(() => {
@@ -47,25 +111,35 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
 
     const toggleControlPanel = () => setIsControlPanelOpen(!isControlPanelOpen);
 
+    // Show splash screen if not mounted OR waiting for timer OR if there's a critical error
+    if (!mounted || showSplash || teachersError) {
+        return <ClassboardSkeleton error={!!teachersError} />;
+    }
+
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex flex-col h-full overflow-hidden"
+        >
             {/* ═══════════════════════════════════════════════════════════════
                 TOP SECTION - Date & Stats (flex-wrap)
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="flex flex-wrap gap-4 p-4 border border-dashed border-pink-500/30">
+            <div className="flex flex-wrap gap-4 p-4">
                 {/* Date Picker */}
-                <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-border">
+                <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
                     <HeaderDatePicker 
                         selectedDate={selectedDate} 
                         onDateChange={setSelectedDate} 
                     />
                 </div>
                 {/* Stats - Grid of icon + label + value cells with animated labels */}
-                <div className="flex-1 min-w-[280px] rounded-2xl bg-card border border-border overflow-hidden">
-                    <div className="grid grid-cols-3 grid-rows-2 h-full">
-                        {/* Row 1 */}
+                <div className="flex-1 min-w-[280px] rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-2">
+                    {/* Row 1 */}
+                    <div className="grid grid-cols-3 divide-x divide-zinc-400 dark:divide-zinc-500">
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3 border-r border-b border-border/30"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0 }}
@@ -82,7 +156,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             <span className="text-foreground font-semibold">{stats.students ? getCompactNumber(stats.students) : "--"}</span>
                         </motion.div>
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3 border-r border-b border-border/30"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.05 }}
@@ -99,7 +173,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             <span className="text-foreground font-semibold">{stats.teachers ? getCompactNumber(stats.teachers) : "--"}</span>
                         </motion.div>
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3 border-b border-border/30"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
@@ -115,9 +189,13 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             </motion.span>
                             <span className="text-foreground font-semibold">{stats.lessons ? getCompactNumber(stats.lessons) : "--"}</span>
                         </motion.div>
-                        {/* Row 2 */}
+                    </div>
+                    {/* Horizontal divider with gap */}
+                    <div className="h-px bg-zinc-400 dark:bg-zinc-500 my-2 mx-2" />
+                    {/* Row 2 */}
+                    <div className="grid grid-cols-3 divide-x divide-zinc-400 dark:divide-zinc-500">
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3 border-r border-border/30"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.15 }}
@@ -134,7 +212,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             <span className="text-foreground font-semibold">{stats.duration ? getHMDuration(stats.duration) : "--"}</span>
                         </motion.div>
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3 border-r border-border/30"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.2 }}
@@ -151,7 +229,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             <span className="text-foreground font-semibold">{stats.commissions ? getCompactNumber(stats.commissions) : "--"}</span>
                         </motion.div>
                         <motion.div 
-                            className="flex items-center justify-center gap-2 p-3"
+                            className="flex items-center justify-center gap-2 py-2 px-3"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.25 }}
@@ -174,26 +252,36 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
             {/* ═══════════════════════════════════════════════════════════════
                 CONTENT BOARD - Students & Teachers
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="flex-1 p-4 overflow-auto min-h-0 flex flex-col border border-dashed border-blue-500/30">
+            <div className="flex-1 p-4 overflow-auto min-h-0 flex flex-col">
                 <div className="flex flex-col gap-4 flex-1 min-h-0">
                     {/* Students Section */}
-                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-border">
+                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700">
                         <StudentClassDailyV2
                             bookings={draggableBookings}
-                            classboardData={data}
+                            classboardData={classboardData}
                             selectedDate={selectedDate}
                             classboard={{
-                                onDragStart: () => {},
-                                onDragEnd: () => {},
+                                onDragStart: (booking) => setDraggedBooking(booking),
+                                onDragEnd: () => setDraggedBooking(null),
+                                onAddLessonEvent: handleAddLessonEvent,
+                                onAddTeacher: handleAddTeacher,
+                                availableTeachers: availableTeachers,
                             }}
                         />
                     </div>
                     
                     {/* Teachers Section */}
-                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-border">
+                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700">
                         <TeacherClassDailyV2
+                            key={refreshKey}
                             teacherQueues={teacherQueues}
                             selectedDate={selectedDate}
+                            draggedBooking={draggedBooking}
+                            isLessonTeacher={isLessonTeacher}
+                            controller={controller}
+                            onEventDeleted={handleEventDeleted}
+                            onAddLessonEvent={handleAddLessonEvent}
+                            globalFlag={globalFlag}
                         />
                     </div>
                 </div>
@@ -422,14 +510,11 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                     {/* Right side - Toggle icon */}
                     <ToggleAdranalinkIcon 
                         isOpen={isControlPanelOpen} 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleControlPanel();
-                        }} 
+                        onClick={toggleControlPanel} 
                         variant="lg" 
                     />
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
