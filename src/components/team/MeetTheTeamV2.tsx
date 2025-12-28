@@ -150,16 +150,16 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
 
 export const MeetTheTeamV2 = ({ hoveredShade, onShadeHover }: MeetTheTeamV2Props) => {
     const selectedEntity = hoveredShade ? TEAM_ENTITIES.find((entity) => entity.colorKey === hoveredShade) || null : null;
+    const SelectedIcon = selectedEntity ? selectedEntity.icon : null;
 
     return (
         <div className="relative z-[2] py-16">
-            {selectedEntity ? (
+            {selectedEntity && SelectedIcon ? (
                 <div className="max-w-2xl mx-auto px-6 text-center">
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border-2" style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}>
-                        {(() => {
-                            const Icon = selectedEntity.icon;
-                            return <Icon className="w-20 h-20 mx-auto mb-4" style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }} />;
-                        })()}
+                        <div className="w-20 h-20 mx-auto mb-4 [&>svg]:w-full [&>svg]:h-full" style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}>
+                            <SelectedIcon />
+                        </div>
                         <h3 className="text-3xl font-bold text-white mb-2">{selectedEntity.name}</h3>
                         <p className="text-xl text-gray-300">{selectedEntity.description}</p>
                     </div>
