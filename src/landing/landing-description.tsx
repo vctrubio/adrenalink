@@ -5,13 +5,11 @@ import { Camera } from "lucide-react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
-import WindsurfingIcon from "@/public/appSvgs/WindsurfingIcon.jsx";
-import KitesurfingIcon from "@/public/appSvgs/KitesurfingIcon.jsx";
-import WingFoilingIcon from "@/public/appSvgs/WingFoilingIcon.jsx";
 
 const USER_ROLES = [
     { id: "admin", label: "Admin", icon: AdminIcon },
@@ -20,9 +18,9 @@ const USER_ROLES = [
 ];
 
 const SPORTS = [
-    { id: "windsurfing", label: "Windsurfing", icon: WindsurfingIcon },
-    { id: "kitesurfing", label: "Kitesurfing", icon: KitesurfingIcon },
-    { id: "wingfoiling", label: "Wing Foiling", icon: WingFoilingIcon },
+    { id: "wingfoiling", label: "Wing Foiling", image: "/categories/wing.webp" },
+    { id: "windsurfing", label: "Windsurfing", image: "/categories/wind.webp" },
+    { id: "kitesurfing", label: "Kitesurfing", image: "/categories/kite.webp" },
 ];
 
 export function LandingDescription() {
@@ -126,7 +124,6 @@ export function LandingDescription() {
                         <div className="grid grid-cols-3 md:flex md:flex-row gap-4 h-[100px] md:h-[140px] w-full items-stretch justify-center">
                             {SPORTS.map((sport) => {
                                 const isSelected = selectedSport === sport.id;
-                                const Icon = sport.icon;
 
                                 return (
                                     <motion.div
@@ -142,7 +139,7 @@ export function LandingDescription() {
                                             onClick={() => setSelectedSport(isSelected ? null : sport.id)}
                                             className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
                                                 isSelected
-                                                    ? "bg-white/20 border-white/60 z-10"
+                                                    ? "bg-white/20 border-white/60 text-white z-10"
                                                     : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
                                             }`}
                                         >
@@ -153,7 +150,13 @@ export function LandingDescription() {
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                             >
-                                                <Icon className={isSelected ? "w-12 h-12 text-white" : "w-10 h-10 text-white/60"} />
+                                                <Image
+                                                    src={sport.image}
+                                                    alt={sport.label}
+                                                    width={isSelected ? 64 : 48}
+                                                    height={isSelected ? 64 : 48}
+                                                    className={`object-contain transition-all duration-300 ${isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60"}`}
+                                                />
                                             </motion.div>
 
                                             <motion.span
