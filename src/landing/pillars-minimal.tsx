@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
@@ -50,15 +50,53 @@ const pillarConfig = [
 
 const PillarsMinimal = () => {
     const [isStarting, setIsStarting] = useState(false);
+    const [isNavigatingTeam, setIsNavigatingTeam] = useState(false);
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     const [extraPillarsCount, setExtraPillarsCount] = useState(0);
     const [isMoreButtonVisible, setIsMoreButtonVisible] = useState(true);
+    const [showFooter, setShowFooter] = useState(false);
+
+    useEffect(() => {
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+
+        const handleScroll = () => {
+            const scrollY = window.scrollY;
+
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    // Show footer when scrolling down, hide when scrolling up
+                    if (scrollY > lastScrollY && scrollY > 100) {
+                        setShowFooter(true);
+                    } else if (scrollY < lastScrollY) {
+                        setShowFooter(false);
+                    }
+
+                    lastScrollY = scrollY;
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     const handleGetStarted = () => {
         console.log("action-user-click-started");
         setIsStarting(true);
         setTimeout(() => {
             window.location.reload();
+        }, 800);
+    };
+
+    const handleMeetTeam = () => {
+        console.log("action-user-click-meet-team");
+        setIsNavigatingTeam(true);
+        setTimeout(() => {
+            window.location.href = "/team";
         }, 800);
     };
 
@@ -73,24 +111,30 @@ const PillarsMinimal = () => {
 
     return (
         <section className="py-32 bg-background">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 mb-32">
                 <div className="max-w-5xl mx-auto relative">
                     {/* Header */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={isStarting ? { opacity: 0, y: -100, filter: "blur(10px)", scale: 0.9 } : { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.8, ease: "circOut" }} className="mb-24">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={isStarting || isNavigatingTeam ? { opacity: 0, y: -100, filter: "blur(10px)", scale: 0.9 } : { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.8, ease: "circOut" }} className="mb-24">
                         <div className="flex items-center gap-2 mb-4">
-                            <AdranlinkIcon className="text-primary w-6 h-6" />
-                            <p className="text-primary font-mono text-sm">Adrenalink</p>
+                            <AdranlinkIcon className="text-primary w-7 h-7" />
+                            <p className="text-primary font-mono text-base">Adrenalink</p>
                         </div>
                         <h2 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-tight">
                             Four pillars.
                             <br />
                             <span className="text-muted-foreground">One platform.</span>
                         </h2>
-                        <p className="mt-6 text-xl text-muted-foreground font-display">Home of Adrenaline Activities</p>
+                        <p className="mt-6 text-xl text-foreground/90 font-sans max-w-md tracking-wide">
+                            Home of Adrenaline Activities · <span className="text-muted-foreground/70">An abnormal documentation for schools looking to get started</span>
+                        </p>
                     </motion.div>
 
                     {/* Pillars list */}
-                    <div className="space-y-0">
+                    <motion.div
+                        className="space-y-0"
+                        animate={isStarting || isNavigatingTeam ? { opacity: 0, x: -100, filter: "blur(10px)" } : { opacity: 1, x: 0, filter: "blur(0px)" }}
+                        transition={{ duration: 0.6 }}
+                    >
                         <AnimatePresence>
                             {pillarConfig
                                 .filter((_, i) => i < 4 + extraPillarsCount)
@@ -131,64 +175,79 @@ const PillarsMinimal = () => {
                                 })}
                         </AnimatePresence>
                         <div className="border-t border-border" />
-                    </div>
-
-                    {/* Footer */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={isStarting ? { opacity: 0, y: -100, filter: "blur(10px)" } : { opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.6 }} className="mt-24 flex items-center justify-between gap-8">
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={handleGetStarted}
-                                onMouseEnter={() => setIsButtonHovered(true)}
-                                onMouseLeave={() => setIsButtonHovered(false)}
-                                className="px-6 py-3 rounded-full border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors font-medium flex items-center gap-3"
-                            >
-                                <SpinAdranalink isSpinning={isStarting || isButtonHovered} duration={isStarting ? 0.3 : 0.8} size={20} />
-                                <span>Get Started</span>
-                            </button>
-
-                            <div className="px-6 py-3 rounded-full bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer transition-colors group flex items-center gap-3 font-bold">
-                                <AdminIcon className="w-5 h-5" />
-                                <span>Register as a School</span>
-                            </div>
-
-                            {isMoreButtonVisible && (
-                                <>
-                                    {extraPillarsCount < 2 ? (
-                                        <div onClick={handleTellMeMore} className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group relative">
-                                            <Plus className="w-5 h-5 group-hover:text-primary transition-colors" />
-                                            <span className="font-medium">Tell me more</span>
-
-                                            {/* Counter Badge */}
-                                            {extraPillarsCount > 0 && (
-                                                <AnimatePresence mode="wait">
-                                                    <motion.span
-                                                        initial={{ scale: 0, opacity: 0, y: 5 }}
-                                                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                                                        exit={{ scale: 0, opacity: 0, y: -5 }}
-                                                        key={extraPillarsCount}
-                                                        className="absolute -top-3 -right-3 bg-primary text-primary-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md"
-                                                    >
-                                                        {extraPillarsCount}
-                                                    </motion.span>
-                                                </AnimatePresence>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <a href="/docs/manual" className="px-6 py-3 rounded-full border border-transparent text-primary/70 hover:border-primary/40 hover:text-primary/70 transition-colors font-bold flex items-center gap-3">
-                                            <span>Meet the team</span>
-                                        </a>
-                                    )}
-                                </>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className="text-muted-foreground text-sm">Change the wind</span>
-                            <WindToggle />
-                        </div>
+                        {extraPillarsCount >= 2 && <div className="min-h-[8rem]" />}
                     </motion.div>
                 </div>
             </div>
+
+            {/* Fixed Footer */}
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{
+                    y: showFooter ? 0 : 100,
+                    opacity: showFooter ? 1 : 0,
+                }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="fixed bottom-0 left-0 right-0 z-50"
+            >
+                <div className="w-full backdrop-blur-xl">
+                    <div className="container mx-auto px-4">
+                        <div className="max-w-5xl mx-auto py-3 flex items-center justify-between gap-8">
+                            <div className="flex items-center gap-6">
+                                <button
+                                    onClick={handleGetStarted}
+                                    onMouseEnter={() => setIsButtonHovered(true)}
+                                    onMouseLeave={() => setIsButtonHovered(false)}
+                                    className="px-6 py-3 rounded-full border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors font-medium flex items-center gap-3"
+                                >
+                                    <SpinAdranalink isSpinning={isStarting || isButtonHovered} duration={isStarting ? 0.3 : 0.8} size={20} />
+                                    <span>Get Started</span>
+                                </button>
+
+                                <div className={`cursor-pointer transition-all group flex items-center gap-3 ${extraPillarsCount >= 2 ? "px-6 py-3 rounded-full bg-primary/10 text-primary hover:bg-primary/20 font-bold" : "text-muted-foreground hover:text-foreground"}`}>
+                                    <AdminIcon className="w-5 h-5 group-hover:text-primary transition-colors" />
+                                    <span className={extraPillarsCount >= 2 ? "font-medium" : "hover:underline font-medium"}>Register as a School</span>
+                                </div>
+
+                                {isMoreButtonVisible && (
+                                    <>
+                                        {extraPillarsCount < 2 ? (
+                                            <div onClick={handleTellMeMore} className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group relative">
+                                                <Plus className="w-5 h-5 group-hover:text-primary transition-colors" />
+                                                <span className="font-medium">Tell me more</span>
+
+                                                {/* Counter Badge */}
+                                                {extraPillarsCount > 0 && (
+                                                    <AnimatePresence mode="wait">
+                                                        <motion.span
+                                                            initial={{ scale: 0, opacity: 0, y: 5 }}
+                                                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                                                            exit={{ scale: 0, opacity: 0, y: -5 }}
+                                                            key={extraPillarsCount}
+                                                            className="absolute -top-3 -right-3 bg-primary text-primary-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md"
+                                                        >
+                                                            {extraPillarsCount}
+                                                        </motion.span>
+                                                    </AnimatePresence>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <button onClick={handleMeetTeam} className="px-6 py-3 rounded-full border border-transparent text-primary/70 hover:border-primary/40 hover:text-primary/70 transition-colors font-bold flex items-center gap-3">
+                                                <span>Meet the team</span>
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <span className="text-muted-foreground text-sm">Change the wind</span>
+                                <WindToggle />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
         </section>
     );
 };
