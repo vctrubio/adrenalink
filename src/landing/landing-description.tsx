@@ -1,131 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Camera, User, ArrowRight, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Camera } from "lucide-react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
-import FloatingNav from "@/src/components/navigations/FloatingNav";
-import OpenBookIcon from "@/public/appSvgs/OpenBookIcon";
-import MagnifyingGlassIcon from "@/public/appSvgs/MagnifyingGlassIcon";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 
-// Feature data with call-to-action links
-const FEATURES = [
-    {
-        icon: OpenBookIcon,
-        title: "Documentation",
-        description: "Complete guides and manuals",
-        link: "/docs/manual",
-    },
-    {
-        icon: MagnifyingGlassIcon,
-        title: "What We Do",
-        description: "Discover our mission and values",
-        link: "/docs/wwd",
-    },
-    {
-        icon: TrendingUp,
-        title: "Onboarding & Pricing",
-        description: "Get started and view our plans",
-        link: "/docs/pricing",
-    },
+const ROLES = [
+    { id: "admin", label: "Admin", icon: AdminIcon },
+    { id: "student", label: "Student", icon: HelmetIcon },
+    { id: "teacher", label: "Teacher", icon: HeadsetIcon },
 ];
 
-// Feature Card Component
-function FeatureCard({ feature }: { feature: (typeof FEATURES)[0] }) {
-    const accentColor = "#3b82f6";
-    const IconComponent = feature.icon;
-
-    return (
-        <Link
-            href={feature.link}
-            className="rounded-3xl px-10 py-10 backdrop-blur-2xl border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden"
-            style={{
-                backgroundColor: "rgba(0, 0, 0, 0.6)",
-                borderColor: accentColor,
-                boxShadow: `0 20px 60px ${accentColor}30`,
-            }}
-            onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = `0 20px 60px ${accentColor}60`;
-                el.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-            }}
-            onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = `0 20px 60px ${accentColor}30`;
-                el.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-            }}
-        >
-            {/* Background accent bar */}
-            <div
-                className="absolute top-0 left-0 h-1 w-full"
-                style={{
-                    background: `linear-gradient(90deg, ${accentColor}, transparent)`,
-                }}
-            />
-
-            <div className="flex items-center justify-between gap-6">
-                <div className="flex items-center gap-6 flex-1">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
-                        <IconComponent className="w-10 h-10" />
-                    </div>
-                    <div>
-                        <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-white transition-colors">{feature.title}</h3>
-                        <p className="text-base text-white/80">{feature.description}</p>
-                    </div>
-                </div>
-                <ArrowRight className="w-6 h-6 flex-shrink-0 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" style={{ color: accentColor }} />
-            </div>
-        </Link>
-    );
-}
-
-// Hero Section Component
-function HeroSection() {
-    return (
-        <div className="space-y-4">
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight drop-shadow-2xl">Revolutionize Your School</h2>
-            {/* // state of the art , 3 portal view, connecting administration, student, and teeachers to the same lesson*/}
-            <p className="text-xs text-white/60 font-mono tracking-wider">We facilitate an easy next generation solution, managing student registration, booking progress and lesson payments.</p>
-            <p className="text-xs text-white/60 font-mono tracking-wider">Read more below.</p>
-        </div>
-    );
-}
-
-// Features Grid Component
-function FeaturesGrid() {
-    return (
-        <div className="relative pt-8">
-            <div className="grid grid-cols-1 gap-6">
-                {FEATURES.map((feature, index) => (
-                    <FeatureCard key={index} feature={feature} />
-                ))}
-            </div>
-            {/* Meet the Founder */}
-            <Link href="/docs" className="absolute -bottom-16 right-0 flex items-center gap-2 px-3 py-2 rounded-lg text-white/70 hover:text-white transition-all duration-300">
-                <User className="w-4 h-4" />
-                <span className="text-xs font-medium">Meet the Founder</span>
-            </Link>
-        </div>
-    );
-}
-
 export function LandingDescription() {
-    const [showNavbar, setShowNavbar] = useState(false);
+    const [hoveredRole, setHoveredRole] = useState<string | null>(null);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollContainer = document.querySelector(".snap-y");
-            if (scrollContainer) {
-                const scrollPosition = scrollContainer.scrollTop;
-                const viewportHeight = window.innerHeight;
-                setShowNavbar(scrollPosition > viewportHeight * 0.5);
-            }
-        };
-
-        const scrollContainer = document.querySelector(".snap-y");
-        scrollContainer?.addEventListener("scroll", handleScroll);
-        return () => scrollContainer?.removeEventListener("scroll", handleScroll);
-    }, []);
+    const handleRoleClick = (role: string) => {
+        console.log(`Selected role: ${role}`);
+    };
 
     return (
         <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
@@ -147,12 +43,89 @@ export function LandingDescription() {
                 <span className="text-xs font-medium">Kristaps Ungurs</span>
             </Link>
 
-            <div className="relative z-10 h-full flex items-center justify-center px-4">
-                <div className="max-w-4xl space-y-10 text-center">
-                    <HeroSection />
-                    <FeaturesGrid />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="relative z-10 h-full flex flex-col items-center justify-center px-4"
+            >
+                <div className="w-full max-w-5xl space-y-12 text-center">
+                    {/* Join Forces Heading */}
+                    <div className="space-y-6 flex flex-col items-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                        >
+                            <AdranlinkIcon size={120} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                        </motion.div>
+                        <div className="space-y-2">
+                            <h2 className="text-6xl md:text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
+                                Join Forces
+                            </h2>
+                            <p className="text-lg text-white/60 font-medium tracking-wide">
+                                Who are you?
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Role Selection */}
+                    <div className="flex flex-col md:flex-row gap-4 h-[300px] md:h-[180px] w-full items-stretch justify-center">
+                        {ROLES.map((role) => {
+                            const isHovered = hoveredRole === role.id;
+                            const Icon = role.icon;
+
+                            return (
+                                <motion.button
+                                    key={role.id}
+                                    layout
+                                    onClick={() => handleRoleClick(role.id)}
+                                    onHoverStart={() => setHoveredRole(role.id)}
+                                    onHoverEnd={() => setHoveredRole(null)}
+                                    className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 ${
+                                        isHovered
+                                            ? "bg-white/20 border-white/60 z-10"
+                                            : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                                    }`}
+                                    initial={{ flex: 1 }}
+                                    animate={{
+                                        flex: isHovered ? 2 : 1,
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                >
+                                    <motion.div
+                                        layout="position"
+                                        animate={{
+                                            scale: isHovered ? 1.1 : 1,
+                                        }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    >
+                                        <Icon size={isHovered ? 40 : 32} className={isHovered ? "text-white" : "text-current"} />
+                                    </motion.div>
+                                    
+                                    <motion.span
+                                        layout="position"
+                                        className={`text-lg font-medium tracking-wide ${isHovered ? "text-white" : "text-current"}`}
+                                    >
+                                        {role.label}
+                                    </motion.span>
+                                    
+                                    {isHovered && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            className="absolute bottom-4 text-xs text-white/80 font-medium px-4"
+                                        >
+                                            Click to continue
+                                        </motion.div>
+                                    )}
+                                </motion.button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            </motion.div>
         </section>
     );
 }
