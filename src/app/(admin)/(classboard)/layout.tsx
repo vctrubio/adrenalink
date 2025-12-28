@@ -17,10 +17,6 @@ export default async function ClassboardLayout({ children }: ClassboardLayoutPro
             </div>
         );
     }
-    
-    return (
-        <ClassboardProvider data={result.data}>
-            {children}
-        </ClassboardProvider>
-    );
+
+    return <ClassboardProvider data={result.data}>{children}</ClassboardProvider>;
 }

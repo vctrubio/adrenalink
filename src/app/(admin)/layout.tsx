@@ -36,10 +36,12 @@ async function fetchLogoUrl(schoolUsername: string): Promise<string | null> {
 
         const schoolLogoPath = `${schoolUsername}/icon.png`;
         try {
-            await s3Client.send(new HeadObjectCommand({
-                Bucket: bucketName,
-                Key: schoolLogoPath,
-            }));
+            await s3Client.send(
+                new HeadObjectCommand({
+                    Bucket: bucketName,
+                    Key: schoolLogoPath,
+                }),
+            );
             return `${publicBaseUrl}/${schoolLogoPath}`;
         } catch {
             // Try fallback
@@ -47,10 +49,12 @@ async function fetchLogoUrl(schoolUsername: string): Promise<string | null> {
 
         const adminLogoPath = "admin/icon.png";
         try {
-            await s3Client.send(new HeadObjectCommand({
-                Bucket: bucketName,
-                Key: adminLogoPath,
-            }));
+            await s3Client.send(
+                new HeadObjectCommand({
+                    Bucket: bucketName,
+                    Key: adminLogoPath,
+                }),
+            );
             return `${publicBaseUrl}/${adminLogoPath}`;
         } catch {
             return null;
@@ -101,7 +105,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             <SchoolTeachersProvider>
                 <div className="flex flex-col h-screen bg-background">
                     <FacebookNav />
-                    <div className="flex flex-1 overflow-hidden">
+                    <div className="">
                         <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
                     </div>
                 </div>

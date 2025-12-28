@@ -63,7 +63,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     }, [bookings, classboardData, selectedDate, filter]);
 
     return (
-        <div className="">
+        <div className="boder border-red-500 mx-auto">
             {/* Header with Icon and Switch */}
             <div className="p-4 px-6.5 border-b border-border space-y-3">
                 <div className="flex items-center gap-4">

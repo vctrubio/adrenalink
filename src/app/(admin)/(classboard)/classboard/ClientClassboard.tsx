@@ -101,8 +101,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             </div>
             {/* <ExportSettingController selectedDate={selectedDate} controller={controller} teacherQueues={teacherQueues} classboardData={classboardData} teacherQueues={teacherQueues} /> */}
 
-            <div className="flex flex-col gap-4 overflow-hidden min-h-0">
-                <div className="bg-card rounded-xl shadow-sm overflow-y-auto min-h-0">
+            <div className="flex flex-col gap-4 border">
+                <div className="flex bg-card rounded-xl">
                     <StudentClassDaily
                         bookings={draggableBookings}
                         classboardData={classboardData}
@@ -120,7 +120,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                         }}
                     />
                 </div>
-                <div className="flex-1 overflow-hidden flex justify-center min-h-0">
+                <div className="flex">
                     <TeacherClassDaily
                         key={refreshKey}
                         teacherQueues={teacherQueues}
