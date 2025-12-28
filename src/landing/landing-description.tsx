@@ -26,6 +26,8 @@ const SPORTS = [
 export function LandingDescription() {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
+    const [hoveredRole, setHoveredRole] = useState<string | null>(null);
+    const [hoveredSport, setHoveredSport] = useState<string | null>(null);
 
     return (
         <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
@@ -78,6 +80,7 @@ export function LandingDescription() {
                         <div className="grid grid-cols-3 md:flex md:flex-row gap-4 h-[100px] md:h-[140px] w-full items-stretch justify-center">
                             {USER_ROLES.map((role) => {
                                 const isSelected = selectedRole === role.id;
+                                const isHovered = hoveredRole === role.id;
                                 const Icon = role.icon;
 
                                 return (
@@ -86,12 +89,14 @@ export function LandingDescription() {
                                         layout
                                         initial={{ flex: 1 }}
                                         animate={{
-                                            flex: isSelected ? 2 : 1,
+                                            flex: isHovered ? 2 : 1,
                                         }}
                                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     >
                                         <motion.button
                                             onClick={() => setSelectedRole(isSelected ? null : role.id)}
+                                            onHoverStart={() => setHoveredRole(role.id)}
+                                            onHoverEnd={() => setHoveredRole(null)}
                                             className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
                                                 isSelected
                                                     ? "bg-white/20 border-white/60 z-10"
@@ -101,16 +106,16 @@ export function LandingDescription() {
                                             <motion.div
                                                 layout="position"
                                                 animate={{
-                                                    scale: isSelected ? 1.2 : 1,
+                                                    scale: isHovered ? 1.2 : 1,
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                             >
-                                                <Icon size={isSelected ? 48 : 40} className={isSelected ? "text-white" : "text-white/60"} />
+                                                <Icon size={isHovered ? 48 : 40} className={isHovered || isSelected ? "text-white" : "text-white/60"} />
                                             </motion.div>
 
                                             <motion.span
                                                 layout="position"
-                                                className={`hidden md:block text-base font-medium tracking-wide ${isSelected ? "text-white" : "text-white/60"}`}
+                                                className={`hidden md:block text-base font-medium tracking-wide ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
                                             >
                                                 {role.label}
                                             </motion.span>
@@ -124,6 +129,7 @@ export function LandingDescription() {
                         <div className="grid grid-cols-3 md:flex md:flex-row gap-4 h-[100px] md:h-[140px] w-full items-stretch justify-center">
                             {SPORTS.map((sport) => {
                                 const isSelected = selectedSport === sport.id;
+                                const isHovered = hoveredSport === sport.id;
 
                                 return (
                                     <motion.div
@@ -131,12 +137,14 @@ export function LandingDescription() {
                                         layout
                                         initial={{ flex: 1 }}
                                         animate={{
-                                            flex: isSelected ? 2 : 1,
+                                            flex: isHovered ? 2 : 1,
                                         }}
                                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     >
                                         <motion.button
                                             onClick={() => setSelectedSport(isSelected ? null : sport.id)}
+                                            onHoverStart={() => setHoveredSport(sport.id)}
+                                            onHoverEnd={() => setHoveredSport(null)}
                                             className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
                                                 isSelected
                                                     ? "bg-white/20 border-white/60 text-white z-10"
@@ -146,22 +154,22 @@ export function LandingDescription() {
                                             <motion.div
                                                 layout="position"
                                                 animate={{
-                                                    scale: isSelected ? 1.2 : 1,
+                                                    scale: isHovered ? 1.2 : 1,
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                             >
                                                 <Image
                                                     src={sport.image}
                                                     alt={sport.label}
-                                                    width={isSelected ? 64 : 48}
-                                                    height={isSelected ? 64 : 48}
-                                                    className={`object-contain transition-all duration-300 ${isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60"}`}
+                                                    width={isHovered ? 64 : 48}
+                                                    height={isHovered ? 64 : 48}
+                                                    className={`object-contain transition-all duration-300 ${isHovered || isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60"}`}
                                                 />
                                             </motion.div>
 
                                             <motion.span
                                                 layout="position"
-                                                className={`hidden md:block text-base font-medium tracking-wide ${isSelected ? "text-white" : "text-white/60"}`}
+                                                className={`hidden md:block text-base font-medium tracking-wide ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
                                             >
                                                 {sport.label}
                                             </motion.span>
