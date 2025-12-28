@@ -296,7 +296,13 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                                     return (
                                         <div key={booking.id} className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30">
                                             <div className="w-fit">
-                                                <BookingStatusLabel status={booking.status} startDate={booking.dateStart} endDate={booking.dateEnd} size={20} />
+                                                <BookingStatusLabel 
+                                                    status={booking.status} 
+                                                    bookingId={booking.id}
+                                                    startDate={booking.dateStart} 
+                                                    endDate={booking.dateEnd} 
+                                                    size={20} 
+                                                />
                                             </div>
                                             <div className="flex-1 space-y-1.5 min-w-0">
                                                 <BookingProgressBadge usedMinutes={usedMins} totalMinutes={packageDurationMinutes} background={progress.background} />

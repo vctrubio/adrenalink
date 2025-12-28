@@ -246,11 +246,12 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                         <div className="flex-1 space-y-2">
                             {/* Date and Progress Badge */}
                             <div className="flex items-center justify-between">
-                                <HoverToEntity entity={bookingEntity} id={bookingData.id}>
-                                    <div className="flex items-center gap-2 cursor-pointer hover:opacity-80">
-                                        <BookingStatusLabel status={bookingData.status} startDate={bookingData.dateStart} endDate={bookingData.dateEnd} />
-                                    </div>
-                                </HoverToEntity>
+                                <BookingStatusLabel 
+                                    status={bookingData.status} 
+                                    bookingId={bookingData.id}
+                                    startDate={bookingData.dateStart} 
+                                    endDate={bookingData.dateEnd} 
+                                />
                                 <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.durationMinutes} background={progressBar.background} />
                             </div>
 

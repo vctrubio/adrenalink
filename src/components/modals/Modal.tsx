@@ -9,7 +9,7 @@ interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
-    subtitle?: string;
+    subtitle?: ReactNode;
     children: ReactNode;
     maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
     entityId?: string;

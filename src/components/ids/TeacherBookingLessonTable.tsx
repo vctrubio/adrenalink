@@ -61,16 +61,18 @@ export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookin
                         {lesson.studentCapacity > 1 && <span className="text-xs text-muted-foreground">+{lesson.studentCapacity - 1} students</span>}
                     </div>
                     <div className="flex items-center gap-2">
-                        <BookingStatusLabel status={lesson.bookingStatus} size={16} startDate={lesson.dateStart} endDate={lesson.dateEnd} />
+                        <BookingStatusLabel 
+                            status={lesson.bookingStatus} 
+                            bookingId={lesson.bookingId}
+                            size={16} 
+                            startDate={lesson.dateStart} 
+                            endDate={lesson.dateEnd} 
+                        />
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                        <TeacherLessonComissionValue 
-                            commissionType={lesson.commissionType} 
-                            cph={lesson.cph} 
-                            currency={currency} 
-                        />
+                        <TeacherLessonComissionValue commissionType={lesson.commissionType} cph={lesson.cph} currency={currency} />
                         <span className="text-muted-foreground">×</span>
                         <LessonEventDurationBadge status={lesson.lessonStatus} events={lesson.eventCount} hours={lesson.totalHours} />
                         <span className="text-muted-foreground">=</span>
@@ -78,10 +80,7 @@ export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookin
                             {(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}
                         </span>
                     </div>
-                    <ToggleAdranalinkIcon 
-                        isOpen={isExpanded} 
-                        className="text-muted-foreground"
-                    />
+                    <ToggleAdranalinkIcon isOpen={isExpanded} className="text-muted-foreground" />
                 </div>
             </button>
 

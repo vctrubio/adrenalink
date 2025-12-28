@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
@@ -10,6 +11,7 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { TeacherCommissionPanelModal } from "@/src/components/modals/admin/TeacherCommissionPanelModal";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import { Percent } from "lucide-react";
 import type { TeacherModel } from "@/backend/models";
@@ -21,7 +23,8 @@ interface TeacherLeftColumnProps {
 
 export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   const credentials = useSchoolCredentials();
-  const currency = credentials?.currency || "YEN";
+  const currency = credentials?.currency || "EUR";
+  const [isCommissionPanelOpen, setIsCommissionPanelOpen] = useState(false);
 
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
   const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
@@ -140,13 +143,17 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   // Commission Card
   const commissions = teacher.relations?.commissions || [];
   const commissionFields = commissions.map((commission) => ({
-    label: commission.commissionType,
-    value: `${commission.cph} ${currency}`,
+    label: commission.schema.commissionType,
+    value: `${commission.schema.cph} ${currency}`,
   }));
 
   // Calculate commission ranges by type
-  const fixedCommissions = commissions.filter(c => c.commissionType === "fixed").map(c => parseFloat(c.cph));
-  const percentageCommissions = commissions.filter(c => c.commissionType === "percentage").map(c => parseFloat(c.cph));
+  const fixedCommissions = commissions
+    .filter(c => c.schema.commissionType === "fixed")
+    .map(c => parseFloat(c.schema.cph));
+  const percentageCommissions = commissions
+    .filter(c => c.schema.commissionType === "percentage")
+    .map(c => parseFloat(c.schema.cph));
 
   const commissionStatusElements = [];
 
@@ -193,7 +200,8 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
     ),
     fields: commissionFields,
     accentColor: commissionEntity.color,
-    isAddable: true,
+    isEditable: commissionFields.length > 0,
+    onEdit: () => setIsCommissionPanelOpen(true),
   };
 
   // Payments Card
@@ -297,8 +305,18 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   };
 
   return (
-    <EntityLeftColumn
-      cards={[teacherCardData, lessonsCardData, commissionCardData, paymentCardData, equipmentCardData]}
-    />
+    <>
+      <EntityLeftColumn
+        cards={[teacherCardData, lessonsCardData, commissionCardData, paymentCardData, equipmentCardData]}
+      />
+      <TeacherCommissionPanelModal
+        isOpen={isCommissionPanelOpen}
+        onClose={() => setIsCommissionPanelOpen(false)}
+        teacherId={teacher.schema.id}
+        teacherUsername={teacher.schema.username}
+        commissions={teacher.relations?.commissions || []}
+        currency={currency}
+      />
+    </>
   );
 }

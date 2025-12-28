@@ -102,39 +102,38 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             {/* <ExportSettingController selectedDate={selectedDate} controller={controller} teacherQueues={teacherQueues} classboardData={classboardData} teacherQueues={teacherQueues} /> */}
 
             <div className="flex-1 flex flex-row gap-4 overflow-hidden min-h-0">
-                {/* Students section - flexible */}
-                {/* <div className="flex-1 w-full bg-card rounded-xl shadow-sm overflow-y-auto min-h-0"> */}
-                {/*     <StudentClassDaily */}
-                {/*         bookings={draggableBookings} */}
-                {/*         classboardData={classboardData} */}
-                {/*         selectedDate={selectedDate} */}
-                {/*         classboard={{ */}
-                {/*             onDragStart: (booking) => { */}
-                {/*                 setDraggedBooking(booking); */}
-                {/*             }, */}
-                {/*             onDragEnd: () => { */}
-                {/*                 setDraggedBooking(null); */}
-                {/*             }, */}
-                {/*             onAddLessonEvent: handleAddLessonEvent, */}
-                {/*             onAddTeacher: handleAddTeacher, */}
-                {/*             availableTeachers: availableTeachers, */}
-                {/*         }} */}
-                {/*     /> */}
-                {/* </div> */}
-
-                {/* Teachers section - flexible */}
-                <div className="flex-1 overflow-hidden flex justify-center min-h-0">
-                    <TeacherClassDaily
-                        key={refreshKey}
-                        teacherQueues={teacherQueues}
-                        draggedBooking={draggedBooking}
-                        isLessonTeacher={isLessonTeacher}
-                        controller={controller}
-                        onEventDeleted={handleEventDeleted}
-                        onAddLessonEvent={handleAddLessonEvent}
-                        globalFlag={globalFlag}
+                Students section - flexible
+                <div className="flex-1 w-full bg-card rounded-xl shadow-sm overflow-y-auto min-h-0">
+                    <StudentClassDaily
+                        bookings={draggableBookings}
+                        classboardData={classboardData}
+                        selectedDate={selectedDate}
+                        classboard={{
+                            onDragStart: (booking) => {
+                                setDraggedBooking(booking);
+                            },
+                            onDragEnd: () => {
+                                setDraggedBooking(null);
+                            },
+                            onAddLessonEvent: handleAddLessonEvent,
+                            onAddTeacher: handleAddTeacher,
+                            availableTeachers: availableTeachers,
+                        }}
                     />
                 </div>
+                {/* Teachers section - flexible */}
+                {/* <div className="flex-1 overflow-hidden flex justify-center min-h-0"> */}
+                {/*     <TeacherClassDaily */}
+                {/*         key={refreshKey} */}
+                {/*         teacherQueues={teacherQueues} */}
+                {/*         draggedBooking={draggedBooking} */}
+                {/*         isLessonTeacher={isLessonTeacher} */}
+                {/*         controller={controller} */}
+                {/*         onEventDeleted={handleEventDeleted} */}
+                {/*         onAddLessonEvent={handleAddLessonEvent} */}
+                {/*         globalFlag={globalFlag} */}
+                {/*     /> */}
+                {/* </div> */}
             </div>
         </motion.div>
     );

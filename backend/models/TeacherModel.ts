@@ -1,6 +1,7 @@
 import type { TeacherType } from "@/drizzle/schema";
 import type { AbstractModel } from "./AbstractModel";
 import type { DataboardStats } from "@/getters/databoard-sql-stats";
+import { createCommissionModel, type CommissionModel } from "./CommissionModel";
 
 export type TeacherUpdateForm = TeacherType & {
     active?: boolean;
@@ -10,6 +11,12 @@ export type TeacherModel = AbstractModel<TeacherUpdateForm> & {
     schema: TeacherType;
     stats?: DataboardStats;
     popoverType?: "teacher_event_equipment";
+    relations: {
+        school?: any;
+        commissions?: CommissionModel[];
+        lessons?: any[];
+        equipments?: any[];
+    };
 };
 
 export function createTeacherModel(teacherData: any): TeacherModel {
@@ -20,7 +27,7 @@ export function createTeacherModel(teacherData: any): TeacherModel {
         updateForm: pgTableSchema,
         relations: {
             school,
-            commissions,
+            commissions: commissions?.map((c: any) => createCommissionModel(c)) || [],
             lessons,
             equipments,
         },

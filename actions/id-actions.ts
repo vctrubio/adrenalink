@@ -122,7 +122,23 @@ const entityRelations = {
                 },
             },
         },
-        commissions: true,
+        commissions: {
+            with: {
+                lessons: {
+                    with: {
+                        booking: {
+                            with: {
+                                studentPackage: {
+                                    with: {
+                                        schoolPackage: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
     },
     booking: {
         lessons: {

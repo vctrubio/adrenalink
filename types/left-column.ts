@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export interface LeftColumnCardData {
-  name: string;
+  name: string | ReactNode;
   status: ReactNode;
   avatar: ReactNode;
   fields: { label: string; value: string | ReactNode }[];

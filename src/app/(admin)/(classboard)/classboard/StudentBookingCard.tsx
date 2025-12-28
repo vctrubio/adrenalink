@@ -11,7 +11,6 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { TeacherLessonCreateModal } from "@/src/components/modals/admin";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
@@ -149,17 +148,7 @@ const BookingSummaryBadges = ({
     );
 };
 
-const InstructorList = ({
-    lessons,
-    onAddEvent,
-    bookingId,
-    loadingLessonId,
-}: {
-    lessons: ClassboardLesson[];
-    onAddEvent: (username: string) => void;
-    bookingId: string;
-    loadingLessonId: string | null;
-}) => {
+const InstructorList = ({ lessons, onAddEvent, bookingId, loadingLessonId }: { lessons: ClassboardLesson[]; onAddEvent: (username: string) => void; bookingId: string; loadingLessonId: string | null }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
@@ -218,10 +207,7 @@ const InstructorList = ({
                     );
                 })}
                 {lessons.length === 0 && (
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group"
-                    >
+                    <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group">
                         <div className="flex items-center justify-center w-4 h-4 rounded-full bg-background group-hover:text-primary transition-colors">
                             <Plus size={12} />
                         </div>
@@ -229,13 +215,6 @@ const InstructorList = ({
                     </button>
                 )}
             </div>
-
-            <TeacherLessonCreateModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                bookingId={bookingId}
-                existingLessons={existingLessons}
-            />
         </div>
     );
 };

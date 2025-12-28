@@ -5,7 +5,8 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
+import { BookingDataboard } from "@/getters/databoard-getter";
+import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
@@ -102,9 +103,9 @@ export function BookingLeftColumn({ booking, usedMinutes, totalMinutes, progress
       : [{ label: "Payments", value: "No Payments done" }];
 
   // Stats
-  const bookingStats = BookingIdStats.getStats(booking);
-  const dueStat = bookingStats.find((stat) => stat.label === "Due");
-  const due = dueStat?.value || 0;
+  const revenue = BookingDataboard.getRevenue(booking);
+  const studentPayments = BookingStatsGetter.getStudentPayments(booking);
+  const due = revenue - studentPayments;
 
   // Card Data
   const bookingCardData: LeftColumnCardData = {
@@ -116,6 +117,10 @@ export function BookingLeftColumn({ booking, usedMinutes, totalMinutes, progress
       </div>
     ),
     fields: [
+      {
+        label: "Booking ID",
+        value: booking.schema.id.toUpperCase(),
+      },
       {
         label: "Status",
         value: booking.schema.status || "Unknown",
@@ -179,7 +184,6 @@ export function BookingLeftColumn({ booking, usedMinutes, totalMinutes, progress
 
   return (
     <EntityLeftColumn
-      header={`Booking ${booking.schema.id.slice(0, 4)}`}
       cards={[bookingCardData, leaderCardData, packageCardData, paymentCardData]}
     />
   );
