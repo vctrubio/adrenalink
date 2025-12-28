@@ -21,7 +21,7 @@ export const SchoolPackageStats = {
 			if (packageStat) stats.push(packageStat);
 		}
 
-		const studentsStat = createStat("student", totalStudents, "Students");
+		const studentsStat = createStat("studentPackage", totalStudents, "Students");
 		if (studentsStat) stats.push(studentsStat);
 
 		const revenueStat = createStat("revenue", totalRevenue, "Revenue");

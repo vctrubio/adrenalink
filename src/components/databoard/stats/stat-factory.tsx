@@ -12,9 +12,11 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
+import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { Bookmark } from "lucide-react";
 
 const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+const studentPackageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
 const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
 const eventEntity = ENTITY_DATA.find((e) => e.id === "event")!;
@@ -27,6 +29,7 @@ const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment");
 
 type StatType =
     | "student"
+    | "studentPackage"
     | "teacher"
     | "lessons"
     | "events"
@@ -51,6 +54,11 @@ const STAT_CONFIGS: Record<StatType, StatConfig> = {
     student: {
         icon: <HelmetIcon />,
         color: studentEntity.color,
+        formatter: (value) => value,
+    },
+    studentPackage: {
+        icon: <RequestIcon />,
+        color: studentPackageEntity.color,
         formatter: (value) => value,
     },
     teacher: {

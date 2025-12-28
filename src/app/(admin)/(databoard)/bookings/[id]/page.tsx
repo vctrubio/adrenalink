@@ -1,8 +1,9 @@
 import { getEntityId } from "@/actions/id-actions";
 import { getSchoolHeader } from "@/types/headers";
 import type { BookingModel } from "@/backend/models";
+import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
+import { createStat } from "@/src/components/databoard/stats/stat-factory";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { BookingIdStats } from "@/src/components/databoard/stats/BookingIdStats";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
@@ -28,8 +29,22 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         return <div>You do not have permission to view this booking</div>;
     }
 
-    const allBookingStats = BookingIdStats.getStats(booking);
-    const bookingStats = allBookingStats.filter((stat) => stat.label !== "Due");
+    // Use stat-factory as single source of truth for presentation
+    const eventsCount = BookingStatsGetter.getEventsCount(booking);
+    const durationMinutes = booking.stats?.total_duration_minutes || 0;
+    const studentPayments = BookingStatsGetter.getStudentPayments(booking);
+    const commissions = BookingStatsGetter.getTeacherCommissions(booking);
+    const revenue = BookingStatsGetter.getMoneyIn(booking);
+    const net = revenue - commissions;
+
+    const bookingStats = [
+        eventsCount > 0 && createStat("events", eventsCount, "Events"),
+        durationMinutes > 0 && createStat("duration", durationMinutes, "Duration"),
+        studentPayments > 0 && createStat("moneyPaid", studentPayments, "Student Payments"),
+        commissions > 0 && createStat("commission", commissions, "Commissions"),
+        revenue > 0 && createStat("revenue", revenue, "Revenue"),
+        net !== 0 && createStat("schoolNet", net, "Net"),
+    ].filter(Boolean) as any[];
 
     const lessons = booking.relations?.lessons || [];
     const studentPackage = booking.relations?.studentPackage;

@@ -1,8 +1,9 @@
 import { getEntityId } from "@/actions/id-actions";
 import { getSchoolHeader } from "@/types/headers";
 import type { SchoolPackageModel } from "@/backend/models";
+import { SchoolPackageDataboard } from "@/getters/databoard-getter";
+import { createStat } from "@/src/components/databoard/stats/stat-factory";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { PackageIdStats } from "@/src/components/databoard/stats/PackageIdStats";
 import { PackageLeftColumn } from "./PackageLeftColumn";
 import { PackageRightColumn } from "./PackageRightColumn";
 
@@ -27,7 +28,12 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
         return <div>You do not have permission to view this package</div>;
     }
 
-    const stats = await PackageIdStats.getStats(id);
+    // Use stat-factory as single source of truth for presentation
+    const stats = [
+        createStat("events", SchoolPackageDataboard.getEventCount(schoolPackage), "Events"),
+        createStat("duration", SchoolPackageDataboard.getDurationMinutes(schoolPackage), "Duration"),
+        createStat("revenue", SchoolPackageDataboard.getRevenue(schoolPackage), "Revenue"),
+    ].filter(Boolean) as any[];
 
     return (
         <EntityIdLayout
