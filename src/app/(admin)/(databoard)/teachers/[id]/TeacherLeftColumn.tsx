@@ -23,7 +23,7 @@ interface TeacherLeftColumnProps {
 
 export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   const credentials = useSchoolCredentials();
-  const currency = credentials?.currency || "EUR";
+  const currency = credentials?.currency || "YEN";
   const [isCommissionPanelOpen, setIsCommissionPanelOpen] = useState(false);
 
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;

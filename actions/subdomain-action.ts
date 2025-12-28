@@ -48,7 +48,7 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
                     Key: adminIconPath,
                 }));
                 iconUrl = `${publicBaseUrl}/${adminIconPath}`;
-                console.log(`✅ Using admin icon fallback`);
+                console.log("✅ Using admin icon fallback");
             } catch {
                 console.warn(`⚠️ No icon found for ${schoolUsername} or admin`);
                 iconUrl = null;
@@ -56,7 +56,7 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
         }
 
         // Try school-specific banner (try both .png and .jpeg)
-        const bannerExtensions = ['banner.png', 'banner.jpeg', 'banner.jpg'];
+        const bannerExtensions = ["banner.png", "banner.jpeg", "banner.jpg"];
         for (const bannerFile of bannerExtensions) {
             const schoolBannerPath = `${schoolUsername}/${bannerFile}`;
             try {
@@ -81,7 +81,7 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
                     Key: adminBannerPath,
                 }));
                 bannerUrl = `${publicBaseUrl}/${adminBannerPath}`;
-                console.log(`✅ Using admin banner fallback`);
+                console.log("✅ Using admin banner fallback");
             } catch {
                 console.warn(`⚠️ No banner found for ${schoolUsername} or admin`);
                 bannerUrl = null;

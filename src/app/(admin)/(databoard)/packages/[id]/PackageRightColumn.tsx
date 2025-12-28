@@ -24,7 +24,7 @@ const FILTER_OPTIONS = ["All", "Requested", "Accepted", "Rejected"];
 
 export function PackageRightColumn({ schoolPackage }: PackageRightColumnProps) {
     const credentials = useSchoolCredentials();
-    const currency = credentials?.currency || "EUR";
+    const currency = credentials?.currency || "YEN";
 
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<SortConfig>({ field: "createdAt", direction: "desc" });

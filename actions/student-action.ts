@@ -13,7 +13,6 @@ import {
 import {
   createStudentModel,
   createBookingModel,
-  createStudentPackageModel,
   type StudentModel,
   type BookingModel,
   type StudentPackageModel,

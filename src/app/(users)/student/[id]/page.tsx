@@ -25,11 +25,17 @@ export default async function StudentPage({ params }: StudentPageProps) {
     }
 
     return (
-        <div>
-            <h2 className="text-xl font-bold text-foreground mb-2">
-                Hello {student.schema.firstName} {student.schema.lastName}
-            </h2>
-            {schoolHeader && <p className="text-muted-foreground">Welcome to {schoolHeader.name}</p>}
+        <div className="space-y-8">
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
+                <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
+                    Hello {student.schema.firstName} {student.schema.lastName}
+                </h2>
+                {schoolHeader && (
+                    <p className="text-xl md:text-2xl text-muted-foreground font-medium">
+                        Welcome to {schoolHeader.name}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
