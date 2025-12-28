@@ -242,6 +242,7 @@ export async function getTeacherEvents(
     const lessonsResult = await db.query.lesson.findMany({
       where: eq(lesson.teacherId, teacherId),
       with: {
+        commission: true,
         booking: {
           with: {
             studentPackage: {

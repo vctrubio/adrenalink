@@ -63,20 +63,14 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     }, [bookings, classboardData, selectedDate, filter]);
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="">
             {/* Header with Icon and Switch */}
             <div className="p-4 px-6.5 border-b border-border space-y-3">
                 <div className="flex items-center gap-4">
                     <HelmetIcon className="w-8 h-8 text-yellow-400 flex-shrink-0" />
                     <div className="text-xl font-bold text-foreground">Students</div>
                     <div className="ml-auto">
-                        <ToggleSwitch
-                            value={filter}
-                            onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)}
-                            values={{ left: "available", right: "onboard" }}
-                            counts={counts}
-                            color="yellow"
-                        />
+                        <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} color="yellow" />
                     </div>
                 </div>
             </div>
@@ -88,20 +82,10 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                         const bookingData = classboardData[booking.bookingId];
                         if (!bookingData) return null;
 
-                        return (
-                            <StudentBookingCard 
-                                key={booking.bookingId} 
-                                bookingData={bookingData} 
-                                draggableBooking={booking} 
-                                classboard={classboard} 
-                                selectedDate={selectedDate} 
-                            />
-                        );
+                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
                     })
                 ) : (
-                    <div className="flex items-center justify-center w-full h-32 text-xs text-muted-foreground">
-                        No {filter} students
-                    </div>
+                    <div className="flex items-center justify-center w-full h-32 text-xs text-muted-foreground">No {filter} students</div>
                 )}
             </div>
         </div>

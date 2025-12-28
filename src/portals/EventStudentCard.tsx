@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import { CardList } from "@/src/components/ui/card/card-list";
-import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
 import { minutesToHours } from "@/getters/duration-getter";
 import { MapPin } from "lucide-react";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
+import { EventUserCard } from "./EventUserCard";
 
 interface EventStudentCardProps {
     teacherName: string;
@@ -32,7 +29,6 @@ export function EventStudentCard({
     packageDescription = "No description available",
     pricePerHour = 0,
 }: EventStudentCardProps) {
-    const [isOpen, setIsOpen] = useState(false);
     const teacherFirstName = teacherName.split(" ")[0];
 
     const equipmentLabel = categoryEquipment
@@ -50,64 +46,33 @@ export function EventStudentCard({
         { label: "Price", value: `${totalPrice} €` },
     ];
 
+    const footerLeftContent = (
+        <div className="flex items-center gap-5 text-zinc-400">
+            <div className="flex items-center gap-2">
+                <HeadsetIcon size={20} className="text-green-500" />
+                <span className="text-sm font-bold tracking-tight text-white">
+                    {teacherFirstName}
+                </span>
+            </div>
+
+            <div className="h-4 w-px bg-white/10" />
+
+            <div className="flex items-center gap-2">
+                <MapPin size={18} className="text-zinc-400" />
+                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">
+                    {location}
+                </span>
+            </div>
+        </div>
+    );
+
     return (
-        <motion.div 
-            layout
-            className="group relative w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg"
+        <EventUserCard 
+            date={date} 
+            duration={duration} 
+            footerLeftContent={footerLeftContent}
         >
-            {/* High Contrast Header */}
-            <div className="flex items-center justify-between bg-zinc-900 px-6 py-5 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <EventStartDurationTime date={date} duration={duration} />
-                <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm dark:bg-zinc-900/10 dark:border-zinc-900/20" />
-            </div>
-
-            {/* Collapsible Content Body */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="overflow-hidden"
-                    >
-                        <div className="p-5 pt-2">
-                            <CardList fields={fields} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Footer / Toggle Trigger */}
-            <div className="p-4 flex items-center justify-between min-h-[64px] border-t border-border/50">
-                <div className="flex items-center gap-5">
-                    {/* Info moves/fades but stays present or transforms */}
-                    <motion.div
-                        layout
-                        className="flex items-center gap-5 text-muted-foreground"
-                    >
-                        <div className="flex items-center gap-2">
-                            <HeadsetIcon size={20} className="text-green-500" />
-                            <span className={`text-sm font-medium transition-colors ${isOpen ? "text-foreground" : ""}`}>
-                                {teacherFirstName}
-                            </span>
-                        </div>
-
-                        <div className="h-4 w-px bg-border" />
-
-                        <div className="flex items-center gap-2">
-                            <MapPin size={18} className="text-foreground/70" />
-                            <span className={`text-sm font-medium truncate max-w-[120px] transition-colors ${isOpen ? "text-foreground" : ""}`}>
-                                {location}
-                            </span>
-                        </div>
-                    </motion.div>
-                </div>
-
-                <div className="flex-1" />
-
-                <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} variant="lg" />
-            </div>
-        </motion.div>
+            <CardList fields={fields} />
+        </EventUserCard>
     );
 }
