@@ -12,12 +12,12 @@ export const BookingStats = {
 		// Aggregate stats across all bookings using databoard-getter
 		const totalEvents = bookings.reduce((sum, booking) => sum + BookingDataboard.getEventCount(booking), 0);
 		const totalDurationMinutes = bookings.reduce((sum, booking) => sum + BookingDataboard.getDurationMinutes(booking), 0);
-		const totalRevenue = bookings.reduce((sum, booking) => sum + BookingDataboard.getRevenue(booking), 0);
+		const totalProfit = bookings.reduce((sum, booking) => sum + BookingDataboard.getRevenue(booking), 0);
 		const totalStudentPayments = bookings.reduce((sum, booking) => sum + BookingStatsGetter.getStudentPayments(booking), 0);
-		const totalDue = totalRevenue - totalStudentPayments;
+		const totalDue = totalProfit - totalStudentPayments;
 
 		// Build stats using stat-factory as single source of truth
-		// Bookings page shows: Events, Duration, Revenue, Due
+		// Bookings page shows: Events, Duration, Profit, Due
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
@@ -31,8 +31,8 @@ export const BookingStats = {
 		const durationStat = createStat("duration", totalDurationMinutes, "Duration");
 		if (durationStat) stats.push(durationStat);
 
-		const revenueStat = createStat("revenue", totalRevenue, "Revenue");
-		if (revenueStat) stats.push(revenueStat);
+		const profitStat = createStat("profit", totalProfit, "Profit");
+		if (profitStat) stats.push(profitStat);
 
 		const dueStat = createStat("moneyToPay", totalDue, "Due");
 		if (dueStat) stats.push(dueStat);

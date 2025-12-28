@@ -37,7 +37,8 @@ type StatType =
     | "bookings"
     | "commission"
     | "revenue"
-    | "schoolNet"
+    | "expenses"
+    | "profit"
     | "moneyToPay"
     | "moneyPaid"
     | "rentals"
@@ -92,12 +93,22 @@ const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => getCompactNumber(value),
     },
     revenue: {
+        icon: <TrendingUpDown size={20} />,
+        color: "rgb(251, 146, 60)",
+        formatter: (value) => getCompactNumber(value),
+    },
+    expenses: {
+        icon: <TrendingDown size={20} />,
+        color: "rgb(251, 146, 60)",
+        formatter: (value) => getCompactNumber(value),
+    },
+    profit: {
         icon: <TrendingUp size={20} />,
         color: "rgb(251, 146, 60)",
         formatter: (value) => getCompactNumber(value),
     },
     schoolNet: {
-        icon: <TrendingUpDown size={20} />,
+        icon: <TrendingUp size={20} />,
         color: "rgb(251, 146, 60)",
         formatter: (value) => getCompactNumber(value),
     },
@@ -139,18 +150,18 @@ export function createStat(
         return {
             icon: config.icon,
             value: value,
-            label: label || capitalize(type),
+            label: label || (type === "profit" ? "Profit" : type === "revenue" ? "Revenue" : capitalize(type)),
             color: config.color,
         };
     }
 
-    // Handle trending down for negative revenue only (keep orange color)
-    if (type === "revenue" && value < 0) {
+    // Handle trending down for negative profit only (keep orange color)
+    if (type === "profit" && value < 0) {
         const config = STAT_CONFIGS[type];
         return {
             icon: <TrendingDown size={20} />,
             value: config.formatter(value),
-            label: label || capitalize(type),
+            label: label || "Profit",
             color: config.color,
         };
     }
@@ -158,8 +169,8 @@ export function createStat(
     const config = STAT_CONFIGS[type];
     return {
         icon: config.icon,
-        value: config.formatter(value),
-        label: label || capitalize(type),
+        value: config.formatter(value as number),
+        label: label || (type === "profit" ? "Profit" : type === "revenue" ? "Revenue" : capitalize(type)),
         color: config.color,
     };
 }

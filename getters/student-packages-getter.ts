@@ -5,12 +5,9 @@ import type { StudentPackageModel } from "@/backend/models";
 // Falls back to relation traversal for non-databoard usage
 
 export const StudentPackageStats = {
-    getStudentCount: (studentPackage: StudentPackageModel): number => studentPackage.stats?.student_count || 0,
-    getEventsCount: (studentPackage: StudentPackageModel): number => studentPackage.stats?.events_count || 0,
-    getTotalHours: (studentPackage: StudentPackageModel): number => (studentPackage.stats?.total_duration_minutes || 0) / 60,
-    getMoneyIn: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_in || 0,
-    getMoneyOut: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_out || 0,
-    getRevenue: (studentPackage: StudentPackageModel): number => StudentPackageStats.getMoneyIn(studentPackage) - StudentPackageStats.getMoneyOut(studentPackage),
+    getRevenue: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_in || 0,
+    getExpenses: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_out || 0,
+    getProfit: (studentPackage: StudentPackageModel): number => StudentPackageStats.getRevenue(studentPackage) - StudentPackageStats.getExpenses(studentPackage),
 };
 
 // ============ UTILITY FUNCTIONS ============

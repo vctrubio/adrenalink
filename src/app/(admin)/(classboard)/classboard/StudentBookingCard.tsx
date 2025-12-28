@@ -15,6 +15,7 @@ import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
+import { createLessonWithCommission } from "@/actions/lessons-action";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
@@ -148,21 +149,15 @@ const BookingSummaryBadges = ({
     );
 };
 
-const InstructorList = ({ lessons, onAddEvent, bookingId, loadingLessonId }: { lessons: ClassboardLesson[]; onAddEvent: (username: string) => void; bookingId: string; loadingLessonId: string | null }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+const InstructorList = ({ lessons, onAddEvent, bookingId, loadingLessonId, onAddTeacherClick }: { lessons: ClassboardLesson[]; onAddEvent: (username: string) => void; bookingId: string; loadingLessonId: string | null; onAddTeacherClick: () => void }) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
-
-    const existingLessons = lessons.map((l) => ({
-        teacherUsername: l.teacher.username,
-        lessonId: l.id,
-    }));
 
     return (
         <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
-                <button onClick={() => setIsModalOpen(true)} className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors" title="Add teacher to booking">
+                <button onClick={onAddTeacherClick} className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors" title="Add teacher to booking">
                     <Plus size={14} />
                 </button>
             </div>
@@ -207,7 +202,7 @@ const InstructorList = ({ lessons, onAddEvent, bookingId, loadingLessonId }: { l
                     );
                 })}
                 {lessons.length === 0 && (
-                    <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group">
+                    <button onClick={onAddTeacherClick} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-dashed border-border/60 text-xs font-medium text-muted-foreground group">
                         <div className="flex items-center justify-center w-4 h-4 rounded-full bg-background group-hover:text-primary transition-colors">
                             <Plus size={12} />
                         </div>
@@ -256,6 +251,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+    const [isPickTeacherModalOpen, setIsPickTeacherModalOpen] = useState(false);
 
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
@@ -263,6 +259,18 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
     const students = bookingStudents.map((bs) => bs.student);
+
+    const existingLessons = lessons.map((l) => ({
+        teacherId: l.teacher.id,
+        teacherUsername: l.teacher.username,
+        commission: l.commission
+            ? {
+                id: l.commission.id,
+                type: l.commission.commissionType,
+                cph: l.commission.cph,
+            }
+            : null,
+    }));
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
@@ -302,6 +310,12 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
         await classboard.onAddTeacher(draggableBooking, teacherUsername);
     };
 
+    const handleCreateLesson = async (teacherId: string, commissionId: string) => {
+        const result = await createLessonWithCommission(booking.id, teacherId, commissionId);
+        if (result.success) {
+        }
+    };
+
     return (
         <div
             draggable
@@ -328,7 +342,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                     <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
                 </div>
 
-                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} bookingId={booking.id} loadingLessonId={loadingLessonId} />
+                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} bookingId={booking.id} loadingLessonId={loadingLessonId} onAddTeacherClick={() => true} />
             </div>
 
             <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />

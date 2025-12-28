@@ -5,13 +5,11 @@ import type { StudentModel } from "@/backend/models";
 // Falls back to relation traversal for non-databoard usage
 
 export const StudentStats = {
-    getMoneyIn: (student: StudentModel): number => student.stats?.money_in || 0,
-    getMoneyOut: (student: StudentModel): number => student.stats?.money_out || 0,
+    getRevenue: (student: StudentModel): number => student.stats?.money_in || 0,
+    getExpenses: (student: StudentModel): number => student.stats?.money_out || 0,
     getEventsCount: (student: StudentModel): number => student.stats?.events_count || 0,
     getTotalHours: (student: StudentModel): number => (student.stats?.total_duration_minutes || 0) / 60,
-    getBookingsCount: (student: StudentModel): number => student.stats?.bookings_count || 0,
-    getRequestedPackagesCount: (student: StudentModel): number => student.stats?.requested_packages_count || 0,
-    getRevenue: (student: StudentModel): number => StudentStats.getMoneyIn(student) - StudentStats.getMoneyOut(student),
+    getProfit: (student: StudentModel): number => StudentStats.getRevenue(student) - StudentStats.getExpenses(student),
 };
 
 // ============ LEGACY RELATION-BASED GETTERS ============

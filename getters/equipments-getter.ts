@@ -4,12 +4,11 @@ import type { EquipmentModel } from "@/backend/models";
 // Reads from pre-calculated stats in databoard models
 
 export const EquipmentStats = {
+    getRevenue: (equipment: EquipmentModel): number => equipment.stats?.money_in || 0,
+    getExpenses: (equipment: EquipmentModel): number => equipment.stats?.money_out || 0,
     getEventsCount: (equipment: EquipmentModel): number => equipment.stats?.events_count || 0,
     getTotalHours: (equipment: EquipmentModel): number => (equipment.stats?.total_duration_minutes || 0) / 60,
-    getRentalsCount: (equipment: EquipmentModel): number => equipment.stats?.rentals_count || 0,
-    getMoneyIn: (equipment: EquipmentModel): number => equipment.stats?.money_in || 0,
-    getMoneyOut: (equipment: EquipmentModel): number => equipment.stats?.money_out || 0,
-    getRevenue: (equipment: EquipmentModel): number => EquipmentStats.getMoneyIn(equipment) - EquipmentStats.getMoneyOut(equipment),
+    getProfit: (equipment: EquipmentModel): number => EquipmentStats.getRevenue(equipment) - EquipmentStats.getExpenses(equipment),
 };
 
 // ============ EQUIPMENT UTILITY FUNCTIONS ============

@@ -32,11 +32,10 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     // Build stats using databoard-getter + stat-factory (single source of truth)
     const equipmentName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
     const stats = [
-        createStat("equipment", equipmentName, equipment.schema.model),
+        createStat("lessons", EquipmentDataboard.getLessonCount(equipment), "Lessons"),
         createStat("events", EquipmentDataboard.getEventCount(equipment), "Events"),
         createStat("duration", EquipmentDataboard.getDurationMinutes(equipment), "Duration"),
-        createStat("rentals", EquipmentDataboard.getRentalsCount(equipment), "Rentals"),
-        createStat("schoolNet", EquipmentDataboard.getMoneyIn(equipment), "Net"),
+        createStat("revenue", EquipmentDataboard.getRevenue(equipment), "Revenue"),
     ].filter(Boolean) as any[];
 
     return (

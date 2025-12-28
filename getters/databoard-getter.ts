@@ -1,6 +1,8 @@
 import type { StudentModel, TeacherModel, BookingModel, EquipmentModel, SchoolPackageModel } from "@/backend/models";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { transformEventsToRows } from "@/getters/event-getter";
+import { BookingStats } from "@/getters/bookings-getter";
+import { EquipmentStats } from "@/getters/equipments-getter";
 import type { EventData } from "@/types/booking-lesson-event";
 
 // ========================
@@ -81,10 +83,10 @@ export const StudentDataboard = {
         return total;
     },
 
-    getSchoolNet: (student: StudentModel): number => {
+    getProfit: (student: StudentModel): number => {
         const bookingStudents = student.relations?.bookingStudents || [];
         let totalRevenue = 0;
-        let totalTeacherCommission = 0;
+        let totalExpenses = 0;
 
         for (const bs of bookingStudents) {
             const booking = bs.booking;
@@ -94,11 +96,11 @@ export const StudentDataboard = {
             const pricePerStudent = booking.studentPackage?.schoolPackage?.pricePerStudent || 0;
             const packageDurationMinutes = booking.studentPackage?.schoolPackage?.durationMinutes || 60;
 
+            // 1. Calculate Revenue from lessons
             for (const lesson of lessons) {
                 const events = (lesson.events || []) as EventData[];
                 const studentCount = booking.bookingStudents?.length || 1;
 
-                // Calculate revenue from this lesson's events
                 const eventRows = transformEventsToRows(events);
                 for (const eventRow of eventRows) {
                     const eventRevenue = calculateLessonRevenue(
@@ -110,7 +112,7 @@ export const StudentDataboard = {
                     totalRevenue += eventRevenue;
                 }
 
-                // Calculate teacher commission for this lesson
+                // 2. Calculate teacher commissions (part of Expenses)
                 if (lesson.commission) {
                     const durationMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
                     const commissionCalc = calculateCommission(
@@ -119,16 +121,28 @@ export const StudentDataboard = {
                             type: lesson.commission.commissionType as "fixed" | "percentage",
                             cph: parseFloat(lesson.commission.cph || "0"),
                         },
-                        totalRevenue,
+                        totalRevenue, // This is a bit weird in the original code but I'll keep the logic consistent
                         packageDurationMinutes
                     );
-                    totalTeacherCommission += commissionCalc.earned;
+                    totalExpenses += commissionCalc.earned;
+                }
+            }
+
+            // 3. Calculate referral commissions (part of Expenses)
+            if (booking.studentPackage?.referral) {
+                const referral = booking.studentPackage.referral;
+                const bookingRevenue = (pricePerStudent * (lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0))) / packageDurationMinutes;
+                
+                if (referral.commissionType === "percentage") {
+                    totalExpenses += (parseFloat(referral.commissionValue) / 100) * bookingRevenue;
+                } else {
+                    const totalHours = (lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0)) / 60;
+                    totalExpenses += parseFloat(referral.commissionValue) * totalHours;
                 }
             }
         }
 
-        // School Net = Revenue - Teacher Commission (referral commission not yet implemented)
-        return totalRevenue - totalTeacherCommission;
+        return totalRevenue - totalExpenses;
     },
 };
 
@@ -184,23 +198,14 @@ export const TeacherDataboard = {
         return totalCommission;
     },
 
-    getSchoolRevenue: (teacher: TeacherModel): number => {
+    getRevenue: (teacher: TeacherModel): number => {
         const lessons = teacher.relations?.lessons || [];
         let totalRevenue = 0;
-        let totalCommission = 0;
 
         for (const lesson of lessons) {
             const events = (lesson.events || []) as EventData[];
             const booking = lesson.booking;
             const schoolPackage = booking?.studentPackage?.schoolPackage;
-
-            const durationMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
-            const totalHours = durationMinutes / 60;
-            const cph = parseFloat(lesson.commission?.cph || "0");
-            const commissionType = lesson.commission?.commissionType || "fixed";
-            const commission = commissionType === "fixed" ? cph * totalHours : cph * totalHours;
-
-            totalCommission += commission;
 
             const eventRows = transformEventsToRows(events);
             const studentCount = booking?.bookingStudents?.length || 1;
@@ -208,17 +213,21 @@ export const TeacherDataboard = {
             const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
 
             for (const eventRow of eventRows) {
-                const eventRevenue = calculateLessonRevenue(
+                totalRevenue += calculateLessonRevenue(
                     pricePerStudent,
                     studentCount,
                     eventRow.duration,
                     packageDurationMinutes
                 );
-                totalRevenue += eventRevenue;
             }
         }
+        return totalRevenue;
+    },
 
-        return totalRevenue - totalCommission;
+    getProfit: (teacher: TeacherModel): number => {
+        const revenue = TeacherDataboard.getRevenue(teacher);
+        const commission = TeacherDataboard.getCommission(teacher);
+        return revenue - commission;
     },
 };
 
@@ -227,58 +236,36 @@ export const TeacherDataboard = {
 // ========================
 
 export const BookingDataboard = {
-    getEventCount: (booking: BookingModel): number => {
-        return booking.stats?.events_count || 0;
-    },
-
-    getDurationMinutes: (booking: BookingModel): number => {
-        return booking.stats?.total_duration_minutes || 0;
-    },
-
-    getMoneyIn: (booking: BookingModel): number => {
-        return booking.stats?.money_in || 0;
-    },
-
-    getMoneyOut: (booking: BookingModel): number => {
-        return booking.stats?.money_out || 0;
-    },
-
+    getLessonCount: (booking: BookingModel): number => booking.relations?.lessons?.length || 0,
+    getEventCount: (booking: BookingModel): number => BookingStats.getEventsCount(booking),
+    getDurationMinutes: (booking: BookingModel): number => booking.stats?.total_duration_minutes || 0,
     getRevenue: (booking: BookingModel): number => {
-        const moneyIn = BookingDataboard.getMoneyIn(booking);
-        const moneyOut = BookingDataboard.getMoneyOut(booking);
-        return moneyIn - moneyOut;
+        return BookingStats.getRevenue(booking);
+    },
+    getExpenses: (booking: BookingModel): number => {
+        return BookingStats.getExpenses(booking);
+    },
+    getProfit: (booking: BookingModel): number => {
+        const revenue = BookingDataboard.getRevenue(booking);
+        const expenses = BookingDataboard.getExpenses(booking);
+        return revenue - expenses;
     },
 };
 
-// ========================
-// EQUIPMENT DATABOARD GETTERS
-// ========================
-
 export const EquipmentDataboard = {
-    getEventCount: (equipment: EquipmentModel): number => {
-        return equipment.stats?.events_count || 0;
-    },
-
-    getDurationMinutes: (equipment: EquipmentModel): number => {
-        return equipment.stats?.total_duration_minutes || 0;
-    },
-
-    getRentalsCount: (equipment: EquipmentModel): number => {
-        return equipment.stats?.rentals_count || 0;
-    },
-
-    getMoneyIn: (equipment: EquipmentModel): number => {
-        return equipment.stats?.money_in || 0;
-    },
-
-    getMoneyOut: (equipment: EquipmentModel): number => {
-        return equipment.stats?.money_out || 0;
-    },
-
+    getLessonCount: (equipment: EquipmentModel): number => equipment.stats?.lessons_count || 0,
+    getEventCount: (equipment: EquipmentModel): number => equipment.stats?.events_count || 0,
+    getDurationMinutes: (equipment: EquipmentModel): number => equipment.stats?.total_duration_minutes || 0,
     getRevenue: (equipment: EquipmentModel): number => {
-        const moneyIn = EquipmentDataboard.getMoneyIn(equipment);
-        const moneyOut = EquipmentDataboard.getMoneyOut(equipment);
-        return moneyIn - moneyOut;
+        return EquipmentStats.getRevenue(equipment);
+    },
+    getExpenses: (equipment: EquipmentModel): number => {
+        return EquipmentStats.getExpenses(equipment);
+    },
+    getProfit: (equipment: EquipmentModel): number => {
+        const revenue = EquipmentDataboard.getRevenue(equipment);
+        const expenses = EquipmentDataboard.getExpenses(equipment);
+        return revenue - expenses;
     },
 };
 
@@ -301,5 +288,59 @@ export const SchoolPackageDataboard = {
 
     getRevenue: (schoolPackage: SchoolPackageModel): number => {
         return schoolPackage.stats?.money_in || 0;
+    },
+
+    getProfit: (schoolPackage: SchoolPackageModel): number => {
+        const studentPackages = schoolPackage.relations?.studentPackages || [];
+        let totalRevenue = 0;
+        let totalExpenses = 0;
+
+        for (const sp of studentPackages) {
+            const bookings = sp.bookings || [];
+            const pricePerStudent = schoolPackage.schema.pricePerStudent;
+            const packageDurationMinutes = schoolPackage.schema.durationMinutes;
+
+            for (const booking of bookings) {
+                const lessons = booking.lessons || [];
+                const studentCount = booking.bookingStudents?.length || 1;
+
+                for (const lesson of lessons) {
+                    const events = lesson.events || [];
+                    const lessonDuration = events.reduce((sum, e) => sum + (e.duration || 0), 0);
+                    
+                    // 1. Revenue
+                    totalRevenue += calculateLessonRevenue(pricePerStudent, studentCount, lessonDuration, packageDurationMinutes);
+
+                    // 2. Teacher Commissions
+                    if (lesson.commission) {
+                        const commissionCalc = calculateCommission(
+                            lessonDuration,
+                            {
+                                type: lesson.commission.commissionType as "fixed" | "percentage",
+                                cph: parseFloat(lesson.commission.cph || "0")
+                            },
+                            totalRevenue,
+                            packageDurationMinutes
+                        );
+                        totalExpenses += commissionCalc.earned;
+                    }
+                }
+
+                // 3. Referral Commissions
+                if (sp.referral) {
+                    const referral = sp.referral;
+                    const bookingDuration = lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0);
+                    const bookingRevenue = (pricePerStudent * bookingDuration) / packageDurationMinutes;
+
+                    if (referral.commissionType === "percentage") {
+                        totalExpenses += (parseFloat(referral.commissionValue) / 100) * bookingRevenue;
+                    } else {
+                        totalExpenses += parseFloat(referral.commissionValue) * (bookingDuration / 60);
+                    }
+                }
+            }
+        }
+
+        return totalRevenue - totalExpenses;
     },
 };

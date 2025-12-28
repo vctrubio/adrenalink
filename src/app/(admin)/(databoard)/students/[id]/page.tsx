@@ -22,7 +22,8 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         createStat("bookings", StudentDataboard.getBookingCount(student), "Bookings"),
         createStat("events", StudentDataboard.getEventCount(student), "Events"),
         createStat("duration", StudentDataboard.getDurationMinutes(student), "Duration"),
-        createStat("schoolNet", StudentDataboard.getSchoolNet(student), "Net"),
+        createStat("revenue", StudentDataboard.getMoneyPaid(student), "Revenue"),
+        createStat("profit", StudentDataboard.getProfit(student), "Profit"),
     ].filter(Boolean) as any[];
 
     return (

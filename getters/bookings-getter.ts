@@ -6,11 +6,11 @@ import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from
 // Falls back to relation traversal for non-databoard usage
 
 export const BookingStats = {
-    getMoneyIn: (booking: BookingModel): number => booking.stats?.money_in || 0,
-    getMoneyOut: (booking: BookingModel): number => booking.stats?.money_out || 0,
+    getRevenue: (booking: BookingModel): number => booking.stats?.money_in || 0,
+    getExpenses: (booking: BookingModel): number => booking.stats?.money_out || 0,
     getEventsCount: (booking: BookingModel): number => booking.stats?.events_count || 0,
     getTotalHours: (booking: BookingModel): number => (booking.stats?.total_duration_minutes || 0) / 60,
-    getRevenue: (booking: BookingModel): number => BookingStats.getMoneyIn(booking) - BookingStats.getMoneyOut(booking),
+    getProfit: (booking: BookingModel): number => BookingStats.getRevenue(booking) - BookingStats.getExpenses(booking),
     getTeacherPayments: (booking: BookingModel): number => {
         const lessons = booking.relations?.lessons || [];
         return lessons.reduce((total, lesson) => {
@@ -66,7 +66,7 @@ export const BookingStats = {
         }, 0);
     },
     getNetProfit: (booking: BookingModel): number => {
-        const revenue = BookingStats.getMoneyIn(booking);
+        const revenue = BookingStats.getRevenue(booking);
         const teacherPayments = BookingStats.getTeacherPayments(booking);
         const studentPayments = BookingStats.getStudentPayments(booking);
         const teacherCommissions = BookingStats.getTeacherCommissions(booking);
@@ -106,12 +106,12 @@ export function getBookingEventsCount(booking: BookingModel): number {
     return totalEvents;
 }
 
-export function getBookingMoneyIn(booking: BookingModel): number {
+export function getBookingRevenue(booking: BookingModel): number {
     const studentPayments = booking.relations?.studentPayments || [];
     return studentPayments.reduce((total, payment) => total + (payment.amount || 0), 0);
 }
 
-export function getBookingMoneyOut(booking: BookingModel): number {
+export function getBookingExpenses(booking: BookingModel): number {
     const studentPackage = booking.relations?.studentPackage;
     const schoolPackage = studentPackage?.schoolPackage;
 
@@ -123,10 +123,10 @@ export function getBookingMoneyOut(booking: BookingModel): number {
     return Math.round(actualDuration * pricePerMinute);
 }
 
-export function getBookingRevenue(booking: BookingModel): number {
-    const moneyIn = getBookingMoneyIn(booking);
-    const moneyOut = getBookingMoneyOut(booking);
-    return moneyIn - moneyOut;
+export function getBookingProfit(booking: BookingModel): number {
+    const revenue = getBookingRevenue(booking);
+    const expenses = getBookingExpenses(booking);
+    return revenue - expenses;
 }
 
 export function canBookingBeCompleted(booking: BookingModel): boolean {

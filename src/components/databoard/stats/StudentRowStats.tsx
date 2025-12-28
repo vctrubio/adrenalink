@@ -12,7 +12,7 @@ export const StudentRowStats = {
 		const totalBookings = students.reduce((sum, student) => sum + StudentDataboard.getBookingCount(student), 0);
 		const totalEvents = students.reduce((sum, student) => sum + StudentDataboard.getEventCount(student), 0);
 		const totalDurationMinutes = students.reduce((sum, student) => sum + StudentDataboard.getDurationMinutes(student), 0);
-		const totalSchoolNet = students.reduce((sum, student) => sum + StudentDataboard.getSchoolNet(student), 0);
+		const totalSchoolNet = students.reduce((sum, student) => sum + StudentDataboard.getProfit(student), 0);
 
 		// Build stats using stat-factory as single source of truth
 		const stats: StatItem[] = [];
@@ -31,7 +31,7 @@ export const StudentRowStats = {
 		const durationStat = createStat("duration", totalDurationMinutes, "Duration");
 		if (durationStat) stats.push(durationStat);
 
-		const netStat = createStat("schoolNet", totalSchoolNet, "Net");
+		const netStat = createStat("profit", totalSchoolNet, "Profit");
 		if (netStat) stats.push(netStat);
 
 		return stats;

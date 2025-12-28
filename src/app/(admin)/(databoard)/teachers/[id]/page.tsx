@@ -34,7 +34,7 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
         createStat("events", TeacherDataboard.getEventCount(teacher), "Events"),
         createStat("duration", TeacherDataboard.getDurationMinutes(teacher), "Duration"),
         createStat("commission", TeacherDataboard.getCommission(teacher), "Commission"),
-        createStat("revenue", TeacherDataboard.getSchoolRevenue(teacher), "School Revenue"),
+        createStat("profit", TeacherDataboard.getProfit(teacher), "Profit"),
     ].filter(Boolean) as any[];
 
     return (

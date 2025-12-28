@@ -8,28 +8,31 @@ export const EquipmentStats = {
 		const isArray = Array.isArray(items);
 		const equipments = isArray ? items : [items];
 
-		// Aggregate stats across all equipment using databoard-getter
+		// Aggregated stats using EquipmentDataboard
+		const totalLessons = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getLessonCount(equipment), 0);
 		const totalEvents = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getEventCount(equipment), 0);
-		const totalRentals = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getRentalsCount(equipment), 0);
-		const totalNet = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getMoneyIn(equipment), 0);
+		const totalDurationMinutes = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getDurationMinutes(equipment), 0);
+		const totalProfit = equipments.reduce((sum, equipment) => sum + EquipmentDataboard.getProfit(equipment), 0);
 
-		// Build stats using stat-factory as single source of truth
-		// Equipment page shows: Equipment count, Events, Rentals, Net (money in)
+		// Equipment page shows: Lessons, Events, Duration, Profit
 		const stats: StatItem[] = [];
 
 		if (includeCount) {
-			const equipmentStat = createStat("equipment", equipments.length, "Equipment");
-			stats.push(equipmentStat!);
+			const equipmentStat = createStat("equipment", equipments.length, "Equipments");
+			if (equipmentStat) stats.push(equipmentStat);
 		}
 
+		const lessonsStat = createStat("lessons", totalLessons, "Lessons");
+		if (lessonsStat) stats.push(lessonsStat);
+
 		const eventsStat = createStat("events", totalEvents, "Events");
-		stats.push(eventsStat!);
+		if (eventsStat) stats.push(eventsStat);
 
-		const rentalsStat = createStat("rentals", totalRentals, "Rentals");
-		stats.push(rentalsStat!);
+		const durationStat = createStat("duration", totalDurationMinutes, "Duration");
+		if (durationStat) stats.push(durationStat);
 
-		const netStat = createStat("schoolNet", totalNet, "Net");
-		stats.push(netStat!);
+		const profitStat = createStat("profit", totalProfit, "Profit");
+		if (profitStat) stats.push(profitStat);
 
 		return stats;
 	},

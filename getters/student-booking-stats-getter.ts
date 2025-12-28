@@ -7,8 +7,8 @@ export interface BookingStatsData {
     eventsCount: number;
     durationHours: number;
     paymentsCount: number;
-    moneyIn: number;
-    moneyOut: number;
+    revenue: number;
+    expenses: number;
     status: string;
     // Package info
     packageDescription: string;
@@ -25,8 +25,8 @@ export interface GlobalStatsType {
     eventsCount: number;
     durationHours: number;
     paymentsCount: number;
-    moneyIn: number;
-    moneyOut: number;
+    revenue: number;
+    expenses: number;
     moneyToPay: number;
     moneyPaid: number;
     balance: number;
@@ -66,8 +66,8 @@ export function getBookingStatsData(student: StudentModel): BookingStatsData[] {
             eventsCount,
             durationHours: totalDurationMinutes / 60,
             paymentsCount,
-            moneyIn: booking.stats?.money_in || 0,
-            moneyOut: booking.stats?.money_out || 0,
+            revenue: booking.stats?.money_in || 0,
+            expenses: booking.stats?.money_out || 0,
             status: booking.status || "active",
             // Package info
             packageDescription: schoolPackage?.description || "No package",
@@ -119,8 +119,8 @@ export function getGlobalStats(bookings: BookingStatsData[]): GlobalStatsType {
         eventsCount: acc.eventsCount + b.eventsCount,
         durationHours: acc.durationHours + b.durationHours,
         paymentsCount: acc.paymentsCount + b.paymentsCount,
-        moneyIn: acc.moneyIn + b.moneyIn,
-        moneyOut: acc.moneyOut + b.moneyOut,
+        revenue: acc.revenue + b.revenue,
+        expenses: acc.expenses + b.expenses,
         moneyToPay: acc.moneyToPay + b.moneyToPay,
         moneyPaid: acc.moneyPaid + b.moneyPaid,
         balance: acc.balance + b.balance,
@@ -128,8 +128,8 @@ export function getGlobalStats(bookings: BookingStatsData[]): GlobalStatsType {
         eventsCount: 0,
         durationHours: 0,
         paymentsCount: 0,
-        moneyIn: 0,
-        moneyOut: 0,
+        revenue: 0,
+        expenses: 0,
         moneyToPay: 0,
         moneyPaid: 0,
         balance: 0,

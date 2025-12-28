@@ -34,8 +34,16 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const durationMinutes = booking.stats?.total_duration_minutes || 0;
     const studentPayments = BookingStatsGetter.getStudentPayments(booking);
     const commissions = BookingStatsGetter.getTeacherCommissions(booking);
-    const revenue = BookingStatsGetter.getMoneyIn(booking);
-    const net = revenue - commissions;
+    const revenue = BookingStatsGetter.getRevenue(booking);
+    
+    // Profit = Revenue - Commissions - Referrals
+    const referralCommission = booking.relations?.studentPackage?.referral ? (
+        booking.relations.studentPackage.referral.commissionType === "percentage" 
+            ? (parseFloat(booking.relations.studentPackage.referral.commissionValue) / 100) * revenue
+            : parseFloat(booking.relations.studentPackage.referral.commissionValue) * (durationMinutes / 60)
+    ) : 0;
+    
+    const profit = revenue - commissions - referralCommission;
 
     const bookingStats = [
         eventsCount > 0 && createStat("events", eventsCount, "Events"),
@@ -43,7 +51,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         studentPayments > 0 && createStat("moneyPaid", studentPayments, "Student Payments"),
         commissions > 0 && createStat("commission", commissions, "Commissions"),
         revenue > 0 && createStat("revenue", revenue, "Revenue"),
-        net !== 0 && createStat("schoolNet", net, "Net"),
+        profit !== 0 && createStat("profit", profit, "Profit"),
     ].filter(Boolean) as any[];
 
     const lessons = booking.relations?.lessons || [];

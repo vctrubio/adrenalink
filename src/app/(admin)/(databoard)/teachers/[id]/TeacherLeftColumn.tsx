@@ -53,7 +53,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
 
   // Teacher Stats
   const commissionsStats = createStat("commission", TeacherDataboard.getCommission(teacher), "Commission");
-  const revenueStats = createStat("revenue", TeacherDataboard.getSchoolRevenue(teacher), "School Revenue");
+  const profitStats = createStat("profit", TeacherDataboard.getProfit(teacher), "School Profit");
 
   // Teacher Card
   const teacherCardData: LeftColumnCardData = {

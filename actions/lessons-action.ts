@@ -36,6 +36,31 @@ export async function createLesson(lessonSchema: LessonForm): Promise<ApiActionR
     }
 }
 
+export async function createLessonWithCommission(
+    bookingId: string,
+    teacherId: string,
+    commissionId: string
+): Promise<ApiActionResponseModel<LessonType>> {
+    try {
+        const result = await db.insert(lesson).values({
+            bookingId,
+            teacherId,
+            commissionId,
+            status: "active",
+        }).returning();
+
+        revalidatePath("/lessons");
+        revalidatePath("/classboard");
+        revalidatePath(`/bookings/${bookingId}`);
+        revalidatePath(`/teachers/${teacherId}`);
+
+        return { success: true, data: result[0] };
+    } catch (error) {
+        console.error("Error creating lesson with commission:", error);
+        return { success: false, error: "Failed to create lesson" };
+    }
+}
+
 // READ
 export async function getLessons(): Promise<ApiActionResponseModel<LessonModel[]>> {
     try {

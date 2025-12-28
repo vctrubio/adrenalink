@@ -31,9 +31,9 @@ export const ReferralRow = ({ item: referral, isExpanded, onToggle }: ReferralRo
         { value: ReferralStats.getStudentCount(referral), label: "Students" },
         { value: ReferralStats.getEventsCount(referral), label: "Events" },
         { value: getPrettyDuration(referral.stats?.total_duration_minutes || 0), label: "Duration" },
-        { value: `$${ReferralStats.getMoneyIn(referral)}`, label: "Income" },
-        { value: `$${ReferralStats.getMoneyOut(referral)}`, label: "Commission" },
         { value: `$${ReferralStats.getRevenue(referral)}`, label: "Revenue" },
+        { value: `$${ReferralStats.getExpenses(referral)}`, label: "Expenses" },
+        { value: `$${ReferralStats.getProfit(referral)}`, label: "Profit" },
     ];
 
     return (

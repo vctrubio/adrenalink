@@ -22,10 +22,27 @@ export function calculateStudentPackageGroupStats(packages: StudentPackageModel[
     const totalEvents = packages.reduce((sum, pkg) => sum + StudentPackageStats.getEventsCount(pkg), 0);
     const totalMinutes = packages.reduce((sum, pkg) => sum + (pkg.stats?.total_duration_minutes || 0), 0);
 
-    const totalMoneyIn = packages.reduce((sum, pkg) => sum + StudentPackageStats.getMoneyIn(pkg), 0);
-    const totalMoneyOut = packages.reduce((sum, pkg) => sum + StudentPackageStats.getMoneyOut(pkg), 0);
-    const netRevenue = totalMoneyIn - totalMoneyOut;
-    const bankColor = netRevenue >= 0 ? "#10b981" : "#ef4444";
+    const totalRevenue = packages.reduce((sum, pkg) => sum + StudentPackageStats.getRevenue(pkg), 0);
+    const totalExpenses = packages.reduce((sum, pkg) => sum + StudentPackageStats.getExpenses(pkg), 0);
+    const totalProfit = totalRevenue - totalExpenses;
+    const bankColor = totalProfit >= 0 ? "#10b981" : "#ef4444";
+
+    const headStats: DataboardRowStat[] = [
+        { icon: <HelmetIcon className="w-5 h-5" />, value: totalStudents },
+        { icon: <FlagIcon className="w-5 h-5" />, value: totalEvents },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(totalDuration) },
+        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(totalProfit), color: bankColor },
+    ];
+
+    const statsConfig: DataboardHeaderStatsConfig = {
+        title: "All Requests",
+        stats: [
+            { id: "students", label: "Students", value: totalStudents, type: "student" },
+            { id: "events", label: "Events", value: totalEvents, type: "events" },
+            { id: "duration", label: "Duration", value: totalDuration, type: "duration" },
+            { id: "profit", label: "Profit", value: totalProfit, type: "profit" }
+        ]
+    };
 
     return [
         { icon: <HelmetIcon className="w-5 h-5" />, value: packages.length, color: packageEntity.color },
@@ -64,14 +81,14 @@ export const StudentPackageRow = ({ item: studentPackage, isExpanded, onToggle }
         { label: "End Date", value: formatDate(studentPackage.schema.requestedDateEnd) },
     ];
 
-    const revenue = StudentPackageStats.getRevenue(studentPackage);
-    const bankColor = revenue >= 0 ? "#10b981" : "#ef4444";
+    const profit = StudentPackageStats.getProfit(studentPackage);
+    const bankColor = profit >= 0 ? "#10b981" : "#ef4444";
 
-    const stats: StatItem[] = [
-        { icon: <HelmetIcon className="w-5 h-5" />, value: StudentPackageStats.getStudentCount(studentPackage), color: studentEntity.color },
-        { icon: <FlagIcon className="w-5 h-5" />, value: StudentPackageStats.getEventsCount(studentPackage), color: eventEntity.color },
-        { icon: <DurationIcon className="w-5 h-5" />, value: getPrettyDuration(studentPackage.stats?.total_duration_minutes || 0), color: "#4b5563" },
-        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(revenue), color: bankColor },
+    const stats: DataboardRowStat[] = [
+        { icon: <HelmetIcon className="w-5 h-5" />, value: StudentPackageStats.getStudentCount(studentPackage), label: "Students" },
+        { icon: <FlagIcon className="w-5 h-5" />, value: StudentPackageStats.getEventsCount(studentPackage), label: "Events" },
+        { icon: <DurationIcon className="w-5 h-5" />, value: getFullDuration(studentPackage.stats?.total_duration_minutes || 0), label: "Duration" },
+        { icon: <BankIcon className="w-5 h-5" />, value: Math.abs(profit), color: bankColor },
     ];
 
     const popoverItems = isRequested ? [{ id: studentPackage.schema.id, icon: <RequestIcon className="w-4 h-4" />, color: packageEntity.color, label: "Requested" }] : [];

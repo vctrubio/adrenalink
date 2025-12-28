@@ -32,7 +32,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
     const stats = [
         createStat("events", SchoolPackageDataboard.getEventCount(schoolPackage), "Events"),
         createStat("duration", SchoolPackageDataboard.getDurationMinutes(schoolPackage), "Duration"),
-        createStat("revenue", SchoolPackageDataboard.getRevenue(schoolPackage), "Revenue"),
+        createStat("profit", SchoolPackageDataboard.getRevenue(schoolPackage), "Profit"),
     ].filter(Boolean) as any[];
 
     return (

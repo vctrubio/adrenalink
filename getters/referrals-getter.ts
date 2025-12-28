@@ -1,12 +1,9 @@
 import type { ReferralModel } from "@/backend/models";
 
 export const ReferralStats = {
-    getStudentCount: (referral: ReferralModel): number => referral.stats?.student_count || 0,
-    getEventsCount: (referral: ReferralModel): number => referral.stats?.events_count || 0,
-    getTotalHours: (referral: ReferralModel): number => (referral.stats?.total_duration_minutes || 0) / 60,
-    getMoneyIn: (referral: ReferralModel): number => referral.stats?.money_in || 0,
-    getMoneyOut: (referral: ReferralModel): number => referral.stats?.money_out || 0,
-    getRevenue: (referral: ReferralModel): number => ReferralStats.getMoneyIn(referral) - ReferralStats.getMoneyOut(referral),
+    getRevenue: (referral: ReferralModel): number => referral.stats?.money_in || 0,
+    getExpenses: (referral: ReferralModel): number => referral.stats?.money_out || 0,
+    getProfit: (referral: ReferralModel): number => ReferralStats.getRevenue(referral) - ReferralStats.getExpenses(referral),
 };
 
 export const getReferralDescription = (referral: ReferralModel): string => {
