@@ -73,13 +73,13 @@ export default function ClassboardContentBoard({
             <div className="flex flex-col xl:flex-row gap-4 flex-1 min-h-0">
                 
                 {/* Students Section - Vertical Queue on Large Screens, Horizontal on Small */}
-                <div className="w-full xl:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
+                <div className="w-full xl:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
                     <StudentClassDailyV2 {...studentProps} />
                 </div>
                 
                 {/* Teachers Section - Main Content Area */}
-                <div className="flex-1 min-w-0 rounded-2xl overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
-                    <TeacherClassDailyV2 key={refreshKey} {...teacherProps} />
+                <div className="flex-1 min-w-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
+                    <TeacherClassDailyV2 {...teacherProps} refreshKey={refreshKey} />
                 </div>
 
             </div>

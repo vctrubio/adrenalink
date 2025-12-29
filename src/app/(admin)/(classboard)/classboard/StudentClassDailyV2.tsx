@@ -32,7 +32,7 @@ type SortOption = "newest" | "latest" | "progression";
 export default function StudentClassDailyV2({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyV2Props) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
-    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map(b => b.bookingId)));
+    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.bookingId)));
     const [sortBy, setSortBy] = useState<SortOption>("progression");
 
     // Load sort preference from localStorage
@@ -50,7 +50,7 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
     };
 
     const toggleBookingExpanded = (bookingId: string) => {
-        setExpandedBookings(prev => {
+        setExpandedBookings((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(bookingId)) {
                 newSet.delete(bookingId);
@@ -60,7 +60,6 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
             return newSet;
         });
     };
-
 
     const { filteredBookings, counts } = useMemo(() => {
         // All bookings
@@ -122,9 +121,12 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
                 const getTotalRemainingHours = (data: typeof aData) => {
                     const packageDuration = data.schoolPackage?.totalDuration || 0;
                     const completedHours = (data.lessons || []).reduce((sum, lesson) => {
-                        return sum + ((lesson.events || []).reduce((eventSum, event) => {
-                            return event.status === "completed" ? eventSum + (event.duration || 0) : eventSum;
-                        }, 0));
+                        return (
+                            sum +
+                            (lesson.events || []).reduce((eventSum, event) => {
+                                return event.status === "completed" ? eventSum + (event.duration || 0) : eventSum;
+                            }, 0)
+                        );
                     }, 0);
                     return packageDuration - completedHours;
                 };
@@ -132,9 +134,7 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
             } else if (sortBy === "latest") {
                 // Most recent event first
                 const getLatestEventDate = (data: typeof aData) => {
-                    const allDates = (data.lessons || []).flatMap(lesson =>
-                        (lesson.events || []).map(event => new Date(event.date || 0).getTime())
-                    );
+                    const allDates = (data.lessons || []).flatMap((lesson) => (lesson.events || []).map((event) => new Date(event.date || 0).getTime()));
                     return Math.max(...allDates, 0);
                 };
                 comparison = getLatestEventDate(bData) - getLatestEventDate(aData);
@@ -157,21 +157,15 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
     }, [bookings, classboardData, selectedDate, filter, sortBy]);
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-card">
             {/* Header with Icon and Switch */}
-            <div className="p-4 px-6 border-b-2 border-background flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
                 <div style={{ color: STUDENT_COLOR }}>
                     <HelmetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <FilterDropdown
-                        label="Sort"
-                        value={sortBy}
-                        options={["newest", "latest", "progression"] as const}
-                        onChange={(value) => handleSortChange(value as SortOption)}
-                        entityColor={STUDENT_COLOR}
-                    />
+                    <FilterDropdown label="Sort" value={sortBy} options={["newest", "latest", "progression"] as const} onChange={(value) => handleSortChange(value as SortOption)} entityColor={STUDENT_COLOR} />
                     <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                 </div>
             </div>
@@ -179,11 +173,11 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
             {/* Collapsible Cards Container */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div 
-                        initial={{ height: 0, opacity: 0 }} 
-                        animate={{ height: "auto", opacity: 1 }} 
-                        exit={{ height: 0, opacity: 0 }} 
-                        transition={{ duration: 0.3, ease: "easeOut" }} 
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
                     >
                         <div className="p-4">

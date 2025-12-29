@@ -26,142 +26,239 @@ interface TeacherClassDailyV2Props {
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
     globalFlag?: GlobalFlag;
+    refreshKey?: number;
 }
 
 type TeacherFilter = "active" | "all";
 
-export default function TeacherClassDailyV2({
-    teacherQueues,
-    selectedDate,
-    draggedBooking,
-    isLessonTeacher,
-    controller,
-    onEventDeleted,
-    onAddLessonEvent,
-    globalFlag
-}: TeacherClassDailyV2Props) {
+export default function TeacherClassDailyV2({ teacherQueues, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, refreshKey }: TeacherClassDailyV2Props) {
+
+    if (process.env.NEXT_PUBLIC_DEBUG_RENDER === "true") {
+
+        console.log(`[CLASSBOARD] TeacherClassDailyV2 rendered. RefreshKey: ${refreshKey}`);
+
+    }
+
+
+
     const [filter, setFilter] = useState<TeacherFilter>("active");
-    const [isExpanded, setIsExpanded] = useState(true);
-    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map(q => q.teacher.username)));
+
+    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.username)));
+
+
 
     const toggleTeacherExpanded = (teacherUsername: string) => {
-        setExpandedTeachers(prev => {
+
+        setExpandedTeachers((prev) => {
+
             const newSet = new Set(prev);
+
             if (newSet.has(teacherUsername)) {
+
                 newSet.delete(teacherUsername);
+
             } else {
+
                 newSet.add(teacherUsername);
+
             }
+
             return newSet;
+
         });
+
     };
+
+
 
     const expandAllTeachers = () => {
-        setExpandedTeachers(new Set(teacherQueues.map(q => q.teacher.username)));
+
+        setExpandedTeachers(new Set(teacherQueues.map((q) => q.teacher.username)));
+
     };
+
+
 
     const collapseAllTeachers = () => {
+
         setExpandedTeachers(new Set());
+
     };
 
+
+
     const { filteredQueues, counts } = useMemo(() => {
+
         // Filter queues based on whether they have events today
+
         const activeQueues: TeacherQueue[] = [];
+
         const allQueues: TeacherQueue[] = teacherQueues;
 
+
+
         teacherQueues.forEach((queue) => {
+
             const events = queue.getAllEvents();
+
             const todayEvents = events.filter((event) => {
+
                 if (!event.eventData.date) return false;
+
                 const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
+
                 return eventDate === selectedDate;
+
             });
 
+
+
             if (todayEvents.length > 0) {
+
                 activeQueues.push(queue);
+
             }
+
         });
 
+
+
         const counts = {
+
             active: activeQueues.length,
+
             all: allQueues.length,
+
         };
 
-        return { 
-            filteredQueues: filter === "active" ? activeQueues : allQueues, 
-            counts 
+
+
+        return {
+
+            filteredQueues: filter === "active" ? activeQueues : allQueues,
+
+            counts,
+
         };
-    }, [teacherQueues, selectedDate, filter]);
+
+    }, [teacherQueues, selectedDate, filter, refreshKey]);
+
+
+
+    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every(q => expandedTeachers.has(q.teacher.username));
+
+
+
+    const toggleAllTeachers = () => {
+
+        if (allTeachersExpanded) {
+
+            collapseAllTeachers();
+
+        } else {
+
+            expandAllTeachers();
+
+        }
+
+    };
+
+
 
     return (
+
         <div className="flex flex-col h-full">
+
             {/* Header with Icon and Switch */}
+
             <div 
-                className="p-4 px-6 border-b-2 border-background flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0"
-                onClick={() => setIsExpanded(!isExpanded)}
+
+                className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0"
+
+                onClick={toggleAllTeachers}
+
             >
+
                 <div style={{ color: TEACHER_COLOR }}>
+
                     <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
+
                 </div>
+
                 <span className="text-lg font-bold text-foreground">Teachers</span>
+
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ExpandCollapseButtons
-                        onExpandAll={expandAllTeachers}
-                        onCollapseAll={collapseAllTeachers}
-                    />
-                    <ToggleSwitch
-                        value={filter}
-                        onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}
-                        values={{ left: "active", right: "all" }}
-                        counts={counts}
-                        tintColor={TEACHER_COLOR}
-                    />
+
+                    <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} values={{ left: "active", right: "all" }} counts={counts} tintColor={TEACHER_COLOR} />
+
                 </div>
+
             </div>
 
-            {/* Collapsible Content */}
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="overflow-auto flex-1 min-h-0"
-                    >
-                        <div className="p-2">
-                            <div className="flex flex-col divide-y-2 divide-background">
-                                {filteredQueues.length > 0 ? (
-                                    filteredQueues.map((queue) => {
-                                        return (
-                                            <div key={queue.teacher.username} className="py-2">
-                                                <TeacherQueueCardV2
-                                                    queue={queue}
-                                                    selectedDate={selectedDate}
-                                                    draggedBooking={draggedBooking}
-                                                    isLessonTeacher={isLessonTeacher}
-                                                    controller={controller}
-                                                    onEventDeleted={onEventDeleted}
-                                                    onAddLessonEvent={onAddLessonEvent}
-                                                    globalFlag={globalFlag}
-                                                    isExpanded={expandedTeachers.has(queue.teacher.username)}
-                                                    onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
-                                                />
-                                            </div>
-                                        );
-                                    })
-                                ) : (
-                                    <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">
-                                        No {filter} teachers
+
+
+            {/* List Content */}
+
+            <div className="overflow-auto flex-1 min-h-0">
+
+                <div className="p-2 bg-card">
+
+                    <div className="flex flex-col divide-y-2 divide-background">
+
+                        {filteredQueues.length > 0 ? (
+
+                            filteredQueues.map((queue) => {
+
+                                return (
+
+                                    <div key={queue.teacher.username} className="py-2">
+
+                                        <TeacherQueueCardV2
+
+                                            queue={queue}
+
+                                            selectedDate={selectedDate}
+
+                                            draggedBooking={draggedBooking}
+
+                                            isLessonTeacher={isLessonTeacher}
+
+                                            controller={controller}
+
+                                            onEventDeleted={onEventDeleted}
+
+                                            onAddLessonEvent={onAddLessonEvent}
+
+                                            globalFlag={globalFlag}
+
+                                            isExpanded={expandedTeachers.has(queue.teacher.username)}
+
+                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+
+                                        />
+
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
+                                );
+
+                            })
+
+                        ) : (
+
+                            <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">No {filter} teachers</div>
+
+                        )}
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
+
     );
+
 }
 
 // ============================================
@@ -180,18 +277,7 @@ interface TeacherQueueCardV2Props {
     onToggleExpand: () => void;
 }
 
-function TeacherQueueCardV2({
-    queue,
-    selectedDate,
-    draggedBooking,
-    isLessonTeacher,
-    controller,
-    onEventDeleted,
-    onAddLessonEvent,
-    globalFlag,
-    isExpanded,
-    onToggleExpand
-}: TeacherQueueCardV2Props) {
+function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, isExpanded, onToggleExpand }: TeacherQueueCardV2Props) {
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const originalQueueState = useRef<EventNode[]>([]);
@@ -232,10 +318,10 @@ function TeacherQueueCardV2({
     const pendingCount = todayEvents.filter((e) => e.eventData.status !== "completed").length;
 
     // Get stats from queue (includes earnings calculations)
-    const stats = useMemo(() => queue.getStats(), [queue]);
-    
+    const stats = useMemo(() => queue.getStats(), [queue, refreshKey]);
+
     // Get earliest start time
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue]);
+    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey]);
 
     // Compute equipment counts from events
     const equipmentCounts = useMemo(() => {
@@ -251,27 +337,23 @@ function TeacherQueueCardV2({
 
     // Compute event progress by status
     const eventProgress = useMemo(() => {
-        const completed = todayEvents
-            .filter((e) => e.eventData.status === "completed")
-            .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const planned = todayEvents
-            .filter((e) => e.eventData.status === "planned")
-            .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const tbc = todayEvents
-            .filter((e) => e.eventData.status === "tbc")
-            .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const completed = todayEvents.filter((e) => e.eventData.status === "completed").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const planned = todayEvents.filter((e) => e.eventData.status === "planned").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const tbc = todayEvents.filter((e) => e.eventData.status === "tbc").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const total = completed + planned + tbc;
-        
+
         // Collect all event IDs for batch updates
-        const eventIds = todayEvents.map(e => e.id);
-        
+        const eventIds = todayEvents.map((e) => e.id);
+
         return { completed, planned, tbc, total, eventIds };
     }, [todayEvents]);
 
     // Create QueueController for gap calculations (only if controller provided)
     const queueController = useMemo(() => {
         if (!controller) return undefined;
-        return new QueueController(queue, controller, () => {});
+        return new QueueController(queue, controller, () => {
+            setRefreshKey((prev) => prev + 1);
+        });
     }, [queue, controller]);
 
     // Drag handling
@@ -378,10 +460,8 @@ function TeacherQueueCardV2({
     };
 
     return (
-        <div 
-            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row ${
-                canAcceptDrop ? "bg-yellow-500/5 ring-1 ring-yellow-500/20 rounded-xl" : ""
-            }`}
+        <div
+            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row ${canAcceptDrop ? "bg-yellow-500/5 ring-1 ring-yellow-500/20 rounded-xl" : ""}`}
             onDragOver={(e) => canAcceptDrop && e.preventDefault()}
             onDrop={handleDrop}
         >
@@ -404,6 +484,11 @@ function TeacherQueueCardV2({
                     controller={controller}
                     isAdjustmentMode={isAdjustmentMode}
                     onToggleAdjustment={handleToggleAdjustment}
+                    onSubmit={handleSubmit}
+                    onReset={handleReset}
+                    onCancel={handleCancel}
+                    hasChanges={hasChanges}
+                    changedCount={changedCount}
                 />
             </div>
 
@@ -416,31 +501,18 @@ function TeacherQueueCardV2({
                             events.length > 0 ? (
                                 events.map((event) => (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                        {queueController && (
-                                            <EventModCard
-                                                eventId={event.id}
-                                                queueController={queueController}
-                                            />
-                                        )}
+                                        {queueController && <EventModCard eventId={event.id} queueController={queueController} onDelete={() => onEventDeleted?.(event.id)} />}
                                     </div>
                                 ))
                             ) : (
-                                <div className="flex items-center justify-center w-full text-xs text-muted-foreground">
-                                    No events to adjust
-                                </div>
+                                <div className="flex items-center justify-center w-full text-xs text-muted-foreground">No events to adjust</div>
                             )
                         ) : (
                             /* Normal Mode: Show EventCards */
                             todayEvents.length > 0 &&
                             todayEvents.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                    <EventCard
-                                        event={event}
-                                        queue={queue}
-                                        queueController={queueController}
-                                        onDeleteComplete={() => onEventDeleted?.(event.id)}
-                                        showLocation={true}
-                                    />
+                                    <EventCard event={event} queue={queue} queueController={queueController} onDeleteComplete={() => onEventDeleted?.(event.id)} showLocation={true} />
                                 </div>
                             ))
                         )}

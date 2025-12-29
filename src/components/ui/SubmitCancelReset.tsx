@@ -28,14 +28,20 @@ export function SubmitCancelReset({
     return (
         <div className={`grid grid-cols-4 gap-2 w-full ${className}`}>
             <button 
-                onClick={onCancel} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onCancel();
+                }} 
                 className={`flex items-center justify-center p-3 rounded-xl transition-all duration-200 active:scale-95 ${ACTION_BUTTON_CONFIG.cancel.className}`}
                 title={ACTION_BUTTON_CONFIG.cancel.label}
             >
                 <span className="font-bold text-xs">Cancel</span>
             </button>
             <button 
-                onClick={onReset} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onReset();
+                }} 
                 disabled={!hasChanges}
                 className={`
                     flex items-center justify-center p-3 rounded-xl transition-all duration-200 border-2
@@ -50,7 +56,10 @@ export function SubmitCancelReset({
             </button>
             
             <button 
-                onClick={onSubmit} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onSubmit();
+                }} 
                 disabled={!hasChanges && !isSubmitting} 
                 style={{ backgroundColor: (hasChanges || isSubmitting) && color ? color : undefined }}
                 className={`

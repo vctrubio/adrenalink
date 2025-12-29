@@ -17,11 +17,12 @@ import { LeaderStudent } from "@/src/components/LeaderStudent";
 interface EventModCardProps {
     eventId: string;
     queueController: QueueController;
+    onDelete?: () => void;
 }
 
 // Sub-components
 
-const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController }) => {
+const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController; onDelete?: () => void }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
@@ -35,6 +36,9 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
                 setIsDeleting(false);
                 return;
             }
+            
+            // Notify parent to remove from UI
+            onDelete?.();
         } catch (error) {
             console.error("Error deleting event:", error);
             setIsDeleting(false);
@@ -185,7 +189,7 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     );
 };
 
-export default function EventModCard({ eventId, queueController }: EventModCardProps) {
+export default function EventModCard({ eventId, queueController, onDelete }: EventModCardProps) {
     const [refreshKey, setRefreshKey] = useState(0);
 
     const handleRefresh = useCallback(() => {
@@ -217,7 +221,7 @@ export default function EventModCard({ eventId, queueController }: EventModCardP
                 <div className="scale-90 origin-left">
                     <LeaderStudent leaderStudentName={event.leaderStudentName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
                 </div>
-                <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
+                <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} onDelete={onDelete} />
             </div>
 
             {/* Main Body: Time & Duration */}

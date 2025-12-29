@@ -200,48 +200,54 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
     const hasMoneyStats = hasDuration || hasCommission || hasProfit;
 
     return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             {/* Equipment Categories */}
-            {equipmentCounts.map(({ categoryId, count }) => {
-                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-                if (!config) return null;
-                const CategoryIcon = config.icon;
-                return (
-                    <div key={categoryId} className="flex items-center gap-1.5">
-                        <div style={{ color: config.color }}>
-                            <CategoryIcon size={16} />
+            <div className="flex items-center gap-3 flex-wrap">
+                {equipmentCounts.map(({ categoryId, count }) => {
+                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
+                    if (!config) return null;
+                    const CategoryIcon = config.icon;
+                    return (
+                        <div key={categoryId} className="flex items-center gap-1.5">
+                            <div style={{ color: config.color }}>
+                                <CategoryIcon size={16} />
+                            </div>
+                            {count > 1 && <span className="text-sm font-bold text-foreground">{count}</span>}
                         </div>
-                        {count > 1 && <span className="text-sm font-medium text-foreground">{count}</span>}
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
 
-            {/* Divider after equipment if we have money stats */}
+            {/* Adaptive Divider: Vertical on desktop, Horizontal line on wrap */}
             {hasEquipment && hasMoneyStats && (
-                <div className="h-4 w-px bg-border/60" />
+                <>
+                    <div className="h-4 w-px bg-border/60 hidden sm:block" />
+                    <div className="h-px w-full bg-border/10 sm:hidden" />
+                </>
             )}
 
-            {/* Duration */}
-            {hasDuration && (
-                <div className="flex items-center gap-1.5">
-                    <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                    <span className="text-sm font-semibold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
-                </div>
-            )}
+            {/* Main Money Stats (Duration & Commission) */}
+            <div className="flex items-center gap-4 flex-wrap">
+                {hasDuration && (
+                    <div className="flex items-center gap-1.5">
+                        <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-bold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
+                    </div>
+                )}
 
-            {/* Commission */}
-            {hasCommission && (
-                <div className="flex items-center gap-1.5">
-                    <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                    <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
-                </div>
-            )}
+                {hasCommission && (
+                    <div className="flex items-center gap-1.5">
+                        <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
+                    </div>
+                )}
+            </div>
 
-            {/* Profit */}
+            {/* Profit / Revenue - wraps below or stays on right */}
             {hasProfit && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto">
                     <TrendingUp size={16} className="text-muted-foreground/70 shrink-0" />
-                    <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
+                    <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
                 </div>
             )}
         </div>
@@ -263,6 +269,11 @@ export interface TeacherClassCardProps {
     controller?: ControllerSettings;
     isAdjustmentMode?: boolean;
     onToggleAdjustment?: (mode: boolean) => void;
+    onSubmit?: () => void;
+    onReset?: () => void;
+    onCancel?: () => void;
+    hasChanges?: boolean;
+    changedCount?: number;
 }
 
 export default function TeacherClassCard({
@@ -279,11 +290,14 @@ export default function TeacherClassCard({
     selectedDate,
     controller,
     isAdjustmentMode = false,
-    onToggleAdjustment
+    onToggleAdjustment,
+    onSubmit,
+    onReset,
+    onCancel,
+    hasChanges = false,
+    changedCount = 0
 }: TeacherClassCardProps) {
     const totalEvents = completedCount + pendingCount;
-    const [changedCount, setChangedCount] = useState(0);
-    const [hasChanges, setHasChanges] = useState(false);
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
     // Create QueueController for event modifications
@@ -473,9 +487,9 @@ export default function TeacherClassCard({
             <div className="px-4 pb-4">
                 {isAdjustmentMode ? (
                     <SubmitCancelReset
-                        onSubmit={() => onToggleAdjustment?.(false)}
-                        onCancel={() => onToggleAdjustment?.(false)}
-                        onReset={() => {}}
+                        onSubmit={onSubmit || (() => onToggleAdjustment?.(false))}
+                        onCancel={onCancel || (() => onToggleAdjustment?.(false))}
+                        onReset={onReset || (() => {})}
                         hasChanges={hasChanges}
                         submitLabel="Save"
                         extraContent={changedCount > 0 && <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">{changedCount}</span>}

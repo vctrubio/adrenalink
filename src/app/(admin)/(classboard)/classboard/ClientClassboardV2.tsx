@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { useClassboardActions } from "@/src/hooks/useClassboardActions";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
@@ -199,8 +200,18 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                                 onSubmit={async () => {
                                     const changes = globalFlag.collectChanges();
                                     if (changes.length > 0) {
+                                        // Save changes to DB
+                                        const result = await bulkUpdateClassboardEvents(changes);
+                                        
+                                        if (result.success) {
+                                            globalFlag.exitAdjustmentMode();
+                                            setRefreshKey((prev) => prev + 1);
+                                        } else {
+                                            console.error("Failed to update daily class:", result.error);
+                                            // Handle error (optional: show toast)
+                                        }
+                                    } else {
                                         globalFlag.exitAdjustmentMode();
-                                        setRefreshKey((prev) => prev + 1);
                                     }
                                 }}
                             />
