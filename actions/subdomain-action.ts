@@ -2,7 +2,7 @@
 
 import { db } from "@/drizzle/db";
 import { schoolPackage, studentPackage, school } from "@/drizzle/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { createSchoolModel } from "@/backend/models/SchoolModel";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 
@@ -187,7 +187,7 @@ export async function getAllSchools() {
                 status: school.status,
             })
             .from(school)
-            .where(eq(school.status, "active"));
+            .where(inArray(school.status, ["active", "pending"]));
 
         return { success: true, data: schools };
     } catch (error) {

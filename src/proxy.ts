@@ -3,10 +3,17 @@ import printf from "../printf.js";
 import { detectSubdomain } from "../types/domain";
 
 export function proxy(request: NextRequest) {
+    const requestStartTime = Date.now();
     const hostname = request.headers.get("host") || "";
+    const pathname = request.nextUrl.pathname;
 
-    printf("MIDDLEWARE:2", request.url);
-    printf("Host:", hostname);
+    printf("🚀 [REQUEST START]", {
+        time: new Date().toISOString(),
+        method: request.method,
+        url: request.url,
+        pathname,
+        hostname
+    });
 
     // Check for subdomain using domain utilities
     const subdomainInfo = detectSubdomain(hostname);

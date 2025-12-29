@@ -26,12 +26,7 @@ interface StudentClassDailyV2Props {
 
 type StudentBookingFilter = "available" | "onboard";
 
-export default function StudentClassDailyV2({ 
-    bookings, 
-    classboardData, 
-    selectedDate, 
-    classboard 
-}: StudentClassDailyV2Props) {
+export default function StudentClassDailyV2({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyV2Props) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -75,35 +70,20 @@ export default function StudentClassDailyV2({
     return (
         <div className="flex flex-col">
             {/* Header with Icon and Switch */}
-            <div 
-                className="p-4 px-6 border-b border-border flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none"
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
+            <div className="p-4 px-6 border-b border-border flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
                 <div style={{ color: STUDENT_COLOR }}>
                     <HelmetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSwitch 
-                        value={filter} 
-                        onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} 
-                        values={{ left: "available", right: "onboard" }} 
-                        counts={counts} 
-                        tintColor={STUDENT_COLOR}
-                    />
+                    <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                 </div>
             </div>
 
             {/* Collapsible Cards Container */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="overflow-hidden"
-                    >
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="overflow-hidden">
                         <div className="p-4">
                             <div className="flex flex-row flex-wrap gap-3">
                                 {filteredBookings.length > 0 ? (
@@ -111,20 +91,10 @@ export default function StudentClassDailyV2({
                                         const bookingData = classboardData[booking.bookingId];
                                         if (!bookingData) return null;
 
-                                        return (
-                                            <StudentBookingCard 
-                                                key={booking.bookingId} 
-                                                bookingData={bookingData} 
-                                                draggableBooking={booking} 
-                                                classboard={classboard} 
-                                                selectedDate={selectedDate} 
-                                            />
-                                        );
+                                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
                                     })
                                 ) : (
-                                    <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">
-                                        No {filter} students
-                                    </div>
+                                    <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">No {filter} students</div>
                                 )}
                             </div>
                         </div>

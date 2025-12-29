@@ -81,9 +81,22 @@ const classboardWithRelations = {
     },
 } as const;
 
+// Timeout wrapper to prevent hanging queries
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error(`[TIMEOUT] ${label} exceeded ${timeoutMs}ms`)), timeoutMs)
+        ),
+    ]);
+}
+
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
     noStore();
+    const startTime = Date.now();
     try {
+        console.log("🚀 [CLASSBOARD] Starting getClassboardBookings");
+
         // Get school context from header (cached, returns {id, name, zone})
         const schoolHeader = await getSchoolHeader();
 
@@ -97,18 +110,29 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
         console.log("DEV:DEBUG 🔍 classboard-action.ts:");
         console.log("DEV:DEBUG   - schoolHeader:", schoolHeader);
 
-        const result = await db.query.booking.findMany({
-            where: eq(booking.schoolId, schoolHeader.id),
-            columns: {
-                id: true,
-                dateStart: true,
-                dateEnd: true,
-                schoolId: true,
-                leaderStudentName: true,
-            },
-            with: classboardWithRelations,
-            orderBy: [desc(booking.createdAt)],
-        });
+        const queryStartTime = Date.now();
+        console.log("🗄️ [CLASSBOARD] Starting booking query for school:", schoolHeader.id);
+
+        const result = await withTimeout(
+            db.query.booking.findMany({
+                where: eq(booking.schoolId, schoolHeader.id),
+                columns: {
+                    id: true,
+                    dateStart: true,
+                    dateEnd: true,
+                    schoolId: true,
+                    leaderStudentName: true,
+                },
+                with: classboardWithRelations,
+                orderBy: [desc(booking.createdAt)],
+                limit: 1000, // Add limit to prevent fetching too many rows
+            }),
+            20000, // 20 second timeout
+            "Booking query"
+        );
+
+        const queryDuration = Date.now() - queryStartTime;
+        console.log(`✅ [CLASSBOARD] Query completed in ${queryDuration}ms, fetched ${result.length} bookings`);
 
         // console.log("DEV: [classboard-action] Fetched bookings from DB:", result.length);
         result.forEach((b, idx) => {

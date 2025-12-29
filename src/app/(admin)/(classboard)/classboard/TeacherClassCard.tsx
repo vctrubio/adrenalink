@@ -17,7 +17,6 @@ import type { TeacherStats } from "@/backend/ClassboardStats";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
-const EMPTY_COLOR = "#374151";
 
 // Aggregated equipment counts from events
 export interface EquipmentCount {
@@ -31,6 +30,7 @@ export interface EventProgress {
     planned: number;
     tbc: number;
     total: number;
+    eventIds?: string[];
 }
 
 // Progress bar sub-component with x/y completed and dropdown
@@ -47,7 +47,15 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents, onBat
     const completedEnd = (completed / denominator) * 100;
     const plannedEnd = completedEnd + (planned / denominator) * 100;
     const tbcEnd = plannedEnd + (tbc / denominator) * 100;
-    const background = `linear-gradient(to right, ${EVENT_STATUS_CONFIG.completed.color} ${completedEnd}%, ${EVENT_STATUS_CONFIG.planned.color} ${completedEnd}% ${plannedEnd}%, ${EVENT_STATUS_CONFIG.tbc.color} ${plannedEnd}% ${tbcEnd}%, ${EMPTY_COLOR} ${tbcEnd}%)`;
+
+    // Use lighter/muted colors for incomplete segments
+    const completedColor = EVENT_STATUS_CONFIG.completed.color;
+    const plannedColor = `${EVENT_STATUS_CONFIG.planned.color}40`;
+    const tbcColor = `${EVENT_STATUS_CONFIG.tbc.color}30`;
+    const emptyColor = "#1f293720";
+
+    const background = `linear-gradient(to right, ${completedColor} ${completedEnd}%, ${plannedColor} ${completedEnd}% ${plannedEnd}%, ${tbcColor} ${plannedEnd}% ${tbcEnd}%, ${emptyColor} ${tbcEnd}%)`;
+
     return (
         <div className="flex items-center w-full gap-2">
             <div className="flex-1 relative cursor-pointer group" onClick={onBatchClick}>
@@ -74,6 +82,80 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents, onBat
     );
 }
 
+// Stats row sub-component with logic for showing/hiding stats
+function TeacherStatsRow({ equipmentCounts, stats }: {
+    equipmentCounts: EquipmentCount[],
+    stats: TeacherStats
+}) {
+    const hasEquipment = equipmentCounts && equipmentCounts.length > 0;
+    const hasDuration = stats.totalHours && stats.totalHours > 0;
+    const hasCommission = stats.earnings?.teacher && stats.earnings.teacher > 0;
+    const hasProfit = stats.earnings?.school && stats.earnings.school > 0;
+    const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
+
+    if (!hasAnyStats) return null;
+
+    const hasMoneyStats = hasDuration || hasCommission || hasProfit;
+
+    return (
+        <div className="flex items-center justify-start gap-2 px-3 py-2 bg-muted">
+            {/* Equipment Categories */}
+            {equipmentCounts.map(({ categoryId, count }) => {
+                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
+                if (!config) return null;
+                const CategoryIcon = config.icon;
+                return (
+                    <div key={categoryId} className="flex items-center gap-1">
+                        <div style={{ color: config.color }}>
+                            <CategoryIcon size={16} />
+                        </div>
+                        {count > 1 && <span className="text-sm text-foreground">{count}</span>}
+                    </div>
+                );
+            })}
+
+            {/* Divider after equipment if we have money stats */}
+            {hasEquipment && hasMoneyStats && (
+                <span className="border-l border-zinc-300 dark:border-zinc-600 py-2" />
+            )}
+
+            {/* Duration */}
+            {hasDuration && (
+                <div className="flex items-center gap-1">
+                    <DurationIcon size={16} className="text-muted-foreground shrink-0" />
+                    <span className="text-sm font-semibold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
+                </div>
+            )}
+
+            {/* Divider after duration */}
+            {hasDuration && (hasCommission || hasProfit) && (
+                <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
+            )}
+
+            {/* Commission */}
+            {hasCommission && (
+                <div className="flex items-center gap-1">
+                    <HandshakeIcon size={16} className="text-muted-foreground shrink-0" />
+                    <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
+                </div>
+            )}
+
+            {/* Divider after commission */}
+            {hasCommission && hasProfit && (
+                <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
+            )}
+
+            {/* Profit */}
+            {hasProfit && (
+                <div className="flex items-center gap-1">
+                    <TrendingUp size={16} className="text-muted-foreground shrink-0" />
+                    <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export interface TeacherClassCardProps {
     teacherName: string;
     stats: TeacherStats;
@@ -85,50 +167,30 @@ export interface TeacherClassCardProps {
     onClick?: () => void;
 }
 
-export default function TeacherClassCard({ 
-    teacherName, 
-    stats, 
-    earliestTime, 
-    pendingCount, 
+export default function TeacherClassCard({
+    teacherName,
+    stats,
+    earliestTime,
+    pendingCount,
     completedCount,
     equipmentCounts,
     eventProgress,
-    onClick 
+    onClick
 }: TeacherClassCardProps) {
-    // Only show stats if any are nonzero/defined
-    const hasStats = (
-        (equipmentCounts && equipmentCounts.length > 0) ||
-        (stats.totalHours && stats.totalHours > 0) ||
-        (stats.earnings?.teacher && stats.earnings.teacher > 0) ||
-        (stats.earnings?.school && stats.earnings.school > 0)
-    );
-
-
-    // Dropdown state for batch update
     const [showBatchDropdown, setShowBatchDropdown] = useState(false);
-    // Animate label on hover/click
-    const [labelActive, setLabelActive] = useState(false);
-
-    // Handler for progress bar click (optional, can be used for future features)
-    const handleBatchClick = () => {};
-    // Handler for x/y completed label click
-    const handleLabelClick = () => setShowBatchDropdown(v => !v);
-
-    // For event progress: count of completed and total events
     const totalEvents = completedCount + pendingCount;
-    const completedEvents = completedCount;
 
     return (
         <div className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={onClick}>
-            {/* Progress Bar - at top, with x/y completed and batch dropdown */}
+            {/* Progress Bar */}
             <div className="relative px-3 pt-3">
                 <TeacherEventProgressBar
                     progress={eventProgress}
                     totalEvents={totalEvents}
-                    completedEvents={completedEvents}
-                    onBatchClick={handleBatchClick}
-                    onLabelClick={handleLabelClick}
-                    labelActive={labelActive || showBatchDropdown}
+                    completedEvents={completedCount}
+                    onBatchClick={() => {}}
+                    onLabelClick={() => setShowBatchDropdown(v => !v)}
+                    labelActive={showBatchDropdown}
                 />
                 {showBatchDropdown && (
                     <div className="absolute right-0 top-7 z-20">
@@ -140,7 +202,7 @@ export default function TeacherClassCard({
                 )}
             </div>
 
-            {/* Header: Teacher Name Row */}
+            {/* Header: Teacher Name */}
             <div className="flex items-center gap-2 p-3 pb-2">
                 <div style={{ color: TEACHER_COLOR }}>
                     <HeadsetIcon size={24} />
@@ -148,60 +210,8 @@ export default function TeacherClassCard({
                 <span className="font-semibold text-foreground truncate flex-1 tracking-wider text-lg">{teacherName}</span>
             </div>
 
-            {/* Stats Row - only show if we have stats */}
-            {hasStats && (
-                <div className="flex items-center justify-start gap-2 px-3 py-2 bg-muted">
-                    {/* Equipment Categories (like the badge) */}
-                    {equipmentCounts.map(({ categoryId, count }) => {
-                        const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-                        if (!config) return null;
-                        const CategoryIcon = config.icon;
-                        return (
-                            <div key={categoryId} className="flex items-center gap-1">
-                                <div style={{ color: config.color }}>
-                                    <CategoryIcon size={16} />
-                                </div>
-                                {count > 1 && <span className="text-sm text-foreground">{count}</span>}
-                            </div>
-                        );
-                    })}
-
-                    {/* Divider - border with padding, only if there are stats */}
-                    {(stats.totalHours > 0 || (stats.earnings?.teacher && stats.earnings.teacher > 0) || (stats.earnings?.school && stats.earnings.school > 0)) && (
-                        <span className="border-l border-zinc-300 dark:border-zinc-600 py-2" />
-                    )}
-
-                    {/* Duration */}
-                    {stats.totalHours > 0 && (
-                        <div className="flex items-center gap-1">
-                            <DurationIcon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-sm font-semibold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
-                        </div>
-                    )}
-   {/* Divider - border with padding, only if there are stats */}
-                    {(stats.totalHours > 0 || (stats.earnings?.teacher && stats.earnings.teacher > 0) || (stats.earnings?.school && stats.earnings.school > 0)) && (
-                        <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
-                    )}
-                    {/* Commission */}
-                    {stats.earnings?.teacher > 0 && (
-                        <div className="flex items-center gap-1">
-                            <HandshakeIcon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
-                        </div>
-                    )}
-   {/* Divider - border with padding, only if there are stats */}
-                    {(stats.totalHours > 0 || (stats.earnings?.teacher && stats.earnings.teacher > 0) || (stats.earnings?.school && stats.earnings.school > 0)) && (
-                        <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
-                    )}
-                    {/* Profit */}
-                    {stats.earnings?.school > 0 && (
-                        <div className="flex items-center gap-1">
-                            <TrendingUp size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
-                        </div>
-                    )}
-                </div>
-            )}
+            {/* Stats Row */}
+            <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
 
             {/* Footer: Earliest Start Time */}
             {earliestTime && (
