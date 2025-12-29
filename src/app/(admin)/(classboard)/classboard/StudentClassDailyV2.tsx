@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import StudentBookingCard from "./StudentBookingCard";
+import BookingOnboardCard from "./BookingOnboardCard";
+import ExpandCollapseButtons from "@/src/components/ui/ExpandCollapseButtons";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -29,18 +31,39 @@ type StudentBookingFilter = "available" | "onboard";
 export default function StudentClassDailyV2({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyV2Props) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
+    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map(b => b.bookingId)));
+
+    const toggleBookingExpanded = (bookingId: string) => {
+        setExpandedBookings(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(bookingId)) {
+                newSet.delete(bookingId);
+            } else {
+                newSet.add(bookingId);
+            }
+            return newSet;
+        });
+    };
+
+    const expandAllBookings = () => {
+        setExpandedBookings(new Set(bookings.map(b => b.bookingId)));
+    };
+
+    const collapseAllBookings = () => {
+        setExpandedBookings(new Set());
+    };
 
     const { filteredBookings, counts } = useMemo(() => {
-        // All bookings (onboard)
-        const onboardBookings = bookings;
+        // All bookings
+        const allBookings = bookings;
 
-        // Available = onboard bookings that do NOT have an event on selectedDate
-        const availableBookings = onboardBookings.filter((booking) => {
+        // Onboard = bookings that HAVE an event on selectedDate
+        const onboardBookings = allBookings.filter((booking) => {
             const bookingData = classboardData[booking.bookingId];
-            if (!bookingData) return true;
+            if (!bookingData) return false;
 
             const lessons = bookingData.lessons || [];
-            const hasEventToday = lessons.some((lesson) => {
+            return lessons.some((lesson) => {
                 const events = lesson.events || [];
                 return events.some((event) => {
                     if (!event.date) return false;
@@ -48,18 +71,16 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
                     return eventDate === selectedDate;
                 });
             });
-
-            return !hasEventToday;
         });
 
         const counts = {
             onboard: onboardBookings.length,
-            available: availableBookings.length,
+            available: allBookings.length,
         };
 
         let filteredData: DraggableBooking[];
         if (filter === "available") {
-            filteredData = availableBookings;
+            filteredData = allBookings;
         } else {
             filteredData = onboardBookings;
         }
@@ -76,6 +97,12 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                    {filter === "available" && (
+                        <ExpandCollapseButtons
+                            onExpandAll={expandAllBookings}
+                            onCollapseAll={collapseAllBookings}
+                        />
+                    )}
                     <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                 </div>
             </div>
@@ -92,16 +119,37 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
                     >
                         <div className="p-4">
                             <div className="flex flex-row xl:flex-col gap-3">
-                                {filteredBookings.length > 0 ? (
-                                    filteredBookings.map((booking) => {
-                                        const bookingData = classboardData[booking.bookingId];
-                                        if (!bookingData) return null;
+                                {filteredBookings.map((booking) => {
+                                    const bookingData = classboardData[booking.bookingId];
+                                    if (!bookingData) return null;
 
+                                    // Check if this booking has events today
+                                    const lessons = bookingData.lessons || [];
+                                    const hasEventToday = lessons.some((lesson) => {
+                                        const events = lesson.events || [];
+                                        return events.some((event) => {
+                                            if (!event.date) return false;
+                                            const eventDate = new Date(event.date).toISOString().split("T")[0];
+                                            return eventDate === selectedDate;
+                                        });
+                                    });
+
+                                    // For "available" filter: Show all bookings (regardless of on board status)
+                                    if (filter === "available") {
+                                        if (!hasEventToday) {
+                                            return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
+                                        } else {
+                                            return <BookingOnboardCard key={booking.bookingId} bookingData={bookingData} selectedDate={selectedDate} onClick={() => toggleBookingExpanded(booking.bookingId)} />;
+                                        }
+                                    }
+
+                                    // For "onboard" filter: Show StudentBookingCard for bookings WITH events
+                                    if (filter === "onboard" && hasEventToday) {
                                         return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
-                                    })
-                                ) : (
-                                    <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">No {filter} students</div>
-                                )}
+                                    }
+
+                                    return null;
+                                })}
                             </div>
                         </div>
                     </motion.div>

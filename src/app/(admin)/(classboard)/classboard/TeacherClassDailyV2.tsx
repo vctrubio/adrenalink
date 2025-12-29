@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
+import ExpandCollapseButtons from "@/src/components/ui/ExpandCollapseButtons";
 import EventCard from "./EventCard";
 import TeacherClassCard from "./TeacherClassCard";
 import { QueueController } from "@/backend/QueueController";
@@ -102,18 +103,10 @@ export default function TeacherClassDailyV2({
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        onClick={expandAllTeachers}
-                        className="px-3 py-1 text-xs font-semibold text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors"
-                    >
-                        Expand All
-                    </button>
-                    <button
-                        onClick={collapseAllTeachers}
-                        className="px-3 py-1 text-xs font-semibold text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors"
-                    >
-                        Collapse All
-                    </button>
+                    <ExpandCollapseButtons
+                        onExpandAll={expandAllTeachers}
+                        onCollapseAll={collapseAllTeachers}
+                    />
                     <ToggleSwitch
                         value={filter}
                         onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}

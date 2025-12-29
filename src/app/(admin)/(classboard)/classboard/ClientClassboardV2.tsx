@@ -1,11 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, useMemo, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { useClassboardActions } from "@/src/hooks/useClassboardActions";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
@@ -13,21 +12,20 @@ import ClassboardContentBoard from "./ClassboardContentBoard";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
-import { Settings2, MapPin, Clock, TrendingUp, Minus, Plus } from "lucide-react";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { TrendingUp } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import ClassboardFooterV2 from "./ClassboardFooterV2";
 
 interface ClientClassboardV2Props {
     data: ClassboardModel;
 }
 
 export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
-    const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [showSplash, setShowSplash] = useState(true);
     
@@ -107,8 +105,6 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
         const statistics = new ClassboardStatistics(data, selectedDate);
         return statistics.getHeaderStats();
     }, [data, selectedDate]);
-
-    const toggleControlPanel = () => setIsControlPanelOpen(!isControlPanelOpen);
 
     // Show splash screen if not mounted OR waiting for timer OR if there's a critical error
     if (!mounted || showSplash || teachersError) {
@@ -251,251 +247,34 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
             {/* ═══════════════════════════════════════════════════════════════
                 CONTENT BOARD - Students & Teachers
             ═══════════════════════════════════════════════════════════════ */}
-            <ClassboardContentBoard
-                draggableBookings={draggableBookings}
-                classboardData={classboardData}
-                selectedDate={selectedDate}
-                teacherQueues={teacherQueues}
-                draggedBooking={draggedBooking}
-                isLessonTeacher={isLessonTeacher}
-                controller={controller}
-                globalFlag={globalFlag}
-                availableTeachers={availableTeachers}
-                onSetDraggedBooking={setDraggedBooking}
-                onAddLessonEvent={handleAddLessonEvent}
-                onAddTeacher={handleAddTeacher}
-                onEventDeleted={handleEventDeleted}
-                refreshKey={refreshKey}
-            />
+            <div className="flex-1 overflow-hidden h-full">
+                <ClassboardContentBoard
+                    draggableBookings={draggableBookings}
+                    classboardData={classboardData}
+                    selectedDate={selectedDate}
+                    teacherQueues={teacherQueues}
+                    draggedBooking={draggedBooking}
+                    isLessonTeacher={isLessonTeacher}
+                    controller={controller}
+                    globalFlag={globalFlag}
+                    availableTeachers={availableTeachers}
+                    onSetDraggedBooking={setDraggedBooking}
+                    onAddLessonEvent={handleAddLessonEvent}
+                    onAddTeacher={handleAddTeacher}
+                    onEventDeleted={handleEventDeleted}
+                    refreshKey={refreshKey}
+                />
+            </div>
 
             {/* ═══════════════════════════════════════════════════════════════
-                FOOTER - Control Panel (Collapsible)
+                FOOTER - Control Panel (New V2)
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="rounded-t-xl overflow-hidden border-t border-x border-border/30">
-                {/* Collapsible Content */}
-                <AnimatePresence>
-                    {isControlPanelOpen && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="overflow-hidden bg-card"
-                        >
-                            <div className="p-6 space-y-6">
-                                {/* Row 1: Time Stepper + Location + Gap + Step */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {/* Submit Time with Stepper */}
-                                    <div className="space-y-2">
-                                        <label className="text-muted-foreground text-[10px] uppercase tracking-wider font-medium flex items-center gap-1.5">
-                                            <FlagIcon size={10} />
-                                            Start Time
-                                        </label>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => {
-                                                    const [h, m] = controller.submitTime.split(":").map(Number);
-                                                    const totalMins = h * 60 + m - (controller.stepDuration || 15);
-                                                    const newH = Math.max(0, Math.floor(totalMins / 60)) % 24;
-                                                    const newM = Math.max(0, totalMins % 60);
-                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}` });
-                                                }}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Minus size={14} className="text-muted-foreground" />
-                                            </button>
-                                            <input 
-                                                type="time" 
-                                                value={controller.submitTime}
-                                                onChange={(e) => setController({ ...controller, submitTime: e.target.value })}
-                                                className="flex-1 min-w-0 bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all font-mono"
-                                            />
-                                            <button
-                                                onClick={() => {
-                                                    const [h, m] = controller.submitTime.split(":").map(Number);
-                                                    const totalMins = h * 60 + m + (controller.stepDuration || 15);
-                                                    const newH = Math.floor(totalMins / 60) % 24;
-                                                    const newM = totalMins % 60;
-                                                    setController({ ...controller, submitTime: `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}` });
-                                                }}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Plus size={14} className="text-muted-foreground" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Location */}
-                                    <div className="space-y-2">
-                                        <label className="text-muted-foreground text-[10px] uppercase tracking-wider font-medium flex items-center gap-1.5">
-                                            <MapPin size={10} />
-                                            Location
-                                        </label>
-                                        <select 
-                                            value={controller.location}
-                                            onChange={(e) => setController({ ...controller, location: e.target.value })}
-                                            className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
-                                        >
-                                            <option value="BEACH">BEACH</option>
-                                            <option value="FLAT">FLAT</option>
-                                            <option value="BOAT">BOAT</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Gap Minutes */}
-                                    <div className="space-y-2">
-                                        <label className="text-muted-foreground text-[10px] uppercase tracking-wider font-medium flex items-center gap-1.5">
-                                            <Clock size={10} />
-                                            Gap
-                                        </label>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => setController({ ...controller, gapMinutes: Math.max(0, (controller.gapMinutes || 0) - 5) })}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Minus size={14} className="text-muted-foreground" />
-                                            </button>
-                                            <div className="flex-1 min-w-0 bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground text-sm text-center font-mono">
-                                                {controller.gapMinutes || 0}m
-                                            </div>
-                                            <button
-                                                onClick={() => setController({ ...controller, gapMinutes: (controller.gapMinutes || 0) + 5 })}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Plus size={14} className="text-muted-foreground" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Step Duration */}
-                                    <div className="space-y-2">
-                                        <label className="text-muted-foreground text-[10px] uppercase tracking-wider font-medium">Step</label>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => setController({ ...controller, stepDuration: Math.max(5, (controller.stepDuration || 15) - 5) })}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Minus size={14} className="text-muted-foreground" />
-                                            </button>
-                                            <div className="flex-1 min-w-0 bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground text-sm text-center font-mono">
-                                                {controller.stepDuration || 15}m
-                                            </div>
-                                            <button
-                                                onClick={() => setController({ ...controller, stepDuration: (controller.stepDuration || 15) + 5 })}
-                                                className="p-2 rounded-lg border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                            >
-                                                <Plus size={14} className="text-muted-foreground" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Row 2: Duration Caps */}
-                                <div className="pt-4 border-t border-border/20">
-                                    <label className="text-muted-foreground text-[10px] uppercase tracking-wider font-medium mb-3 block">Duration Caps</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {/* 1 Person */}
-                                        <div className="space-y-1.5">
-                                            <span className="text-muted-foreground text-[10px] block text-center">1 Person</span>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapOne: Math.max(15, controller.durationCapOne - (controller.stepDuration || 15)) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Minus size={12} className="text-muted-foreground" />
-                                                </button>
-                                                <div className="flex-1 min-w-0 bg-background border border-border/50 rounded px-2 py-1.5 text-foreground text-xs text-center font-mono">
-                                                    {getHMDuration(controller.durationCapOne)}
-                                                </div>
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapOne: controller.durationCapOne + (controller.stepDuration || 15) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Plus size={12} className="text-muted-foreground" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {/* 2 People */}
-                                        <div className="space-y-1.5">
-                                            <span className="text-muted-foreground text-[10px] block text-center">2 People</span>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapTwo: Math.max(15, controller.durationCapTwo - (controller.stepDuration || 15)) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Minus size={12} className="text-muted-foreground" />
-                                                </button>
-                                                <div className="flex-1 min-w-0 bg-background border border-border/50 rounded px-2 py-1.5 text-foreground text-xs text-center font-mono">
-                                                    {getHMDuration(controller.durationCapTwo)}
-                                                </div>
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapTwo: controller.durationCapTwo + (controller.stepDuration || 15) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Plus size={12} className="text-muted-foreground" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {/* 3+ People */}
-                                        <div className="space-y-1.5">
-                                            <span className="text-muted-foreground text-[10px] block text-center">3+ People</span>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapThree: Math.max(15, controller.durationCapThree - (controller.stepDuration || 15)) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Minus size={12} className="text-muted-foreground" />
-                                                </button>
-                                                <div className="flex-1 min-w-0 bg-background border border-border/50 rounded px-2 py-1.5 text-foreground text-xs text-center font-mono">
-                                                    {getHMDuration(controller.durationCapThree)}
-                                                </div>
-                                                <button
-                                                    onClick={() => setController({ ...controller, durationCapThree: controller.durationCapThree + (controller.stepDuration || 15) })}
-                                                    className="p-1.5 rounded border border-border/50 bg-background hover:bg-muted/50 active:bg-muted transition-colors"
-                                                >
-                                                    <Plus size={12} className="text-muted-foreground" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Footer Bar (Always Visible) - Minimal, transparent until hovered */}
-                <div 
-                    className="px-4 py-3 flex items-center justify-between cursor-pointer transition-all select-none group hover:bg-muted/30"
-                    onClick={toggleControlPanel}
-                >
-                    {/* Left side - Time & info */}
-                    <div className="flex items-center gap-4">
-                        <span className="text-foreground font-mono text-lg tracking-tight">
-                            {controller.submitTime}
-                        </span>
-                        <span className="text-muted-foreground/30 hidden sm:inline">•</span>
-                        <span className="text-muted-foreground/60 text-xs hidden sm:inline">
-                            {controller.location}
-                        </span>
-                        <span className="text-muted-foreground/30 hidden md:inline">•</span>
-                        <span className="text-muted-foreground/40 font-mono text-[11px] hidden md:inline">
-                            1P:{getHMDuration(controller.durationCapOne)} 
-                            <span className="mx-1 text-muted-foreground/20">|</span>
-                            2P:{getHMDuration(controller.durationCapTwo)}
-                            <span className="mx-1 text-muted-foreground/20">|</span>
-                            3+:{getHMDuration(controller.durationCapThree)}
-                        </span>
-                    </div>
-
-                    {/* Right side - Toggle icon */}
-                    <ToggleAdranalinkIcon 
-                        isOpen={isControlPanelOpen} 
-                        onClick={toggleControlPanel} 
-                        variant="lg" 
-                    />
-                </div>
-            </div>
+            <ClassboardFooterV2 
+                controller={controller}
+                setController={setController}
+                selectedDate={selectedDate}
+                teacherQueues={teacherQueues}
+            />
         </motion.div>
     );
 }
