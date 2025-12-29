@@ -27,8 +27,8 @@ interface TeacherClassDailyV2Props {
 
 type TeacherFilter = "active" | "all";
 
-export default function TeacherClassDailyV2({ 
-    teacherQueues, 
+export default function TeacherClassDailyV2({
+    teacherQueues,
     selectedDate,
     draggedBooking,
     isLessonTeacher,
@@ -39,6 +39,27 @@ export default function TeacherClassDailyV2({
 }: TeacherClassDailyV2Props) {
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [isExpanded, setIsExpanded] = useState(true);
+    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map(q => q.teacher.username)));
+
+    const toggleTeacherExpanded = (teacherUsername: string) => {
+        setExpandedTeachers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(teacherUsername)) {
+                newSet.delete(teacherUsername);
+            } else {
+                newSet.add(teacherUsername);
+            }
+            return newSet;
+        });
+    };
+
+    const expandAllTeachers = () => {
+        setExpandedTeachers(new Set(teacherQueues.map(q => q.teacher.username)));
+    };
+
+    const collapseAllTeachers = () => {
+        setExpandedTeachers(new Set());
+    };
 
     const { filteredQueues, counts } = useMemo(() => {
         // Filter queues based on whether they have events today
@@ -81,11 +102,23 @@ export default function TeacherClassDailyV2({
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSwitch 
-                        value={filter} 
-                        onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} 
-                        values={{ left: "active", right: "all" }} 
-                        counts={counts} 
+                    <button
+                        onClick={expandAllTeachers}
+                        className="px-3 py-1 text-xs font-semibold text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors"
+                    >
+                        Expand All
+                    </button>
+                    <button
+                        onClick={collapseAllTeachers}
+                        className="px-3 py-1 text-xs font-semibold text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors"
+                    >
+                        Collapse All
+                    </button>
+                    <ToggleSwitch
+                        value={filter}
+                        onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}
+                        values={{ left: "active", right: "all" }}
+                        counts={counts}
                         tintColor={TEACHER_COLOR}
                     />
                 </div>
@@ -115,6 +148,8 @@ export default function TeacherClassDailyV2({
                                                 onEventDeleted={onEventDeleted}
                                                 onAddLessonEvent={onAddLessonEvent}
                                                 globalFlag={globalFlag}
+                                                isExpanded={expandedTeachers.has(queue.teacher.username)}
+                                                onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
                                             />
                                         </div>
                                     ))
@@ -144,19 +179,22 @@ interface TeacherQueueCardV2Props {
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
     globalFlag?: GlobalFlag;
+    isExpanded: boolean;
+    onToggleExpand: () => void;
 }
 
-function TeacherQueueCardV2({ 
-    queue, 
+function TeacherQueueCardV2({
+    queue,
     selectedDate,
     draggedBooking,
     isLessonTeacher,
     controller,
     onEventDeleted,
     onAddLessonEvent,
-    globalFlag
+    globalFlag,
+    isExpanded,
+    onToggleExpand
 }: TeacherQueueCardV2Props) {
-    const [isExpanded, setIsExpanded] = useState(true);
 
     const events = queue.getAllEvents();
     const todayEvents = events.filter((event) => {
@@ -244,7 +282,8 @@ function TeacherQueueCardV2({
                     completedCount={completedCount}
                     equipmentCounts={equipmentCounts}
                     eventProgress={eventProgress}
-                    onClick={() => setIsExpanded(!isExpanded)}
+                    onClick={onToggleExpand}
+                    isExpanded={isExpanded}
                 />
             </div>
 

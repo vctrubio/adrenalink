@@ -216,6 +216,7 @@ export interface TeacherClassCardProps {
     equipmentCounts: EquipmentCount[];
     eventProgress: EventProgress;
     onClick?: () => void;
+    isExpanded?: boolean;
 }
 
 export default function TeacherClassCard({
@@ -226,10 +227,62 @@ export default function TeacherClassCard({
     completedCount,
     equipmentCounts,
     eventProgress,
-    onClick
+    onClick,
+    isExpanded = true
 }: TeacherClassCardProps) {
     const totalEvents = completedCount + pendingCount;
 
+    // Collapsed view - single line
+    if (!isExpanded) {
+        return (
+            <div
+                onClick={onClick}
+                className="group relative w-full h-16 flex items-center gap-4 px-6 bg-background rounded-xl border border-border transition-colors duration-200 cursor-pointer"
+            >
+                {/* Icon */}
+                <div className="flex-shrink-0" style={{ color: TEACHER_COLOR }}>
+                    <HeadsetIcon size={28} />
+                </div>
+
+                {/* Username */}
+                <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">{teacherName}</span>
+
+                {/* Time */}
+                {earliestTime && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground font-mono shrink-0">
+                        <FlagIcon size={14} />
+                        {earliestTime}
+                    </div>
+                )}
+
+                {/* Duration */}
+                {stats.totalHours && stats.totalHours > 0 && (
+                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                        <DurationIcon size={18} className="text-muted-foreground/70" />
+                        {getHMDuration(stats.totalHours * 60)}
+                    </div>
+                )}
+
+                {/* Commission */}
+                {stats.earnings?.teacher && stats.earnings.teacher > 0 && (
+                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                        <HandshakeIcon size={18} className="text-muted-foreground/70" />
+                        {getCompactNumber(stats.earnings.teacher)}
+                    </div>
+                )}
+
+                {/* Revenue */}
+                {stats.earnings?.school && stats.earnings.school > 0 && (
+                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                        <TrendingUp size={18} className="text-muted-foreground/70" />
+                        {getCompactNumber(stats.earnings.school)}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Expanded view
     return (
         <div 
             onClick={onClick}
