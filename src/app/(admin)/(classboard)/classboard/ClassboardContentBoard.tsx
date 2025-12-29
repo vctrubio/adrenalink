@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import StudentClassDailyV2 from "./StudentClassDailyV2";
 import TeacherClassDailyV2 from "./TeacherClassDailyV2";
+import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
@@ -23,6 +24,9 @@ interface ClassboardContentBoardProps {
     onAddTeacher: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
     onEventDeleted: (eventId: string) => void;
     refreshKey: number;
+    isSettingsOpen: boolean;
+    onSettingsClose: () => void;
+    onRefresh: () => void;
 }
 
 export default function ClassboardContentBoard({
@@ -39,7 +43,10 @@ export default function ClassboardContentBoard({
     onAddLessonEvent,
     onAddTeacher,
     onEventDeleted,
-    refreshKey
+    refreshKey,
+    isSettingsOpen,
+    onSettingsClose,
+    onRefresh
 }: ClassboardContentBoardProps) {
 
     // Student props wrapper
@@ -72,9 +79,18 @@ export default function ClassboardContentBoard({
         <div className="flex-1 p-4 overflow-hidden min-h-0 flex flex-col">
             <div className="flex flex-col xl:flex-row gap-4 flex-1 min-h-0">
                 
-                {/* Students Section - Vertical Queue on Large Screens, Horizontal on Small */}
-                <div className="w-full xl:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
-                    <StudentClassDailyV2 {...studentProps} />
+                {/* Left Column: Students OR Settings */}
+                <div className="w-full xl:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300 relative bg-card/30">
+                    {isSettingsOpen ? (
+                        <LessonFlagLocationSettingsController 
+                            globalFlag={globalFlag}
+                            teacherQueues={teacherQueues}
+                            onClose={onSettingsClose}
+                            onRefresh={onRefresh}
+                        />
+                    ) : (
+                        <StudentClassDailyV2 {...studentProps} />
+                    )}
                 </div>
                 
                 {/* Teachers Section - Main Content Area */}

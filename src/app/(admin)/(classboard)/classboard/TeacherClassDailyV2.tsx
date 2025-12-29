@@ -213,29 +213,31 @@ export default function TeacherClassDailyV2({ teacherQueues, selectedDate, dragg
 
                                     <div key={queue.teacher.username} className="py-2">
 
-                                        <TeacherQueueCardV2
+                                                                                        <TeacherQueueCardV2
 
-                                            queue={queue}
+                                                                                            queue={queue}
 
-                                            selectedDate={selectedDate}
+                                                                                            selectedDate={selectedDate}
 
-                                            draggedBooking={draggedBooking}
+                                                                                            draggedBooking={draggedBooking}
 
-                                            isLessonTeacher={isLessonTeacher}
+                                                                                            isLessonTeacher={isLessonTeacher}
 
-                                            controller={controller}
+                                                                                            controller={controller}
 
-                                            onEventDeleted={onEventDeleted}
+                                                                                            onEventDeleted={onEventDeleted}
 
-                                            onAddLessonEvent={onAddLessonEvent}
+                                                                                            onAddLessonEvent={onAddLessonEvent}
 
-                                            globalFlag={globalFlag}
+                                                                                            globalFlag={globalFlag}
 
-                                            isExpanded={expandedTeachers.has(queue.teacher.username)}
+                                                                                            isExpanded={expandedTeachers.has(queue.teacher.username)}
 
-                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+                                                                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
 
-                                        />
+                                                                                            parentRefreshKey={refreshKey}
+
+                                                                                        />
 
                                     </div>
 
@@ -275,9 +277,10 @@ interface TeacherQueueCardV2Props {
     globalFlag?: GlobalFlag;
     isExpanded: boolean;
     onToggleExpand: () => void;
+    parentRefreshKey?: number;
 }
 
-function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, isExpanded, onToggleExpand }: TeacherQueueCardV2Props) {
+function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, isExpanded, onToggleExpand, parentRefreshKey }: TeacherQueueCardV2Props) {
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const originalQueueState = useRef<EventNode[]>([]);
@@ -289,8 +292,10 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
 
         if (isPending && !isAdjustmentMode) {
             setIsAdjustmentMode(true);
+        } else if (!isGlobalAdjustmentMode && isAdjustmentMode) {
+            setIsAdjustmentMode(false);
         }
-    }, [globalFlag, queue.teacher.username, isAdjustmentMode]);
+    }, [globalFlag, queue.teacher.username, isAdjustmentMode, parentRefreshKey]);
 
     // Store original state when entering edit mode
     useEffect(() => {

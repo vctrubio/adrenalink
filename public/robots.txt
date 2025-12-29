@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://adrenalink.tech/sitemap.xml
+Host: https://adrenalink.tech

@@ -5,24 +5,15 @@ import { useState, useMemo, useEffect } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { useClassboardActions } from "@/src/hooks/useClassboardActions";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
-import { getHMDuration } from "@/getters/duration-getter";
-import { getCompactNumber } from "@/getters/integer-getter";
+import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import ClassboardContentBoard from "./ClassboardContentBoard";
+import ClassboardStatisticsComponent from "./ClassboardStatistics";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
-import { TrendingUp } from "lucide-react";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import LessonIcon from "@/public/appSvgs/LessonIcon";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import ClassboardFooterV2 from "./ClassboardFooterV2";
-import LessonFlagClassDaily from "./LessonFlagClassDaily";
-import GlobalFlagAdjustmentToggle from "./GlobalFlagAdjustmentToggle";
 
 interface ClientClassboardV2Props {
     data: ClassboardModel;
@@ -31,6 +22,7 @@ interface ClientClassboardV2Props {
 export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     const [refreshKey, setRefreshKey] = useState(0);
     const [showSplash, setShowSplash] = useState(true);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, isLessonTeacher, addOptimisticEvent } = useClassboard(data);
 
@@ -50,6 +42,13 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
             }),
         [teacherQueues, controller],
     );
+
+    // Auto-open settings if adjustment mode is active (e.g. triggered from elsewhere)
+    useEffect(() => {
+        if (globalFlag.isAdjustmentMode() && !isSettingsOpen) {
+            setIsSettingsOpen(true);
+        }
+    }, [globalFlag.isAdjustmentMode()]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const { handleGlobalSubmit, handleAddLessonEvent, handleAddTeacher } = useClassboardActions({
         globalFlag,
@@ -103,66 +102,32 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: "easeOut" }} className="flex flex-col h-full overflow-hidden">
             {/* ═══════════════════════════════════════════════════════════════
-                TOP SECTION - Date & Stats (flex-wrap)
+                TOP SECTION - Date/Settings & Stats (flex-wrap)
             ═══════════════════════════════════════════════════════════════ */}
             <div className="flex flex-wrap gap-4 p-4">
-                {/* Date Picker */}
-                <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
-                    <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                </div>
-                {/* Stats - Grid of icon + label + value cells with animated labels */}
-                <div className="flex-1 min-w-[280px] rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-2">
-                    {/* Row 1 */}
-                    <div className="grid grid-cols-3 divide-x divide-zinc-400 dark:divide-zinc-500">
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0 }}>
-                            <HelmetIcon size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.3 }}>
-                                Students
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.students ? getCompactNumber(stats.students) : "--"}</span>
-                        </motion.div>
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0.05 }}>
-                            <HeadsetIcon size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.35 }}>
-                                Teachers
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.teachers ? getCompactNumber(stats.teachers) : "--"}</span>
-                        </motion.div>
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0.1 }}>
-                            <LessonIcon size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.4 }}>
-                                Lessons
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.lessons ? getCompactNumber(stats.lessons) : "--"}</span>
-                        </motion.div>
+                {/* Date Picker OR Settings Toggle Area */}
+                <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 relative overflow-hidden transition-all duration-300">
+                    <div className="animate-in fade-in zoom-in-95 duration-200">
+                        <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                     </div>
-                    {/* Horizontal divider with gap */}
-                    <div className="h-px bg-zinc-400 dark:bg-zinc-500 my-2 mx-2" />
-                    {/* Row 2 */}
-                    <div className="grid grid-cols-3 divide-x divide-zinc-400 dark:divide-zinc-500">
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0.15 }}>
-                            <DurationIcon size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.45 }}>
-                                Duration
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.duration ? getHMDuration(stats.duration) : "--"}</span>
-                        </motion.div>
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0.2 }}>
-                            <HandshakeIcon size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.5 }}>
-                                Comm.
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.commissions ? getCompactNumber(stats.commissions) : "--"}</span>
-                        </motion.div>
-                        <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: 0.25 }}>
-                            <TrendingUp size={16} className="text-muted-foreground shrink-0" />
-                            <motion.span className="text-muted-foreground text-xs hidden lg:inline" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} transition={{ duration: 0.2, delay: 0.55 }}>
-                                Revenue
-                            </motion.span>
-                            <span className="text-foreground font-semibold">{stats.revenue ? getCompactNumber(stats.revenue) : "--"}</span>
-                        </motion.div>
+                    
+                    <div className="absolute top-4 right-4 z-10">
+                        <ToggleSettingIcon 
+                            isOpen={isSettingsOpen} 
+                            onClick={() => {
+                                if (isSettingsOpen) {
+                                    globalFlag.exitAdjustmentMode();
+                                    setIsSettingsOpen(false);
+                                } else {
+                                    setIsSettingsOpen(true);
+                                }
+                            }} 
+                        />
                     </div>
                 </div>
+
+                {/* Stats Section */}
+                <ClassboardStatisticsComponent stats={stats} />
             </div>
 
             {/* ═══════════════════════════════════════════════════════════════
@@ -185,38 +150,13 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                         onAddTeacher={handleAddTeacher}
                         onEventDeleted={handleEventDeleted}
                         refreshKey={refreshKey}
+                        isSettingsOpen={isSettingsOpen}
+                        onSettingsClose={() => {
+                            globalFlag.exitAdjustmentMode();
+                            setIsSettingsOpen(false);
+                        }}
+                        onRefresh={() => setRefreshKey((prev) => prev + 1)}
                     />
-                </div>
-
-                {/* Global Flag Adjustment Controls */}
-                <div className="flex-shrink-0 px-4 pb-4">
-                    <GlobalFlagAdjustmentToggle
-                        globalFlag={globalFlag}
-                    >
-                        <div className="rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-4">
-                            <LessonFlagClassDaily
-                                globalFlag={globalFlag}
-                                teacherQueues={teacherQueues}
-                                onSubmit={async () => {
-                                    const changes = globalFlag.collectChanges();
-                                    if (changes.length > 0) {
-                                        // Save changes to DB
-                                        const result = await bulkUpdateClassboardEvents(changes);
-                                        
-                                        if (result.success) {
-                                            globalFlag.exitAdjustmentMode();
-                                            setRefreshKey((prev) => prev + 1);
-                                        } else {
-                                            console.error("Failed to update daily class:", result.error);
-                                            // Handle error (optional: show toast)
-                                        }
-                                    } else {
-                                        globalFlag.exitAdjustmentMode();
-                                    }
-                                }}
-                            />
-                        </div>
-                    </GlobalFlagAdjustmentToggle>
                 </div>
             </div>
 

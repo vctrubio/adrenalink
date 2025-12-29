@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { SubDomainHomePage } from "./SubDomainHomePage";
 import { getSchoolSubdomain, getAllSchools } from "@/actions/subdomain-action";
 import { NoSchoolFound } from "./NoSchoolFound";
@@ -48,4 +49,47 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
             </div>
         );
     }
+}
+
+export async function generateMetadata({
+    searchParams,
+}: {
+    searchParams: { username?: string };
+}): Promise<Metadata> {
+    const username = searchParams?.username;
+
+    if (!username) {
+        return {
+            title: "Adrenalink",
+            description: "Home of Adrenaline Activity",
+            openGraph: {
+                title: "Adrenalink",
+                description: "Home of Adrenaline Activity",
+                siteName: "Adrenalink",
+                images: ["/icon/og.svg"],
+                type: "website",
+            },
+        };
+    }
+
+    const title = `${username} Adrenalink's School`;
+
+    return {
+        title,
+        description: "Home of Adrenaline Activity",
+        openGraph: {
+            title,
+            description: "Home of Adrenaline Activity",
+            siteName: "Adrenalink",
+            images: ["/icon/og.svg"],
+            url: `https://adrenalink.tech/subdomain?username=${encodeURIComponent(username)}`,
+            type: "website",
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description: "Home of Adrenaline Activity",
+            images: ["/icon/og.svg"],
+        },
+    };
 }
