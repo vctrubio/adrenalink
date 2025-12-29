@@ -79,7 +79,7 @@ export function LandingDescription() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                         >
                             <div 
-                                className="w-[120px] h-[120px] bg-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                                className="w-[300px] h-[300px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                                 style={{
                                     maskImage: 'url(/ADR.webp)',
                                     maskSize: 'contain',
@@ -93,10 +93,10 @@ export function LandingDescription() {
                             />
                         </motion.div>
                         <div className="space-y-2">
-                            <h2 className="text-6xl md:text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
+                            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">
                                 Join Forces
                             </h2>
-                            <p className="text-lg text-white/60 font-medium tracking-wide">
+                            <p className="text-base text-white/40 font-light tracking-[0.5em] uppercase">
                                 Who are you?
                             </p>
                         </div>

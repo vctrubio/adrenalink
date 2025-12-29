@@ -1,7 +1,7 @@
 "use client";
 
-import { TrendingUp, Trash2, CheckCircle2, Settings } from "lucide-react";
-import { useState, useRef, useMemo } from "react";
+import { TrendingUp, Trash2, CheckCircle2 } from "lucide-react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -12,11 +12,11 @@ import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import EventModCard from "./EventModCard";
 import type { TeacherStats } from "@/backend/ClassboardStats";
 import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
 import { QueueController } from "@/backend/QueueController";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
 // Muted green - softer than entity color
@@ -261,6 +261,8 @@ export interface TeacherClassCardProps {
     queue?: TeacherQueue;
     selectedDate?: string;
     controller?: ControllerSettings;
+    isAdjustmentMode?: boolean;
+    onToggleAdjustment?: (mode: boolean) => void;
 }
 
 export default function TeacherClassCard({
@@ -275,16 +277,48 @@ export default function TeacherClassCard({
     isExpanded = true,
     queue,
     selectedDate,
-    controller
+    controller,
+    isAdjustmentMode = false,
+    onToggleAdjustment
 }: TeacherClassCardProps) {
-    const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const totalEvents = completedCount + pendingCount;
+    const [changedCount, setChangedCount] = useState(0);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [showError, setShowError] = useState(false);
 
     // Create QueueController for event modifications
     const queueController = useMemo(() => {
         if (!queue || !controller) return undefined;
         return new QueueController(queue, controller, () => {});
     }, [queue, controller]);
+
+    // Handle header click - toggle collapse or show error if in adjustment mode
+    const handleHeaderClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isAdjustmentMode) {
+            // Show error animation - can't collapse while in adjustment mode
+            setShowError(true);
+            setTimeout(() => setShowError(false), 500);
+        } else {
+            // Toggle collapse/expand
+            onClick?.();
+        }
+    }, [isAdjustmentMode, onClick]);
+
+    // Handle icon click - in collapsed view: enter adjustment mode + expand. In expanded view: toggle adjustment mode
+    const handleIconClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (queueController) {
+            if (isExpanded) {
+                // Expanded view: toggle adjustment mode
+                onToggleAdjustment?.(!isAdjustmentMode);
+            } else {
+                // Collapsed view: enter adjustment mode and expand
+                onClick?.();
+                onToggleAdjustment?.(true);
+            }
+        }
+    }, [queueController, isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
     // Get today's events from queue when collapsed
     let todayEvents: any[] = [];
@@ -321,16 +355,23 @@ export default function TeacherClassCard({
 
         return (
             <div
-                onClick={onClick}
-                className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 cursor-pointer"
+                className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200"
             >
                 {<ClassboardProgressBar lessons={syntheticLessons as any} durationMinutes={eventProgress.total} />}
 
-                <div className="h-16 flex items-center gap-4 px-6 bg-background">
-                {/* Icon */}
-                <div className="flex-shrink-0" style={{ color: TEACHER_COLOR }}>
+                <div
+                    onClick={handleHeaderClick}
+                    className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1"
+                >
+                {/* Icon - Enter adjustment mode and expand if collapsed */}
+                <button
+                    onClick={handleIconClick}
+                    disabled={!queueController}
+                    className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ color: TEACHER_COLOR }}
+                >
                     <HeadsetIcon size={28} />
-                </div>
+                </button>
 
                 {/* Username */}
                 <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">{teacherName}</span>
@@ -392,16 +433,23 @@ export default function TeacherClassCard({
             onClick={onClick}
             className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer"
         >
-            {/* Header: Avatar (Status) + Name/Progress/Time */}
-            <div className="flex items-center gap-4 px-6 py-5">
-                {/* Left Side: Static Avatar Icon */}
-                <div className="flex-shrink-0">
-                    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-muted border border-border" style={{ color: TEACHER_COLOR }}>
+            {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse or show error */}
+            <div
+                onClick={handleHeaderClick}
+                className={`flex items-center gap-4 px-6 py-5 cursor-pointer transition-all duration-200 ${showError ? "bg-red-500/10 border-l-4 border-red-500" : ""}`}
+            >
+                {/* Left Side: Avatar Icon - Enter adjustment mode */}
+                <button
+                    onClick={handleIconClick}
+                    disabled={!queueController}
+                    className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: TEACHER_COLOR }}>
                         <HeadsetIcon size={24} />
                     </div>
-                </div>
+                </button>
 
-                {/* Right Side: Name, Progress, and Time */}
+                {/* Right Side: Name, Progress, and Time - Toggle adjustment mode on click */}
                 <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">{teacherName}</span>
@@ -420,60 +468,29 @@ export default function TeacherClassCard({
                 </div>
             </div>
 
-            {/* Footer / Stats or Adjustment Mode */}
-            {!isAdjustmentMode ? (
-                <div className="px-4 pb-4">
+            {/* Footer - Stats (toggle mode) or Controls */}
+            <div className="px-4 pb-4">
+                {isAdjustmentMode ? (
+                    <SubmitCancelReset
+                        onSubmit={() => onToggleAdjustment?.(false)}
+                        onCancel={() => onToggleAdjustment?.(false)}
+                        onReset={() => {}}
+                        hasChanges={hasChanges}
+                        submitLabel="Save"
+                        extraContent={changedCount > 0 && <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">{changedCount}</span>}
+                    />
+                ) : (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (queueController) {
-                                setIsAdjustmentMode(true);
-                            }
+                            onToggleAdjustment?.(!isAdjustmentMode);
                         }}
-                        disabled={!queueController}
-                        className={`w-full bg-muted/50 border border-border/50 rounded-xl p-3 transition-colors ${queueController ? "hover:bg-muted cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                        className="w-full border border-border/50 rounded-xl p-3 bg-muted/50 hover:bg-muted transition-colors"
                     >
                         <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
                     </button>
-                </div>
-            ) : (
-                <div className="px-4 pb-4 flex flex-col gap-3">
-                    {/* Adjustment Header */}
-                    <div className="flex items-center justify-between px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
-                        <div className="flex items-center gap-2">
-                            <Settings size={16} className="text-cyan-600 dark:text-cyan-400" />
-                            <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Adjustment Mode</span>
-                        </div>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsAdjustmentMode(false);
-                            }}
-                            className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            Done
-                        </button>
-                    </div>
-
-                    {/* Events List for Adjustment */}
-                    <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
-                        {queue && queueController && queue.getAllEvents().length > 0 ? (
-                            queue.getAllEvents().map((event) => (
-                                <div key={event.id} className="flex-shrink-0">
-                                    <EventModCard
-                                        eventId={event.id}
-                                        queueController={queueController}
-                                    />
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-xs text-muted-foreground text-center py-4">
-                                No events to adjust
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

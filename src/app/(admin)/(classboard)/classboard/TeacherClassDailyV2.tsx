@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import ExpandCollapseButtons from "@/src/components/ui/ExpandCollapseButtons";
 import EventCard from "./EventCard";
+import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
 import { QueueController } from "@/backend/QueueController";
-import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
@@ -131,38 +133,20 @@ export default function TeacherClassDailyV2({
                             <div className="flex flex-col divide-y-2 divide-background">
                                 {filteredQueues.length > 0 ? (
                                     filteredQueues.map((queue) => {
-                                        const isInAdjustmentMode = globalFlag?.isAdjustmentMode?.();
-                                        const isPending = isInAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
-
                                         return (
                                             <div key={queue.teacher.username} className="py-2">
-                                                {isPending ? (
-                                                    <div className="p-4 rounded-xl bg-cyan-50/50 dark:bg-cyan-900/10 border-2 border-cyan-500/30 flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-3 h-3 rounded-full bg-cyan-500 animate-pulse" />
-                                                            <div>
-                                                                <div className="text-sm font-semibold text-foreground">{queue.teacher.username}</div>
-                                                                <div className="text-xs text-muted-foreground">Pending adjustment</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">
-                                                            Active
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <TeacherQueueCardV2
-                                                        queue={queue}
-                                                        selectedDate={selectedDate}
-                                                        draggedBooking={draggedBooking}
-                                                        isLessonTeacher={isLessonTeacher}
-                                                        controller={controller}
-                                                        onEventDeleted={onEventDeleted}
-                                                        onAddLessonEvent={onAddLessonEvent}
-                                                        globalFlag={globalFlag}
-                                                        isExpanded={expandedTeachers.has(queue.teacher.username)}
-                                                        onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
-                                                    />
-                                                )}
+                                                <TeacherQueueCardV2
+                                                    queue={queue}
+                                                    selectedDate={selectedDate}
+                                                    draggedBooking={draggedBooking}
+                                                    isLessonTeacher={isLessonTeacher}
+                                                    controller={controller}
+                                                    onEventDeleted={onEventDeleted}
+                                                    onAddLessonEvent={onAddLessonEvent}
+                                                    globalFlag={globalFlag}
+                                                    isExpanded={expandedTeachers.has(queue.teacher.username)}
+                                                    onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+                                                />
                                             </div>
                                         );
                                     })
@@ -208,6 +192,24 @@ function TeacherQueueCardV2({
     isExpanded,
     onToggleExpand
 }: TeacherQueueCardV2Props) {
+    const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const originalQueueState = useRef<EventNode[]>([]);
+
+    // Store original state when entering edit mode
+    useEffect(() => {
+        if (isAdjustmentMode && queue && originalQueueState.current.length === 0) {
+            const allEvents = queue.getAllEvents();
+            originalQueueState.current = allEvents.map((event) => ({
+                ...event,
+                eventData: { ...event.eventData },
+            }));
+        }
+        // Clear original state when exiting edit mode
+        if (!isAdjustmentMode) {
+            originalQueueState.current = [];
+        }
+    }, [isAdjustmentMode, queue]);
 
     const events = queue.getAllEvents();
     const todayEvents = events.filter((event) => {
@@ -275,6 +277,72 @@ function TeacherQueueCardV2({
         }
     };
 
+    // Adjustment mode handlers
+    const changedEvents = events.filter((currentEvent) => {
+        const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
+        if (!originalEvent) return false;
+        const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+        const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+        const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
+        return dateChanged || durationChanged || locationChanged;
+    });
+
+    const hasChanges = changedEvents.length > 0;
+    const changedCount = changedEvents.length;
+
+    const handleSubmit = async () => {
+        try {
+            const updates = events
+                .filter((event) => event.id)
+                .filter((currentEvent) => {
+                    const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
+                    if (!originalEvent) return true;
+                    const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+                    const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+                    const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
+                    return dateChanged || durationChanged || locationChanged;
+                })
+                .map((event) => ({
+                    id: event.id,
+                    date: event.eventData.date,
+                    duration: event.eventData.duration,
+                    location: event.eventData.location,
+                }));
+
+            if (updates.length > 0) {
+                const result = await bulkUpdateClassboardEvents(updates);
+                if (!result.success) {
+                    console.error("Failed to update events:", result.error);
+                    return;
+                }
+            }
+
+            setIsAdjustmentMode(false);
+        } catch (error) {
+            console.error("Error submitting queue changes:", error);
+        }
+    };
+
+    const handleReset = () => {
+        if (originalQueueState.current.length > 0 && queue) {
+            const allEvents = queue.getAllEvents();
+            originalQueueState.current.forEach((originalEvent, index) => {
+                const currentEvent = allEvents[index];
+                if (currentEvent) {
+                    currentEvent.eventData.date = originalEvent.eventData.date;
+                    currentEvent.eventData.duration = originalEvent.eventData.duration;
+                    currentEvent.eventData.location = originalEvent.eventData.location;
+                }
+            });
+            setRefreshKey((prev) => prev + 1);
+        }
+    };
+
+    const handleCancel = () => {
+        handleReset();
+        setIsAdjustmentMode(false);
+    };
+
     return (
         <div 
             className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row ${
@@ -300,6 +368,8 @@ function TeacherQueueCardV2({
                     queue={queue}
                     selectedDate={selectedDate}
                     controller={controller}
+                    isAdjustmentMode={isAdjustmentMode}
+                    onToggleAdjustment={setIsAdjustmentMode}
                 />
             </div>
 
@@ -307,7 +377,27 @@ function TeacherQueueCardV2({
             {isExpanded && (
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
-                        {todayEvents.length > 0 &&
+                        {isAdjustmentMode ? (
+                            /* Adjustment Mode: Show EventModCards */
+                            events.length > 0 ? (
+                                events.map((event) => (
+                                    <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
+                                        {queueController && (
+                                            <EventModCard
+                                                eventId={event.id}
+                                                queueController={queueController}
+                                            />
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex items-center justify-center w-full text-xs text-muted-foreground">
+                                    No events to adjust
+                                </div>
+                            )
+                        ) : (
+                            /* Normal Mode: Show EventCards */
+                            todayEvents.length > 0 &&
                             todayEvents.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                     <EventCard
@@ -319,7 +409,7 @@ function TeacherQueueCardV2({
                                     />
                                 </div>
                             ))
-                        }
+                        )}
                     </div>
                 </div>
             )}
