@@ -6,16 +6,20 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import type { TeacherStats } from "@/backend/ClassboardStats";
+import type { TeacherQueue } from "@/backend/TeacherQueue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
+// Muted amber - softer than student entity color
+const STUDENT_COLOR = "#ca8a04";
 
 // Aggregated equipment counts from events
 export interface EquipmentCount {
@@ -143,6 +147,40 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
     );
 }
 
+// Equipment and Students sub-component - for a single event
+function EventEquipmentStudent({ event }: {
+    event: any
+}) {
+    const categoryEquipment = event.packageData?.categoryEquipment;
+    const capacityEquipment = event.packageData?.capacityEquipment || 1;
+    const studentCount = event.studentData?.length || 0;
+
+    return (
+        <div className="flex items-center gap-1.5 shrink-0">
+            {categoryEquipment && (
+                (() => {
+                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
+                    if (!config) return null;
+                    const CategoryIcon = config.icon;
+                    return (
+                        <div className="flex items-center gap-0.5" style={{ color: config.color }}>
+                            <CategoryIcon size={18} />
+                            {capacityEquipment > 1 && <span className="text-sm font-semibold">{capacityEquipment}</span>}
+                        </div>
+                    );
+                })()
+            )}
+
+            {studentCount > 0 && (
+                <div className="flex items-center gap-0.5" style={{ color: STUDENT_COLOR }}>
+                    <HelmetIcon size={18} />
+                    {studentCount > 1 && <span className="text-sm font-semibold">{studentCount}</span>}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Stats row sub-component
 function TeacherStatsRow({ equipmentCounts, stats }: {
     equipmentCounts: EquipmentCount[],
@@ -217,6 +255,8 @@ export interface TeacherClassCardProps {
     eventProgress: EventProgress;
     onClick?: () => void;
     isExpanded?: boolean;
+    queue?: TeacherQueue;
+    selectedDate?: string;
 }
 
 export default function TeacherClassCard({
@@ -228,9 +268,23 @@ export default function TeacherClassCard({
     equipmentCounts,
     eventProgress,
     onClick,
-    isExpanded = true
+    isExpanded = true,
+    queue,
+    selectedDate
 }: TeacherClassCardProps) {
     const totalEvents = completedCount + pendingCount;
+
+    // Get today's events from queue when collapsed
+    let todayEvents: any[] = [];
+
+    if (!isExpanded && queue && selectedDate) {
+        const allEvents = queue.getAllEvents();
+        todayEvents = allEvents.filter((event) => {
+            if (!event.eventData.date) return false;
+            const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
+            return eventDate === selectedDate;
+        });
+    }
 
     // Collapsed view - single line
     if (!isExpanded) {
@@ -278,6 +332,21 @@ export default function TeacherClassCard({
                         {getCompactNumber(stats.earnings.school)}
                     </div>
                 )}
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Events Equipment and Students */}
+                <div className="flex items-center gap-3 shrink-0">
+                    {todayEvents.map((event, index) => (
+                        <div key={event.id} className="flex items-center gap-3 shrink-0">
+                            <EventEquipmentStudent event={event} />
+                            {index < todayEvents.length - 1 && (
+                                <div className="h-4 w-px bg-border/30" />
+                            )}
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

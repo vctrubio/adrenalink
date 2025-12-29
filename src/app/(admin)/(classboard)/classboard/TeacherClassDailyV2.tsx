@@ -284,6 +284,8 @@ function TeacherQueueCardV2({
                     eventProgress={eventProgress}
                     onClick={onToggleExpand}
                     isExpanded={isExpanded}
+                    queue={queue}
+                    selectedDate={selectedDate}
                 />
             </div>
 
