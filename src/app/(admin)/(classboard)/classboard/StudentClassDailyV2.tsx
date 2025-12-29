@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import StudentBookingCard from "./StudentBookingCard";
 import BookingOnboardCard from "./BookingOnboardCard";
-import ExpandCollapseButtons from "@/src/components/ui/ExpandCollapseButtons";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -27,11 +27,27 @@ interface StudentClassDailyV2Props {
 }
 
 type StudentBookingFilter = "available" | "onboard";
+type SortOption = "newest" | "latest" | "progression";
 
 export default function StudentClassDailyV2({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyV2Props) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map(b => b.bookingId)));
+    const [sortBy, setSortBy] = useState<SortOption>("progression");
+
+    // Load sort preference from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("studentBookingSort");
+        if (saved === "newest" || saved === "latest" || saved === "progression") {
+            setSortBy(saved);
+        }
+    }, []);
+
+    // Save sort preference to localStorage
+    const handleSortChange = (value: SortOption) => {
+        setSortBy(value);
+        localStorage.setItem("studentBookingSort", value);
+    };
 
     const toggleBookingExpanded = (bookingId: string) => {
         setExpandedBookings(prev => {
@@ -45,13 +61,6 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
         });
     };
 
-    const expandAllBookings = () => {
-        setExpandedBookings(new Set(bookings.map(b => b.bookingId)));
-    };
-
-    const collapseAllBookings = () => {
-        setExpandedBookings(new Set());
-    };
 
     const { filteredBookings, counts } = useMemo(() => {
         // All bookings
@@ -85,8 +94,67 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
             filteredData = onboardBookings;
         }
 
-        return { filteredBookings: filteredData, counts };
-    }, [bookings, classboardData, selectedDate, filter]);
+        // Helper to check if booking has event today
+        const hasEventToday = (booking: DraggableBooking): boolean => {
+            const data = classboardData[booking.bookingId];
+            if (!data) return false;
+            const lessons = data.lessons || [];
+            return lessons.some((lesson) => {
+                const events = lesson.events || [];
+                return events.some((event) => {
+                    if (!event.date) return false;
+                    const eventDate = new Date(event.date).toISOString().split("T")[0];
+                    return eventDate === selectedDate;
+                });
+            });
+        };
+
+        // Apply sorting
+        const sortedData = [...filteredData].sort((a, b) => {
+            const aData = classboardData[a.bookingId];
+            const bData = classboardData[b.bookingId];
+            if (!aData || !bData) return 0;
+
+            let comparison = 0;
+
+            if (sortBy === "progression") {
+                // Calculate remaining hours (most hours needed first)
+                const getTotalRemainingHours = (data: typeof aData) => {
+                    const packageDuration = data.schoolPackage?.totalDuration || 0;
+                    const completedHours = (data.lessons || []).reduce((sum, lesson) => {
+                        return sum + ((lesson.events || []).reduce((eventSum, event) => {
+                            return event.status === "completed" ? eventSum + (event.duration || 0) : eventSum;
+                        }, 0));
+                    }, 0);
+                    return packageDuration - completedHours;
+                };
+                comparison = getTotalRemainingHours(bData) - getTotalRemainingHours(aData);
+            } else if (sortBy === "latest") {
+                // Most recent event first
+                const getLatestEventDate = (data: typeof aData) => {
+                    const allDates = (data.lessons || []).flatMap(lesson =>
+                        (lesson.events || []).map(event => new Date(event.date || 0).getTime())
+                    );
+                    return Math.max(...allDates, 0);
+                };
+                comparison = getLatestEventDate(bData) - getLatestEventDate(aData);
+            } else if (sortBy === "newest") {
+                // Newest booking first (by booking ID as proxy for creation time)
+                comparison = b.bookingId.localeCompare(a.bookingId);
+            }
+
+            // If primary sort is equal, use on-board status as tiebreaker (non-on-board first)
+            if (comparison === 0) {
+                const aHasEvent = hasEventToday(a);
+                const bHasEvent = hasEventToday(b);
+                return aHasEvent === bHasEvent ? 0 : aHasEvent ? 1 : -1;
+            }
+
+            return comparison;
+        });
+
+        return { filteredBookings: sortedData, counts };
+    }, [bookings, classboardData, selectedDate, filter, sortBy]);
 
     return (
         <div className="flex flex-col h-full">
@@ -97,12 +165,13 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    {filter === "available" && (
-                        <ExpandCollapseButtons
-                            onExpandAll={expandAllBookings}
-                            onCollapseAll={collapseAllBookings}
-                        />
-                    )}
+                    <FilterDropdown
+                        label="Sort"
+                        value={sortBy}
+                        options={["newest", "latest", "progression"] as const}
+                        onChange={(value) => handleSortChange(value as SortOption)}
+                        entityColor={STUDENT_COLOR}
+                    />
                     <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                 </div>
             </div>

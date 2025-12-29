@@ -87,6 +87,7 @@ async function getSchoolCredentialsImpl(): Promise<SchoolCredentials | null> {
         return {
             logo: logoUrl,
             currency: schoolData.currency,
+            name: schoolData.name,
             username: schoolData.username,
             status: schoolData.status,
             ownerId: schoolData.ownerId,

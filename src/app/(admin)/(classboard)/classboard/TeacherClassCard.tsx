@@ -1,7 +1,7 @@
 "use client";
 
-import { TrendingUp, Trash2, CheckCircle2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { TrendingUp, Trash2, CheckCircle2, Settings } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -11,8 +11,11 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
+import { ClassboardProgressBar } from "./ClassboardProgressBar";
+import EventModCard from "./EventModCard";
 import type { TeacherStats } from "@/backend/ClassboardStats";
-import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import { QueueController } from "@/backend/QueueController";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
@@ -257,6 +260,7 @@ export interface TeacherClassCardProps {
     isExpanded?: boolean;
     queue?: TeacherQueue;
     selectedDate?: string;
+    controller?: ControllerSettings;
 }
 
 export default function TeacherClassCard({
@@ -270,9 +274,17 @@ export default function TeacherClassCard({
     onClick,
     isExpanded = true,
     queue,
-    selectedDate
+    selectedDate,
+    controller
 }: TeacherClassCardProps) {
+    const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const totalEvents = completedCount + pendingCount;
+
+    // Create QueueController for event modifications
+    const queueController = useMemo(() => {
+        if (!queue || !controller) return undefined;
+        return new QueueController(queue, controller, () => {});
+    }, [queue, controller]);
 
     // Get today's events from queue when collapsed
     let todayEvents: any[] = [];
@@ -288,11 +300,33 @@ export default function TeacherClassCard({
 
     // Collapsed view - single line
     if (!isExpanded) {
+        // Create synthetic lessons from eventProgress for progress bar
+        // eventProgress already has completed, planned, tbc durations calculated
+        const syntheticLessons = [
+            {
+                events: [
+                    // Completed events
+                    ...Array(completedCount).fill(null).map((_, i) => ({
+                        status: "completed",
+                        duration: Math.floor(eventProgress.completed / Math.max(completedCount, 1))
+                    })),
+                    // Pending events
+                    ...Array(pendingCount).fill(null).map((_, i) => ({
+                        status: "planned",
+                        duration: Math.floor(eventProgress.planned / Math.max(pendingCount, 1))
+                    }))
+                ]
+            }
+        ];
+
         return (
             <div
                 onClick={onClick}
-                className="group relative w-full h-16 flex items-center gap-4 px-6 bg-background rounded-xl border border-border transition-colors duration-200 cursor-pointer"
+                className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 cursor-pointer"
             >
+                {<ClassboardProgressBar lessons={syntheticLessons as any} durationMinutes={eventProgress.total} />}
+
+                <div className="h-16 flex items-center gap-4 px-6 bg-background">
                 {/* Icon */}
                 <div className="flex-shrink-0" style={{ color: TEACHER_COLOR }}>
                     <HeadsetIcon size={28} />
@@ -347,6 +381,7 @@ export default function TeacherClassCard({
                         </div>
                     ))}
                 </div>
+                </div>
             </div>
         );
     }
@@ -385,12 +420,60 @@ export default function TeacherClassCard({
                 </div>
             </div>
 
-            {/* Footer / Stats Only */}
-            <div className="px-4 pb-4">
-                <div className="w-full bg-muted/50 border border-border/50 rounded-xl p-3 hover:bg-muted transition-colors">
-                    <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
+            {/* Footer / Stats or Adjustment Mode */}
+            {!isAdjustmentMode ? (
+                <div className="px-4 pb-4">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (queueController) {
+                                setIsAdjustmentMode(true);
+                            }
+                        }}
+                        disabled={!queueController}
+                        className={`w-full bg-muted/50 border border-border/50 rounded-xl p-3 transition-colors ${queueController ? "hover:bg-muted cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                    >
+                        <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
+                    </button>
                 </div>
-            </div>
+            ) : (
+                <div className="px-4 pb-4 flex flex-col gap-3">
+                    {/* Adjustment Header */}
+                    <div className="flex items-center justify-between px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                        <div className="flex items-center gap-2">
+                            <Settings size={16} className="text-cyan-600 dark:text-cyan-400" />
+                            <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Adjustment Mode</span>
+                        </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsAdjustmentMode(false);
+                            }}
+                            className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
+
+                    {/* Events List for Adjustment */}
+                    <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+                        {queue && queueController && queue.getAllEvents().length > 0 ? (
+                            queue.getAllEvents().map((event) => (
+                                <div key={event.id} className="flex-shrink-0">
+                                    <EventModCard
+                                        eventId={event.id}
+                                        queueController={queueController}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-xs text-muted-foreground text-center py-4">
+                                No events to adjust
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

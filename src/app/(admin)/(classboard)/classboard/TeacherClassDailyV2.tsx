@@ -130,22 +130,42 @@ export default function TeacherClassDailyV2({
                         <div className="p-2">
                             <div className="flex flex-col divide-y-2 divide-background">
                                 {filteredQueues.length > 0 ? (
-                                    filteredQueues.map((queue) => (
-                                        <div key={queue.teacher.username} className="py-2">
-                                            <TeacherQueueCardV2
-                                                queue={queue}
-                                                selectedDate={selectedDate}
-                                                draggedBooking={draggedBooking}
-                                                isLessonTeacher={isLessonTeacher}
-                                                controller={controller}
-                                                onEventDeleted={onEventDeleted}
-                                                onAddLessonEvent={onAddLessonEvent}
-                                                globalFlag={globalFlag}
-                                                isExpanded={expandedTeachers.has(queue.teacher.username)}
-                                                onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
-                                            />
-                                        </div>
-                                    ))
+                                    filteredQueues.map((queue) => {
+                                        const isInAdjustmentMode = globalFlag?.isAdjustmentMode?.();
+                                        const isPending = isInAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
+
+                                        return (
+                                            <div key={queue.teacher.username} className="py-2">
+                                                {isPending ? (
+                                                    <div className="p-4 rounded-xl bg-cyan-50/50 dark:bg-cyan-900/10 border-2 border-cyan-500/30 flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-3 h-3 rounded-full bg-cyan-500 animate-pulse" />
+                                                            <div>
+                                                                <div className="text-sm font-semibold text-foreground">{queue.teacher.username}</div>
+                                                                <div className="text-xs text-muted-foreground">Pending adjustment</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">
+                                                            Active
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <TeacherQueueCardV2
+                                                        queue={queue}
+                                                        selectedDate={selectedDate}
+                                                        draggedBooking={draggedBooking}
+                                                        isLessonTeacher={isLessonTeacher}
+                                                        controller={controller}
+                                                        onEventDeleted={onEventDeleted}
+                                                        onAddLessonEvent={onAddLessonEvent}
+                                                        globalFlag={globalFlag}
+                                                        isExpanded={expandedTeachers.has(queue.teacher.username)}
+                                                        onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })
                                 ) : (
                                     <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">
                                         No {filter} teachers
@@ -279,6 +299,7 @@ function TeacherQueueCardV2({
                     isExpanded={isExpanded}
                     queue={queue}
                     selectedDate={selectedDate}
+                    controller={controller}
                 />
             </div>
 
@@ -294,7 +315,7 @@ function TeacherQueueCardV2({
                                         queue={queue}
                                         queueController={queueController}
                                         onDeleteComplete={() => onEventDeleted?.(event.id)}
-                                        showLocation={false}
+                                        showLocation={true}
                                     />
                                 </div>
                             ))

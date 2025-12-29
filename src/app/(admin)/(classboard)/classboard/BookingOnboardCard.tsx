@@ -5,6 +5,8 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getCompactNumber } from "@/getters/integer-getter";
+import { getPackageInfo } from "@/getters/school-packages-getter";
+import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
 
 // Muted amber - softer than student entity color
@@ -52,12 +54,18 @@ export default function BookingOnboardCard({
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
+    // Get package info for progress bar
+    const packageInfo = getPackageInfo(schoolPackage, lessons);
+
     return (
         <div
             onClick={onClick}
-            className="group relative w-full h-16 flex items-center gap-4 px-6 bg-background rounded-xl border border-border transition-colors duration-200 cursor-pointer hover:bg-muted/30"
+            className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 cursor-pointer hover:bg-muted/30"
         >
-            {/* Student Icon */}
+            <ClassboardProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
+
+            <div className="h-16 flex items-center gap-4 px-6 bg-background">
+                {/* Student Icon */}
             <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
                 <HelmetIcon size={28} />
             </div>
@@ -104,6 +112,7 @@ export default function BookingOnboardCard({
                     {getCompactNumber(totalRevenue)}
                 </div>
             )}
+            </div>
         </div>
     );
 }

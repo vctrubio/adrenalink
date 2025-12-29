@@ -15,6 +15,7 @@
  *   - Falls back to: `admin/icon.png`
  *   - Returns null if neither exists
  * @property {string} currency - The school's currency code (USD, EUR, CHF)
+ * @property {string} name - The school's display name
  * @property {string} username - The school's unique username slug
  * @property {string} status - The school's status (active, pending, closed)
  * @property {string} ownerId - UUID of the school owner
@@ -22,6 +23,7 @@
 export interface SchoolCredentials {
     logo: string | null;
     currency: string;
+    name: string;
     username: string;
     status: string;
     ownerId: string;

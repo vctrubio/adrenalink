@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon.jsx";
 
 const USER_ROLES = [
     { id: "admin", label: "Admin", icon: AdminIcon },
@@ -79,7 +78,19 @@ export function LandingDescription() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                         >
-                            <AdranlinkIcon size={120} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                            <div 
+                                className="w-[120px] h-[120px] bg-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                                style={{
+                                    maskImage: 'url(/ADR.webp)',
+                                    maskSize: 'contain',
+                                    maskRepeat: 'no-repeat',
+                                    maskPosition: 'center',
+                                    WebkitMaskImage: 'url(/ADR.webp)',
+                                    WebkitMaskSize: 'contain',
+                                    WebkitMaskRepeat: 'no-repeat',
+                                    WebkitMaskPosition: 'center',
+                                }}
+                            />
                         </motion.div>
                         <div className="space-y-2">
                             <h2 className="text-6xl md:text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
