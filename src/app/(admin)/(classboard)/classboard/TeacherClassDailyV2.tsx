@@ -6,7 +6,6 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
 import TeacherClassCard from "./TeacherClassCard";
-import TeacherQueueCard from "./TeacherQueueCard";
 import { QueueController } from "@/backend/QueueController";
 import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -26,7 +25,7 @@ interface TeacherClassDailyV2Props {
     globalFlag?: GlobalFlag;
 }
 
-type TeacherFilter = "pending" | "completed";
+type TeacherFilter = "active" | "all";
 
 export default function TeacherClassDailyV2({ 
     teacherQueues, 
@@ -38,13 +37,13 @@ export default function TeacherClassDailyV2({
     onAddLessonEvent,
     globalFlag
 }: TeacherClassDailyV2Props) {
-    const [filter, setFilter] = useState<TeacherFilter>("pending");
+    const [filter, setFilter] = useState<TeacherFilter>("active");
     const [isExpanded, setIsExpanded] = useState(true);
 
     const { filteredQueues, counts } = useMemo(() => {
-        // Filter queues based on event status
-        const pendingQueues: TeacherQueue[] = [];
-        const completedQueues: TeacherQueue[] = [];
+        // Filter queues based on whether they have events today
+        const activeQueues: TeacherQueue[] = [];
+        const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
@@ -54,24 +53,18 @@ export default function TeacherClassDailyV2({
                 return eventDate === selectedDate;
             });
 
-            // Check if all today's events are completed
-            const allCompleted = todayEvents.length > 0 && todayEvents.every((e) => e.eventData.status === "COMPLETED");
-            const hasPending = todayEvents.some((e) => e.eventData.status !== "COMPLETED");
-
-            if (allCompleted) {
-                completedQueues.push(queue);
-            } else if (hasPending || todayEvents.length === 0) {
-                pendingQueues.push(queue);
+            if (todayEvents.length > 0) {
+                activeQueues.push(queue);
             }
         });
 
         const counts = {
-            pending: pendingQueues.length,
-            completed: completedQueues.length,
+            active: activeQueues.length,
+            all: allQueues.length,
         };
 
         return { 
-            filteredQueues: filter === "pending" ? pendingQueues : completedQueues, 
+            filteredQueues: filter === "active" ? activeQueues : allQueues, 
             counts 
         };
     }, [teacherQueues, selectedDate, filter]);
@@ -91,7 +84,7 @@ export default function TeacherClassDailyV2({
                     <ToggleSwitch 
                         value={filter} 
                         onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} 
-                        values={{ left: "pending", right: "completed" }} 
+                        values={{ left: "active", right: "all" }} 
                         counts={counts} 
                         tintColor={TEACHER_COLOR}
                     />
@@ -108,21 +101,22 @@ export default function TeacherClassDailyV2({
                         transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-auto flex-1 min-h-0"
                     >
-                        <div className="p-4">
-                            <div className="flex flex-row flex-wrap gap-4">
+                        <div className="p-2">
+                            <div className="flex flex-col divide-y divide-zinc-400/50 dark:divide-zinc-500/50">
                                 {filteredQueues.length > 0 ? (
                                     filteredQueues.map((queue) => (
-                                        <TeacherQueueCard
-                                            key={queue.teacher.username}
-                                            queue={queue}
-                                            selectedDate={selectedDate}
-                                            draggedBooking={draggedBooking}
-                                            isLessonTeacher={isLessonTeacher}
-                                            controller={controller}
-                                            onEventDeleted={onEventDeleted}
-                                            onAddLessonEvent={onAddLessonEvent}
-                                            globalFlag={globalFlag}
-                                        />
+                                        <div key={queue.teacher.username} className="py-2">
+                                            <TeacherQueueCardV2
+                                                queue={queue}
+                                                selectedDate={selectedDate}
+                                                draggedBooking={draggedBooking}
+                                                isLessonTeacher={isLessonTeacher}
+                                                controller={controller}
+                                                onEventDeleted={onEventDeleted}
+                                                onAddLessonEvent={onAddLessonEvent}
+                                                globalFlag={globalFlag}
+                                            />
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">
@@ -162,8 +156,8 @@ function TeacherQueueCardV2({
     onAddLessonEvent,
     globalFlag
 }: TeacherQueueCardV2Props) {
-    const [isEventsExpanded, setIsEventsExpanded] = useState(false);
-    
+    const [isExpanded, setIsExpanded] = useState(true);
+
     const events = queue.getAllEvents();
     const todayEvents = events.filter((event) => {
         if (!event.eventData.date) return false;
@@ -228,57 +222,46 @@ function TeacherQueueCardV2({
 
     return (
         <div 
-            className={`w-[320px] flex-shrink-0 bg-background border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col ${
-                canAcceptDrop ? "border-yellow-500 border-2" : "border-border"
+            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row ${
+                canAcceptDrop ? "bg-yellow-500/5 ring-1 ring-yellow-500/20 rounded-xl" : ""
             }`}
             onDragOver={(e) => canAcceptDrop && e.preventDefault()}
             onDrop={handleDrop}
         >
-            {/* Header - TeacherClassCard */}
-            <TeacherClassCard
-                teacherName={queue.teacher.username}
-                stats={stats}
-                earliestTime={earliestTime}
-                pendingCount={pendingCount}
-                completedCount={completedCount}
-                equipmentCounts={equipmentCounts}
-                eventProgress={eventProgress}
-                onClick={() => setIsEventsExpanded(!isEventsExpanded)}
-            />
+            {/* Left: Teacher Info Card */}
+            {/* When expanded: Fixed width, with border */}
+            {/* When collapsed: Full width (flex-1), no border */}
+            <div className={`flex-shrink-0 transition-all duration-200 ${isExpanded ? "w-[300px] border-r border-border/50" : "flex-1 border-r-0"}`}>
+                <TeacherClassCard
+                    teacherName={queue.teacher.username}
+                    stats={stats}
+                    earliestTime={earliestTime}
+                    pendingCount={pendingCount}
+                    completedCount={completedCount}
+                    equipmentCounts={equipmentCounts}
+                    eventProgress={eventProgress}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                />
+            </div>
 
-            {/* Events - collapsible */}
-            <AnimatePresence>
-                {isEventsExpanded && todayEvents.length > 0 && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="flex-1 min-h-0 flex flex-col"
-                    >
-                        <div className="p-3 space-y-3 flex-1 min-h-0 overflow-auto">
-                            {todayEvents.map((event, index) => (
-                                <EventCard
-                                    key={event.id}
-                                    event={event}
-                                    queue={queue}
-                                    queueController={queueController}
-                                    onDeleteComplete={() => onEventDeleted?.(event.id)}
-                                    showLocation={false}
-                                />
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Expand prompt only, no empty state */}
-            {todayEvents.length > 0 && !isEventsExpanded && (
-                <div 
-                    className="p-2 text-center text-xs text-muted-foreground/50 cursor-pointer hover:text-muted-foreground hover:bg-muted/20 transition-colors"
-                    onClick={() => setIsEventsExpanded(true)}
-                >
-                    {todayEvents.length} event{todayEvents.length !== 1 ? "s" : ""} • click to expand
+            {/* Right: Events Queue (Horizontal Scroll) */}
+            {isExpanded && (
+                <div className="flex-1 min-w-0 flex items-center p-4 overflow-x-auto scrollbar-hide">
+                    <div className="flex flex-row gap-4 h-full items-center">
+                        {todayEvents.length > 0 &&
+                            todayEvents.map((event) => (
+                                <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
+                                    <EventCard
+                                        event={event}
+                                        queue={queue}
+                                        queueController={queueController}
+                                        onDeleteComplete={() => onEventDeleted?.(event.id)}
+                                        showLocation={false}
+                                    />
+                                </div>
+                            ))
+                        }
+                    </div>
                 </div>
             )}
         </div>

@@ -58,12 +58,26 @@ const CardHeader = ({
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
-    const startDate = new Date(dateStart);
-    const endDate = new Date(dateEnd);
-    const selected = new Date(selectedDate);
-    const daysUntilSelected = Math.ceil((selected.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
-    const expiryText = endDate.toDateString() === selected.toDateString() ? "Expires Today" : `${Math.abs(daysUntilSelected)}d ${daysUntilSelected > 0 ? "ago" : "left"}`;
-    const isExpired = daysUntilSelected > 0;
+    const startDate = new Date(dateStart + "T00:00:00");
+    const endDate = new Date(dateEnd + "T00:00:00");
+    const selected = new Date(selectedDate + "T00:00:00");
+
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const currentDay = Math.ceil((selected.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    const ratioText = totalDays === 1 ? "" : `${currentDay}/${totalDays} Days`;
+    let statusText = totalDays === 1 ? "Single Day Booking" : "";
+    let statusStyle = "text-muted-foreground";
+
+    if (totalDays > 1) {
+        if (currentDay === totalDays) {
+            statusText = "Checking out";
+            statusStyle = "text-blue-500/50 font-semibold";
+        } else if (currentDay > totalDays) {
+            statusText = "Ended";
+            statusStyle = "text-red-500/50";
+        }
+    }
 
     const studentDropdownItems: DropdownItemProps[] = students.map((bs, index) => ({
         id: bs.id || index,
@@ -75,20 +89,23 @@ const CardHeader = ({
     return (
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg p-1.5 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide leading-none group-hover/date:text-primary">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
-                    <span className="text-xl font-black leading-none text-foreground mt-0.5 group-hover/date:text-primary">{startDate.getDate()}</span>
+                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date">
+                    <span className="text-xl font-black leading-none text-foreground group-hover/date:text-primary transition-colors">{startDate.getDate()}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1 group-hover/date:text-primary transition-colors">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
                 </Link>
                 <div className="flex flex-col">
                     <button
                         ref={studentTriggerRef}
                         onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                        className={`text-sm font-bold text-foreground truncate max-w-[150px] text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
+                        className={`font-semibold text-foreground truncate flex-1 tracking-wider text-lg text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
+                        style={studentCount > 1 ? { color: studentColor } : {}}
                     >
                         {leaderName}
                     </button>
                     {studentCount > 1 && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
-                    <span className={`text-[10px] font-medium ${isExpired ? "text-red-500" : "text-emerald-500"}`}>{expiryText}</span>
+                    <div className="text-[10px] font-medium text-muted-foreground">
+                        {ratioText} {statusText && <span className={statusStyle}>{statusText}</span>}
+                    </div>
                 </div>
             </div>
 
@@ -381,7 +398,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                 draggable
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                className={`group relative w-[300px] flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
+                className={`group relative w-[300px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
             >
                 <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 

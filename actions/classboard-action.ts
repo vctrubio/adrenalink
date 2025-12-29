@@ -1,14 +1,15 @@
 "use server";
 
 import { unstable_noStore as noStore } from "next/cache";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, inArray } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
-import { booking, school, event } from "@/drizzle/schema";
+import { booking, school, event, lesson, bookingStudent, student, teacher, teacherCommission } from "@/drizzle/schema";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { debug, trackPerformance } from "@/utils/debug";
 
 const classboardWithRelations = {
     studentPackage: {
@@ -81,40 +82,30 @@ const classboardWithRelations = {
     },
 } as const;
 
-// Timeout wrapper to prevent hanging queries
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-    return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-            setTimeout(() => reject(new Error(`[TIMEOUT] ${label} exceeded ${timeoutMs}ms`)), timeoutMs)
-        ),
-    ]);
-}
-
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
     noStore();
-    const startTime = Date.now();
+
     try {
-        console.log("🚀 [CLASSBOARD] Starting getClassboardBookings");
+        debug.performance("getClassboardBookings start", 0, { step: "initialization" });
 
         // Get school context from header (cached, returns {id, name, zone})
         const schoolHeader = await getSchoolHeader();
 
         if (!schoolHeader) {
+            debug.warn("No school header found in getClassboardBookings");
             return {
                 success: false,
                 error: "School context could not be determined from header. The school may not exist or is not configured correctly.",
             };
         }
 
-        console.log("DEV:DEBUG 🔍 classboard-action.ts:");
-        console.log("DEV:DEBUG   - schoolHeader:", schoolHeader);
+        debug.cache("getSchoolHeader", true, { schoolId: schoolHeader.id });
 
-        const queryStartTime = Date.now();
-        console.log("🗄️ [CLASSBOARD] Starting booking query for school:", schoolHeader.id);
-
-        const result = await withTimeout(
-            db.query.booking.findMany({
+        // OPTIMIZED: Split into 2 simpler queries instead of 1 massive nested query
+        // Query 1: Get bookings with student package (simple join)
+        const bookingsQuery = async () => {
+            const startTime = Date.now();
+            const bookingsResult = await db.query.booking.findMany({
                 where: eq(booking.schoolId, schoolHeader.id),
                 columns: {
                     id: true,
@@ -122,25 +113,137 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                     dateEnd: true,
                     schoolId: true,
                     leaderStudentName: true,
+                    studentPackageId: true,
                 },
-                with: classboardWithRelations,
+                with: {
+                    studentPackage: {
+                        with: {
+                            schoolPackage: {
+                                columns: {
+                                    id: true,
+                                    durationMinutes: true,
+                                    description: true,
+                                    pricePerStudent: true,
+                                    capacityStudents: true,
+                                    capacityEquipment: true,
+                                    categoryEquipment: true,
+                                },
+                            },
+                        },
+                    },
+                },
                 orderBy: [desc(booking.createdAt)],
-                limit: 1000, // Add limit to prevent fetching too many rows
-            }),
-            20000, // 20 second timeout
-            "Booking query"
+                limit: 50, // Pagination limit
+            });
+            const duration = Date.now() - startTime;
+            debug.query("Bookings query (optimized)", duration, { count: bookingsResult.length });
+            return bookingsResult;
+        };
+
+        // Query 2: Get all booking students
+        const bookingStudentsQuery = async (bookingIds: string[]) => {
+            if (bookingIds.length === 0) return [];
+            const startTime = Date.now();
+            const result = await db.query.bookingStudent.findMany({
+                where: inArray(bookingStudent.bookingId, bookingIds),
+                with: {
+                    student: {
+                        columns: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            passport: true,
+                            country: true,
+                            phone: true,
+                            languages: true,
+                        },
+                        with: {
+                            schoolStudents: {
+                                columns: {
+                                    description: true,
+                                    schoolId: true,
+                                },
+                                // Removed where clause - filter in memory after query
+                            },
+                        },
+                    },
+                },
+            });
+            const duration = Date.now() - startTime;
+            debug.query("Booking students query (optimized)", duration, { count: result.length });
+            return result;
+        };
+
+        // Query 3: Get all lessons with relationships
+        const lessonsQuery = async (bookingIds: string[]) => {
+            if (bookingIds.length === 0) return [];
+            const startTime = Date.now();
+            const result = await db.query.lesson.findMany({
+                where: inArray(lesson.bookingId, bookingIds),
+                with: {
+                    teacher: {
+                        columns: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            username: true,
+                        },
+                    },
+                    commission: {
+                        columns: {
+                            id: true,
+                            cph: true,
+                            commissionType: true,
+                            description: true,
+                        },
+                    },
+                    events: {
+                        columns: {
+                            id: true,
+                            lessonId: true,
+                            date: true,
+                            duration: true,
+                            location: true,
+                            status: true,
+                        },
+                    },
+                },
+            });
+            const duration = Date.now() - startTime;
+            debug.query("Lessons query (optimized)", duration, { count: result.length });
+            return result;
+        };
+
+        // Execute queries in parallel
+        const bookingsResult = await trackPerformance(
+            "Bookings data fetch",
+            bookingsQuery,
+            3000
         );
 
-        const queryDuration = Date.now() - queryStartTime;
-        console.log(`✅ [CLASSBOARD] Query completed in ${queryDuration}ms, fetched ${result.length} bookings`);
+        const bookingIds = bookingsResult.map(b => b.id);
 
-        // console.log("DEV: [classboard-action] Fetched bookings from DB:", result.length);
-        result.forEach((b, idx) => {
+        const [bookingStudents, lessons] = await Promise.all([
+            trackPerformance("Booking students fetch", () => bookingStudentsQuery(bookingIds), 3000),
+            trackPerformance("Lessons fetch", () => lessonsQuery(bookingIds), 3000),
+        ]);
+
+        // Merge data in memory
+        const mergedBookings = bookingsResult.map(b => ({
+            ...b,
+            bookingStudents: bookingStudents.filter(bs => bs.bookingId === b.id),
+            lessons: lessons.filter(l => l.bookingId === b.id),
+        }));
+
+        const result = mergedBookings;
+
+        // Validate data
+        result.forEach((b) => {
             if (!b.studentPackage) {
-                throw new Error(`❌ Booking ${b.id} MISSING studentPackage - this should not happen!`);
+                throw new Error(`❌ Booking ${b.id} MISSING studentPackage`);
             }
             if (!b.studentPackage.schoolPackage) {
-                throw new Error(`❌ Booking ${b.id} - studentPackage missing schoolPackage - this should not happen!`);
+                throw new Error(`❌ Booking ${b.id} - studentPackage missing schoolPackage`);
             }
         });
 
@@ -148,18 +251,18 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 
         // Convert all event times from UTC to school's local timezone for display
         Object.values(bookings).forEach((bookingData) => {
-            bookingData.lessons?.forEach((lesson) => {
-                lesson.events?.forEach((event) => {
-                    // Convert UTC time to school timezone using the 'zone' from the header context
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), schoolHeader.zone);
-                    event.date = convertedDate.toISOString();
+            bookingData.lessons?.forEach((lessonData) => {
+                lessonData.events?.forEach((evt) => {
+                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
+                    evt.date = convertedDate.toISOString();
                 });
             });
         });
 
+        debug.performance("getClassboardBookings complete", 0, { bookingCount: Object.keys(bookings).length });
         return { success: true, data: bookings };
     } catch (error) {
-        console.error("Error fetching classboard bookings:", error);
+        debug.warn("Error fetching classboard bookings", { error: error instanceof Error ? error.message : String(error) });
         return { success: false, error: `Failed to fetch classboard bookings: ${error instanceof Error ? error.message : String(error)}` };
     }
 }

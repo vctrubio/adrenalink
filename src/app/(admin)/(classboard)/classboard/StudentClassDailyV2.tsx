@@ -68,7 +68,7 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
     }, [bookings, classboardData, selectedDate, filter]);
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
             {/* Header with Icon and Switch */}
             <div className="p-4 px-6 border-b border-border flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
                 <div style={{ color: STUDENT_COLOR }}>
@@ -83,9 +83,15 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
             {/* Collapsible Cards Container */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="overflow-hidden">
+                    <motion.div 
+                        initial={{ height: 0, opacity: 0 }} 
+                        animate={{ height: "auto", opacity: 1 }} 
+                        exit={{ height: 0, opacity: 0 }} 
+                        transition={{ duration: 0.3, ease: "easeOut" }} 
+                        className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
+                    >
                         <div className="p-4">
-                            <div className="flex flex-row flex-wrap gap-3">
+                            <div className="flex flex-row xl:flex-col gap-3">
                                 {filteredBookings.length > 0 ? (
                                     filteredBookings.map((booking) => {
                                         const bookingData = classboardData[booking.bookingId];

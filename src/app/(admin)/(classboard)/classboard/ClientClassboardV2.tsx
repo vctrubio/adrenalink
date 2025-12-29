@@ -9,8 +9,7 @@ import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
-import StudentClassDailyV2 from "./StudentClassDailyV2";
-import TeacherClassDailyV2 from "./TeacherClassDailyV2";
+import ClassboardContentBoard from "./ClassboardContentBoard";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
@@ -252,40 +251,22 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
             {/* ═══════════════════════════════════════════════════════════════
                 CONTENT BOARD - Students & Teachers
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="flex-1 p-4 overflow-auto min-h-0 flex flex-col">
-                <div className="flex flex-col gap-4 flex-1 min-h-0">
-                    {/* Students Section */}
-                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700">
-                        <StudentClassDailyV2
-                            bookings={draggableBookings}
-                            classboardData={classboardData}
-                            selectedDate={selectedDate}
-                            classboard={{
-                                onDragStart: (booking) => setDraggedBooking(booking),
-                                onDragEnd: () => setDraggedBooking(null),
-                                onAddLessonEvent: handleAddLessonEvent,
-                                onAddTeacher: handleAddTeacher,
-                                availableTeachers: availableTeachers,
-                            }}
-                        />
-                    </div>
-                    
-                    {/* Teachers Section */}
-                    <div className="rounded-2xl flex-1 min-h-0 overflow-hidden bg-card border border-zinc-200 dark:border-zinc-700">
-                        <TeacherClassDailyV2
-                            key={refreshKey}
-                            teacherQueues={teacherQueues}
-                            selectedDate={selectedDate}
-                            draggedBooking={draggedBooking}
-                            isLessonTeacher={isLessonTeacher}
-                            controller={controller}
-                            onEventDeleted={handleEventDeleted}
-                            onAddLessonEvent={handleAddLessonEvent}
-                            globalFlag={globalFlag}
-                        />
-                    </div>
-                </div>
-            </div>
+            <ClassboardContentBoard
+                draggableBookings={draggableBookings}
+                classboardData={classboardData}
+                selectedDate={selectedDate}
+                teacherQueues={teacherQueues}
+                draggedBooking={draggedBooking}
+                isLessonTeacher={isLessonTeacher}
+                controller={controller}
+                globalFlag={globalFlag}
+                availableTeachers={availableTeachers}
+                onSetDraggedBooking={setDraggedBooking}
+                onAddLessonEvent={handleAddLessonEvent}
+                onAddTeacher={handleAddTeacher}
+                onEventDeleted={handleEventDeleted}
+                refreshKey={refreshKey}
+            />
 
             {/* ═══════════════════════════════════════════════════════════════
                 FOOTER - Control Panel (Collapsible)

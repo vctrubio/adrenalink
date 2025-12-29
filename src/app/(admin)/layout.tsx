@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, cache } from "react";
 import { headers } from "next/headers";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
@@ -65,41 +65,24 @@ async function fetchLogoUrl(schoolUsername: string): Promise<string | null> {
     }
 }
 
-async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
-    const startTime = Date.now();
+async function getSchoolCredentialsImpl(): Promise<SchoolCredentials | null> {
     try {
         const headersList = await headers();
         const schoolUsername = headersList.get("x-school-username");
 
-        console.log("🔍 [LAYOUT] Starting getSchoolCredentials for:", schoolUsername);
-
         if (!schoolUsername) {
-            console.log("❌ [LAYOUT] No school username header found");
             return null;
         }
-
-        const dbQueryStart = Date.now();
-        console.log("🗄️ [LAYOUT] Starting database query for school:", schoolUsername);
 
         const schoolData = await db.query.school.findFirst({
             where: eq(school.username, schoolUsername),
         });
 
-        const dbQueryDuration = Date.now() - dbQueryStart;
-        console.log("✅ [LAYOUT] Database query completed in:", `${dbQueryDuration}ms`);
-
         if (!schoolData) {
-            console.log("❌ [LAYOUT] School not found in database");
             return null;
         }
 
-        const logoFetchStart = Date.now();
         const logoUrl = await fetchLogoUrl(schoolUsername);
-        const logoFetchDuration = Date.now() - logoFetchStart;
-        console.log("✅ [LAYOUT] Logo fetch completed in:", `${logoFetchDuration}ms`);
-
-        const totalDuration = Date.now() - startTime;
-        console.log("🎉 [LAYOUT] getSchoolCredentials completed in:", `${totalDuration}ms`);
 
         return {
             logo: logoUrl,
@@ -109,11 +92,13 @@ async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
             ownerId: schoolData.ownerId,
         };
     } catch (error) {
-        const totalDuration = Date.now() - startTime;
-        console.error("💥 [LAYOUT] Error fetching school credentials after:", `${totalDuration}ms`, error);
+        console.error("❌ [LAYOUT] Error fetching school credentials:", error);
         return null;
     }
 }
+
+// Use React's cache() to memoize across the request
+const getSchoolCredentials = cache(getSchoolCredentialsImpl);
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const credentials = await getSchoolCredentials();
