@@ -39,7 +39,7 @@ export function SearchInput({ entityColor, className, placeholder = "Search...",
             <input
                 type="text"
                 placeholder={placeholder}
-                className={`w-full px-4 py-2.5 rounded-lg border border-border ${bgClass} text-foreground placeholder:text-muted-foreground focus:outline-none transition-all focus:bg-background pr-10 ${className || ""}`}
+                className={`w-full px-4 py-2.5 rounded-lg border border-border ${bgClass} text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-transparent transition-all focus:bg-background pr-10 ${className || ""}`}
                 onFocus={(e) => {
                     if (entityColor) {
                         e.currentTarget.style.boxShadow = `0 0 0 2px ${entityColor}40`;

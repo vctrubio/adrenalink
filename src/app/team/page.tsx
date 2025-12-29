@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { RainbowV2, MeetTheTeamV2 } from "@/src/components/team";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
-import NavAdrBarShell from "@/src/components/NavAdrBarShell";
+import IntoAdrBarShell from "@/src/components/IntoAdrBarShell";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { TEAM_ENTITIES, TEAM_COLORS } from "@/config/team-entities";
+import { ArrowRight } from "lucide-react";
 
 export default function TeamPage() {
     const [hoveredShade, setHoveredShade] = useState<string | null>(null);
@@ -27,15 +28,20 @@ export default function TeamPage() {
                 priority
             />
 
-            {/* NavAdrBarShell with Adrenalink icon on left and selected entity icon on right */}
-            <NavAdrBarShell
+            {/* IntoAdrBarShell with Adrenalink icon on left and selected entity icon or pricing arrow on right */}
+            <IntoAdrBarShell
+                onBarClick={!SelectedIcon ? "/team/pricing" : undefined}
                 leftSlot={<AdranlinkIcon className="text-secondary w-7 h-7" />}
                 rightSlot={
-                    SelectedIcon && (
+                    SelectedIcon ? (
                         <SelectedIcon
                             className="w-7 h-7 transition-colors"
                             style={{ color: TEAM_COLORS[selectedEntity!.colorKey].fill }}
                         />
+                    ) : (
+                        <div className="flex items-center gap-2 text-white">
+                            <ArrowRight className="w-5 h-5" />
+                        </div>
                     )
                 }
             />

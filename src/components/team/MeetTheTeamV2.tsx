@@ -9,7 +9,6 @@ interface MeetTheTeamV2Props {
     onShadeHover?: (shade: string | null) => void;
 }
 
-// Sub-component: Team
 const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: string | null) => void; rainbowHoveredShade: string | null }) => {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -18,7 +17,7 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
         setSelectedId(selectedId === entityId ? null : entityId);
     };
 
-    const handleMouseEnter = (entity: typeof TEAM_ENTITIES[0]) => {
+    const handleMouseEnter = (entity: (typeof TEAM_ENTITIES)[0]) => {
         setHoveredId(entity.id);
         onShadeHover?.(entity.colorKey);
     };
@@ -29,18 +28,15 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
     };
 
     const selectedEntity = selectedId ? TEAM_ENTITIES.find((e) => e.id === selectedId) : null;
-    const rainbowHoveredEntity = rainbowHoveredShade ? TEAM_ENTITIES.find((e) => e.colorKey === rainbowHoveredShade) : null;
 
     return (
         <div className="max-w-7xl mx-auto px-6 mt-8">
             <nav className="flex items-center justify-center">
-                <div className="flex flex-wrap items-center justify-center bg-muted/30 rounded-2xl p-1.5 gap-1">
+                <div className="flex flex-wrap items-center justify-center bg-zinc-800/30 rounded-2xl p-1.5 gap-1">
                     {TEAM_ENTITIES.map((entity, index) => {
                         const isHovered = hoveredId === entity.id;
                         const isSelected = selectedId === entity.id;
                         const Icon = entity.icon;
-                        const entityColor = TEAM_COLORS[entity.colorKey].fill;
-                        const hoverColor = TEAM_COLORS[entity.colorKey].hoverFill;
 
                         return (
                             <motion.div
@@ -48,20 +44,17 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05, type: "spring", stiffness: 200, damping: 20 }}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer relative ${
-                                    isSelected ? "bg-card shadow-lg scale-105" : "hover:bg-card/50 hover:backdrop-blur-md hover:shadow-sm"
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer relative ${isSelected ? "bg-zinc-900 shadow-lg scale-105" : "hover:bg-zinc-900/50 hover:backdrop-blur-md hover:shadow-sm"}`}
                                 onMouseEnter={() => handleMouseEnter(entity)}
                                 onMouseLeave={handleMouseLeave}
                                 onClick={() => handleClick(entity.id)}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.98 }}
                             >
-                                {/* Animated glow effect on selected */}
                                 {isSelected && (
                                     <motion.div
                                         className="absolute inset-0 rounded-xl opacity-20 blur-md"
-                                        style={{ backgroundColor: entityColor }}
+                                        style={{ backgroundColor: TEAM_COLORS[entity.colorKey].fill }}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 0.3 }}
                                         transition={{ duration: 0.3 }}
@@ -75,7 +68,13 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                                         scale: isSelected ? 1.2 : 1,
                                     }}
                                     transition={{ duration: 0.5, type: "spring" }}
-                                    style={{ color: isHovered || isSelected ? (isHovered && !isSelected ? hoverColor : entityColor) : undefined }}
+                                    style={{
+                                        color: isHovered || isSelected
+                                            ? isHovered && !isSelected
+                                                ? TEAM_COLORS[entity.colorKey].hoverFill
+                                                : TEAM_COLORS[entity.colorKey].fill
+                                            : "#ffffff",
+                                    }}
                                 >
                                     <Icon />
                                 </motion.div>
@@ -85,16 +84,15 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                                     animate={{
                                         fontWeight: isSelected ? 700 : 500,
                                     }}
-                                    style={{ color: isHovered || isSelected ? entityColor : undefined }}
+                                    style={{ color: isHovered || isSelected ? TEAM_COLORS[entity.colorKey].fill : "#ffffff" }}
                                 >
                                     {entity.name}
                                 </motion.span>
 
-                                {/* Selection indicator dot */}
                                 {isSelected && (
                                     <motion.div
                                         className="w-1.5 h-1.5 rounded-full ml-1 relative z-10"
-                                        style={{ backgroundColor: entityColor }}
+                                        style={{ backgroundColor: TEAM_COLORS[entity.colorKey].fill }}
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         transition={{ type: "spring", stiffness: 500, damping: 15 }}
@@ -106,7 +104,6 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                 </div>
             </nav>
 
-            {/* Selected entity description */}
             <AnimatePresence mode="wait">
                 {selectedEntity && (
                     <motion.div
@@ -118,16 +115,13 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                         className="mt-8 text-center overflow-hidden"
                     >
                         <motion.div
-                            className="inline-block px-8 py-6 rounded-2xl border-2 backdrop-blur-md bg-card/50"
+                            className="inline-block px-8 py-6 rounded-2xl border-2 backdrop-blur-md bg-zinc-900/50"
                             style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}
                             initial={{ scale: 0.9 }}
                             animate={{ scale: 1 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <p
-                                className="text-xl font-medium"
-                                style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}
-                            >
+                            <p className="text-xl font-medium text-white" style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}>
                                 {selectedEntity.description}
                             </p>
                         </motion.div>
@@ -135,14 +129,15 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                 )}
             </AnimatePresence>
 
-            {/* Tagline */}
             <motion.div
                 className="text-center mt-16"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: selectedEntity ? 0.3 : 1 }}
                 transition={{ duration: 0.4 }}
             >
-                <span className="font-bold text-2xl text-muted-foreground italic">We Help You Scale</span>
+                <span className="text-lg text-gray-400/60 italic tracking-wider">
+                    Think of each icon as a character, each with a specific role
+                </span>
             </motion.div>
         </div>
     );
@@ -156,7 +151,7 @@ export const MeetTheTeamV2 = ({ hoveredShade, onShadeHover }: MeetTheTeamV2Props
         <div className="relative z-[2] py-16">
             {selectedEntity && SelectedIcon ? (
                 <div className="max-w-2xl mx-auto px-6 text-center">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border-2" style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}>
+                    <div className="bg-zinc-900/40 backdrop-blur-md rounded-2xl p-8 border-2" style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}>
                         <div className="w-20 h-20 mx-auto mb-4 [&>svg]:w-full [&>svg]:h-full" style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}>
                             <SelectedIcon />
                         </div>

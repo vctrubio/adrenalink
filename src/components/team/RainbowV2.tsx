@@ -1,6 +1,6 @@
 import { TEAM_COLORS } from "@/config/team-entities";
 
-const allShades = Object.keys(TEAM_COLORS) as (keyof typeof TEAM_COLORS)[];
+const allShades: (keyof typeof TEAM_COLORS)[] = ["grey", "purple", "blue", "green", "yellow", "orange", "red"];
 
 export const RainbowV2 = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: string | null) => void; hoveredShade: string | null }) => {
     const centerX = 960;
