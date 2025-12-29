@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
@@ -24,10 +25,22 @@ const SPORTS = [
 ];
 
 export function LandingDescription() {
+    const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
     const [hoveredSport, setHoveredSport] = useState<string | null>(null);
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        if (selectedRole && selectedSport) {
+            setIsNavigating(true);
+            const timer = setTimeout(() => {
+                router.push("/pillars");
+            }, 800); // Wait for animation
+            return () => clearTimeout(timer);
+        }
+    }, [selectedRole, selectedSport, router]);
 
     return (
         <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
@@ -51,8 +64,11 @@ export function LandingDescription() {
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                animate={isNavigating 
+                    ? { opacity: 0, scale: 1.5, filter: "blur(10px)" } 
+                    : { opacity: 1, scale: 1, filter: "blur(0px)" }
+                }
+                transition={{ duration: 0.8, ease: "easeInOut" }}
                 className="relative z-10 h-full flex flex-col items-center justify-center px-4"
             >
                 <div className="w-full max-w-5xl space-y-12 text-center">

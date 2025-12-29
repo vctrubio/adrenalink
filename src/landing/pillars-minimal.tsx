@@ -111,7 +111,12 @@ const PillarsMinimal = () => {
 
     return (
         <section className="py-32 bg-background">
-            <div className="container mx-auto px-4 mb-32">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="container mx-auto px-4 mb-32"
+            >
                 <div className="max-w-5xl mx-auto relative">
                     {/* Header */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={isStarting || isNavigatingTeam ? { opacity: 0, y: -100, filter: "blur(10px)", scale: 0.9 } : { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.8, ease: "circOut" }} className="mb-24">
@@ -178,7 +183,7 @@ const PillarsMinimal = () => {
                         {extraPillarsCount >= 2 && <div className="min-h-[8rem]" />}
                     </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Fixed Footer */}
             <motion.div
