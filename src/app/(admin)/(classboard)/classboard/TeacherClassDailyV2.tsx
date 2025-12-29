@@ -73,7 +73,7 @@ export default function TeacherClassDailyV2({
         <div className="flex flex-col h-full">
             {/* Header with Icon and Switch */}
             <div 
-                className="p-4 px-6 border-b border-border flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0"
+                className="p-4 px-6 border-b-2 border-background flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div style={{ color: TEACHER_COLOR }}>
@@ -102,7 +102,7 @@ export default function TeacherClassDailyV2({
                         className="overflow-auto flex-1 min-h-0"
                     >
                         <div className="p-2">
-                            <div className="flex flex-col divide-y divide-zinc-400/50 dark:divide-zinc-500/50">
+                            <div className="flex flex-col divide-y-2 divide-background">
                                 {filteredQueues.length > 0 ? (
                                     filteredQueues.map((queue) => (
                                         <div key={queue.teacher.username} className="py-2">
@@ -165,8 +165,8 @@ function TeacherQueueCardV2({
         return eventDate === selectedDate;
     });
 
-    const completedCount = todayEvents.filter((e) => e.eventData.status === "COMPLETED").length;
-    const pendingCount = todayEvents.filter((e) => e.eventData.status !== "COMPLETED").length;
+    const completedCount = todayEvents.filter((e) => e.eventData.status === "completed").length;
+    const pendingCount = todayEvents.filter((e) => e.eventData.status !== "completed").length;
 
     // Get stats from queue (includes earnings calculations)
     const stats = useMemo(() => queue.getStats(), [queue]);
@@ -189,16 +189,20 @@ function TeacherQueueCardV2({
     // Compute event progress by status
     const eventProgress = useMemo(() => {
         const completed = todayEvents
-            .filter((e) => e.eventData.status === "COMPLETED")
+            .filter((e) => e.eventData.status === "completed")
             .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const planned = todayEvents
-            .filter((e) => e.eventData.status === "PLANNED")
+            .filter((e) => e.eventData.status === "planned")
             .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const tbc = todayEvents
-            .filter((e) => e.eventData.status === "TBC")
+            .filter((e) => e.eventData.status === "tbc")
             .reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const total = completed + planned + tbc;
-        return { completed, planned, tbc, total };
+        
+        // Collect all event IDs for batch updates
+        const eventIds = todayEvents.map(e => e.id);
+        
+        return { completed, planned, tbc, total, eventIds };
     }, [todayEvents]);
 
     // Create QueueController for gap calculations (only if controller provided)
@@ -231,7 +235,7 @@ function TeacherQueueCardV2({
             {/* Left: Teacher Info Card */}
             {/* When expanded: Fixed width, with border */}
             {/* When collapsed: Full width (flex-1), no border */}
-            <div className={`flex-shrink-0 transition-all duration-200 ${isExpanded ? "w-[300px] border-r border-border/50" : "flex-1 border-r-0"}`}>
+            <div className={`flex-shrink-0 transition-all duration-200 p-2 ${isExpanded ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
                     teacherName={queue.teacher.username}
                     stats={stats}
@@ -246,7 +250,7 @@ function TeacherQueueCardV2({
 
             {/* Right: Events Queue (Horizontal Scroll) */}
             {isExpanded && (
-                <div className="flex-1 min-w-0 flex items-center p-4 overflow-x-auto scrollbar-hide">
+                <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {todayEvents.length > 0 &&
                             todayEvents.map((event) => (

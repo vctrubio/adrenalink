@@ -1,19 +1,18 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
-const TeacherBatchUpdateDropdown = dynamic(() => import("./TeacherBatchUpdateDropdown"), { ssr: false });
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import { TrendingUp, Trash2, CheckCircle2 } from "lucide-react";
+import { useState, useRef } from "react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import type { TeacherStats } from "@/backend/ClassboardStats";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -33,22 +32,18 @@ export interface EventProgress {
     eventIds?: string[];
 }
 
-// Progress bar sub-component with x/y completed and dropdown
-function TeacherEventProgressBar({ progress, totalEvents, completedEvents, onBatchClick, onLabelClick, labelActive }: {
+// Progress bar sub-component - Inline style with Batch Actions
+function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
     progress: EventProgress,
     totalEvents: number,
-    completedEvents: number,
-    onBatchClick: () => void,
-    onLabelClick: () => void,
-    labelActive: boolean
+    completedEvents: number
 }) {
-    const { completed, planned, tbc, total } = progress;
+    const { completed, planned, tbc, total, eventIds = [] } = progress;
     const denominator = total > 0 ? total : 1;
     const completedEnd = (completed / denominator) * 100;
     const plannedEnd = completedEnd + (planned / denominator) * 100;
     const tbcEnd = plannedEnd + (tbc / denominator) * 100;
 
-    // Use lighter/muted colors for incomplete segments
     const completedColor = EVENT_STATUS_CONFIG.completed.color;
     const plannedColor = `${EVENT_STATUS_CONFIG.planned.color}40`;
     const tbcColor = `${EVENT_STATUS_CONFIG.tbc.color}30`;
@@ -56,33 +51,99 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents, onBat
 
     const background = `linear-gradient(to right, ${completedColor} ${completedEnd}%, ${plannedColor} ${completedEnd}% ${plannedEnd}%, ${tbcColor} ${plannedEnd}% ${tbcEnd}%, ${emptyColor} ${tbcEnd}%)`;
 
+    // Dropdown Logic
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const dropdownTriggerRef = useRef<HTMLDivElement>(null);
+
+    const handleMarkAllCompleted = async () => {
+        if (eventIds.length === 0) return;
+        setIsLoading(true);
+        try {
+            await bulkUpdateEventStatus(eventIds, "completed");
+            setIsDropdownOpen(false);
+        } catch (error) {
+            console.error("Batch update failed", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        if (eventIds.length === 0) return;
+        setIsLoading(true);
+        try {
+            await bulkDeleteClassboardEvents(eventIds);
+            setIsDropdownOpen(false);
+        } catch (error) {
+            console.error("Batch delete failed", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const dropdownItems: DropdownItemProps[] = [
+        {
+            id: "mark-completed",
+            label: "Mark all as completed",
+            icon: CheckCircle2,
+            color: "#16a34a",
+            onClick: handleMarkAllCompleted,
+        },
+        {
+            id: "delete-all",
+            label: "Delete all events",
+            icon: Trash2,
+            color: "#ef4444",
+            onClick: handleDeleteAll,
+        }
+    ];
+
     return (
-        <div className="flex items-center w-full gap-2">
-            <div className="flex-1 relative cursor-pointer group" onClick={onBatchClick}>
-                <div className="h-1.5 w-full bg-muted rounded">
-                    <div
-                        className="h-full transition-all duration-500 ease-out rounded"
-                        style={{ background, width: "100%" }}
-                    />
-                </div>
+        <div className="flex items-center w-full gap-3 relative">
+            <div className="flex-1 h-1 bg-muted/50 rounded-full overflow-hidden">
+                <div
+                    className="h-full transition-all duration-500 ease-out rounded-full"
+                    style={{ background, width: "100%" }}
+                />
             </div>
-            <span
-                className={`ml-2 text-xs min-w-[70px] text-right px-2 py-1 rounded cursor-pointer transition-all duration-200 ${labelActive ? "bg-primary/10 text-primary shadow" : "text-muted-foreground hover:bg-muted/40 hover:text-primary"}`}
-                onClick={e => {
+             
+             {/* Clickable Progress Label acting as Dropdown Trigger */}
+             <div 
+                ref={dropdownTriggerRef}
+                className={`text-[9px] font-bold whitespace-nowrap tracking-tighter cursor-pointer select-none transition-colors rounded px-1 -mr-1
+                    ${isDropdownOpen ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+                onClick={(e) => {
                     e.stopPropagation();
-                    onLabelClick();
+                    setIsDropdownOpen(!isDropdownOpen);
                 }}
-                tabIndex={0}
-                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { onLabelClick(); } }}
-                aria-label="Batch update events"
-            >
-                {completedEvents}/{totalEvents} completed
-            </span>
+             >
+                 {completedEvents}/{totalEvents} COMPLETED
+             </div>
+
+             {/* Custom Backdrop to stop propagation on close-click */}
+            {isDropdownOpen && (
+                <div 
+                    className="fixed inset-0 z-[9997]" 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDropdownOpen(false);
+                    }}
+                />
+            )}
+
+            <Dropdown
+                isOpen={isDropdownOpen}
+                onClose={() => setIsDropdownOpen(false)}
+                items={dropdownItems}
+                align="right"
+                triggerRef={dropdownTriggerRef}
+            />
         </div>
     );
 }
 
-// Stats row sub-component with logic for showing/hiding stats
+// Stats row sub-component
 function TeacherStatsRow({ equipmentCounts, stats }: {
     equipmentCounts: EquipmentCount[],
     stats: TeacherStats
@@ -93,62 +154,52 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
     const hasProfit = stats.earnings?.school && stats.earnings.school > 0;
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
-    if (!hasAnyStats) return null;
+    if (!hasAnyStats) return <div className="text-xs text-muted-foreground text-center py-1">No activity yet</div>;
 
     const hasMoneyStats = hasDuration || hasCommission || hasProfit;
 
     return (
-        <div className="flex items-center justify-start gap-2 px-3 py-2 bg-muted">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {/* Equipment Categories */}
             {equipmentCounts.map(({ categoryId, count }) => {
                 const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
                 if (!config) return null;
                 const CategoryIcon = config.icon;
                 return (
-                    <div key={categoryId} className="flex items-center gap-1">
+                    <div key={categoryId} className="flex items-center gap-1.5">
                         <div style={{ color: config.color }}>
                             <CategoryIcon size={16} />
                         </div>
-                        {count > 1 && <span className="text-sm text-foreground">{count}</span>}
+                        {count > 1 && <span className="text-sm font-medium text-foreground">{count}</span>}
                     </div>
                 );
             })}
 
             {/* Divider after equipment if we have money stats */}
             {hasEquipment && hasMoneyStats && (
-                <span className="border-l border-zinc-300 dark:border-zinc-600 py-2" />
+                <div className="h-4 w-px bg-border/60" />
             )}
 
             {/* Duration */}
             {hasDuration && (
-                <div className="flex items-center gap-1">
-                    <DurationIcon size={16} className="text-muted-foreground shrink-0" />
+                <div className="flex items-center gap-1.5">
+                    <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-semibold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
                 </div>
             )}
 
-            {/* Divider after duration */}
-            {hasDuration && (hasCommission || hasProfit) && (
-                <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
-            )}
-
             {/* Commission */}
             {hasCommission && (
-                <div className="flex items-center gap-1">
-                    <HandshakeIcon size={16} className="text-muted-foreground shrink-0" />
+                <div className="flex items-center gap-1.5">
+                    <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
                 </div>
             )}
 
-            {/* Divider after commission */}
-            {hasCommission && hasProfit && (
-                <span className="border-l border-transparent bg-background/60 py-2 mx-1 w-px" />
-            )}
-
             {/* Profit */}
             {hasProfit && (
-                <div className="flex items-center gap-1">
-                    <TrendingUp size={16} className="text-muted-foreground shrink-0" />
+                <div className="flex items-center gap-1.5">
+                    <TrendingUp size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-semibold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
                 </div>
             )}
@@ -177,49 +228,51 @@ export default function TeacherClassCard({
     eventProgress,
     onClick
 }: TeacherClassCardProps) {
-    const [showBatchDropdown, setShowBatchDropdown] = useState(false);
     const totalEvents = completedCount + pendingCount;
 
     return (
-        <div className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={onClick}>
-            {/* Progress Bar */}
-            <div className="relative px-3 pt-3">
-                <TeacherEventProgressBar
-                    progress={eventProgress}
-                    totalEvents={totalEvents}
-                    completedEvents={completedCount}
-                    onBatchClick={() => {}}
-                    onLabelClick={() => setShowBatchDropdown(v => !v)}
-                    labelActive={showBatchDropdown}
-                />
-                {showBatchDropdown && (
-                    <div className="absolute right-0 top-7 z-20">
-                        <TeacherBatchUpdateDropdown
-                            eventIds={eventProgress.eventIds || []}
-                            onClose={() => setShowBatchDropdown(false)}
-                        />
+        <div 
+            onClick={onClick}
+            className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer"
+        >
+            {/* Header: Avatar (Status) + Name/Progress/Time */}
+            <div className="flex items-center gap-4 px-6 py-5">
+                {/* Left Side: Static Avatar Icon */}
+                <div className="flex-shrink-0">
+                    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-muted border border-border" style={{ color: TEACHER_COLOR }}>
+                        <HeadsetIcon size={24} />
                     </div>
-                )}
+                </div>
+
+                {/* Right Side: Name, Progress, and Time */}
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">{teacherName}</span>
+                        {earliestTime && (
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold shrink-0">
+                                <FlagIcon size={12} className="shrink-0" />
+                                <span className="font-mono">{earliestTime}</span>
+                            </div>
+                        )}
+                    </div>
+                    <TeacherEventProgressBar
+                        progress={eventProgress}
+                        totalEvents={totalEvents}
+                        completedEvents={completedCount}
+                    />
+                </div>
             </div>
 
-            {/* Header: Teacher Name */}
-            <div className="flex items-center gap-2 p-3 pb-2">
-                <div style={{ color: TEACHER_COLOR }}>
-                    <HeadsetIcon size={24} />
+            {/* Footer / Stats Only */}
+            <div className="px-4 pb-4">
+                <div className="w-full bg-muted/50 border border-border/50 rounded-xl p-3 hover:bg-muted transition-colors">
+                    <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
                 </div>
-                <span className="font-semibold text-foreground truncate flex-1 tracking-wider text-lg">{teacherName}</span>
             </div>
-
-            {/* Stats Row */}
-            <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
-
-            {/* Footer: Earliest Start Time */}
-            {earliestTime && (
-                <div className="flex items-center justify-center gap-2 p-2 text-xs text-muted-foreground border-t border-border/50">
-                    <FlagIcon size={14} className="text-muted-foreground" />
-                    <span className="font-mono font-medium text-foreground">{earliestTime}</span>
-                </div>
-            )}
         </div>
     );
 }
+
+
+
+

@@ -70,7 +70,7 @@ export default function StudentClassDailyV2({ bookings, classboardData, selected
     return (
         <div className="flex flex-col h-full">
             {/* Header with Icon and Switch */}
-            <div className="p-4 px-6 border-b border-border flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="p-4 px-6 border-b-2 border-background flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
                 <div style={{ color: STUDENT_COLOR }}>
                     <HelmetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
