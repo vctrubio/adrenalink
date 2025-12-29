@@ -15,3 +15,10 @@
     background-color: hsl(var(--card) / 0.5);
     color: hsl(var(--foreground));
 }
+
+.schools-name {
+    color: #6b7280;
+    font-weight: 900; /* font-black */
+    letter-spacing: -0.05em; /* tracking-tighter */
+    text-transform: uppercase;
+}

@@ -62,7 +62,7 @@ export const ClassboardSkeleton = ({ error }: ClassboardSkeletonProps) => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.8 }}
-                                        className="text-2xl font-semibold text-[#6b7280] tracking-wide"
+                                        className="text-4xl schools-name tracking-wide"
                                     >
                                         {credentials.name}&apos;s School
                                     </motion.p>

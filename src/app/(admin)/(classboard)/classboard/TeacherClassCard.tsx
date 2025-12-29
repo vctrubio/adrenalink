@@ -284,7 +284,7 @@ export default function TeacherClassCard({
     const totalEvents = completedCount + pendingCount;
     const [changedCount, setChangedCount] = useState(0);
     const [hasChanges, setHasChanges] = useState(false);
-    const [showError, setShowError] = useState(false);
+    const [showDangerBorder, setShowDangerBorder] = useState(false);
 
     // Create QueueController for event modifications
     const queueController = useMemo(() => {
@@ -296,9 +296,10 @@ export default function TeacherClassCard({
     const handleHeaderClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         if (isAdjustmentMode) {
-            // Show error animation - can't collapse while in adjustment mode
-            setShowError(true);
-            setTimeout(() => setShowError(false), 500);
+            // Can't collapse while in adjustment mode
+            console.log("Can't exit because in adjustment mode");
+            setShowDangerBorder(true);
+            setTimeout(() => setShowDangerBorder(false), 1000);
         } else {
             // Toggle collapse/expand
             onClick?.();
@@ -433,10 +434,10 @@ export default function TeacherClassCard({
             onClick={onClick}
             className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer"
         >
-            {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse or show error */}
+            {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse */}
             <div
                 onClick={handleHeaderClick}
-                className={`flex items-center gap-4 px-6 py-5 cursor-pointer transition-all duration-200 ${showError ? "bg-red-500/10 border-l-4 border-red-500" : ""}`}
+                className="flex items-center gap-4 px-6 py-5 cursor-pointer"
             >
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
                 <button
@@ -468,7 +469,7 @@ export default function TeacherClassCard({
                 </div>
             </div>
 
-            {/* Footer - Stats (toggle mode) or Controls */}
+            {/* Footer - Stats (enter mode) or Controls */}
             <div className="px-4 pb-4">
                 {isAdjustmentMode ? (
                     <SubmitCancelReset
@@ -483,9 +484,13 @@ export default function TeacherClassCard({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            onToggleAdjustment?.(!isAdjustmentMode);
+                            onToggleAdjustment?.(true);
                         }}
-                        className="w-full border border-border/50 rounded-xl p-3 bg-muted/50 hover:bg-muted transition-colors"
+                        className={`w-full rounded-xl p-3 transition-all duration-200 ${
+                            showDangerBorder
+                                ? "border-2 border-red-500 bg-red-500/10"
+                                : "border border-border/50 bg-muted/50 hover:bg-muted"
+                        }`}
                     >
                         <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
                     </button>

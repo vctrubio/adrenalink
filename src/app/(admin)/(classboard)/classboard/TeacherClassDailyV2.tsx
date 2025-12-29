@@ -196,6 +196,16 @@ function TeacherQueueCardV2({
     const [refreshKey, setRefreshKey] = useState(0);
     const originalQueueState = useRef<EventNode[]>([]);
 
+    // Auto-enter adjustment mode when global adjustment mode is active
+    useEffect(() => {
+        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
+        const isPending = isGlobalAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
+
+        if (isPending && !isAdjustmentMode) {
+            setIsAdjustmentMode(true);
+        }
+    }, [globalFlag, queue.teacher.username, isAdjustmentMode]);
+
     // Store original state when entering edit mode
     useEffect(() => {
         if (isAdjustmentMode && queue && originalQueueState.current.length === 0) {
@@ -317,6 +327,12 @@ function TeacherQueueCardV2({
                 }
             }
 
+            // If in global mode, opt out after saving
+            const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
+            if (isGlobalAdjustmentMode) {
+                globalFlag?.optOut?.(queue.teacher.username);
+            }
+
             setIsAdjustmentMode(false);
         } catch (error) {
             console.error("Error submitting queue changes:", error);
@@ -340,7 +356,25 @@ function TeacherQueueCardV2({
 
     const handleCancel = () => {
         handleReset();
+        // Check if in global adjustment mode - if so, opt out instead of just closing
+        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
+        if (isGlobalAdjustmentMode) {
+            globalFlag?.optOut?.(queue.teacher.username);
+        }
         setIsAdjustmentMode(false);
+    };
+
+    // Handle toggle adjustment mode - prevent manual exit if in global mode
+    const handleToggleAdjustment = (mode: boolean) => {
+        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
+        const isPending = isGlobalAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
+
+        // If trying to exit adjustment mode while in global mode, opt out instead
+        if (!mode && isPending) {
+            globalFlag?.optOut?.(queue.teacher.username);
+        }
+
+        setIsAdjustmentMode(mode);
     };
 
     return (
@@ -369,7 +403,7 @@ function TeacherQueueCardV2({
                     selectedDate={selectedDate}
                     controller={controller}
                     isAdjustmentMode={isAdjustmentMode}
-                    onToggleAdjustment={setIsAdjustmentMode}
+                    onToggleAdjustment={handleToggleAdjustment}
                 />
             </div>
 
