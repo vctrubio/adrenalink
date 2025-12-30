@@ -1,8 +1,13 @@
 import { getExampleEventData } from "@/supabase/server/example";
+import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
 import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
 import { EventStudentCard } from "@/src/portals/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ENTITY_DATA } from "@/config/entities";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
+import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
+import { SchoolHeaderContent } from "@/src/components/school/SchoolHeaderContent";
+import Image from "next/image";
 
 interface ExamplePageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -81,14 +86,29 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
 
     return (
         <div className="min-h-screen bg-background p-4 sm:p-8 space-y-12">
-            <header className="max-w-7xl mx-auto border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">The Adrenalink Connection</h1>
-                    <p className="text-muted-foreground">
-                        Transparent tracking for both teachers and students.
-                    </p>
+            <header className="max-w-7xl mx-auto border-b border-border pb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="space-y-4">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Image src="/ADR.webp" alt="Adrenalink Icon" width={32} height={32} className="rounded-lg" />
+                            <h1 className="text-3xl font-bold tracking-tight">The Adrenalink Connection</h1>
+                        </div>
+                        <p className="text-muted-foreground">
+                            Transparent tracking for both teachers and students.
+                        </p>
+                    </div>
+                    
+                    <div className="relative h-16 w-full max-w-md">
+                        <ChangeTheWindFooter 
+                            showFooter={true} 
+                            isStarting={false} 
+                            getStartedUrl="/register"
+                            variant="primary"
+                        />
+                    </div>
                 </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 text-xs font-mono text-muted-foreground">
+                
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 text-xs font-mono text-muted-foreground self-start sm:self-center">
                     Event ID: {eventId}
                 </div>
             </header>
@@ -99,43 +119,47 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                     <div className="w-[200px] h-[200px] border-2 border-dashed border-primary rounded-full animate-[spin_20s_linear_infinite]" />
                 </div>
 
-                {/* 1. Teacher Perspective */}
-                <section className="space-y-6 flex flex-col z-10">
+                {/* 2. Teacher Perspective */}
+                <section className="space-y-6 flex flex-col">
                     <div className="flex items-center gap-3 pb-2 border-b border-border/50">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: teacherEntity.bgColor }}>
                             <teacherEntity.icon className="w-6 h-6" style={{ color: teacherEntity.color }} />
                         </div>
                         <div>
                             <div className="block">
-                                <h2 className="text-xl font-semibold">Teacher Perspective</h2>
+                                <h2 className="text-xl font-semibold">The Instructor</h2>
                             </div>
-                            <p className="text-xs text-muted-foreground">Schedule and earnings</p>
+                            <p className="text-xs text-muted-foreground">Managing time and earnings</p>
                         </div>
                     </div>
                     
-                    <div className="relative flex-1 bg-muted/5 rounded-3xl border border-border/50 p-6 flex flex-col justify-center">
-                        <EventTeacherCard
-                            students={studentNames}
-                            location={eventData.location || "TBD"}
-                            date={new Date(eventData.date).toISOString()}
-                            duration={eventData.duration}
-                            capacity={pkg?.capacityStudents || 0}
-                            packageDescription={pkg?.description || "No description"}
-                            pricePerHour={teacherPricePerHour}
-                            status={eventData.status}
-                            categoryEquipment={pkg?.categoryEquipment}
-                            capacityEquipment={pkg?.capacityEquipment}
-                            commissionType={commissionType}
-                            commissionValue={commissionValue}
-                        />
-                         <div className="mt-6 p-4 rounded-xl bg-card border border-border text-sm text-muted-foreground">
-                            Teachers track their <span className="font-medium text-foreground">Earned Commission</span> in real-time. Every minute on the water is accounted for.
+                    <div className="relative flex-1 bg-muted/5 rounded-3xl border border-border/50 p-6 flex flex-col">
+                        <div className="space-y-2">
+                            <div className="inline-block">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
+                                    Viewing as: <a href={`/teachers/${teacher?.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-muted-foreground/50 transition-all">{teacher?.firstName} {teacher?.lastName}</a>
+                                </p>
+                            </div>
+                            <EventTeacherCard
+                                students={studentNames}
+                                location={eventData.location || "TBD"}
+                                date={new Date(eventData.date).toISOString()}
+                                duration={eventData.duration}
+                                capacity={pkg?.capacityStudents || 0}
+                                packageDescription={pkg?.description || "No description"}
+                                pricePerHour={teacherPricePerHour}
+                                status={eventData.status}
+                                categoryEquipment={pkg?.categoryEquipment}
+                                capacityEquipment={pkg?.capacityEquipment}
+                                commissionType={commissionType}
+                                commissionValue={commissionValue}
+                            />
                         </div>
                     </div>
                 </section>
 
-                {/* 2. Student Perspective */}
-                <section className="space-y-6 flex flex-col z-10">
+                {/* 3. Student Perspective */}
+                <section className="space-y-6 flex flex-col">
                     <div className="flex items-center gap-3 pb-2 border-b border-border/50">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: studentEntity.bgColor }}>
                             <studentEntity.icon className="w-6 h-6" style={{ color: studentEntity.color }} />
@@ -146,16 +170,17 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         </div>
                     </div>
 
-                    <div className="relative flex-1 bg-muted/5 rounded-3xl border border-border/50 p-6 space-y-6 flex flex-col justify-center">
+                    <div className="relative flex-1 bg-muted/5 rounded-3xl border border-border/50 p-6 space-y-6 flex flex-col">
                         <div className="space-y-6">
-                                                    {students.map((student: any) => (
-                                                        <div key={student.id} className="space-y-2">
-                                                            <div className="inline-block">
-                                                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                                                                    Viewing as: <span className="text-foreground">{student.firstName}</span>
-                                                                </p>
-                                                            </div>
-                                                            <EventStudentCard                                        teacherName={teacherName}
+                            {students.map((student: any) => (
+                                <div key={student.id} className="space-y-2">
+                                    <div className="inline-block">
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
+                                            Viewing as: <a href={`/students/${student.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-muted-foreground/50 transition-all">{student.firstName}</a>
+                                        </p>
+                                    </div>
+                                    <EventStudentCard
+                                        teacherName={teacherName}
                                         location={eventData.location || "TBD"}
                                         date={new Date(eventData.date).toISOString()}
                                         duration={eventData.duration}
@@ -167,9 +192,6 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                                     />
                                 </div>
                             ))}
-                        </div>
-                         <div className="mt-6 p-4 rounded-xl bg-card border border-border text-sm text-muted-foreground">
-                            Students have <span className="font-medium text-foreground">One Source of Truth</span> for pricing, duration, and equipment usage.
                         </div>
                     </div>
                 </section>

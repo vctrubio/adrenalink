@@ -10,6 +10,7 @@ import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
+import { getHMDuration } from "@/getters/duration-getter";
 
 interface HomeExampleProps {
     classboardData: ClassboardModel;
@@ -126,7 +127,7 @@ export function HomeExample({ classboardData }: HomeExampleProps) {
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Teachers</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{(stats.duration / 60).toFixed(1)}h</span>
+                                        <span className="font-semibold text-lg text-foreground">{getHMDuration(stats.duration)}</span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Duration</span>
                                     </div>
                                     <div className="flex flex-col items-center">
@@ -198,7 +199,7 @@ export function HomeExample({ classboardData }: HomeExampleProps) {
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
                                                                 <DurationIcon size={14} className="text-muted-foreground/70" />
-                                                                <span>{(event.duration / 60).toFixed(1)}h</span>
+                                                                <span>{getHMDuration(event.duration)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
