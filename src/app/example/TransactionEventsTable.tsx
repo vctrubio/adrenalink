@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check, TrendingUp, TrendingDown } from "lucide-react";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
@@ -13,6 +14,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { TransactionEventData } from "@/types/transaction-event";
+import TransactionEventModal from "@/src/components/modals/TransactionEventModal";
 
 // --- Sub-components ---
 
@@ -93,49 +95,61 @@ function MobileHeader() {
 
 function MobileRow({ data }: { data: TransactionEventData }) {
     const { event, teacher, packageData, financials } = data;
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const timeFormat = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
     const statusConfig = EVENT_STATUS_CONFIG[event.status as EventStatus];
 
     return (
-        <tr className="hover:bg-muted/5 transition-colors">
-            <td className="px-3 py-3 align-middle">
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                    <span className="text-xs font-bold text-muted-foreground">{new Date(event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}</span>
-                    <span className="text-sm font-bold text-foreground">{timeFormat.format(new Date(event.date))}</span>
-                    <span className="text-xs font-bold text-foreground">+{(event.duration / 60).toFixed(1)}h</span>
-                </div>
-            </td>
-            <td className="px-3 py-3 align-middle">
-                <TeacherUsernameCommissionBadge 
-                    teacherIcon={HeadsetIcon}
-                    teacherUsername={teacher.username}
-                    teacherColor="#22c55e"
-                    commissionValue={financials.commissionValue.toString()}
-                    commissionType={financials.commissionType}
-                    currency={financials.currency}
-                    showCurrency={false}
-                />
-            </td>
-            <td className="px-3 py-3 align-middle text-center">
-                <div className="inline-flex">
-                    <EquipmentStudentPackagePriceBadge 
-                        categoryEquipment={packageData.categoryEquipment}
-                        equipmentCapacity={packageData.capacityEquipment}
-                        studentCapacity={packageData.capacityStudents}
-                        packageDurationHours={packageData.durationMinutes / 60}
-                        pricePerHour={packageData.pricePerStudent / (packageData.durationMinutes / 60)}
-                    />
-                </div>
-            </td>
-            <td className="px-3 py-3 align-middle text-right">
-                {statusConfig && (
-                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-tight" style={{ backgroundColor: `${statusConfig.color}20`, color: statusConfig.color }}>
-                        {financials.profit >= 0 ? <TrendingUp size={12} strokeWidth={3} className="shrink-0" /> : <TrendingDown size={12} strokeWidth={3} className="shrink-0" />}
-                        {Math.abs(financials.profit).toFixed(0)}
+        <>
+            <tr 
+                className="hover:bg-muted/5 transition-colors cursor-pointer active:bg-muted/10"
+                onClick={() => setIsModalOpen(true)}
+            >
+                <td className="px-3 py-3 align-middle">
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="text-xs font-bold text-muted-foreground">{new Date(event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}</span>
+                        <span className="text-sm font-bold text-foreground">{timeFormat.format(new Date(event.date))}</span>
+                        <span className="text-xs font-bold text-foreground">+{(event.duration / 60).toFixed(1)}h</span>
                     </div>
-                )}
-            </td>
-        </tr>
+                </td>
+                <td className="px-3 py-3 align-middle">
+                    <TeacherUsernameCommissionBadge 
+                        teacherIcon={HeadsetIcon}
+                        teacherUsername={teacher.username}
+                        teacherColor="#22c55e"
+                        commissionValue={financials.commissionValue.toString()}
+                        commissionType={financials.commissionType}
+                        currency={financials.currency}
+                        showCurrency={false}
+                    />
+                </td>
+                <td className="px-3 py-3 align-middle text-center">
+                    <div className="inline-flex">
+                        <EquipmentStudentPackagePriceBadge 
+                            categoryEquipment={packageData.categoryEquipment}
+                            equipmentCapacity={packageData.capacityEquipment}
+                            studentCapacity={packageData.capacityStudents}
+                            packageDurationHours={packageData.durationMinutes / 60}
+                            pricePerHour={packageData.pricePerStudent / (packageData.durationMinutes / 60)}
+                        />
+                    </div>
+                </td>
+                <td className="px-3 py-3 align-middle text-right">
+                    {statusConfig && (
+                        <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-tight" style={{ backgroundColor: `${statusConfig.color}20`, color: statusConfig.color }}>
+                            {financials.profit >= 0 ? <TrendingUp size={12} strokeWidth={3} className="shrink-0" /> : <TrendingDown size={12} strokeWidth={3} className="shrink-0" />}
+                            {Math.abs(financials.profit).toFixed(0)}
+                        </div>
+                    )}
+                </td>
+            </tr>
+
+            <TransactionEventModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                data={data}
+            />
+        </>
     );
 }
 

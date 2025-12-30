@@ -20,6 +20,7 @@ export interface TransactionEventPackage {
 
 export interface TransactionEventData {
     event: {
+        id: string;
         date: string;
         duration: number;
         location: string | null;
@@ -30,6 +31,7 @@ export interface TransactionEventData {
     };
     leaderStudentName: string;
     studentCount: number;
+    studentNames: string[];
     packageData: TransactionEventPackage;
     financials: TransactionEventFinancials;
 }

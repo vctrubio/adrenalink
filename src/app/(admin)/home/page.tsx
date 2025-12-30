@@ -1,5 +1,6 @@
 import { getSchoolHeader } from "@/types/headers";
 import { getClassboardBookings } from "@/actions/classboard-action";
+import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
 import { HomeExample } from "./HomeExample";
 
 export default async function HomePage() {
@@ -14,6 +15,8 @@ export default async function HomePage() {
         );
     }
 
+    const credentials = await getSchoolCredentials();
+
     console.log("Starting fetch for HomePage...");
     const start = Date.now();
     const result = await getClassboardBookings();
@@ -24,11 +27,16 @@ export default async function HomePage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-foreground">Welcome, {school.name}</h1>
-                <p className="text-muted-foreground mt-1">Manage your adrenaline sports school</p>
-            </div>
-            <HomeExample classboardData={classboardData} />
+            <HomeExample 
+                classboardData={classboardData} 
+                school={{
+                    name: credentials?.name || school.name,
+                    username: credentials?.username || school.username,
+                    country: credentials?.country || "",
+                    timezone: credentials?.timezone || null,
+                    currency: credentials?.currency || "EUR",
+                }}
+            />
         </div>
     );
 }

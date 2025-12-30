@@ -4,10 +4,9 @@ import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
 import { EventStudentCard } from "@/src/portals/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
-import { SchoolHeaderContent } from "@/src/components/school/SchoolHeaderContent";
+import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
 import { TransactionEventsTable } from "./TransactionEventsTable";
 import { getHMDuration } from "@/getters/duration-getter";
-import Image from "next/image";
 
 // Icons
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -18,7 +17,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 
 interface ExamplePageProps {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function ExamplePage({ searchParams }: ExamplePageProps) {
@@ -26,7 +25,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
     const eventId = params.id as string;
 
     const credentials = await getSchoolCredentials();
-    const currency = credentials?.currency || "YEN"; 
+    const currency = credentials?.currency || "YEN";
 
     if (!eventId) {
         return (
@@ -56,7 +55,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
     const teacher = lesson.teacher;
     const students = booking.bookingStudents.map((bs: any) => bs.student);
     const equipments = eventData.equipmentEvents?.map((ee: any) => ee.equipment) || [];
-    
+
     // --- Calculations ---
     const studentCount = students.length;
     let teacherPricePerHour = 0;
@@ -68,18 +67,8 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
         commissionType = commission.commissionType;
         commissionValue = parseFloat(commission.cph || "0");
 
-        const lessonRevenue = calculateLessonRevenue(
-            pkg.pricePerStudent,
-            studentCount,
-            eventData.duration,
-            pkg.durationMinutes
-        );
-        const commCalc = calculateCommission(
-            eventData.duration,
-            { type: commissionType, cph: commissionValue },
-            lessonRevenue,
-            pkg.durationMinutes
-        );
+        const lessonRevenue = calculateLessonRevenue(pkg.pricePerStudent, studentCount, eventData.duration, pkg.durationMinutes);
+        const commCalc = calculateCommission(eventData.duration, { type: commissionType, cph: commissionValue }, lessonRevenue, pkg.durationMinutes);
         teacherPricePerHour = commCalc.earned / (eventData.duration / 60);
     }
 
@@ -87,46 +76,38 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
     const teacherName = teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown";
     const studentPricePerHour = pkg ? pkg.pricePerStudent / (pkg.durationMinutes / 60) : 0;
 
-    const studentRevenue = pkg ? calculateLessonRevenue(
-        pkg.pricePerStudent,
-        studentCount,
-        eventData.duration,
-        pkg.durationMinutes
-    ) : 0;
-    
+    const studentRevenue = pkg ? calculateLessonRevenue(pkg.pricePerStudent, studentCount, eventData.duration, pkg.durationMinutes) : 0;
+
     const teacherEarnings = teacherPricePerHour * (eventData.duration / 60);
     const profit = studentRevenue - teacherEarnings;
 
     return (
-        <div className="min-h-screen bg-background p-4 sm:p-8 space-y-12 pb-32">
-            <header className="max-w-7xl mx-auto border-b border-border pb-10 flex flex-col sm:flex-row sm:items-start justify-between gap-8">
-                <div className="space-y-8 w-full max-w-2xl">
-                    <SchoolHeaderContent 
-                        titleMain="The Adrenalink Connection"
-                        titleSub="Transparent tracking for both teachers and students."
-                        descriptionMain={credentials?.name || "School Name"}
-                        descriptionSub={`${credentials?.country || "Location"} · ${credentials?.timezone || "Timezone"} · ${currency}`}
-                    />
-                    
-                    <div className="relative h-16 w-full">
-                        <ChangeTheWindFooter 
-                            showFooter={true} 
-                            isStarting={false} 
-                            getStartedUrl="/register"
-                            variant="primary"
-                        />
-                    </div>
-                </div>
-                
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 text-xs font-mono text-muted-foreground self-start sm:self-center shrink-0 border border-border/50">
-                    Event ID: {eventId}
+        <div className="min-h-screen bg-background p-4 sm:p-8 space-y-10 pb-32">
+            <header className="max-w-7xl mx-auto pb-10">
+                <div className="space-y-8 w-full">
+                    <SchoolAdranlinkConnectionHeader
+                        schoolName={credentials?.name || "School Name"}
+                        username={credentials?.username || "username"}
+                        country={credentials?.country || "Location"}
+                        timezone={credentials?.timezone || "Timezone"}
+                        currency={currency}
+                        eventId={eventId}
+                        description={
+                            <>
+                                Transparent tracking{" "}
+                                <span className="text-muted-foreground/40">
+                                    <span className="italic font-medium">for both</span> teachers and students.
+                                </span>
+                            </>
+                        }
+                    />{" "}
                 </div>
             </header>
 
             {/* Transaction Record */}
             <section className="max-w-7xl mx-auto space-y-4">
                 <h2 className="text-xl font-bold tracking-tight uppercase tracking-tighter">Transaction Record</h2>
-                <TransactionEventsTable 
+                <TransactionEventsTable
                     event={{
                         date: eventData.date,
                         duration: eventData.duration,
@@ -138,6 +119,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                     }}
                     leaderStudentName={students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown"}
                     studentCount={studentCount}
+                    studentNames={studentNames}
                     packageData={{
                         description: pkg?.description || "Unknown",
                         pricePerStudent: pkg?.pricePerStudent || 0,
@@ -163,7 +145,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                 </div>
 
                 {/* Instructor Perspective */}
-                <PerspectiveSection 
+                <PerspectiveSection
                     title="The Instructor"
                     subtitle="Manage schedule and commissions"
                     icon={HeadsetIcon}
@@ -171,7 +153,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                     iconColor="text-emerald-500"
                     viewingAs={{
                         label: `${teacher?.firstName} ${teacher?.lastName}`,
-                        link: `/teachers/${teacher?.id}`
+                        link: `/teachers/${teacher?.id}`,
                     }}
                 >
                     <EventTeacherCard
@@ -191,18 +173,15 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                 </PerspectiveSection>
 
                 {/* Student Perspective */}
-                <PerspectiveSection 
-                    title="The Student"
-                    subtitle="Track booking progress and payments"
-                    icon={HelmetIcon}
-                    bgColor="bg-yellow-500/10"
-                    iconColor="text-yellow-500"
-                >
+                <PerspectiveSection title="The Student" subtitle="Track booking progress and payments" icon={HelmetIcon} bgColor="bg-yellow-500/10" iconColor="text-yellow-500">
                     <div className="space-y-6">
                         {students.map((student: any) => (
                             <div key={student.id} className="space-y-2">
                                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                                    Viewing as: <a href={`/students/${student.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">{student.firstName}</a>
+                                    Viewing as:{" "}
+                                    <a href={`/students/${student.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">
+                                        {student.firstName}
+                                    </a>
                                 </p>
                                 <EventStudentCard
                                     teacherName={teacherName}
@@ -231,7 +210,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <ResumeCard 
+                    <ResumeCard
                         title="Booking"
                         icon={BookingIcon}
                         color="#3b82f6"
@@ -242,7 +221,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         ]}
                     />
 
-                    <ResumeCard 
+                    <ResumeCard
                         title="Package"
                         icon={PackageIcon}
                         color="#fb923c"
@@ -256,7 +235,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         ]}
                     />
 
-                    <ResumeCard 
+                    <ResumeCard
                         title="Lesson & Teacher"
                         icon={HeadsetIcon}
                         color="#22c55e"
@@ -269,7 +248,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         ]}
                     />
 
-                    <ResumeCard 
+                    <ResumeCard
                         title="Event Specifics"
                         icon={FlagIcon}
                         color="#06b6d4"
@@ -281,25 +260,29 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         ]}
                     />
 
-                    <ResumeCard 
+                    <ResumeCard
                         title="Students"
                         icon={HelmetIcon}
                         color="#eab308"
                         data={students.map((s: any) => ({
                             label: "Involved",
-                            value: `${s.firstName} ${s.lastName}`
+                            value: `${s.firstName} ${s.lastName}`,
                         }))}
                     />
 
-                    <ResumeCard 
+                    <ResumeCard
                         title="Equipment"
                         icon={EquipmentIcon}
                         color="#a855f7"
-                        data={equipments.length > 0 ? equipments.map((e: any) => ({
-                            label: e.category,
-                            value: `${e.model} (${e.sku})`,
-                            isCapitalize: true
-                        })) : [{ label: "Equipment", value: "No active gear linked" }]}
+                        data={
+                            equipments.length > 0
+                                ? equipments.map((e: any) => ({
+                                    label: e.category,
+                                    value: `${e.model} (${e.sku})`,
+                                    isCapitalize: true,
+                                }))
+                                : [{ label: "Equipment", value: "No active gear linked" }]
+                        }
                     />
                 </div>
             </section>
@@ -309,23 +292,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
 
 // --- Sub-components ---
 
-function PerspectiveSection({ 
-    title, 
-    subtitle, 
-    icon: Icon, 
-    bgColor, 
-    iconColor, 
-    viewingAs, 
-    children 
-}: { 
-    title: string, 
-    subtitle: string, 
-    icon: any, 
-    bgColor: string, 
-    iconColor: string, 
-    viewingAs?: { label: string, link: string },
-    children: React.ReactNode 
-}) {
+function PerspectiveSection({ title, subtitle, icon: Icon, bgColor, iconColor, viewingAs, children }: { title: string; subtitle: string; icon: any; bgColor: string; iconColor: string; viewingAs?: { label: string; link: string }; children: React.ReactNode }) {
     return (
         <section className="space-y-6 flex flex-col z-10">
             <div className="flex items-center gap-3 pb-2 border-b border-border/50">
@@ -337,12 +304,15 @@ function PerspectiveSection({
                     <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
                 </div>
             </div>
-            
+
             <div className="relative flex-1 bg-muted/5 rounded-3xl border border-border/50 p-6">
                 <div className="space-y-2">
                     {viewingAs && (
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                            Viewing as: <a href={viewingAs.link} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">{viewingAs.label}</a>
+                            Viewing as:{" "}
+                            <a href={viewingAs.link} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">
+                                {viewingAs.label}
+                            </a>
                         </p>
                     )}
                     {children}
@@ -352,27 +322,21 @@ function PerspectiveSection({
     );
 }
 
-function ResumeCard({ title, icon: Icon, color, data }: { title: string, icon: any, color: string, data: { label: string, value: string | number | null | undefined, isCapitalize?: boolean, isStatusBadge?: boolean }[] }) {
+function ResumeCard({ title, icon: Icon, color, data }: { title: string; icon: any; color: string; data: { label: string; value: string | number | null | undefined; isCapitalize?: boolean; isStatusBadge?: boolean }[] }) {
     return (
         <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-muted/20">
                 <Icon size={16} style={{ color }} />
-                <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>{title}</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>
+                    {title}
+                </h3>
             </div>
             <div className="divide-y divide-border/50 flex-1">
                 {data.map((item, i) => (
                     <div key={i} className="px-4 py-2.5 flex items-center justify-between text-xs">
                         <span className="text-muted-foreground font-medium">{item.label}</span>
                         <div className="text-foreground font-semibold text-right">
-                            {item.isStatusBadge ? (
-                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] uppercase font-black tracking-tight">
-                                    {item.value}
-                                </span>
-                            ) : (
-                                <span className={item.isCapitalize ? "capitalize" : ""}>
-                                    {item.value}
-                                </span>
-                            )}
+                            {item.isStatusBadge ? <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] uppercase font-black tracking-tight">{item.value}</span> : <span className={item.isCapitalize ? "capitalize" : ""}>{item.value}</span>}
                         </div>
                     </div>
                 ))}
