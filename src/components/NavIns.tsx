@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { STUDENT_NAV_ITEMS, TEACHER_NAV_ITEMS } from "@/config/users-nav-routes";
@@ -25,7 +25,6 @@ function DockIcon({
     href,
     isActive,
     onClick,
-    customClass = "",
 }: {
     mouseX: MotionValue;
     children: React.ReactNode;
@@ -33,7 +32,6 @@ function DockIcon({
     href?: string;
     isActive?: boolean;
     onClick?: () => void;
-    customClass?: string;
 }) {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -42,45 +40,59 @@ function DockIcon({
         return val - bounds.x - bounds.width / 2;
     });
 
-    const widthSync = useTransform(distance, [-100, 0, 100], [50, 85, 50]);
-    const width = useSpring(widthSync, { mass: 0.1, stiffness: 300, damping: 18 });
+    const widthSync = useTransform(distance, [-150, 0, 150], [45, 85, 45]);
+    const width = useSpring(widthSync, { mass: 0.1, stiffness: 150, damping: 12 });
+    
+    const [isHovered, setHovered] = useState(false);
 
     const content = (
         <motion.div
             ref={ref}
             style={{ width, height: width }}
-            className={`aspect-square rounded-[22.5%] flex items-center justify-center relative transition-all duration-200 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-lg border border-white/40 dark:border-white/5 ${customClass}`}
+            className={`
+                aspect-square rounded-2xl flex items-center justify-center relative 
+                transition-all duration-200 ease-out border
+                ${isActive 
+                    ? "bg-white/90 dark:bg-neutral-800/90 shadow-lg border-white/20 dark:border-white/10" 
+                    : "bg-white/10 dark:bg-white/5 border-white/10 dark:border-white/5 hover:bg-white/30 dark:hover:bg-white/10"
+                }
+                backdrop-blur-md
+            `}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
-            <div className="w-full h-full p-[24%] text-neutral-800 dark:text-neutral-100">
+            <div className={`w-full h-full p-[22%] transition-colors duration-200 ${isActive ? "text-black dark:text-white" : "text-neutral-600 dark:text-neutral-400"}`}>
                 {children}
             </div>
 
-            {/* Active Dot */}
+            {/* Active Indicator */}
             {isActive && (
-                <div className="absolute -bottom-2 w-1.5 h-1.5 bg-neutral-500/60 dark:bg-neutral-400/60 rounded-full" />
+                <div className="absolute -bottom-2 w-1 h-1 bg-black/50 dark:bg-white/50 rounded-full" />
             )}
+            
+            {/* Tooltip */}
+            <motion.div
+                className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/10 shadow-md rounded-lg text-neutral-900 dark:text-neutral-100 text-[10px] font-semibold opacity-0 pointer-events-none whitespace-nowrap"
+                initial={false}
+                animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 5, scale: isHovered ? 1 : 0.9 }}
+                transition={{ duration: 0.15 }}
+            >
+                {label}
+            </motion.div>
         </motion.div>
-    );
-
-    const tooltip = (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl text-neutral-900 dark:text-white text-[11px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap pointer-events-none border border-black/5 dark:border-white/10 scale-90 group-hover:scale-100 origin-bottom duration-200">
-            {label}
-        </div>
     );
 
     if (href) {
         return (
-            <Link href={href} className="relative group">
+            <Link href={href} className="relative block">
                 {content}
-                {tooltip}
             </Link>
         );
     }
 
     return (
-        <button onClick={onClick} className="relative group outline-none">
+        <button onClick={onClick} className="relative block outline-none">
             {content}
-            {tooltip}
         </button>
     );
 }
@@ -92,9 +104,9 @@ function DesktopDock({ items, basePath, mouseX }: { items: NavItemConfig[]; base
         <nav
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => mouseX.set(Infinity)}
-            className="hidden md:flex fixed bottom-8 left-1/2 -translate-x-1/2 h-24 items-end gap-4 z-50 pointer-events-none"
+            className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 h-24 items-end gap-4 z-50 pointer-events-none"
         >
-            <div className="flex items-end gap-3 px-4 pb-3 rounded-[26px] pointer-events-auto bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/5 backdrop-blur-3xl ring-1 ring-black/5 dark:ring-white/5 h-[80px] box-content relative">
+            <div className="flex items-end gap-3 px-3 pb-3 rounded-[32px] pointer-events-auto bg-white/40 dark:bg-black/30 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-2xl shadow-black/5">
                 {items.map((item) => {
                     const href = `${basePath}${item.path}`;
                     const isActive = pathname === href || (item.path === "" && pathname === basePath);
@@ -125,22 +137,27 @@ function MobileNavItem({ item, basePath }: { item: NavItemConfig; basePath: stri
     return (
         <Link
             href={href}
-            className={`flex-1 flex flex-col items-center justify-center h-full transition-colors active:scale-95 ${
-                isActive ? "text-foreground" : "text-muted-foreground/80"
-            }`}
+            className={`flex-1 flex flex-col items-center justify-center h-full transition-all active:scale-95 hover:bg-neutral-100/50 dark:hover:bg-white/5`}
         >
-            <Icon size={26} className={isActive ? "stroke-[2.5px]" : "stroke-2"} />
+            <div className={`relative p-2 rounded-xl transition-colors ${isActive ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500"}`}>
+                <Icon size={24} className={isActive ? "stroke-[2.5px]" : "stroke-2"} />
+                {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-current rounded-full" />
+                )}
+            </div>
         </Link>
     );
 }
 
 function MobileBar({ items, basePath }: { items: NavItemConfig[]; basePath: string }) {
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-background/80 backdrop-blur-2xl border-t border-border/40 flex items-center z-50 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800 flex items-center z-50 pb-safe">
             {items.map((item, index) => (
                 <div key={item.id} className="contents">
                     <MobileNavItem item={item} basePath={basePath} />
-                    {index < items.length - 1 && <div className="w-px h-5 bg-border/30" />}
+                    {index < items.length - 1 && (
+                        <div className="w-[2.5px] h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full shrink-0" />
+                    )}
                 </div>
             ))}
         </nav>

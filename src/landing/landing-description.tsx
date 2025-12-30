@@ -22,16 +22,11 @@ export function LandingDescription() {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
-    const [isNavigating, setIsNavigating] = useState(false);
 
     useEffect(() => {
         if (selectedRole && selectedSport) {
-            setIsNavigating(true);
             const targetPath = selectedRole === "admin" ? "/pillars" : "/schools";
-            const timer = setTimeout(() => {
-                router.push(targetPath);
-            }, 800); // Wait for animation
-            return () => clearTimeout(timer);
+            router.push(targetPath);
         }
     }, [selectedRole, selectedSport, router]);
 
@@ -57,7 +52,7 @@ export function LandingDescription() {
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
-                animate={isNavigating ? { opacity: 0, scale: 1.5, filter: "blur(10px)" } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 className="relative z-10 h-full flex flex-col items-center justify-center px-4"
             >

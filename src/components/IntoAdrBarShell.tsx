@@ -16,7 +16,7 @@ export default function IntoAdrBarShell({ leftSlot, rightSlot, inverted = false,
     const router = useRouter();
     const bgClasses = inverted
         ? "bg-transparent hover:bg-black/60"
-        : "bg-black/60 hover:bg-transparent";
+        : "bg-black/60 hover:bg-black/40";
 
     const handleBarClick = () => {
         if (onBarClick) {
@@ -31,10 +31,10 @@ export default function IntoAdrBarShell({ leftSlot, rightSlot, inverted = false,
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
                 onClick={handleBarClick}
-                className={`relative flex items-center justify-between pointer-events-auto ${bgClasses} backdrop-blur-xl rounded-full px-5 py-2.5 border border-white/10 shadow-sm mx-auto max-w-7xl mt-2 transition-all duration-700 min-h-[60px] ${onBarClick ? "cursor-pointer" : ""}`}
+                className={`relative flex items-center justify-between pointer-events-auto ${bgClasses} backdrop-blur-xl rounded-full px-5 py-2.5 border border-white/20 dark:border-white/10 shadow-sm mx-auto max-w-7xl mt-2 transition-all min-h-[60px] ${onBarClick ? "cursor-pointer" : ""}`}
             >
                 {/* Left Slot */}
-                <div className="hidden md:block">
+                <div className="">
                     {leftSlot}
                 </div>
 
