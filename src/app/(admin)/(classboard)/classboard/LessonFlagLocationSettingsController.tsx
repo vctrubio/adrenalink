@@ -23,7 +23,7 @@ interface LessonFlagLocationSettingsControllerProps {
 
 /**
  * LessonFlagLocationSettingsController - Redesigned global adjustment panel.
- * 
+ *
  * DESIGN PRINCIPLES:
  * 1. Bulk Actions: Primary controls at the top adjust ALL pending teachers in the queue.
  * 2. Selective Release: Individual teachers can be saved and removed from the global session one-by-one.
@@ -31,12 +31,7 @@ interface LessonFlagLocationSettingsControllerProps {
  *    centrally managed by the globalFlag instance.
  * 4. Data Safety: "Reset" restores the exact state captured at the start of the session.
  */
-export default function LessonFlagLocationSettingsController({
-    globalFlag,
-    teacherQueues,
-    onClose,
-    onRefresh
-}: LessonFlagLocationSettingsControllerProps) {
+export default function LessonFlagLocationSettingsController({ globalFlag, teacherQueues, onClose, onRefresh }: LessonFlagLocationSettingsControllerProps) {
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
     const [locationIndex, setLocationIndex] = useState(0);
@@ -66,13 +61,13 @@ export default function LessonFlagLocationSettingsController({
     const handleIndividualSubmit = async (teacherUsername: string) => {
         const changes = globalFlag.collectChangesForTeacher(teacherUsername);
         globalFlag.setSubmitting(teacherUsername, true);
-        
+
         try {
             if (changes.length > 0) {
                 const result = await bulkUpdateClassboardEvents(changes);
                 if (!result.success) return;
             }
-            
+
             globalFlag.optOut(teacherUsername);
             onRefresh();
         } finally {
@@ -94,7 +89,7 @@ export default function LessonFlagLocationSettingsController({
         if (!isLockFlagTime && adjustmentTime) {
             globalFlag.lockToAdjustmentTime(adjustmentTime);
         } else if (isLockFlagTime) {
-            globalFlag.adapt(); 
+            globalFlag.adapt();
         }
     };
 
@@ -149,7 +144,7 @@ export default function LessonFlagLocationSettingsController({
     };
 
     return (
-        <div className="flex flex-col gap-6 p-6 h-full bg-card/50 backdrop-blur-sm">
+        <div className="flex flex-col gap-6 px-4 py-2 h-full bg-card/50 backdrop-blur-sm">
             <SubmitCancelReset
                 onSubmit={handleSubmitAll}
                 onCancel={handleCancel}
@@ -157,31 +152,29 @@ export default function LessonFlagLocationSettingsController({
                 hasChanges={hasChanges}
                 isSubmitting={isSubmitting}
                 submitLabel="Apply Changes"
-                extraContent={updatesCount > 0 && (
-                    <span className="ml-2 flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/20 text-white text-[10px] font-bold">
-                        {updatesCount}
-                    </span>
-                )}
+                extraContent={updatesCount > 0 && <span className="ml-2 flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/20 text-white text-[10px] font-bold">{updatesCount}</span>}
             />
 
             {/* Time Adjustment Section */}
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Start Time</label>
-                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                        {lockCount} SYNCHRONIZED
-                    </div>
+                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lockCount} SYNCHRONIZED</div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
-                    <button onClick={() => handleAdjustTime(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"><ChevronLeft size={18} /></button>
+                    <button onClick={() => handleAdjustTime(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                        <ChevronLeft size={18} />
+                    </button>
                     <div className="flex-1 flex flex-col items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 relative overflow-hidden group">
                         <span className="font-mono text-xl font-bold tracking-tight">{adjustmentTime || "--:--"}</span>
                         <div className="absolute inset-x-0 bottom-0 h-1 bg-primary/10">
                             <div className="h-full bg-primary transition-all duration-300" style={{ width: `${(lockCount / Math.max(pendingTeachers.size, 1)) * 100}%` }} />
                         </div>
                     </div>
-                    <button onClick={() => handleAdjustTime(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"><ChevronRight size={18} /></button>
+                    <button onClick={() => handleAdjustTime(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                        <ChevronRight size={18} />
+                    </button>
                     <button onClick={handleLockTime} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagTime ? "bg-cyan-500 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
                         {isLockFlagTime ? <Lock size={18} /> : <LockOpen size={18} />}
                     </button>
@@ -194,17 +187,19 @@ export default function LessonFlagLocationSettingsController({
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</label>
-                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                        {lockLocationCount} SYNCHRONIZED
-                    </div>
+                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lockLocationCount} SYNCHRONIZED</div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => handleAdjustLocation(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"><ChevronLeft size={18} /></button>
+                    <button onClick={() => handleAdjustLocation(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                        <ChevronLeft size={18} />
+                    </button>
                     <div className="flex-1 flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 px-2">
                         <MapPin size={16} className="mr-2 text-muted-foreground" />
                         <span className="font-medium text-sm truncate">{adjustmentLocation || "Select..."}</span>
                     </div>
-                    <button onClick={() => handleAdjustLocation(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"><ChevronRight size={18} /></button>
+                    <button onClick={() => handleAdjustLocation(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                        <ChevronRight size={18} />
+                    </button>
                     <button onClick={handleLockLocation} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagLocation ? "bg-indigo-500 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
                         {isLockFlagLocation ? <Lock size={18} /> : <LockOpen size={18} />}
                     </button>
@@ -218,8 +213,8 @@ export default function LessonFlagLocationSettingsController({
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Active Queue ({pendingTeachers.size})</label>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-2 scrollbar-hide">
                     {teacherQueues
-                        .filter(q => pendingTeachers.has(q.teacher.username))
-                        .map(q => {
+                        .filter((q) => pendingTeachers.has(q.teacher.username))
+                        .map((q) => {
                             const firstTime = q.getEarliestEventTime();
                             const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.username);
                             const individualChanges = globalFlag.collectChangesForTeacher(q.teacher.username);
@@ -238,11 +233,13 @@ export default function LessonFlagLocationSettingsController({
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 ml-2">
-                                        <button onClick={() => globalFlag.optOut(q.teacher.username)} className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors" title="Remove from queue without saving"><X size={14} /></button>
-                                        <button 
-                                            onClick={() => handleIndividualSubmit(q.teacher.username)} 
-                                            disabled={!hasIndividualChanges || isIndividualSubmitting} 
-                                            className={`p-2 rounded-lg transition-all shadow-sm ${hasIndividualChanges ? "bg-cyan-600 text-white hover:bg-cyan-700 shadow-cyan-500/20" : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"}`} 
+                                        <button onClick={() => globalFlag.optOut(q.teacher.username)} className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors" title="Remove from queue without saving">
+                                            <X size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleIndividualSubmit(q.teacher.username)}
+                                            disabled={!hasIndividualChanges || isIndividualSubmitting}
+                                            className={`p-2 rounded-lg transition-all shadow-sm ${hasIndividualChanges ? "bg-cyan-600 text-white hover:bg-cyan-700 shadow-cyan-500/20" : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"}`}
                                             title={hasIndividualChanges ? `Submit changes for ${q.teacher.username}` : "No changes to submit"}
                                         >
                                             {isIndividualSubmitting ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Zap size={14} className={hasIndividualChanges ? "fill-current" : ""} />}

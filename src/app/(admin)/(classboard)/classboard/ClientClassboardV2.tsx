@@ -19,39 +19,52 @@ interface ClientClassboardV2Props {
     data: ClassboardModel;
 }
 
+/**
+ * ClientClassboardV2 - Main entry point for the optimized classboard.
+ * 
+ * DESIGN PRINCIPLES:
+ * 1. Stable Session Logic: The globalFlag instance is stable. Components exclusively use 
+ *    globalFlag.getTeacherQueues() to ensure that pending local adjustments are never 
+ *    momentarily replaced by server data during refreshes (eliminating flickers).
+ * 2. Synchronous State Sync: Data from useClassboard is synced into globalFlag via useMemo
+ *    to ensure that even the very first render after a refresh carries the preserved state.
+ */
 export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     const [refreshKey, setRefreshKey] = useState(0);
     const [showSplash, setShowSplash] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-    const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues, isLessonTeacher, addOptimisticEvent } = useClassboard(data);
-
+    // Raw data from hooks
+    const { mounted, selectedDate, setSelectedDate, controller, setController, draggedBooking, setDraggedBooking, classboardData, setClassboardData, draggableBookings, teacherQueues: rawTeacherQueues, isLessonTeacher, addOptimisticEvent } = useClassboard(data);
     const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
 
-    // Enforce minimum splash screen duration
     useEffect(() => {
         const timer = setTimeout(() => setShowSplash(false), 2000);
         return () => clearTimeout(timer);
     }, []);
 
-    // Create a stable refresh handler
     const handleRefresh = useCallback(() => {
         setRefreshKey((prev) => prev + 1);
     }, []);
 
-    // Create global flag instance - STABLE across data refreshes
+    // Global session manager - stable reference
     const globalFlag = useMemo(
-        () => new GlobalFlag(teacherQueues, controller, handleRefresh),
+        () => new GlobalFlag(rawTeacherQueues, controller, handleRefresh),
         [] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
-    // Sync globalFlag context when external data changes
-    useEffect(() => {
-        globalFlag.updateTeacherQueues(teacherQueues);
+    /**
+     * Source of Truth Rule:
+     * We sync the incoming server data into our stable session manager.
+     * The components below MUST use 'teacherQueues' derived here, which 
+     * prioritizes local preserved instances for pending teachers.
+     */
+    const teacherQueues = useMemo(() => {
+        globalFlag.updateTeacherQueues(rawTeacherQueues);
         globalFlag.updateController(controller);
-    }, [teacherQueues, controller, globalFlag]);
+        return globalFlag.getTeacherQueues();
+    }, [rawTeacherQueues, controller, globalFlag, refreshKey]);
 
-    // Sync settings panel with global adjustment mode state
     useEffect(() => {
         const isGlobalMode = globalFlag.isAdjustmentMode();
         if (isGlobalMode && !isSettingsOpen) {
@@ -71,11 +84,8 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     });
 
     const handleEventDeleted = (eventId: string) => {
-        // Remove the event from classboardData by rebuilding the object
         setClassboardData((prevData) => {
             const updatedData = { ...prevData };
-
-            // Iterate through bookings to find and remove the event
             Object.keys(updatedData).forEach((bookingId) => {
                 const booking = updatedData[bookingId];
                 if (booking.lessons) {
@@ -86,7 +96,6 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                     });
                 }
             });
-
             return updatedData;
         });
     };
@@ -99,29 +108,22 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
         }));
     }, [allSchoolTeachers]);
 
-    // Compute stats using ClassboardStatistics
     const stats = useMemo(() => {
         const statistics = new ClassboardStatistics(data, selectedDate);
         return statistics.getHeaderStats();
     }, [data, selectedDate]);
 
-    // Show splash screen if not mounted OR waiting for timer OR if there's a critical error
     if (!mounted || showSplash || teachersError) {
         return <ClassboardSkeleton error={!!teachersError} />;
     }
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: "easeOut" }} className="flex flex-col h-full overflow-hidden">
-            {/* ═══════════════════════════════════════════════════════════════
-                TOP SECTION - Date/Settings & Stats (flex-wrap)
-            ═══════════════════════════════════════════════════════════════ */}
             <div className="flex flex-wrap gap-4 p-4">
-                {/* Date Picker OR Settings Toggle Area */}
                 <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 relative overflow-hidden transition-all duration-300">
                     <div className="animate-in fade-in zoom-in-95 duration-200">
                         <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                     </div>
-                    
                     <div className="absolute top-4 right-4 z-10">
                         <ToggleSettingIcon 
                             isOpen={isSettingsOpen} 
@@ -137,14 +139,9 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                         />
                     </div>
                 </div>
-
-                {/* Stats Section */}
                 <ClassboardStatisticsComponent stats={stats} />
             </div>
 
-            {/* ═══════════════════════════════════════════════════════════════
-                CONTENT BOARD - Students & Teachers
-            ═══════════════════════════════════════════════════════════════ */}
             <div className="flex-1 overflow-hidden h-full flex flex-col">
                 <div className="flex-1 overflow-hidden">
                     <ClassboardContentBoard
@@ -167,14 +164,10 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                             globalFlag.exitAdjustmentMode();
                             setIsSettingsOpen(false);
                         }}
-                        onRefresh={() => setRefreshKey((prev) => prev + 1)}
+                        onRefresh={handleRefresh}
                     />
                 </div>
             </div>
-
-            {/* ═══════════════════════════════════════════════════════════════
-                FOOTER - Control Panel (New V2)
-            ═══════════════════════════════════════════════════════════════ */}
             <ClassboardFooterV2 controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
         </motion.div>
     );

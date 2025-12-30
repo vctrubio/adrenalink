@@ -2,15 +2,25 @@
  * GlobalFlag - Centralized state manager for Classboard time/location adjustments.
  * 
  * DESIGN PRINCIPLES (The "WHY"):
+ * 
  * 1. Single Source of Truth: All adjustment states (pending teachers, snapshots, submitting status)
  *    live here to prevent synchronization bugs between the sidebar and individual cards.
+ * 
  * 2. Session Stability: The class instance is preserved across data refreshes. It uses
- *    "Instance Preservation" to ensure that background data updates (e.g., from Supabase real-time)
- *    do not overwrite local in-memory mutations for teachers currently being edited.
+ *    "Instance Preservation" (see updateTeacherQueues) to ensure that background data updates 
+ *    (e.g., from Supabase real-time or partial submits) do not overwrite local in-memory 
+ *    mutations for teachers currently being edited.
+ * 
  * 3. Atomic Snapshots: Original state is captured at the moment a teacher enters the queue.
- *    This allows for reliable "Reset" functionality and precise change detection.
+ *    This allows for reliable "Reset" functionality and precise change detection by comparing
+ *    the current mutated EventNodes with the saved snapshots.
+ * 
  * 4. Automatic Session Management: The session (adjustmentMode) automatically terminates
- *    when the last teacher opts out or is successfully saved.
+ *    when the last teacher opts out or is successfully saved. This is handled in optOut().
+ * 
+ * 5. Coordinated UI Transitions: Individual cards listen to the GlobalFlag session state.
+ *    When the global session ends (e.g., sidebar closed), all cards automatically exit 
+ *    adjustment mode to maintain a consistent "View" vs "Edit" state across the app.
  */
 
 import { QueueController } from "../QueueController";
@@ -61,6 +71,13 @@ export class GlobalFlag {
 
     isSubmitting(teacherUsername: string): boolean {
         return this.submittingTeachers.has(teacherUsername);
+    }
+
+    /**
+     * Returns the effective list of teacher queues, merging server data with local preserved instances
+     */
+    getTeacherQueues(): TeacherQueue[] {
+        return this.teacherQueues;
     }
 
     getGlobalEarliestTime(): string | null {
