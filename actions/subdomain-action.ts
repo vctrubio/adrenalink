@@ -7,6 +7,7 @@ import { createSchoolModel } from "@/backend/models/SchoolModel";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: string | null; bannerUrl: string | null }> {
+    const startTime = Date.now();
     try {
         const bucketName = process.env.CLOUDFLARE_R2_BUCKET;
         const publicBaseUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
@@ -27,67 +28,46 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
             },
         });
 
-        let iconUrl: string | null = null;
-        let bannerUrl: string | null = null;
-
-        // Try school-specific icon
-        const schoolIconPath = `${schoolUsername}/icon.png`;
-        try {
-            await s3Client.send(new HeadObjectCommand({
-                Bucket: bucketName,
-                Key: schoolIconPath,
-            }));
-            iconUrl = `${publicBaseUrl}/${schoolIconPath}`;
-            console.log(`✅ Found school icon: ${schoolIconPath}`);
-        } catch {
-            // Try admin fallback
-            const adminIconPath = "admin/icon.png";
+        // Helper to check if a key exists
+        const checkExists = async (key: string) => {
             try {
-                await s3Client.send(new HeadObjectCommand({
-                    Bucket: bucketName,
-                    Key: adminIconPath,
-                }));
-                iconUrl = `${publicBaseUrl}/${adminIconPath}`;
-                console.log("✅ Using admin icon fallback");
+                await s3Client.send(new HeadObjectCommand({ Bucket: bucketName, Key: key }));
+                return true;
             } catch {
-                console.warn(`⚠️ No icon found for ${schoolUsername} or admin`);
-                iconUrl = null;
+                return false;
             }
-        }
+        };
 
-        // Try school-specific banner (try both .png and .jpeg)
+        // 1. Check icon (school-specific then admin fallback)
+        const iconPaths = [`${schoolUsername}/icon.png`, "admin/icon.png"];
+        
+        // 2. Check banners in parallel
         const bannerExtensions = ["banner.png", "banner.jpeg", "banner.jpg"];
-        for (const bannerFile of bannerExtensions) {
-            const schoolBannerPath = `${schoolUsername}/${bannerFile}`;
-            try {
-                await s3Client.send(new HeadObjectCommand({
-                    Bucket: bucketName,
-                    Key: schoolBannerPath,
-                }));
-                bannerUrl = `${publicBaseUrl}/${schoolBannerPath}`;
-                console.log(`✅ Found school banner: ${schoolBannerPath}`);
-                break;
-            } catch {
-                // Try next extension
-            }
+        const schoolBannerPaths = bannerExtensions.map(ext => `${schoolUsername}/${ext}`);
+        const adminBannerPath = "admin/banner.png";
+        
+        // We can fire all checks in parallel
+        const [iconResults, bannerResults, adminBannerExists] = await Promise.all([
+            Promise.all(iconPaths.map(checkExists)),
+            Promise.all(schoolBannerPaths.map(checkExists)),
+            checkExists(adminBannerPath)
+        ]);
+
+        // Resolve icon
+        let iconUrl: string | null = null;
+        if (iconResults[0]) iconUrl = `${publicBaseUrl}/${iconPaths[0]}`;
+        else if (iconResults[1]) iconUrl = `${publicBaseUrl}/${iconPaths[1]}`;
+
+        // Resolve banner
+        let bannerUrl: string | null = null;
+        const foundBannerIndex = bannerResults.findIndex(exists => exists);
+        if (foundBannerIndex !== -1) {
+            bannerUrl = `${publicBaseUrl}/${schoolBannerPaths[foundBannerIndex]}`;
+        } else if (adminBannerExists) {
+            bannerUrl = `${publicBaseUrl}/${adminBannerPath}`;
         }
 
-        // If no school banner found, try admin fallback
-        if (!bannerUrl) {
-            const adminBannerPath = "admin/banner.png";
-            try {
-                await s3Client.send(new HeadObjectCommand({
-                    Bucket: bucketName,
-                    Key: adminBannerPath,
-                }));
-                bannerUrl = `${publicBaseUrl}/${adminBannerPath}`;
-                console.log("✅ Using admin banner fallback");
-            } catch {
-                console.warn(`⚠️ No banner found for ${schoolUsername} or admin`);
-                bannerUrl = null;
-            }
-        }
-
+        console.log(`⏱️ [fetchSchoolAssets] Completed in ${Date.now() - startTime}ms`);
         return { iconUrl, bannerUrl };
     } catch (error) {
         console.error("Error fetching school assets:", error);
@@ -95,43 +75,53 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
     }
 }
 
-// DRY: Standard school relations query
-const schoolWithRelations = {
-    schoolStudents: {
-        with: {
-            student: true,
-        },
-    },
-    schoolPackages: true,
-    bookings: {
-        with: {
-            studentPackage: {
-                with: {
-                    schoolPackage: true,
-                },
-            },
-        },
-    },
+// Standard school relations query - only fetch what's actually needed for the subdomain landing page
+const schoolSubdomainRelations = {
+    schoolPackages: {
+        where: (packages: any, { eq }: any) => eq(packages.active, true),
+    }
 };
 
+import { unstable_cache } from "next/cache";
+
+// Cache school assets for 1 hour
+const getCachedSchoolAssets = unstable_cache(
+    async (username: string) => fetchSchoolAssets(username),
+    ["school-assets"],
+    { revalidate: 3600, tags: ["school-assets"] }
+);
+
+// Cache school data for 1 hour
+const getCachedSchoolByUsername = unstable_cache(
+    async (username: string) => db.query.school.findFirst({
+        where: eq(school.username, username),
+    }),
+    ["school-by-username"],
+    { revalidate: 3600, tags: ["school"] }
+);
+
 export async function getSchoolSubdomain(username: string) {
+    const startTime = Date.now();
+    console.log(`🔍 [getSchoolSubdomain] Starting fetch for: ${username}`);
+
     try {
-        // Get school by username
-        const schoolResult = await db.query.school.findFirst({
-            where: eq(school.username, username),
-            with: schoolWithRelations,
-        });
+        // Step 1: Fetch school data and assets in parallel (Cached)
+        const [schoolResult, assets] = await Promise.all([
+            getCachedSchoolByUsername(username).catch(e => {
+                console.error("❌ [getSchoolSubdomain] Error fetching school:", e);
+                throw e;
+            }),
+            getCachedSchoolAssets(username)
+        ]);
+
+        console.log(`⏱️ [getSchoolSubdomain] Base data fetched in ${Date.now() - startTime}ms`);
 
         if (!schoolResult) {
+            console.warn(`⚠️ [getSchoolSubdomain] School not found: ${username}`);
             return { success: false, error: "School not found" };
         }
 
-        // Fetch assets from R2 bucket
-        const assets = await fetchSchoolAssets(username);
-
-        const schoolModel = createSchoolModel(schoolResult);
-
-        // Fetch public packages
+        // Step 2: Fetch public packages with booking counts (Keep this fresh or short-lived cache)
         const packages = await db
             .select({
                 id: schoolPackage.id,
@@ -160,6 +150,10 @@ export async function getSchoolSubdomain(username: string) {
             )
             .groupBy(schoolPackage.id);
 
+        console.log(`⏱️ [getSchoolSubdomain] Total fetch completed in ${Date.now() - startTime}ms`);
+
+        const schoolModel = createSchoolModel(schoolResult);
+
         return { 
             success: true, 
             data: {
@@ -169,26 +163,35 @@ export async function getSchoolSubdomain(username: string) {
             }
         };
     } catch (error) {
-        console.error("Error fetching school subdomain:", error);
-        return { success: false, error: "Failed to fetch school subdomain" };
+        console.error("💥 [getSchoolSubdomain] Critical error:", error);
+        return { 
+            success: false, 
+            error: error instanceof Error ? error.message : "Failed to fetch school subdomain" 
+        };
     }
 }
 
+// Cache all schools list for 1 hour
+const getCachedAllSchools = unstable_cache(
+    async () => db
+        .select({
+            id: school.id,
+            name: school.name,
+            username: school.username,
+            country: school.country,
+            currency: school.currency,
+            equipmentCategories: school.equipmentCategories,
+            status: school.status,
+        })
+        .from(school)
+        .where(inArray(school.status, ["active", "pending"])),
+    ["all-schools"],
+    { revalidate: 3600, tags: ["school"] }
+);
+
 export async function getAllSchools() {
     try {
-        const schools = await db
-            .select({
-                id: school.id,
-                name: school.name,
-                username: school.username,
-                country: school.country,
-                currency: school.currency,
-                equipmentCategories: school.equipmentCategories,
-                status: school.status,
-            })
-            .from(school)
-            .where(inArray(school.status, ["active", "pending"]));
-
+        const schools = await getCachedAllSchools();
         return { success: true, data: schools };
     } catch (error) {
         console.error("Error fetching all schools:", error);

@@ -12,8 +12,9 @@
  * @pattern getXHeader() -> { id: string, name: string, zone: string }
  */
 
-import { headers } from "next/headers";
 import { unstable_cache, revalidateTag } from "next/cache";
+import { headers } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 import { db } from "@/drizzle/db";
 import { school } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -33,7 +34,6 @@ export interface HeaderContext {
 /**
  * Internal cached function to look up the full school object by username.
  * This is the single source of truth for fetching school data from the database.
- * It is cached for 1 hour and tagged for on-demand revalidation.
  */
 const getSchoolByUsername = unstable_cache(
     async (username: string): Promise<typeof school.$inferSelect | null> => {
@@ -43,14 +43,17 @@ const getSchoolByUsername = unstable_cache(
             });
             return result || null;
         } catch (error) {
-            console.error(`Error fetching school by username "${username}":`, error);
-            return null;
+            unstable_rethrow(error);
+            // CRITICAL: We THROW here so unstable_cache does NOT cache the failure.
+            // Returning null would cache the "not found" state for 1 hour.
+            console.error(`💥 [getSchoolByUsername] DB Error for "${username}":`, error);
+            throw error; 
         }
     },
-    ["school-by-username"], // Cache key for this specific lookup
+    ["school-by-username"],
     {
         revalidate: 3600, // Cache for 1 hour
-        tags: ["school"], // Tag for on-demand revalidation
+        tags: ["school"],
     },
 );
 
@@ -60,55 +63,46 @@ const getSchoolByUsername = unstable_cache(
  * This function follows the `getXHeader` pattern, returning a standardized
  * `HeaderContext` object for the school.
  *
- * @returns {Promise<HeaderContext | null>} A promise that resolves to a `HeaderContext` object for the school, or `null` if the header is not found or the school does not exist.
- *
- * @example
- * // For a school with username 'kite-tarifa', id '...', and timezone 'Europe/Madrid':
- * const schoolCtx = await getSchoolHeader();
- * if (schoolCtx) {
- *   console.log(schoolCtx.id);   // '...' (The school's UUID)
- *   console.log(schoolCtx.name); // 'kite-tarifa' (The school's username)
- *   console.log(schoolCtx.zone); // 'Europe/Madrid' (The school's timezone)
- * }
- *
- * @mapping
- * - `id`: The school's unique UUID (`school.id`).
- * - `name`: The school's `username` slug (`school.username`).
- * - `zone`: The school's IANA timezone string (`school.timezone`).
+ * @returns {Promise<HeaderContext | null>} A promise that resolves to a `HeaderContext` object for the school, or `null` if the header is not found.
  */
 export async function getSchoolHeader(): Promise<HeaderContext | null> {
     const headersList = await headers();
     const username = headersList.get("x-school-username");
 
-    console.log("getSchoolHeader: x-school-username header value::::::::::::::::::::", username);
     if (!username) {
         return null;
     }
 
-    let schoolData = await getSchoolByUsername(username);
-
-    console.log("getSchoolHeader: schoolData fetched from cache::::::::::::::::::::", schoolData);
+    let schoolData: typeof school.$inferSelect | null = null;
+    
+    try {
+        schoolData = await getSchoolByUsername(username);
+    } catch (error) {
+        unstable_rethrow(error);
+        console.error("⚠️ [getSchoolHeader] Cache fetch failed, attempting direct DB fallback...");
+    }
 
     // If cached value is null or missing timezone, bypass cache and fetch directly
     if (!schoolData || !schoolData.timezone) {
-        console.log("getSchoolHeader: Cached value null or missing timezone, fetching directly from DB...");
-
         try {
             schoolData = await db.query.school.findFirst({
                 where: eq(school.username, username),
             });
-            console.log("getSchoolHeader: Fresh data from DB::::::::::::::::::::", schoolData);
         } catch (error) {
-            console.error(`Error fetching school by username "${username}" from DB:`, error);
-            return null;
+            unstable_rethrow(error);
+            console.error(`❌ [getSchoolHeader] Direct DB fallback failed for "${username}":`, error);
+            // In case of DB error, we still return school-not-found to indicate the context is invalid
+            return {
+                id: "none",
+                name: "school-not-found",
+                zone: "UTC"
+            };
         }
     }
 
-    // schoolData?.timezone = "America/New_York"; // DEV OVERRIDE
-
     if (!schoolData || !schoolData.timezone) {
         if (!schoolData) {
-            console.warn(`[getSchoolHeader] School with username "${username}" not found in database.`);
+            console.warn(`[getSchoolHeader] School "${username}" not found after both cache and DB checks.`);
         } else {
             console.warn(`[getSchoolHeader] School "${username}" is missing a timezone.`);
         }

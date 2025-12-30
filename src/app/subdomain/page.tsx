@@ -27,7 +27,17 @@ export default async function SubdomainPage({ searchParams }: SubdomainPageProps
     try {
         const result = await getSchoolSubdomain(username);
 
-        if (!result.success || !result.data) {
+        if (!result.success) {
+            if (result.error === "School not found") {
+                const schoolsResult = await getAllSchools();
+                const schools = schoolsResult.success ? schoolsResult.data || [] : [];
+                return <NoSchoolFound schools={schools} />;
+            } else {
+                throw new Error(result.error || "Database connection error");
+            }
+        }
+
+        if (!result.data) {
             const schoolsResult = await getAllSchools();
             const schools = schoolsResult.success ? schoolsResult.data || [] : [];
             return <NoSchoolFound schools={schools} />;

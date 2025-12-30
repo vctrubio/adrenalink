@@ -14,31 +14,34 @@ const globalForDb = globalThis as unknown as {
 };
 
 // Determine which DATABASE_URL to use:
-// - Development: Use Direct URL (best for complex queries + realtime)
-// - Production: Use Pooled URL (aws-1-eu-west-1.pooler.supabase.com:6543)
-// Note: Transaction pooler (port 6543) is slow for complex queries
-//       Session pooler (port 5432 with ?pgbouncer=true) is better
-//       Direct connection (db.*.supabase.co:5432) is best for everything
-const dbUrl = process.env.NODE_ENV !== "production" && process.env.DATABASE_DIRECT_URL
-    ? process.env.DATABASE_DIRECT_URL
-    : process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === "production";
+const directUrl = process.env.DATABASE_DIRECT_URL;
+const pooledUrl = process.env.DATABASE_URL;
+
+// Preference: 
+// 1. If DATABASE_URL (pooled) is available, use it (most reliable for dev/prod)
+// 2. If not, fallback to DATABASE_DIRECT_URL
+const dbUrl = pooledUrl || directUrl;
 
 if (!dbUrl) {
-    throw new Error("DATABASE_URL or DATABASE_DIRECT_URL is not defined");
+    throw new Error("Neither DATABASE_URL nor DATABASE_DIRECT_URL is defined");
 }
 
-console.log(`📡 Connecting to database in ${process.env.NODE_ENV} mode: ${dbUrl?.split("@")[1]?.split(":")[0] || "unknown"}`);
+const isPooled = dbUrl.includes(":6543");
+console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
+console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
+console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
 
 // Singleton pattern to prevent connection leaks during HMR in development
 const sql =
     globalForDb.conn ??
     postgres(dbUrl, {
-        max: 20, // Increased for better concurrency (was 10)
-        idle_timeout: 60, // Increased for better connection reuse (was 20)
-        connect_timeout: 10, // Decreased for faster feedback (was 30)
-        prepare: false, // Disable prepared statements to reduce overhead
+        max: isProduction ? 10 : 20, // Keep dev higher for HMR, production lower for pooling limits
+        idle_timeout: 30,
+        connect_timeout: 5, // Fast failure for better UX (was 10)
+        prepare: false,
         backoff: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 10000),
-        debug: process.env.DEBUG_DB_QUERIES === "true" ? console.log : undefined,
+        onnotice: () => {}, // Quiet notices
     });
 
 if (process.env.NODE_ENV !== "production") {

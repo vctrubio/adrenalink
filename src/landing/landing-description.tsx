@@ -5,11 +5,11 @@ import { Camera } from "lucide-react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
+import { SportSelection } from "@/src/components/ui/SportSelection";
 
 const USER_ROLES = [
     { id: "admin", label: "Admin", icon: AdminIcon },
@@ -17,18 +17,11 @@ const USER_ROLES = [
     { id: "teacher", label: "Teacher", icon: HeadsetIcon },
 ];
 
-const SPORTS = [
-    { id: "wingfoiling", label: "Wing Foiling", image: "/categories/wing.webp" },
-    { id: "windsurfing", label: "Windsurfing", image: "/categories/wind.webp" },
-    { id: "kitesurfing", label: "Kitesurfing", image: "/categories/kite.webp" },
-];
-
 export function LandingDescription() {
     const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
-    const [hoveredSport, setHoveredSport] = useState<string | null>(null);
     const [isNavigating, setIsNavigating] = useState(false);
 
     useEffect(() => {
@@ -79,7 +72,7 @@ export function LandingDescription() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                         >
                             <div 
-                                className="w-[300px] h-[300px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
+                                className="w-[240px] h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                                 style={{
                                     maskImage: 'url(/ADR.webp)',
                                     maskSize: 'contain',
@@ -124,7 +117,7 @@ export function LandingDescription() {
                                             onClick={() => setSelectedRole(isSelected ? null : role.id)}
                                             onHoverStart={() => setHoveredRole(role.id)}
                                             onHoverEnd={() => setHoveredRole(null)}
-                                            className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
+                                            className={`relative rounded-[2rem] overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
                                                 isSelected
                                                     ? "bg-white/20 border-white/60 z-10"
                                                     : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
@@ -137,12 +130,12 @@ export function LandingDescription() {
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                             >
-                                                <Icon size={isHovered ? 48 : 40} className={isHovered || isSelected ? "text-white" : "text-white/60"} />
+                                                <Icon size={isHovered ? 48 : 40} className={isHovered || isSelected ? "text-white" : "text-white"} />
                                             </motion.div>
 
                                             <motion.span
                                                 layout="position"
-                                                className={`hidden md:block text-base font-medium tracking-wide ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
+                                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
                                             >
                                                 {role.label}
                                             </motion.span>
@@ -152,59 +145,12 @@ export function LandingDescription() {
                             })}
                         </div>
 
-                        {/* Sport Selection */}
-                        <div className="grid grid-cols-3 md:flex md:flex-row gap-4 h-[100px] md:h-[140px] w-full items-stretch justify-center">
-                            {SPORTS.map((sport) => {
-                                const isSelected = selectedSport === sport.id;
-                                const isHovered = hoveredSport === sport.id;
-
-                                return (
-                                    <motion.div
-                                        key={sport.id}
-                                        layout
-                                        initial={{ flex: 1 }}
-                                        animate={{
-                                            flex: isHovered ? 2 : 1,
-                                        }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    >
-                                        <motion.button
-                                            onClick={() => setSelectedSport(isSelected ? null : sport.id)}
-                                            onHoverStart={() => setHoveredSport(sport.id)}
-                                            onHoverEnd={() => setHoveredSport(null)}
-                                            className={`relative rounded-3xl overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
-                                                isSelected
-                                                    ? "bg-white/20 border-white/60 text-white z-10"
-                                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
-                                            }`}
-                                        >
-                                            <motion.div
-                                                layout="position"
-                                                animate={{
-                                                    scale: isHovered ? 1.2 : 1,
-                                                }}
-                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                            >
-                                                <Image
-                                                    src={sport.image}
-                                                    alt={sport.label}
-                                                    width={isHovered ? 64 : 48}
-                                                    height={isHovered ? 64 : 48}
-                                                    className={`object-contain transition-all duration-300 ${isHovered || isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60"}`}
-                                                />
-                                            </motion.div>
-
-                                            <motion.span
-                                                layout="position"
-                                                className={`hidden md:block text-base font-medium tracking-wide ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
-                                            >
-                                                {sport.label}
-                                            </motion.span>
-                                        </motion.button>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
+                        {/* Sport Selection - Reusable Component */}
+                        <SportSelection 
+                            selectedSport={selectedSport} 
+                            onSelectSport={setSelectedSport} 
+                            variant="landing"
+                        />
                     </div>
                 </div>
             </motion.div>

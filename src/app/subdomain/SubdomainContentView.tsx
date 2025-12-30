@@ -24,12 +24,23 @@ export async function SubdomainContentView({ username, isAdminView = false }: Su
     try {
         const result = await getSchoolSubdomain(username);
 
-        if (!result.success || !result.data) {
-            // Get all schools for the 404 page
+        if (!result.success) {
+            // Distinguish between school not found and DB error
+            if (result.error === "School not found") {
+                // Get all schools for the 404 page
+                const schoolsResult = await getAllSchools();
+                const schools = schoolsResult.success ? schoolsResult.data || [] : [];
+                return <NoSchoolFound schools={schools} />;
+            } else {
+                // It was a DB error (like a timeout)
+                throw new Error(result.error || "Database connection error");
+            }
+        }
+
+        if (!result.data) {
             const schoolsResult = await getAllSchools();
             const schools = schoolsResult.success ? schoolsResult.data || [] : [];
-
-            return <NoSchoolFound username={username} schools={schools} />;
+            return <NoSchoolFound schools={schools} />;
         }
 
         const { school, packages } = result.data;
