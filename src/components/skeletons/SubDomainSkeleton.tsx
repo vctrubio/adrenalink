@@ -2,8 +2,15 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export const SubDomainSkeleton = () => {
+    useEffect(() => {
+        // Force light mode
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light");
+    }, []);
+
     return (
         <div className="light min-h-screen h-screen bg-[#f8f9fa] flex flex-col items-center p-4 md:p-8 overflow-hidden overscroll-none text-zinc-900">
             {/* Force preload of the mask image */}
