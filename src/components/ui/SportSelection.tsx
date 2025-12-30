@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export const SPORTS_CONFIG = [
@@ -16,9 +16,10 @@ interface SportSelectionProps {
     selectedSport: string | null;
     onSelectSport: (id: string | null) => void;
     variant?: "landing" | "schools";
+    counts?: Record<string, number>;
 }
 
-export function SportSelection({ selectedSport, onSelectSport, variant = "schools" }: SportSelectionProps) {
+export function SportSelection({ selectedSport, onSelectSport, variant = "schools", counts }: SportSelectionProps) {
     const [hoveredSport, setHoveredSport] = useState<string | null>(null);
 
     const isLanding = variant === "landing";
@@ -28,6 +29,7 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
             {SPORTS_CONFIG.map((sport) => {
                 const isSelected = selectedSport === sport.id;
                 const isHovered = hoveredSport === sport.id;
+                const count = counts?.[sport.id] ?? 0;
 
                 return (
                     <motion.div
@@ -55,6 +57,17 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                         : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-border"
                             }`}
                         >
+                            {/* Count Badge */}
+                            {count > 0 && (
+                                <div className={`absolute top-3 right-4 px-2 py-0.5 rounded-full text-[10px] font-black tabular-nums border ${
+                                    isSelected 
+                                        ? "bg-foreground text-background border-transparent" 
+                                        : "bg-muted/50 text-muted-foreground border-border/50"
+                                }`}>
+                                    {count}
+                                </div>
+                            )}
+
                             <motion.div
                                 layout="position"
                                 animate={{
@@ -71,7 +84,7 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                     className={`object-contain transition-all duration-300 ${
                                         isLanding 
                                             ? (isHovered || isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60")
-                                            : (isHovered || isSelected ? "brightness-0 dark:invert" : "opacity-40 grayscale")
+                                            : (isHovered || isSelected ? "brightness-0 dark:invert" : "brightness-0 dark:invert opacity-70")
                                     }`}
                                 />
                             </motion.div>
