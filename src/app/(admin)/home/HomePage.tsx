@@ -15,7 +15,7 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
-import { TransactionEventsTable } from "@/src/components/school/TransactionEventsTable";
+import { TransactionEventsTable, type GroupingType } from "@/src/components/school/TransactionEventsTable";
 import { TransactionEventData } from "@/types/transaction-event";
 
 interface HomePageProps {
@@ -52,49 +52,29 @@ interface DateGroup {
 
 // --- Sub-components ---
 
-function ViewToggle({ 
-    mode, 
-    setMode, 
-    groupByDate, 
-    setGroupByDate 
-}: { 
-    mode: "grouped" | "table"; 
-    setMode: (m: "grouped" | "table") => void;
-    groupByDate: boolean;
-    setGroupByDate: (v: boolean) => void;
-}) {
+function ViewToggle({ mode, setMode, groupBy, setGroupBy }: { mode: "grouped" | "table"; setMode: (m: "grouped" | "table") => void; groupBy: GroupingType; setGroupBy: (v: GroupingType) => void }) {
     return (
         <div className="flex items-center gap-3">
             {mode === "table" && (
-                <button
-                    onClick={() => setGroupByDate(!groupByDate)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
-                        groupByDate 
-                            ? "bg-primary/10 border-primary/20 text-primary shadow-sm" 
-                            : "bg-muted/50 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                >
-                    <Calendar size={14} />
-                    <span>Group by Date</span>
-                </button>
+                <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit">
+                    <button onClick={() => setGroupBy("none")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "none" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        List
+                    </button>
+                    <button onClick={() => setGroupBy("date")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "date" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        Date
+                    </button>
+                    <button onClick={() => setGroupBy("week")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        Week
+                    </button>
+                </div>
             )}
-            
+
             <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit">
-                <button
-                    onClick={() => setMode("grouped")}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        mode === "grouped" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
+                <button onClick={() => setMode("grouped")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "grouped" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                     <LayoutGrid size={14} />
                     <span>Grouped</span>
                 </button>
-                <button
-                    onClick={() => setMode("table")}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        mode === "table" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
+                <button onClick={() => setMode("table")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "table" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                     <List size={14} />
                     <span>Table View</span>
                 </button>
@@ -103,19 +83,7 @@ function ViewToggle({
     );
 }
 
-function GroupedListView({
-    groupedEvents,
-    classboardData,
-    expandedDates,
-    toggleDate,
-    router,
-}: {
-    groupedEvents: DateGroup[];
-    classboardData: ClassboardModel;
-    expandedDates: Record<string, boolean>;
-    toggleDate: (d: string) => void;
-    router: any;
-}) {
+function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleDate, router }: { groupedEvents: DateGroup[]; classboardData: ClassboardModel; expandedDates: Record<string, boolean>; toggleDate: (d: string) => void; router: any }) {
     return (
         <div className="space-y-4">
             {groupedEvents.map((group) => {
@@ -231,13 +199,12 @@ function GroupedListView({
                                                     />
 
                                                     <span
-                                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                                            event.status === "completed"
-                                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                                                : event.status === "planned"
+                                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.status === "completed"
+                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                            : event.status === "planned"
                                                                 ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
                                                                 : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {event.status}
                                                     </span>
@@ -255,10 +222,10 @@ function GroupedListView({
     );
 }
 
-function TableListView({ events, groupByDate }: { events: TransactionEventData[]; groupByDate: boolean }) {
+function TableListView({ events, groupBy }: { events: TransactionEventData[]; groupBy: GroupingType }) {
     return (
         <div className="space-y-4">
-            <TransactionEventsTable events={events} groupByDate={groupByDate} />
+            <TransactionEventsTable events={events} groupBy={groupBy} />
         </div>
     );
 }
@@ -267,7 +234,7 @@ export function HomePage({ classboardData, school }: HomePageProps) {
     const router = useRouter();
     const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
     const [viewMode, setViewMode] = useState<"grouped" | "table">("grouped");
-    const [groupByDate, setGroupByDate] = useState(false);
+    const [groupBy, setGroupBy] = useState<GroupingType>("none");
 
     const globalTotals = useMemo(() => {
         let totalDuration = 0;
@@ -429,7 +396,7 @@ export function HomePage({ classboardData, school }: HomePageProps) {
                             <div className="flex items-center gap-1.5">
                                 <FlagIcon size={14} />
                                 <span className="tracking-wide">
-                                    {globalTotals.events} <span className="font-medium lowercase">lessons</span>
+                                    {globalTotals.events} <span className="font-medium lowercase"></span>
                                 </span>
                             </div>
                             <div className="w-px h-3 bg-primary/20" />
@@ -453,20 +420,11 @@ export function HomePage({ classboardData, school }: HomePageProps) {
             </header>
 
             <div className="flex justify-end">
-                <ViewToggle 
-                    mode={viewMode} 
-                    setMode={setViewMode} 
-                    groupByDate={groupByDate}
-                    setGroupByDate={setGroupByDate}
-                />
+                <ViewToggle mode={viewMode} setMode={setViewMode} groupBy={groupBy} setGroupBy={setGroupBy} />
             </div>
 
             <div className="space-y-6">
-                {viewMode === "grouped" ? (
-                    <GroupedListView groupedEvents={groupedEvents} classboardData={classboardData} expandedDates={expandedDates} toggleDate={toggleDate} router={router} />
-                ) : (
-                    <TableListView events={allTransactionEvents} groupByDate={groupByDate} />
-                )}
+                {viewMode === "grouped" ? <GroupedListView groupedEvents={groupedEvents} classboardData={classboardData} expandedDates={expandedDates} toggleDate={toggleDate} router={router} /> : <TableListView events={allTransactionEvents} groupBy={groupBy} />}
 
                 {groupedEvents.length === 0 && (
                     <div className="text-center p-12 text-muted-foreground bg-card rounded-2xl border-2 border-border border-dashed">
