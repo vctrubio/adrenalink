@@ -84,7 +84,7 @@ export function EquipmentStudentPackagePriceBadge({
 
                         <div className="flex items-baseline gap-0.5">
 
-                            <span className="text-sm text-foreground">{packageDurationHours}</span>
+                            <span className="text-sm text-foreground">{packageDurationHours.toFixed(0)}</span>
 
                             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
 

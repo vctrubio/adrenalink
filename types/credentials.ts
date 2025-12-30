@@ -27,4 +27,6 @@ export interface SchoolCredentials {
     username: string;
     status: string;
     ownerId: string;
+    country: string;
+    timezone: string | null;
 }

@@ -80,6 +80,8 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
             username: schoolData.username,
             status: schoolData.status,
             ownerId: schoolData.ownerId,
+            country: schoolData.country,
+            timezone: schoolData.timezone,
         };
     } catch (error) {
         console.error("Error fetching school credentials:", error);

@@ -9,6 +9,7 @@ interface TeacherUsernameCommissionBadgeProps {
   commissionValue: string;
   commissionType: "fixed" | "percentage";
   currency?: string;
+  showCurrency?: boolean;
 }
 
 export function TeacherUsernameCommissionBadge({
@@ -18,8 +19,11 @@ export function TeacherUsernameCommissionBadge({
   commissionValue,
   commissionType,
   currency = "€",
+  showCurrency = true,
 }: TeacherUsernameCommissionBadgeProps) {
-  const displayValue = commissionType === "fixed" ? `${commissionValue} ${currency}` : `${commissionValue}%`;
+  const displayValue = commissionType === "fixed" 
+    ? `${commissionValue}${showCurrency ? ` ${currency}` : ""}` 
+    : `${commissionValue}%`;
 
   return (
     <div
