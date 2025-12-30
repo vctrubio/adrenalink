@@ -79,10 +79,7 @@ export function LandingDescription() {
                                 }}
                             />
                         </motion.div>
-                        <div className="space-y-2">
-                            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">Join Forces</h2>
-                            <p className="text-base text-white/40 font-light tracking-[0.5em] uppercase">Who are you?</p>
-                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">Join Forces</h2>
                     </div>
 
                     {/* User Role Selection */}
@@ -108,9 +105,7 @@ export function LandingDescription() {
                                             onHoverStart={() => setHoveredRole(role.id)}
                                             onHoverEnd={() => setHoveredRole(null)}
                                             className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
-                                                isSelected 
-                                                    ? "bg-white/20 border-white/60 text-white z-10" 
-                                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                                isSelected ? "bg-white/20 border-white/60 text-white z-10" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
                                             }`}
                                         >
                                             <motion.div
@@ -124,12 +119,7 @@ export function LandingDescription() {
                                                 <Icon size={42} className="transition-all duration-300" />
                                             </motion.div>
 
-                                            <motion.span 
-                                                layout="position" 
-                                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
-                                                    isHovered || isSelected ? "text-white" : "text-white/60"
-                                                }`}
-                                            >
+                                            <motion.span layout="position" className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${isHovered || isSelected ? "text-white" : "text-white/60"}`}>
                                                 {role.label}
                                             </motion.span>
                                         </motion.button>
@@ -140,6 +130,7 @@ export function LandingDescription() {
 
                         {/* Sport Selection - Reusable Component */}
                         <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} variant="landing" />
+                        <div className="text-base text-white/40 font-light tracking-[0.5em] uppercase">Who are you?</div>
                     </div>
                 </div>
             </motion.div>
