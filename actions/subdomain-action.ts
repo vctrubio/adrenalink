@@ -171,27 +171,46 @@ export async function getSchoolSubdomain(username: string) {
     }
 }
 
-// Cache all schools list for 1 hour
-const getCachedAllSchools = unstable_cache(
-    async () => db
-        .select({
-            id: school.id,
-            name: school.name,
-            username: school.username,
-            country: school.country,
-            currency: school.currency,
-            equipmentCategories: school.equipmentCategories,
-            status: school.status,
-        })
-        .from(school)
-        .where(inArray(school.status, ["active", "pending"])),
-    ["all-schools"],
-    { revalidate: 3600, tags: ["school"] }
+import { getSchoolAssets } from "@/getters/cdn-getter";
+
+// Cache all schools list with their assets for 1 hour
+const getCachedAllSchoolsWithAssets = unstable_cache(
+    async () => {
+        const schoolsData = await db.query.school.findMany({
+            columns: {
+                name: true,
+                username: true,
+                country: true,
+                equipmentCategories: true,
+            },
+            where: (school, { inArray }) => inArray(school.status, ["active", "pending"]),
+        });
+
+        return Promise.all(
+            schoolsData.map(async (s) => {
+                const assets = await getSchoolAssets(s.username);
+                const categories = s.equipmentCategories 
+                    ? s.equipmentCategories.split(",").map(c => c.trim().toLowerCase())
+                    : [];
+
+                return {
+                    name: s.name,
+                    username: s.username,
+                    country: s.country,
+                    categories,
+                    iconUrl: assets.iconUrl || "/ADR.webp",
+                    bannerUrl: assets.bannerUrl || "/beach-banner.jpg",
+                };
+            })
+        );
+    },
+    ["all-schools-with-assets"],
+    { revalidate: 3600, tags: ["school", "school-assets"] }
 );
 
 export async function getAllSchools() {
     try {
-        const schools = await getCachedAllSchools();
+        const schools = await getCachedAllSchoolsWithAssets();
         return { success: true, data: schools };
     } catch (error) {
         console.error("Error fetching all schools:", error);

@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
-import { SportSelection } from "@/src/components/ui/SportSelection";
+import { SportSelection } from "@/src/components/school/SportSelection";
 
 const USER_ROLES = [
     { id: "admin", label: "Admin", icon: AdminIcon },
