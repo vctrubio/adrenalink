@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { SubDomainHomePage } from "./SubDomainHomePage";
 import { getSchoolSubdomain } from "@/actions/subdomain-action";
+import { getSchoolHeader } from "@/types/headers";
 
 interface SubdomainPageProps {
     searchParams: Promise<{
@@ -11,7 +12,15 @@ interface SubdomainPageProps {
 
 export default async function SubdomainPage({ searchParams }: SubdomainPageProps) {
     const params = await searchParams;
-    const username = params.username;
+    let username = params.username;
+
+    // Fallback to header if searchParams is missing (e.g. on subdomains)
+    if (!username) {
+        const schoolHeader = await getSchoolHeader();
+        if (schoolHeader) {
+            username = schoolHeader.name;
+        }
+    }
 
     if (!username) {
         redirect("/schools");
@@ -39,40 +48,104 @@ export async function generateMetadata({
     searchParams: Promise<{ username?: string }>;
 }): Promise<Metadata> {
     const params = await searchParams;
-    const username = params.username;
+    let username = params.username;
 
+    // Fallback to header if searchParams is missing (e.g. on subdomains)
     if (!username) {
-        return {
-            title: "Adrenalink",
-            description: "Home of Adrenaline Activity",
-            openGraph: {
-                title: "Adrenalink",
-                description: "Home of Adrenaline Activity",
-                siteName: "Adrenalink",
-                images: ["/icon/og.svg"],
-                type: "website",
-            },
-        };
+        const schoolHeader = await getSchoolHeader();
+        if (schoolHeader) {
+            username = schoolHeader.name;
+        }
     }
 
-    const title = `${username} | Adrenalink School`;
+        if (!username) {
 
-    return {
-        title,
-        description: "Home of Adrenaline Activity",
-        openGraph: {
+            return {
+
+                title: "Adrenalink",
+
+                description: "Home of Adrenaline Activity",
+
+                icons: {
+
+                    icon: "/ADR.webp",
+
+                    apple: "/ADR.webp",
+
+                    shortcut: "/ADR.webp",
+
+                },
+
+                openGraph: {
+
+                    title: "Adrenalink",
+
+                    description: "Home of Adrenaline Activity",
+
+                    siteName: "Adrenalink",
+
+                    images: ["/ADR.webp"],
+
+                    type: "website",
+
+                },
+
+            };
+
+        }
+
+    
+
+        const title = `${username} | Adrenalink School`;
+
+    
+
+        return {
+
             title,
+
             description: "Home of Adrenaline Activity",
-            siteName: "Adrenalink",
-            images: ["/icon/og.svg"],
-            url: `https://adrenalink.tech/subdomain?username=${encodeURIComponent(username)}`,
-            type: "website",
-        },
-        twitter: {
-            card: "summary_large_image",
-            title,
-            description: "Home of Adrenaline Activity",
-            images: ["/icon/og.svg"],
-        },
-    };
-}
+
+            icons: {
+
+                icon: "/ADR.webp",
+
+                apple: "/ADR.webp",
+
+                shortcut: "/ADR.webp",
+
+            },
+
+            openGraph: {
+
+                title,
+
+                description: "Home of Adrenaline Activity",
+
+                siteName: "Adrenalink",
+
+                images: ["/ADR.webp"],
+
+                url: `https://adrenalink.tech/subdomain?username=${encodeURIComponent(username)}`,
+
+                type: "website",
+
+            },
+
+            twitter: {
+
+                card: "summary_large_image",
+
+                title,
+
+                description: "Home of Adrenaline Activity",
+
+                images: ["/ADR.webp"],
+
+            },
+
+        };
+
+    }
+
+    
