@@ -14,6 +14,7 @@ interface ChangeTheWindFooterProps {
     variant?: "primary" | "secondary";
     extraActions?: React.ReactNode;
     getStartedUrl: string;
+    registerUrl?: string;
 }
 
 export function ChangeTheWindFooter({ 
@@ -22,7 +23,8 @@ export function ChangeTheWindFooter({
     onGetStarted, 
     variant = "primary",
     extraActions,
-    getStartedUrl
+    getStartedUrl,
+    registerUrl = "/"
 }: ChangeTheWindFooterProps) {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     
@@ -54,7 +56,7 @@ export function ChangeTheWindFooter({
                             </Link>
 
                             <Link 
-                                href={getStartedUrl}
+                                href={registerUrl}
                                 className="cursor-pointer transition-all group flex items-center gap-3 text-muted-foreground hover:text-foreground"
                             >
                                 <AdminIcon className={`w-5 h-5 transition-colors ${accentTextClass}`} />

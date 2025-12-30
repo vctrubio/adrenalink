@@ -82,7 +82,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
     const profit = studentRevenue - teacherEarnings;
 
     return (
-        <div className="min-h-screen bg-background p-4 sm:p-8 space-y-10 pb-32">
+        <div className="min-h-screen bg-background p-4 sm:p-8 space-y-10 pb-40">
             <header className="max-w-7xl mx-auto pb-10">
                 <div className="space-y-8 w-full">
                     <SchoolAdranlinkConnectionHeader
@@ -108,37 +108,39 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
             <section className="max-w-7xl mx-auto space-y-4">
                 <h2 className="text-xl font-bold tracking-tight uppercase tracking-tighter">Transaction Record</h2>
                 <TransactionEventsTable
-                    events={[{
-                        event: {
-                            id: eventId,
-                            date: eventData.date,
-                            duration: eventData.duration,
-                            location: eventData.location,
-                            status: eventData.status,
+                    events={[
+                        {
+                            event: {
+                                id: eventId,
+                                date: eventData.date,
+                                duration: eventData.duration,
+                                location: eventData.location,
+                                status: eventData.status,
+                            },
+                            teacher: {
+                                username: teacher?.username || "unknown",
+                            },
+                            leaderStudentName: students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown",
+                            studentCount: studentCount,
+                            studentNames: studentNames,
+                            packageData: {
+                                description: pkg?.description || "Unknown",
+                                pricePerStudent: pkg?.pricePerStudent || 0,
+                                durationMinutes: pkg?.durationMinutes || 60,
+                                categoryEquipment: pkg?.categoryEquipment || "",
+                                capacityEquipment: pkg?.capacityEquipment || 0,
+                                capacityStudents: pkg?.capacityStudents || 0,
+                            },
+                            financials: {
+                                teacherEarnings: teacherEarnings,
+                                studentRevenue: studentRevenue,
+                                profit: profit,
+                                currency: currency,
+                                commissionType: commissionType,
+                                commissionValue: commissionValue,
+                            },
                         },
-                        teacher: {
-                            username: teacher?.username || "unknown",
-                        },
-                        leaderStudentName: students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown",
-                        studentCount: studentCount,
-                        studentNames: studentNames,
-                        packageData: {
-                            description: pkg?.description || "Unknown",
-                            pricePerStudent: pkg?.pricePerStudent || 0,
-                            durationMinutes: pkg?.durationMinutes || 60,
-                            categoryEquipment: pkg?.categoryEquipment || "",
-                            capacityEquipment: pkg?.capacityEquipment || 0,
-                            capacityStudents: pkg?.capacityStudents || 0,
-                        },
-                        financials: {
-                            teacherEarnings: teacherEarnings,
-                            studentRevenue: studentRevenue,
-                            profit: profit,
-                            currency: currency,
-                            commissionType: commissionType,
-                            commissionValue: commissionValue,
-                        }
-                    }]}
+                    ]}
                 />
             </section>
 
@@ -204,7 +206,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
             </main>
 
             {/* Event Data Resume */}
-            <section className="max-w-7xl mx-auto space-y-8 pt-12">
+            <section className="max-w-7xl mx-auto space-y-8 py-12">
                 <div className="flex items-center gap-3 pb-2 border-b border-border">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-blue-500/10">
                         <FlagIcon className="w-6 h-6 text-blue-500" />
@@ -228,7 +230,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         title="Package"
                         icon={PackageIcon}
                         color="#fb923c"
-                        data={[ 
+                        data={[
                             { label: "Description", value: pkg.description },
                             { label: "Type", value: pkg.packageType, isCapitalize: true },
                             { label: "Duration", value: getHMDuration(pkg.durationMinutes) },
@@ -256,7 +258,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         title="Event Specifics"
                         icon={FlagIcon}
                         color="#06b6d4"
-                        data={[ 
+                        data={[
                             { label: "Date", value: new Date(eventData.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
                             { label: "Time", value: new Date(eventData.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }) },
                             { label: "Actual Dur.", value: getHMDuration(eventData.duration) },
@@ -291,6 +293,8 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                     />
                 </div>
             </section>
+
+            <ChangeTheWindFooter showFooter={true} isStarting={false} getStartedUrl="/home" registerUrl="/" />
         </div>
     );
 }
