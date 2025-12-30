@@ -1,7 +1,7 @@
 import { type ReactNode, Suspense } from "react";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import NavAdrBarShell from "@/src/components/NavAdrBarShell";
-import { LeftIconsServer, RightIconsServer } from "@/src/components/NavAdrBarIconsServer";
+import { LeftIconsServer, RightIconsServer, getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
 import { NavIconsSkeleton, NavIconsRightSkeleton } from "@/src/components/NavAdrBarIcons";
 import NavIns from "@/src/components/NavIns";
 
@@ -9,9 +9,11 @@ interface UsersLayoutProps {
     children: ReactNode;
 }
 
-export default function UsersLayout({ children }: UsersLayoutProps) {
+export default async function UsersLayout({ children }: UsersLayoutProps) {
+    const credentials = await getSchoolCredentials();
+
     return (
-        <SchoolCredentialsProvider credentials={null}>
+        <SchoolCredentialsProvider credentials={credentials}>
             {/* Shell with Adrenalink is ALWAYS visible - never suspended */}
             <NavAdrBarShell
                 leftSlot={

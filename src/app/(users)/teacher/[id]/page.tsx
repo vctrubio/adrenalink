@@ -23,9 +23,11 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                 let commissionValue = 0;
                 let commissionType: "fixed" | "percentage" = "fixed";
 
-                if (pkg && event.commission) {
-                    commissionType = event.commission.commissionType;
-                    commissionValue = parseFloat(event.commission.cph);
+                const commission = event.lesson?.commission;
+
+                if (pkg && commission) {
+                    commissionType = commission.commissionType;
+                    commissionValue = parseFloat(commission.cph || "0");
 
                     const lessonRevenue = calculateLessonRevenue(
                         pkg.pricePerStudent,

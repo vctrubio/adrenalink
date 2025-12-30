@@ -270,6 +270,7 @@ export async function getTeacherEvents(
     const events = filteredLessons.flatMap((lesson) =>
       lesson.events.map((evt) => ({
         ...evt,
+        lesson: lesson,
         schoolPackage: lesson.booking?.studentPackage?.schoolPackage,
         students: lesson.booking?.bookingStudents?.map((bs) => bs.student) || [],
       })),

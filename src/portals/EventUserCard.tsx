@@ -44,7 +44,7 @@ export function EventUserCard({ date, duration, footerLeftContent, children }: E
                 {/* School Logo */}
                 <div className="relative z-10">
                     {credentials?.logo ? (
-                        <div className="relative w-14 h-14 rounded-full overflow-hidden border border-black/10 bg-white/50 backdrop-blur-sm shadow-sm">
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden border border-black/10 bg-white shadow-sm">
                             <Image 
                                 src={credentials.logo} 
                                 alt={credentials.username} 
@@ -54,7 +54,7 @@ export function EventUserCard({ date, duration, footerLeftContent, children }: E
                             />
                         </div>
                     ) : (
-                        <div className="w-14 h-14 rounded-full bg-zinc-900 text-white flex items-center justify-center border border-black/5 backdrop-blur-sm">
+                        <div className="w-14 h-14 rounded-full bg-zinc-900 text-white flex items-center justify-center border border-black/5 shadow-sm">
                             <span className="font-black text-xl">{credentials?.username?.[0]?.toUpperCase() || "A"}</span>
                         </div>
                     )}
@@ -79,7 +79,10 @@ export function EventUserCard({ date, duration, footerLeftContent, children }: E
             </AnimatePresence>
 
             {/* Footer (Now Dark Zinc) */}
-            <div className="px-6 py-4 flex items-center justify-between min-h-[72px] bg-zinc-900 text-white">
+            <div 
+                onClick={() => setIsOpen(!isOpen)}
+                className="px-6 py-4 flex items-center justify-between min-h-[72px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors"
+            >
                 <div className="flex items-center gap-5">
                     {footerLeftContent}
                 </div>
@@ -88,7 +91,6 @@ export function EventUserCard({ date, duration, footerLeftContent, children }: E
 
                 <ToggleAdranalinkIcon 
                     isOpen={isOpen} 
-                    onClick={() => setIsOpen(!isOpen)} 
                     variant="lg" 
                     color="white" 
                 />

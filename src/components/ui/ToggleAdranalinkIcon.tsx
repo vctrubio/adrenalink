@@ -16,7 +16,8 @@ export function ToggleAdranalinkIcon({ isOpen, onClick, color, className, varian
 
     const iconContent = (
         <motion.div 
-            animate={{ rotate: isOpen ? 180 : 0 }}
+            initial={{ scale: 0, rotate: -45, opacity: 0 }}
+            animate={{ scale: 1, rotate: isOpen ? 180 : 0, opacity: 1 }}
             whileHover={{ rotate: isOpen ? 192 : 12 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className={!onClick ? className : "origin-center"}
