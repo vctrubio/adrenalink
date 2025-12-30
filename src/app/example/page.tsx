@@ -108,34 +108,37 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
             <section className="max-w-7xl mx-auto space-y-4">
                 <h2 className="text-xl font-bold tracking-tight uppercase tracking-tighter">Transaction Record</h2>
                 <TransactionEventsTable
-                    event={{
-                        date: eventData.date,
-                        duration: eventData.duration,
-                        location: eventData.location,
-                        status: eventData.status,
-                    }}
-                    teacher={{
-                        username: teacher?.username || "unknown",
-                    }}
-                    leaderStudentName={students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown"}
-                    studentCount={studentCount}
-                    studentNames={studentNames}
-                    packageData={{
-                        description: pkg?.description || "Unknown",
-                        pricePerStudent: pkg?.pricePerStudent || 0,
-                        durationMinutes: pkg?.durationMinutes || 60,
-                        categoryEquipment: pkg?.categoryEquipment || "",
-                        capacityEquipment: pkg?.capacityEquipment || 0,
-                        capacityStudents: pkg?.capacityStudents || 0,
-                    }}
-                    financials={{
-                        teacherEarnings: teacherEarnings,
-                        studentRevenue: studentRevenue,
-                        profit: profit,
-                        currency: currency,
-                        commissionType: commissionType,
-                        commissionValue: commissionValue,
-                    }}
+                    events={[{
+                        event: {
+                            id: eventId,
+                            date: eventData.date,
+                            duration: eventData.duration,
+                            location: eventData.location,
+                            status: eventData.status,
+                        },
+                        teacher: {
+                            username: teacher?.username || "unknown",
+                        },
+                        leaderStudentName: students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown",
+                        studentCount: studentCount,
+                        studentNames: studentNames,
+                        packageData: {
+                            description: pkg?.description || "Unknown",
+                            pricePerStudent: pkg?.pricePerStudent || 0,
+                            durationMinutes: pkg?.durationMinutes || 60,
+                            categoryEquipment: pkg?.categoryEquipment || "",
+                            capacityEquipment: pkg?.capacityEquipment || 0,
+                            capacityStudents: pkg?.capacityStudents || 0,
+                        },
+                        financials: {
+                            teacherEarnings: teacherEarnings,
+                            studentRevenue: studentRevenue,
+                            profit: profit,
+                            currency: currency,
+                            commissionType: commissionType,
+                            commissionValue: commissionValue,
+                        }
+                    }]}
                 />
             </section>
 

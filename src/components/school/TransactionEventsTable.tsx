@@ -20,7 +20,7 @@ import TransactionEventModal from "@/src/components/modals/TransactionEventModal
 
 function DesktopHeader() {
     return (
-        <thead className="text-xs uppercase bg-muted/50 text-muted-foreground border-b border-border">
+        <thead className="text-[10px] uppercase bg-muted/50 text-muted-foreground border-b border-border">
             <tr>
                 <th className="px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10">Date</th>
                 <th className="px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10">Time</th>
@@ -33,10 +33,27 @@ function DesktopHeader() {
                 <th className="px-4 py-3 font-medium text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/10">Equip</th>
                 <th className="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right">Comm.</th>
                 <th className="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right">Rev.</th>
-                <th className="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right">Profit</th>
+                <th className="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right font-bold">Profit</th>
                 <th className="px-4 py-3 font-medium text-center">Status</th>
             </tr>
         </thead>
+    );
+}
+
+function DateHeaderRow({ date }: { date: string }) {
+    return (
+        <tr className="bg-muted/20 border-y border-border/50">
+            <td colSpan={13} className="px-4 py-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    {new Date(date).toLocaleDateString(undefined, {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                    })}
+                </span>
+            </td>
+        </tr>
     );
 }
 
@@ -155,23 +172,75 @@ function MobileRow({ data }: { data: TransactionEventData }) {
 
 // --- Main component ---
 
-export function TransactionEventsTable(props: TransactionEventData) {
+export function TransactionEventsTable({ events = [], groupByDate = false }: { events: TransactionEventData[]; groupByDate?: boolean }) {
+    const renderedRows = () => {
+        if (!events || events.length === 0) return null;
+        
+        if (!groupByDate) {
+            return events.map((event) => <DesktopRow key={event.event.id} data={event} />);
+        }
+
+        const groups: Record<string, TransactionEventData[]> = {};
+        events.forEach((e) => {
+            const dateKey = e.event.date.split("T")[0];
+            if (!groups[dateKey]) groups[dateKey] = [];
+            groups[dateKey].push(e);
+        });
+
+        return Object.entries(groups)
+            .sort((a, b) => b[0].localeCompare(a[0]))
+            .map(([date, groupEvents]) => (
+                <tbody key={date} className="divide-y divide-border">
+                    <DateHeaderRow date={date} />
+                    {groupEvents.map((event) => (
+                        <DesktopRow key={event.event.id} data={event} />
+                    ))}
+                </tbody>
+            ));
+    };
+
+    const renderedMobileRows = () => {
+        if (!events || events.length === 0) return null;
+
+        if (!groupByDate) {
+            return events.map((event) => <MobileRow key={event.event.id} data={event} />);
+        }
+
+        const groups: Record<string, TransactionEventData[]> = {};
+        events.forEach((e) => {
+            const dateKey = e.event.date.split("T")[0];
+            if (!groups[dateKey]) groups[dateKey] = [];
+            groups[dateKey].push(e);
+        });
+
+        return Object.entries(groups)
+            .sort((a, b) => b[0].localeCompare(a[0]))
+            .map(([date, groupEvents]) => (
+                <tbody key={date} className="divide-y divide-border">
+                    <tr className="bg-muted/20">
+                        <td colSpan={4} className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            {new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        </td>
+                    </tr>
+                    {groupEvents.map((event) => (
+                        <MobileRow key={event.event.id} data={event} />
+                    ))}
+                </tbody>
+            ));
+    };
+
     return (
         <div className="w-full rounded-xl border border-border shadow-sm bg-card overflow-hidden">
             <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-sm text-left">
+                <table className="w-full text-sm text-left border-collapse">
                     <DesktopHeader />
-                    <tbody className="divide-y divide-border">
-                        <DesktopRow data={props} />
-                    </tbody>
+                    {groupByDate ? renderedRows() : <tbody className="divide-y divide-border">{renderedRows()}</tbody>}
                 </table>
             </div>
             <div className="sm:hidden">
-                <table className="w-full text-sm text-left">
+                <table className="w-full text-sm text-left border-collapse">
                     <MobileHeader />
-                    <tbody className="divide-y divide-border">
-                        <MobileRow data={props} />
-                    </tbody>
+                    {groupByDate ? renderedMobileRows() : <tbody className="divide-y divide-border">{renderedMobileRows()}</tbody>}
                 </table>
             </div>
         </div>
