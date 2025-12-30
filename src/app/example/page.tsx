@@ -5,7 +5,7 @@ import { EventStudentCard } from "@/src/portals/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
-import { TransactionEventsTable } from "./TransactionEventsTable";
+import { TransactionEventsTable } from "../../components/school/TransactionEventsTable";
 import { getHMDuration } from "@/getters/duration-getter";
 
 // Icons
@@ -225,11 +225,12 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         title="Package"
                         icon={PackageIcon}
                         color="#fb923c"
-                        data={[
+                        data={[ 
                             { label: "Description", value: pkg.description },
                             { label: "Type", value: pkg.packageType, isCapitalize: true },
                             { label: "Duration", value: getHMDuration(pkg.durationMinutes) },
                             { label: "Price", value: `${pkg.pricePerStudent} ${currency}` },
+                            { label: "PPH", value: `${studentPricePerHour.toFixed(2)} ${currency}/h` },
                             { label: "Student Cap", value: pkg.capacityStudents },
                             { label: "Equip. Cap", value: pkg.capacityEquipment },
                         ]}
@@ -252,11 +253,12 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         title="Event Specifics"
                         icon={FlagIcon}
                         color="#06b6d4"
-                        data={[
+                        data={[ 
                             { label: "Date", value: new Date(eventData.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
                             { label: "Time", value: new Date(eventData.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }) },
                             { label: "Actual Dur.", value: getHMDuration(eventData.duration) },
                             { label: "Location", value: eventData.location || "TBD" },
+                            { label: "Event Status", value: eventData.status, isStatusBadge: true },
                         ]}
                     />
 

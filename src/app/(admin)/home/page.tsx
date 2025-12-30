@@ -1,9 +1,9 @@
 import { getSchoolHeader } from "@/types/headers";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
-import { HomeExample } from "./HomeExample";
+import { HomePage as HomeClient } from "./HomePage";
 
-export default async function HomePage() {
+export default async function AdminHomePage() {
     const school = await getSchoolHeader();
 
     if (!school) {
@@ -26,8 +26,8 @@ export default async function HomePage() {
     const classboardData = result.success && result.data ? result.data : {};
 
     return (
-        <div className="space-y-6">
-            <HomeExample 
+        <div className="max-w-7xl mx-auto space-y-6">
+            <HomeClient 
                 classboardData={classboardData} 
                 school={{
                     name: credentials?.name || school.name,

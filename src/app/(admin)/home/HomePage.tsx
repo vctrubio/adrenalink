@@ -9,13 +9,14 @@ import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
 
-interface HomeExampleProps {
+interface HomePageProps {
     classboardData: ClassboardModel;
     school: {
         name: string;
@@ -47,7 +48,7 @@ interface DateGroup {
     events: DateEvent[];
 }
 
-export function HomeExample({ classboardData, school }: HomeExampleProps) {
+export function HomePage({ classboardData, school }: HomePageProps) {
     const router = useRouter();
     const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
@@ -55,17 +56,19 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
         let totalDuration = 0;
         let totalCommissions = 0;
         let totalRevenue = 0;
+        let totalEvents = 0;
 
         const dates = new Set<string>();
-        Object.values(classboardData).forEach(b => {
-            b.lessons.forEach(l => {
-                l.events.forEach(e => {
+        Object.values(classboardData).forEach((b) => {
+            b.lessons.forEach((l) => {
+                l.events.forEach((e) => {
                     dates.add(e.date.split("T")[0]);
+                    totalEvents++;
                 });
             });
         });
 
-        dates.forEach(date => {
+        dates.forEach((date) => {
             const stats = new ClassboardStatistics(classboardData, date).getHeaderStats();
             totalDuration += stats.duration;
             totalCommissions += stats.commissions;
@@ -75,7 +78,8 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
         return {
             duration: totalDuration,
             commissions: totalCommissions,
-            profit: totalRevenue - totalCommissions
+            profit: totalRevenue - totalCommissions,
+            events: totalEvents,
         };
     }, [classboardData]);
 
@@ -126,30 +130,42 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
     return (
         <div className="space-y-10">
             <header className="pb-4">
-                <SchoolAdranlinkConnectionHeader 
+                <SchoolAdranlinkConnectionHeader
                     schoolName={school.name}
                     username={school.username}
                     country={school.country}
                     timezone={school.timezone}
                     currency={school.currency}
                     titleSub="Home of Adrenaline Activity"
-                    description={<>Managing your Lessons <span className="text-muted-foreground/40"><span className="italic">with easy</span> synchronization.</span></>}
+                    description={
+                        <>
+                            Managing your Lessons{" "}
+                            <span className="text-muted-foreground/40">
+                                <span className="italic">with easy</span> synchronization.
+                            </span>
+                        </>
+                    }
                     hideEventId={true}
                     customBadges={
                         <div className="px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 flex items-center gap-4 text-[10px] font-bold text-primary shadow-sm">
                             <div className="flex items-center gap-1.5">
+                                <FlagIcon size={14} />
+                                <span className="tracking-wide">{globalTotals.events}</span>
+                            </div>
+                            <div className="w-px h-3 bg-primary/20" />
+                            <div className="flex items-center gap-1.5">
                                 <DurationIcon size={14} />
-                                <span className="tracking-tight">{getHMDuration(globalTotals.duration)}</span>
+                                <span className="tracking-wide">{getHMDuration(globalTotals.duration)}</span>
                             </div>
                             <div className="w-px h-3 bg-primary/20" />
                             <div className="flex items-center gap-1.5">
                                 <HandshakeIcon size={14} />
-                                <span className="tracking-tight">{getCompactNumber(globalTotals.commissions)} {school.currency}</span>
+                                <span className="tracking-wide">{getCompactNumber(globalTotals.commissions)} </span>
                             </div>
                             <div className="w-px h-3 bg-primary/20" />
                             <div className="flex items-center gap-1.5">
                                 <TrendingUp size={14} strokeWidth={3} />
-                                <span className="tracking-tight">{getCompactNumber(globalTotals.profit)} {school.currency}</span>
+                                <span className="tracking-tight">{getCompactNumber(globalTotals.profit)} </span>
                             </div>
                         </div>
                     }
@@ -165,10 +181,7 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
 
                     return (
                         <div key={group.date} className="rounded-2xl bg-card border border-border overflow-hidden shadow-sm">
-                            <div
-                                className="flex items-center justify-between p-5 cursor-pointer hover:bg-accent/5 transition-colors"
-                                onClick={() => toggleDate(group.date)}
-                            >
+                            <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-accent/5 transition-colors" onClick={() => toggleDate(group.date)}>
                                 <div className="flex flex-col gap-1 min-w-[140px]">
                                     <span className="font-bold text-xl tracking-tight">
                                         {new Date(group.date).toLocaleDateString(undefined, {
@@ -177,15 +190,13 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
                                             month: "short",
                                         })}
                                     </span>
-                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                        {new Date(group.date).getFullYear()}
-                                    </span>
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date(group.date).getFullYear()}</span>
                                 </div>
 
                                 <div className="flex items-center gap-4 sm:gap-8 text-sm">
                                     <div className="flex flex-col items-center min-w-[60px]">
                                         <span className="font-semibold text-lg text-foreground">
-                                            {group.events.filter(e => e.status === 'completed').length}/{group.events.length}
+                                            {group.events.filter((e) => e.status === "completed").length}/{group.events.length}
                                         </span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Completed</span>
                                     </div>
@@ -234,24 +245,16 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
 
                             <AnimatePresence>
                                 {isExpanded && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
                                         <div className="border-t border-border divide-y divide-border bg-muted/10">
                                             {group.events.map((event) => (
                                                 <motion.div
                                                     key={event.id}
-                                                    whileHover={{ scale: 1.002, x: 4 }}
-                                                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-accent/10 dark:hover:bg-white/[0.03] transition-all cursor-pointer group/row border-l-4 border-transparent hover:border-primary/40 shadow-sm hover:shadow-md"
+                                                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-accent/5 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
                                                     onClick={() => router.push(`/example?id=${event.id}`)}
                                                 >
                                                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-                                                        <div className="text-sm font-mono text-muted-foreground tabular-nums">
-                                                            {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </div>
+                                                        <div className="text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                                                         <div>
                                                             <div className="font-semibold mb-1 group-hover/row:text-primary transition-colors">{event.packageName}</div>
                                                             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -272,21 +275,24 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="flex items-center gap-4 self-end sm:self-auto">
-                                                        <EquipmentStudentPackagePriceBadge 
+                                                        <EquipmentStudentPackagePriceBadge
                                                             categoryEquipment={event.categoryEquipment}
                                                             equipmentCapacity={event.capacityEquipment}
                                                             studentCapacity={event.capacityStudents}
                                                             packageDurationHours={event.packageDurationMinutes / 60}
                                                             pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
                                                         />
-                                                        
-                                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                                            event.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                                            event.status === 'planned' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' :
-                                                            'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400'
-                                                        }`}>
+
+                                                        <span
+                                                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.status === "completed"
+                                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                                : event.status === "planned"
+                                                                    ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
+                                                                    : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
+                                                                }`}
+                                                        >
                                                             {event.status}
                                                         </span>
                                                     </div>
@@ -300,7 +306,7 @@ export function HomeExample({ classboardData, school }: HomeExampleProps) {
                     );
                 })}
             </div>
-            
+
             {groupedEvents.length === 0 && (
                 <div className="text-center p-12 text-muted-foreground bg-card rounded-2xl border-2 border-border border-dashed">
                     <p className="font-medium">No events found for this school.</p>
