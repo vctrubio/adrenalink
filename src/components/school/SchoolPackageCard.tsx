@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Clock, Users } from "lucide-react";
+import { Clock } from "lucide-react";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment"; 
 import { motion } from "framer-motion";

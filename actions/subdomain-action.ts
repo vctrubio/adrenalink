@@ -75,14 +75,8 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
     }
 }
 
-// Standard school relations query - only fetch what's actually needed for the subdomain landing page
-const schoolSubdomainRelations = {
-    schoolPackages: {
-        where: (packages: any, { eq }: any) => eq(packages.active, true),
-    }
-};
-
 import { unstable_cache } from "next/cache";
+import { getSchoolAssets } from "@/getters/cdn-getter";
 
 // Cache school assets for 1 hour
 const getCachedSchoolAssets = unstable_cache(
@@ -170,8 +164,6 @@ export async function getSchoolSubdomain(username: string) {
         };
     }
 }
-
-import { getSchoolAssets } from "@/getters/cdn-getter";
 
 // Cache all schools list with their assets for 1 hour
 const getCachedAllSchoolsWithAssets = unstable_cache(
