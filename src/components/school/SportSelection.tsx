@@ -24,9 +24,13 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
 
     const isLanding = variant === "landing";
 
+    const visibleSports = counts 
+        ? SPORTS_CONFIG.filter(sport => (counts[sport.id] || 0) > 0)
+        : SPORTS_CONFIG;
+
     return (
         <div className={`grid grid-cols-3 md:flex md:flex-row gap-4 w-full items-stretch justify-center ${isLanding ? "h-[100px] md:h-[140px]" : "h-[80px] md:h-[110px]"}`}>
-            {SPORTS_CONFIG.map((sport) => {
+            {visibleSports.map((sport) => {
                 const isSelected = selectedSport === sport.id;
                 const isHovered = hoveredSport === sport.id;
                 const count = counts?.[sport.id] ?? 0;

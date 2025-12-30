@@ -36,7 +36,7 @@ export function LandingDescription() {
     }, [selectedRole, selectedSport, router]);
 
     return (
-        <section className="h-screen snap-start relative overflow-hidden bg-sky-900">
+        <section className="h-screen snap-start relative overflow-hidden ">
             <BackgroundImage
                 src="/kritaps_ungurs_unplash/wave-wide.jpg"
                 position="absolute"
@@ -57,42 +57,31 @@ export function LandingDescription() {
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
-                animate={isNavigating 
-                    ? { opacity: 0, scale: 1.5, filter: "blur(10px)" } 
-                    : { opacity: 1, scale: 1, filter: "blur(0px)" }
-                }
+                animate={isNavigating ? { opacity: 0, scale: 1.5, filter: "blur(10px)" } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 className="relative z-10 h-full flex flex-col items-center justify-center px-4"
             >
                 <div className="w-full max-w-5xl space-y-12 text-center">
                     {/* Join Forces Heading */}
                     <div className="space-y-6 flex flex-col items-center">
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                        >
-                            <div 
+                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+                            <div
                                 className="w-[240px] h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                                 style={{
-                                    maskImage: 'url(/ADR.webp)',
-                                    maskSize: 'contain',
-                                    maskRepeat: 'no-repeat',
-                                    maskPosition: 'center',
-                                    WebkitMaskImage: 'url(/ADR.webp)',
-                                    WebkitMaskSize: 'contain',
-                                    WebkitMaskRepeat: 'no-repeat',
-                                    WebkitMaskPosition: 'center',
+                                    maskImage: "url(/ADR.webp)",
+                                    maskSize: "contain",
+                                    maskRepeat: "no-repeat",
+                                    maskPosition: "center",
+                                    WebkitMaskImage: "url(/ADR.webp)",
+                                    WebkitMaskSize: "contain",
+                                    WebkitMaskRepeat: "no-repeat",
+                                    WebkitMaskPosition: "center",
                                 }}
                             />
                         </motion.div>
                         <div className="space-y-2">
-                            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">
-                                Join Forces
-                            </h2>
-                            <p className="text-base text-white/40 font-light tracking-[0.5em] uppercase">
-                                Who are you?
-                            </p>
+                            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">Join Forces</h2>
+                            <p className="text-base text-white/40 font-light tracking-[0.5em] uppercase">Who are you?</p>
                         </div>
                     </div>
 
@@ -119,9 +108,7 @@ export function LandingDescription() {
                                             onHoverStart={() => setHoveredRole(role.id)}
                                             onHoverEnd={() => setHoveredRole(null)}
                                             className={`relative rounded-[2rem] overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
-                                                isSelected
-                                                    ? "bg-white/20 border-white/60 z-10"
-                                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                                isSelected ? "bg-white/20 border-white/60 z-10" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
                                             }`}
                                         >
                                             <motion.div
@@ -134,10 +121,7 @@ export function LandingDescription() {
                                                 <Icon size={isHovered ? 48 : 40} className={isHovered || isSelected ? "text-white" : "text-white"} />
                                             </motion.div>
 
-                                            <motion.span
-                                                layout="position"
-                                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
-                                            >
+                                            <motion.span layout="position" className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${isHovered || isSelected ? "text-white" : "text-white/60"}`}>
                                                 {role.label}
                                             </motion.span>
                                         </motion.button>
@@ -147,11 +131,7 @@ export function LandingDescription() {
                         </div>
 
                         {/* Sport Selection - Reusable Component */}
-                        <SportSelection 
-                            selectedSport={selectedSport} 
-                            onSelectSport={setSelectedSport} 
-                            variant="landing"
-                        />
+                        <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} variant="landing" />
                     </div>
                 </div>
             </motion.div>
