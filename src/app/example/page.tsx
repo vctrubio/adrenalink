@@ -146,7 +146,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
 
             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 relative">
                 <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-10 pointer-events-none">
-                    <div className="w-[300px] h-[300px] border-2 border-dashed border-primary rounded-full animate-[spin_30s_linear_infinite]" />
+                    {/* <div className="w-[300px] h-[300px] border-2 border-dashed border-primary rounded-full animate-[spin_30s_linear_infinite]" /> */}
                 </div>
 
                 {/* Instructor Perspective */}
