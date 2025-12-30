@@ -2,7 +2,7 @@
 
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import IntoAdrBarShell from "@/src/components/IntoAdrBarShell";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
 
@@ -102,16 +102,12 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
 export default function TeamPricingPage() {
     return (
         <div className="min-h-screen relative">
-            <BackgroundImage
-                src="/kritaps_ungurs_unplash/3tiers.jpg"
-                position="fixed"
-                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)"
-            />
+            <BackgroundImage src="/kritaps_ungurs_unplash/3tiers.jpg" position="fixed" overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)" />
 
             <IntoAdrBarShell
                 inverted
                 onBarClick="/team"
-                leftSlot={<AdranlinkIcon className="text-secondary w-7 h-7" />}
+                leftSlot={<Image src="/ADR.webp" alt="Adrenalink" width={28} height={28} className="w-8 h-8 object-contain brightness-0 invert" />}
                 rightSlot={
                     <div className="flex items-center gap-2 text-white">
                         <ArrowLeft className="w-5 h-5" />

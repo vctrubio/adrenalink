@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { RainbowV2, MeetTheTeamV2 } from "@/src/components/team";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import IntoAdrBarShell from "@/src/components/IntoAdrBarShell";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { TEAM_ENTITIES, TEAM_COLORS } from "@/config/team-entities";
 import { ArrowRight } from "lucide-react";
 
@@ -31,7 +31,15 @@ export default function TeamPage() {
             {/* IntoAdrBarShell with Adrenalink icon on left and selected entity icon or pricing arrow on right */}
             <IntoAdrBarShell
                 onBarClick={!SelectedIcon ? "/team/pricing" : undefined}
-                leftSlot={<AdranlinkIcon className="text-secondary w-7 h-7" />}
+                leftSlot={
+                    <Image 
+                        src="/ADR.webp" 
+                        alt="Adrenalink" 
+                        width={32} 
+                        height={32} 
+                        className="w-8 h-8 object-contain brightness-0 invert"
+                    />
+                }
                 rightSlot={
                     SelectedIcon ? (
                         <SelectedIcon

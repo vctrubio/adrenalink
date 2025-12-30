@@ -78,14 +78,13 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                     scale: isHovered ? 1.2 : 1,
                                 }}
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                className="relative"
+                                className="relative w-14 h-10 md:w-20 md:h-14"
                             >
                                 <Image
                                     src={sport.image}
                                     alt={sport.label}
-                                    width={isHovered ? 56 : 44}
-                                    height={isHovered ? 56 : 44}
-                                    className={`object-contain transition-all duration-300 ${
+                                    fill
+                                    className={`object-fill transition-all duration-300 ${
                                         isLanding 
                                             ? (isHovered || isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60")
                                             : (isHovered || isSelected ? "brightness-0 dark:invert" : "brightness-0 dark:invert opacity-70")
