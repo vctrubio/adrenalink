@@ -52,7 +52,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
 
     const categoryList = equipmentCategories ? equipmentCategories.split(",").map((cat) => cat.trim()) : [];
 
-
+    
     // Filter categories to only show those with active packages
     const activeCategories = useMemo(() => {
         const categoriesWithPackages = new Set(packages.map((p) => p.categoryEquipment));
@@ -92,7 +92,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                     <div className="absolute top-6 right-6 z-10">
-                        <div className="light flex items-center gap-2 px-4 py-2 bg-grey/40 backdrop-blur-md rounded-full border border-white/10 text-sm font-bold text-white shadow-lg">
+                        <div className="light flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-sm font-bold text-white shadow-lg">
                             <MapPin size={16} className="text-primary " />
                             <span className="uppercase tracking-wide">{country}</span>
                         </div>
@@ -163,7 +163,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
 
                 {/* 3. Package Content Area */}
 
-                <div className="flex flex-col rounded-b-[2.5rem]">
+                <div className=" backdrop-blur-3xl overflow-hidden flex flex-col rounded-b-[2.5rem]">
                     <div className="p-6 md:p-10 flex flex-col gap-10 h-full">
                         {/* Centered Sport Selection */}
                         {packages.length > 0 && (
@@ -174,34 +174,27 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
 
                         {/* Animated Package Grid */}
 
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.div
-                                key={filteredPackages.length > 0 ? (selectedSport || "all") : "empty"}
-                                initial={{ opacity: 0, y: filteredPackages.length > 0 ? 0 : 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: filteredPackages.length > 0 ? 0 : 20 }}
-                                transition={{ duration: 0.35, ease: "easeOut" }}
-                                className={
-                                    filteredPackages.length > 0
-                                        ? "flex-1 px-2 -mx-2 pb-10 rounded-b-[2.5rem] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                                        : "flex-1 px-2 -mx-2 pb-10 rounded-b-[2.5rem] h-full flex flex-col items-center justify-center text-center opacity-10 select-none pointer-events-none"
-                                }
-                            >
+                        <div className="flex-1 px-2 -mx-2 pb-10 rounded-b-[2.5rem]">
+                            <AnimatePresence mode="popLayout">
                                 {filteredPackages.length > 0 ? (
-                                    filteredPackages.map((pkg) => (
-                                        <SchoolPackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} />
-                                    ))
+                                    <motion.div key={selectedSport || "all"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredPackages.map((pkg) => (
+                                            <SchoolPackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} />
+                                        ))}
+                                    </motion.div>
                                 ) : (
-                                    <>
+                                    <motion.div key="empty" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col items-center justify-center text-center opacity-10 select-none pointer-events-none">
                                         <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale" />
+
                                         <div className="mt-6">
                                             <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2">No Packages</span>
+
                                             <span className="text-sm font-bold uppercase tracking-[0.5em]">For this category</span>
                                         </div>
-                                    </>
+                                    </motion.div>
                                 )}
-                            </motion.div>
-                        </AnimatePresence>
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </div>

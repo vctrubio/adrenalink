@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment"; 
@@ -20,14 +21,21 @@ interface SchoolPackageCardProps {
  * Premium Card for individual school packages
  */
 export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProps) => {
-    const { id, description, pricePerStudent, durationMinutes, categoryEquipment, packageType } = pkg;
+    const { id, description, pricePerStudent, durationMinutes, categoryEquipment, packageType, capacityStudents, capacityEquipment } = pkg;
     const [isHovered, setIsHovered] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
+    const router = useRouter();
     
     const sportConfig = SPORTS_CONFIG.find(s => s.id === categoryEquipment);
     const categoryConfig = EQUIPMENT_CATEGORIES.find(c => c.id === categoryEquipment);
 
     // Calculate PPH if duration > 1hr
     const pph = durationMinutes > 60 ? Math.round(pricePerStudent / (durationMinutes / 60)) : null;
+
+    const handleCardClick = () => {
+        setIsNavigating(true);
+        router.push(`/register?add=package:${id}`);
+    };
 
     return (
         <motion.div
@@ -37,7 +45,7 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
             exit={{ opacity: 0, scale: 0.95 }}
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
-            onClick={() => console.log("Selected Package ID:", id)}
+            onClick={handleCardClick}
             className="group bg-card hover:bg-muted/50 border border-border/50 hover:border-secondary/50 rounded-[2rem] p-6 shadow-lg transition-all cursor-pointer flex flex-col gap-6 relative overflow-hidden"
         >
             {/* Background Accent */}
@@ -86,19 +94,27 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
                 </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 relative z-10">
+            <div className="flex items-center justify-between pt-4 mt-auto border-t border-border/50 relative z-10">
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
-                        {categoryConfig?.name || "Activity"}
-                    </span>
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md bg-secondary/10 text-secondary">
                         {packageType}
                     </span>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground/50">
+                        <span>:</span>
+                        <span>{categoryConfig?.name || "Activity"}</span>
+                        <span className="opacity-40">x</span>
+                        <span>{capacityEquipment}</span>
+                        <span className="mx-0.5 opacity-40">&</span>
+                        <span>{capacityStudents}</span>
+                        <span>{capacityStudents > 1 ? "Students" : "Student"}</span>
+                    </div>
                 </div>
                 <GoToAdranlink 
-                    size={24} 
-                    isHovered={isHovered} 
-                    className={isHovered ? "text-secondary" : "text-muted-foreground/20"} 
+                    size={24}
+                    isHovered={isHovered}
+                    className={isHovered ? "text-secondary" : "text-muted-foreground/20"}
+                    href={`/register?add=package:${id}`}
+                    isLoading={isNavigating}
                 />
             </div>
         </motion.div>
