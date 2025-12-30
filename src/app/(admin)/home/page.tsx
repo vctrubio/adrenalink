@@ -1,6 +1,6 @@
 import { getSchoolHeader } from "@/types/headers";
-import { getHomeEntities } from "@/supabase/server/home";
-import { HomeClient } from "./HomeClient";
+import { getClassboardBookings } from "@/actions/classboard-action";
+import { HomeExample } from "./HomeExample";
 
 export default async function HomePage() {
     const school = await getSchoolHeader();
@@ -14,7 +14,13 @@ export default async function HomePage() {
         );
     }
 
-    const entities = await getHomeEntities(school.id);
+    console.log("Starting fetch for HomePage...");
+    const start = Date.now();
+    const result = await getClassboardBookings();
+    const duration = Date.now() - start;
+    console.log(`Fetch completed in ${duration}ms`);
+
+    const classboardData = result.success && result.data ? result.data : {};
 
     return (
         <div className="space-y-6">
@@ -22,7 +28,7 @@ export default async function HomePage() {
                 <h1 className="text-3xl font-bold text-foreground">Welcome, {school.name}</h1>
                 <p className="text-muted-foreground mt-1">Manage your adrenaline sports school</p>
             </div>
-            <HomeClient entities={entities} />
+            <HomeExample classboardData={classboardData} />
         </div>
     );
 }

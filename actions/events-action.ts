@@ -120,3 +120,52 @@ export async function getEventsByLessonId(lessonId: string): Promise<ApiActionRe
         return { success: false, error: "Failed to fetch events" };
     }
 }
+
+// FULL USER STORY (Example Route)
+export async function getEventUserStory(eventId: string): Promise<ApiActionResponseModel<any>> {
+    try {
+        const result = await db.query.event.findFirst({
+            where: eq(event.id, eventId),
+            with: {
+                lesson: {
+                    with: {
+                        teacher: {
+                            with: {
+                                school: true,
+                            }
+                        },
+                        commission: true,
+                        booking: {
+                            with: {
+                                studentPackage: {
+                                    with: {
+                                        schoolPackage: true,
+                                    },
+                                },
+                                bookingStudents: {
+                                    with: {
+                                        student: true,
+                                    }
+                                },
+                            },
+                        },
+                    },
+                },
+                equipmentEvents: {
+                    with: {
+                        equipment: true,
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return { success: false, error: "Event not found" };
+        }
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("Error fetching event user story:", error);
+        return { success: false, error: "Failed to fetch event user story" };
+    }
+}
