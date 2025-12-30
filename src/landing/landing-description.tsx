@@ -27,8 +27,9 @@ export function LandingDescription() {
     useEffect(() => {
         if (selectedRole && selectedSport) {
             setIsNavigating(true);
+            const targetPath = selectedRole === "admin" ? "/pillars" : "/schools";
             const timer = setTimeout(() => {
-                router.push("/pillars");
+                router.push(targetPath);
             }, 800); // Wait for animation
             return () => clearTimeout(timer);
         }
