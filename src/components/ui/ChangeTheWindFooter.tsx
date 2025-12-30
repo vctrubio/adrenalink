@@ -13,6 +13,7 @@ interface ChangeTheWindFooterProps {
     onGetStarted?: () => void;
     variant?: "primary" | "secondary";
     extraActions?: React.ReactNode;
+    getStartedUrl: string;
 }
 
 export function ChangeTheWindFooter({ 
@@ -20,7 +21,8 @@ export function ChangeTheWindFooter({
     isStarting, 
     onGetStarted, 
     variant = "primary",
-    extraActions
+    extraActions,
+    getStartedUrl
 }: ChangeTheWindFooterProps) {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     
@@ -41,7 +43,7 @@ export function ChangeTheWindFooter({
                     <div className="max-w-5xl mx-auto py-3 flex items-center justify-between gap-8">
                         <div className="flex items-center gap-6">
                             <Link
-                                href="/welcome"
+                                href={getStartedUrl}
                                 onClick={onGetStarted}
                                 onMouseEnter={() => setIsButtonHovered(true)}
                                 onMouseLeave={() => setIsButtonHovered(false)}
@@ -52,7 +54,7 @@ export function ChangeTheWindFooter({
                             </Link>
 
                             <Link 
-                                href="/welcome"
+                                href={getStartedUrl}
                                 className="cursor-pointer transition-all group flex items-center gap-3 text-muted-foreground hover:text-foreground"
                             >
                                 <AdminIcon className={`w-5 h-5 transition-colors ${accentTextClass}`} />

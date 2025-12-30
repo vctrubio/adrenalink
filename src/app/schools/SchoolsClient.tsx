@@ -86,6 +86,7 @@ const SchoolsClient = ({ schools }: SchoolsClientProps) => {
                     isStarting={isStarting}
                     onGetStarted={() => setIsStarting(true)}
                     variant="secondary"
+                    getStartedUrl="/pillars"
                 />
             }
         >

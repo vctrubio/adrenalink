@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import { MapPin, Globe, Instagram, MessageCircle } from "lucide-react";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment"; 
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { SchoolModel } from "@/backend/models/SchoolModel";
 import { WindToggle } from "@/src/components/themes/WindToggle";
 import { SportSelection } from "@/src/components/school/SportSelection";
@@ -37,13 +37,13 @@ interface SubDomainHomePageProps {
  */
 export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePageProps) {
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
-    
+
     const { name, country, phone, websiteUrl, instagramUrl, equipmentCategories, currency } = school.schema;
     const currencySymbol = CURRENCY_MAP[currency] || CURRENCY_MAP["YEN"];
-    
-    const bannerUrl = assets?.bannerUrl || "/beach-banner.jpg"; 
-    const iconUrl = assets?.iconUrl || null; 
-    
+
+    const bannerUrl = assets?.bannerUrl || "/beach-banner.jpg";
+    const iconUrl = assets?.iconUrl || null;
+
     const hasPhone = !!phone && phone.length > 5;
     const hasWebsite = !!websiteUrl && websiteUrl.length > 3;
     const hasInstagram = !!instagramUrl && instagramUrl.length > 3;
@@ -68,7 +68,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
 
     return (
         <div className="min-h-screen h-screen bg-background flex flex-col items-center p-4 md:p-8 overflow-hidden overscroll-none text-foreground">
-            
+
             {/* Theme Toggle */}
             <div className="absolute top-6 right-6 z-50 bg-card/80 backdrop-blur-md rounded-xl border border-border shadow-lg">
                 <WindToggle compact={true} />
@@ -76,7 +76,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
 
             {/* Main Portal Container */}
             <div className="w-full max-w-7xl flex-1 bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative">
-                
+
                 {/* 1. Banner Section */}
                 <div className="relative w-full h-48 md:h-80 group shrink-0">
                     <div className="absolute inset-0 bg-background/30 backdrop-blur-3xl flex items-center justify-center">
@@ -84,12 +84,12 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                             <AdranlinkIcon size={120} />
                         </div>
                     </div>
-                    
-                    <Image 
-                        src={bannerUrl} 
-                        alt={`${name} Banner`} 
+
+                    <Image
+                        src={bannerUrl}
+                        alt={`${name} Banner`}
                         fill
-                        className="object-cover" 
+                        className="object-cover"
                         priority
                         placeholder="blur"
                         blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
@@ -105,9 +105,9 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                 </div>
 
                 {/* 2. Profile Info Bar */}
-                <div className="relative px-6 md:px-10 pb-8 bg-muted dark:bg-[#0a0a0a] shrink-0"> 
+                <div className="relative px-6 md:px-10 pb-8 bg-muted dark:bg-[#0a0a0a] shrink-0">
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
-                        
+
                         {/* School Icon */}
                         <div className="-mt-16 md:-mt-20 z-10 flex-shrink-0">
                             <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-blue-500 bg-muted dark:bg-[#0a0a0a] overflow-hidden shadow-2xl">
@@ -126,14 +126,14 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                             <h1 className="text-3xl md:text-5xl font-black text-foreground tracking-tighter leading-none uppercase">
                                 {name}
                             </h1>
-                            
+
                             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                 {categoryList.map(cat => {
                                     const config = EQUIPMENT_CATEGORIES.find(c => c.id === cat);
                                     if (!config) return null;
                                     const Icon = config.icon;
                                     return (
-                                        <span 
+                                        <span
                                             key={cat}
                                             className="px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-muted dark:bg-white/10 text-foreground border border-border"
                                         >
@@ -169,12 +169,12 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                 {/* 3. Package Content Area */}
                 <div className="flex-1 bg-background/30 backdrop-blur-3xl overflow-hidden flex flex-col">
                     <div className="p-6 md:p-10 flex flex-col gap-10 h-full">
-                        
+
                         {/* Centered Sport Selection */}
                         <div className="w-full max-w-2xl mx-auto shrink-0">
-                            <SportSelection 
-                                selectedSport={selectedSport} 
-                                onSelectSport={setSelectedSport} 
+                            <SportSelection
+                                selectedSport={selectedSport}
+                                onSelectSport={setSelectedSport}
                                 counts={sportCounts}
                             />
                         </div>
@@ -183,7 +183,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                         <div className="flex-1 overflow-y-auto custom-scrollbar px-2 -mx-2 pb-10 overscroll-contain">
                             <AnimatePresence mode="popLayout">
                                 {filteredPackages.length > 0 ? (
-                                    <motion.div 
+                                    <motion.div
                                         key={selectedSport || "all"}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
@@ -195,17 +195,13 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                                         ))}
                                     </motion.div>
                                 ) : (
-                                    <motion.div 
+                                    <motion.div
                                         key="empty"
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className="h-full flex flex-col items-center justify-center text-center opacity-20 select-none pointer-events-none"
                                     >
-                                        <AdranlinkIcon size={160} />
-                                        <div className="mt-6">
-                                            <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2">No Packages</span>
-                                            <span className="text-sm font-bold uppercase tracking-[0.5em]">For this category</span>
-                                        </div>
+                                        <>Adrenalink Icon here</>
                                     </motion.div>
                                 )}
                             </AnimatePresence>

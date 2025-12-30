@@ -32,47 +32,94 @@ export function EquipmentStudentPackagePriceBadge({
     
     const priceColor = "#f97316";
 
-    return (
-        <div className="flex items-center justify-start gap-4">
-            {/* Equipment */}
-            {equipmentCapacity > 0 && CategoryIcon && (
-                <div className="flex items-center gap-1.5">
-                    <div style={{ color: equipmentColor }}>
-                        <CategoryIcon size={16} />
+            return (
+
+                <div className="flex items-center justify-start gap-4">
+
+                    {/* Equipment */}
+
+                    {equipmentCapacity > 0 && CategoryIcon && (
+
+                        <div className="flex items-center gap-1.5">
+
+                            <div style={{ color: equipmentColor }}>
+
+                                <CategoryIcon size={16} />
+
+                            </div>
+
+                            {equipmentCapacity > 1 && <span className="text-sm text-foreground">{equipmentCapacity}</span>}
+
+                        </div>
+
+                    )}
+
+        
+
+                    {/* Student */}
+
+                    <div className="flex items-center gap-1.5">
+
+                        <div style={{ color: studentColor }}>
+
+                            <StudentIcon size={16} />
+
+                        </div>
+
+                        {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
+
                     </div>
-                    {equipmentCapacity > 1 && <span className="text-sm text-foreground">{equipmentCapacity}</span>}
-                </div>
-            )}
 
-            {/* Student */}
-            <div className="flex items-center gap-1.5">
-                <div style={{ color: studentColor }}>
-                    <StudentIcon size={16} />
-                </div>
-                {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
-            </div>
+        
 
-            {/* Package Duration */}
-            <div className="flex items-center gap-1.5">
-                <div style={{ color: packageColor }}>
-                    <PackageIcon size={16} />
-                </div>
-                <div className="flex items-baseline gap-0.5">
-                    <span className="text-sm text-foreground">{packageDurationHours}</span>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
-                </div>
-            </div>
+                    {/* Package Duration */}
 
-            {/* Price */}
-            <div className="flex items-center gap-1.5">
-                <div style={{ color: priceColor }}>
-                    <PPHIcon size={16} />
+                    <div className="flex items-center gap-1.5">
+
+                        <div style={{ color: packageColor }}>
+
+                            <PackageIcon size={16} />
+
+                        </div>
+
+                        <div className="flex items-baseline gap-0.5">
+
+                            <span className="text-sm text-foreground">{packageDurationHours}</span>
+
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
+
+                        </div>
+
+                    </div>
+
+        
+
+                    {/* Price */}
+
+                    <div className="flex items-center gap-1.5">
+
+                        <div style={{ color: priceColor }}>
+
+                            <PPHIcon size={16} />
+
+                        </div>
+
+                        <div className="flex items-baseline gap-0.5">
+
+                            <span className="text-sm text-foreground">{pricePerHour.toFixed(0)}</span>
+
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/h</span>
+
+                        </div>
+
+                    </div>
+
                 </div>
-                <div className="flex items-baseline gap-0.5">
-                    <span className="text-sm text-foreground">{pricePerHour.toFixed(0)}</span>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/h</span>
-                </div>
-            </div>
-        </div>
-    );
-}
+
+            );
+
+        }
+
+        
+
+    
