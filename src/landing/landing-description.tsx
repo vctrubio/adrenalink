@@ -107,8 +107,10 @@ export function LandingDescription() {
                                             onClick={() => setSelectedRole(isSelected ? null : role.id)}
                                             onHoverStart={() => setHoveredRole(role.id)}
                                             onHoverEnd={() => setHoveredRole(null)}
-                                            className={`relative rounded-[2rem] overflow-hidden border transition-colors duration-300 flex flex-col items-center justify-center gap-3 w-full h-full ${
-                                                isSelected ? "bg-white/20 border-white/60 z-10" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
+                                                isSelected 
+                                                    ? "bg-white/20 border-white/60 text-white z-10" 
+                                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
                                             }`}
                                         >
                                             <motion.div
@@ -117,11 +119,17 @@ export function LandingDescription() {
                                                     scale: isHovered ? 1.2 : 1,
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                                className="flex items-center justify-center"
                                             >
-                                                <Icon size={isHovered ? 48 : 40} className={isHovered || isSelected ? "text-white" : "text-white"} />
+                                                <Icon size={42} className="transition-all duration-300" />
                                             </motion.div>
 
-                                            <motion.span layout="position" className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${isHovered || isSelected ? "text-white" : "text-white/60"}`}>
+                                            <motion.span 
+                                                layout="position" 
+                                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
+                                                    isHovered || isSelected ? "text-white" : "text-white/60"
+                                                }`}
+                                            >
                                                 {role.label}
                                             </motion.span>
                                         </motion.button>
