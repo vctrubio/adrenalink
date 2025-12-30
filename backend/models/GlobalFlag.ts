@@ -1,6 +1,16 @@
 /**
- * GlobalFlag - Manages global time adjustment state and operations
- * Encapsulates all logic for adjusting teacher queue times globally
+ * GlobalFlag - Centralized state manager for Classboard time/location adjustments.
+ * 
+ * DESIGN PRINCIPLES (The "WHY"):
+ * 1. Single Source of Truth: All adjustment states (pending teachers, snapshots, submitting status)
+ *    live here to prevent synchronization bugs between the sidebar and individual cards.
+ * 2. Session Stability: The class instance is preserved across data refreshes. It uses
+ *    "Instance Preservation" to ensure that background data updates (e.g., from Supabase real-time)
+ *    do not overwrite local in-memory mutations for teachers currently being edited.
+ * 3. Atomic Snapshots: Original state is captured at the moment a teacher enters the queue.
+ *    This allows for reliable "Reset" functionality and precise change detection.
+ * 4. Automatic Session Management: The session (adjustmentMode) automatically terminates
+ *    when the last teacher opts out or is successfully saved.
  */
 
 import { QueueController } from "../QueueController";
@@ -12,6 +22,7 @@ export class GlobalFlag {
     private globalTime: string | null = null;
     private globalLocation: string | null = null;
     private pendingTeachers = new Set<string>();
+    private submittingTeachers = new Set<string>();
     private isLocked = false;
     private refreshKey = 0;
     private originalQueueStates = new Map<string, EventNode[]>();
@@ -48,9 +59,10 @@ export class GlobalFlag {
         return this.controller;
     }
 
-    /**
-     * Calculate global earliest time across all teacher queues
-     */
+    isSubmitting(teacherUsername: string): boolean {
+        return this.submittingTeachers.has(teacherUsername);
+    }
+
     getGlobalEarliestTime(): string | null {
         const allEarliestTimes = this.teacherQueues
             .map((queue) => queue.getEarliestEventTime())
@@ -62,31 +74,6 @@ export class GlobalFlag {
         return minutesToTime(minTimeInMinutes);
     }
 
-    /**
-     * Get earliest time from only pending teachers
-     * Used to reset adjustment time when canceling
-     */
-    getEarliestTimeFromPending(): string | null {
-        const pendingTimes: string[] = [];
-        this.pendingTeachers.forEach((username) => {
-            const queue = this.teacherQueues.find((q) => q.teacher.username === username);
-            if (queue) {
-                const earliestTime = queue.getEarliestEventTime();
-                if (earliestTime) {
-                    pendingTimes.push(earliestTime);
-                }
-            }
-        });
-
-        if (pendingTimes.length === 0) return this.getGlobalEarliestTime();
-
-        const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
-        return minutesToTime(minTimeInMinutes);
-    }
-
-    /**
-     * Calculate global location - most common location across all teacher queues
-     */
     getGlobalLocation(): string | null {
         const allLocations: string[] = [];
         this.teacherQueues.forEach((queue) => {
@@ -100,7 +87,6 @@ export class GlobalFlag {
 
         if (allLocations.length === 0) return null;
 
-        // Count occurrences and return the most common
         const locationCounts = allLocations.reduce(
             (acc, loc) => {
                 acc[loc] = (acc[loc] || 0) + 1;
@@ -116,42 +102,7 @@ export class GlobalFlag {
         return mostCommonLocation;
     }
 
-    /**
-     * Get location from only pending teachers
-     */
-    getLocationFromPending(): string | null {
-        const pendingLocations: string[] = [];
-        this.pendingTeachers.forEach((username) => {
-            const queue = this.teacherQueues.find((q) => q.teacher.username === username);
-            if (queue) {
-                const events = queue.getAllEvents();
-                events.forEach((event) => {
-                    if (event.eventData.location) {
-                        pendingLocations.push(event.eventData.location);
-                    }
-                });
-            }
-        });
-
-        if (pendingLocations.length === 0) return this.getGlobalLocation();
-
-        // Count occurrences and return the most common
-        const locationCounts = pendingLocations.reduce(
-            (acc, loc) => {
-                acc[loc] = (acc[loc] || 0) + 1;
-                return acc;
-            },
-            {} as Record<string, number>
-        );
-
-        const mostCommonLocation = Object.entries(locationCounts).sort(
-            (a, b) => b[1] - a[1]
-        )[0][0];
-
-        return mostCommonLocation;
-    }
-
-    // ============ LOCK STATUS CALCULATION ============
+    // ============ LOCK STATUS ============
 
     getLockStatusTime(targetTime?: string | null) {
         const totalTeachers = this.pendingTeachers.size;
@@ -165,7 +116,6 @@ export class GlobalFlag {
             return { isLockFlagTime: false, lockCount: 0 };
         }
 
-        // If targetTime is provided, use it. Otherwise find the earliest among pending.
         const referenceTime = targetTime || pendingTeachersTimes.reduce((min, t) => {
             const minMinutes = timeToMinutes(min);
             const tMinutes = timeToMinutes(t.earliestTime);
@@ -190,8 +140,6 @@ export class GlobalFlag {
             .forEach((q) => {
                 const events = q.getAllEvents();
                 const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
-                
-                // A teacher is "locally synchronized" if all their own events match the FIRST event's location
                 const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
 
                 totalEventsForLock += events.length;
@@ -203,7 +151,6 @@ export class GlobalFlag {
                 }
             });
 
-        // Use targetLocation if provided, otherwise find first non-null location among pending
         const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
 
         if (referenceLocation) {
@@ -211,7 +158,6 @@ export class GlobalFlag {
                 .filter((q) => this.pendingTeachers.has(q.teacher.username))
                 .forEach((q) => {
                     const events = q.getAllEvents();
-                    // Count events that match the reference location
                     events.forEach(e => {
                         if (e.eventData.location === referenceLocation) {
                             synchronizedEventsCount++;
@@ -229,13 +175,8 @@ export class GlobalFlag {
         };
     }
 
-    // ============ STATE MANAGEMENT ============
+    // ============ STATE ACTIONS ============
 
-    /**
-     * Enter global adjustment mode
-     * Initializes pending teachers with all teachers that have events
-     * Stores original queue state for change detection
-     */
     enterAdjustmentMode(): void {
         const teachersWithEvents = this.teacherQueues
             .filter((queue) => queue.getAllEvents().length > 0)
@@ -246,34 +187,36 @@ export class GlobalFlag {
         this.globalTime = this.getGlobalEarliestTime();
         this.globalLocation = this.getGlobalLocation();
 
-        // Store original state for each teacher
         this.originalQueueStates.clear();
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
-                const events = queue.getAllEvents();
-                this.originalQueueStates.set(
-                    queue.teacher.username,
-                    events.map((event) => ({
-                        ...event,
-                        eventData: { ...event.eventData },
-                    }))
-                );
+                this.snapshotTeacherState(queue.teacher.username);
             }
         });
 
         this.onRefresh();
     }
 
-    /**
-     * Discard all changes and restore original state
-     */
+    private snapshotTeacherState(username: string): void {
+        const queue = this.teacherQueues.find((q) => q.teacher.username === username);
+        if (queue && !this.originalQueueStates.has(username)) {
+            const events = queue.getAllEvents();
+            this.originalQueueStates.set(
+                username,
+                events.map((event) => ({
+                    ...event,
+                    eventData: { ...event.eventData },
+                }))
+            );
+        }
+    }
+
     discardChanges(): void {
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
                 const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
                 const currentEvents = queue.getAllEvents();
 
-                // Restore original state for each event
                 currentEvents.forEach((currentEvent, index) => {
                     const originalEvent = originalEvents[index];
                     if (originalEvent) {
@@ -288,35 +231,29 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    /**
-     * Exit global adjustment mode
-     * Clears pending teachers, resets lock, and clears original state
-     */
     exitAdjustmentMode(): void {
         this.adjustmentMode = false;
         this.globalTime = null;
         this.globalLocation = null;
         this.pendingTeachers.clear();
+        this.submittingTeachers.clear();
         this.isLocked = false;
         this.originalQueueStates.clear();
         this.onRefresh();
     }
 
-    /**
-     * Opt a teacher into global adjustments
-     */
     optIn(teacherUsername: string): void {
         this.pendingTeachers.add(teacherUsername);
+        this.snapshotTeacherState(teacherUsername);
         this.onRefresh();
     }
 
-    /**
-     * Opt a teacher out of global adjustments
-     * If all teachers are opted out, exit adjustment mode
-     */
     optOut(teacherUsername: string): void {
         this.pendingTeachers.delete(teacherUsername);
+        this.originalQueueStates.delete(teacherUsername);
+        this.submittingTeachers.delete(teacherUsername);
 
+        // Session Rule: If no more teachers are pending, the global session terminates
         if (this.pendingTeachers.size === 0) {
             this.exitAdjustmentMode();
         }
@@ -324,12 +261,17 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    // ============ TIME ADJUSTMENT ============
+    setSubmitting(teacherUsername: string, isSubmitting: boolean): void {
+        if (isSubmitting) {
+            this.submittingTeachers.add(teacherUsername);
+        } else {
+            this.submittingTeachers.delete(teacherUsername);
+        }
+        this.onRefresh();
+    }
 
-    /**
-     * Adjust global time to new value
-     * Respects gaps using QueueController methods
-     */
+    // ============ OPERATIONS ============
+
     adjustTime(newTime: string): void {
         if (this.isLocked) {
             this.adjustTimeLocked(newTime);
@@ -342,10 +284,6 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    /**
-     * Locked mode: sync all queues to adjustment time, but respect those already past it
-     * Teachers already past the new time stay put (can't move backwards before global earliest)
-     */
     private adjustTimeLocked(newTime: string): void {
         const newMinutes = timeToMinutes(newTime);
 
@@ -354,9 +292,6 @@ export class GlobalFlag {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
                     const currentMinutes = timeToMinutes(earliestTime);
-
-                    // Only sync teachers who are at or before the new time
-                    // Teachers already past the new time should not move backwards
                     if (currentMinutes <= newMinutes) {
                         const queueController = new QueueController(queue, this.controller, () => {
                             this.refreshKey++;
@@ -371,10 +306,6 @@ export class GlobalFlag {
         this.globalTime = newTime;
     }
 
-    /**
-     * Unlocked mode: move teachers who are at or before the adjustment time
-     * Teachers already past the new time should NOT move backwards
-     */
     private adjustTimeUnlocked(newTime: string): void {
         if (!this.globalTime) return;
 
@@ -385,9 +316,6 @@ export class GlobalFlag {
                 const earliestTime = queue.getEarliestEventTime();
                 if (earliestTime) {
                     const queueMinutes = timeToMinutes(earliestTime);
-
-                    // Only move teachers who are at or before the new time
-                    // Teachers already past the new time should not move backwards
                     if (queueMinutes <= newMinutes) {
                         const queueController = new QueueController(queue, this.controller, () => {
                             this.refreshKey++;
@@ -400,19 +328,12 @@ export class GlobalFlag {
         });
     }
 
-    /**
-     * Adapt (Lock/Unlock) all pending teachers
-     * If unlocked: sync all to earliest time and lock
-     * If locked: unlock
-     */
     adapt(): void {
         if (this.isLocked) {
-            // Already locked: unlock
             this.isLocked = false;
             this.refreshKey++;
             this.onRefresh();
         } else {
-            // Not locked: sync all pending teachers to earliest time and lock
             this.syncAllToEarliest();
             this.isLocked = true;
             this.refreshKey++;
@@ -420,9 +341,6 @@ export class GlobalFlag {
         }
     }
 
-    /**
-     * Lock all pending teachers to a specific adjustment time
-     */
     lockToAdjustmentTime(targetTime: string): void {
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
@@ -442,9 +360,6 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    /**
-     * Sync all pending teachers to earliest time
-     */
     private syncAllToEarliest(): void {
         const pendingTimes: string[] = [];
         this.teacherQueues.forEach((queue) => {
@@ -475,11 +390,6 @@ export class GlobalFlag {
         });
     }
 
-    // ============ LOCATION ADJUSTMENT ============
-
-    /**
-     * Adjust all pending teacher locations to new location
-     */
     adjustLocation(newLocation: string): void {
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
@@ -496,9 +406,6 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    /**
-     * Lock all pending teachers to a specific location
-     */
     lockToLocation(targetLocation: string): void {
         this.teacherQueues.forEach((queue) => {
             if (this.pendingTeachers.has(queue.teacher.username)) {
@@ -516,75 +423,84 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    /**
-     * Get total count of changed events across all pending teachers
-     */
+    // ============ PERSISTENCE ============
+
     getChangedEventsCount(): number {
         let count = 0;
         this.teacherQueues.forEach((queue) => {
             if (!this.pendingTeachers.has(queue.teacher.username)) return;
-
-            const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
-            const currentEvents = queue.getAllEvents();
-
-            currentEvents.forEach((currentEvent) => {
-                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
-                if (!originalEvent) return;
-
-                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
-                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
-                const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
-
-                if (dateChanged || durationChanged || locationChanged) {
-                    count++;
-                }
-            });
+            const updates = this.collectChangesForTeacher(queue.teacher.username);
+            count += updates.length;
         });
         return count;
     }
 
-    /**
-     * Collect all changed events from pending teachers
-     * Compares current state against original state to find changes
-     */
     collectChanges(): { id: string; date: string; duration: number; location: string }[] {
         const allUpdates: { id: string; date: string; duration: number; location: string }[] = [];
-
         this.teacherQueues.forEach((queue) => {
-            if (!this.pendingTeachers.has(queue.teacher.username)) {
-                return;
-            }
-
-            const originalEvents = this.originalQueueStates.get(queue.teacher.username) || [];
-            const currentEvents = queue.getAllEvents();
-
-            currentEvents.forEach((currentEvent) => {
-                const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
-                if (!originalEvent) return; // New event
-
-                // Check if date, duration or location changed
-                const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
-                const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
-                const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
-
-                if (dateChanged || durationChanged || locationChanged) {
-                    allUpdates.push({
-                        id: currentEvent.id,
-                        date: currentEvent.eventData.date,
-                        duration: currentEvent.eventData.duration,
-                        location: currentEvent.eventData.location,
-                    });
-                }
-            });
+            if (!this.pendingTeachers.has(queue.teacher.username)) return;
+            const updates = this.collectChangesForTeacher(queue.teacher.username);
+            allUpdates.push(...updates);
         });
-
         return allUpdates;
     }
 
-    /**
-     * Update teacher queues reference (for when queues change)
-     */
+    collectChangesForTeacher(teacherUsername: string): { id: string; date: string; duration: number; location: string }[] {
+        const updates: { id: string; date: string; duration: number; location: string }[] = [];
+        const queue = this.teacherQueues.find((q) => q.teacher.username === teacherUsername);
+        
+        if (!queue || !this.pendingTeachers.has(teacherUsername)) {
+            return [];
+        }
+
+        const originalEvents = this.originalQueueStates.get(teacherUsername) || [];
+        const currentEvents = queue.getAllEvents();
+
+        currentEvents.forEach((currentEvent) => {
+            const originalEvent = originalEvents.find((e) => e.id === currentEvent.id);
+            if (!originalEvent) return;
+
+            const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
+            const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
+            const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
+
+            if (dateChanged || durationChanged || locationChanged) {
+                updates.push({
+                    id: currentEvent.id,
+                    date: currentEvent.eventData.date,
+                    duration: currentEvent.eventData.duration,
+                    location: currentEvent.eventData.location,
+                });
+            }
+        });
+
+        return updates;
+    }
+
+    triggerRefresh(): void {
+        this.onRefresh();
+    }
+
+    // ============ DATA SYNC ============
+
     updateTeacherQueues(queues: TeacherQueue[]): void {
-        this.teacherQueues = queues;
+        if (this.adjustmentMode) {
+            // Preservation Rule: If background data arrives, don't overwrite pending teachers' queues.
+            // This prevents local UI mutations from being lost when Supabase listeners trigger.
+            this.teacherQueues = queues.map(newQueue => {
+                const username = newQueue.teacher.username;
+                if (this.pendingTeachers.has(username)) {
+                    const existingQueue = this.teacherQueues.find(q => q.teacher.username === username);
+                    return existingQueue || newQueue;
+                }
+                return newQueue;
+            });
+        } else {
+            this.teacherQueues = queues;
+        }
+    }
+
+    updateController(controller: ControllerSettings): void {
+        this.controller = controller;
     }
 }

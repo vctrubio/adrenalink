@@ -274,6 +274,7 @@ export interface TeacherClassCardProps {
     onCancel?: () => void;
     hasChanges?: boolean;
     changedCount?: number;
+    isSubmitting?: boolean;
 }
 
 export default function TeacherClassCard({
@@ -295,7 +296,8 @@ export default function TeacherClassCard({
     onReset,
     onCancel,
     hasChanges = false,
-    changedCount = 0
+    changedCount = 0,
+    isSubmitting = false
 }: TeacherClassCardProps) {
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
@@ -491,6 +493,7 @@ export default function TeacherClassCard({
                         onCancel={onCancel || (() => onToggleAdjustment?.(false))}
                         onReset={onReset || (() => {})}
                         hasChanges={hasChanges}
+                        isSubmitting={isSubmitting}
                         submitLabel="Save"
                         extraContent={changedCount > 0 && <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">{changedCount}</span>}
                     />

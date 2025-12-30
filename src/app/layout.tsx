@@ -9,26 +9,23 @@ export const metadata: Metadata = {
     title: "Adrenalink",
     description: "Home of Adrenaline Activity",
     icons: {
-        icon: [
-            { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-            { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-        ],
-        apple: "/apple-touch-icon.png",
-        shortcut: "/favicon-32x32.png",
+        icon: "/ADR.webp",
+        apple: "/ADR.webp",
+        shortcut: "/ADR.webp",
     },
     manifest: "/manifest.json",
     openGraph: {
         title: "Adrenalink",
         description: "Home of Adrenaline Activity",
         siteName: "Adrenalink",
-        images: ["/icon/og.svg"],
+        images: ["/ADR.webp"],
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
         title: "Adrenalink",
         description: "Home of Adrenaline Activity",
-        images: ["/icon/og.svg"],
+        images: ["/ADR.webp"],
     },
 };
 

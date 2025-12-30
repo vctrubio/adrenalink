@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, memo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
-import ExpandCollapseButtons from "@/src/components/ui/ExpandCollapseButtons";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
@@ -25,246 +24,140 @@ interface TeacherClassDailyV2Props {
     controller?: ControllerSettings;
     onEventDeleted?: (eventId: string) => void;
     onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
-    globalFlag?: GlobalFlag;
+    globalFlag?: globalFlag;
     refreshKey?: number;
 }
 
 type TeacherFilter = "active" | "all";
 
-export default function TeacherClassDailyV2({ teacherQueues, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, refreshKey }: TeacherClassDailyV2Props) {
-
+export default function TeacherClassDailyV2({
+    teacherQueues,
+    selectedDate,
+    draggedBooking,
+    isLessonTeacher,
+    controller,
+    onEventDeleted,
+    onAddLessonEvent,
+    globalFlag,
+    refreshKey,
+}: TeacherClassDailyV2Props) {
     if (process.env.NEXT_PUBLIC_DEBUG_RENDER === "true") {
-
         console.log(`[CLASSBOARD] TeacherClassDailyV2 rendered. RefreshKey: ${refreshKey}`);
-
     }
 
-
-
     const [filter, setFilter] = useState<TeacherFilter>("active");
-
     const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.username)));
 
-
-
     const toggleTeacherExpanded = (teacherUsername: string) => {
-
         setExpandedTeachers((prev) => {
-
             const newSet = new Set(prev);
-
             if (newSet.has(teacherUsername)) {
-
                 newSet.delete(teacherUsername);
-
             } else {
-
                 newSet.add(teacherUsername);
-
             }
-
             return newSet;
-
         });
-
     };
-
-
 
     const expandAllTeachers = () => {
-
         setExpandedTeachers(new Set(teacherQueues.map((q) => q.teacher.username)));
-
     };
-
-
 
     const collapseAllTeachers = () => {
-
         setExpandedTeachers(new Set());
-
     };
-
-
 
     const { filteredQueues, counts } = useMemo(() => {
-
-        // Filter queues based on whether they have events today
-
         const activeQueues: TeacherQueue[] = [];
-
         const allQueues: TeacherQueue[] = teacherQueues;
 
-
-
         teacherQueues.forEach((queue) => {
-
             const events = queue.getAllEvents();
-
             const todayEvents = events.filter((event) => {
-
                 if (!event.eventData.date) return false;
-
                 const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
-
                 return eventDate === selectedDate;
-
             });
 
-
-
             if (todayEvents.length > 0) {
-
                 activeQueues.push(queue);
-
             }
-
         });
 
-
-
         const counts = {
-
             active: activeQueues.length,
-
             all: allQueues.length,
-
         };
-
-
 
         return {
-
             filteredQueues: filter === "active" ? activeQueues : allQueues,
-
             counts,
-
         };
-
     }, [teacherQueues, selectedDate, filter, refreshKey]);
 
-
-
-    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every(q => expandedTeachers.has(q.teacher.username));
-
-
+    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every((q) => expandedTeachers.has(q.teacher.username));
 
     const toggleAllTeachers = () => {
-
         if (allTeachersExpanded) {
-
             collapseAllTeachers();
-
         } else {
-
             expandAllTeachers();
-
         }
-
     };
 
-
-
     return (
-
         <div className="flex flex-col h-full">
-
-            {/* Header with Icon and Switch */}
-
-            <div 
-
+            {/* Header: Global Toggles & Filter */}
+            <div
                 className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0"
-
                 onClick={toggleAllTeachers}
-
             >
-
                 <div style={{ color: TEACHER_COLOR }}>
-
                     <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
-
                 </div>
-
                 <span className="text-lg font-bold text-foreground">Teachers</span>
-
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-
                     <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} values={{ left: "active", right: "all" }} counts={counts} tintColor={TEACHER_COLOR} />
-
                 </div>
-
             </div>
 
-
-
-            {/* List Content */}
-
+            {/* Teacher List Content */}
             <div className="overflow-auto flex-1 min-h-0">
-
                 <div className="p-2 bg-card">
-
                     <div className="flex flex-col divide-y-2 divide-background">
-
                         {filteredQueues.length > 0 ? (
-
                             filteredQueues.map((queue) => {
-
                                 return (
-
                                     <div key={queue.teacher.username} className="py-2">
-
-                                                                                        <TeacherQueueCardV2
-
-                                                                                            queue={queue}
-
-                                                                                            selectedDate={selectedDate}
-
-                                                                                            draggedBooking={draggedBooking}
-
-                                                                                            isLessonTeacher={isLessonTeacher}
-
-                                                                                            controller={controller}
-
-                                                                                            onEventDeleted={onEventDeleted}
-
-                                                                                            onAddLessonEvent={onAddLessonEvent}
-
-                                                                                            globalFlag={globalFlag}
-
-                                                                                            isExpanded={expandedTeachers.has(queue.teacher.username)}
-
-                                                                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
-
-                                                                                            parentRefreshKey={refreshKey}
-
-                                                                                        />
-
+                                        <TeacherQueueCardV2
+                                            queue={queue}
+                                            selectedDate={selectedDate}
+                                            draggedBooking={draggedBooking}
+                                            isLessonTeacher={isLessonTeacher}
+                                            controller={controller}
+                                            onEventDeleted={onEventDeleted}
+                                            onAddLessonEvent={onAddLessonEvent}
+                                            globalFlag={globalFlag}
+                                            isExpanded={expandedTeachers.has(queue.teacher.username)}
+                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+                                            parentRefreshKey={refreshKey}
+                                        />
                                     </div>
-
                                 );
-
                             })
-
                         ) : (
-
                             <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">No {filter} teachers</div>
-
                         )}
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     );
-
 }
 
 // ============================================
-// TeacherQueueCardV2 - Card with collapsible events
+// TeacherQueueCardV2 - Individual Teacher Row
 // ============================================
 interface TeacherQueueCardV2Props {
     queue: TeacherQueue;
@@ -280,24 +173,54 @@ interface TeacherQueueCardV2Props {
     parentRefreshKey?: number;
 }
 
-function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeacher, controller, onEventDeleted, onAddLessonEvent, globalFlag, isExpanded, onToggleExpand, parentRefreshKey }: TeacherQueueCardV2Props) {
+/**
+ * TeacherQueueCardV2 manages the view and local state for a single teacher's queue.
+ * COORDINATION RULES:
+ * 1. Global Session Sync: Auto-enters adjustment mode when added to GlobalFlag queue.
+ * 2. Auto-Exit: Auto-exits adjustment mode when GlobalFlag panel is closed OR teacher removed from queue.
+ * 3. Individual Mode: Supports manual adjustment mode even when global flag is inactive.
+ * 4. Refresh Stability: Uses parentRefreshKey to re-sync with GlobalFlag class state without full remounts.
+ */
+const TeacherQueueCardV2 = memo(({
+    queue,
+    selectedDate,
+    draggedBooking,
+    isLessonTeacher,
+    controller,
+    onEventDeleted,
+    onAddLessonEvent,
+    globalFlag,
+    isExpanded,
+    onToggleExpand,
+    parentRefreshKey,
+}: TeacherQueueCardV2Props) => {
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const originalQueueState = useRef<EventNode[]>([]);
+    const wasGlobalModeRef = useRef(false);
 
-    // Auto-enter adjustment mode when global adjustment mode is active
+    // Auto-sync local UI mode with global session state
     useEffect(() => {
-        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
-        const isPending = isGlobalAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
+        const isGlobalMode = globalFlag?.isAdjustmentMode?.();
+        const isPending = isGlobalMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
 
-        if (isPending && !isAdjustmentMode) {
-            setIsAdjustmentMode(true);
-        } else if (!isGlobalAdjustmentMode && isAdjustmentMode) {
+        // 1. Session Closing: Close local edit mode if the global panel was just shut down
+        if (wasGlobalModeRef.current && !isGlobalMode && isAdjustmentMode) {
             setIsAdjustmentMode(false);
         }
+        // 2. Queue Entry: Switch to edit mode if added to the pending adjustment queue
+        else if (isPending && !isAdjustmentMode) {
+            setIsAdjustmentMode(true);
+        }
+        // 3. Queue Removal: Exit edit mode if manually removed from global queue while session is still active
+        else if (isGlobalMode && !isPending && isAdjustmentMode) {
+            setIsAdjustmentMode(false);
+        }
+
+        wasGlobalModeRef.current = !!isGlobalMode;
     }, [globalFlag, queue.teacher.username, isAdjustmentMode, parentRefreshKey]);
 
-    // Store original state when entering edit mode
+    // Snapshot state management
     useEffect(() => {
         if (isAdjustmentMode && queue && originalQueueState.current.length === 0) {
             const allEvents = queue.getAllEvents();
@@ -306,7 +229,6 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
                 eventData: { ...event.eventData },
             }));
         }
-        // Clear original state when exiting edit mode
         if (!isAdjustmentMode) {
             originalQueueState.current = [];
         }
@@ -322,46 +244,37 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
     const completedCount = todayEvents.filter((e) => e.eventData.status === "completed").length;
     const pendingCount = todayEvents.filter((e) => e.eventData.status !== "completed").length;
 
-    // Get stats from queue (includes earnings calculations)
-    const stats = useMemo(() => queue.getStats(), [queue, refreshKey]);
+    // Summary stats re-calculated on parent or internal refresh
+    const stats = useMemo(() => queue.getStats(), [queue, refreshKey, parentRefreshKey]);
+    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey, parentRefreshKey]);
 
-    // Get earliest start time
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue, refreshKey]);
-
-    // Compute equipment counts from events
     const equipmentCounts = useMemo(() => {
         const counts = new Map<string, number>();
         todayEvents.forEach((e) => {
             const cat = e.packageData?.categoryEquipment;
-            if (cat) {
-                counts.set(cat, (counts.get(cat) || 0) + 1);
-            }
+            if (cat) counts.set(cat, (counts.get(cat) || 0) + 1);
         });
         return Array.from(counts.entries()).map(([categoryId, count]) => ({ categoryId, count }));
     }, [todayEvents]);
 
-    // Compute event progress by status
     const eventProgress = useMemo(() => {
         const completed = todayEvents.filter((e) => e.eventData.status === "completed").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const planned = todayEvents.filter((e) => e.eventData.status === "planned").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const tbc = todayEvents.filter((e) => e.eventData.status === "tbc").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const total = completed + planned + tbc;
-
-        // Collect all event IDs for batch updates
         const eventIds = todayEvents.map((e) => e.id);
-
         return { completed, planned, tbc, total, eventIds };
     }, [todayEvents]);
 
-    // Create QueueController for gap calculations (only if controller provided)
     const queueController = useMemo(() => {
         if (!controller) return undefined;
         return new QueueController(queue, controller, () => {
             setRefreshKey((prev) => prev + 1);
+            // Sync Rule: Individual edits must notify the global session to update change detection in sidebar
+            globalFlag?.triggerRefresh?.();
         });
-    }, [queue, controller]);
+    }, [queue, controller, globalFlag]);
 
-    // Drag handling
     const canAcceptDrop = useMemo(() => {
         if (!draggedBooking || !isLessonTeacher) return false;
         return isLessonTeacher(draggedBooking.bookingId, queue.teacher.username);
@@ -374,55 +287,23 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
         }
     };
 
-    // Adjustment mode handlers
-    const changedEvents = events.filter((currentEvent) => {
-        const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
-        if (!originalEvent) return false;
-        const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
-        const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
-        const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
-        return dateChanged || durationChanged || locationChanged;
-    });
-
-    const hasChanges = changedEvents.length > 0;
-    const changedCount = changedEvents.length;
-
+    // Submits ONLY the changes for this specific teacher
     const handleSubmit = async () => {
+        const username = queue.teacher.username;
+        const changes = globalFlag?.collectChangesForTeacher(username) || [];
+        
+        globalFlag?.setSubmitting(username, true);
         try {
-            const updates = events
-                .filter((event) => event.id)
-                .filter((currentEvent) => {
-                    const originalEvent = originalQueueState.current.find((e) => e.id === currentEvent.id);
-                    if (!originalEvent) return true;
-                    const dateChanged = currentEvent.eventData.date !== originalEvent.eventData.date;
-                    const durationChanged = currentEvent.eventData.duration !== originalEvent.eventData.duration;
-                    const locationChanged = currentEvent.eventData.location !== originalEvent.eventData.location;
-                    return dateChanged || durationChanged || locationChanged;
-                })
-                .map((event) => ({
-                    id: event.id,
-                    date: event.eventData.date,
-                    duration: event.eventData.duration,
-                    location: event.eventData.location,
-                }));
-
-            if (updates.length > 0) {
-                const result = await bulkUpdateClassboardEvents(updates);
-                if (!result.success) {
-                    console.error("Failed to update events:", result.error);
-                    return;
-                }
+            if (changes.length > 0) {
+                const result = await bulkUpdateClassboardEvents(changes);
+                if (!result.success) return;
             }
-
-            // If in global mode, opt out after saving
-            const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
-            if (isGlobalAdjustmentMode) {
-                globalFlag?.optOut?.(queue.teacher.username);
-            }
-
+            
+            // Success Rule: Remove from global queue and exit edit mode
+            globalFlag?.optOut(username);
             setIsAdjustmentMode(false);
-        } catch (error) {
-            console.error("Error submitting queue changes:", error);
+        } finally {
+            globalFlag?.setSubmitting(username, false);
         }
     };
 
@@ -438,31 +319,32 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
                 }
             });
             setRefreshKey((prev) => prev + 1);
+            globalFlag?.triggerRefresh?.();
         }
     };
 
     const handleCancel = () => {
         handleReset();
-        // Check if in global adjustment mode - if so, opt out instead of just closing
-        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
-        if (isGlobalAdjustmentMode) {
+        // Cancellation Rule: Revert changes and opt out of global session
+        if (globalFlag?.isAdjustmentMode()) {
             globalFlag?.optOut?.(queue.teacher.username);
         }
         setIsAdjustmentMode(false);
     };
 
-    // Handle toggle adjustment mode - prevent manual exit if in global mode
     const handleToggleAdjustment = (mode: boolean) => {
-        const isGlobalAdjustmentMode = globalFlag?.isAdjustmentMode?.();
-        const isPending = isGlobalAdjustmentMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
+        const isGlobalMode = globalFlag?.isAdjustmentMode?.();
+        const isPending = isGlobalMode && globalFlag?.getPendingTeachers?.().has(queue.teacher.username);
 
-        // If trying to exit adjustment mode while in global mode, opt out instead
-        if (!mode && isPending) {
-            globalFlag?.optOut?.(queue.teacher.username);
-        }
+        if (!mode && isPending) globalFlag?.optOut?.(queue.teacher.username);
+        if (mode && isGlobalMode && !isPending) globalFlag?.optIn?.(queue.teacher.username);
 
         setIsAdjustmentMode(mode);
     };
+
+    const isSubmitting = globalFlag?.isSubmitting(queue.teacher.username) || false;
+    const individualChanges = globalFlag?.collectChangesForTeacher(queue.teacher.username) || [];
+    const hasChanges = individualChanges.length > 0;
 
     return (
         <div
@@ -470,9 +352,6 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
             onDragOver={(e) => canAcceptDrop && e.preventDefault()}
             onDrop={handleDrop}
         >
-            {/* Left: Teacher Info Card */}
-            {/* When expanded: Fixed width, with border */}
-            {/* When collapsed: Full width (flex-1), no border */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${isExpanded ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
                     teacherName={queue.teacher.username}
@@ -493,16 +372,15 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
                     onReset={handleReset}
                     onCancel={handleCancel}
                     hasChanges={hasChanges}
-                    changedCount={changedCount}
+                    changedCount={individualChanges.length}
+                    isSubmitting={isSubmitting}
                 />
             </div>
 
-            {/* Right: Events Queue (Horizontal Scroll) */}
             {isExpanded && (
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {isAdjustmentMode ? (
-                            /* Adjustment Mode: Show EventModCards */
                             events.length > 0 ? (
                                 events.map((event) => (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
@@ -513,7 +391,6 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
                                 <div className="flex items-center justify-center w-full text-xs text-muted-foreground">No events to adjust</div>
                             )
                         ) : (
-                            /* Normal Mode: Show EventCards */
                             todayEvents.length > 0 &&
                             todayEvents.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
@@ -526,4 +403,6 @@ function TeacherQueueCardV2({ queue, selectedDate, draggedBooking, isLessonTeach
             )}
         </div>
     );
-}
+});
+
+TeacherQueueCardV2.displayName = "TeacherQueueCardV2";

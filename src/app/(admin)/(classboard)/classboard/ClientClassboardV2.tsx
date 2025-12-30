@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useClassboard } from "@/src/hooks/useClassboard";
 import { useClassboardActions } from "@/src/hooks/useClassboardActions";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
@@ -34,21 +34,32 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
         return () => clearTimeout(timer);
     }, []);
 
-    // Create global flag instance
+    // Create a stable refresh handler
+    const handleRefresh = useCallback(() => {
+        setRefreshKey((prev) => prev + 1);
+    }, []);
+
+    // Create global flag instance - STABLE across data refreshes
     const globalFlag = useMemo(
-        () =>
-            new GlobalFlag(teacherQueues, controller, () => {
-                setRefreshKey((prev) => prev + 1);
-            }),
-        [teacherQueues, controller],
+        () => new GlobalFlag(teacherQueues, controller, handleRefresh),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
-    // Auto-open settings if adjustment mode is active (e.g. triggered from elsewhere)
+    // Sync globalFlag context when external data changes
     useEffect(() => {
-        if (globalFlag.isAdjustmentMode() && !isSettingsOpen) {
+        globalFlag.updateTeacherQueues(teacherQueues);
+        globalFlag.updateController(controller);
+    }, [teacherQueues, controller, globalFlag]);
+
+    // Sync settings panel with global adjustment mode state
+    useEffect(() => {
+        const isGlobalMode = globalFlag.isAdjustmentMode();
+        if (isGlobalMode && !isSettingsOpen) {
             setIsSettingsOpen(true);
+        } else if (!isGlobalMode && isSettingsOpen) {
+            setIsSettingsOpen(false);
         }
-    }, [globalFlag.isAdjustmentMode()]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [globalFlag.isAdjustmentMode(), isSettingsOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const { handleGlobalSubmit, handleAddLessonEvent, handleAddTeacher } = useClassboardActions({
         globalFlag,
@@ -119,6 +130,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                                     globalFlag.exitAdjustmentMode();
                                     setIsSettingsOpen(false);
                                 } else {
+                                    globalFlag.enterAdjustmentMode();
                                     setIsSettingsOpen(true);
                                 }
                             }} 
