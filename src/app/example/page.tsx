@@ -129,7 +129,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                             <div className="block">
                                 <h2 className="text-xl font-semibold">The Instructor</h2>
                             </div>
-                            <p className="text-xs text-muted-foreground">Managing time and earnings</p>
+                            <p className="text-xs text-muted-foreground">Manage schedule and commissions</p>
                         </div>
                     </div>
                     
@@ -166,7 +166,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         </div>
                         <div>
                             <h2 className="text-xl font-semibold">The Student</h2>
-                            <p className="text-xs text-muted-foreground">Learning and progression</p>
+                            <p className="text-xs text-muted-foreground">Track booking progress and payments</p>
                         </div>
                     </div>
 
