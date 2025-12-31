@@ -16,7 +16,7 @@ import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
 
-interface TeacherClassDailyV2Props {
+interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
     selectedDate: string;
     draggedBooking?: DraggableBooking | null;
@@ -30,7 +30,7 @@ interface TeacherClassDailyV2Props {
 
 type TeacherFilter = "active" | "all";
 
-export default function TeacherClassDailyV2({
+export default function TeacherClassDaily({
     teacherQueues,
     selectedDate,
     draggedBooking,
@@ -40,9 +40,9 @@ export default function TeacherClassDailyV2({
     onAddLessonEvent,
     globalFlag,
     refreshKey,
-}: TeacherClassDailyV2Props) {
+}: TeacherClassDailyProps) {
     if (process.env.NEXT_PUBLIC_DEBUG_RENDER === "true") {
-        console.log(`[CLASSBOARD] TeacherClassDailyV2 rendered. RefreshKey: ${refreshKey}`);
+        console.log(`[CLASSBOARD] TeacherClassDaily rendered. RefreshKey: ${refreshKey}`);
     }
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
@@ -130,7 +130,7 @@ export default function TeacherClassDailyV2({
                             filteredQueues.map((queue) => {
                                 return (
                                     <div key={queue.teacher.username} className="py-2">
-                                        <TeacherQueueCardV2
+                                        <TeacherQueueCard
                                             queue={queue}
                                             selectedDate={selectedDate}
                                             draggedBooking={draggedBooking}
@@ -157,9 +157,9 @@ export default function TeacherClassDailyV2({
 }
 
 // ============================================
-// TeacherQueueCardV2 - Individual Teacher Row
+// TeacherQueueCard - Individual Teacher Row
 // ============================================
-interface TeacherQueueCardV2Props {
+interface TeacherQueueCardProps {
     queue: TeacherQueue;
     selectedDate: string;
     draggedBooking?: DraggableBooking | null;
@@ -174,14 +174,14 @@ interface TeacherQueueCardV2Props {
 }
 
 /**
- * TeacherQueueCardV2 manages the view and local state for a single teacher's queue.
+ * TeacherQueueCard manages the view and local state for a single teacher's queue.
  * COORDINATION RULES:
  * 1. Global Session Sync: Auto-enters adjustment mode when added to GlobalFlag queue.
  * 2. Auto-Exit: Auto-exits adjustment mode when GlobalFlag panel is closed OR teacher removed from queue.
  * 3. Individual Mode: Supports manual adjustment mode even when global flag is inactive.
  * 4. Refresh Stability: Uses parentRefreshKey to re-sync with GlobalFlag class state without full remounts.
  */
-const TeacherQueueCardV2 = memo(({
+const TeacherQueueCard = memo(({
     queue,
     selectedDate,
     draggedBooking,
@@ -193,7 +193,7 @@ const TeacherQueueCardV2 = memo(({
     isExpanded,
     onToggleExpand,
     parentRefreshKey,
-}: TeacherQueueCardV2Props) => {
+}: TeacherQueueCardProps) => {
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const originalQueueState = useRef<EventNode[]>([]);
@@ -405,4 +405,4 @@ const TeacherQueueCardV2 = memo(({
     );
 });
 
-TeacherQueueCardV2.displayName = "TeacherQueueCardV2";
+TeacherQueueCard.displayName = "TeacherQueueCard";

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import StudentClassDailyV2 from "./StudentClassDailyV2";
-import TeacherClassDailyV2 from "./TeacherClassDailyV2";
+import StudentClassDaily from "./StudentClassDaily";
+import TeacherClassDaily from "./TeacherClassDaily";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
@@ -89,13 +89,13 @@ export default function ClassboardContentBoard({
                             onRefresh={onRefresh}
                         />
                     ) : (
-                        <StudentClassDailyV2 {...studentProps} />
+                        <StudentClassDaily {...studentProps} />
                     )}
                 </div>
                 
                 {/* Teachers Section - Main Content Area */}
                 <div className="flex-1 min-w-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
-                    <TeacherClassDailyV2 {...teacherProps} refreshKey={refreshKey} />
+                    <TeacherClassDaily {...teacherProps} refreshKey={refreshKey} />
                 </div>
 
             </div>

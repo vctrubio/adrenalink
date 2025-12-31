@@ -13,7 +13,7 @@ import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 // Muted yellow - softer than entity color
 const STUDENT_COLOR = "#ca8a04";
 
-interface StudentClassDailyV2Props {
+interface StudentClassDailyProps {
     bookings: DraggableBooking[];
     classboardData: ClassboardModel;
     selectedDate: string;
@@ -29,7 +29,7 @@ interface StudentClassDailyV2Props {
 type StudentBookingFilter = "available" | "onboard";
 type SortOption = "newest" | "latest" | "progression";
 
-export default function StudentClassDailyV2({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyV2Props) {
+export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.bookingId)));

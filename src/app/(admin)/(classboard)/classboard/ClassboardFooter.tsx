@@ -9,19 +9,19 @@ import ExportSettingController from "./ExportSettingController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
-interface ClassboardFooterV2Props {
+interface ClassboardFooterProps {
     controller: ControllerSettings;
     setController: (c: ControllerSettings) => void;
     selectedDate: string;
     teacherQueues: TeacherQueue[];
 }
 
-export default function ClassboardFooterV2({
+export default function ClassboardFooter({
     controller,
     setController,
     selectedDate,
     teacherQueues,
-}: ClassboardFooterV2Props) {
+}: ClassboardFooterProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const updateTime = (minutesToAdd: number) => {

@@ -13,14 +13,14 @@ import { ClassboardStatistics } from "@/src/app/(admin)/(classboard)/ClassboardS
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import ClassboardFooterV2 from "./classboard/ClassboardFooterV2";
+import ClassboardFooter from "./classboard/ClassboardFooter";
 
-interface ClientClassboardV2Props {
+interface ClientClassboardProps {
     data: ClassboardModel;
 }
 
 /**
- * ClientClassboardV2 - Main entry point for the optimized classboard.
+ * ClientClassboard - Main entry point for the optimized classboard.
  *
  * DESIGN PRINCIPLES:
  * 1. Stable Session Logic: The globalFlag instance is stable. Components exclusively use
@@ -29,7 +29,7 @@ interface ClientClassboardV2Props {
  * 2. Synchronous State Sync: Data from useClassboard is synced into globalFlag via useMemo
  *    to ensure that even the very first render after a refresh carries the preserved state.
  */
-export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
+export default function ClientClassboard({ data }: ClientClassboardProps) {
     const [refreshKey, setRefreshKey] = useState(0);
     const [showSplash, setShowSplash] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -165,7 +165,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                     />
                 </div>
             </div>
-            <ClassboardFooterV2 controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
+            <ClassboardFooter controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
         </motion.div>
     );
 }
