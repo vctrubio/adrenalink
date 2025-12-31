@@ -13,14 +13,14 @@ import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import ClassboardFooter from "./classboard/ClassboardFooter";
+import ClassboardFooterV2 from "./classboard/ClassboardFooterV2";
 
-interface ClientClassboardProps {
+interface ClientClassboardV2Props {
     data: ClassboardModel;
 }
 
 /**
- * ClientClassboard - Main entry point for the optimized classboard.
+ * ClientClassboardV2 - Main entry point for the optimized classboard.
  *
  * DESIGN PRINCIPLES:
  * 1. Stable Session Logic: The globalFlag instance is stable. Components exclusively use
@@ -29,7 +29,7 @@ interface ClientClassboardProps {
  * 2. Synchronous State Sync: Data from useClassboard is synced into globalFlag via useMemo
  *    to ensure that even the very first render after a refresh carries the preserved state.
  */
-export default function ClientClassboard({ data }: ClientClassboardProps) {
+export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     const [refreshKey, setRefreshKey] = useState(0);
     const [showSplash, setShowSplash] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -106,9 +106,21 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     }, [allSchoolTeachers]);
 
     const stats = useMemo(() => {
-        const statistics = new ClassboardStatistics(teacherQueues);
+        // Convert TeacherQueue[] to EventWithTeacher[]
+        const allEvents: EventWithTeacher[] = [];
+        rawTeacherQueues.forEach(queue => {
+            const events = queue.getAllEvents();
+            events.forEach(event => {
+                allEvents.push({
+                    ...event,
+                    teacherUsername: queue.teacher.username
+                });
+            });
+        });
+        
+        const statistics = new ClassboardStatistics(rawTeacherQueues);
         return statistics.getDailyLessonStats();
-    }, [teacherQueues, selectedDate]);
+    }, [rawTeacherQueues]);
 
     if (!mounted || showSplash || teachersError) {
         return <ClassboardSkeleton error={!!teachersError} />;
@@ -165,7 +177,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                     />
                 </div>
             </div>
-            <ClassboardFooter controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
+            <ClassboardFooterV2 controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
         </motion.div>
     );
 }

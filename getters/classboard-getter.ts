@@ -1,6 +1,6 @@
 import { calculateCommission, calculateLessonRevenue, calculateSchoolProfit } from "@/getters/commission-calculator";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { TeacherStats } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
+import type { TeacherStats } from "@/backend/ClassboardStatistics";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 export function getStudentCountFromEvent(eventNode: EventNode): number {

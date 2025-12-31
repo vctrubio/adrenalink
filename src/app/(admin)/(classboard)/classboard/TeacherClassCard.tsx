@@ -12,7 +12,7 @@ import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import type { TeacherStats } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
+import type { TeacherStats } from "@/backend/ClassboardStatistics";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";

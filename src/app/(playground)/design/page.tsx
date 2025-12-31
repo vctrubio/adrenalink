@@ -11,13 +11,13 @@ import { WindToggle } from "@/src/components/themes/WindToggle";
 
 // Data Components
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
-import ClassboardStatistics from "@/src/app/(admin)/(classboard)/ClassboardStatisticsComponennt";
+import ClassboardStatistics from "@/src/app/(admin)/(classboard)/ClassboardHeaderStatsGrid";
 import EventCard from "@/src/app/(admin)/(classboard)/classboard/EventCard";
 import { EventStudentCard } from "@/src/portals/EventStudentCard";
 import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
 
 // Types for Mock Data
-import type { DailyLessonStats } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
+import type { DailyLessonStats } from "@/backend/ClassboardStatistics";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { StudentModel } from "@/backend/models";

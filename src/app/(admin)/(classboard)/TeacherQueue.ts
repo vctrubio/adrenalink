@@ -6,7 +6,7 @@
 import { minutesToTime, getMinutesFromISO, adjustISODateTime, createISODateTime } from "@/getters/queue-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import type { EventNode, TeacherInfo, ControllerSettings } from "@/types/classboard-teacher-queue";
-import type { TeacherStats } from "./ClassboardStatistics";
+import type { TeacherStats } from "../../../../backend/ClassboardStatistics";
 
 export { type EventNode, type TeacherInfo, type ControllerSettings } from "@/types/classboard-teacher-queue";
 

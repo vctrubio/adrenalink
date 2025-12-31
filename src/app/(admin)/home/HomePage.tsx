@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, TrendingUp, LayoutGrid, List, Calendar, Grid3X3, Activity } from "lucide-react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { ClassboardStatistics } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
+import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -32,7 +32,7 @@ interface HomePageProps {
 
 type ViewMode = "grouped" | "table" | "calendar";
 
-interface DateEvent {
+interface TransactionEvent {
     id: string;
     date: string;
     lessonId: string;
@@ -50,7 +50,7 @@ interface DateEvent {
 
 interface DateGroup {
     date: string;
-    events: DateEvent[];
+    events: TransactionEvent[];
 }
 
 // --- Sub-components ---
@@ -312,11 +312,25 @@ function CalendarView({ events, selectedDate, setSelectedDate }: { events: Trans
     );
 }
 
-function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleDate, router }: { groupedEvents: DateGroup[]; classboardData: ClassboardModel; expandedDates: Record<string, boolean>; toggleDate: (d: string) => void; router: any }) {
+function TableListView({ events, groupBy }: { events: TransactionEventData[]; groupBy: GroupingType }) {
+    return (
+        <div className="space-y-4">
+            <TransactionEventsTable events={events} groupBy={groupBy} />
+        </div>
+    );
+}
+
+function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleDate, router }: { 
+    groupedEvents: DateGroup[]; 
+    classboardData: ClassboardModel; 
+    expandedDates: Record<string, boolean>; 
+    toggleDate: (date: string) => void; 
+    router: any; 
+}) {
     return (
         <div className="space-y-4">
             {groupedEvents.map((group) => {
-                const statsCalculator = new ClassboardStatistics(classboardData);
+                const statsCalculator = new ClassboardStatistics(classboardData, group.date, true);
                 const stats = statsCalculator.getDailyLessonStats();
                 const isExpanded = expandedDates[group.date] ?? false;
                 const profit = stats.revenue.profit;
@@ -338,7 +352,7 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
                             <div className="flex items-center gap-4 sm:gap-8 text-sm">
                                 <div className="flex flex-col items-center min-w-[60px]">
                                     <span className="font-semibold text-lg text-foreground">
-                                        {group.events.filter((e) => e.status === "completed").length}/{group.events.length}
+                                        {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
                                     </span>
                                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Completed</span>
                                 </div>
@@ -350,15 +364,15 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
 
                                 <div className="hidden sm:flex items-center gap-6 pl-6 border-l border-border/50">
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.students}</span>
+                                        <span className="font-semibold text-lg text-foreground">{stats.studentCount}</span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Students</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.teachers}</span>
+                                        <span className="font-semibold text-lg text-foreground">{stats.teacherCount}</span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Teachers</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{getHMDuration(stats.duration)}</span>
+                                        <span className="font-semibold text-lg text-foreground">{getHMDuration(stats.durationCount)}</span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Duration</span>
                                     </div>
                                 </div>
@@ -428,7 +442,7 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
                                                     />
 
                                                     <span
-                                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.status === "completed"
+                                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.status === "completed" || event.status === "uncompleted"
                                                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                                                             : event.status === "planned"
                                                                 ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
@@ -447,14 +461,6 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
                     </div>
                 );
             })}
-        </div>
-    );
-}
-
-function TableListView({ events, groupBy }: { events: TransactionEventData[]; groupBy: GroupingType }) {
-    return (
-        <div className="space-y-4">
-            <TransactionEventsTable events={events} groupBy={groupBy} />
         </div>
     );
 }
@@ -485,35 +491,13 @@ export function HomePage({ classboardData, school }: HomePageProps) {
     };
 
     const globalTotals = useMemo(() => {
-        let totalDuration = 0;
-        let totalCommissions = 0;
-        let totalRevenue = 0;
-        let totalProfit = 0;
-        let totalEvents = 0;
-
-        const dates = new Set<string>();
-        Object.values(classboardData).forEach((b) => {
-            b.lessons.forEach((l) => {
-                l.events.forEach((e) => {
-                    dates.add(e.date.split("T")[0]);
-                    totalEvents++;
-                });
-            });
-        });
-
-        dates.forEach((date) => {
-            const stats = new ClassboardStatistics(classboardData).getDailyLessonStats();
-            totalDuration += stats.duration;
-            totalCommissions += stats.revenue.commission;
-            totalRevenue += stats.revenue.revenue;
-            totalProfit += stats.revenue.profit;
-        });
-
+        const stats = new ClassboardStatistics(classboardData, undefined, true).getDailyLessonStats();
+        
         return {
-            duration: totalDuration,
-            commissions: totalCommissions,
-            profit: totalProfit,
-            events: totalEvents,
+            duration: stats.durationCount,
+            commissions: stats.revenue.commission,
+            profit: stats.revenue.profit,
+            events: stats.eventCount,
         };
     }, [classboardData]);
 

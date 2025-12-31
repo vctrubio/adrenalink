@@ -8,11 +8,11 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { TrendingUpDown, TrendingUp, TrendingDown } from "lucide-react";
-import { DailyLessonStats } from "./ClassboardStatistics";
+import { DailyLessonStats } from "../../../../backend/ClassboardStatistics";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 
-export default function ClassboardStatistics({ stats }: { stats: DailyLessonStats }) {
+export default function ClassboardHeaderStatsGrid({ stats }: { stats: DailyLessonStats }) {
     return (
         <div className="flex-1 min-w-[280px] rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-2">
             {/* Row 1: Students, Teachers, Lessons */}
