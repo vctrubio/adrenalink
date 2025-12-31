@@ -13,8 +13,8 @@ import { WindToggle } from "@/src/components/themes/WindToggle";
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
 import ClassboardStatistics from "@/src/app/(admin)/(classboard)/classboard/ClassboardHeaderStatsGrid";
 import EventCard from "@/src/app/(admin)/(classboard)/classboard/EventCard";
-import { EventStudentCard } from "@/src/portals/EventStudentCard";
-import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
+import { EventStudentCard } from "@/src/components/events/EventStudentCard";
+import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 
 // Types for Mock Data
 import type { DailyLessonStats } from "@/backend/ClassboardStatistics";

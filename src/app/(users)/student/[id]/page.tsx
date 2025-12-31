@@ -1,5 +1,5 @@
 import { getStudentEvents } from "@/actions/student-action";
-import { EventStudentCard } from "@/src/portals/EventStudentCard";
+import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 
 interface StudentPageProps {
     params: Promise<{ id: string }>;

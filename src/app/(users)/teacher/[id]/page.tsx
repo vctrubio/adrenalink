@@ -1,5 +1,5 @@
 import { getTeacherEvents } from "@/actions/teacher-action";
-import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
+import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 
 interface TeacherPageProps {

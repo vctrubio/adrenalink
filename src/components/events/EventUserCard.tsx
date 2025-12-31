@@ -25,17 +25,6 @@ export function EventUserCard({ date, duration, footerLeftContent, children }: E
         >
             {/* Header (Background stays light, text adapts) */}
             <div className="relative flex items-center justify-between px-6 py-6 overflow-hidden bg-white border-b border-neutral-100">
-                {/* Background Banner (Subtle texture) */}
-                <div className="absolute inset-0 z-0">
-                    <Image 
-                        src="/beach-banner.jpg" 
-                        alt="Banner" 
-                        fill 
-                        className="object-cover opacity-10 grayscale" 
-                        priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
-                </div>
 
                 <div className="relative z-10">
                     <EventStartDurationTime date={date} duration={duration} className="text-zinc-900" />

@@ -1,7 +1,7 @@
 import { getExampleEventData } from "@/supabase/server/example";
 import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
-import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
-import { EventStudentCard } from "@/src/portals/EventStudentCard";
+import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
+import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
