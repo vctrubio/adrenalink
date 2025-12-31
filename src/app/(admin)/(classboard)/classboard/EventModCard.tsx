@@ -228,7 +228,7 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
     return (
         <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">
             {/* Header: Student & Controls */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/10">
+            <div className="flex items-center justify-between px-4 py-1 border-b border-border/50 bg-muted/10">
                 <div className="scale-90 origin-left">
                     <LeaderStudent leaderStudentName={event.leaderStudentName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
                 </div>
@@ -236,7 +236,7 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
             </div>
 
             {/* Main Body: Time & Duration */}
-            <div className="p-4 flex items-center justify-between gap-2 relative">
+            <div className="pt-4 px-4 flex items-center justify-between gap-2 relative">
                 {!isFirst && previousEvent && (
                     <EventGapDetection
                         currentEvent={event}
@@ -257,7 +257,7 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
             </div>
 
             {/* Footer: Location & Meta */}
-            <div className="px-4 pb-4 pt-0 flex items-end justify-between">
+            <div className="px-4 py-2 flex items-end justify-between">
                 <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
                 <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
             </div>
