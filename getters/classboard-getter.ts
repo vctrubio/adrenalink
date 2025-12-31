@@ -107,7 +107,7 @@ export function calculateTeacherStatsFromEvents(
             teacherEarnings += commissionCalc.earned;
 
             const profit = calculateSchoolProfit(lessonRevenue, commissionCalc.earned);
-            schoolRevenue += profit;
+            schoolRevenue += lessonRevenue;
         } catch (error) {
             console.warn(`Skipping event ${eventNode.lessonId} due to missing data:`, error);
         }
@@ -120,11 +120,11 @@ export function calculateTeacherStatsFromEvents(
         studentCount,
         totalDuration,
         totalHours: Math.round((totalDuration / 60) * 10) / 10,
-        earnings: {
-            teacher: Math.round(teacherEarnings * 100) / 100,
-            school: Math.round(schoolRevenue * 100) / 100,
-            total: Math.round((teacherEarnings + schoolRevenue) * 100) / 100,
+        totalRevenue: {
+            commission: Math.round(teacherEarnings * 100) / 100,
+            revenue: Math.round(schoolRevenue * 100) / 100,
+            profit: Math.round((schoolRevenue - teacherEarnings) * 100) / 100,
         },
-    } as any;
+    };
 }
 

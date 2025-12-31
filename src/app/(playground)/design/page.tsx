@@ -17,7 +17,7 @@ import { EventStudentCard } from "@/src/portals/EventStudentCard";
 import { EventTeacherCard } from "@/src/portals/EventTeacherCard";
 
 // Types for Mock Data
-import type { GlobalStats } from "@/src/app/(admin)/(classboard)/ClassboardStats";
+import type { DailyLessonStats } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { StudentModel } from "@/backend/models";
@@ -54,15 +54,16 @@ const mockStudentModel = {
     },
 } as unknown as StudentModel;
 
-const mockStats: GlobalStats = {
-    totalEvents: 10,
-    totalHours: 20,
-    totalEarnings: {
-        teacher: 500,
-        school: 1000,
+const mockStats: DailyLessonStats = {
+    teacherCount: 3,
+    studentCount: 5,
+    eventCount: 10,
+    durationCount: 1200, // 20 hours in minutes
+    revenue: {
+        commission: 500,
+        revenue: 1000,
+        profit: 500,
     },
-    totalStudents: 5,
-    gaps: [],
 };
 
 const mockTeacherQueues: TeacherQueue[] = [];

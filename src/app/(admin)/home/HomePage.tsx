@@ -316,10 +316,10 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
     return (
         <div className="space-y-4">
             {groupedEvents.map((group) => {
-                const statsCalculator = new ClassboardStatistics(classboardData, group.date);
-                const stats = statsCalculator.getHeaderStats();
+                const statsCalculator = new ClassboardStatistics(classboardData);
+                const stats = statsCalculator.getDailyLessonStats();
                 const isExpanded = expandedDates[group.date] ?? false;
-                const profit = stats.revenue - stats.commissions;
+                const profit = stats.revenue.profit;
 
                 return (
                     <div key={group.date} className="rounded-2xl bg-card border border-border overflow-hidden shadow-sm">
@@ -365,11 +365,11 @@ function GroupedListView({ groupedEvents, classboardData, expandedDates, toggleD
 
                                 <div className="hidden lg:flex items-center gap-6 pl-6 border-l border-border/50">
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.revenue.toFixed(0)}</span>
+                                        <span className="font-semibold text-lg text-foreground">{stats.revenue.revenue.toFixed(0)}</span>
                                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Revenue</span>
                                     </div>
                                     <div className="flex flex-col items-center text-muted-foreground">
-                                        <span className="font-medium text-lg">- {stats.commissions.toFixed(0)}</span>
+                                        <span className="font-medium text-lg">- {stats.revenue.commission.toFixed(0)}</span>
                                         <span className="text-[10px] uppercase tracking-wider font-medium">Comm.</span>
                                     </div>
                                     <div className="h-8 w-px bg-border/60 rotate-12 mx-1" />
@@ -488,6 +488,7 @@ export function HomePage({ classboardData, school }: HomePageProps) {
         let totalDuration = 0;
         let totalCommissions = 0;
         let totalRevenue = 0;
+        let totalProfit = 0;
         let totalEvents = 0;
 
         const dates = new Set<string>();
@@ -501,16 +502,17 @@ export function HomePage({ classboardData, school }: HomePageProps) {
         });
 
         dates.forEach((date) => {
-            const stats = new ClassboardStatistics(classboardData, date).getHeaderStats();
+            const stats = new ClassboardStatistics(classboardData).getDailyLessonStats();
             totalDuration += stats.duration;
-            totalCommissions += stats.commissions;
-            totalRevenue += stats.revenue;
+            totalCommissions += stats.revenue.commission;
+            totalRevenue += stats.revenue.revenue;
+            totalProfit += stats.revenue.profit;
         });
 
         return {
             duration: totalDuration,
             commissions: totalCommissions,
-            profit: totalRevenue - totalCommissions,
+            profit: totalProfit,
             events: totalEvents,
         };
     }, [classboardData]);

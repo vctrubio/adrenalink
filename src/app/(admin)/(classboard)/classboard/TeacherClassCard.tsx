@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, Trash2, CheckCircle2 } from "lucide-react";
+import { TrendingUp, TrendingUpDown, Trash2, CheckCircle2 } from "lucide-react";
 import { useState, useRef, useMemo, useCallback } from "react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -12,7 +12,7 @@ import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import type { TeacherStats } from "@/src/app/(admin)/(classboard)/ClassboardStats";
+import type { TeacherStats } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -191,8 +191,8 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
 }) {
     const hasEquipment = equipmentCounts && equipmentCounts.length > 0;
     const hasDuration = stats.totalHours && stats.totalHours > 0;
-    const hasCommission = stats.earnings?.teacher && stats.earnings.teacher > 0;
-    const hasProfit = stats.earnings?.school && stats.earnings.school > 0;
+    const hasCommission = stats.totalRevenue?.commission && stats.totalRevenue.commission > 0;
+    const hasProfit = stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0;
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
     if (!hasAnyStats) return <div className="text-xs text-muted-foreground text-center py-1">No activity yet</div>;
@@ -238,16 +238,16 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
                 {hasCommission && (
                     <div className="flex items-center gap-1.5">
                         <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.earnings.teacher)}</span>
+                        <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.totalRevenue.commission)}</span>
                     </div>
                 )}
             </div>
 
-            {/* Profit / Revenue - wraps below or stays on right */}
+            {/* Revenue - wraps below or stays on right */}
             {hasProfit && (
                 <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                    <TrendingUp size={16} className="text-muted-foreground/70 shrink-0" />
-                    <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.earnings.school)}</span>
+                    <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.totalRevenue.revenue)}</span>
                 </div>
             )}
         </div>
@@ -410,18 +410,18 @@ export default function TeacherClassCard({
                 )}
 
                 {/* Commission */}
-                {stats.earnings?.teacher && stats.earnings.teacher > 0 && (
+                {stats.totalRevenue?.commission && stats.totalRevenue.commission > 0 && (
                     <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                         <HandshakeIcon size={18} className="text-muted-foreground/70" />
-                        {getCompactNumber(stats.earnings.teacher)}
+                        {getCompactNumber(stats.totalRevenue.commission)}
                     </div>
                 )}
 
                 {/* Revenue */}
-                {stats.earnings?.school && stats.earnings.school > 0 && (
+                {stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0 && (
                     <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
-                        <TrendingUp size={18} className="text-muted-foreground/70" />
-                        {getCompactNumber(stats.earnings.school)}
+                        <TrendingUpDown size={18} className="text-muted-foreground/70" />
+                        {getCompactNumber(stats.totalRevenue.revenue)}
                     </div>
                 )}
 
