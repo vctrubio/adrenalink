@@ -1,16 +1,29 @@
 /**
- * ClassboardStatistics - Computes statistics from ClassboardModel for a specific date
- * 
+ * ClassboardStatistics - Computes statistics from TeacherQueues for a specific date
+ *
  * Stats computed:
- * - students: unique students with bookings on the date
- * - teachers: teachers with lessons on bookings
- * - lessons: total lesson count (excluding "rest" status)
+ * - students: unique students with events on the date
+ * - teachers: teachers with events on the date
+ * - lessons: total lesson count (from teacher queues)
  * - duration: total event duration in minutes for the date
  * - commissions: total teacher commissions for the date
  * - revenue: total school revenue for the date
  */
 
-import type { ClassboardModel, ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { TeacherQueue } from "./TeacherQueue";
+
+export interface TeacherStats {
+    teacherUsername: string;
+    lessonCount: number;
+    eventCount: number;
+    studentCount: number;
+    totalHours: number;
+    earnings: {
+        teacher: number;
+        school: number;
+        total: number;
+    };
+}
 
 export interface ClassboardHeaderStats {
     students: number;
@@ -21,118 +34,110 @@ export interface ClassboardHeaderStats {
     revenue: number;        // currency amount
 }
 
-export class ClassboardStatistics {
-    private model: ClassboardModel;
-    private selectedDate: string;
+export interface GlobalStats {
+    teacherCount: number;
+    totalLessons: number;
+    totalEvents: number;
+    totalStudents: number;
+    totalHours: number;
+    totalRevenue: {
+        teacher: number;
+        school: number;
+        profit: number;
+    };
+    isComplete: boolean;
+    completionPercentage: number;
+}
 
-    constructor(model: ClassboardModel, selectedDate: string) {
-        this.model = model;
+export class ClassboardStatistics {
+    private teacherQueues: TeacherQueue[];
+    private selectedDate: string;
+    private teacherStats: TeacherStats[];
+
+    constructor(teacherQueues: TeacherQueue[], selectedDate: string) {
+        this.teacherQueues = teacherQueues;
         this.selectedDate = selectedDate;
+        this.teacherStats = this.computeTeacherStats();
+    }
+
+    private computeTeacherStats(): TeacherStats[] {
+        return this.teacherQueues.map(queue => queue.getStats());
     }
 
     /**
      * Get all stats for the header display
      */
     getHeaderStats(): ClassboardHeaderStats {
-        let studentCount = 0;
-        const teacherUsernames = new Set<string>();
-        let lessonCount = 0;
-        let totalDuration = 0;
-        let totalCommissions = 0;
-        let totalRevenue = 0;
-
-        // Iterate through all bookings
-        Object.values(this.model).forEach((bookingData) => {
-            const { bookingStudents, lessons, schoolPackage } = bookingData;
-            
-            // Check if this booking has events on selected date
-            const hasEventsToday = lessons.some((lesson) => 
-                lesson.events.some((event) => this.isEventOnDate(event.date))
-            );
-
-            if (!hasEventsToday) return;
-
-            // Count students for bookings with events today
-            studentCount += bookingStudents.length;
-
-            // Process lessons
-            lessons.forEach((lesson) => {
-                // Skip "rest" status lessons
-                if (lesson.status === "rest") return;
-
-                // Get events for today
-                const todayEvents = lesson.events.filter((event) => 
-                    this.isEventOnDate(event.date)
-                );
-
-                if (todayEvents.length === 0) return;
-
-                // Count this teacher
-                teacherUsernames.add(lesson.teacher.username);
-
-                // Count lesson (once per teacher-booking combo with events today)
-                lessonCount++;
-
-                // Sum duration
-                const lessonDuration = todayEvents.reduce((sum, e) => sum + (e.duration || 0), 0);
-                totalDuration += lessonDuration;
-
-                // Calculate commission
-                const { commissionAmount, revenueAmount } = this.calculateEarnings(
-                    lesson,
-                    lessonDuration,
-                    schoolPackage.pricePerStudent,
-                    bookingStudents.length
-                );
-
-                totalCommissions += commissionAmount;
-                totalRevenue += revenueAmount;
-            });
-        });
-
+        const totalStudents = this.teacherStats.reduce((sum, stats) => sum + stats.studentCount, 0);
+        const totalTeachers = this.teacherStats.length;
+        const totalLessons = this.teacherStats.reduce((sum, stats) => sum + stats.lessonCount, 0);
+        const totalDuration = this.teacherStats.reduce((sum, stats) => sum + stats.totalDuration, 0);
+        const totalCommissions = this.teacherStats.reduce((sum, stats) => sum + stats.earnings.teacher, 0);
+        const totalRevenue = this.teacherStats.reduce((sum, stats) => sum + stats.earnings.school, 0);
         return {
-            students: studentCount,
-            teachers: teacherUsernames.size,
-            lessons: lessonCount,
+            students: totalStudents,
+            teachers: totalTeachers,
+            lessons: totalLessons,
             duration: totalDuration,
             commissions: Math.round(totalCommissions * 100) / 100,
             revenue: Math.round(totalRevenue * 100) / 100,
         };
     }
 
-    /**
-     * Check if an event date matches the selected date
-     */
-    private isEventOnDate(eventDate: string | Date | null): boolean {
-        if (!eventDate) return false;
-        const dateStr = new Date(eventDate).toISOString().split("T")[0];
-        return dateStr === this.selectedDate;
+    getGlobalStats(): GlobalStats {
+        const teacherCount = this.teacherStats.length;
+        const totalLessons = this.teacherStats.reduce((sum, stats) => sum + stats.lessonCount, 0);
+        const totalEvents = this.teacherStats.reduce((sum, stats) => sum + stats.eventCount, 0);
+        const totalHours = this.teacherStats.reduce((sum, stats) => sum + stats.totalHours, 0);
+        const totalStudents = this.teacherStats.reduce((sum, stats) => sum + stats.studentCount, 0);
+
+        const totalRevenue = this.teacherStats.reduce(
+            (acc, stats) => ({
+                teacher: acc.teacher + stats.earnings.teacher,
+                school: acc.school + stats.earnings.school,
+                profit: acc.profit + stats.earnings.total,
+            }),
+            { teacher: 0, school: 0, profit: 0 }
+        );
+
+        const isComplete = totalLessons > 0 && totalEvents === totalLessons;
+        const completionPercentage = totalLessons > 0
+            ? Math.round((totalEvents / totalLessons) * 100)
+            : 0;
+
+        return {
+            teacherCount,
+            totalLessons,
+            totalEvents,
+            totalStudents,
+            totalHours: Math.round(totalHours * 10) / 10,
+            totalRevenue: {
+                teacher: Math.round(totalRevenue.teacher * 100) / 100,
+                school: Math.round(totalRevenue.school * 100) / 100,
+                profit: Math.round(totalRevenue.profit * 100) / 100,
+            },
+            isComplete,
+            completionPercentage,
+        };
     }
 
-    /**
-     * Calculate commission and revenue for a lesson's duration
-     */
-    private calculateEarnings(
-        lesson: ClassboardLesson,
-        durationMinutes: number,
-        pricePerStudent: number,
-        studentCount: number
-    ): { commissionAmount: number; revenueAmount: number } {
-        const hours = durationMinutes / 60;
-        const cph = parseFloat(lesson.commission.cph) || 0;
+    getTeacherStats(teacherUsername: string): TeacherStats | null {
+        return this.teacherStats.find(stats => stats.teacherUsername === teacherUsername) || null;
+    }
 
-        // Total revenue = price per student * hours * student count
-        const revenueAmount = pricePerStudent * hours * studentCount;
+    getAllTeacherStats(): TeacherStats[] {
+        return this.teacherStats;
+    }
 
-        let commissionAmount = 0;
-        if (lesson.commission.type === "fixed") {
-            // Fixed: commission = cph * hours
-            commissionAmount = cph * hours;
-        } else {
-            // Percentage: commission = revenue * (cph / 100)
-            commissionAmount = revenueAmount * (cph / 100);
-        }
+    isTeacherComplete(teacherUsername: string): boolean {
+        const stats = this.getTeacherStats(teacherUsername);
+        if (!stats) return false;
+        return stats.lessonCount > 0 && stats.eventCount === stats.lessonCount;
+    }
 
-        return { commissionAmount, revenueAmount };
+    getTeacherCompletionPercentage(teacherUsername: string): number {
+        const stats = this.getTeacherStats(teacherUsername);
+        if (!stats || stats.lessonCount === 0) return 0;
+        return Math.round((stats.eventCount / stats.lessonCount) * 100);
     }
 }

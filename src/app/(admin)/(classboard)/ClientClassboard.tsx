@@ -106,9 +106,9 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     }, [allSchoolTeachers]);
 
     const stats = useMemo(() => {
-        const statistics = new ClassboardStatistics(data, selectedDate);
+        const statistics = new ClassboardStatistics(teacherQueues, selectedDate);
         return statistics.getHeaderStats();
-    }, [data, selectedDate]);
+    }, [teacherQueues, selectedDate]);
 
     if (!mounted || showSplash || teachersError) {
         return <ClassboardSkeleton error={!!teachersError} />;

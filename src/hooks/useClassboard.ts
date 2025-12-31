@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { type EventNode, type ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import { ClassboardStats } from "@/src/app/(admin)/(classboard)/ClassboardStats";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
@@ -166,15 +165,6 @@ export function useClassboard(initialData: ClassboardModel) {
         return counts;
     }, [bookingsForSelectedDate]);
 
-    const classboardStats = useMemo(() => {
-        const teacherStats = teacherQueues.map((queue) => {
-            const lessonCount = teacherLessonCounts.get(queue.teacher.username) || 0;
-            const events = queue.getAllEvents();
-            return calculateTeacherStatsFromEvents(queue.teacher.username, events, lessonCount);
-        });
-        return new ClassboardStats(teacherStats);
-    }, [teacherQueues, teacherLessonCounts]);
-
     const isLessonTeacher = (bookingId: string, teacherUsername: string): boolean => {
         const booking = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
         if (!booking) return false;
@@ -200,7 +190,6 @@ export function useClassboard(initialData: ClassboardModel) {
         setClassboardData,
         draggableBookings,
         teacherQueues,
-        classboardStats,
         isLessonTeacher,
         addOptimisticEvent,
     };
