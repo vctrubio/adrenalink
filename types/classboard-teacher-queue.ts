@@ -63,6 +63,7 @@ export interface ControllerSettings {
  */
 export interface DraggableBooking {
     bookingId: string;
+    leaderStudentName: string;
     capacityStudents: number;
     lessons: {
         id: string;

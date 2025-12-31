@@ -124,23 +124,29 @@ export function useClassboard(initialData: ClassboardModel) {
     }, [filteredBookingsBySearch, selectedDate]);
 
     const draggableBookings = useMemo((): DraggableBooking[] => {
-        return bookingsForSelectedDate.map((booking) => ({
-            bookingId: booking.booking.id,
-            capacityStudents: booking.schoolPackage.capacityStudents,
-            lessons: booking.lessons.map((lesson) => ({
-                id: lesson.id,
-                teacherUsername: lesson.teacher.username,
-                commissionType: lesson.commission.type as "fixed" | "percentage",
-                commissionCph: parseFloat(lesson.commission.cph),
-                events: lesson.events.map((event) => ({
-                    id: event.id,
-                    date: event.date,
-                    duration: event.duration,
-                    location: event.location || "",
-                    status: event.status,
+        return bookingsForSelectedDate.map((booking) => {
+            const leader = booking.bookingStudents[0]?.student;
+            const leaderName = leader ? `${leader.firstName} ${leader.lastName}` : "Unknown Student";
+
+            return {
+                bookingId: booking.booking.id,
+                leaderStudentName: leaderName,
+                capacityStudents: booking.schoolPackage.capacityStudents,
+                lessons: booking.lessons.map((lesson) => ({
+                    id: lesson.id,
+                    teacherUsername: lesson.teacher.username,
+                    commissionType: lesson.commission.type as "fixed" | "percentage",
+                    commissionCph: parseFloat(lesson.commission.cph),
+                    events: lesson.events.map((event) => ({
+                        id: event.id,
+                        date: event.date,
+                        duration: event.duration,
+                        location: event.location || "",
+                        status: event.status,
+                    })),
                 })),
-            })),
-        }));
+            };
+        });
     }, [bookingsForSelectedDate]);
 
     const teacherQueues = useMemo(() => {

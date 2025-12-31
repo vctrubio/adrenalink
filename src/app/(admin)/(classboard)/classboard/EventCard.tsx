@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode, TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
@@ -62,6 +64,48 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
     const isPosting = eventId.startsWith("temp-");
 
+    const PostingIcon = ({ size = 24 }: { size?: number }) => (
+        <motion.div
+            initial={{ rotate: -45 }}
+            animate={{ rotate: -45 + 360 }}
+            transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "linear" 
+            }}
+            className="flex items-center justify-center shrink-0"
+        >
+            <Image 
+                src="/ADR.webp" 
+                width={size} 
+                height={size} 
+                alt="" 
+                className="rounded-full object-cover"
+            />
+        </motion.div>
+    );
+
+    const DeletingIcon = ({ size = 24 }: { size?: number }) => (
+        <motion.div
+            initial={{ rotate: -45 }}
+            animate={{ rotate: -45 - 360 }}
+            transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "linear" 
+            }}
+            className="flex items-center justify-center shrink-0"
+        >
+            <Image 
+                src="/ADR.webp" 
+                width={size} 
+                height={size} 
+                alt="" 
+                className="rounded-full object-cover grayscale opacity-60"
+            />
+        </motion.div>
+    );
+
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
         if (newStatus === currentStatus || isUpdating) return;
@@ -114,21 +158,21 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     }));
 
     return (
-        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting ? "opacity-70 animate-pulse pointer-events-none" : ""}`}>
+        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting || isDeleting ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""}`}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5">
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
                 {/* Right Side: Equipment Icon (Dropdown Trigger) */}
-                {EquipmentIcon && (
+                {(EquipmentIcon || isPosting || isDeleting) && (
                     <EventStatusLabel
                         status={currentStatus}
                         onStatusChange={handleStatusClick}
                         onDelete={handleDelete}
                         isDeleting={isDeleting}
                         canShiftQueue={canShiftQueue}
-                        icon={EquipmentIcon}
+                        icon={isPosting ? PostingIcon : (isDeleting ? DeletingIcon : EquipmentIcon)}
                         capacity={capacityEquipment}
                     />
                 )}
@@ -168,13 +212,6 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
 
             {/* Gap Detection - Now at the Bottom */}
             {previousEvent && <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} updateMode="updateNow" wrapperClassName="w-full px-4 pb-4 pt-0" />}
-
-            {/* Loading Overlay */}
-            {isDeleting && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-            )}
         </div>
     );
 }

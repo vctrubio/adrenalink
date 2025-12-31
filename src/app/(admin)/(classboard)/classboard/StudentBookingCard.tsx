@@ -398,7 +398,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                 draggable
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                className={`group relative w-[300px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
+                className={`group relative w-[345px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
             >
                 <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 

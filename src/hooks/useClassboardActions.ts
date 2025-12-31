@@ -60,7 +60,7 @@ export function useClassboardActions({
                 id: tempId,
                 lessonId: lesson.id,
                 bookingId: booking.bookingId,
-                leaderStudentName: "Posting...",
+                leaderStudentName: booking.leaderStudentName,
                 bookingStudents: [],
                 commission: { type: lesson.commissionType, cph: lesson.commissionCph },
                 eventData: {

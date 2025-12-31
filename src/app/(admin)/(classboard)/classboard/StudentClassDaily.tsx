@@ -165,7 +165,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <FilterDropdown label="Sort" value={sortBy} options={["newest", "latest", "progression"] as const} onChange={(value) => handleSortChange(value as SortOption)} entityColor={STUDENT_COLOR} />
+                    {/* <FilterDropdown label="Sort" value={sortBy} options={["newest", "latest", "progression"] as const} onChange={(value) => handleSortChange(value as SortOption)} entityColor={STUDENT_COLOR} /> */}
                     <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                 </div>
             </div>
