@@ -236,7 +236,21 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
             </div>
 
             {/* Main Body: Time & Duration */}
-            <div className="p-4 flex items-center justify-between gap-2">
+            <div className="p-4 flex items-center justify-between gap-2 relative">
+                {!isFirst && previousEvent && (
+                    <EventGapDetection
+                        currentEvent={event}
+                        previousEvent={previousEvent}
+                        requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
+                        updateMode="updateOnSave"
+                        onGapAdjust={() => {
+                            queueController.addGap(eventId);
+                            handleRefresh();
+                        }}
+                        wrapperClassName="absolute top-1 left-4 right-0 flex justify-start pointer-events-none z-20"
+                        className="w-auto shadow-sm"
+                    />
+                )}
                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
                 <div className="h-16 w-px bg-border/60 mx-2" />
                 <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} controller={queueController.getSettings()} />
@@ -247,21 +261,6 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
                 <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
                 <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
             </div>
-
-            {/* Gap Detection - Full Width Bottom */}
-            {!isFirst && previousEvent && (
-                <EventGapDetection
-                    currentEvent={event}
-                    previousEvent={previousEvent}
-                    requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
-                    updateMode="updateOnSave"
-                    onGapAdjust={() => {
-                        queueController.addGap(eventId);
-                        handleRefresh();
-                    }}
-                    wrapperClassName="w-full px-4 pb-4 pt-0"
-                />
-            )}
         </div>
     );
 }

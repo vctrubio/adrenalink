@@ -160,7 +160,16 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     return (
         <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting || isDeleting ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""}`}>
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5">
+            <div className="flex items-center justify-between px-6 py-5 relative">
+                {previousEvent && <EventGapDetection 
+                    currentEvent={event} 
+                    previousEvent={previousEvent} 
+                    requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} 
+                    updateMode="updateNow" 
+                    wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
+                    className="w-auto shadow-sm"
+                />}
+
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
@@ -209,9 +218,6 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 {/* Student Dropdown - Only if multiple students */}
                 {hasMultipleStudents && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
             </div>
-
-            {/* Gap Detection - Now at the Bottom */}
-            {previousEvent && <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} updateMode="updateNow" wrapperClassName="w-full px-4 pb-4 pt-0" />}
         </div>
     );
 }

@@ -16,6 +16,7 @@ interface EventGapDetectionProps {
     onStateChange?: (state: GapDetectionState, duration: number) => void;
     onGapAdjust?: () => void;
     wrapperClassName?: string;
+    className?: string;
 }
 
 export default function EventGapDetection({
@@ -26,6 +27,7 @@ export default function EventGapDetection({
     onStateChange,
     onGapAdjust,
     wrapperClassName,
+    className,
 }: EventGapDetectionProps) {
     const [gapState, setGapState] = useState<GapDetectionState>("none");
 
@@ -73,21 +75,21 @@ export default function EventGapDetection({
             case "overlap":
                 return {
                     className: "bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20",
-                    icon: <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />,
+                    icon: <AlertTriangle className="w-3 h-3 flex-shrink-0" />,
                     text: `Overlap: ${getPrettyDuration(gapStatus.durationMinutes)}`,
                     title: `Fix overlap (${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
             case "overdue":
                 return {
                     className: "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20",
-                    icon: <Clock className="w-3.5 h-3.5 flex-shrink-0" />,
+                    icon: <Clock className="w-3 h-3 flex-shrink-0" />,
                     text: `Overdue: ${getPrettyDuration(gapStatus.durationMinutes)}`,
                     title: `Adjust gap (+${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
             case "gap":
                 return {
                     className: "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20",
-                    icon: <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />,
+                    icon: <AlertTriangle className="w-3 h-3 flex-shrink-0" />,
                     text: `Gap: ${getPrettyDuration(gapStatus.durationMinutes)}`,
                     title: `Remove gap (-${getPrettyDuration(gapStatus.durationMinutes)})`,
                 };
@@ -104,7 +106,7 @@ export default function EventGapDetection({
     const button = (
         <button
             onClick={handleClick}
-            className={`w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200 pointer-events-auto ${buttonProps.className}`}
+            className={`${className || "w-full"} flex items-center justify-center gap-1.5 py-0.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 pointer-events-auto ${buttonProps.className}`}
             title={buttonProps.title}
             style={{ pointerEvents: "auto", zIndex: 10 }}
         >
