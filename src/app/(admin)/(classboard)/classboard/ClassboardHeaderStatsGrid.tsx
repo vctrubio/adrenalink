@@ -8,7 +8,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { TrendingUpDown, TrendingUp, TrendingDown } from "lucide-react";
-import { DailyLessonStats } from "../../../../backend/ClassboardStatistics";
+import { DailyLessonStats } from "../../../../../backend/ClassboardStatistics";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 

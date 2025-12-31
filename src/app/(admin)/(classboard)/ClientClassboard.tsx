@@ -8,7 +8,7 @@ import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
-import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
+import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
