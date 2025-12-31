@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FileText, DollarSign } from "lucide-react";
 import { DailyClassScheduleModal, PricingDailyClassScheduleModal } from "@/src/components/modals";
-import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 interface ExportSettingControllerProps {
     selectedDate: string;

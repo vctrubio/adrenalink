@@ -8,7 +8,7 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
-import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 const LOCATIONS = ["Beach", "Bay", "Lake", "River", "Pool", "Indoor"];
 const MIN_TIME_MINUTES = 0;

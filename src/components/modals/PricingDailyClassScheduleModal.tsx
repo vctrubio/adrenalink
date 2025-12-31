@@ -1,7 +1,7 @@
 "use client";
 
 import Modal from "./Modal";
-import type { TeacherQueue } from "@/backend/TeacherQueue";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { calculateLessonRevenue, calculateCommission, calculateSchoolProfit } from "@/getters/commission-calculator";
 

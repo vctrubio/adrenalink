@@ -83,7 +83,7 @@ const classboardWithRelations = {
 } as const;
 
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
-    noStore();
+    noStore(); //idk if...we.need this
 
     try {
         debug.performance("getClassboardBookings start", 0, { step: "initialization" });

@@ -5,13 +5,13 @@ import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDow
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-import type { EventNode } from "@/backend/TeacherQueue";
-import type { QueueController } from "@/backend/QueueController";
+import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import EventGapDetection from "./EventGapDetection";
-import type { ControllerSettings } from "@/backend/TeacherQueue";
+import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 interface EventModCardProps {

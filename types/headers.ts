@@ -75,6 +75,8 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
 
     let schoolData: typeof school.$inferSelect | null = null;
     
+
+    ////// we are doing 2 calls to the db here, fucking shit. getschhoolbyusername, lets remake it to getSchool
     try {
         schoolData = await getSchoolByUsername(username);
     } catch (error) {

@@ -7,13 +7,13 @@ import { useClassboardActions } from "@/src/hooks/useClassboardActions";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
-import ClassboardContentBoard from "./ClassboardContentBoard";
-import ClassboardStatisticsComponent from "./ClassboardStatistics";
-import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
+import ClassboardStatisticsComponent from "./ClassboardStatisticsComponennt";
+import { ClassboardStatistics } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import ClassboardFooterV2 from "./ClassboardFooterV2";
+import ClassboardFooterV2 from "./classboard/ClassboardFooterV2";
 
 interface ClientClassboardV2Props {
     data: ClassboardModel;
@@ -21,10 +21,10 @@ interface ClientClassboardV2Props {
 
 /**
  * ClientClassboardV2 - Main entry point for the optimized classboard.
- * 
+ *
  * DESIGN PRINCIPLES:
- * 1. Stable Session Logic: The globalFlag instance is stable. Components exclusively use 
- *    globalFlag.getTeacherQueues() to ensure that pending local adjustments are never 
+ * 1. Stable Session Logic: The globalFlag instance is stable. Components exclusively use
+ *    globalFlag.getTeacherQueues() to ensure that pending local adjustments are never
  *    momentarily replaced by server data during refreshes (eliminating flickers).
  * 2. Synchronous State Sync: Data from useClassboard is synced into globalFlag via useMemo
  *    to ensure that even the very first render after a refresh carries the preserved state.
@@ -48,15 +48,12 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     }, []);
 
     // Global session manager - stable reference
-    const globalFlag = useMemo(
-        () => new GlobalFlag(rawTeacherQueues, controller, handleRefresh),
-        [] // eslint-disable-line react-hooks/exhaustive-deps
-    );
+    const globalFlag = useMemo(() => new GlobalFlag(rawTeacherQueues, controller, handleRefresh), []);
 
     /**
      * Source of Truth Rule:
      * We sync the incoming server data into our stable session manager.
-     * The components below MUST use 'teacherQueues' derived here, which 
+     * The components below MUST use 'teacherQueues' derived here, which
      * prioritizes local preserved instances for pending teachers.
      */
     const teacherQueues = useMemo(() => {
@@ -72,7 +69,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
         } else if (!isGlobalMode && isSettingsOpen) {
             setIsSettingsOpen(false);
         }
-    }, [globalFlag.isAdjustmentMode(), isSettingsOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [globalFlag.isAdjustmentMode(), isSettingsOpen]);
 
     const { handleGlobalSubmit, handleAddLessonEvent, handleAddTeacher } = useClassboardActions({
         globalFlag,
@@ -120,13 +117,13 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: "easeOut" }} className="flex flex-col h-full overflow-hidden">
             <div className="flex flex-wrap gap-4 p-4">
-                <div className="flex-1 min-w-[280px] p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 relative overflow-hidden transition-all duration-300">
+                <div className="flex-1 min-w-[280px] max-w-2xl p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 relative overflow-hidden transition-all duration-300">
                     <div className="animate-in fade-in zoom-in-95 duration-200">
                         <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                     </div>
                     <div className="absolute top-4 right-4 z-10">
-                        <ToggleSettingIcon 
-                            isOpen={isSettingsOpen} 
+                        <ToggleSettingIcon
+                            isOpen={isSettingsOpen}
                             onClick={() => {
                                 if (isSettingsOpen) {
                                     globalFlag.exitAdjustmentMode();
@@ -135,7 +132,7 @@ export default function ClientClassboardV2({ data }: ClientClassboardV2Props) {
                                     globalFlag.enterAdjustmentMode();
                                     setIsSettingsOpen(true);
                                 }
-                            }} 
+                            }}
                         />
                     </div>
                 </div>

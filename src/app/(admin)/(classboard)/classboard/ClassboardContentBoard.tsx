@@ -6,7 +6,7 @@ import TeacherClassDailyV2 from "./TeacherClassDailyV2";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
 interface ClassboardContentBoardProps {

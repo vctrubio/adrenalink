@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { ChevronDown, ChevronUp, Clock, MapPin, Users, History } from "lucide-react";
 import { addMinutesToTime } from "@/getters/queue-getter";
 import { getPrettyDuration, adjustDuration } from "@/getters/duration-getter";
-import type { ControllerSettings as ControllerSettingsType } from "@/backend/TeacherQueue";
+import type { ControllerSettings as ControllerSettingsType } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { cn } from "@/drizzle/schema"; // Assuming cn exists or I'll use template literals if not found, let's use standard template literals to be safe as I didn't check for cn utility.
 
 export const LOCATION_OPTIONS = ["Beach", "Lagoon", "Bay", "Ocean"];

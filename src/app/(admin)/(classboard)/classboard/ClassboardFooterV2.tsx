@@ -7,7 +7,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { Settings2, MapPin, Clock, Minus, Plus, Calendar, Hash, Users, Zap } from "lucide-react";
 import ExportSettingController from "./ExportSettingController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 interface ClassboardFooterV2Props {
     controller: ControllerSettings;

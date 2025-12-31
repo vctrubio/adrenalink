@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
-import type { EventNode, TeacherQueue } from "@/backend/TeacherQueue";
-import type { QueueController } from "@/backend/QueueController";
+import type { EventNode, TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";

@@ -23,8 +23,8 @@
  *    adjustment mode to maintain a consistent "View" vs "Edit" state across the app.
  */
 
-import { QueueController } from "../QueueController";
-import type { TeacherQueue, ControllerSettings, EventNode } from "../TeacherQueue";
+import { QueueController } from "../../src/app/(admin)/(classboard)/QueueController";
+import type { TeacherQueue, ControllerSettings, EventNode } from "../../src/app/(admin)/(classboard)/TeacherQueue";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
 export class GlobalFlag {

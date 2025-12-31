@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, TrendingUp, LayoutGrid, List, Calendar, Grid3X3, Activity } from "lucide-react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import { ClassboardStatistics } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";

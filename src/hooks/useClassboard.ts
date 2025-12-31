@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { type EventNode, type ControllerSettings } from "@/backend/TeacherQueue";
+import { type EventNode, type ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import { ClassboardStats } from "@/backend/ClassboardStats";
+import { ClassboardStats } from "@/src/app/(admin)/(classboard)/ClassboardStats";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";

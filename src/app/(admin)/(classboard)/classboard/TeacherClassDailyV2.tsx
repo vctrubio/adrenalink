@@ -7,9 +7,9 @@ import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
-import { QueueController } from "@/backend/QueueController";
+import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
-import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings, EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 

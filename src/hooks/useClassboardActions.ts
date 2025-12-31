@@ -4,7 +4,7 @@ import { createClassboardEvent } from "@/actions/classboard-action";
 import { createLesson } from "@/actions/lessons-action";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { DraggableBooking, EventNode } from "@/types/classboard-teacher-queue";
-import type { TeacherQueue, ControllerSettings } from "@/backend/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { TeacherModel } from "@/backend/models";
 
 interface UseClassboardActionsProps {

@@ -4,7 +4,7 @@
  * Note: Queue state and gap detection moved to queue-getter.ts
  */
 
-import type { EventNode } from "@/backend/TeacherQueue";
+import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { EventModel } from "@/backend/models";
 import type { EventData, LessonEventRowData } from "@/types/booking-lesson-event";
 import { getMinutesFromISO, minutesToTime } from "./queue-getter";
