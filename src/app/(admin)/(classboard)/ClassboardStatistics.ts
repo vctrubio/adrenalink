@@ -32,16 +32,25 @@ export class ClassboardStatistics {
     private dateFilter?: string;
     private countAllEvents: boolean;
 
-    constructor(input: TeacherQueue[] | ClassboardModel, dateFilter?: string, countAllEvents = false) {
-        if (Array.isArray(input)) {
-            this.teacherQueues = input;
-            this.classboardData = null;
+    constructor(
+        teacherQueuesOrData: TeacherQueue[] | ClassboardModel,
+        classboardDataOrDateFilter?: ClassboardModel | string,
+        dateFilterOrCountAll?: string | boolean,
+        countAllEvents = false
+    ) {
+        if (Array.isArray(teacherQueuesOrData)) {
+            // First signature: TeacherQueue[] with optional ClassboardModel
+            this.teacherQueues = teacherQueuesOrData;
+            this.classboardData = typeof classboardDataOrDateFilter === "object" && classboardDataOrDateFilter !== null ? classboardDataOrDateFilter : null;
+            this.dateFilter = typeof dateFilterOrCountAll === "string" ? dateFilterOrCountAll : undefined;
+            this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : countAllEvents;
         } else {
+            // Second signature: ClassboardModel alone
             this.teacherQueues = null;
-            this.classboardData = input;
+            this.classboardData = teacherQueuesOrData;
+            this.dateFilter = typeof classboardDataOrDateFilter === "string" ? classboardDataOrDateFilter : undefined;
+            this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : false;
         }
-        this.dateFilter = dateFilter;
-        this.countAllEvents = countAllEvents;
     }
 
     /**

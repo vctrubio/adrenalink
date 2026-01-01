@@ -4,8 +4,8 @@ export interface ClassboardBooking {
     id: string;
     dateStart: string;
     dateEnd: string;
-    schoolId: string;
     leaderStudentName?: string;
+    status?: string;
 }
 
 export type ClassboardSchoolPackage = SchoolPackageType;
@@ -19,9 +19,8 @@ export interface ClassboardBookingStudent {
 }
 
 export interface ClassboardTeacher {
+    id: string;
     username: string;
-    firstName: string;
-    lastName: string;
 }
 
 export type ClassboardEvent = Pick<EventType, "id" | "date" | "duration" | "location" | "status">;

@@ -245,6 +245,12 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
             if (!b.studentPackage.schoolPackage) {
                 throw new Error(`❌ Booking ${b.id} - studentPackage missing schoolPackage`);
             }
+            // Validate every lesson has commission
+            b.lessons.forEach((l) => {
+                if (!l.commission) {
+                    throw new Error(`❌ Lesson ${l.id} in booking ${b.id} MISSING commission`);
+                }
+            });
         });
 
         const bookings: ClassboardModel = createClassboardModel(result);

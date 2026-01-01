@@ -16,7 +16,6 @@ const TEACHER_COLOR = "#16a34a";
 interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
     draggedBooking?: DraggableBooking | null;
-    isLessonTeacher?: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
     onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
     isAdjustmentMode?: boolean;
@@ -39,7 +38,6 @@ type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily({
     teacherQueues,
     draggedBooking,
-    isLessonTeacher,
     controller,
     onAddLessonEvent,
     isAdjustmentMode,
@@ -121,7 +119,7 @@ export default function TeacherClassDaily({
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className={`flex flex-col h-full transition-colors ${dragOverTeacherId ? "bg-red-500/20" : ""}`}>
             {/* Header: Global Toggles & Filter */}
             <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0" onClick={toggleAllTeachers}>
                 <div style={{ color: TEACHER_COLOR }}>
@@ -149,23 +147,13 @@ export default function TeacherClassDaily({
                         {filteredQueues.length > 0 ? (
                             filteredQueues.map((queue, index) => {
                                 const isExpanded = expandedTeachers.has(queue.teacher.id);
-                                const canReceiveBooking = draggedBooking && isLessonTeacher && isLessonTeacher(draggedBooking.bookingId, queue.teacher.id);
+                                const canReceiveBooking = draggedBooking && draggedBooking.lessons.some((l) => l.teacherId === queue.teacher.id);
                                 const isDragOverThis = dragOverTeacherId === queue.teacher.id && canReceiveBooking;
 
                                 return (
                                     <div
                                         key={`${queue.teacher.id}-${index}`}
-                                        className={`py-2 transition-colors ${isDragOverThis ? "bg-accent/20 border-l-4 border-accent pl-1" : ""}`}
-                                        onDragOver={(e) => {
-                                            if (canReceiveBooking) {
-                                                e.preventDefault();
-                                                setDragOverTeacherId(queue.teacher.id);
-                                            }
-                                        }}
-                                        onDragLeave={() => setDragOverTeacherId(null)}
-                                        onDrop={() => {
-                                            setDragOverTeacherId(null);
-                                        }}
+                                        className={`py-2 transition-colors`}
                                     >
                                         <TeacherQueueRow
                                             queue={queue}
@@ -175,6 +163,8 @@ export default function TeacherClassDaily({
                                             controller={controller}
                                             onAddLessonEvent={onAddLessonEvent}
                                             canReceiveBooking={canReceiveBooking}
+                                            isDragOverThis={isDragOverThis}
+                                            onSetDragOverTeacherId={setDragOverTeacherId}
                                         />
                                     </div>
                                 );
@@ -200,9 +190,21 @@ interface TeacherQueueRowProps {
     controller: ControllerSettings;
     onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
     canReceiveBooking?: boolean;
+    isDragOverThis?: boolean;
+    onSetDragOverTeacherId?: (teacherId: string | null) => void;
 }
 
-function TeacherQueueRow({ queue, isExpanded, onToggleExpand, draggedBooking, controller, onAddLessonEvent, canReceiveBooking }: TeacherQueueRowProps) {
+function TeacherQueueRow({
+    queue,
+    isExpanded,
+    onToggleExpand,
+    draggedBooking,
+    controller,
+    onAddLessonEvent,
+    canReceiveBooking,
+    isDragOverThis,
+    onSetDragOverTeacherId,
+}: TeacherQueueRowProps) {
     console.log("👤 [TeacherQueueRow] Rendering:", queue.teacher.username);
 
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
@@ -223,7 +225,24 @@ function TeacherQueueRow({ queue, isExpanded, onToggleExpand, draggedBooking, co
     const handleDragOver = (e: React.DragEvent) => {
         if (!canReceiveBooking) return;
         e.preventDefault(); // Allow drop
-        console.log("🎯 [TeacherQueueRow] Drag over:", queue.teacher.username);
+        if (onSetDragOverTeacherId) {
+            onSetDragOverTeacherId(queue.teacher.id);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Only clear if leaving the entire row div
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const isOutside =
+            e.clientX < rect.left ||
+            e.clientX > rect.right ||
+            e.clientY < rect.top ||
+            e.clientY > rect.bottom;
+
+        if (isOutside && onSetDragOverTeacherId) {
+            console.log("🎯 [TeacherQueueRow] Drag leave:", queue.teacher.username);
+            onSetDragOverTeacherId(null);
+        }
     };
 
     const handleDrop = async (e: React.DragEvent) => {
@@ -232,6 +251,11 @@ function TeacherQueueRow({ queue, isExpanded, onToggleExpand, draggedBooking, co
 
         console.log("📍 [TeacherQueueRow] Drop booking on teacher:", queue.teacher.username);
         console.log("   - Booking:", draggedBooking.leaderStudentName);
+
+        // Clear drag-over state
+        if (onSetDragOverTeacherId) {
+            onSetDragOverTeacherId(null);
+        }
 
         // Find the lesson for this teacher in the dragged booking
         const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
@@ -271,8 +295,15 @@ function TeacherQueueRow({ queue, isExpanded, onToggleExpand, draggedBooking, co
 
     return (
         <div
-            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`}
+            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${
+                isDragOverThis
+                    ? "ring-2 ring-accent/50 bg-accent/5 border-l-4 border-accent pl-1"
+                    : canReceiveBooking
+                      ? "ring-2 ring-green-500/50 bg-green-500/5"
+                      : ""
+            }`}
             onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
             {/* Teacher Card */}

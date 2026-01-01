@@ -16,19 +16,17 @@ const STUDENT_COLOR = "#ca8a04";
 interface StudentClassDailyProps {
     bookings: DraggableBooking[];
     classboardData: ClassboardModel;
-    selectedDate: string;
     classboard: {
         onDragStart: (booking: DraggableBooking) => void;
         onDragEnd: () => void;
         onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
-        availableTeachers?: { username: string; firstName: string; id: string }[];
     };
 }
 
 type StudentBookingFilter = "available" | "onboard";
 type SortOption = "newest" | "latest" | "progression";
 
-export default function StudentClassDaily({ bookings, classboardData, selectedDate, classboard }: StudentClassDailyProps) {
+export default function StudentClassDaily({ bookings, classboardData, classboard }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.bookingId)));
@@ -160,29 +158,22 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                                     const bookingData = classboardData[booking.bookingId];
                                     if (!bookingData) return null;
 
-                                    // Check if this booking has events today
+                                    // Check if this booking has any events (bookings already filtered by date)
                                     const lessons = bookingData.lessons || [];
-                                    const hasEventToday = lessons.some((lesson) => {
-                                        const events = lesson.events || [];
-                                        return events.some((event) => {
-                                            if (!event.date) return false;
-                                            const eventDate = new Date(event.date).toISOString().split("T")[0];
-                                            return eventDate === selectedDate;
-                                        });
-                                    });
+                                    const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
 
                                     // For "available" filter: Show all bookings (regardless of on board status)
                                     if (filter === "available") {
                                         if (!hasEventToday) {
-                                            return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
+                                            return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} />;
                                         } else {
-                                            return <BookingOnboardCard key={booking.bookingId} bookingData={bookingData} selectedDate={selectedDate} onClick={() => toggleBookingExpanded(booking.bookingId)} />;
+                                            return <BookingOnboardCard key={booking.bookingId} bookingData={bookingData} onClick={() => toggleBookingExpanded(booking.bookingId)} />;
                                         }
                                     }
 
                                     // For "onboard" filter: Show StudentBookingCard for bookings WITH events
                                     if (filter === "onboard" && hasEventToday) {
-                                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} selectedDate={selectedDate} />;
+                                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} />;
                                     }
 
                                     return null;

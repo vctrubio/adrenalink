@@ -55,6 +55,57 @@ export class TeacherQueue {
         current.next = eventNode;
     }
 
+    /**
+     * Add event with smart insertion:
+     * - Calculates duration based on capacity
+     * - Finds optimal insertion time (submitTime if fits, else finds gaps, else appends)
+     * - Creates EventNode and inserts it into queue
+     * - Returns the calculated insertion time
+     */
+    addEventWithSmartInsertion(
+        lessonId: string,
+        bookingId: string,
+        eventDate: string,
+        capacityStudents: number,
+        controller: ControllerSettings,
+    ): { time: string; duration: number } {
+        // Calculate duration based on capacity
+        let duration: number;
+        if (capacityStudents === 1) {
+            duration = controller.durationCapOne;
+        } else if (capacityStudents === 2) {
+            duration = controller.durationCapTwo;
+        } else {
+            duration = controller.durationCapThree;
+        }
+
+        // Get the date part (YYYY-MM-DD) from eventDate
+        const dateOnly = eventDate.split("T")[0];
+
+        // Find insertion time using smart logic
+        const { time, duration: calculatedDuration } = this.getInsertionTime(controller.submitTime, capacityStudents, controller);
+
+        // Create EventNode with calculated time
+        const fullEventDate = `${dateOnly}T${time}:00`;
+        const eventNode: EventNode = {
+            id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            lessonId,
+            bookingId,
+            eventData: {
+                date: fullEventDate,
+                duration: calculatedDuration,
+                location: controller.location,
+                status: "planned",
+            },
+            next: null,
+        };
+
+        // Insert into queue at appropriate position
+        this.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
+
+        return { time, duration: calculatedDuration };
+    }
+
     getAllEvents(): EventNode[] {
         const events: EventNode[] = [];
         let current = this.head;

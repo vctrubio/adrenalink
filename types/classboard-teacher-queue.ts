@@ -43,7 +43,6 @@ export interface EventNode {
 export interface TeacherInfo {
     id: string; // UUID of teacher
     username: string;
-    name: string;
 }
 
 export interface ControllerSettings {

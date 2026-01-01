@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import StudentClassDaily from "./StudentClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -9,10 +10,8 @@ import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classb
 interface ClassboardContentBoardProps {
     draggableBookings: DraggableBooking[];
     classboardData: ClassboardModel;
-    selectedDate: string;
     teacherQueues: TeacherQueue[];
     draggedBooking: DraggableBooking | null;
-    isLessonTeacher: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
     onAddLessonEvent: (booking: DraggableBooking, lessonId: string) => Promise<void>;
@@ -21,10 +20,8 @@ interface ClassboardContentBoardProps {
 export default function ClassboardContentBoard({
     draggableBookings,
     classboardData,
-    selectedDate,
     teacherQueues,
     draggedBooking,
-    isLessonTeacher,
     controller,
     onSetDraggedBooking,
     onAddLessonEvent,
@@ -32,34 +29,37 @@ export default function ClassboardContentBoard({
     console.log("📋 [ClassboardContentBoard] Rendering");
     console.log("   - Draggable bookings:", draggableBookings.length);
     console.log("   - Teacher queues:", teacherQueues.length);
-    console.log("   - Selected date:", selectedDate);
 
-    // Student props wrapper
-    const studentProps = {
-        bookings: draggableBookings,
-        classboardData,
-        selectedDate,
-        classboard: {
-            onDragStart: (booking: DraggableBooking) => {
-                console.log("🎯 [Drag] Started dragging booking:", booking.leaderStudentName);
-                onSetDraggedBooking(booking);
+    // Student props wrapper - memoized to prevent unnecessary re-renders
+    const studentProps = useMemo(
+        () => ({
+            bookings: draggableBookings,
+            classboardData,
+            classboard: {
+                onDragStart: (booking: DraggableBooking) => {
+                    console.log("🎯 [Drag] Started dragging booking:", booking.leaderStudentName);
+                    onSetDraggedBooking(booking);
+                },
+                onDragEnd: () => {
+                    console.log("🎯 [Drag] Ended dragging");
+                    onSetDraggedBooking(null);
+                },
+                onAddLessonEvent,
             },
-            onDragEnd: () => {
-                console.log("🎯 [Drag] Ended dragging");
-                onSetDraggedBooking(null);
-            },
+        }),
+        [draggableBookings, classboardData, onSetDraggedBooking, onAddLessonEvent],
+    );
+
+    // Teacher props wrapper - memoized to prevent unnecessary re-renders
+    const teacherProps = useMemo(
+        () => ({
+            teacherQueues,
+            draggedBooking,
+            controller,
             onAddLessonEvent,
-        },
-    };
-
-    // Teacher props wrapper
-    const teacherProps = {
-        teacherQueues,
-        draggedBooking,
-        isLessonTeacher,
-        controller,
-        onAddLessonEvent,
-    };
+        }),
+        [teacherQueues, draggedBooking, controller, onAddLessonEvent],
+    );
 
     return (
         <div className="flex-1 p-4 overflow-hidden min-h-0 flex flex-col">

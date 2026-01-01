@@ -171,15 +171,26 @@ interface InstructorListProps {
     lessons: ClassboardLesson[];
     onAddEvent: (lessonId: string) => void;
     loadingLessonId: string | null;
+    draggableLessonIds?: Set<string>; // Only lessons with teachers
 }
 
 const InstructorList = ({
     lessons,
     onAddEvent,
     loadingLessonId,
+    draggableLessonIds,
 }: InstructorListProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
+
+    // Filter to only show lessons that have teachers
+    const visibleLessons = lessons.filter((lesson) => 
+        !draggableLessonIds || draggableLessonIds.has(lesson.id)
+    );
+
+    console.log("🎓 [InstructorList] All lessons:", lessons.length, "Draggable IDs:", draggableLessonIds?.size || 0, "Visible:", visibleLessons.length);
+    console.log("   - All lesson IDs:", lessons.map((l) => l.id));
+    console.log("   - Draggable lesson IDs:", Array.from(draggableLessonIds || []));
 
     return (
         <div className="pt-2 border-t border-border/50">
@@ -188,7 +199,7 @@ const InstructorList = ({
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {lessons.map((lesson) => {
+                {visibleLessons.map((lesson) => {
                     const isLoading = loadingLessonId === lesson.id;
                     const events = lesson.events || [];
                     const totalMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
@@ -345,6 +356,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                         lessons={lessons}
                         onAddEvent={handleAddEvent}
                         loadingLessonId={loadingLessonId}
+                        draggableLessonIds={new Set(draggableBooking.lessons.map((l) => l.id))}
                     />
                 </div>
 

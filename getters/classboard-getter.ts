@@ -22,7 +22,6 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                 id,
                 dateStart,
                 dateEnd,
-                schoolId,
                 leaderStudentName,
             },
             schoolPackage: studentPackage.schoolPackage,
@@ -48,11 +47,10 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
             }),
             lessons: lessons.map((lesson: any) => ({
                 id: lesson.id,
-                teacher: {
+                teacher: lesson.teacher ? {
+                    id: lesson.teacher.id,
                     username: lesson.teacher.username,
-                    firstName: lesson.teacher.firstName,
-                    lastName: lesson.teacher.lastName,
-                },
+                } : undefined,
                 status: lesson.status,
                 commission: {
                     id: lesson.commission.id,
