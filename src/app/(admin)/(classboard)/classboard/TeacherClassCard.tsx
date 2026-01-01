@@ -95,14 +95,20 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
             label: "Mark all as completed",
             icon: CheckCircle2,
             color: "#16a34a",
-            onClick: handleMarkAllCompleted,
+            onClick: (e) => {
+                e?.stopPropagation();
+                handleMarkAllCompleted();
+            },
         },
         {
             id: "delete-all",
             label: "Delete all events",
             icon: Trash2,
             color: "#ef4444",
-            onClick: handleDeleteAll,
+            onClick: (e) => {
+                e?.stopPropagation();
+                handleDeleteAll();
+            },
         }
     ];
 
@@ -477,11 +483,13 @@ export default function TeacherClassCard({
                             </div>
                         )}
                     </div>
-                    <TeacherEventProgressBar
-                        progress={eventProgress}
-                        totalEvents={totalEvents}
-                        completedEvents={completedCount}
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <TeacherEventProgressBar
+                            progress={eventProgress}
+                            totalEvents={totalEvents}
+                            completedEvents={completedCount}
+                        />
+                    </div>
                 </div>
             </div>
 

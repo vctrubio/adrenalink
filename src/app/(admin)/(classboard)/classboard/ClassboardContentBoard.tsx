@@ -1,13 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
 import StudentClassDaily from "./StudentClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
-import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
 interface ClassboardContentBoardProps {
     draggableBookings: DraggableBooking[];
@@ -17,16 +14,8 @@ interface ClassboardContentBoardProps {
     draggedBooking: DraggableBooking | null;
     isLessonTeacher: (bookingId: string, teacherUsername: string) => boolean;
     controller: ControllerSettings;
-    globalFlag: GlobalFlag;
-    availableTeachers: { username: string; firstName: string; id: string }[];
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
     onAddLessonEvent: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
-    onAddTeacher: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
-    onEventDeleted: (eventId: string) => void;
-    refreshKey: number;
-    isSettingsOpen: boolean;
-    onSettingsClose: () => void;
-    onRefresh: () => void;
 }
 
 export default function ClassboardContentBoard({
@@ -37,17 +26,13 @@ export default function ClassboardContentBoard({
     draggedBooking,
     isLessonTeacher,
     controller,
-    globalFlag,
-    availableTeachers,
     onSetDraggedBooking,
     onAddLessonEvent,
-    onAddTeacher,
-    onEventDeleted,
-    refreshKey,
-    isSettingsOpen,
-    onSettingsClose,
-    onRefresh
 }: ClassboardContentBoardProps) {
+    console.log("📋 [ClassboardContentBoard] Rendering");
+    console.log("   - Draggable bookings:", draggableBookings.length);
+    console.log("   - Teacher queues:", teacherQueues.length);
+    console.log("   - Selected date:", selectedDate);
 
     // Student props wrapper
     const studentProps = {
@@ -55,12 +40,16 @@ export default function ClassboardContentBoard({
         classboardData,
         selectedDate,
         classboard: {
-            onDragStart: (booking: DraggableBooking) => onSetDraggedBooking(booking),
-            onDragEnd: () => onSetDraggedBooking(null),
+            onDragStart: (booking: DraggableBooking) => {
+                console.log("🎯 [Drag] Started dragging booking:", booking.leaderStudentName);
+                onSetDraggedBooking(booking);
+            },
+            onDragEnd: () => {
+                console.log("🎯 [Drag] Ended dragging");
+                onSetDraggedBooking(null);
+            },
             onAddLessonEvent,
-            onAddTeacher,
-            availableTeachers,
-        }
+        },
     };
 
     // Teacher props wrapper
@@ -70,34 +59,21 @@ export default function ClassboardContentBoard({
         draggedBooking,
         isLessonTeacher,
         controller,
-        onEventDeleted,
         onAddLessonEvent,
-        globalFlag
     };
 
     return (
         <div className="flex-1 p-4 overflow-hidden min-h-0 flex flex-col">
             <div className="flex flex-col xl:flex-row gap-4 flex-1 min-h-0">
-                
-                {/* Left Column: Students OR Settings */}
+                {/* Left Column: Students */}
                 <div className="w-full xl:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300 relative bg-card/30">
-                    {isSettingsOpen ? (
-                        <LessonFlagLocationSettingsController 
-                            globalFlag={globalFlag}
-                            teacherQueues={teacherQueues}
-                            onClose={onSettingsClose}
-                            onRefresh={onRefresh}
-                        />
-                    ) : (
-                        <StudentClassDaily {...studentProps} />
-                    )}
-                </div>
-                
-                {/* Teachers Section - Main Content Area */}
-                <div className="flex-1 min-w-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
-                    <TeacherClassDaily {...teacherProps} refreshKey={refreshKey} />
+                    <StudentClassDaily {...studentProps} />
                 </div>
 
+                {/* Right Column: Teachers */}
+                <div className="flex-1 min-w-0 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 flex flex-col transition-all duration-300">
+                    <TeacherClassDaily {...teacherProps} />
+                </div>
             </div>
         </div>
     );

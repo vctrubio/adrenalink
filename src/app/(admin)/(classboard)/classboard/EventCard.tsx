@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -15,8 +15,6 @@ import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import EventGapDetection from "./EventGapDetection";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
-
-const EVENT_STATUSES: EventStatus[] = ["planned", "tbc", "completed", "uncompleted"];
 
 interface EventCardProps {
     event: EventNode;
@@ -34,6 +32,12 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const [isUpdating, setIsUpdating] = useState(false);
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
+
+    // Sync local state with prop when event updates from subscription
+    useEffect(() => {
+        console.log("🔄 [EventCard] Status prop changed:", event.eventData.status);
+        setCurrentStatus(event.eventData.status as EventStatus);
+    }, [event.eventData.status]);
 
     const eventId = event.id;
     const duration = event.eventData.duration;
@@ -68,20 +72,14 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         <motion.div
             initial={{ rotate: -45 }}
             animate={{ rotate: -45 + 360 }}
-            transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: "linear" 
+            transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "linear",
             }}
             className="flex items-center justify-center shrink-0"
         >
-            <Image 
-                src="/ADR.webp" 
-                width={size} 
-                height={size} 
-                alt="" 
-                className="rounded-full object-cover"
-            />
+            <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
         </motion.div>
     );
 
@@ -89,32 +87,41 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         <motion.div
             initial={{ rotate: -45 }}
             animate={{ rotate: -45 - 360 }}
-            transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: "linear" 
+            transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "linear",
             }}
             className="flex items-center justify-center shrink-0"
         >
-            <Image 
-                src="/ADR.webp" 
-                width={size} 
-                height={size} 
-                alt="" 
-                className="rounded-full object-cover grayscale opacity-60"
-            />
+            <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-60" />
         </motion.div>
     );
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
         if (newStatus === currentStatus || isUpdating) return;
+        console.log("📝 [EventCard] Updating status:", eventId, "from", currentStatus, "to", newStatus);
         setIsUpdating(true);
         try {
-            await updateEventStatus(eventId, newStatus);
+            // Optimistic update
             setCurrentStatus(newStatus);
+
+            // Server update
+            const result = await updateEventStatus(eventId, newStatus);
+
+            if (!result.success) {
+                console.error("❌ [EventCard] Status update failed:", result.error);
+                // Revert on failure
+                setCurrentStatus(currentStatus);
+            } else {
+                console.log("✅ [EventCard] Status updated successfully");
+                // Subscription will sync the change across all components
+            }
         } catch (error) {
-            console.error("Error updating status:", error);
+            console.error("❌ [EventCard] Error updating status:", error);
+            // Revert on error
+            setCurrentStatus(currentStatus);
         } finally {
             setIsUpdating(false);
         }
@@ -161,14 +168,16 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting || isDeleting ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""}`}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
-                {previousEvent && <EventGapDetection 
-                    currentEvent={event} 
-                    previousEvent={previousEvent} 
-                    requiredGapMinutes={queueController?.getSettings().gapMinutes || 0} 
-                    updateMode="updateNow" 
-                    wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
-                    className="w-auto shadow-sm"
-                />}
+                {previousEvent && (
+                    <EventGapDetection
+                        currentEvent={event}
+                        previousEvent={previousEvent}
+                        requiredGapMinutes={queueController?.getSettings().gapMinutes || 0}
+                        updateMode="updateNow"
+                        wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
+                        className="w-auto shadow-sm"
+                    />
+                )}
 
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
@@ -181,7 +190,7 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                         onDelete={handleDelete}
                         isDeleting={isDeleting}
                         canShiftQueue={canShiftQueue}
-                        icon={isPosting ? PostingIcon : (isDeleting ? DeletingIcon : EquipmentIcon)}
+                        icon={isPosting ? PostingIcon : isDeleting ? DeletingIcon : EquipmentIcon}
                         capacity={capacityEquipment}
                     />
                 )}

@@ -85,12 +85,15 @@ async function getSchoolCredentialsImpl(): Promise<SchoolCredentials | null> {
         const logoUrl = await fetchLogoUrl(schoolUsername);
 
         return {
+            id: schoolData.id,
             logo: logoUrl,
             currency: schoolData.currency,
             name: schoolData.name,
             username: schoolData.username,
             status: schoolData.status,
             ownerId: schoolData.ownerId,
+            country: schoolData.country,
+            timezone: schoolData.timezone,
         };
     } catch (error) {
         console.error("❌ [LAYOUT] Error fetching school credentials:", error);

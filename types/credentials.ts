@@ -9,7 +9,8 @@
 /**
  * School credentials object containing essential school information
  * and branding assets.
- * 
+ *
+ * @property {string} id - The school's UUID (primary key)
  * @property {string | null} logo - URL to the school's logo image from R2
  *   - First tries to load: `{schoolUsername}/icon.png`
  *   - Falls back to: `admin/icon.png`
@@ -21,6 +22,7 @@
  * @property {string} ownerId - UUID of the school owner
  */
 export interface SchoolCredentials {
+    id: string;
     logo: string | null;
     currency: string;
     name: string;
