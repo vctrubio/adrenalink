@@ -7,7 +7,9 @@ import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
 import TeacherClassCard from "./TeacherClassCard";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
-import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import type { TeacherQueueV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
@@ -15,10 +17,9 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 const TEACHER_COLOR = "#16a34a";
 
 interface TeacherClassDailyProps {
-    teacherQueues: TeacherQueue[];
+    teacherQueues: TeacherQueueV2[];
     draggedBooking?: DraggableBooking | null;
-    controller: ControllerSettings;
-    onAddLessonEvent: (bookingId: string, lessonId: string) => Promise<void>;
+    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
     isAdjustmentMode?: boolean;
     globalFlag?: GlobalFlag;
     onCloseAdjustmentMode?: () => void;
@@ -39,7 +40,6 @@ type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily({
     teacherQueues,
     draggedBooking,
-    controller,
     onAddLessonEvent,
     isAdjustmentMode,
     globalFlag,
@@ -81,8 +81,8 @@ export default function TeacherClassDaily({
     const { filteredQueues, counts } = useMemo(() => {
         console.log("🔄 [TeacherClassDaily] Filtering queues, filter:", filter);
 
-        const activeQueues: TeacherQueue[] = [];
-        const allQueues: TeacherQueue[] = teacherQueues;
+        const activeQueues: TeacherQueueV2[] = [];
+        const allQueues: TeacherQueueV2[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
@@ -158,7 +158,6 @@ export default function TeacherClassDaily({
                                             isExpanded={isExpanded}
                                             onToggleExpand={() => toggleTeacherExpanded(queue.teacher.id)}
                                             draggedBooking={draggedBooking}
-                                            controller={controller}
                                             onAddLessonEvent={onAddLessonEvent}
                                         />
                                     </div>
@@ -178,12 +177,11 @@ export default function TeacherClassDaily({
 // TeacherQueueRow - Individual Teacher Row
 // ============================================
 interface TeacherQueueRowProps {
-    queue: TeacherQueue;
+    queue: TeacherQueueV2;
     isExpanded: boolean;
     onToggleExpand: () => void;
     draggedBooking?: DraggableBooking | null;
-    controller: ControllerSettings;
-    onAddLessonEvent: (bookingId: string, lessonId: string) => Promise<void>;
+    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
 }
 
 function TeacherQueueRow({
@@ -191,12 +189,18 @@ function TeacherQueueRow({
     isExpanded,
     onToggleExpand,
     draggedBooking,
-    controller,
     onAddLessonEvent,
 }: TeacherQueueRowProps) {
     console.log("👤 [TeacherQueueRow] Rendering:", queue.teacher.username);
 
+    const { controller } = useClassboardContext();
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
+
+    // Create QueueController for gap detection
+    const queueController = useMemo(() => {
+        if (!queue || !controller) return undefined;
+        return new QueueController(queue, controller, () => {});
+    }, [queue, controller]);
 
     // Check if this teacher can receive the dragged booking
     const canReceiveBooking = draggedBooking ? draggedBooking.lessons.some((l) => l.teacherId === queue.teacher.id) : false;
@@ -237,8 +241,6 @@ function TeacherQueueRow({
         e.preventDefault();
         if (!draggedBooking) return;
 
-        console.log("📍 [TeacherQueueRow] Drop booking on teacher:", queue.teacher.username);
-
         // Find the lesson for this teacher in the dragged booking
         const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
         if (!lesson) {
@@ -246,21 +248,18 @@ function TeacherQueueRow({
             return;
         }
 
-        console.log("   - Found lesson:", lesson.id, "for teacher ID:", queue.teacher.id);
-        await onAddLessonEvent(draggedBooking.bookingId, lesson.id);
+        console.log("📍 [TeacherQueueRow] Lesson id:", lesson.id, "has teacher id:", queue.teacher.id);
+        await onAddLessonEvent(lesson.id, queue.teacher.id, draggedBooking.capacityStudents);
     };
 
-    const completedCount = events.filter((e) => e.eventData.status === "completed").length;
-    const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
-
-    // Calculate stats
+    // Calculate stats and times
     const stats = useMemo(() => queue.getStats(), [queue]);
-    const earliestTime = useMemo(() => queue.getEarliestEventTime(), [queue]);
+    const earliestTime = useMemo(() => queue.getEarliestTime(), [queue]);
 
     const equipmentCounts = useMemo(() => {
         const counts = new Map<string, number>();
         events.forEach((e) => {
-            const cat = e.packageData?.categoryEquipment;
+            const cat = e.categoryEquipment;
             if (cat) counts.set(cat, (counts.get(cat) || 0) + 1);
         });
         return Array.from(counts.entries()).map(([categoryId, count]) => ({ categoryId, count }));
@@ -292,14 +291,11 @@ function TeacherQueueRow({
                     teacherName={queue.teacher.username}
                     stats={stats}
                     earliestTime={earliestTime}
-                    pendingCount={pendingCount}
-                    completedCount={completedCount}
                     equipmentCounts={equipmentCounts}
                     eventProgress={eventProgress}
                     onClick={onToggleExpand}
                     isExpanded={isExpanded}
                     queue={queue}
-                    controller={controller}
                     isAdjustmentMode={isAdjustmentMode}
                     onToggleAdjustment={setIsAdjustmentMode}
                 />
@@ -312,7 +308,7 @@ function TeacherQueueRow({
                         {events.length > 0 ? (
                             events.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                    <EventCard event={event} queue={queue} showLocation={true} />
+                                    <EventCard event={event} queue={queue} queueController={queueController} showLocation={true} />
                                 </div>
                             ))
                         ) : (

@@ -14,6 +14,191 @@ export interface TeacherInfo {
 
 export { type EventNodeV2, type ControllerSettings } from "@/types/classboard-teacher-queue";
 
+/**
+ * TeacherQueueV2 - Lightweight teacher queue using EventNodeV2
+ * Manages a linked list of events for a teacher on a specific date
+ * Events are constructed from database records and inserted in chronological order
+ */
+export class TeacherQueueV2 {
+    private head: EventNodeV2 | null = null;
+    public teacher: TeacherInfo;
+
+    constructor(teacher: TeacherInfo) {
+        this.teacher = teacher;
+    }
+
+    /**
+     * Construct event in queue - inserts event in chronological order
+     * Called when building queue from existing database events
+     */
+    constructEvents(eventNode: EventNodeV2): void {
+        const eventStartMinutes = this.getStartTimeMinutes(eventNode);
+
+        if (!this.head) {
+            this.head = eventNode;
+            return;
+        }
+
+        // Check if event should be at head (before first event chronologically)
+        const firstEventStartMinutes = this.getStartTimeMinutes(this.head);
+        if (eventStartMinutes < firstEventStartMinutes) {
+            eventNode.next = this.head;
+            this.head = eventNode;
+            return;
+        }
+
+        // Find correct position in chronological order
+        let current = this.head;
+        while (current.next) {
+            const nextEventStartMinutes = this.getStartTimeMinutes(current.next);
+            if (eventStartMinutes < nextEventStartMinutes) {
+                eventNode.next = current.next;
+                current.next = eventNode;
+                return;
+            }
+            current = current.next;
+        }
+
+        // Add at end
+        current.next = eventNode;
+    }
+
+    getAllEvents(): EventNodeV2[] {
+        const events: EventNodeV2[] = [];
+        let current = this.head;
+        while (current) {
+            events.push(current);
+            current = current.next;
+        }
+        return events;
+    }
+
+    /**
+     * Get the start time of the first (earliest) event in queue
+     * Returns time string (HH:MM format) or null if no events
+     */
+    getEarliestTime(): string | null {
+        if (!this.head) return null;
+        return this.head.eventData.date.split("T")[1]?.substring(0, 5) || null;
+    }
+
+    /**
+     * Get next available time slot for a new event
+     * Checks if submitTime fits, returns next available slot if not
+     */
+    getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number): string {
+        const events = this.getAllEvents();
+        if (!events.length) return submitTime;
+
+        const submitTimeMinutes = this.timeToMinutes(submitTime);
+        const submitEndMinutes = submitTimeMinutes + duration;
+
+        // Check if submitTime fits at the head (before first event)
+        const firstEventStartMinutes = this.getStartTimeMinutes(events[0]);
+        if (submitTimeMinutes < firstEventStartMinutes) {
+            if (submitEndMinutes + gapMinutes <= firstEventStartMinutes && submitEndMinutes <= 1440) {
+                return submitTime;
+            }
+        }
+
+        // Check if submitTime fits in any gap between events
+        for (let i = 0; i < events.length - 1; i++) {
+            const currentEventEndMinutes = this.getStartTimeMinutes(events[i]) + events[i].eventData.duration;
+            const nextEventStartMinutes = this.getStartTimeMinutes(events[i + 1]);
+            const gapStartMinutes = currentEventEndMinutes + gapMinutes;
+
+            if (
+                submitTimeMinutes >= gapStartMinutes &&
+                submitEndMinutes + gapMinutes <= nextEventStartMinutes &&
+                submitEndMinutes <= 1440
+            ) {
+                return submitTime;
+            }
+        }
+
+        // If submitTime is after all events, use it
+        const lastEventEndMinutes = this.getStartTimeMinutes(events[events.length - 1]) + events[events.length - 1].eventData.duration;
+        const requiredGapStartMinutes = lastEventEndMinutes + gapMinutes;
+
+        if (submitTimeMinutes >= requiredGapStartMinutes && submitEndMinutes <= 1440) {
+            return submitTime;
+        }
+
+        // Return next available slot after last event
+        if (requiredGapStartMinutes + duration <= 1440) {
+            return minutesToTime(requiredGapStartMinutes);
+        }
+
+        // Fallback (shouldn't happen with valid times)
+        return submitTime;
+    }
+
+    private timeToMinutes(time: string): number {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+    }
+
+    /**
+     * Calculate statistics from queue events
+     * Returns stats needed for ClassboardStatistics
+     */
+    getStats() {
+        const events = this.getAllEvents();
+
+        const uniqueStudents = new Set<string>();
+        let totalDuration = 0; // in minutes
+        let totalRevenue = 0;
+        let totalCommission = 0;
+
+        events.forEach((event) => {
+            totalDuration += event.eventData.duration;
+
+            // Track unique students
+            if (event.bookingStudents) {
+                event.bookingStudents.forEach((student) => {
+                    uniqueStudents.add(student.id);
+                });
+            }
+
+            // Calculate revenue: price per student × capacity students
+            const eventRevenue = event.pricePerStudent * event.capacityStudents;
+            totalRevenue += eventRevenue;
+
+            // Calculate commission based on event duration and revenue
+            const hours = event.eventData.duration / 60;
+            let commission = 0;
+
+            if (event.commission.type === "fixed") {
+                commission = event.commission.cph * hours;
+            } else {
+                // percentage: calculate percentage of revenue
+                commission = eventRevenue * (event.commission.cph / 100);
+            }
+
+            totalCommission += commission;
+        });
+
+        // Convert total duration from minutes to hours
+        const totalHours = totalDuration / 60;
+
+        return {
+            eventCount: events.length,
+            studentCount: uniqueStudents.size,
+            totalHours: Math.round(totalHours * 100) / 100,
+            totalRevenue: {
+                revenue: Math.round(totalRevenue * 100) / 100,
+                commission: Math.round(totalCommission * 100) / 100,
+                profit: Math.round((totalRevenue - totalCommission) * 100) / 100,
+            },
+        };
+    }
+
+    private getStartTimeMinutes(eventNode: EventNodeV2): number {
+        return getMinutesFromISO(eventNode.eventData.date);
+    }
+}
+
+// Keep original TeacherQueue for backward compatibility
 export class TeacherQueue {
     private head: EventNodeV2 | null = null;
     public teacher: TeacherInfo;

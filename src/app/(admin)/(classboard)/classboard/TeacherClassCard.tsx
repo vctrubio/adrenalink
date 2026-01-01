@@ -13,8 +13,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { TeacherStats } from "@/backend/ClassboardStatistics";
-import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
@@ -160,9 +159,9 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
 function EventEquipmentStudent({ event }: {
     event: any
 }) {
-    const categoryEquipment = event.packageData?.categoryEquipment;
-    const capacityEquipment = event.packageData?.capacityEquipment || 1;
-    const studentCount = event.studentData?.length || 0;
+    const categoryEquipment = event.categoryEquipment;
+    const capacityEquipment = event.capacityEquipment || 1;
+    const studentCount = event.bookingStudents?.length || 0;
 
     return (
         <div className="flex items-center gap-1.5 shrink-0">
@@ -264,14 +263,11 @@ export interface TeacherClassCardProps {
     teacherName: string;
     stats: TeacherStats;
     earliestTime: string | null;
-    pendingCount: number;
-    completedCount: number;
     equipmentCounts: EquipmentCount[];
     eventProgress: EventProgress;
     onClick?: () => void;
     isExpanded?: boolean;
-    queue?: TeacherQueue;
-    controller?: ControllerSettings;
+    queue?: TeacherQueueV2;
     isAdjustmentMode?: boolean;
     onToggleAdjustment?: (mode: boolean) => void;
     onSubmit?: () => void;
@@ -286,14 +282,11 @@ export default function TeacherClassCard({
     teacherName,
     stats,
     earliestTime,
-    pendingCount,
-    completedCount,
     equipmentCounts,
     eventProgress,
     onClick,
     isExpanded = true,
     queue,
-    controller,
     isAdjustmentMode = false,
     onToggleAdjustment,
     onSubmit,
@@ -303,14 +296,11 @@ export default function TeacherClassCard({
     changedCount = 0,
     isSubmitting = false
 }: TeacherClassCardProps) {
+    const events = queue?.getAllEvents() || [];
+    const completedCount = events.filter((e) => e.eventData.status === "completed").length;
+    const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
-
-    // Create QueueController for event modifications
-    const queueController = useMemo(() => {
-        if (!queue || !controller) return undefined;
-        return new QueueController(queue, controller, () => {});
-    }, [queue, controller]);
 
     // Handle header click - toggle collapse or show error if in adjustment mode
     const handleHeaderClick = useCallback((e: React.MouseEvent) => {
@@ -329,7 +319,7 @@ export default function TeacherClassCard({
     // Handle icon click - in collapsed view: enter adjustment mode + expand. In expanded view: toggle adjustment mode
     const handleIconClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        if (queueController) {
+        if (queue) {
             if (isExpanded) {
                 // Expanded view: toggle adjustment mode
                 onToggleAdjustment?.(!isAdjustmentMode);
@@ -339,11 +329,13 @@ export default function TeacherClassCard({
                 onToggleAdjustment?.(true);
             }
         }
-    }, [queueController, isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
+    }, [queue, isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
-    // Events are already filtered by date in ClientClassboard
-    // just use eventProgress which has the aggregated duration data
-    const todayEvents: any[] = [];
+    // Get events from queue for equipment display (already filtered by date in ClientClassboard)
+    const todayEvents = useMemo(() => {
+        if (!queue) return [];
+        return queue.getAllEvents();
+    }, [queue]);
 
     // Collapsed view - single line
     if (!isExpanded) {
@@ -379,7 +371,7 @@ export default function TeacherClassCard({
                 {/* Icon - Enter adjustment mode and expand if collapsed */}
                 <button
                     onClick={handleIconClick}
-                    disabled={!queueController}
+                    disabled={!queue}
                     className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ color: TEACHER_COLOR }}
                 >
@@ -454,7 +446,7 @@ export default function TeacherClassCard({
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
                 <button
                     onClick={handleIconClick}
-                    disabled={!queueController}
+                    disabled={!queue}
                     className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: TEACHER_COLOR }}>

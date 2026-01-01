@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Loader2 } from "lucide-react";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
@@ -30,6 +30,7 @@ export default function EventGapDetection({
     className,
 }: EventGapDetectionProps) {
     const [gapState, setGapState] = useState<GapDetectionState>("none");
+    const [isUpdating, setIsUpdating] = useState(false);
 
     // If no previous event, nothing to detect
     if (!previousEvent) {
@@ -46,26 +47,30 @@ export default function EventGapDetection({
     }
 
     const handleClick = async () => {
-        if (!previousEvent) {
+        if (!previousEvent || isUpdating) {
             return;
         }
 
-        const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
-        const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
-        const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
+        setIsUpdating(true);
+        try {
+            const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
+            const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
+            const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
 
-        const datePart = getDatePartFromISO(currentEvent.eventData.date);
-        const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
+            const datePart = getDatePartFromISO(currentEvent.eventData.date);
+            const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
 
-        if (updateMode === "updateNow") {
-            try {
+            if (updateMode === "updateNow") {
                 await updateEventStartTime(currentEvent.id, newDate);
-            } catch (error) {
-                console.error("Error updating event:", error);
+                console.log("✅ [EventGapDetection] Gap adjusted successfully");
+            } else {
+                currentEvent.eventData.date = newDate;
+                onGapAdjust?.();
             }
-        } else {
-            currentEvent.eventData.date = newDate;
-            onGapAdjust?.();
+        } catch (error) {
+            console.error("❌ [EventGapDetection] Error updating event:", error);
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -106,12 +111,17 @@ export default function EventGapDetection({
     const button = (
         <button
             onClick={handleClick}
-            className={`${className || "w-full"} flex items-center justify-center gap-1.5 py-0.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 pointer-events-auto ${buttonProps.className}`}
+            disabled={isUpdating}
+            className={`${className || "w-full"} flex items-center justify-center gap-1.5 py-0.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 pointer-events-auto ${buttonProps.className} ${isUpdating ? "opacity-60" : ""}`}
             title={buttonProps.title}
             style={{ pointerEvents: "auto", zIndex: 10 }}
         >
-            {buttonProps.icon}
-            <span>{buttonProps.text}</span>
+            {isUpdating ? (
+                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+            ) : (
+                buttonProps.icon
+            )}
+            <span>{isUpdating ? "Adjusting..." : buttonProps.text}</span>
         </button>
     );
 

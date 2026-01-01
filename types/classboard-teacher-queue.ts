@@ -45,7 +45,8 @@ export interface EventNode {
  * Reduces memory footprint and simplifies data structures
  * Used in TeacherQueue for storing events with all necessary information for:
  * - Event card rendering (lessonId, eventData, students, booking leader)
- * - Statistics calculation (commission info, capacity, event status/duration)
+ * - Statistics calculation (commission info, capacity, event status/duration, revenue)
+ * - Equipment display (categoryEquipment, capacityEquipment)
  * - Teacher queue management
  */
 export interface EventNodeV2 {
@@ -56,6 +57,9 @@ export interface EventNodeV2 {
     // Only include students if capacity > 1
     bookingStudents: StudentData[] | null;
     capacityStudents: number;
+    pricePerStudent: number; // For revenue calculation
+    categoryEquipment: string; // For equipment display
+    capacityEquipment: number; // For equipment display
     commission: {
         type: "fixed" | "percentage";
         cph: number; // cents per hour or percentage

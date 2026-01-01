@@ -42,9 +42,8 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const eventId = event.id;
     const duration = event.eventData.duration;
     const location = event.eventData.location;
-    // EventNodeV2 doesn't have packageData - equipment info should be passed separately if needed
-    const categoryEquipment = "";
-    const capacityEquipment = 0;
+    const categoryEquipment = event.categoryEquipment || "";
+    const capacityEquipment = event.capacityEquipment || 0;
 
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
@@ -183,18 +182,16 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
-                {/* Right Side: Equipment Icon (Dropdown Trigger) */}
-                {(EquipmentIcon || isPosting || isDeleting) && (
-                    <EventStatusLabel
-                        status={currentStatus}
-                        onStatusChange={handleStatusClick}
-                        onDelete={handleDelete}
-                        isDeleting={isDeleting}
-                        canShiftQueue={canShiftQueue}
-                        icon={isPosting ? PostingIcon : isDeleting ? DeletingIcon : EquipmentIcon}
-                        capacity={capacityEquipment}
-                    />
-                )}
+                {/* Right Side: Status Label with optional Equipment Icon */}
+                <EventStatusLabel
+                    status={currentStatus}
+                    onStatusChange={handleStatusClick}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                    canShiftQueue={canShiftQueue}
+                    icon={isPosting ? PostingIcon : isDeleting ? DeletingIcon : EquipmentIcon}
+                    capacity={capacityEquipment}
+                />
             </div>
 
             {/* Footer / Student Toggle Trigger */}

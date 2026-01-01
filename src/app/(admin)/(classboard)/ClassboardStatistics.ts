@@ -9,13 +9,24 @@
  * - revenue: total school revenue
  */
 
-import type { TeacherQueue } from "./TeacherQueue";
+import type { TeacherQueueV2 } from "./TeacherQueue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 export interface RevenueStats {
     commission: number;
     revenue: number;
     profit: number;
+}
+
+/**
+ * TeacherStats - Per-teacher statistics from their event queue
+ * Calculated from TeacherQueueV2.getStats()
+ */
+export interface TeacherStats {
+    eventCount: number;
+    studentCount: number;
+    totalHours: number;
+    totalRevenue: RevenueStats;
 }
 
 export interface DailyLessonStats {
@@ -27,19 +38,19 @@ export interface DailyLessonStats {
 }
 
 export class ClassboardStatistics {
-    private teacherQueues: TeacherQueue[] | null;
+    private teacherQueues: TeacherQueueV2[] | null;
     private classboardData: ClassboardModel | null;
     private dateFilter?: string;
     private countAllEvents: boolean;
 
     constructor(
-        teacherQueuesOrData: TeacherQueue[] | ClassboardModel,
+        teacherQueuesOrData: TeacherQueueV2[] | ClassboardModel,
         classboardDataOrDateFilter?: ClassboardModel | string,
         dateFilterOrCountAll?: string | boolean,
         countAllEvents = false
     ) {
         if (Array.isArray(teacherQueuesOrData)) {
-            // First signature: TeacherQueue[] with optional ClassboardModel
+            // First signature: TeacherQueueV2[] with optional ClassboardModel
             this.teacherQueues = teacherQueuesOrData;
             this.classboardData = typeof classboardDataOrDateFilter === "object" && classboardDataOrDateFilter !== null ? classboardDataOrDateFilter : null;
             this.dateFilter = typeof dateFilterOrCountAll === "string" ? dateFilterOrCountAll : undefined;
@@ -58,15 +69,16 @@ export class ClassboardStatistics {
      */
     getDailyLessonStats(): DailyLessonStats {
         if (this.teacherQueues) {
-            // Use existing logic for TeacherQueue[]
+            // Calculate stats from TeacherQueueV2[] events
             const activeTeacherStats = this.teacherQueues
                 .map(queue => queue.getStats())
                 .filter(stats => stats.eventCount > 0);
-            
+
             const teacherCount = activeTeacherStats.length;
             const studentCount = activeTeacherStats.reduce((sum, stats) => sum + stats.studentCount, 0);
             const eventCount = activeTeacherStats.reduce((sum, stats) => sum + stats.eventCount, 0);
-            const durationCount = activeTeacherStats.reduce((sum, stats) => sum + stats.totalHours, 0) * 60; // Convert hours to minutes
+            // totalHours is already in hours, convert to minutes for durationCount
+            const durationCount = activeTeacherStats.reduce((sum, stats) => sum + stats.totalHours * 60, 0);
             const totalRevenue = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.revenue, 0);
             const totalCommission = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.commission, 0);
             const totalProfit = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.profit, 0);

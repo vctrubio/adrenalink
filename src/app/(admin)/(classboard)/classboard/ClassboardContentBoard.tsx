@@ -5,15 +5,15 @@ import StudentClassDaily from "./StudentClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 interface ClassboardContentBoardProps {
     bookingsForSelectedDate: ClassboardData[];
-    teacherQueues: TeacherQueue[];
+    teacherQueues: TeacherQueueV2[];
     draggedBooking: DraggableBooking | null;
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
-    onAddLessonEvent: (bookingData: ClassboardData, lessonId: string) => Promise<void>;
+    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>; // Main handler signature
 }
 
 export default function ClassboardContentBoard({
@@ -29,26 +29,28 @@ export default function ClassboardContentBoard({
     console.log("   - Bookings:", bookingsForSelectedDate.length);
     console.log("   - Teacher queues:", teacherQueues.length);
 
-    // Wrapper to look up booking data before calling the handler
-    const handleAddLessonEventWithLookup = useCallback(
+    // Wrapper for StudentBookingCard: converts (bookingId, lessonId) -> (lessonId, teacherId, capacityStudents)
+    const handleAddLessonEventFromStudent = useCallback(
         async (bookingId: string, lessonId: string) => {
-            console.log("🔍 [ClassboardContentBoard] handleAddLessonEventWithLookup called");
-            console.log("   - bookingId:", bookingId, "type:", typeof bookingId);
+            console.log("🔍 [ClassboardContentBoard] Student booking card - Adding lesson");
+            console.log("   - bookingId:", bookingId);
             console.log("   - lessonId:", lessonId);
-            
-            // Handle case where bookingId might be a DraggableBooking object
-            let actualBookingId = bookingId;
-            if (typeof bookingId === "object" && bookingId !== null && "bookingId" in bookingId) {
-                console.warn("⚠️ [ClassboardContentBoard] Received DraggableBooking instead of bookingId, extracting...");
-                actualBookingId = (bookingId as any).bookingId;
-            }
-            
-            const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === actualBookingId);
+
+            const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
             if (!bookingData) {
-                console.error("❌ [ClassboardContentBoard] Booking not found:", actualBookingId);
+                console.error("❌ [ClassboardContentBoard] Booking not found:", bookingId);
                 return;
             }
-            await onAddLessonEvent(bookingData, lessonId);
+
+            const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+            if (!lesson?.teacher) {
+                console.error("❌ [ClassboardContentBoard] Lesson or teacher not found");
+                return;
+            }
+
+            console.log("   - Teacher ID:", lesson.teacher.id, "Username:", lesson.teacher.username);
+            console.log("   - Capacity:", bookingData.schoolPackage.capacityStudents);
+            await onAddLessonEvent(lessonId, lesson.teacher.id, bookingData.schoolPackage.capacityStudents);
         },
         [bookingsForSelectedDate, onAddLessonEvent],
     );
@@ -66,10 +68,10 @@ export default function ClassboardContentBoard({
                     console.log("🎯 [Drag] Ended dragging");
                     onSetDraggedBooking(null);
                 },
-                onAddLessonEvent: handleAddLessonEventWithLookup,
+                onAddLessonEvent: handleAddLessonEventFromStudent,
             },
         }),
-        [bookingsForSelectedDate, onSetDraggedBooking, handleAddLessonEventWithLookup],
+        [bookingsForSelectedDate, onSetDraggedBooking, handleAddLessonEventFromStudent],
     );
 
     // Teacher props wrapper - memoized to prevent unnecessary re-renders
@@ -77,10 +79,9 @@ export default function ClassboardContentBoard({
         () => ({
             teacherQueues,
             draggedBooking,
-            controller,
-            onAddLessonEvent: handleAddLessonEventWithLookup,
+            onAddLessonEvent,
         }),
-        [teacherQueues, draggedBooking, controller, handleAddLessonEventWithLookup],
+        [teacherQueues, draggedBooking, onAddLessonEvent],
     );
 
     return (

@@ -327,7 +327,12 @@ export default function StudentBookingCard({ bookingData, bookingId, classboard 
         if (!classboard.onAddLessonEvent) return;
         console.log("➕ [StudentBookingCard] Adding event for lesson:", lessonId);
         console.log("   - Booking ID:", bookingId);
-        console.log("   - Lessons in booking:", lessons.map((l) => ({ id: l.id, teacher: l.teacher?.id })));
+
+        const lesson = lessons.find((l) => l.id === lessonId);
+        console.log("   - Lesson teacher ID:", lesson?.teacher?.id);
+        console.log("   - Lesson teacher username:", lesson?.teacher?.username);
+        console.log("   - All lessons in booking:", lessons.map((l) => ({ id: l.id, teacher: l.teacher?.username, teacherId: l.teacher?.id })));
+
         setLoadingLessonId(lessonId);
         try {
             await classboard.onAddLessonEvent(bookingId, lessonId);

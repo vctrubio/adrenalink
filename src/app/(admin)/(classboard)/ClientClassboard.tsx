@@ -13,7 +13,7 @@ import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
 import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
-import { TeacherQueue, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { TeacherQueueV2, type EventNodeV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { isDateInRange } from "@/getters/date-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
@@ -130,16 +130,16 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // Step 1: Filter bookings by selected date (single source of truth)
     const bookingsForSelectedDate = useBookingsForSelectedDate(classboardData, selectedDate);
 
-    // Step 2: Create teacher queues directly using TeacherQueue class
+    // Step 2: Create teacher queues directly using TeacherQueueV2 class
     const teacherQueues = useMemo(() => {
-        const queues = new Map<string, TeacherQueue>();
+        const queues = new Map<string, TeacherQueueV2>();
 
         // 1. Initialize queues for all active teachers
         const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
         activeTeachers.forEach((teacher) => {
             queues.set(
                 teacher.schema.id,
-                new TeacherQueue({
+                new TeacherQueueV2({
                     id: teacher.schema.id,
                     username: teacher.schema.username,
                 }),
@@ -155,19 +155,14 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 const queue = queues.get(teacherId);
                 if (!queue) return;
 
-                // Add each existing event to queue in chronological order
+                // Construct events in queue from database records
                 (lesson.events || []).forEach((event) => {
-                    const eventNode: EventNode = {
+                    const eventNode: EventNodeV2 = {
                         id: event.id,
                         lessonId: lesson.id,
                         bookingId: booking.booking.id,
-                        eventData: {
-                            date: event.date,
-                            duration: event.duration,
-                            location: event.location,
-                            status: event.status,
-                        },
-                        studentData: booking.bookingStudents.map((bs) => ({
+                        bookingLeaderName: booking.booking.leaderStudentName,
+                        bookingStudents: booking.bookingStudents.map((bs) => ({
                             id: bs.student.id,
                             firstName: bs.student.firstName,
                             lastName: bs.student.lastName,
@@ -175,20 +170,23 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                             country: bs.student.country,
                             phone: bs.student.phone,
                         })),
-                        packageData: {
-                            pricePerStudent: booking.schoolPackage.pricePerStudent,
-                            durationMinutes: booking.schoolPackage.durationMinutes,
-                            description: booking.schoolPackage.description,
-                            categoryEquipment: booking.schoolPackage.categoryEquipment,
-                            capacityEquipment: booking.schoolPackage.capacityEquipment,
-                        },
+                        capacityStudents: booking.schoolPackage.capacityStudents,
+                        pricePerStudent: booking.schoolPackage.pricePerStudent,
+                        categoryEquipment: booking.schoolPackage.categoryEquipment,
+                        capacityEquipment: booking.schoolPackage.capacityEquipment,
                         commission: {
                             type: lesson.commission.type,
                             cph: parseFloat(lesson.commission.cph),
                         },
+                        eventData: {
+                            date: event.date,
+                            duration: event.duration,
+                            location: event.location,
+                            status: event.status,
+                        },
                         next: null,
                     };
-                    queue.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
+                    queue.constructEvents(eventNode);
                 });
             });
         });
@@ -196,7 +194,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         // Return queues in order of allSchoolTeachers (which are already sorted)
         return activeTeachers
             .map((teacher) => queues.get(teacher.schema.id))
-            .filter((queue) => queue !== undefined) as TeacherQueue[];
+            .filter((queue) => queue !== undefined) as TeacherQueueV2[];
     }, [allSchoolTeachers, bookingsForSelectedDate, controller]);
 
     // Step 3: Calculate statistics
@@ -214,57 +212,61 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
     // Add event to teacher queue
     const handleAddLessonEvent = useCallback(
-        async (bookingData: ClassboardData, lessonId: string) => {
+        async (lessonId: string, teacherId: string, capacityStudents: number) => {
             console.log("➕ [ClientClassboard] Adding event for lesson:", lessonId);
+            console.log("   - teacherId:", teacherId);
+            console.log("   - capacityStudents:", capacityStudents);
+            console.log("   - Available teacher queues:", teacherQueues.map((q) => ({ id: q.teacher.id, username: q.teacher.username })));
 
             try {
-                // Get lesson and teacher ID from booking data
-                const lesson = bookingData.lessons.find((l) => l.id === lessonId);
-                if (!lesson?.teacher) {
-                    toast.error("Lesson or teacher not found");
-                    return;
-                }
-
-                const teacherId = lesson.teacher.id;
-                const bookingId = bookingData.booking.id;
-
                 // Find queue for this teacher
                 const queue = teacherQueues.find((q) => q.teacher.id === teacherId);
                 if (!queue) {
+                    console.error("❌ [ClientClassboard] Teacher not found in queues. teacherId:", teacherId);
                     toast.error("Teacher not on board - cannot add lesson");
                     return;
                 }
+                console.log("✅ [ClientClassboard] Found teacher queue:", queue.teacher.username);
 
-                // Get insertion time and duration from queue
-                const { time, duration } = queue.addEventWithSmartInsertion(
-                    lessonId,
-                    bookingId,
-                    selectedDate,
-                    bookingData.schoolPackage.capacityStudents,
-                    controller,
+                // Calculate duration based on capacity
+                let duration: number;
+                if (capacityStudents === 1) {
+                    duration = controller.durationCapOne;
+                } else if (capacityStudents === 2) {
+                    duration = controller.durationCapTwo;
+                } else {
+                    duration = controller.durationCapThree;
+                }
+
+                // Get next available slot from queue
+                const slotTime = queue.getNextAvailableSlot(
+                    controller.submitTime,
+                    duration,
+                    controller.gapMinutes,
                 );
 
+                console.log("📍 [ClientClassboard] Next available slot:", slotTime);
+
                 // Prepare event creation data
-                const eventDate = `${selectedDate}T${time}:00`;
-                const eventData = {
-                    lessonId,
-                    eventDate,
-                    duration,
-                    location: controller.location,
-                };
+                const eventDate = `${selectedDate}T${slotTime}:00`;
 
                 console.log("📋 [ClientClassboard] Event data prepared:");
-                console.log("   - lessonId:", eventData.lessonId);
-                console.log("   - eventDate:", eventData.eventDate);
-                console.log("   - duration:", eventData.duration);
-                console.log("   - location:", eventData.location);
+                console.log("   - lessonId:", lessonId);
+                console.log("   - eventDate:", eventDate);
+                console.log("   - duration:", duration);
+                console.log("   - location:", controller.location);
 
-                // TODO: Create the event via server action
-                // const result = await createClassboardEvent(eventData.lessonId, eventData.eventDate, eventData.duration, eventData.location);
-                
+                // Create the event via server action
+                const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
+                if (!result.success) {
+                    console.error("❌ [ClientClassboard] Server action failed:", result.error);
+                    return;
+                }
+
+                console.log("✅ [ClientClassboard] Event created, subscription will sync");
+
             } catch (error) {
                 console.error("❌ [ClientClassboard] Error adding event:", error);
-                toast.error("Failed to add event");
             }
         },
         [selectedDate, teacherQueues, controller],
