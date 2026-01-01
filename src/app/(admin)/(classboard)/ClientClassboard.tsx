@@ -11,10 +11,9 @@ import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { TeacherQueue, type ControllerSettings, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
-import { calculateTeacherQueues } from "@/getters/teacher-queue-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
@@ -139,19 +138,19 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // DERIVED DATA - All computed via useMemo
     // ============================================
 
-    // Step 1: Convert classboard model to bookings array
+    // Step 1: Convert classboard model to clean bookings array (only relevant fields)
     const bookingsArray = useMemo(() => {
-        console.log("🔄 [DERIVE] Computing bookings array from classboard data");
         const bookings = Object.entries(classboardData).map(([bookingId, bookingData]) => ({
-            booking: { ...bookingData.booking, id: bookingId },
+            booking: {
+                id: bookingId,
+                dateStart: bookingData.booking.dateStart,
+                dateEnd: bookingData.booking.dateEnd,
+                leaderStudentName: bookingData.booking.leaderStudentName,
+            },
             schoolPackage: bookingData.schoolPackage,
             bookingStudents: bookingData.bookingStudents,
             lessons: bookingData.lessons,
         }));
-        console.log("📦 [DERIVE] Bookings array:", bookings.length, "bookings");
-        if (bookings.length > 0) {
-            console.log("📚 [DERIVE] Sample lesson from first booking:", bookings[0].lessons[0]);
-        }
         return bookings;
     }, [classboardData]);
 
@@ -192,51 +191,95 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         return draggable;
     }, [bookingsForSelectedDate, allSchoolTeachers]);
 
-    // Step 4: Calculate teacher queues (from pre-filtered bookingsForSelectedDate)
+    // Step 4: Create teacher queues directly using TeacherQueue class
     const teacherQueues = useMemo(() => {
-        console.log("🔄 [DERIVE] Calculating teacher queues");
-        console.log("   - Teachers:", allSchoolTeachers.length);
-        console.log("   - Bookings:", bookingsForSelectedDate.length);
-        console.log("   - Gap minutes:", controller.gapMinutes);
+        const queues = new Map<string, TeacherQueue>();
 
-        // Filter to only active teachers
+        // 1. Initialize queues for all active teachers
         const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
-        console.log("   - Active teachers:", activeTeachers.length);
-        console.log(
-            "👥 Teacher details:",
-            activeTeachers.map((t) => ({ id: t.schema.id, username: t.schema.username })),
-        );
+        activeTeachers.forEach((teacher) => {
+            queues.set(
+                teacher.schema.id,
+                new TeacherQueue({
+                    id: teacher.schema.id,
+                    username: teacher.schema.username,
+                    name: `${teacher.schema.firstName} ${teacher.schema.lastName}`,
+                }),
+            );
+        });
 
-        console.log("📚 Bookings for queue calculation:");
+        // 2. Add events from bookings to queues
         bookingsForSelectedDate.forEach((booking) => {
             booking.lessons.forEach((lesson) => {
+                if (lesson.status === "rest" || !lesson.commission) return;
+
+                // Look up teacher ID from allSchoolTeachers using username
                 const teacherUsername = lesson.teacher?.username;
-                const teacherId = activeTeachers.find((t) => t.schema.username === teacherUsername)?.schema.id;
-                console.log(`   Lesson: ${lesson.id}, Teacher: ${teacherUsername} (${teacherId}), Events: ${lesson.events?.length || 0}`);
-                lesson.events?.forEach((event) => {
-                    console.log(`      Event: ${event.id}, Date: ${event.date}, Duration: ${event.duration}`);
+                const teacher = activeTeachers.find((t) => t.schema.username === teacherUsername);
+                const teacherId = teacher?.schema.id;
+
+                if (!teacherId) return;
+
+                const queue = queues.get(teacherId);
+                if (!queue) return;
+
+                // Create student data
+                const studentData = booking.bookingStudents.map((bs) => ({
+                    id: bs.student.id,
+                    firstName: bs.student.firstName,
+                    lastName: bs.student.lastName,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                }));
+
+                // Add each event to queue (read gapMinutes directly from controller)
+                (lesson.events || []).forEach((event: any) => {
+                    const eventNode: EventNode = {
+                        id: event.id,
+                        lessonId: lesson.id,
+                        bookingId: booking.booking.id,
+                        leaderStudentName: booking.booking.leaderStudentName,
+                        bookingStudents: studentData,
+                        commission: {
+                            type: lesson.commission.type as "fixed" | "percentage",
+                            cph: parseFloat(lesson.commission.cph),
+                        },
+                        eventData: {
+                            date: event.date,
+                            duration: event.duration,
+                            location: event.location || "",
+                            status: event.status,
+                        },
+                        studentData,
+                        packageData: {
+                            pricePerStudent: booking.schoolPackage.pricePerStudent,
+                            durationMinutes: booking.schoolPackage.durationMinutes,
+                            description: booking.schoolPackage.description,
+                            categoryEquipment: booking.schoolPackage.categoryEquipment,
+                            capacityEquipment: booking.schoolPackage.capacityEquipment,
+                        },
+                        next: null,
+                    };
+                    queue.addToQueueInChronologicalOrder(eventNode, controller.gapMinutes);
                 });
             });
         });
 
-        const queues = calculateTeacherQueues({
-            allSchoolTeachers: activeTeachers,
-            bookingsForSelectedDate,
-            gapMinutes: controller.gapMinutes,
-            optimisticEvents,
+        // 3. Add optimistic events
+        optimisticEvents.forEach((optEvent) => {
+            const teacherId = (optEvent as any)._teacherId;
+            if (teacherId && queues.has(teacherId)) {
+                const eventClone = { ...optEvent, next: null };
+                queues.get(teacherId)!.addToQueueInChronologicalOrder(eventClone, controller.gapMinutes);
+            }
         });
 
-        console.log("✅ [DERIVE] Teacher queues calculated:", queues.length, "queues");
-        queues.forEach((queue, index) => {
-            const events = queue.getAllEvents();
-            console.log(`   Queue ${index + 1}: ${queue.teacher.username} (${queue.teacher.id}) - ${events.length} events`);
-            events.forEach((event) => {
-                console.log(`      Event: ${event.id}, Date: ${event.eventData.date}, Duration: ${event.eventData.duration}`);
-            });
-        });
-
-        return queues;
-    }, [allSchoolTeachers, bookingsForSelectedDate, controller.gapMinutes, optimisticEvents]);
+        // Return queues in order of allSchoolTeachers (which are already sorted)
+        return activeTeachers
+            .map((teacher) => queues.get(teacher.schema.id))
+            .filter((queue) => queue !== undefined) as TeacherQueue[];
+    }, [allSchoolTeachers, bookingsForSelectedDate, controller, optimisticEvents]);
 
     // Step 5: Calculate statistics
     const stats = useMemo(() => {
