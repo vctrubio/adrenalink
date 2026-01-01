@@ -5,19 +5,24 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
 import TeacherClassCard from "./TeacherClassCard";
+import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+import type { GlobalFlag } from "@/backend/models/GlobalFlag";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
 
 interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
-    selectedDate: string;
     draggedBooking?: DraggableBooking | null;
     isLessonTeacher?: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
     onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
+    isAdjustmentMode?: boolean;
+    globalFlag?: GlobalFlag;
+    onCloseAdjustmentMode?: () => void;
+    onRefresh?: () => void;
 }
 
 type TeacherFilter = "active" | "all";
@@ -31,13 +36,25 @@ type TeacherFilter = "active" | "all";
  * - Supports expand/collapse
  * - Filters active vs all teachers
  */
-export default function TeacherClassDaily({ teacherQueues, selectedDate, draggedBooking, isLessonTeacher, controller, onAddLessonEvent }: TeacherClassDailyProps) {
+export default function TeacherClassDaily({
+    teacherQueues,
+    draggedBooking,
+    isLessonTeacher,
+    controller,
+    onAddLessonEvent,
+    isAdjustmentMode,
+    globalFlag,
+    onCloseAdjustmentMode,
+    onRefresh,
+}: TeacherClassDailyProps) {
     console.log("👨‍🏫 [TeacherClassDaily] Rendering");
     console.log("   - Teacher queues:", teacherQueues.length);
-    console.log("   - Selected date:", selectedDate);
+    console.log("   - Adjustment mode:", isAdjustmentMode);
+    console.log("   - Dragged booking:", draggedBooking?.bookingId);
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.id)));
+    const [dragOverTeacherId, setDragOverTeacherId] = useState<string | null>(null);
 
     const toggleTeacherExpanded = (teacherId: string) => {
         console.log("🔄 [TeacherClassDaily] Toggling teacher:", teacherId);
@@ -62,7 +79,7 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
         setExpandedTeachers(new Set());
     };
 
-    // Filter teachers based on whether they have events today
+    // Filter teachers based on whether they have events
     const { filteredQueues, counts } = useMemo(() => {
         console.log("🔄 [TeacherClassDaily] Filtering queues, filter:", filter);
 
@@ -71,13 +88,10 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
 
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
-            const todayEvents = events.filter((event) => {
-                if (!event.eventData.date) return false;
-                const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
-                return eventDate === selectedDate;
-            });
+            // Events are already filtered by date in ClientClassboard, just check if any exist
+            const hasEvents = events.length > 0;
 
-            if (todayEvents.length > 0) {
+            if (hasEvents) {
                 activeQueues.push(queue);
             }
         });
@@ -94,7 +108,7 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
             filteredQueues: filter === "active" ? activeQueues : allQueues,
             counts,
         };
-    }, [teacherQueues, selectedDate, filter]);
+    }, [teacherQueues, filter]);
 
     const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every((q) => expandedTeachers.has(q.teacher.id));
 
@@ -135,18 +149,32 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
                         {filteredQueues.length > 0 ? (
                             filteredQueues.map((queue, index) => {
                                 const isExpanded = expandedTeachers.has(queue.teacher.id);
+                                const canReceiveBooking = draggedBooking && isLessonTeacher && isLessonTeacher(draggedBooking.bookingId, queue.teacher.id);
+                                const isDragOverThis = dragOverTeacherId === queue.teacher.id && canReceiveBooking;
 
                                 return (
-                                    <div key={`${queue.teacher.id}-${index}`} className="py-2">
+                                    <div
+                                        key={`${queue.teacher.id}-${index}`}
+                                        className={`py-2 transition-colors ${isDragOverThis ? "bg-accent/20 border-l-4 border-accent pl-1" : ""}`}
+                                        onDragOver={(e) => {
+                                            if (canReceiveBooking) {
+                                                e.preventDefault();
+                                                setDragOverTeacherId(queue.teacher.id);
+                                            }
+                                        }}
+                                        onDragLeave={() => setDragOverTeacherId(null)}
+                                        onDrop={() => {
+                                            setDragOverTeacherId(null);
+                                        }}
+                                    >
                                         <TeacherQueueRow
                                             queue={queue}
-                                            selectedDate={selectedDate}
                                             isExpanded={isExpanded}
                                             onToggleExpand={() => toggleTeacherExpanded(queue.teacher.id)}
                                             draggedBooking={draggedBooking}
-                                            isLessonTeacher={isLessonTeacher}
                                             controller={controller}
                                             onAddLessonEvent={onAddLessonEvent}
+                                            canReceiveBooking={canReceiveBooking}
                                         />
                                     </div>
                                 );
@@ -166,28 +194,22 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
 // ============================================
 interface TeacherQueueRowProps {
     queue: TeacherQueue;
-    selectedDate: string;
     isExpanded: boolean;
     onToggleExpand: () => void;
     draggedBooking?: DraggableBooking | null;
-    isLessonTeacher?: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
     onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
+    canReceiveBooking?: boolean;
 }
 
-function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, draggedBooking, isLessonTeacher, controller, onAddLessonEvent }: TeacherQueueRowProps) {
+function TeacherQueueRow({ queue, isExpanded, onToggleExpand, draggedBooking, controller, onAddLessonEvent, canReceiveBooking }: TeacherQueueRowProps) {
     console.log("👤 [TeacherQueueRow] Rendering:", queue.teacher.username);
 
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
 
+    // Events are already filtered by selected date in ClientClassboard
     const events = queue.getAllEvents();
-    const todayEvents = events.filter((event) => {
-        if (!event.eventData.date) return false;
-        const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
-        return eventDate === selectedDate;
-    });
-
-    console.log("   - Events today:", todayEvents.length);
+    console.log("   - Events:", events.length);
 
     // Auto-expand when entering adjustment mode
     useEffect(() => {
@@ -197,22 +219,16 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
         }
     }, [isAdjustmentMode, isExpanded, onToggleExpand]);
 
-    // Check if this teacher can accept the dragged booking
-    const canAcceptDrop = useMemo(() => {
-        if (!draggedBooking || !isLessonTeacher) return false;
-        return isLessonTeacher(draggedBooking.bookingId, queue.teacher.id);
-    }, [draggedBooking, isLessonTeacher, queue.teacher.id]);
-
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
-        if (!canAcceptDrop) return;
+        if (!canReceiveBooking) return;
         e.preventDefault(); // Allow drop
         console.log("🎯 [TeacherQueueRow] Drag over:", queue.teacher.username);
     };
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
-        if (!canAcceptDrop || !draggedBooking || !onAddLessonEvent) return;
+        if (!canReceiveBooking || !draggedBooking || !onAddLessonEvent) return;
 
         console.log("📍 [TeacherQueueRow] Drop booking on teacher:", queue.teacher.username);
         console.log("   - Booking:", draggedBooking.leaderStudentName);
@@ -228,8 +244,8 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
         await onAddLessonEvent(draggedBooking, lesson.id);
     };
 
-    const completedCount = todayEvents.filter((e) => e.eventData.status === "completed").length;
-    const pendingCount = todayEvents.filter((e) => e.eventData.status !== "completed").length;
+    const completedCount = events.filter((e) => e.eventData.status === "completed").length;
+    const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
 
     // Calculate stats
     const stats = useMemo(() => queue.getStats(), [queue]);
@@ -237,25 +253,25 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
 
     const equipmentCounts = useMemo(() => {
         const counts = new Map<string, number>();
-        todayEvents.forEach((e) => {
+        events.forEach((e) => {
             const cat = e.packageData?.categoryEquipment;
             if (cat) counts.set(cat, (counts.get(cat) || 0) + 1);
         });
         return Array.from(counts.entries()).map(([categoryId, count]) => ({ categoryId, count }));
-    }, [todayEvents]);
+    }, [events]);
 
     const eventProgress = useMemo(() => {
-        const completed = todayEvents.filter((e) => e.eventData.status === "completed").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const planned = todayEvents.filter((e) => e.eventData.status === "planned").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const tbc = todayEvents.filter((e) => e.eventData.status === "tbc").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const completed = events.filter((e) => e.eventData.status === "completed").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const planned = events.filter((e) => e.eventData.status === "planned").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
+        const tbc = events.filter((e) => e.eventData.status === "tbc").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
         const total = completed + planned + tbc;
-        const eventIds = todayEvents.map((e) => e.id);
+        const eventIds = events.map((e) => e.id);
         return { completed, planned, tbc, total, eventIds };
-    }, [todayEvents]);
+    }, [events]);
 
     return (
         <div
-            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canAcceptDrop ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`}
+            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
@@ -272,7 +288,6 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
                     onClick={onToggleExpand}
                     isExpanded={isExpanded}
                     queue={queue}
-                    selectedDate={selectedDate}
                     controller={controller}
                     isAdjustmentMode={isAdjustmentMode}
                     onToggleAdjustment={setIsAdjustmentMode}
@@ -283,8 +298,8 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
             {isExpanded && (
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
-                        {todayEvents.length > 0 ? (
-                            todayEvents.map((event) => (
+                        {events.length > 0 ? (
+                            events.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                     <EventCard event={event} queue={queue} showLocation={true} />
                                 </div>

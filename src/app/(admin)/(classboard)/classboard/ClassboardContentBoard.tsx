@@ -55,7 +55,6 @@ export default function ClassboardContentBoard({
     // Teacher props wrapper
     const teacherProps = {
         teacherQueues,
-        selectedDate,
         draggedBooking,
         isLessonTeacher,
         controller,

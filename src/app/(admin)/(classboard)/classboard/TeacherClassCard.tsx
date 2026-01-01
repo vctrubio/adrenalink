@@ -271,7 +271,6 @@ export interface TeacherClassCardProps {
     onClick?: () => void;
     isExpanded?: boolean;
     queue?: TeacherQueue;
-    selectedDate?: string;
     controller?: ControllerSettings;
     isAdjustmentMode?: boolean;
     onToggleAdjustment?: (mode: boolean) => void;
@@ -294,7 +293,6 @@ export default function TeacherClassCard({
     onClick,
     isExpanded = true,
     queue,
-    selectedDate,
     controller,
     isAdjustmentMode = false,
     onToggleAdjustment,
@@ -343,17 +341,9 @@ export default function TeacherClassCard({
         }
     }, [queueController, isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
-    // Get today's events from queue when collapsed
-    let todayEvents: any[] = [];
-
-    if (!isExpanded && queue && selectedDate) {
-        const allEvents = queue.getAllEvents();
-        todayEvents = allEvents.filter((event) => {
-            if (!event.eventData.date) return false;
-            const eventDate = new Date(event.eventData.date).toISOString().split("T")[0];
-            return eventDate === selectedDate;
-        });
-    }
+    // Events are already filtered by date in ClientClassboard
+    // just use eventProgress which has the aggregated duration data
+    const todayEvents: any[] = [];
 
     // Collapsed view - single line
     if (!isExpanded) {
