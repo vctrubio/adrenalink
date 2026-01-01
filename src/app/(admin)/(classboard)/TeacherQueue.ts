@@ -5,13 +5,17 @@
 
 import { minutesToTime, getMinutesFromISO, adjustISODateTime, createISODateTime } from "@/getters/queue-getter";
 import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
-import type { EventNode, TeacherInfo, ControllerSettings } from "@/types/classboard-teacher-queue";
-import type { TeacherStats } from "../../../../backend/ClassboardStatistics";
+import type { EventNodeV2, ControllerSettings } from "@/types/classboard-teacher-queue";
 
-export { type EventNode, type TeacherInfo, type ControllerSettings } from "@/types/classboard-teacher-queue";
+export interface TeacherInfo {
+    id: string; // UUID of teacher
+    username: string;
+}
+
+export { type EventNodeV2, type ControllerSettings } from "@/types/classboard-teacher-queue";
 
 export class TeacherQueue {
-    private head: EventNode | null = null;
+    private head: EventNodeV2 | null = null;
     public teacher: TeacherInfo;
 
     constructor(teacher: TeacherInfo) {
@@ -23,7 +27,7 @@ export class TeacherQueue {
     /**
      * Insert event in chronological order by start time
      */
-    addToQueueInChronologicalOrder(eventNode: EventNode, gapMinutes = 0): void {
+    addToQueueInChronologicalOrder(eventNode: EventNodeV2, gapMinutes = 0): void {
         const eventStartMinutes = this.getStartTimeMinutes(eventNode);
 
         if (!this.head) {
@@ -85,12 +89,16 @@ export class TeacherQueue {
         // Find insertion time using smart logic
         const { time, duration: calculatedDuration } = this.getInsertionTime(controller.submitTime, capacityStudents, controller);
 
-        // Create EventNode with calculated time
+        // Create EventNodeV2 with calculated time
         const fullEventDate = `${dateOnly}T${time}:00`;
-        const eventNode: EventNode = {
+        const eventNode: EventNodeV2 = {
             id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             lessonId,
             bookingId,
+            bookingLeaderName: "",
+            bookingStudents: null,
+            capacityStudents,
+            commission: { type: "fixed", cph: 0 },
             eventData: {
                 date: fullEventDate,
                 duration: calculatedDuration,
@@ -106,8 +114,8 @@ export class TeacherQueue {
         return { time, duration: calculatedDuration };
     }
 
-    getAllEvents(): EventNode[] {
-        const events: EventNode[] = [];
+    getAllEvents(): EventNodeV2[] {
+        const events: EventNodeV2[] = [];
         let current = this.head;
         while (current) {
             events.push(current);
@@ -119,7 +127,7 @@ export class TeacherQueue {
     /**
      * Rebuild the linked list from an array of events
      */
-    rebuildQueue(events: EventNode[]): void {
+    rebuildQueue(events: EventNodeV2[]): void {
         this.head = null;
         events.forEach((event) => {
             event.next = null;
@@ -144,7 +152,7 @@ export class TeacherQueue {
     /**
      * Get teacher stats calculated from current queue events
      */
-    getStats(): TeacherStats {
+    getStats() {
         const events = this.getAllEvents();
         return calculateTeacherStatsFromEvents(this.teacher.username, events, 0);
     }
@@ -154,7 +162,7 @@ export class TeacherQueue {
      */
     printTeacherSchedule(): void {
         console.log("\n" + "=".repeat(60));
-        console.log(`📅 SCHEDULE FOR: ${this.teacher.name}`);
+        console.log(`📅 SCHEDULE FOR: ${this.teacher.username}`);
         console.log("=".repeat(60));
 
         const events = this.getAllEvents();
@@ -167,7 +175,7 @@ export class TeacherQueue {
         events.forEach((event, index) => {
             const startTime = minutesToTime(this.getStartTimeMinutes(event));
             const duration = event.eventData.duration;
-            const studentNames = event.studentData.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
+            const studentNames = event.bookingStudents?.map((s) => `${s.firstName} ${s.lastName}`).join(", ") || event.bookingLeaderName;
 
             console.log(`\n${index + 1}. ${startTime} (+${Math.floor(duration / 60)}h ${duration % 60}m) - ${studentNames}`);
         });
@@ -238,15 +246,15 @@ export class TeacherQueue {
 
     // ============ PRIVATE HELPERS ============
 
-    private getStartTimeMinutes(eventNode: EventNode): number {
+    private getStartTimeMinutes(eventNode: EventNodeV2): number {
         return getMinutesFromISO(eventNode.eventData.date);
     }
 
-    private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
+    private updateEventDateTime(eventNode: EventNodeV2, changeMinutes: number): void {
         eventNode.eventData.date = adjustISODateTime(eventNode.eventData.date, changeMinutes);
     }
 
-    private cascadeTimeAdjustment(startNode: EventNode | null, changeMinutes: number): void {
+    private cascadeTimeAdjustment(startNode: EventNodeV2 | null, changeMinutes: number): void {
         let current = startNode;
         while (current) {
             this.updateEventDateTime(current, changeMinutes);

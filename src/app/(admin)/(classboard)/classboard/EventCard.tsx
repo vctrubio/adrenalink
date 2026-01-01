@@ -5,7 +5,7 @@ import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
-import type { EventNode, TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { EventNodeV2, TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -17,7 +17,7 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
 interface EventCardProps {
-    event: EventNode;
+    event: EventNodeV2;
     queue?: TeacherQueue;
     queueController?: QueueController;
     onDeleteComplete?: () => void;
@@ -42,21 +42,22 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
     const eventId = event.id;
     const duration = event.eventData.duration;
     const location = event.eventData.location;
-    const categoryEquipment = event.packageData?.categoryEquipment || "";
-    const capacityEquipment = event.packageData?.capacityEquipment || 0;
+    // EventNodeV2 doesn't have packageData - equipment info should be passed separately if needed
+    const categoryEquipment = "";
+    const capacityEquipment = 0;
 
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
     // Student Data
-    const leaderStudentName = event.leaderStudentName || "Booking abc";
+    const leaderStudentName = event.bookingLeaderName || "Booking abc";
     const students = event.bookingStudents || [];
     const hasMultipleStudents = students.length > 1;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
 
     // Previous/Next Logic
-    let previousEvent: EventNode | undefined;
+    let previousEvent: EventNodeV2 | undefined;
     if (queue && eventId) {
         const allEvents = queue.getAllEvents();
         const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);

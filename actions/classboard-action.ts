@@ -86,7 +86,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
     noStore(); //idk if...we.need this
 
     try {
-        debug.performance("getClassboardBookings start", 0, { step: "initialization" });
+        // debug.performance("getClassboardBookings start", 0, { step: "initialization" });
 
         // Get school context from header (cached, returns {id, name, zone})
         const schoolHeader = await getSchoolHeader();
@@ -136,7 +136,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                 limit: 50, // Pagination limit
             });
             const duration = Date.now() - startTime;
-            debug.query("Bookings query (optimized)", duration, { count: bookingsResult.length });
+            // debug.query("Bookings query (optimized)", duration, { count: bookingsResult.length });
             return bookingsResult;
         };
 
@@ -170,7 +170,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                 },
             });
             const duration = Date.now() - startTime;
-            debug.query("Booking students query (optimized)", duration, { count: result.length });
+            // debug.query("Booking students query (optimized)", duration, { count: result.length });
             return result;
         };
 
@@ -210,7 +210,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
                 },
             });
             const duration = Date.now() - startTime;
-            debug.query("Lessons query (optimized)", duration, { count: result.length });
+            // debug.query("Lessons query (optimized)", duration, { count: result.length });
             return result;
         };
 
@@ -265,7 +265,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
             });
         });
 
-        debug.performance("getClassboardBookings complete", 0, { bookingCount: Object.keys(bookings).length });
+        // debug.performance("getClassboardBookings complete", 0, { bookingCount: Object.keys(bookings).length });
         return { success: true, data: bookings };
     } catch (error) {
         debug.warn("Error fetching classboard bookings", { error: error instanceof Error ? error.message : String(error) });

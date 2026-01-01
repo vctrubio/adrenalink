@@ -265,17 +265,16 @@ const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpande
 
 interface StudentBookingCardProps {
     bookingData: ClassboardData;
-    draggableBooking: DraggableBooking;
-    selectedDate: string;
+    bookingId: string;
     classboard: {
-        onDragStart: (booking: DraggableBooking) => void;
+        onDragStart: (draggableBooking: DraggableBooking) => void;
         onDragEnd: () => void;
-        onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
+        onAddLessonEvent?: (bookingId: string, lessonId: string) => Promise<void>;
         availableTeachers?: { username: string; firstName: string; id: string }[];
     };
 }
 
-export default function StudentBookingCard({ bookingData, draggableBooking, selectedDate, classboard }: StudentBookingCardProps) {
+export default function StudentBookingCard({ bookingData, bookingId, classboard }: StudentBookingCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
@@ -295,14 +294,26 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
             e.preventDefault();
             return;
         }
-        const bookingJson = JSON.stringify(draggableBooking);
         try {
-            e.dataTransfer.setData("application/json", bookingJson);
-            e.dataTransfer.setData("text/plain", bookingJson);
+            e.dataTransfer.setData("application/json", bookingId);
+            e.dataTransfer.setData("text/plain", bookingId);
         } catch (err) {
             console.warn("dataTransfer setData error:", err);
         }
         e.dataTransfer.effectAllowed = "move";
+
+        // Create DraggableBooking object for drag
+        const draggableBooking: DraggableBooking = {
+            bookingId,
+            capacityStudents: bookingData.schoolPackage.capacityStudents,
+            lessons: lessons
+                .filter((l) => l.teacher?.id)
+                .map((l) => ({
+                    id: l.id,
+                    teacherId: l.teacher!.id,
+                })),
+        };
+
         classboard.onDragStart(draggableBooking);
         setIsDragging(true);
     };
@@ -315,11 +326,11 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
     const handleAddEvent = async (lessonId: string) => {
         if (!classboard.onAddLessonEvent) return;
         console.log("➕ [StudentBookingCard] Adding event for lesson:", lessonId);
-        console.log("   - Booking:", draggableBooking.leaderStudentName);
-        console.log("   - Lessons in booking:", draggableBooking.lessons.map((l) => ({ id: l.id, teacherId: l.teacherId })));
+        console.log("   - Booking ID:", bookingId);
+        console.log("   - Lessons in booking:", lessons.map((l) => ({ id: l.id, teacher: l.teacher?.id })));
         setLoadingLessonId(lessonId);
         try {
-            await classboard.onAddLessonEvent(draggableBooking, lessonId);
+            await classboard.onAddLessonEvent(bookingId, lessonId);
         } finally {
             setLoadingLessonId(null);
         }
@@ -340,7 +351,6 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                         bookingId={booking.id}
                         dateStart={booking.dateStart}
                         dateEnd={booking.dateEnd}
-                        selectedDate={selectedDate}
                         leaderName={booking.leaderStudentName}
                         studentCount={students.length}
                         students={students}
@@ -356,7 +366,7 @@ export default function StudentBookingCard({ bookingData, draggableBooking, sele
                         lessons={lessons}
                         onAddEvent={handleAddEvent}
                         loadingLessonId={loadingLessonId}
-                        draggableLessonIds={new Set(draggableBooking.lessons.map((l) => l.id))}
+                        draggableLessonIds={new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id))}
                     />
                 </div>
 

@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import StudentBookingCard from "./StudentBookingCard";
 import BookingOnboardCard from "./BookingOnboardCard";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import type { ClassboardData } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 
@@ -14,22 +14,21 @@ import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 const STUDENT_COLOR = "#ca8a04";
 
 interface StudentClassDailyProps {
-    bookings: DraggableBooking[];
-    classboardData: ClassboardModel;
+    bookings: ClassboardData[];
     classboard: {
-        onDragStart: (booking: DraggableBooking) => void;
+        onDragStart: (draggableBooking: DraggableBooking) => void;
         onDragEnd: () => void;
-        onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
+        onAddLessonEvent?: (bookingId: string, lessonId: string) => Promise<void>;
     };
 }
 
 type StudentBookingFilter = "available" | "onboard";
 type SortOption = "newest" | "latest" | "progression";
 
-export default function StudentClassDaily({ bookings, classboardData, classboard }: StudentClassDailyProps) {
+export default function StudentClassDaily({ bookings, classboard }: StudentClassDailyProps) {
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
-    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.bookingId)));
+    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.booking.id)));
     const [sortBy, setSortBy] = useState<SortOption>("progression");
 
     // Load sort preference from localStorage
@@ -63,10 +62,8 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
         const allBookings = bookings;
 
         // Helper to check if booking has any events
-        const hasEvents = (booking: DraggableBooking): boolean => {
-            const data = classboardData[booking.bookingId];
-            if (!data) return false;
-            const lessons = data.lessons || [];
+        const hasEvents = (booking: ClassboardData): boolean => {
+            const lessons = booking.lessons || [];
             return lessons.some((lesson) => (lesson.events || []).length > 0);
         };
 
@@ -82,16 +79,12 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
 
         // Apply sorting
         const sortedData = [...filteredData].sort((a, b) => {
-            const aData = classboardData[a.bookingId];
-            const bData = classboardData[b.bookingId];
-            if (!aData || !bData) return 0;
-
             let comparison = 0;
 
             if (sortBy === "progression") {
                 // Calculate remaining hours (most hours needed first)
-                const getTotalRemainingHours = (data: typeof aData) => {
-                    const packageDuration = data.schoolPackage?.totalDuration || 0;
+                const getTotalRemainingHours = (data: ClassboardData) => {
+                    const packageDuration = data.schoolPackage?.durationMinutes || 0;
                     const completedHours = (data.lessons || []).reduce((sum, lesson) => {
                         return (
                             sum +
@@ -102,17 +95,17 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
                     }, 0);
                     return packageDuration - completedHours;
                 };
-                comparison = getTotalRemainingHours(bData) - getTotalRemainingHours(aData);
+                comparison = getTotalRemainingHours(b) - getTotalRemainingHours(a);
             } else if (sortBy === "latest") {
                 // Most recent event first
-                const getLatestEventDate = (data: typeof aData) => {
+                const getLatestEventDate = (data: ClassboardData) => {
                     const allDates = (data.lessons || []).flatMap((lesson) => (lesson.events || []).map((event) => new Date(event.date || 0).getTime()));
                     return Math.max(...allDates, 0);
                 };
-                comparison = getLatestEventDate(bData) - getLatestEventDate(aData);
+                comparison = getLatestEventDate(b) - getLatestEventDate(a);
             } else if (sortBy === "newest") {
                 // Newest booking first (by booking ID as proxy for creation time)
-                comparison = b.bookingId.localeCompare(a.bookingId);
+                comparison = b.booking.id.localeCompare(a.booking.id);
             }
 
             // If primary sort is equal, use event status as tiebreaker (non-event first)
@@ -126,7 +119,7 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
         });
 
         return { filteredBookings: sortedData, counts };
-    }, [bookings, classboardData, filter, sortBy]);
+    }, [bookings, filter, sortBy]);
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -154,10 +147,7 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
                     >
                         <div className="p-4">
                             <div className="flex flex-row xl:flex-col gap-3">
-                                {filteredBookings.map((booking) => {
-                                    const bookingData = classboardData[booking.bookingId];
-                                    if (!bookingData) return null;
-
+                                {filteredBookings.map((bookingData) => {
                                     // Check if this booking has any events (bookings already filtered by date)
                                     const lessons = bookingData.lessons || [];
                                     const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
@@ -165,15 +155,35 @@ export default function StudentClassDaily({ bookings, classboardData, classboard
                                     // For "available" filter: Show all bookings (regardless of on board status)
                                     if (filter === "available") {
                                         if (!hasEventToday) {
-                                            return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} />;
+                                            return (
+                                                <StudentBookingCard
+                                                    key={bookingData.booking.id}
+                                                    bookingData={bookingData}
+                                                    bookingId={bookingData.booking.id}
+                                                    classboard={classboard}
+                                                />
+                                            );
                                         } else {
-                                            return <BookingOnboardCard key={booking.bookingId} bookingData={bookingData} onClick={() => toggleBookingExpanded(booking.bookingId)} />;
+                                            return (
+                                                <BookingOnboardCard
+                                                    key={bookingData.booking.id}
+                                                    bookingData={bookingData}
+                                                    onClick={() => toggleBookingExpanded(bookingData.booking.id)}
+                                                />
+                                            );
                                         }
                                     }
 
                                     // For "onboard" filter: Show StudentBookingCard for bookings WITH events
                                     if (filter === "onboard" && hasEventToday) {
-                                        return <StudentBookingCard key={booking.bookingId} bookingData={bookingData} draggableBooking={booking} classboard={classboard} />;
+                                        return (
+                                            <StudentBookingCard
+                                                key={bookingData.booking.id}
+                                                bookingData={bookingData}
+                                                bookingId={bookingData.booking.id}
+                                                classboard={classboard}
+                                            />
+                                        );
                                     }
 
                                     return null;

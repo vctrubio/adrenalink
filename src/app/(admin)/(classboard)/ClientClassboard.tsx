@@ -4,37 +4,21 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { useBookingsForSelectedDate, type BookingForDate } from "@/src/hooks/useBookingsForSelectedDate";
+import { useBookingsForSelectedDate } from "@/src/hooks/useBookingsForSelectedDate";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
-import { deleteAllClassboardEvents, bulkUpdateClassboardEvents } from "@/actions/classboard-action";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { TeacherQueue, type ControllerSettings, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
+import { TeacherQueue, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
-import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
+import { isDateInRange } from "@/getters/date-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { createClassboardEvent } from "@/actions/classboard-action";
-
-const STORAGE_KEY_DATE = "classboard-selected-date";
-const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
-
-const DEFAULT_CONTROLLER: ControllerSettings = {
-    submitTime: "09:00",
-    location: "Beach",
-    durationCapOne: DEFAULT_DURATION_CAP_ONE,
-    durationCapTwo: DEFAULT_DURATION_CAP_TWO,
-    durationCapThree: DEFAULT_DURATION_CAP_THREE,
-    gapMinutes: 0,
-    stepDuration: 30,
-    minDuration: 60,
-    maxDuration: 180,
-};
 
 interface ClientClassboardProps {
     data: ClassboardModel;
@@ -44,7 +28,8 @@ interface ClientClassboardProps {
  * ClientClassboard - Main classboard client component
  *
  * OPTIMIZATION STRATEGY (following BillboardClient pattern):
- * - Minimal state: Only selectedDate, draggedBooking, controller
+ * - Minimal state: Only classboardData and draggedBooking
+ * - selectedDate and controller managed via ClassboardProvider
  * - Everything else derived via useMemo
  * - No refreshKey hacks - data flows naturally through subscriptions
  */
@@ -52,12 +37,14 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     console.log("🎯 [ClientClassboard] Render started");
 
     // ============================================
-    // MINIMAL STATE - Only what user can change
+    // CONTROLLER STATE - From provider
     // ============================================
-    const [mounted, setMounted] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(() => getTodayDateString());
+    const { mounted, selectedDate, setSelectedDate, controller, setController } = useClassboardContext();
+
+    // ============================================
+    // MINIMAL STATE - Only what changes dynamically
+    // ============================================
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
-    const [controller, setController] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
     const [classboardData, setClassboardData] = useState<ClassboardModel>(data);
     const [optimisticEvents, setOptimisticEvents] = useState<any[]>([]);
 
@@ -143,27 +130,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // Step 1: Filter bookings by selected date (single source of truth)
     const bookingsForSelectedDate = useBookingsForSelectedDate(classboardData, selectedDate);
 
-    // Step 2: Create draggable bookings structure (minimal - only what's needed for event creation)
-    const draggableBookings = useMemo((): DraggableBooking[] => {
-        return bookingsForSelectedDate.map((booking) => {
-            const leader = booking.bookingStudents[0]?.student;
-            const leaderName = leader ? `${leader.firstName} ${leader.lastName}` : "Unknown Student";
-
-            return {
-                bookingId: booking.booking.id,
-                leaderStudentName: leaderName,
-                capacityStudents: booking.schoolPackage.capacityStudents,
-                lessons: booking.lessons
-                    .filter((lesson) => lesson.teacher?.id) // Skip lessons without teachers
-                    .map((lesson) => ({
-                        id: lesson.id,
-                        teacherId: lesson.teacher?.id,
-                    })),
-            };
-        });
-    }, [bookingsForSelectedDate]);
-
-    // Step 3: Create teacher queues directly using TeacherQueue class
+    // Step 2: Create teacher queues directly using TeacherQueue class
     const teacherQueues = useMemo(() => {
         const queues = new Map<string, TeacherQueue>();
 
@@ -232,7 +199,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             .filter((queue) => queue !== undefined) as TeacherQueue[];
     }, [allSchoolTeachers, bookingsForSelectedDate, controller]);
 
-    // Step 4: Calculate statistics
+    // Step 3: Calculate statistics
     const stats = useMemo(() => {
         console.log("🔄 [DERIVE] Calculating statistics");
         const statistics = new ClassboardStatistics(teacherQueues);
@@ -247,131 +214,61 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
 
     // Add event to teacher queue
     const handleAddLessonEvent = useCallback(
-        async (booking: DraggableBooking, lessonId: string) => {
-            console.log("➕ [ClientClassboard] Adding event for lesson:--------------------------------------", lessonId);
-            console.log("   - Booking:", booking.leaderStudentName, "(ID:", booking.bookingId, ")");
-            console.log("   - Date:", selectedDate);
+        async (bookingData: ClassboardData, lessonId: string) => {
+            console.log("➕ [ClientClassboard] Adding event for lesson:", lessonId);
 
             try {
-                // Get teacher ID from lesson in booking
-                const lesson = booking.lessons.find((l) => l.id === lessonId);
-                if (!lesson) {
-                    toast.error("Lesson not found");
+                // Get lesson and teacher ID from booking data
+                const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+                if (!lesson?.teacher) {
+                    toast.error("Lesson or teacher not found");
                     return;
                 }
 
-                const teacherId = lesson.teacherId;
-                if (!teacherId) {
-                    toast.error("Teacher information missing for this lesson");
-                    return;
-                }
+                const teacherId = lesson.teacher.id;
+                const bookingId = bookingData.booking.id;
 
-                // Find the teacher queue
+                // Find queue for this teacher
                 const queue = teacherQueues.find((q) => q.teacher.id === teacherId);
                 if (!queue) {
-                    const teacher = allSchoolTeachers.find((t) => t.schema.id === teacherId);
-                    const teacherUsername = teacher?.schema.username || "Unknown";
-                    toast.error(`Teacher (${teacherUsername}) is not on the board - not available for adding lesson`);
+                    toast.error("Teacher not on board - cannot add lesson");
                     return;
                 }
 
-                // Get insertion time and duration from queue's smart logic
+                // Get insertion time and duration from queue
                 const { time, duration } = queue.addEventWithSmartInsertion(
                     lessonId,
-                    booking.bookingId,
+                    bookingId,
                     selectedDate,
-                    booking.capacityStudents,
+                    bookingData.schoolPackage.capacityStudents,
                     controller,
                 );
 
-                console.log("📍 [ClientClassboard] Calculated insertion - Time:", time, "Duration:", duration);
-
+                // Prepare event creation data
                 const eventDate = `${selectedDate}T${time}:00`;
-                const tempEventId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-                // Create optimistic event
-                const optimisticEvent = {
-                    id: tempEventId,
+                const eventData = {
                     lessonId,
-                    bookingId: booking.bookingId,
-                    eventData: {
-                        date: eventDate,
-                        duration,
-                        location: controller.location,
-                        status: "planned" as const,
-                    },
-                    next: null,
-                    _teacherId: teacherId,
+                    eventDate,
+                    duration,
+                    location: controller.location,
                 };
 
-                console.log("🎨 [ClientClassboard] Adding optimistic event:", tempEventId);
-                setOptimisticEvents((prev) => [...prev, optimisticEvent]);
+                console.log("📋 [ClientClassboard] Event data prepared:");
+                console.log("   - lessonId:", eventData.lessonId);
+                console.log("   - eventDate:", eventData.eventDate);
+                console.log("   - duration:", eventData.duration);
+                console.log("   - location:", eventData.location);
 
-                // Safety timeout: remove optimistic event after 10 seconds if not confirmed
-                const timeoutId: NodeJS.Timeout | null = setTimeout(() => {
-                    console.log("⏰ [ClientClassboard] Optimistic event timeout, removing:", tempEventId);
-                    setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
-                }, 10000);
-
-                try {
-                    // Create the event via server action
-                    const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
-
-                    if (result.success) {
-                        console.log("✅ [ClientClassboard] Event created successfully");
-                    } else {
-                        console.error("❌ [ClientClassboard] Failed to create event:", result.error);
-                        if (timeoutId) clearTimeout(timeoutId);
-                        setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
-                    }
-                } catch (error) {
-                    console.error("❌ [ClientClassboard] Error adding event:", error);
-                    if (timeoutId) clearTimeout(timeoutId);
-                    setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
-                }
+                // TODO: Create the event via server action
+                // const result = await createClassboardEvent(eventData.lessonId, eventData.eventDate, eventData.duration, eventData.location);
+                
             } catch (error) {
-                console.error("❌ [ClientClassboard] Outer error:", error);
+                console.error("❌ [ClientClassboard] Error adding event:", error);
+                toast.error("Failed to add event");
             }
         },
-        [selectedDate, teacherQueues, controller, allSchoolTeachers],
+        [selectedDate, teacherQueues, controller],
     );
-
-    // ============================================
-    // LIFECYCLE - Storage sync
-    // ============================================
-    useEffect(() => {
-        console.log("🔧 [LIFECYCLE] Initializing from localStorage");
-        const storedDate = localStorage.getItem(STORAGE_KEY_DATE);
-        if (storedDate) {
-            console.log("📅 [LIFECYCLE] Restored date:", storedDate);
-            setSelectedDate(storedDate);
-        }
-
-        const storedController = localStorage.getItem(STORAGE_KEY_CONTROLLER);
-        if (storedController) {
-            try {
-                const parsed = JSON.parse(storedController) as ControllerSettings;
-                console.log("🎮 [LIFECYCLE] Restored controller:", parsed);
-                setController(parsed);
-            } catch (error) {
-                console.error("❌ [LIFECYCLE] Failed to parse controller settings:", error);
-            }
-        }
-
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!mounted) return;
-        console.log("💾 [LIFECYCLE] Saving date to localStorage:", selectedDate);
-        localStorage.setItem(STORAGE_KEY_DATE, selectedDate);
-    }, [selectedDate, mounted]);
-
-    useEffect(() => {
-        if (!mounted) return;
-        console.log("💾 [LIFECYCLE] Saving controller to localStorage");
-        localStorage.setItem(STORAGE_KEY_CONTROLLER, JSON.stringify(controller));
-    }, [controller, mounted]);
 
     // ============================================
     // RENDER
@@ -397,11 +294,9 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             <div className="flex-1 overflow-hidden h-full flex flex-col">
                 <div className="flex-1 overflow-hidden">
                     <ClassboardContentBoard
-                        draggableBookings={draggableBookings}
-                        classboardData={classboardData}
+                        bookingsForSelectedDate={bookingsForSelectedDate}
                         teacherQueues={teacherQueues}
                         draggedBooking={draggedBooking}
-                        controller={controller}
                         onSetDraggedBooking={setDraggedBooking}
                         onAddLessonEvent={handleAddLessonEvent}
                     />
@@ -409,7 +304,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             </div>
 
             {/* Footer */}
-            <ClassboardFooter controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
+            <ClassboardFooter controller={controller} setController={setController} />
         </div>
     );
 }

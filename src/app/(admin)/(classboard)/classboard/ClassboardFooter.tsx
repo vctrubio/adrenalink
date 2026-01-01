@@ -5,22 +5,17 @@ import { useState } from "react";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { Settings2, MapPin, Clock, Minus, Plus, Calendar, Hash, Users, Zap } from "lucide-react";
-import ExportSettingController from "./ExportSettingController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 interface ClassboardFooterProps {
     controller: ControllerSettings;
     setController: (c: ControllerSettings) => void;
-    selectedDate: string;
-    teacherQueues: TeacherQueue[];
 }
 
 export default function ClassboardFooter({
     controller,
     setController,
-    selectedDate,
-    teacherQueues,
 }: ClassboardFooterProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -43,11 +38,11 @@ export default function ClassboardFooter({
     
     const updateGap = (delta: number) => {
         setController({ ...controller, gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
-    }
+    };
 
     const updateStep = (delta: number) => {
          setController({ ...controller, stepDuration: Math.max(5, (controller.stepDuration || 15) + delta) });
-    }
+    };
 
     return (
         <div className="rounded-t-xl overflow-hidden border-t border-x border-border/30 bg-card shadow-sm mt-auto">
@@ -195,57 +190,43 @@ export default function ClassboardFooter({
                                         <div className="space-y-3">
                                             <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">1 Person</label>
                                             <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration('durationCapOne', -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapOne", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
                                                  <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
                                                      <DurationIcon size={12} className="text-primary/50" />
                                                      {getHMDuration(controller.durationCapOne)}
                                                  </div>
-                                                 <button onClick={() => updateDuration('durationCapOne', (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapOne", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
                                             </div>
                                         </div>
                                          {/* 2 People */}
                                         <div className="space-y-3">
                                             <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">2 People</label>
                                             <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration('durationCapTwo', -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapTwo", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
                                                  <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
                                                      <DurationIcon size={12} className="text-primary/50" />
                                                      {getHMDuration(controller.durationCapTwo)}
                                                  </div>
-                                                 <button onClick={() => updateDuration('durationCapTwo', (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapTwo", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
                                             </div>
                                         </div>
                                          {/* 3+ People */}
                                         <div className="space-y-3">
                                             <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">3+ People</label>
                                             <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration('durationCapThree', -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapThree", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
                                                  <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
                                                      <DurationIcon size={12} className="text-primary/50" />
                                                      {getHMDuration(controller.durationCapThree)}
                                                  </div>
-                                                 <button onClick={() => updateDuration('durationCapThree', (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
+                                                 <button onClick={() => updateDuration("durationCapThree", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Export Section */}
-                            <div className="pt-8 border-t border-border/10">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="p-1.5 rounded-lg bg-primary/5">
-                                        <Calendar size={16} className="text-primary/70" />
-                                    </div>
-                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-                                        Intelligence & Reporting
-                                    </h4>
-                                </div>
-                                <div className="bg-background/30 rounded-2xl p-6 border border-border/30">
-                                    <ExportSettingController selectedDate={selectedDate} teacherQueues={teacherQueues} />
-                                </div>
-                            </div>
-
+            
                         </div>
                     </motion.div>
                 )}

@@ -40,10 +40,35 @@ export interface EventNode {
     next: EventNode | null;
 }
 
-export interface TeacherInfo {
-    id: string; // UUID of teacher
-    username: string;
+/**
+ * EventNodeV2 - Optimized event node with only essential data
+ * Reduces memory footprint and simplifies data structures
+ * Used in TeacherQueue for storing events with all necessary information for:
+ * - Event card rendering (lessonId, eventData, students, booking leader)
+ * - Statistics calculation (commission info, capacity, event status/duration)
+ * - Teacher queue management
+ */
+export interface EventNodeV2 {
+    id: string;
+    lessonId: string;
+    bookingId: string;
+    bookingLeaderName: string;
+    // Only include students if capacity > 1
+    bookingStudents: StudentData[] | null;
+    capacityStudents: number;
+    commission: {
+        type: "fixed" | "percentage";
+        cph: number; // cents per hour or percentage
+    };
+    eventData: {
+        date: string;
+        duration: number;
+        location: string;
+        status: "planned" | "tbc" | "completed" | "uncompleted";
+    };
+    next: EventNodeV2 | null;
 }
+
 
 export interface ControllerSettings {
     submitTime: string;
@@ -63,7 +88,6 @@ export interface ControllerSettings {
  */
 export interface DraggableBooking {
     bookingId: string;
-    leaderStudentName: string;
     capacityStudents: number;
     lessons: {
         id: string; // lessonId

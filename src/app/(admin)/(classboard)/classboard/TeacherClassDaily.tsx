@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
 import TeacherClassCard from "./TeacherClassCard";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
+import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -17,7 +18,7 @@ interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
     draggedBooking?: DraggableBooking | null;
     controller: ControllerSettings;
-    onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
+    onAddLessonEvent: (bookingId: string, lessonId: string) => Promise<void>;
     isAdjustmentMode?: boolean;
     globalFlag?: GlobalFlag;
     onCloseAdjustmentMode?: () => void;
@@ -52,7 +53,6 @@ export default function TeacherClassDaily({
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.id)));
-    const [dragOverTeacherId, setDragOverTeacherId] = useState<string | null>(null);
 
     const toggleTeacherExpanded = (teacherId: string) => {
         console.log("🔄 [TeacherClassDaily] Toggling teacher:", teacherId);
@@ -119,7 +119,7 @@ export default function TeacherClassDaily({
     };
 
     return (
-        <div className={`flex flex-col h-full transition-colors ${dragOverTeacherId ? "bg-red-500/20" : ""}`}>
+        <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>
             {/* Header: Global Toggles & Filter */}
             <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0" onClick={toggleAllTeachers}>
                 <div style={{ color: TEACHER_COLOR }}>
@@ -147,13 +147,11 @@ export default function TeacherClassDaily({
                         {filteredQueues.length > 0 ? (
                             filteredQueues.map((queue, index) => {
                                 const isExpanded = expandedTeachers.has(queue.teacher.id);
-                                const canReceiveBooking = draggedBooking && draggedBooking.lessons.some((l) => l.teacherId === queue.teacher.id);
-                                const isDragOverThis = dragOverTeacherId === queue.teacher.id && canReceiveBooking;
 
                                 return (
                                     <div
                                         key={`${queue.teacher.id}-${index}`}
-                                        className={`py-2 transition-colors`}
+                                        className={"py-2 transition-colors"}
                                     >
                                         <TeacherQueueRow
                                             queue={queue}
@@ -162,9 +160,6 @@ export default function TeacherClassDaily({
                                             draggedBooking={draggedBooking}
                                             controller={controller}
                                             onAddLessonEvent={onAddLessonEvent}
-                                            canReceiveBooking={canReceiveBooking}
-                                            isDragOverThis={isDragOverThis}
-                                            onSetDragOverTeacherId={setDragOverTeacherId}
                                         />
                                     </div>
                                 );
@@ -188,10 +183,7 @@ interface TeacherQueueRowProps {
     onToggleExpand: () => void;
     draggedBooking?: DraggableBooking | null;
     controller: ControllerSettings;
-    onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
-    canReceiveBooking?: boolean;
-    isDragOverThis?: boolean;
-    onSetDragOverTeacherId?: (teacherId: string | null) => void;
+    onAddLessonEvent: (bookingId: string, lessonId: string) => Promise<void>;
 }
 
 function TeacherQueueRow({
@@ -201,13 +193,13 @@ function TeacherQueueRow({
     draggedBooking,
     controller,
     onAddLessonEvent,
-    canReceiveBooking,
-    isDragOverThis,
-    onSetDragOverTeacherId,
 }: TeacherQueueRowProps) {
     console.log("👤 [TeacherQueueRow] Rendering:", queue.teacher.username);
 
     const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
+
+    // Check if this teacher can receive the dragged booking
+    const canReceiveBooking = draggedBooking ? draggedBooking.lessons.some((l) => l.teacherId === queue.teacher.id) : false;
 
     // Events are already filtered by selected date in ClientClassboard
     const events = queue.getAllEvents();
@@ -223,11 +215,8 @@ function TeacherQueueRow({
 
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
-        if (!canReceiveBooking) return;
+        if (!draggedBooking) return;
         e.preventDefault(); // Allow drop
-        if (onSetDragOverTeacherId) {
-            onSetDragOverTeacherId(queue.teacher.id);
-        }
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
@@ -239,33 +228,26 @@ function TeacherQueueRow({
             e.clientY < rect.top ||
             e.clientY > rect.bottom;
 
-        if (isOutside && onSetDragOverTeacherId) {
+        if (isOutside) {
             console.log("🎯 [TeacherQueueRow] Drag leave:", queue.teacher.username);
-            onSetDragOverTeacherId(null);
         }
     };
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
-        if (!canReceiveBooking || !draggedBooking || !onAddLessonEvent) return;
+        if (!draggedBooking) return;
 
         console.log("📍 [TeacherQueueRow] Drop booking on teacher:", queue.teacher.username);
-        console.log("   - Booking:", draggedBooking.leaderStudentName);
-
-        // Clear drag-over state
-        if (onSetDragOverTeacherId) {
-            onSetDragOverTeacherId(null);
-        }
 
         // Find the lesson for this teacher in the dragged booking
         const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
         if (!lesson) {
-            console.error("❌ No lesson found for teacher:", queue.teacher.id);
+            toast.error(`No lesson available for ${queue.teacher.username}`);
             return;
         }
 
         console.log("   - Found lesson:", lesson.id, "for teacher ID:", queue.teacher.id);
-        await onAddLessonEvent(draggedBooking, lesson.id);
+        await onAddLessonEvent(draggedBooking.bookingId, lesson.id);
     };
 
     const completedCount = events.filter((e) => e.eventData.status === "completed").length;
@@ -296,11 +278,9 @@ function TeacherQueueRow({
     return (
         <div
             className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${
-                isDragOverThis
-                    ? "ring-2 ring-accent/50 bg-accent/5 border-l-4 border-accent pl-1"
-                    : canReceiveBooking
-                      ? "ring-2 ring-green-500/50 bg-green-500/5"
-                      : ""
+                canReceiveBooking
+                    ? "ring-2 ring-green-500/50 bg-green-500/5"
+                    : ""
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}

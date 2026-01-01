@@ -5,12 +5,12 @@ import { AlertTriangle, Clock } from "lucide-react";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
-import type { EventNode } from "@/types/classboard-teacher-queue";
+import type { EventNodeV2 } from "@/types/classboard-teacher-queue";
 import { updateEventStartTime } from "@/actions/classboard-action";
 
 interface EventGapDetectionProps {
-    currentEvent: EventNode;
-    previousEvent?: EventNode;
+    currentEvent: EventNodeV2;
+    previousEvent?: EventNodeV2;
     requiredGapMinutes: number;
     updateMode: "updateNow" | "updateOnSave";
     onStateChange?: (state: GapDetectionState, duration: number) => void;
