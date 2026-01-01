@@ -12,7 +12,6 @@ export type TeacherModel = AbstractModel<TeacherUpdateForm> & {
     stats?: DataboardStats;
     popoverType?: "teacher_event_equipment";
     relations: {
-        school?: any;
         commissions?: CommissionModel[];
         lessons?: any[];
         equipments?: any[];

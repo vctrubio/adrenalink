@@ -15,9 +15,9 @@ interface TeacherClassDailyProps {
     teacherQueues: TeacherQueue[];
     selectedDate: string;
     draggedBooking?: DraggableBooking | null;
-    isLessonTeacher?: (bookingId: string, teacherUsername: string) => boolean;
+    isLessonTeacher?: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
-    onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
 }
 
 type TeacherFilter = "active" | "all";
@@ -37,16 +37,16 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
     console.log("   - Selected date:", selectedDate);
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
-    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.username)));
+    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.id)));
 
-    const toggleTeacherExpanded = (teacherUsername: string) => {
-        console.log("🔄 [TeacherClassDaily] Toggling teacher:", teacherUsername);
+    const toggleTeacherExpanded = (teacherId: string) => {
+        console.log("🔄 [TeacherClassDaily] Toggling teacher:", teacherId);
         setExpandedTeachers((prev) => {
             const newSet = new Set(prev);
-            if (newSet.has(teacherUsername)) {
-                newSet.delete(teacherUsername);
+            if (newSet.has(teacherId)) {
+                newSet.delete(teacherId);
             } else {
-                newSet.add(teacherUsername);
+                newSet.add(teacherId);
             }
             return newSet;
         });
@@ -54,7 +54,7 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
 
     const expandAllTeachers = () => {
         console.log("🔄 [TeacherClassDaily] Expanding all teachers");
-        setExpandedTeachers(new Set(teacherQueues.map((q) => q.teacher.username)));
+        setExpandedTeachers(new Set(teacherQueues.map((q) => q.teacher.id)));
     };
 
     const collapseAllTeachers = () => {
@@ -96,7 +96,7 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
         };
     }, [teacherQueues, selectedDate, filter]);
 
-    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every((q) => expandedTeachers.has(q.teacher.username));
+    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every((q) => expandedTeachers.has(q.teacher.id));
 
     const toggleAllTeachers = () => {
         if (allTeachersExpanded) {
@@ -133,16 +133,16 @@ export default function TeacherClassDaily({ teacherQueues, selectedDate, dragged
                 <div className="p-2 bg-card">
                     <div className="flex flex-col divide-y-2 divide-background">
                         {filteredQueues.length > 0 ? (
-                            filteredQueues.map((queue) => {
-                                const isExpanded = expandedTeachers.has(queue.teacher.username);
+                            filteredQueues.map((queue, index) => {
+                                const isExpanded = expandedTeachers.has(queue.teacher.id);
 
                                 return (
-                                    <div key={queue.teacher.username} className="py-2">
+                                    <div key={`${queue.teacher.id}-${index}`} className="py-2">
                                         <TeacherQueueRow
                                             queue={queue}
                                             selectedDate={selectedDate}
                                             isExpanded={isExpanded}
-                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.username)}
+                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.id)}
                                             draggedBooking={draggedBooking}
                                             isLessonTeacher={isLessonTeacher}
                                             controller={controller}
@@ -170,9 +170,9 @@ interface TeacherQueueRowProps {
     isExpanded: boolean;
     onToggleExpand: () => void;
     draggedBooking?: DraggableBooking | null;
-    isLessonTeacher?: (bookingId: string, teacherUsername: string) => boolean;
+    isLessonTeacher?: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
-    onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
 }
 
 function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, draggedBooking, isLessonTeacher, controller, onAddLessonEvent }: TeacherQueueRowProps) {
@@ -200,8 +200,8 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
     // Check if this teacher can accept the dragged booking
     const canAcceptDrop = useMemo(() => {
         if (!draggedBooking || !isLessonTeacher) return false;
-        return isLessonTeacher(draggedBooking.bookingId, queue.teacher.username);
-    }, [draggedBooking, isLessonTeacher, queue.teacher.username]);
+        return isLessonTeacher(draggedBooking.bookingId, queue.teacher.id);
+    }, [draggedBooking, isLessonTeacher, queue.teacher.id]);
 
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
@@ -217,7 +217,15 @@ function TeacherQueueRow({ queue, selectedDate, isExpanded, onToggleExpand, drag
         console.log("📍 [TeacherQueueRow] Drop booking on teacher:", queue.teacher.username);
         console.log("   - Booking:", draggedBooking.leaderStudentName);
 
-        await onAddLessonEvent(draggedBooking, queue.teacher.username);
+        // Find the lesson for this teacher in the dragged booking
+        const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
+        if (!lesson) {
+            console.error("❌ No lesson found for teacher:", queue.teacher.id);
+            return;
+        }
+
+        console.log("   - Found lesson:", lesson.id, "for teacher ID:", queue.teacher.id);
+        await onAddLessonEvent(draggedBooking, lesson.id);
     };
 
     const completedCount = todayEvents.filter((e) => e.eventData.status === "completed").length;

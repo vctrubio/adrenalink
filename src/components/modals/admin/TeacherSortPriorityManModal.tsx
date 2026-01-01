@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
+import { useTeacherSortOrder, updateTeacherSortOrder } from "@/src/hooks/useTeacherSortOrder";
 import { updateTeacherActive } from "@/actions/teachers-action";
 import { ENTITY_DATA } from "@/config/entities";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -37,19 +37,20 @@ interface TeacherSortItem {
 
 export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPriorityManModalProps) {
     const { allTeachers, refetch } = useSchoolTeachers();
-    const { order: savedOrder, setOrder } = useTeacherSortOrder();
+    const savedOrder = useTeacherSortOrder();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const router = useRouter();
-    
+
     const [items, setItems] = useState<TeacherSortItem[]>([]);
     const [hasChanges, setHasChanges] = useState(false);
     const [statusChanges, setStatusChanges] = useState<Map<string, boolean>>(new Map());
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [filterMode, setFilterMode] = useState<"active" | "all">("all");
 
-    // Initialize items based on order
+    // Initialize items based on order from hook
     const initializeItems = useCallback(() => {
         if (allTeachers.length > 0) {
+
             let sorted = [...allTeachers];
             if (savedOrder.length > 0) {
                 sorted = sorted.sort((a, b) => {
@@ -113,11 +114,12 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                 for (const [teacherId, active] of statusChanges.entries()) {
                     await updateTeacherActive(teacherId, active);
                 }
+                // Refetch teachers to reflect active status changes in TeacherClassDaily
+                await refetch();
             }
 
             const ids = items.map((item) => item.id);
-            setOrder(ids);
-            await refetch();
+            updateTeacherSortOrder(ids);
 
             setHasChanges(false);
             setStatusChanges(new Map());
@@ -125,7 +127,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         } catch (error) {
             console.error("Error submitting changes:", error);
         }
-    }, [items, setOrder, refetch, statusChanges, onClose]);
+    }, [items, statusChanges, onClose, refetch]);
 
     const handleReset = useCallback(() => {
         initializeItems();

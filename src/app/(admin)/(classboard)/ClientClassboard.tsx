@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import toast from "react-hot-toast";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
@@ -68,7 +68,6 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // ============================================
     const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
     const credentials = useSchoolCredentials();
-    const { order: teacherSortOrder } = useTeacherSortOrder();
 
     // Get school ID from credentials for subscriptions
     const schoolId = credentials?.id || "";
@@ -150,6 +149,9 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             lessons: bookingData.lessons,
         }));
         console.log("📦 [DERIVE] Bookings array:", bookings.length, "bookings");
+        if (bookings.length > 0) {
+            console.log("📚 [DERIVE] Sample lesson from first booking:", bookings[0].lessons[0]);
+        }
         return bookings;
     }, [classboardData]);
 
@@ -163,7 +165,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
         return filtered;
     }, [bookingsArray, selectedDate]);
 
-    // Step 3: Create draggable bookings structure
+    // Step 3: Create draggable bookings structure (minimal - only what's needed for event creation)
     const draggableBookings = useMemo((): DraggableBooking[] => {
         console.log("🔄 [DERIVE] Creating draggable bookings");
         const draggable = bookingsForSelectedDate.map((booking) => {
@@ -174,50 +176,67 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
                 bookingId: booking.booking.id,
                 leaderStudentName: leaderName,
                 capacityStudents: booking.schoolPackage.capacityStudents,
-                lessons: booking.lessons.map((lesson) => ({
-                    id: lesson.id,
-                    teacherUsername: lesson.teacher.username,
-                    commissionType: lesson.commission.type as "fixed" | "percentage",
-                    commissionCph: parseFloat(lesson.commission.cph),
-                    events: lesson.events.map((event) => ({
-                        id: event.id,
-                        date: event.date,
-                        duration: event.duration,
-                        location: event.location || "",
-                        status: event.status,
-                    })),
-                })),
+                lessons: booking.lessons.map((lesson) => {
+                    // Look up teacher ID from allSchoolTeachers using username
+                    const teacherUsername = lesson.teacher?.username;
+                    const teacherId = allSchoolTeachers.find((t) => t.schema.username === teacherUsername)?.schema.id;
+                    console.log("📚 [DERIVE] Lesson:", lesson.id, "-> Teacher username:", teacherUsername, "-> Teacher ID:", teacherId);
+                    return {
+                        id: lesson.id, // lessonId
+                        teacherId: teacherId, // teacherId UUID
+                    };
+                }),
             };
         });
         console.log("🎯 [DERIVE] Draggable bookings:", draggable.length);
         return draggable;
-    }, [bookingsForSelectedDate]);
+    }, [bookingsForSelectedDate, allSchoolTeachers]);
 
-    // Step 4: Calculate teacher queues
+    // Step 4: Calculate teacher queues (from pre-filtered bookingsForSelectedDate)
     const teacherQueues = useMemo(() => {
         console.log("🔄 [DERIVE] Calculating teacher queues");
         console.log("   - Teachers:", allSchoolTeachers.length);
         console.log("   - Bookings:", bookingsForSelectedDate.length);
-        console.log("   - Date:", selectedDate);
         console.log("   - Gap minutes:", controller.gapMinutes);
 
+        // Filter to only active teachers
+        const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
+        console.log("   - Active teachers:", activeTeachers.length);
+        console.log(
+            "👥 Teacher details:",
+            activeTeachers.map((t) => ({ id: t.schema.id, username: t.schema.username })),
+        );
+
+        console.log("📚 Bookings for queue calculation:");
+        bookingsForSelectedDate.forEach((booking) => {
+            booking.lessons.forEach((lesson) => {
+                const teacherUsername = lesson.teacher?.username;
+                const teacherId = activeTeachers.find((t) => t.schema.username === teacherUsername)?.schema.id;
+                console.log(`   Lesson: ${lesson.id}, Teacher: ${teacherUsername} (${teacherId}), Events: ${lesson.events?.length || 0}`);
+                lesson.events?.forEach((event) => {
+                    console.log(`      Event: ${event.id}, Date: ${event.date}, Duration: ${event.duration}`);
+                });
+            });
+        });
+
         const queues = calculateTeacherQueues({
-            allSchoolTeachers,
+            allSchoolTeachers: activeTeachers,
             bookingsForSelectedDate,
-            selectedDate,
             gapMinutes: controller.gapMinutes,
             optimisticEvents,
-            teacherSortOrder,
         });
 
         console.log("✅ [DERIVE] Teacher queues calculated:", queues.length, "queues");
         queues.forEach((queue, index) => {
             const events = queue.getAllEvents();
-            console.log(`   Queue ${index + 1}: ${queue.teacher.username} - ${events.length} events`);
+            console.log(`   Queue ${index + 1}: ${queue.teacher.username} (${queue.teacher.id}) - ${events.length} events`);
+            events.forEach((event) => {
+                console.log(`      Event: ${event.id}, Date: ${event.eventData.date}, Duration: ${event.eventData.duration}`);
+            });
         });
 
         return queues;
-    }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate, controller.gapMinutes, optimisticEvents, teacherSortOrder]);
+    }, [allSchoolTeachers, bookingsForSelectedDate, controller.gapMinutes, optimisticEvents]);
 
     // Step 5: Calculate statistics
     const stats = useMemo(() => {
@@ -233,137 +252,142 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // ============================================
 
     // Add event to teacher queue
-    const handleAddLessonEvent = useCallback(async (booking: DraggableBooking, teacherUsername: string) => {
-        console.log("➕ [ClientClassboard] Adding event for:", teacherUsername);
-        console.log("   - Booking:", booking.leaderStudentName);
-        console.log("   - Date:", selectedDate);
-
-        try {
-            // Find the lesson for this teacher
-            const lesson = booking.lessons.find((l) => l.teacherUsername === teacherUsername);
-            if (!lesson) {
-                console.error("❌ No lesson found for teacher:", teacherUsername);
-                return;
-            }
-
-            // Find the teacher queue to calculate insertion time
-            const queue = teacherQueues.find((q) => q.teacher.username === teacherUsername);
-            if (!queue) {
-                console.error("❌ No queue found for teacher:", teacherUsername);
-                return;
-            }
-
-            // Find booking data for package info
-            const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === booking.bookingId);
-            if (!bookingData) {
-                console.error("❌ No booking data found");
-                return;
-            }
-
-            // Calculate insertion time using controller settings
-            const { time, duration } = queue.getInsertionTime(
-                controller.submitTime,
-                booking.capacityStudents,
-                controller
-            );
-
-            console.log("📍 [ClientClassboard] Calculated insertion:");
-            console.log("   - Time:", time);
-            console.log("   - Duration:", duration);
-
-            const eventDate = `${selectedDate}T${time}:00`;
-            const tempEventId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-            // Create optimistic event
-            const optimisticEvent = {
-                id: tempEventId,
-                lessonId: lesson.id,
-                bookingId: booking.bookingId,
-                leaderStudentName: booking.leaderStudentName,
-                bookingStudents: bookingData.bookingStudents.map((bs) => ({
-                    id: bs.student.id,
-                    firstName: bs.student.firstName,
-                    lastName: bs.student.lastName,
-                    passport: bs.student.passport || "",
-                    country: bs.student.country || "",
-                    phone: bs.student.phone || "",
-                })),
-                commission: {
-                    type: lesson.commissionType,
-                    cph: lesson.commissionCph,
-                },
-                eventData: {
-                    date: eventDate,
-                    duration: duration,
-                    location: controller.location,
-                    status: "planned",
-                },
-                studentData: bookingData.bookingStudents.map((bs) => ({
-                    id: bs.student.id,
-                    firstName: bs.student.firstName,
-                    lastName: bs.student.lastName,
-                    passport: bs.student.passport || "",
-                    country: bs.student.country || "",
-                    phone: bs.student.phone || "",
-                })),
-                packageData: {
-                    pricePerStudent: bookingData.schoolPackage.pricePerStudent,
-                    durationMinutes: bookingData.schoolPackage.durationMinutes,
-                    description: bookingData.schoolPackage.description,
-                    categoryEquipment: bookingData.schoolPackage.categoryEquipment,
-                    capacityEquipment: bookingData.schoolPackage.capacityEquipment,
-                },
-                next: null,
-                _teacherUsername: teacherUsername, // For queue identification
-            };
-
-            console.log("🎨 [ClientClassboard] Adding optimistic event:", tempEventId);
-
-            // Add optimistic event
-            setOptimisticEvents((prev) => [...prev, optimisticEvent]);
-
-            // Safety timeout: remove optimistic event after 10 seconds if not confirmed
-            let timeoutId: NodeJS.Timeout | null = setTimeout(() => {
-                console.log("⏰ [ClientClassboard] Optimistic event timeout, removing:", tempEventId);
-                setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
-            }, 10000);
+    const handleAddLessonEvent = useCallback(
+        async (booking: DraggableBooking, lessonId: string) => {
+            console.log("➕ [ClientClassboard] Adding event for lesson:", lessonId);
+            console.log("   - Booking:", booking.leaderStudentName, "(ID:", booking.bookingId, ")");
+            console.log("   - Date:", selectedDate);
 
             try {
-                // Create the event via server action
-                const result = await createClassboardEvent(
-                    lesson.id,
-                    eventDate,
-                    duration,
-                    controller.location
-                );
+                // Find the lesson by ID
+                const lesson = booking.lessons.find((l) => l.id === lessonId);
+                if (!lesson) {
+                    console.error("❌ No lesson found with ID:", lessonId);
+                    toast.error("Lesson not found");
+                    return;
+                }
 
-                if (result.success) {
-                    console.log("✅ [ClientClassboard] Event created successfully");
-                    // Keep optimistic event until subscription confirms real event exists
-                    // handleEventDetected will remove it when the real event arrives
-                } else {
-                    console.error("❌ [ClientClassboard] Failed to create event:", result.error);
-                    // Remove optimistic event on failure
+                // Extract teacher ID from lesson
+                const teacherId = lesson.teacherId;
+                if (!teacherId) {
+                    toast.error("Teacher information missing for this lesson");
+                    console.error("❌ Teacher ID is undefined for lesson:", lessonId, "-> Lesson:", lesson);
+                    return;
+                }
+                console.log("   - Lesson ID:", lesson.id, "-> Teacher ID:", teacherId);
+
+                // Find the teacher queue to calculate insertion time
+                const queue = teacherQueues.find((q) => q.teacher.id === teacherId);
+                if (!queue) {
+                    // Get teacher username from allSchoolTeachers to provide better error message
+                    const teacher = allSchoolTeachers.find((t) => t.schema.id === teacherId);
+                    const teacherUsername = teacher?.schema.username || "Unknown";
+                    toast.error(`Teacher (${teacherUsername}) is not on the board - not available for adding lesson`);
+                    return;
+                }
+
+                // Find booking data for package info
+                const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === booking.bookingId);
+                if (!bookingData) {
+                    console.error("❌ No booking data found");
+                    return;
+                }
+
+                // Calculate insertion time using controller settings
+                const { time, duration } = queue.getInsertionTime(controller.submitTime, booking.capacityStudents, controller);
+
+                console.log("📍 [ClientClassboard] Calculated insertion:");
+                console.log("   - Time:", time);
+                console.log("   - Duration:", duration);
+
+                const eventDate = `${selectedDate}T${time}:00`;
+                const tempEventId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+                // Create optimistic event - minimal structure for visual feedback
+                const studentData = bookingData.bookingStudents.map((bs) => ({
+                    id: bs.student.id,
+                    firstName: bs.student.firstName,
+                    lastName: bs.student.lastName,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                }));
+
+                const optimisticEvent = {
+                    id: tempEventId,
+                    lessonId: lesson.id,
+                    bookingId: booking.bookingId,
+                    leaderStudentName: booking.leaderStudentName,
+                    bookingStudents: studentData,
+                    commission: {
+                        type: "fixed" as const,
+                        cph: 0,
+                    },
+                    eventData: {
+                        date: eventDate,
+                        duration: duration,
+                        location: controller.location,
+                        status: "planned",
+                    },
+                    studentData,
+                    packageData: {
+                        pricePerStudent: bookingData.schoolPackage.pricePerStudent,
+                        durationMinutes: bookingData.schoolPackage.durationMinutes,
+                        description: bookingData.schoolPackage.description,
+                        categoryEquipment: bookingData.schoolPackage.categoryEquipment,
+                        capacityEquipment: bookingData.schoolPackage.capacityEquipment,
+                    },
+                    next: null,
+                    _teacherId: teacherId, // For queue identification
+                };
+
+                console.log("🎨 [ClientClassboard] Adding optimistic event:", tempEventId);
+
+                // Add optimistic event
+                setOptimisticEvents((prev) => [...prev, optimisticEvent]);
+
+                // Safety timeout: remove optimistic event after 10 seconds if not confirmed
+                const timeoutId: NodeJS.Timeout | null = setTimeout(() => {
+                    console.log("⏰ [ClientClassboard] Optimistic event timeout, removing:", tempEventId);
+                    setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
+                }, 10000);
+
+                try {
+                    // Create the event via server action
+                    const result = await createClassboardEvent(lesson.id, eventDate, duration, controller.location);
+
+                    if (result.success) {
+                        console.log("✅ [ClientClassboard] Event created successfully");
+                        // Keep optimistic event until subscription confirms real event exists
+                        // handleEventDetected will remove it when the real event arrives
+                    } else {
+                        console.error("❌ [ClientClassboard] Failed to create event:", result.error);
+                        // Remove optimistic event on failure
+                        if (timeoutId) clearTimeout(timeoutId);
+                        setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
+                    }
+                } catch (error) {
+                    console.error("❌ [ClientClassboard] Error adding event:", error);
+                    // Remove optimistic event on error
                     if (timeoutId) clearTimeout(timeoutId);
                     setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
                 }
             } catch (error) {
-                console.error("❌ [ClientClassboard] Error adding event:", error);
-                // Remove optimistic event on error
-                if (timeoutId) clearTimeout(timeoutId);
-                setOptimisticEvents((prev) => prev.filter((e) => e.id !== tempEventId));
+                console.error("❌ [ClientClassboard] Outer error:", error);
             }
-        } catch (error) {
-            console.error("❌ [ClientClassboard] Outer error:", error);
-        }
-    }, [selectedDate, teacherQueues, controller, bookingsForSelectedDate]);
+        },
+        [selectedDate, teacherQueues, controller, bookingsForSelectedDate],
+    );
 
-    // Helper function
-    const isLessonTeacher = useCallback((bookingId: string, teacherUsername: string): boolean => {
-        const booking = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
-        if (!booking) return false;
-        return booking.lessons.some((lesson) => lesson.teacher.username === teacherUsername);
-    }, [bookingsForSelectedDate]);
+    // Helper function - check if teacher has a lesson in this booking
+    const isLessonTeacher = useCallback(
+        (bookingId: string, teacherId: string): boolean => {
+            const booking = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
+            if (!booking) return false;
+            return booking.lessons.some((lesson) => lesson.teacher.id === teacherId);
+        },
+        [bookingsForSelectedDate],
+    );
 
     // ============================================
     // LIFECYCLE - Storage sync
@@ -440,12 +464,7 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
             </div>
 
             {/* Footer */}
-            <ClassboardFooter
-                controller={controller}
-                setController={setController}
-                selectedDate={selectedDate}
-                teacherQueues={teacherQueues}
-            />
+            <ClassboardFooter controller={controller} setController={setController} selectedDate={selectedDate} teacherQueues={teacherQueues} />
         </div>
     );
 }

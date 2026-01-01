@@ -20,8 +20,7 @@ interface StudentClassDailyProps {
     classboard: {
         onDragStart: (booking: DraggableBooking) => void;
         onDragEnd: () => void;
-        onAddLessonEvent?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
-        onAddTeacher?: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+        onAddLessonEvent?: (booking: DraggableBooking, lessonId: string) => Promise<void>;
         availableTeachers?: { username: string; firstName: string; id: string }[];
     };
 }
@@ -62,51 +61,26 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
     };
 
     const { filteredBookings, counts } = useMemo(() => {
-        // All bookings
+        // All bookings (already filtered by selectedDate in ClientClassboard)
         const allBookings = bookings;
 
-        // Onboard = bookings that HAVE an event on selectedDate
-        const onboardBookings = allBookings.filter((booking) => {
-            const bookingData = classboardData[booking.bookingId];
-            if (!bookingData) return false;
+        // Helper to check if booking has any events
+        const hasEvents = (booking: DraggableBooking): boolean => {
+            const data = classboardData[booking.bookingId];
+            if (!data) return false;
+            const lessons = data.lessons || [];
+            return lessons.some((lesson) => (lesson.events || []).length > 0);
+        };
 
-            const lessons = bookingData.lessons || [];
-            return lessons.some((lesson) => {
-                const events = lesson.events || [];
-                return events.some((event) => {
-                    if (!event.date) return false;
-                    const eventDate = new Date(event.date).toISOString().split("T")[0];
-                    return eventDate === selectedDate;
-                });
-            });
-        });
+        // Onboard = bookings that have events
+        const onboardBookings = allBookings.filter(hasEvents);
 
         const counts = {
             onboard: onboardBookings.length,
             available: allBookings.length,
         };
 
-        let filteredData: DraggableBooking[];
-        if (filter === "available") {
-            filteredData = allBookings;
-        } else {
-            filteredData = onboardBookings;
-        }
-
-        // Helper to check if booking has event today
-        const hasEventToday = (booking: DraggableBooking): boolean => {
-            const data = classboardData[booking.bookingId];
-            if (!data) return false;
-            const lessons = data.lessons || [];
-            return lessons.some((lesson) => {
-                const events = lesson.events || [];
-                return events.some((event) => {
-                    if (!event.date) return false;
-                    const eventDate = new Date(event.date).toISOString().split("T")[0];
-                    return eventDate === selectedDate;
-                });
-            });
-        };
+        let filteredData = filter === "available" ? allBookings : onboardBookings;
 
         // Apply sorting
         const sortedData = [...filteredData].sort((a, b) => {
@@ -143,10 +117,10 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
                 comparison = b.bookingId.localeCompare(a.bookingId);
             }
 
-            // If primary sort is equal, use on-board status as tiebreaker (non-on-board first)
+            // If primary sort is equal, use event status as tiebreaker (non-event first)
             if (comparison === 0) {
-                const aHasEvent = hasEventToday(a);
-                const bHasEvent = hasEventToday(b);
+                const aHasEvent = hasEvents(a);
+                const bHasEvent = hasEvents(b);
                 return aHasEvent === bHasEvent ? 0 : aHasEvent ? 1 : -1;
             }
 
@@ -154,7 +128,7 @@ export default function StudentClassDaily({ bookings, classboardData, selectedDa
         });
 
         return { filteredBookings: sortedData, counts };
-    }, [bookings, classboardData, selectedDate, filter, sortBy]);
+    }, [bookings, classboardData, filter, sortBy]);
 
     return (
         <div className="flex flex-col h-full bg-card">

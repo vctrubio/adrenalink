@@ -1,5 +1,5 @@
 
-// an sql fetch to getSQLCLassboardBookings
+// an sql fetch to getSQLEventBoardData
 
 /* WHat i think should happen
 

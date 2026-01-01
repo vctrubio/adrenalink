@@ -8,7 +8,7 @@ import { calculateTeacherStatsFromEvents } from "@/getters/classboard-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { useSchoolTeachers } from "./useSchoolTeachers";
-import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
+import { TeacherSortOrder } from "@/backend/TeacherSortOrder";
 import { calculateTeacherQueues } from "@/getters/teacher-queue-getter";
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
@@ -36,7 +36,10 @@ export function useClassboard(initialData: ClassboardModel) {
     const [optimisticEvents, setOptimisticEvents] = useState<EventNode[]>([]);
 
     const { teachers: allSchoolTeachers } = useSchoolTeachers();
-    const { order: teacherSortOrder } = useTeacherSortOrder();
+    const teacherSortOrder = useMemo(() => {
+        const sortOrder = new TeacherSortOrder();
+        return sortOrder.getOrder();
+    }, []);
 
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY_DATE);

@@ -12,10 +12,10 @@ interface ClassboardContentBoardProps {
     selectedDate: string;
     teacherQueues: TeacherQueue[];
     draggedBooking: DraggableBooking | null;
-    isLessonTeacher: (bookingId: string, teacherUsername: string) => boolean;
+    isLessonTeacher: (bookingId: string, teacherId: string) => boolean;
     controller: ControllerSettings;
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
-    onAddLessonEvent: (booking: DraggableBooking, teacherUsername: string) => Promise<void>;
+    onAddLessonEvent: (booking: DraggableBooking, lessonId: string) => Promise<void>;
 }
 
 export default function ClassboardContentBoard({

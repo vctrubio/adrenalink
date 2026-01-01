@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { DataboardTableSection } from "./DataboardTableSection";
-import { useTeacherSortOrder } from "@/src/providers/teacher-sort-order-provider";
+import { TeacherSortOrder } from "@/backend/TeacherSortOrder";
 import { calculateStudentGroupStats } from "./rows/StudentRow";
 import { calculateTeacherGroupStats } from "./rows/TeacherRow";
 import { calculateBookingGroupStats } from "./rows/BookingRow";
@@ -26,7 +26,10 @@ const statsMap: Record<string, (data: any[]) => StatItem[]> = {
 };
 
 export function DataboardPageClient<T extends { id: string }>({ entityId, data }: DataboardPageClientProps<T>) {
-    const { order: teacherSortOrder } = useTeacherSortOrder();
+    const teacherSortOrder = useMemo(() => {
+        const sortOrder = new TeacherSortOrder();
+        return sortOrder.getOrder();
+    }, []);
 
     const sortedData = useMemo(() => {
         if (entityId !== "teacher" || !teacherSortOrder || teacherSortOrder.length === 0) {

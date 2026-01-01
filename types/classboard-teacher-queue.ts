@@ -41,6 +41,7 @@ export interface EventNode {
 }
 
 export interface TeacherInfo {
+    id: string; // UUID of teacher
     username: string;
     name: string;
 }
@@ -58,25 +59,16 @@ export interface ControllerSettings {
 }
 
 /**
- * Draggable booking with lessons and events for classboard UI
- * Used in drag-drop operations and booking display
+ * Minimal draggable booking for event creation
+ * Only contains data needed to create a new event via drag-drop
  */
 export interface DraggableBooking {
     bookingId: string;
     leaderStudentName: string;
     capacityStudents: number;
     lessons: {
-        id: string;
-        teacherUsername: string;
-        commissionType: "fixed" | "percentage";
-        commissionCph: number;
-        events: {
-            id: string;
-            date: string;
-            duration: number;
-            location: string;
-            status: string;
-        }[];
+        id: string; // lessonId
+        teacherId: string; // UUID of teacher
     }[];
 }
 
