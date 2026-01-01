@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin, Plus, Minus } from "lucide-react";
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
 
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
@@ -36,7 +37,7 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDel
                 setIsDeleting(false);
                 return;
             }
-            
+
             // Notify parent to remove from UI
             onDelete?.();
         } catch (error) {
@@ -79,64 +80,83 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
     };
 
     return (
-        <div className="flex flex-col gap-2 flex-1">
-            <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-none">Start</span>
-                <div className="flex gap-1">
-                    <button
-                        onClick={() => handleTimeChange(false)}
-                        disabled={!canMoveEarlier}
-                        className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        title={canMoveEarlier ? "Earlier" : "Cannot move earlier"}
-                    >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => handleTimeChange(true)}
-                        disabled={!canMoveLater}
-                        className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        title={canMoveLater ? "Later" : "Cannot move later"}
-                    >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+        <div className="flex flex-col flex-1 gap-1">
+            {/* Top Row: Labels and Increment controls */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-none">Start</span>
+                    <div className="flex gap-1">
+                        <button
+                            onClick={() => handleTimeChange(false)}
+                            disabled={!canMoveEarlier}
+                            className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title={canMoveEarlier ? "Earlier" : "Cannot move earlier"}
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                            onClick={() => handleTimeChange(true)}
+                            disabled={!canMoveLater}
+                            className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title={canMoveLater ? "Later" : "Cannot move later"}
+                        >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div className="flex items-baseline gap-2">
+
+            {/* Bottom Row: Times */}
+            <div className="flex items-center">
                 <span className="text-3xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
-                <span className="text-sm font-bold tracking-tight leading-none text-muted-foreground/30">— {endTime}</span>
+                <span className="ml-2 text-sm font-bold tracking-tight leading-none text-muted-foreground/30">— {endTime}</span>
             </div>
         </div>
     );
 };
 
-const DurationControls = ({ duration, eventId, queueController, controller }: { duration: number; eventId: string; queueController: QueueController; controller: ControllerSettings }) => {
-    const stepDuration = controller.stepDuration || 30;
-    const minDuration = controller.minDuration || 60;
-
+const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueController }) => {
     const handleDurationAdjustment = (increment: boolean) => {
+        const controller = queueController.getSettings();
+
+        const stepDuration = controller.stepDuration || 30;
+
+        const minDuration = controller.minDuration || 60;
+
         const newDuration = increment ? duration + stepDuration : duration - stepDuration;
+
         if (newDuration < minDuration) return;
+
         queueController.adjustDuration(eventId, increment);
     };
 
     return (
-        <div className="flex flex-col items-center gap-1.5 min-w-[70px]">
-            <button 
-                onClick={() => handleDurationAdjustment(true)} 
-                className="p-1.5 rounded-lg bg-muted/50 hover:bg-muted border border-border/20 transition-colors" 
-                title="Increase duration"
-            >
-                <ChevronUp className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-lg font-black tracking-tighter text-foreground leading-none">+{getHMDuration(duration)}</span>
-            <button 
-                onClick={() => handleDurationAdjustment(false)} 
-                disabled={duration <= minDuration} 
-                className="p-1.5 rounded-lg bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 transition-colors" 
-                title="Decrease duration"
-            >
-                <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+        <div className="flex flex-col flex-1 gap-2 min-w-[60px]">
+            {/* Top Row: Icon and Increment */}
+
+            <div className="flex items-center gap-2 justify-end">
+                <div className="flex gap-1">
+                    <button onClick={() => handleDurationAdjustment(true)} className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 transition-colors" title="Increase duration">
+                        <Plus className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                        onClick={() => handleDurationAdjustment(false)}
+                        disabled={duration <= (queueController.getSettings().minDuration || 60)}
+                        className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 disabled:opacity-30 transition-colors"
+                        title="Decrease duration"
+                    >
+                        <Minus className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Bottom Row: Duration Text */}
+
+            <div className="flex items-center gap-1 justify-end">
+                <DurationIcon size={16} className="text-muted-foreground/80" />
+                <span className="text-3xl font-black tracking-tighter leading-none text-foreground">{getHMDuration(duration)}</span>
+            </div>
         </div>
     );
 };
@@ -192,7 +212,7 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     return (
         <div className="flex flex-col items-end">
             <span className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
-                {remainingMinutes < 0 ? "-" : "+"}
+                {remainingMinutes < 0 ? "+" : "-"}
                 {getPrettyDuration(Math.abs(remainingMinutes))}
             </span>
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{remainingMinutes < 0 ? "Over" : "Left"}</span>
@@ -253,7 +273,7 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
                 )}
                 <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
                 <div className="h-16 w-px bg-border/60 mx-2" />
-                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} controller={queueController.getSettings()} />
+                <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
             </div>
 
             {/* Footer: Location & Meta */}
