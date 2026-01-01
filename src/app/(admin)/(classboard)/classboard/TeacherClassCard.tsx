@@ -1,7 +1,8 @@
 "use client";
 
-import { TrendingUp, TrendingUpDown, Trash2, CheckCircle2 } from "lucide-react";
+import { TrendingUpDown, Trash2, CheckCircle2 } from "lucide-react";
 import { useState, useRef, useMemo, useCallback } from "react";
+import toast from "react-hot-toast";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -11,12 +12,13 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { TeacherStats } from "@/backend/ClassboardStatistics";
-import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueueV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
-import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/actions/classboard-bulk-action";
+import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -39,10 +41,12 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
+function TeacherEventProgressBar({ progress, totalEvents, completedEvents, queue, controller }: {
     progress: EventProgress,
     totalEvents: number,
-    completedEvents: number
+    completedEvents: number,
+    queue?: TeacherQueueV2,
+    controller?: ControllerSettings,
 }) {
     const { completed, planned, tbc, total, eventIds = [] } = progress;
     const denominator = total > 0 ? total : 1;
@@ -88,6 +92,36 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
         }
     };
 
+    const handleOptimiseQueue = async () => {
+        if (!queue || !controller) return;
+        setIsLoading(true);
+        try {
+            const result = queue.optimiseQueue(controller.gapMinutes);
+            const { updates, skipped } = result;
+
+            // Show toast for each skipped event
+            skipped.forEach((eventId) => {
+                toast.error(`Lesson couldn't fit in queue`);
+            });
+
+            if (updates.length === 0) {
+                console.log("✅ [TeacherEventProgressBar] Queue already optimised");
+                setIsDropdownOpen(false);
+                return;
+            }
+
+            await bulkUpdateClassboardEvents(updates);
+            console.log(`✅ [TeacherEventProgressBar] Queue optimised: ${updates.length} events updated`);
+            setIsDropdownOpen(false);
+        } catch (error) {
+            console.error("Queue optimisation failed", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const isOptimised = queue && controller ? queue.isQueueOptimised(controller.gapMinutes) : false;
+
     const dropdownItems: DropdownItemProps[] = [
         {
             id: "mark-completed",
@@ -108,7 +142,17 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents }: {
                 e?.stopPropagation();
                 handleDeleteAll();
             },
-        }
+        },
+        ...(queue && controller && !isOptimised ? [{
+            id: "optimise-queue",
+            label: isLoading ? "Optimising..." : "Optimise queue",
+            icon: CheckCircle2,
+            color: "#2563eb",
+            onClick: (e) => {
+                e?.stopPropagation();
+                handleOptimiseQueue();
+            },
+        }] : [])
     ];
 
     return (
@@ -296,6 +340,7 @@ export default function TeacherClassCard({
     changedCount = 0,
     isSubmitting = false
 }: TeacherClassCardProps) {
+    const { controller } = useClassboardContext();
     const events = queue?.getAllEvents() || [];
     const completedCount = events.filter((e) => e.eventData.status === "completed").length;
     const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
@@ -470,6 +515,8 @@ export default function TeacherClassCard({
                             progress={eventProgress}
                             totalEvents={totalEvents}
                             completedEvents={completedCount}
+                            queue={queue}
+                            controller={controller}
                         />
                     </div>
                 </div>

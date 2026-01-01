@@ -74,6 +74,79 @@ export class TeacherQueueV2 {
     }
 
     /**
+     * Check if queue is already optimised (all gaps match required gap minutes)
+     * Returns true if all consecutive events have exactly the required gap
+     */
+    isQueueOptimised(gapMinutes: number): boolean {
+        const events = this.getAllEvents();
+        if (events.length <= 1) return true; // Single or no events are optimized
+
+        for (let i = 0; i < events.length - 1; i++) {
+            const currentEvent = events[i];
+            const nextEvent = events[i + 1];
+
+            const currentEndMinutes = this.getStartTimeMinutes(currentEvent) + currentEvent.eventData.duration;
+            const nextStartMinutes = this.getStartTimeMinutes(nextEvent);
+            const actualGap = nextStartMinutes - currentEndMinutes;
+
+            if (actualGap !== gapMinutes) {
+                return false; // Found a gap that doesn't match required gap
+            }
+        }
+
+        return true; // All gaps match required gap
+    }
+
+    /**
+     * Optimise queue: remove gaps between events while preserving first event's start time
+     * Packs all events back-to-back with required gap minutes, starting from first event's current time
+     * Returns updates for events that need moving + skipped event IDs if they exceed 24:00
+     */
+    optimiseQueue(gapMinutes: number): { updates: Array<{ id: string; date: string; duration: number }>; skipped: string[] } {
+        const events = this.getAllEvents();
+        const updates: Array<{ id: string; date: string; duration: number }> = [];
+        const skipped: string[] = [];
+
+        if (events.length === 0) return { updates, skipped };
+
+        const datePart = events[0].eventData.date.split("T")[0];
+        const firstEventStartMinutes = this.getStartTimeMinutes(events[0]);
+        let currentStartMinutes = firstEventStartMinutes;
+        const MAX_START_TIME = 1440; // Can't start after 24:00
+
+        events.forEach((event) => {
+            const eventDuration = event.eventData.duration;
+
+            // Check if this event would start after 24:00
+            if (currentStartMinutes >= MAX_START_TIME) {
+                console.log(`⚠️ [TeacherQueueV2] Event ${event.id} can't fit in day (start would be >= 24:00), skipping`);
+                skipped.push(event.id);
+                return;
+            }
+
+            const eventStartMinutes = this.getStartTimeMinutes(event);
+
+            // If event doesn't start at optimal position, add to updates
+            if (eventStartMinutes !== currentStartMinutes) {
+                const newTime = minutesToTime(currentStartMinutes);
+                const newDate = `${datePart}T${newTime}:00`;
+
+                updates.push({
+                    id: event.id,
+                    date: newDate,
+                    duration: eventDuration,
+                });
+            }
+
+            // Move to next start time (current end + gap)
+            currentStartMinutes += eventDuration + gapMinutes;
+        });
+
+        console.log(`✅ [TeacherQueueV2] Queue optimised: ${updates.length} events updated, ${skipped.length} skipped`);
+        return { updates, skipped };
+    }
+
+    /**
      * Get the start time of the first (earliest) event in queue
      * Returns time string (HH:MM format) or null if no events
      */
