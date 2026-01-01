@@ -131,7 +131,7 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     };
 
     return (
-        <div className="flex flex-col flex-1 gap-2 min-w-[60px]">
+        <div className="flex flex-col flex-1 gap-2 min-w-[60px] mr-1">
             {/* Top Row: Icon and Increment */}
 
             <div className="flex items-center gap-2 justify-end">
