@@ -136,7 +136,6 @@ export default function StudentClassDaily() {
                             globalFlag={globalFlag}
                             teacherQueues={teacherQueues}
                             onClose={handleCloseSettings}
-                            onRefresh={() => { }} // GlobalFlag refresh is handled by provider context update
                             controller={controller}
                             setController={setController}
                         />
