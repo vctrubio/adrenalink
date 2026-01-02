@@ -58,6 +58,7 @@ export interface EventNodeV2 {
     bookingStudents: StudentData[] | null;
     capacityStudents: number;
     pricePerStudent: number; // For revenue calculation
+    packageDuration: number; // Package expected duration in minutes
     categoryEquipment: string; // For equipment display
     capacityEquipment: number; // For equipment display
     commission: {
@@ -84,6 +85,7 @@ export interface ControllerSettings {
     stepDuration: number;
     minDuration: number;
     maxDuration: number;
+    locked?: boolean; // Locked = optimize on delete, Unlocked = respect existing times
 }
 
 /**

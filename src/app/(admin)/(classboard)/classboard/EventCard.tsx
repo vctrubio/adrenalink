@@ -5,7 +5,7 @@ import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
-import type { EventNodeV2, TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { EventNodeV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -18,14 +18,13 @@ import { ENTITY_DATA } from "@/config/entities";
 
 interface EventCardProps {
     event: EventNodeV2;
-    queue?: TeacherQueue;
     queueController?: QueueController;
     onDeleteComplete?: () => void;
-    onDeleteWithCascade?: (eventId: string, minutesToShift: number, subsequentEventIds: string[]) => Promise<void>;
+    onDeleteWithCascade?: (eventId: string) => Promise<void>;
     showLocation?: boolean;
 }
 
-export default function EventCard({ event, queue, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true }: EventCardProps) {
+export default function EventCard({ event, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true }: EventCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
@@ -57,8 +56,8 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
 
     // Previous/Next Logic
     let previousEvent: EventNodeV2 | undefined;
-    if (queue && eventId) {
-        const allEvents = queue.getAllEvents();
+    if (queueController && eventId) {
+        const allEvents = queueController.getQueue().getAllEvents();
         const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
         if (currentEventIndex > 0) {
             previousEvent = allEvents[currentEventIndex - 1];
@@ -131,19 +130,14 @@ export default function EventCard({ event, queue, queueController, onDeleteCompl
         if (!eventId || isDeleting) return;
         setIsDeleting(true);
         try {
-            if (cascade && onDeleteWithCascade && queue) {
-                const allEvents = queue.getAllEvents();
-                const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
-                if (currentEventIndex !== -1) {
-                    const subsequentEventIds = allEvents
-                        .slice(currentEventIndex + 1)
-                        .map((e) => e.id)
-                        .filter((id: string) => id);
-                    await onDeleteWithCascade(eventId, duration, subsequentEventIds);
-                    onDeleteComplete?.();
-                    return;
-                }
+            if (cascade && onDeleteWithCascade) {
+                // Use cascade delete with queue optimization
+                await onDeleteWithCascade(eventId);
+                onDeleteComplete?.();
+                return;
             }
+            
+            // Regular delete without cascade
             const result = await deleteClassboardEvent(eventId);
             if (!result.success) {
                 console.error("Delete failed:", result.error);

@@ -53,19 +53,21 @@ export default function EventGapDetection({
 
         setIsUpdating(true);
         try {
-            const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
-            const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
-            const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
-
-            const datePart = getDatePartFromISO(currentEvent.eventData.date);
-            const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
-
             if (updateMode === "updateNow") {
+                // Database update mode - calculate and save directly
+                const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
+                const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
+                const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
+
+                const datePart = getDatePartFromISO(currentEvent.eventData.date);
+                const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
+
                 await updateEventStartTime(currentEvent.id, newDate);
                 console.log("✅ [EventGapDetection] Gap adjusted successfully");
             } else {
-                currentEvent.eventData.date = newDate;
+                // Update on save mode - let parent QueueController handle it
                 onGapAdjust?.();
+                console.log("✅ [EventGapDetection] Gap adjust callback triggered");
             }
         } catch (error) {
             console.error("❌ [EventGapDetection] Error updating event:", error);

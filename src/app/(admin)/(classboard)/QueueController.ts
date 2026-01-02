@@ -3,18 +3,210 @@
  * Encapsulates all business logic for queue manipulation and event state
  */
 
-import { TeacherQueue, type ControllerSettings, type EventNode } from "./TeacherQueue";
+import { TeacherQueueV2, type ControllerSettings, type EventNodeV2 } from "./TeacherQueue";
 import type { EventCardProps } from "@/types/classboard-teacher-queue";
 import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 
 export type { EventCardProps } from "@/types/classboard-teacher-queue";
 
 export class QueueController {
+    private originalSnapshot: EventNodeV2[] = [];
+    private isInAdjustmentMode: boolean = false;
+
     constructor(
-        private queue: TeacherQueue,
+        private queue: TeacherQueueV2,
         private settings: ControllerSettings,
         private onRefresh: () => void,
     ) {}
+
+    /**
+     * Check if controller is in locked mode (cascade behavior)
+     */
+    isLocked(): boolean {
+        return this.settings.locked ?? false;
+    }
+
+    /**
+     * Start adjustment mode - take snapshot of current queue state
+     */
+    startAdjustmentMode(): void {
+        if (this.isInAdjustmentMode) return;
+        
+        this.originalSnapshot = this.queue.getAllEvents().map((e) => ({
+            ...e,
+            eventData: { ...e.eventData },
+        }));
+        this.isInAdjustmentMode = true;
+        
+        console.log(`📸 [QueueController] Snapshot created: ${this.originalSnapshot.length} events`);
+    }
+
+    /**
+     * Exit adjustment mode - clear snapshot
+     */
+    exitAdjustmentMode(): void {
+        this.originalSnapshot = [];
+        this.isInAdjustmentMode = false;
+        console.log(`🚪 [QueueController] Exited adjustment mode`);
+    }
+
+    /**
+     * Reset queue to original snapshot state
+     */
+    resetToSnapshot(): void {
+        if (this.originalSnapshot.length === 0) return;
+
+        console.log(`🔄 [QueueController] Resetting to snapshot`);
+
+        // Deep clone snapshot to restore
+        const restoredEvents = this.originalSnapshot.map((e) => ({
+            ...e,
+            eventData: { ...e.eventData },
+        }));
+
+        this.queue.rebuildQueue(restoredEvents);
+        this.onRefresh();
+    }
+
+    /**
+     * Check if there are changes compared to snapshot
+     */
+    hasChanges(): boolean {
+        if (!this.isInAdjustmentMode || this.originalSnapshot.length === 0) {
+            return false;
+        }
+
+        const currentEvents = this.queue.getAllEvents();
+        const snapshots = this.originalSnapshot;
+
+        // Length difference = changes
+        if (currentEvents.length !== snapshots.length) {
+            return true;
+        }
+
+        // Check each event for changes by ID
+        for (const current of currentEvents) {
+            const snapshot = snapshots.find(s => s.id === current.id);
+            
+            if (!snapshot) return true; // New event
+            
+            // Check for field changes
+            if (
+                current.eventData.date !== snapshot.eventData.date ||
+                current.eventData.duration !== snapshot.eventData.duration ||
+                current.eventData.location !== snapshot.eventData.location
+            ) {
+                return true;
+            }
+        }
+
+        // Check for deleted events
+        const deletedCount = snapshots.filter(
+            snapshot => !currentEvents.find(e => e.id === snapshot.id)
+        ).length;
+
+        return deletedCount > 0;
+    }
+
+    /**
+     * Get all changes compared to snapshot
+     * Returns array of updates and array of deletions
+     */
+    getChanges(): { 
+        updates: Array<{ id: string; date?: string; duration?: number; location?: string }>, 
+        deletions: string[] 
+    } {
+        if (!this.isInAdjustmentMode || this.originalSnapshot.length === 0) {
+            return { updates: [], deletions: [] };
+        }
+
+        const currentEvents = this.queue.getAllEvents();
+        const snapshots = this.originalSnapshot;
+        const updates: Array<{ id: string; date?: string; duration?: number; location?: string }> = [];
+
+        // Collect changes
+        for (const current of currentEvents) {
+            const snapshot = snapshots.find(s => s.id === current.id);
+
+            if (!snapshot) {
+                // New event - send all fields
+                updates.push({
+                    id: current.id,
+                    date: current.eventData.date,
+                    duration: current.eventData.duration,
+                    location: current.eventData.location,
+                });
+                continue;
+            }
+
+            // Existing event - only send changed fields
+            const update: { id: string; date?: string; duration?: number; location?: string } = { id: current.id };
+            let hasChanges = false;
+
+            if (current.eventData.date !== snapshot.eventData.date) {
+                update.date = current.eventData.date;
+                hasChanges = true;
+            }
+            if (current.eventData.duration !== snapshot.eventData.duration) {
+                update.duration = current.eventData.duration;
+                hasChanges = true;
+            }
+            if (current.eventData.location !== snapshot.eventData.location) {
+                update.location = current.eventData.location;
+                hasChanges = true;
+            }
+
+            if (hasChanges) {
+                updates.push(update);
+            }
+        }
+
+        // Collect deletions
+        const deletions = snapshots
+            .filter(snapshot => !currentEvents.find(e => e.id === snapshot.id))
+            .map(snapshot => snapshot.id);
+
+        return { updates, deletions };
+    }
+
+    /**
+     * Remove event from snapshot (called after DB deletion)
+     */
+    removeFromSnapshot(eventId: string): void {
+        if (this.originalSnapshot.length > 0) {
+            this.originalSnapshot = this.originalSnapshot.filter(e => e.id !== eventId);
+            console.log(`🗑️ [QueueController] Removed ${eventId} from snapshot`);
+        }
+    }
+
+    /**
+     * Get optimization statistics for display
+     * Returns count of events with proper gaps vs total events
+     */
+    getOptimisationStats(): { adjusted: number; total: number } {
+        const events = this.queue.getAllEvents();
+        const total = events.length;
+        
+        if (total === 0) return { adjusted: 0, total: 0 };
+        
+        let adjusted = 0;
+        for (let i = 0; i < events.length - 1; i++) {
+            const current = events[i];
+            const next = events[i + 1];
+            const currentEndMinutes = getMinutesFromISO(current.eventData.date) + current.eventData.duration;
+            const nextStartMinutes = getMinutesFromISO(next.eventData.date);
+            const actualGap = nextStartMinutes - currentEndMinutes;
+            
+            if (actualGap === this.settings.gapMinutes) {
+                adjusted++;
+            }
+        }
+        
+        // Last event is always "optimised" if it exists
+        if (total > 0) adjusted++;
+        
+        return { adjusted, total };
+    }
 
     /**
      * Get complete card props - all info needed to render EventModCard
@@ -82,28 +274,124 @@ export class QueueController {
     }
 
     /**
-     * Check if next event starts immediately after this one (no gap)
-     * Returns true only if the next event's start time equals this event's end time
+     * Delete event with mode-aware behavior
+     * Locked mode: cascade and optimize remaining queue
+     * Unlocked mode: just remove event, respect remaining times
+     * Returns updates array for remaining events and handles DB deletion
+     */
+    async deleteEvent(
+        eventId: string,
+        deleteFromDb: (id: string) => Promise<any>,
+        onRemoveFromSnapshot?: (deletedId: string) => void
+    ): Promise<{ success: boolean; updates: Array<{ id: string; date: string; duration: number }> }> {
+        const events = this.queue.getAllEvents();
+        const eventToDelete = events.find(e => e.id === eventId);
+        
+        if (!eventToDelete) {
+            return { success: false, updates: [] };
+        }
+
+        console.log(`🗑️ [QueueController.deleteEvent] Mode: ${this.isLocked() ? 'LOCKED (optimize)' : 'UNLOCKED (respect times)'}, deleting ${eventId}`);
+
+        let updates: Array<{ id: string; date: string; duration: number }> = [];
+
+        if (this.isLocked()) {
+            // Locked mode: optimize/cascade remaining queue
+            const deletedStartTimeMinutes = getMinutesFromISO(eventToDelete.eventData.date);
+            
+            // Remove event from queue
+            const updatedEvents = events.filter(e => e.id !== eventId);
+            this.queue.rebuildQueue(updatedEvents);
+
+            // Optimize remaining queue from deleted event's start time
+            const optimizeResult = this.queue.optimiseFromTime(deletedStartTimeMinutes, this.settings.gapMinutes);
+            updates = optimizeResult.updates;
+
+            // Apply updates to events in-place
+            updates.forEach(update => {
+                const event = this.queue.getAllEvents().find(e => e.id === update.id);
+                if (event) {
+                    event.eventData.date = update.date;
+                    event.eventData.duration = update.duration;
+                }
+            });
+
+            console.log(`✅ [QueueController.deleteEvent] Locked mode: ${updates.length} events optimized`);
+        } else {
+            // Unlocked mode: just remove event, keep others at original times
+            const updatedEvents = events.filter(e => e.id !== eventId);
+            this.queue.rebuildQueue(updatedEvents);
+            
+            console.log(`✅ [QueueController.deleteEvent] Unlocked mode: event removed, others unchanged`);
+        }
+
+        // Delete from database
+        try {
+            const result = await deleteFromDb(eventId);
+            if (!result.success) {
+                console.error("❌ [QueueController.deleteEvent] DB deletion failed");
+                return { success: false, updates: [] };
+            }
+        } catch (error) {
+            console.error("❌ [QueueController.deleteEvent] Error deleting from DB:", error);
+            return { success: false, updates: [] };
+        }
+
+        // Notify snapshot removal
+        onRemoveFromSnapshot?.(eventId);
+
+        // Trigger refresh
+        this.onRefresh();
+
+        return { success: true, updates };
+    }
+
+    /**
+     * Check if queue can be shifted/cascaded after deleting this event
+     * Returns true if there's a next event after this one
      */
     canShiftQueue(eventId: string): boolean {
         const events = this.queue.getAllEvents();
         const index = events.findIndex((e) => e.id === eventId);
+        return index !== -1 && index < events.length - 1;
+    }
 
-        if (index === -1 || index === events.length - 1) return false;
+    /**
+     * Delete event and cascade/optimize remaining queue from deleted event's start time
+     * Returns deleted ID and updates for all events that need to be shifted
+     */
+    cascadeDeleteAndOptimise(eventId: string): { deletedId: string; updates: Array<{ id: string; date: string; duration: number }> } {
+        const events = this.queue.getAllEvents();
+        const eventToDelete = events.find(e => e.id === eventId);
+        
+        if (!eventToDelete) {
+            return { deletedId: eventId, updates: [] };
+        }
 
-        const currentEvent = events[index];
-        const nextEvent = events[index + 1];
+        // Store the start time of the event being deleted
+        const deletedStartTimeMinutes = getMinutesFromISO(eventToDelete.eventData.date);
+        
+        console.log(`🔧 [QueueController.cascadeDeleteAndOptimise] Deleting ${eventId} at ${minutesToTime(deletedStartTimeMinutes)}, cascading queue...`);
 
-        const currentEndMinutes = getMinutesFromISO(currentEvent.eventData.date) + currentEvent.eventData.duration;
-        const nextStartMinutes = getMinutesFromISO(nextEvent.eventData.date);
+        // Remove event from queue
+        const updatedEvents = events.filter(e => e.id !== eventId);
+        this.queue.rebuildQueue(updatedEvents);
 
-        return currentEndMinutes === nextStartMinutes;
+        // Optimize remaining queue from the deleted event's start time
+        const { updates } = this.queue.optimiseFromTime(deletedStartTimeMinutes, this.settings.gapMinutes);
+
+        console.log(`✅ [QueueController.cascadeDeleteAndOptimise] ${updates.length} events will be shifted`);
+
+        return { deletedId: eventId, updates };
     }
 
     /**
      * Adjust event duration by stepDuration
      * increment: true = +stepDuration, false = -stepDuration
-     * Respects existing gaps - only cascades if next event is adjacent
+     * 
+     * Cascade behavior:
+     * - LOCKED: Always cascade to maintain linked list structure
+     * - UNLOCKED: Only cascade if events were already linked OR catching up to next event
      */
     adjustDuration(eventId: string, increment: boolean): void {
         const event = this.queue.getAllEvents().find((e) => e.id === eventId);
@@ -111,14 +399,26 @@ export class QueueController {
 
         const change = increment ? this.settings.stepDuration : -this.settings.stepDuration;
         const oldDuration = event.eventData.duration;
-        const oldEndMinutes = getMinutesFromISO(event.eventData.date) + oldDuration;
+
+        // Check if events were already linked BEFORE the change
+        let wasLinked = false;
+        if (event.next) {
+            const oldEndMinutes = getMinutesFromISO(event.eventData.date) + oldDuration;
+            const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
+            const oldGap = nextStartMinutes - oldEndMinutes;
+            wasLinked = oldGap === 0;
+        }
 
         event.eventData.duration = Math.max(30, event.eventData.duration + change);
         const actualChange = event.eventData.duration - oldDuration;
 
         if (actualChange !== 0 && event.next) {
+            const newEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
             const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
-            if (nextStartMinutes === oldEndMinutes) {
+            
+            // LOCKED: Always cascade to maintain linked list
+            // UNLOCKED: Only cascade if events were linked OR catching up/overlapping
+            if (this.isLocked() || wasLinked || newEndMinutes >= nextStartMinutes) {
                 this.cascadeTimeAdjustment(event.next, actualChange);
             }
         }
@@ -129,19 +429,35 @@ export class QueueController {
     /**
      * Adjust event time by stepDuration
      * increment: true = +stepDuration (later), false = -stepDuration (earlier)
-     * Respects existing gaps - only cascades if next event is adjacent
+     * 
+     * Cascade behavior:
+     * - LOCKED: Always cascade to maintain linked list structure
+     * - UNLOCKED: Only cascade if events were already linked OR catching up to next event
      */
     adjustTime(eventId: string, increment: boolean): void {
         const event = this.queue.getAllEvents().find((e) => e.id === eventId);
         if (!event) return;
 
         const change = increment ? this.settings.stepDuration : -this.settings.stepDuration;
-        const oldEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
+        
+        // Check if events were already linked BEFORE the change
+        let wasLinked = false;
+        if (event.next) {
+            const oldEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
+            const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
+            const oldGap = nextStartMinutes - oldEndMinutes;
+            wasLinked = oldGap === 0;
+        }
+
         this.updateEventDateTime(event, change);
+        const newEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
 
         if (event.next) {
             const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
-            if (nextStartMinutes === oldEndMinutes) {
+            
+            // LOCKED: Always cascade to maintain linked list
+            // UNLOCKED: Only cascade if events were linked OR catching up/overlapping
+            if (this.isLocked() || wasLinked || newEndMinutes >= nextStartMinutes) {
                 this.cascadeTimeAdjustment(event.next, change);
             }
         }
@@ -200,6 +516,7 @@ export class QueueController {
 
     /**
      * Move event forward in queue (earlier position)
+     * Swaps with previous event and recalculates times from that position
      */
     moveUp(eventId: string): void {
         const events = this.queue.getAllEvents();
@@ -210,16 +527,29 @@ export class QueueController {
         const newIndex = currentIndex - 1;
         const preservedStartTimeMinutes = getMinutesFromISO(events[newIndex].eventData.date);
 
+        // Swap events
         [events[currentIndex], events[newIndex]] = [events[newIndex], events[currentIndex]];
 
         this.queue.rebuildQueue(events);
-        this.recalculateStartTimesFromPosition(newIndex, preservedStartTimeMinutes);
+
+        // Recalculate from swapped position with proper gaps
+        const { updates } = this.queue.optimiseFromTime(preservedStartTimeMinutes, this.settings.gapMinutes);
+        
+        // Apply updates
+        updates.forEach(update => {
+            const event = events.find(e => e.id === update.id);
+            if (event) {
+                event.eventData.date = update.date;
+                event.eventData.duration = update.duration;
+            }
+        });
 
         this.onRefresh();
     }
 
     /**
      * Move event backward in queue (later position)
+     * Swaps with next event and recalculates times from that position
      */
     moveDown(eventId: string): void {
         const events = this.queue.getAllEvents();
@@ -230,10 +560,22 @@ export class QueueController {
         const newIndex = currentIndex + 1;
         const preservedStartTimeMinutes = getMinutesFromISO(events[currentIndex].eventData.date);
 
+        // Swap events
         [events[currentIndex], events[newIndex]] = [events[newIndex], events[currentIndex]];
 
         this.queue.rebuildQueue(events);
-        this.recalculateStartTimesFromPosition(currentIndex, preservedStartTimeMinutes);
+
+        // Recalculate from swapped position with proper gaps
+        const { updates } = this.queue.optimiseFromTime(preservedStartTimeMinutes, this.settings.gapMinutes);
+        
+        // Apply updates
+        updates.forEach(update => {
+            const event = events.find(e => e.id === update.id);
+            if (event) {
+                event.eventData.date = update.date;
+                event.eventData.duration = update.duration;
+            }
+        });
 
         this.onRefresh();
     }
@@ -287,12 +629,18 @@ export class QueueController {
         const previousEvent = events[currentIndex - 1];
         const previousEndTime = getMinutesFromISO(previousEvent.eventData.date) + previousEvent.eventData.duration;
         const currentStartTime = getMinutesFromISO(currentEvent.eventData.date);
-        const gapMinutes = currentStartTime - previousEndTime;
+        const actualGap = currentStartTime - previousEndTime;
 
         // Calculate offset to move event to match gap requirement
-        const gapOffset = this.settings.gapMinutes - gapMinutes;
+        const requiredGap = this.settings.gapMinutes;
+        const gapOffset = requiredGap - actualGap;
 
-        if (gapOffset <= 0) return;
+        console.log(`🔧 [QueueController.addGap] Event ${eventId}: actualGap=${actualGap}min, requiredGap=${requiredGap}min, adjusting by ${gapOffset}min`);
+
+        if (gapOffset <= 0) {
+            console.log(`⚠️ [QueueController.addGap] No adjustment needed (gap already sufficient)`);
+            return;
+        }
 
         this.updateEventDateTime(currentEvent, gapOffset);
 
@@ -332,26 +680,73 @@ export class QueueController {
     }
 
     /**
+     * Optimize entire queue with proper gaps
+     * Applies updates, re-sorts by time, rebuilds queue, and triggers refresh
+     */
+    optimiseQueue(): { count: number } {
+        const { updates } = this.queue.optimiseQueue(this.settings.gapMinutes);
+        
+        if (updates.length === 0) {
+            return { count: 0 };
+        }
+
+        console.log(`🔧 [QueueController.optimiseQueue] Applying ${updates.length} updates...`);
+
+        // Get all events and apply updates
+        const events = this.queue.getAllEvents();
+        
+        updates.forEach(update => {
+            const event = events.find(e => e.id === update.id);
+            if (event) {
+                event.eventData.date = update.date;
+                event.eventData.duration = update.duration;
+            }
+        });
+
+        // Re-sort events by start time to ensure correct order
+        events.sort((a, b) => {
+            const aMinutes = getMinutesFromISO(a.eventData.date);
+            const bMinutes = getMinutesFromISO(b.eventData.date);
+            return aMinutes - bMinutes;
+        });
+
+        // Rebuild queue with sorted events
+        this.queue.rebuildQueue(events);
+
+        console.log(`✅ [QueueController.optimiseQueue] Queue optimized and reordered`);
+
+        this.onRefresh();
+        return { count: updates.length };
+    }
+
+    /**
+     * Check if queue is optimized (all gaps match required gap)
+     */
+    isQueueOptimised(): boolean {
+        return this.queue.isQueueOptimised(this.settings.gapMinutes);
+    }
+
+    /**
      * Get controller settings (for gap requirement calculations)
      */
     getSettings(): ControllerSettings {
         return this.settings;
     }
 
-    getQueue(): TeacherQueue {
+    getQueue(): TeacherQueueV2 {
         return this.queue;
     }
 
     // ============ PRIVATE HELPERS ============
 
-    private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
+    private updateEventDateTime(eventNode: EventNodeV2, changeMinutes: number): void {
         const currentMinutes = getMinutesFromISO(eventNode.eventData.date);
         const newMinutes = currentMinutes + changeMinutes;
         const datePart = getDatePartFromISO(eventNode.eventData.date);
         eventNode.eventData.date = createISODateTime(datePart, minutesToTime(newMinutes));
     }
 
-    private cascadeTimeAdjustment(startNode: EventNode | null, changeMinutes: number): void {
+    private cascadeTimeAdjustment(startNode: EventNodeV2 | null, changeMinutes: number): void {
         let current = startNode;
         while (current) {
             this.updateEventDateTime(current, changeMinutes);

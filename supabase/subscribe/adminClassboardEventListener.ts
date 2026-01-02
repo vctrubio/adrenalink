@@ -2,18 +2,20 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { getClassboardBookings } from "@/actions/classboard-action";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
-    schoolId: string;
     onEventDetected: (data: ClassboardModel) => void;
 }
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 3000;
 
-export function useAdminClassboardEventListener({ schoolId, onEventDetected }: AdminClassboardEventListenerOptions) {
+export function useAdminClassboardEventListener({ onEventDetected }: AdminClassboardEventListenerOptions) {
+    const credentials = useSchoolCredentials();
+    const schoolId = credentials?.id || "";
     const retryCountRef = useRef(0);
     const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

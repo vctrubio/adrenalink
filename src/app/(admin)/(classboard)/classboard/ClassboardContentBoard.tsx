@@ -3,7 +3,6 @@
 import { useMemo, useCallback } from "react";
 import StudentClassDaily from "./StudentClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
-import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
 import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -13,7 +12,7 @@ interface ClassboardContentBoardProps {
     teacherQueues: TeacherQueueV2[];
     draggedBooking: DraggableBooking | null;
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
-    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>; // Main handler signature
+    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
 }
 
 export default function ClassboardContentBoard({
@@ -23,11 +22,8 @@ export default function ClassboardContentBoard({
     onSetDraggedBooking,
     onAddLessonEvent,
 }: ClassboardContentBoardProps) {
-    const { controller } = useClassboardContext();
-
-    console.log("📋 [ClassboardContentBoard] Rendering");
-    console.log("   - Bookings:", bookingsForSelectedDate.length);
-    console.log("   - Teacher queues:", teacherQueues.length);
+    console.log("📋 [ClassboardContentBoard] Rendering1234567890");
+ 
 
     // Wrapper for StudentBookingCard: converts (bookingId, lessonId) -> (lessonId, teacherId, capacityStudents)
     const handleAddLessonEventFromStudent = useCallback(

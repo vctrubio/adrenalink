@@ -1,13 +1,51 @@
 import type { PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
+import { CardList } from "@/src/components/ui/card/card-list";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
-import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
+import VerifiedIcon from "@/public/appSvgs/VerifiedIcon";
+import { ENTITY_DATA } from "@/config/entities";
+import { motion } from "framer-motion";
 
 interface PackageSummaryProps {
     packageFormData: PackageFormData;
 }
 
+const ProgressBar = ({ progress }: { progress: number }) => (
+    <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
+        <motion.div 
+            className={`h-full ${progress === 100 ? "bg-emerald-500" : "bg-primary"}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5, ease: "circOut" }}
+        />
+    </div>
+);
+
 export function PackageSummary({ packageFormData }: PackageSummaryProps) {
+    const isDescriptionComplete = !!packageFormData.description;
+    const isTypeComplete = !!packageFormData.packageType;
+    const isCapacityComplete = packageFormData.capacityStudents > 0;
+    const isDurationComplete = packageFormData.durationMinutes > 0;
+    const isPriceComplete = packageFormData.pricePerStudent >= 0;
+
+    // Calculate Progress
+    let progress = 0;
+    if (isDescriptionComplete) progress += 20;
+    if (isTypeComplete) progress += 20;
+    if (isCapacityComplete) progress += 20;
+    if (isDurationComplete) progress += 20;
+    if (isPriceComplete) progress += 20;
+
+    const packageColor = ENTITY_DATA.find(e => e.id === "schoolPackage")?.color || "#fb923c";
+
+    const StatusIcon = ({ isComplete }: { isComplete: boolean }) => (
+        isComplete 
+            ? <VerifiedIcon size={16} className="text-blue-500" /> 
+            : <AlertCircle size={14} className="text-amber-500/50" />
+    );
+
     const formatDuration = (minutes: number) => {
         if (minutes < 60) return `${minutes} minutes`;
         const hours = Math.floor(minutes / 60);
@@ -20,105 +58,95 @@ export function PackageSummary({ packageFormData }: PackageSummaryProps) {
         rental: "Rental",
     };
 
-    // Get the equipment category details
     const categoryConfig = EQUIPMENT_CATEGORIES.find(
         (cat) => cat.id === packageFormData.categoryEquipment
     );
     const CategoryIcon = categoryConfig?.icon;
 
-    return (
-        <div className="border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Package Summary</h3>
-
-            <div className="space-y-2">
-                <SummaryItem
-                    label="Description"
-                    value={packageFormData.description || null}
-                    placeholder="Enter package description"
-                    isRequired={true}
+    const fields = [
+        { 
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isDescriptionComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Description</span>
+                    <StatusIcon isComplete={isDescriptionComplete} />
+                </div>
+            ), 
+            value: packageFormData.description || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+        },
+        { 
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isTypeComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Type</span>
+                    <StatusIcon isComplete={isTypeComplete} />
+                </div>
+            ), 
+            value: packageFormData.packageType ? (
+                <span className="capitalize font-black text-primary">{typeLabels[packageFormData.packageType]}</span>
+            ) : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+        },
+        { 
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isCapacityComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Capacity</span>
+                    <StatusIcon isComplete={isCapacityComplete} />
+                </div>
+            ), 
+            value: isCapacityComplete && CategoryIcon ? (
+                <EquipmentStudentCapacityBadge
+                    categoryIcon={CategoryIcon}
+                    equipmentCapacity={packageFormData.capacityEquipment}
+                    studentCapacity={packageFormData.capacityStudents}
                 />
-
-                <SummaryItem
-                    label="Package Type"
-                    value={packageFormData.packageType ? typeLabels[packageFormData.packageType] : null}
-                    placeholder="Select package type"
-                    isRequired={true}
-                />
-
-                <SummaryItem
-                    label="Capacity"
-                    value={
-                        packageFormData.capacityStudents > 0 && packageFormData.capacityEquipment > 0 && CategoryIcon
-                            ? (
-                                <EquipmentStudentCapacityBadge
-                                    categoryIcon={CategoryIcon}
-                                    equipmentCapacity={packageFormData.capacityEquipment}
-                                    studentCapacity={packageFormData.capacityStudents}
-                                />
-                            )
-                            : null
-                    }
-                    placeholder="Set capacity limits"
-                    isRequired={true}
-                />
-
-                <SummaryItem
-                    label="Duration"
-                    value={packageFormData.durationMinutes > 0 ? formatDuration(packageFormData.durationMinutes) : null}
-                    placeholder="Set duration"
-                    isRequired={true}
-                />
-
-                <SummaryItem
-                    label="Price"
-                    value={packageFormData.pricePerStudent >= 0 ? `€${packageFormData.pricePerStudent}` : null}
-                    placeholder="Set price per student"
-                    isRequired={true}
-                />
-
-                <SummaryItem
-                    label="Visibility"
-                    value={packageFormData.isPublic ? "Public" : "Private"}
-                    placeholder="Set visibility"
-                    isRequired={true}
-                />
-            </div>
-        </div>
-    );
-}
-
-function SummaryItem({
-    label,
-    value,
-    placeholder,
-    isRequired = true,
-}: {
-    label: string;
-    value: string | React.ReactNode | null;
-    placeholder: string;
-    isRequired?: boolean;
-}) {
-    const isComplete = !!value;
-
-    // Use required colors only when data exists, otherwise use muted
-    const colors = isComplete
-        ? FORM_SUMMARY_COLORS.required
-        : FORM_SUMMARY_COLORS.muted;
-
-    return (
-        <div className={`p-3 rounded-lg border ${colors.bg} ${colors.border}`}>
-            <div className="text-xs text-muted-foreground mb-1">
-                {isComplete
-                    ? `✓ ${label}`
-                    : isRequired
-                        ? `⚠ ${label} Required`
-                        : `${label}`}
-            </div>
-            {isComplete ? (
-                <div className="text-sm">{value}</div>
+            ) : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+        },
+        { 
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isDurationComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Duration</span>
+                    <StatusIcon isComplete={isDurationComplete} />
+                </div>
+            ), 
+            value: isDurationComplete ? formatDuration(packageFormData.durationMinutes) : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+        },
+        { 
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isPriceComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Price</span>
+                    <StatusIcon isComplete={isPriceComplete} />
+                </div>
+            ), 
+            value: isPriceComplete ? (
+                <span className="font-mono font-black text-emerald-600">€{packageFormData.pricePerStudent}</span>
+            ) : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+        },
+        { 
+            label: "Visibility", 
+            value: packageFormData.isPublic ? (
+                <span className="flex items-center gap-1.5 text-blue-600 font-bold">
+                    <Eye size={14} /> Public
+                </span>
             ) : (
-                <div className="text-xs text-muted-foreground">{placeholder}</div>
-            )}
+                <span className="flex items-center gap-1.5 text-muted-foreground font-bold">
+                    <EyeOff size={14} /> Private
+                </span>
+            ) 
+        },
+    ];
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                    <div style={{ color: progress === 100 ? packageColor : undefined }} className={progress === 100 ? "" : "text-primary"}>
+                        <PackageIcon size={14} />
+                    </div>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Check-in Package</h3>
+                </div>
+                <ProgressBar progress={progress} />
+            </div>
+            <div className="bg-card border border-border/50 rounded-[2rem] p-5 shadow-sm">
+                <CardList fields={fields} />
+            </div>
         </div>
     );
 }

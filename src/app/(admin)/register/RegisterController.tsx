@@ -2,18 +2,29 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+import { 
+    ChevronDown, 
+    Check,
+    Target
+} from "lucide-react";
+
+import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import { SchoolHeader } from "./controller-sections/SchoolHeader";
-import { FormSelector } from "./controller-sections/FormSelector";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { useBookingForm, useStudentFormState, useTeacherFormState, usePackageFormState } from "./RegisterContext";
+import RegisterQueue from "./RegisterQueue";
+
 import { StudentSummary } from "./controller-sections/StudentSummary";
 import { TeacherSummary } from "./controller-sections/TeacherSummary";
 import { PackageSummary } from "./controller-sections/PackageSummary";
 import { BookingSummary } from "./controller-sections/BookingSummary";
 import { ControllerActions } from "./controller-sections/ControllerActions";
-import { useBookingForm, useStudentFormState, useTeacherFormState, usePackageFormState } from "./RegisterContext";
-import RegisterQueue from "./RegisterQueue";
 
 type FormType = "booking" | "student" | "package" | "teacher";
 
@@ -56,22 +67,38 @@ export default function RegisterController({
     isFormValid = false,
     referrals,
 }: RegisterControllerProps) {
+    const router = useRouter();
+    const { credentials } = useSchoolCredentials();
+    const bookingForm = useBookingForm();
+    
+    const displaySchool = credentials || school;
     const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
     const leaderDropdownRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
-    const bookingForm = useBookingForm();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Form state from context
     const { form: studentFormData } = useStudentFormState();
     const { form: teacherFormData } = useTeacherFormState();
     const { form: packageFormData } = usePackageFormState();
 
-    // Use context leader student change if not provided
+    const selectedLeaderStudent = selectedStudents.find((s) => s.id === leaderStudentId);
+    const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
+
     const handleLeaderStudentChange = (studentId: string) => {
         if (onLeaderStudentChange) {
             onLeaderStudentChange(studentId);
         } else {
             bookingForm.setForm({ leaderStudentId: studentId });
+        }
+    };
+
+    const handleActionSubmit = async () => {
+        if (submitHandler) {
+            setIsSubmitting(true);
+            try {
+                await submitHandler();
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -85,134 +112,147 @@ export default function RegisterController({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const selectedLeaderStudent = selectedStudents.find((s) => s.id === leaderStudentId);
-    const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
-
-    // Internal loading state for generic submissions
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Generic submit action
-    const handleActionSubmit = async () => {
-        if (submitHandler) {
-            setIsSubmitting(true);
-            try {
-                await submitHandler();
-            } finally {
-                setIsSubmitting(false);
-            }
-        }
-    };
+    const tabs = [
+        { id: "booking", label: "Booking", icon: BookingIcon, path: "/register" },
+        { id: "student", label: "Student", icon: HelmetIcon, path: "/register/student" },
+        { id: "package", label: "Package", icon: PackageIcon, path: "/register/package" },
+        { id: "teacher", label: "Teacher", icon: HeadsetIcon, path: "/register/teacher" },
+    ];
 
     const isActionLoading = loading || isSubmitting;
 
     return (
-        <div className={`bg-card ${isMobile ? "rounded-lg border border-border" : "lg:sticky lg:top-4"}`}>
-            <div className="p-6 space-y-6">
-                {/* School Header */}
-                <SchoolHeader school={school} />
-
-                {/* Form Selector */}
-                <FormSelector activeForm={activeForm} />
-
-                {/* Student Form Summary */}
-                {activeForm === "student" && studentFormData && (
-                    <div className="space-y-4">
-                        <StudentSummary studentFormData={studentFormData} />
-                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Student" resetLabel="Cancel" error={error} />
-                    </div>
-                )}
-
-                {/* Teacher Form Summary */}
-                {activeForm === "teacher" && teacherFormData && (
-                    <div className="space-y-4">
-                        <TeacherSummary teacherFormData={teacherFormData} />
-                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Teacher" resetLabel="Cancel" error={error} />
-                    </div>
-                )}
-
-                {/* Package Form Summary */}
-                {activeForm === "package" && packageFormData && (
-                    <div className="space-y-4">
-                        <PackageSummary packageFormData={packageFormData} />
-                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Package" resetLabel="Cancel" error={error} />
-                    </div>
-                )}
-
-                {/* Booking Form Summary */}
-                {activeForm === "booking" && (
-                    <div className="space-y-4">
-                        <BookingSummary
-                            dateRange={dateRange}
-                            selectedPackage={selectedPackage}
-                            selectedStudents={selectedStudents}
-                            selectedReferral={selectedReferral}
-                            selectedTeacher={selectedTeacher}
-                            selectedCommission={selectedCommission}
-                            hasReferrals={referrals && referrals.length > 0}
-                        />
-                        {selectedStudents.length > 0 && (
-                            <div className="border-t border-border pt-4">
-                                <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Leader</h3>
-                                <div ref={leaderDropdownRef} className="relative">
-                                    <button onClick={() => setIsLeaderDropdownOpen(!isLeaderDropdownOpen)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm">
-                                        <div className="flex items-center gap-2">
-                                            {leaderStudentName && (
-                                                <>
-                                                    <HelmetIcon size={16} />
-                                                    <span className="font-medium">{leaderStudentName}</span>
-                                                </>
-                                            )}
-                                            {!leaderStudentName && <span className="text-muted-foreground text-xs">Select leader student</span>}
-                                        </div>
-                                        <motion.div animate={{ rotate: isLeaderDropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                            <AdranlinkIcon className="w-4 h-4" />
-                                        </motion.div>
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {isLeaderDropdownOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.15 }}
-                                                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
-                                            >
-                                                {selectedStudents.map((student) => {
-                                                    const isActive = student.id === leaderStudentId;
-                                                    return (
-                                                        <button
-                                                            key={student.id}
-                                                            onClick={() => {
-                                                                handleLeaderStudentChange(student.id);
-                                                                setIsLeaderDropdownOpen(false);
-                                                            }}
-                                                            className={`w-full px-3 py-2 text-left text-sm transition-colors ${isActive ? "bg-muted font-medium" : "hover:bg-muted/50"}`}
-                                                        >
-                                                            {student.firstName} {student.lastName}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+        <div className={`flex flex-col gap-6 ${isMobile ? "" : "lg:sticky lg:top-6"}`}>
+            {/* 1. School Header Card */}
+            <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-sm relative group">
+                <div className="p-8 pb-10 bg-muted/20 border-b border-border relative overflow-hidden">
+                    <div className="flex items-start justify-between relative z-10">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-white border border-border flex items-center justify-center shadow-sm ring-4 ring-black/[0.02] overflow-hidden">
+                                <Image 
+                                    src="/ADR.webp" 
+                                    alt="School Logo" 
+                                    width={56} 
+                                    height={56} 
+                                    className="object-cover"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <h2 className="text-3xl font-black tracking-tighter text-foreground uppercase leading-none">
+                                    {displaySchool.name}
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                                        @{displaySchool.username}
+                                    </span>
+                                    <div className="w-1 h-1 rounded-full bg-border" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                                        {displaySchool.currency || "EUR"}
+                                    </span>
                                 </div>
                             </div>
-                        )}
-                        <ControllerActions
-                            onSubmit={handleActionSubmit}
-                            onReset={onReset}
-                            loading={isActionLoading}
-                            canSubmit={isFormValid}
-                            submitLabel={selectedTeacher && selectedCommission ? "Create Booking with Lesson" : "Create Booking"}
-                            resetLabel="Reset"
-                            error={error}
-                        />
+                        </div>
                     </div>
-                )}
+                    
+                    {/* Background Brand Watermark */}
+                    <AdranlinkIcon className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.03] text-primary rotate-12 pointer-events-none" />
+                </div>
 
-                {/* Queue - Always show below everything */}
-                <RegisterQueue />
+                {/* 2. Navigation Tabs */}
+                <div className="px-6 -mt-6">
+                    <div className="bg-card border border-border p-1.5 rounded-3xl shadow-lg flex items-center gap-1 relative z-20">
+                        {tabs.map((tab) => {
+                            const isActive = activeForm === tab.id;
+                            const Icon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => router.push(tab.path)}
+                                    className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all duration-300 relative ${
+                                        isActive 
+                                        ? "text-primary" 
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    }`}
+                                >
+                                    {isActive && (
+                                        <motion.div 
+                                            layoutId="activeTab"
+                                            className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-2xl"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                    <Icon size={18} className="relative z-10" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest relative z-10">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. Content Area */}
+                <div className="p-8 pt-10 space-y-8">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeForm}
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <div className="space-y-6">
+                                {activeForm === "student" && studentFormData && (
+                                    <>
+                                        <StudentSummary studentFormData={studentFormData} />
+                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Register Student" resetLabel="Clear Form" error={error} />
+                                    </>
+                                )}
+
+                                {activeForm === "teacher" && teacherFormData && (
+                                    <>
+                                        <TeacherSummary teacherFormData={teacherFormData} />
+                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Register Teacher" resetLabel="Clear Form" error={error} />
+                                    </>
+                                )}
+
+                                {activeForm === "package" && packageFormData && (
+                                    <>
+                                        <PackageSummary packageFormData={packageFormData} />
+                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Package" resetLabel="Clear Form" error={error} />
+                                    </>
+                                )}
+
+                                {activeForm === "booking" && (
+                                    <div className="space-y-8">
+                                        <BookingSummary
+                                            dateRange={dateRange}
+                                            selectedPackage={selectedPackage}
+                                            selectedStudents={selectedStudents}
+                                            selectedReferral={selectedReferral}
+                                            selectedTeacher={selectedTeacher}
+                                            selectedCommission={selectedCommission}
+                                            hasReferrals={referrals && referrals.length > 0}
+                                            leaderStudentId={leaderStudentId}
+                                            onLeaderStudentChange={handleLeaderStudentChange}
+                                        />
+
+                                        <ControllerActions
+                                            onSubmit={handleActionSubmit}
+                                            onReset={onReset}
+                                            loading={isActionLoading}
+                                            canSubmit={isFormValid}
+                                            submitLabel={selectedTeacher && selectedCommission ? "Register Lesson" : "Register Booking"}
+                                            resetLabel="Reset All"
+                                            error={error}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+
+                    {/* Static Queue Section */}
+                    <RegisterQueue />
+                </div>
             </div>
         </div>
     );

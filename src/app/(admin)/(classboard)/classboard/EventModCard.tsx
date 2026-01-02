@@ -1,29 +1,29 @@
-"use client";
+// "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin, Plus, Minus } from "lucide-react";
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
-import { getTimeFromISO, timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import { getTimeFromISO, timeToMinutes, minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
+import type { EventNodeV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import type { QueueController as QueueControllerType } from "@/src/app/(admin)/(classboard)/QueueController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import EventGapDetection from "./EventGapDetection";
-import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 interface EventModCardProps {
     eventId: string;
-    queueController: QueueController;
+    queueController: QueueControllerType;
     onDelete?: () => void;
 }
 
 // Sub-components
 
-const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueController; onDelete?: () => void }) => {
+const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNodeV2; eventId: string; queueController: QueueControllerType; onDelete?: () => void }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
@@ -31,15 +31,21 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDel
 
         setIsDeleting(true);
         try {
-            const result = await deleteClassboardEvent(eventId);
+            console.log(`🗑️ [EventModCard] Deleting event ${eventId}`);
+
+            // Use QueueController's deleteEvent method - it handles both modes
+            const result = await queueController.deleteEvent(
+                eventId,
+                deleteClassboardEvent,
+                onDelete // This will remove from snapshot
+            );
 
             if (!result.success) {
                 setIsDeleting(false);
                 return;
             }
 
-            // Notify parent to remove from UI
-            onDelete?.();
+            console.log(`✅ [EventModCard] Event deleted, ${result.updates.length} events updated`);
         } catch (error) {
             console.error("Error deleting event:", error);
             setIsDeleting(false);
@@ -70,7 +76,7 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDel
     );
 };
 
-const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueController }) => {
+const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNodeV2; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueControllerType }) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const startMinutes = timeToMinutes(startTime);
     const endTime = minutesToTime(startMinutes + event.eventData.duration);
@@ -115,7 +121,7 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
     );
 };
 
-const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueController }) => {
+const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueControllerType }) => {
     const handleDurationAdjustment = (increment: boolean) => {
         const controller = queueController.getSettings();
 
@@ -161,7 +167,7 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     );
 };
 
-const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueController }) => {
+const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueControllerType }) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -221,13 +227,8 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
 };
 
 export default function EventModCard({ eventId, queueController, onDelete }: EventModCardProps) {
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const handleRefresh = useCallback(() => {
-        setRefreshKey((prev) => prev + 1);
-    }, []);
-
-    const cardProps = queueController.getEventModCardProps(eventId);
+    // Use the passed queueController directly - it already has the parent's refresh callback
+    const cardProps = queueController?.getEventModCardProps(eventId);
 
     if (!cardProps || !eventId) {
         return null;
@@ -235,8 +236,8 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
 
     const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
 
-    let previousEvent: EventNode | undefined;
-    const queue = queueController.getQueue();
+    let previousEvent: EventNodeV2 | undefined;
+    const queue = queueController?.getQueue();
     if (queue && eventId) {
         const allEvents = queue.getAllEvents();
         const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
@@ -245,12 +246,14 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
         }
     }
 
+    // TODO: Get total events duration for this lesson (booking data access needed)
+
     return (
         <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">
             {/* Header: Student & Controls */}
             <div className="flex items-center justify-between px-4 py-1 border-b border-border/50 bg-muted/10">
                 <div className="scale-90 origin-left">
-                    <LeaderStudent leaderStudentName={event.leaderStudentName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
+                    <LeaderStudent leaderStudentName={event.bookingLeaderName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
                 </div>
                 <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} onDelete={onDelete} />
             </div>
@@ -264,8 +267,19 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
                         requiredGapMinutes={queueController.getSettings().gapMinutes || 0}
                         updateMode="updateOnSave"
                         onGapAdjust={() => {
-                            queueController.addGap(eventId);
-                            handleRefresh();
+                            // Calculate actual gap and decide whether to add or remove
+                            const prevEndMinutes = getMinutesFromISO(previousEvent.eventData.date) + previousEvent.eventData.duration;
+                            const currStartMinutes = getMinutesFromISO(event.eventData.date);
+                            const actualGap = currStartMinutes - prevEndMinutes;
+                            const requiredGap = queueController.getSettings().gapMinutes || 0;
+
+                            if (actualGap < requiredGap) {
+                                // Gap too small - move event later to add gap
+                                queueController.addGap(eventId);
+                            } else if (actualGap > requiredGap) {
+                                // Gap too large - move event earlier to remove gap
+                                queueController.removeGap(eventId);
+                            }
                         }}
                         wrapperClassName="absolute top-1 left-4 right-0 flex justify-start pointer-events-none z-20"
                         className="w-auto shadow-sm"
@@ -279,7 +293,6 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
             {/* Footer: Location & Meta */}
             <div className="px-4 py-2 flex items-end justify-between">
                 <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
-                <RemainingTimeControl durationMinutes={event.packageData.durationMinutes} eventDuration={event.eventData.duration} />
             </div>
         </div>
     );

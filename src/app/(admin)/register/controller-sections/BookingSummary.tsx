@@ -1,11 +1,15 @@
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { DateRangeBadge, TeacherCommissionBadge, ReferralCommissionBadge } from "@/src/components/ui/badge";
+import { CardList } from "@/src/components/ui/card/card-list";
+import { ENTITY_DATA } from "@/config/entities";
+import { Check, ChevronDown } from "lucide-react";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import LinkIcon from "@/public/appSvgs/LinkIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { EquipmentStudentCapacityBadge, DateRangeBadge, TeacherCommissionBadge, ReferralCommissionBadge } from "@/src/components/ui/badge";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 interface BookingSummaryProps {
     dateRange: { startDate: string; endDate: string };
@@ -15,163 +19,223 @@ interface BookingSummaryProps {
     selectedTeacher: any;
     selectedCommission: any;
     hasReferrals?: boolean;
+    leaderStudentId?: string;
+    onLeaderStudentChange?: (id: string) => void;
 }
 
-export function BookingSummary({ dateRange, selectedPackage, selectedStudents, selectedReferral, selectedTeacher, selectedCommission, hasReferrals = true }: BookingSummaryProps) {
-    const hasDates = dateRange.startDate && dateRange.endDate;
+export function BookingSummary({
+    dateRange,
+    selectedPackage,
+    selectedStudents,
+    selectedReferral,
+    selectedTeacher,
+    selectedCommission,
+    hasReferrals = true,
+    leaderStudentId,
+    onLeaderStudentChange
+}: BookingSummaryProps) {
+    const [isLeaderOpen, setIsLeaderOpen] = useState(false);
+    const leaderRef = useRef<HTMLDivElement>(null);
+
+    const hasDates = !!(dateRange.startDate && dateRange.endDate);
     const hasPackage = !!selectedPackage;
-    const hasStudents = selectedStudents.length > 0;
     const hasCorrectStudentCount = selectedPackage && selectedStudents.length === selectedPackage.capacityStudents;
-    const hasReferral = !!selectedReferral;
-    const hasTeacher = !!selectedTeacher;
-    const hasCommission = !!selectedCommission;
+    
+    // Calculate Progress
+    let progress = 0;
+    if (hasDates) progress += 33;
+    if (hasPackage) progress += 33;
+    if (hasCorrectStudentCount) progress += 34;
 
-    return (
-        <div className="border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Summary</h3>
+    const bookingColor = ENTITY_DATA.find(e => e.id === "booking")?.color || "#3b82f6";
+    const packageColor = ENTITY_DATA.find(e => e.id === "schoolPackage")?.color || "#fb923c";
+    const studentColor = ENTITY_DATA.find(e => e.id === "student")?.color || "#eab308";
+    const teacherColor = ENTITY_DATA.find(e => e.id === "teacher")?.color || "#22c55e";
+    const referralColor = ENTITY_DATA.find(e => e.id === "referral")?.color || "#171717";
 
-            <div className="space-y-2">
-                {/* Dates */}
-                <div
-                    className={`w-full text-left p-3 rounded-lg border ${hasDates ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-muted/30 border-border"}`}
-                >
-                    <div className="flex items-center gap-2 mb-1">
-                        <BookingIcon size={16} color={hasDates ? "#22c55e" : "#9ca3af"} />
-                        <span className="text-xs font-medium" style={{ color: hasDates ? "#22c55e" : "#6b7280" }}>
-                            Dates {hasDates ? "" : "Required"}
-                        </span>
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (leaderRef.current && !leaderRef.current.contains(event.target as Node)) {
+                setIsLeaderOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const leaderStudent = selectedStudents.find(s => s.id === leaderStudentId);
+
+    const bookingFields = [
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <div style={{ color: hasDates ? bookingColor : undefined }} className={hasDates ? "" : "text-muted-foreground"}>
+                        <BookingIcon size={16} />
                     </div>
-                    {hasDates ? (
-                        <div className="flex items-center gap-2">
-                            <DateRangeBadge startDate={dateRange.startDate} endDate={dateRange.endDate} />
-                        </div>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">Select start and end dates</div>
-                    )}
+                    <span className={hasDates ? "text-foreground font-bold tracking-tight" : "text-muted-foreground font-medium"}>DATES</span>
                 </div>
-
-                {/* Package */}
-                <div
-                    className={`w-full text-left p-3 rounded-lg border ${hasPackage ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-muted/30 border-border"}`}
-                >
-                    <div className="flex items-center gap-2 mb-1">
-                        <PackageIcon size={16} color={hasPackage ? "#22c55e" : "#9ca3af"} />
-                        <span className="text-xs font-medium" style={{ color: hasPackage ? "#22c55e" : "#6b7280" }}>
-                            Package {hasPackage ? "" : "Required"}
-                        </span>
+            ),
+            value: hasDates ? (
+                <DateRangeBadge startDate={dateRange.startDate} endDate={dateRange.endDate} />
+            ) : <span className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Select Dates</span>
+        },
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <div style={{ color: hasPackage ? packageColor : undefined }} className={hasPackage ? "" : "text-muted-foreground"}>
+                        <PackageIcon size={16} />
                     </div>
-                    {hasPackage ? (
-                        <>
-                            <div className="text-sm font-medium">{selectedPackage.description}</div>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                {(() => {
-                                    const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === selectedPackage.categoryEquipment);
-                                    const EquipmentIcon = equipmentConfig?.icon;
-                                    return EquipmentIcon ? <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={selectedPackage.capacityEquipment} studentCapacity={selectedPackage.capacityStudents} /> : null;
-                                })()}
-                                <span className="text-foreground font-medium">{parseFloat(selectedPackage.pricePerStudent).toFixed(2)}</span>
-                                <span className="text-foreground">×</span>
-                                {selectedPackage.capacityStudents > 1 && (
-                                    <>
-                                        <span className="text-foreground font-medium">{selectedPackage.capacityStudents}p</span>
-                                        <span className="text-foreground">×</span>
-                                    </>
-                                )}
-                                <span className="text-foreground font-medium">{(selectedPackage.durationMinutes / 60).toFixed(2)}h</span>
-                                <span className="text-foreground">=</span>
-                                <span className="text-foreground font-medium">{(selectedPackage.pricePerStudent * selectedPackage.capacityStudents * (selectedPackage.durationMinutes / 60)).toFixed(2)}</span>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">Select a package</div>
-                    )}
+                    <span className={hasPackage ? "text-foreground font-bold tracking-tight" : "text-muted-foreground font-medium"}>PACKAGE</span>
                 </div>
-
-                {/* Students */}
-                <div
-                    className={`w-full text-left p-3 rounded-lg border ${hasCorrectStudentCount ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : hasStudents ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800" : "bg-muted/30 border-border"
-                        }`}
-                >
-                    <div className="flex items-center gap-2 mb-1">
-                        <HelmetIcon size={16} color={hasCorrectStudentCount ? "#22c55e" : hasStudents ? "#ca8a04" : "#9ca3af"} />
-                        <span className="text-xs font-medium" style={{ color: hasCorrectStudentCount ? "#22c55e" : hasStudents ? "#b45309" : "#6b7280" }}>
-                            Students {hasCorrectStudentCount ? "" : hasStudents ? `(${selectedStudents.length})` : "Required"}
-                        </span>
-                    </div>
-                    {hasStudents ? (
-                        <div className="text-sm space-y-1">
-                            {selectedStudents.map((student) => (
-                                <div key={student.id}>
-                                    {student.firstName} {student.lastName}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">{hasPackage ? `Select ${selectedPackage.capacityStudents} student${selectedPackage.capacityStudents > 1 ? "s" : ""}` : "Select package first"}</div>
-                    )}
+            ),
+            value: hasPackage ? (
+                <div className="flex flex-col items-end gap-2">
+                    <span className="font-bold text-sm text-foreground leading-none">{selectedPackage.description}</span>
+                    <EquipmentStudentPackagePriceBadge 
+                        categoryEquipment={selectedPackage.categoryEquipment}
+                        equipmentCapacity={selectedPackage.capacityEquipment}
+                        studentCapacity={selectedPackage.capacityStudents}
+                        packageDurationHours={selectedPackage.durationMinutes / 60}
+                        pricePerHour={selectedPackage.pricePerStudent / (selectedPackage.durationMinutes / 60)}
+                    />
                 </div>
-
-                {/* Teacher */}
-                <div
-                    className={`w-full text-left p-3 rounded-lg border ${hasTeacher ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        }`}
-                >
-                    <div className="flex items-center gap-2 mb-1">
-                        <HeadsetIcon size={16} color={hasTeacher ? "#22c55e" : "#9ca3af"} />
-                        <span className="text-xs font-medium" style={{ color: hasTeacher ? "#22c55e" : "#6b7280" }}>
-                            Teacher {hasTeacher ? "(Lesson)" : "(Optional)"}
-                        </span>
+            ) : <span className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Select Package</span>
+        },
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <div style={{ color: hasCorrectStudentCount ? studentColor : undefined }} className={hasCorrectStudentCount ? "" : "text-muted-foreground"}>
+                        <HelmetIcon size={16} />
                     </div>
-                    {hasTeacher ? (
-                        <>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                    {selectedTeacher.firstName} {selectedTeacher.lastName}
+                    <span className={hasCorrectStudentCount ? "text-foreground font-bold tracking-tight" : "text-muted-foreground font-medium"}>STUDENTS</span>
+                </div>
+            ),
+            value: selectedStudents.length > 0 ? (
+                <div className="flex flex-col items-end min-w-[200px]" ref={leaderRef}>
+                    <div className="flex items-center justify-end gap-2">
+                        {/* 1/1 Format and Leader Name */}
+                        <div className="flex items-center gap-2 font-bold text-sm text-foreground">
+                            {hasPackage && (
+                                <span className="tabular-nums text-muted-foreground/60 font-medium">
+                                    {selectedStudents.length}/{selectedPackage.capacityStudents}
                                 </span>
-                                {hasCommission && <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="text-xs text-muted-foreground">Skip to create booking without lesson</div>
-                    )}
-                </div>
-
-                {/* Referral */}
-                {hasReferrals && (
-                    <div
-                        className={`w-full text-left p-3 rounded-lg border ${hasReferral ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                            }`}
-                    >
-                        <div className="flex items-center gap-2 mb-1">
-                            <LinkIcon size={16} color={hasReferral ? "#22c55e" : "#9ca3af"} />
-                            <span className="text-xs font-medium" style={{ color: hasReferral ? "#22c55e" : "#6b7280" }}>
-                                Referral {hasReferral ? "" : "(Optional)"}
-                            </span>
+                            )}
+                            {leaderStudent && (
+                                <span className="capitalize">
+                                    {leaderStudent.firstName}
+                                </span>
+                            )}
                         </div>
-                        {hasReferral ? (
-                            <>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium">{selectedReferral.code}</span>
-                                    <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
-                                </div>
-                                {selectedReferral.description && <div className="text-xs text-muted-foreground">{selectedReferral.description}</div>}
-                            </>
-                        ) : (
-                            <div className="text-xs text-muted-foreground">Skip to book without referral</div>
+
+                        {/* Standard Dropdown Toggle */}
+                        {selectedStudents.length > 1 && (
+                            <button 
+                                onClick={() => setIsLeaderOpen(!isLeaderOpen)}
+                                className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground"
+                            >
+                                <ChevronDown size={14} className={`transition-transform duration-200 ${isLeaderOpen ? "rotate-180" : ""}`} />
+                            </button>
                         )}
                     </div>
-                )}
+                    
+                    {/* Dropdown Pick */}
+                    <AnimatePresence>
+                        {isLeaderOpen && selectedStudents.length > 1 && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                                className="absolute right-0 mt-8 bg-popover border border-border rounded-xl shadow-2xl z-[100] py-1.5 min-w-[140px] overflow-hidden"
+                            >
+                                {selectedStudents.map(s => (
+                                    <button 
+                                        key={s.id}
+                                        onClick={() => {
+                                            onLeaderStudentChange?.(s.id);
+                                            setIsLeaderOpen(false);
+                                        }}
+                                        className={`w-full px-3 py-2 text-right text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-between hover:bg-muted ${
+                                            leaderStudentId === s.id ? "text-primary bg-primary/5" : "text-muted-foreground"
+                                        }`}
+                                    >
+                                        {leaderStudentId === s.id && <Check size={12} strokeWidth={3} />}
+                                        <span className="flex-1">{s.firstName}</span>
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            ) : <span className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Add Students</span>
+        }
+    ];
 
-                {/* Commission */}
-                {hasTeacher && !hasCommission && (
-                    <div className="w-full text-left p-3 rounded-lg border bg-muted/30 border-border">
-                        <div className="flex items-center gap-2 mb-1">
-                            <HandshakeIcon size={16} color="#9ca3af" />
-                            <span className="text-xs font-medium text-muted-foreground">Commission Required</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">Select teacher commission</div>
+    const additionalFields = [
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <div style={{ color: !!selectedTeacher ? teacherColor : undefined }} className={!!selectedTeacher ? "" : "text-muted-foreground"}>
+                        <HeadsetIcon size={16} />
                     </div>
-                )}
+                    <span className={!!selectedTeacher ? "text-foreground font-bold tracking-tight" : "text-muted-foreground font-medium"}>INSTRUCTOR</span>
+                </div>
+            ),
+            value: selectedTeacher ? (
+                <div className="flex flex-col items-end gap-1">
+                    <span className="font-bold text-sm text-foreground">{selectedTeacher.firstName} {selectedTeacher.lastName}</span>
+                    {selectedCommission && (
+                        <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />
+                    )}
+                </div>
+            ) : <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest italic">Optional</span>
+        }
+    ];
+
+    if (hasReferrals && selectedReferral) {
+        additionalFields.push({
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <div style={{ color: referralColor }} className="">
+                        <LinkIcon size={16} />
+                    </div>
+                    <span className="text-foreground font-bold tracking-tight">REFERRAL</span>
+                </div>
+            ),
+            value: (
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-foreground">{selectedReferral.code}</span>
+                    <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
+                </div>
+            )
+        });
+    }
+
+    const allFields = [...bookingFields, ...additionalFields];
+    const teacherEntityColor = ENTITY_DATA.find(e => e.id === "teacher")?.color || "#22c55e";
+    const progressBarColor = selectedTeacher ? teacherEntityColor : undefined;
+    const progressClass = selectedTeacher ? "" : "bg-secondary";
+
+    return (
+        <div className="space-y-6">
+            <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                        <BookingIcon size={14} className="text-primary" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Check-in Booking</h3>
+                    </div>
+                    <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
+                        <motion.div 
+                            className={`h-full ${progressClass}`}
+                            style={{ backgroundColor: progressBarColor }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.5, ease: "circOut" }}
+                        />
+                    </div>
+                </div>
+                <div className="bg-card border border-border/50 rounded-[2rem] p-5 shadow-sm">
+                    <CardList fields={allFields} />
+                </div>
             </div>
         </div>
     );

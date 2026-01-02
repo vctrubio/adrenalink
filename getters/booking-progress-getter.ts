@@ -1,5 +1,5 @@
 import { EVENT_STATUS_CONFIG } from "@/types/status";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardLesson, ClassboardData } from "@/backend/models/ClassboardModel";
 
 const EMPTY_COLOR = "#374151";
 
@@ -32,4 +32,18 @@ export function getBookingProgressBar(lessons: ClassboardLesson[], totalMinutes:
         plannedEnd,
         tbcEnd,
     };
+}
+
+/**
+ * Get total duration of all events for a specific lesson across all bookings
+ * Used to calculate remaining package time vs used time
+ */
+export function getTotalEventsDurationForLesson(bookingsData: ClassboardData[], lessonId: string): number {
+    for (const bookingData of bookingsData) {
+        const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+        if (lesson && lesson.events) {
+            return lesson.events.reduce((sum, e) => sum + e.duration, 0);
+        }
+    }
+    return 0;
 }

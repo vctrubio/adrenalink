@@ -1,24 +1,21 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import toast from "react-hot-toast";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { useBookingsForSelectedDate } from "@/src/hooks/useBookingsForSelectedDate";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
+import { useClassboardQueues } from "./classboard/useAddLessonEvent";
 import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
 import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
-import { TeacherQueueV2, type EventNodeV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { isDateInRange } from "@/getters/date-getter";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getClassboardBookings } from "@/actions/classboard-action";
-import { createClassboardEvent } from "@/actions/classboard-action";
 
 interface ClientClassboardProps {
     data: ClassboardModel;
@@ -55,14 +52,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // CONTEXT DATA - From providers
     // ============================================
     const { teachers: allSchoolTeachers, error: teachersError } = useSchoolTeachers();
-    const credentials = useSchoolCredentials();
-
-    // Get school ID from credentials for subscriptions
-    const schoolId = credentials?.id || "";
 
     console.log("👥 [ClientClassboard] Teachers loaded:", allSchoolTeachers.length);
-    console.log("🏫 [ClientClassboard] School:", credentials?.username);
-    console.log("🆔 [ClientClassboard] School ID:", schoolId);
 
     // ============================================
     // REAL-TIME SUBSCRIPTIONS
@@ -114,12 +105,10 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     }, []);
 
     useAdminClassboardEventListener({
-        schoolId,
         onEventDetected: handleEventDetected,
     });
 
     useAdminClassboardBookingListener({
-        schoolId,
         onNewBooking: handleNewBookingDetected,
     });
 
@@ -130,72 +119,8 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // Step 1: Filter bookings by selected date (single source of truth)
     const bookingsForSelectedDate = useBookingsForSelectedDate(classboardData, selectedDate);
 
-    // Step 2: Create teacher queues directly using TeacherQueueV2 class
-    const teacherQueues = useMemo(() => {
-        const queues = new Map<string, TeacherQueueV2>();
-
-        // 1. Initialize queues for all active teachers
-        const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
-        activeTeachers.forEach((teacher) => {
-            queues.set(
-                teacher.schema.id,
-                new TeacherQueueV2({
-                    id: teacher.schema.id,
-                    username: teacher.schema.username,
-                }),
-            );
-        });
-
-        // 2. Add existing events from bookings to queues
-        bookingsForSelectedDate.forEach((booking) => {
-            booking.lessons.forEach((lesson) => {
-                const teacherId = lesson.teacher?.id;
-                if (!teacherId) return;
-
-                const queue = queues.get(teacherId);
-                if (!queue) return;
-
-                // Construct events in queue from database records
-                (lesson.events || []).forEach((event) => {
-                    const eventNode: EventNodeV2 = {
-                        id: event.id,
-                        lessonId: lesson.id,
-                        bookingId: booking.booking.id,
-                        bookingLeaderName: booking.booking.leaderStudentName,
-                        bookingStudents: booking.bookingStudents.map((bs) => ({
-                            id: bs.student.id,
-                            firstName: bs.student.firstName,
-                            lastName: bs.student.lastName,
-                            passport: bs.student.passport,
-                            country: bs.student.country,
-                            phone: bs.student.phone,
-                        })),
-                        capacityStudents: booking.schoolPackage.capacityStudents,
-                        pricePerStudent: booking.schoolPackage.pricePerStudent,
-                        categoryEquipment: booking.schoolPackage.categoryEquipment,
-                        capacityEquipment: booking.schoolPackage.capacityEquipment,
-                        commission: {
-                            type: lesson.commission.type,
-                            cph: parseFloat(lesson.commission.cph),
-                        },
-                        eventData: {
-                            date: event.date,
-                            duration: event.duration,
-                            location: event.location,
-                            status: event.status,
-                        },
-                        next: null,
-                    };
-                    queue.constructEvents(eventNode);
-                });
-            });
-        });
-
-        // Return queues in order of allSchoolTeachers (which are already sorted)
-        return activeTeachers
-            .map((teacher) => queues.get(teacher.schema.id))
-            .filter((queue) => queue !== undefined) as TeacherQueueV2[];
-    }, [allSchoolTeachers, bookingsForSelectedDate, controller]);
+    // Step 2: Build teacher queues and get event handler (consolidated)
+    const { teacherQueues, handleAddLessonEvent } = useClassboardQueues(allSchoolTeachers, bookingsForSelectedDate);
 
     // Step 3: Calculate statistics
     const stats = useMemo(() => {
@@ -209,68 +134,6 @@ export default function ClientClassboard({ data }: ClientClassboardProps) {
     // ============================================
     // EVENT HANDLERS
     // ============================================
-
-    // Add event to teacher queue
-    const handleAddLessonEvent = useCallback(
-        async (lessonId: string, teacherId: string, capacityStudents: number) => {
-            console.log("➕ [ClientClassboard] Adding event for lesson:", lessonId);
-            console.log("   - teacherId:", teacherId);
-            console.log("   - capacityStudents:", capacityStudents);
-            console.log("   - Available teacher queues:", teacherQueues.map((q) => ({ id: q.teacher.id, username: q.teacher.username })));
-
-            try {
-                // Find queue for this teacher
-                const queue = teacherQueues.find((q) => q.teacher.id === teacherId);
-                if (!queue) {
-                    console.error("❌ [ClientClassboard] Teacher not found in queues. teacherId:", teacherId);
-                    toast.error("Teacher not on board - cannot add lesson");
-                    return;
-                }
-                console.log("✅ [ClientClassboard] Found teacher queue:", queue.teacher.username);
-
-                // Calculate duration based on capacity
-                let duration: number;
-                if (capacityStudents === 1) {
-                    duration = controller.durationCapOne;
-                } else if (capacityStudents === 2) {
-                    duration = controller.durationCapTwo;
-                } else {
-                    duration = controller.durationCapThree;
-                }
-
-                // Get next available slot from queue
-                const slotTime = queue.getNextAvailableSlot(
-                    controller.submitTime,
-                    duration,
-                    controller.gapMinutes,
-                );
-
-                console.log("📍 [ClientClassboard] Next available slot:", slotTime);
-
-                // Prepare event creation data
-                const eventDate = `${selectedDate}T${slotTime}:00`;
-
-                console.log("📋 [ClientClassboard] Event data prepared:");
-                console.log("   - lessonId:", lessonId);
-                console.log("   - eventDate:", eventDate);
-                console.log("   - duration:", duration);
-                console.log("   - location:", controller.location);
-
-                // Create the event via server action
-                const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
-                if (!result.success) {
-                    console.error("❌ [ClientClassboard] Server action failed:", result.error);
-                    return;
-                }
-
-                console.log("✅ [ClientClassboard] Event created, subscription will sync");
-
-            } catch (error) {
-                console.error("❌ [ClientClassboard] Error adding event:", error);
-            }
-        },
-        [selectedDate, teacherQueues, controller],
-    );
 
     // ============================================
     // RENDER

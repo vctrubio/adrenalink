@@ -46,7 +46,7 @@ export function EventStatusLabel({
         })),
         ...(canShiftQueue ? [{ 
             id: "delete-cascade", 
-            label: isDeleting ? "Deleting..." : "Delete & Shift Queue", 
+            label: isDeleting ? "Deleting..." : "Delete & Optimize", 
             icon: Trash2, 
             color: "#ef4444", 
             onClick: () => {

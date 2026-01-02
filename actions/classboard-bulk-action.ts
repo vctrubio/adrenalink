@@ -28,13 +28,22 @@ export async function bulkUpdateClassboardEvents(
             console.log(`📝 [classboard-bulk-action] Updating ${updates.length} events with new dates, durations, and/or locations`);
 
             for (const update of updates) {
-                const updateData: Record<string, any> = {
-                    date: new Date(update.date),
-                    duration: update.duration,
-                };
+                const updateData: Record<string, any> = {};
 
+                // Only update fields that are provided (changed)
+                if (update.date !== undefined) {
+                    updateData.date = new Date(update.date);
+                }
+                if (update.duration !== undefined) {
+                    updateData.duration = update.duration;
+                }
                 if (update.location !== undefined) {
                     updateData.location = update.location;
+                }
+
+                // Skip if no fields to update
+                if (Object.keys(updateData).length === 0) {
+                    continue;
                 }
 
                 const result = await db

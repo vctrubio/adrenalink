@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import EventCard from "./EventCard";
+import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
-import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
-import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import type { TeacherQueueV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { GlobalFlag } from "@/backend/models/GlobalFlag";
+import { useTeacherQueue } from "./useTeacherQueue";
+import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
+import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 // Muted green - softer than entity color
@@ -20,10 +20,6 @@ interface TeacherClassDailyProps {
     teacherQueues: TeacherQueueV2[];
     draggedBooking?: DraggableBooking | null;
     onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
-    isAdjustmentMode?: boolean;
-    globalFlag?: GlobalFlag;
-    onCloseAdjustmentMode?: () => void;
-    onRefresh?: () => void;
 }
 
 type TeacherFilter = "active" | "all";
@@ -41,14 +37,9 @@ export default function TeacherClassDaily({
     teacherQueues,
     draggedBooking,
     onAddLessonEvent,
-    isAdjustmentMode,
-    globalFlag,
-    onCloseAdjustmentMode,
-    onRefresh,
 }: TeacherClassDailyProps) {
     console.log("👨‍🏫 [TeacherClassDaily] Rendering");
     console.log("   - Teacher queues:", teacherQueues.length);
-    console.log("   - Adjustment mode:", isAdjustmentMode);
     console.log("   - Dragged booking:", draggedBooking?.bookingId);
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
@@ -191,68 +182,47 @@ function TeacherQueueRow({
     draggedBooking,
     onAddLessonEvent,
 }: TeacherQueueRowProps) {
-    console.log("👤 [TeacherQueueRow] Rendering:", queue.teacher.username);
-
     const { controller } = useClassboardContext();
-    const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
+    
+    // Use custom hook for all queue management logic
+    const {
+        isAdjustmentMode,
+        setIsAdjustmentMode,
+        hasChanges,
+        isQueueOptimised,
+        optimisationStats,
+        isLocked,
+        queueController,
+        handleSubmit,
+        handleReset,
+        handleCancel,
+        handleOptimise,
+        handleToggleLock,
+    } = useTeacherQueue({ queue, controller });
 
-    // Create QueueController for gap detection
-    const queueController = useMemo(() => {
-        if (!queue || !controller) return undefined;
-        return new QueueController(queue, controller, () => {});
-    }, [queue, controller]);
-
-    // Check if this teacher can receive the dragged booking
-    const canReceiveBooking = draggedBooking ? draggedBooking.lessons.some((l) => l.teacherId === queue.teacher.id) : false;
-
-    // Events are already filtered by selected date in ClientClassboard
+    const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === queue.teacher.id) ?? false;
     const events = queue.getAllEvents();
-    console.log("   - Events:", events.length);
-
-    // Auto-expand when entering adjustment mode
-    useEffect(() => {
-        if (isAdjustmentMode && !isExpanded) {
-            console.log("🔄 [TeacherQueueRow] Auto-expanding due to adjustment mode");
-            onToggleExpand();
-        }
-    }, [isAdjustmentMode, isExpanded, onToggleExpand]);
 
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
         if (!draggedBooking) return;
-        e.preventDefault(); // Allow drop
-    };
-
-    const handleDragLeave = (e: React.DragEvent) => {
-        // Only clear if leaving the entire row div
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const isOutside =
-            e.clientX < rect.left ||
-            e.clientX > rect.right ||
-            e.clientY < rect.top ||
-            e.clientY > rect.bottom;
-
-        if (isOutside) {
-            console.log("🎯 [TeacherQueueRow] Drag leave:", queue.teacher.username);
-        }
+        e.preventDefault();
     };
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
         if (!draggedBooking) return;
 
-        // Find the lesson for this teacher in the dragged booking
         const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
         if (!lesson) {
             toast.error(`No lesson available for ${queue.teacher.username}`);
             return;
         }
 
-        console.log("📍 [TeacherQueueRow] Lesson id:", lesson.id, "has teacher id:", queue.teacher.id);
         await onAddLessonEvent(lesson.id, queue.teacher.id, draggedBooking.capacityStudents);
     };
 
-    // Calculate stats and times
+    // Calculate stats
     const stats = useMemo(() => queue.getStats(), [queue]);
     const earliestTime = useMemo(() => queue.getEarliestTime(), [queue]);
 
@@ -282,7 +252,6 @@ function TeacherQueueRow({
                     : ""
             }`}
             onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
             {/* Teacher Card */}
@@ -298,7 +267,23 @@ function TeacherQueueRow({
                     queue={queue}
                     isAdjustmentMode={isAdjustmentMode}
                     onToggleAdjustment={setIsAdjustmentMode}
+                    hasChanges={hasChanges}
+                    onSubmit={handleSubmit}
+                    onReset={handleReset}
+                    onCancel={handleCancel}
                 />
+                {/* Optimise and Lock controls - always show in adjustment mode */}
+                {isAdjustmentMode && (
+                    <div className="mt-2 px-2">
+                        <LockMutationQueue
+                            isLocked={isLocked}
+                            onToggle={handleToggleLock}
+                            isOptimised={isQueueOptimised}
+                            optimisationStats={optimisationStats}
+                            onOptimise={handleOptimise}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Event Cards */}
@@ -308,7 +293,44 @@ function TeacherQueueRow({
                         {events.length > 0 ? (
                             events.map((event) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                    <EventCard event={event} queue={queue} queueController={queueController} showLocation={true} />
+                                    {isAdjustmentMode && queueController ? (
+                                        <EventModCard 
+                                            eventId={event.id} 
+                                            queueController={queueController} 
+                                            onDelete={() => queueController.removeFromSnapshot(event.id)}
+                                        />
+                                    ) : (
+                                        <EventCard 
+                                            event={event} 
+                                            queueController={queueController} 
+                                            onDeleteWithCascade={async (eventId: string) => {
+                                                if (!queueController) return;
+                                                
+                                                try {
+                                                    // Get cascade delete plan
+                                                    const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
+                                                    
+                                                    console.log(`🗑️ [TeacherClassDaily] Cascade delete: ${deletedId}, ${updates.length} events to update`);
+                                                    
+                                                    // Execute: delete from DB + bulk update remaining events
+                                                    const { deleteClassboardEvent } = await import("@/actions/classboard-action");
+                                                    const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
+                                                    
+                                                    await deleteClassboardEvent(deletedId);
+                                                    
+                                                    if (updates.length > 0) {
+                                                        await bulkUpdateClassboardEvents(updates, []);
+                                                    }
+                                                    
+                                                    console.log("✅ [TeacherClassDaily] Cascade delete complete");
+                                                } catch (error) {
+                                                    console.error("❌ [TeacherClassDaily] Cascade delete failed:", error);
+                                                    throw error;
+                                                }
+                                            }}
+                                            showLocation={true} 
+                                        />
+                                    )}
                                 </div>
                             ))
                         ) : (

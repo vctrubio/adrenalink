@@ -2,13 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 interface AdminClassboardBookingListenerOptions {
-    schoolId: string;
-    onNewBooking: () => void | Promise<void>;
+    onNewBooking: () => void;
 }
 
-export function useAdminClassboardBookingListener({ schoolId, onNewBooking }: AdminClassboardBookingListenerOptions) {
+export function useAdminClassboardBookingListener({ onNewBooking }: AdminClassboardBookingListenerOptions) {
+    const credentials = useSchoolCredentials();
+    const schoolId = credentials?.id || "";
     // Store the callback in a ref so we don't recreate subscriptions on every render
     const callbackRef = useRef(onNewBooking);
     const isSubscribedRef = useRef(false);
