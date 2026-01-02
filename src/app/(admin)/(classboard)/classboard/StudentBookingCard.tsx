@@ -61,7 +61,7 @@ const CardHeader = ({
 
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const currentDay = Math.ceil((selected.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    
+
     const ratioText = totalDays === 1 ? "" : `${currentDay}/${totalDays} Days`;
     let statusText = totalDays === 1 ? "Single Day Booking" : "";
     let statusStyle = "text-muted-foreground";
@@ -167,7 +167,6 @@ const BookingSummaryBadges = ({
     );
 };
 
-
 interface InstructorListProps {
     lessons: ClassboardLesson[];
     onAddEvent: (lessonId: string) => void;
@@ -175,23 +174,16 @@ interface InstructorListProps {
     draggableLessonIds?: Set<string>; // Only lessons with teachers
 }
 
-const InstructorList = ({
-    lessons,
-    onAddEvent,
-    loadingLessonId,
-    draggableLessonIds,
-}: InstructorListProps) => {
+const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonIds }: InstructorListProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const teacherColor = teacherEntity?.color || "#22c55e";
 
     // Filter to only show lessons that have teachers
-    const visibleLessons = lessons.filter((lesson) => 
-        !draggableLessonIds || draggableLessonIds.has(lesson.id)
-    );
+    const visibleLessons = lessons.filter((lesson) => !draggableLessonIds || draggableLessonIds.has(lesson.id));
 
-    console.log("🎓 [InstructorList] All lessons:", lessons.length, "Draggable IDs:", draggableLessonIds?.size || 0, "Visible:", visibleLessons.length);
-    console.log("   - All lesson IDs:", lessons.map((l) => l.id));
-    console.log("   - Draggable lesson IDs:", Array.from(draggableLessonIds || []));
+    // console.log("🎓 [InstructorList] All lessons:", lessons.length, "Draggable IDs:", draggableLessonIds?.size || 0, "Visible:", visibleLessons.length);
+    // console.log("   - All lesson IDs:", lessons.map((l) => l.id));
+    // console.log("   - Draggable lesson IDs:", Array.from(draggableLessonIds || []));
 
     return (
         <div className="pt-2 border-t border-border/50">
@@ -353,12 +345,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                         <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
                     </div>
 
-                    <InstructorList
-                        lessons={lessons}
-                        onAddEvent={handleAddEvent}
-                        loadingLessonId={loadingLessonId}
-                        draggableLessonIds={new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id))}
-                    />
+                    <InstructorList lessons={lessons} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id))} />
                 </div>
 
                 <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />

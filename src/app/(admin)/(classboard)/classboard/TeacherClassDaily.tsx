@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
@@ -27,11 +27,10 @@ export default function TeacherClassDaily() {
     const { teacherQueues, draggedBooking } = useClassboardActions();
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
-    const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.id)));
+    const [collapsedTeachers, setCollapsedTeachers] = useState<Set<string>>(new Set());
 
-    const toggleTeacherExpanded = (teacherId: string) => {
-        console.log("🔄 [TeacherClassDaily] Toggling teacher:", teacherId);
-        setExpandedTeachers((prev) => {
+    const toggleCollapsed = (teacherId: string) => {
+        setCollapsedTeachers((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(teacherId)) {
                 newSet.delete(teacherId);
@@ -40,16 +39,6 @@ export default function TeacherClassDaily() {
             }
             return newSet;
         });
-    };
-
-    const expandAllTeachers = () => {
-        console.log("🔄 [TeacherClassDaily] Expanding all teachers");
-        setExpandedTeachers(new Set(teacherQueues.map((q) => q.teacher.id)));
-    };
-
-    const collapseAllTeachers = () => {
-        console.log("🔄 [TeacherClassDaily] Collapsing all teachers");
-        setExpandedTeachers(new Set());
     };
 
     // Filter teachers based on whether they have events
@@ -83,20 +72,10 @@ export default function TeacherClassDaily() {
         };
     }, [teacherQueues, filter]);
 
-    const allTeachersExpanded = filteredQueues.length > 0 && filteredQueues.every((q) => expandedTeachers.has(q.teacher.id));
-
-    const toggleAllTeachers = () => {
-        if (allTeachersExpanded) {
-            collapseAllTeachers();
-        } else {
-            expandAllTeachers();
-        }
-    };
-
     return (
         <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>
             {/* Header: Global Toggles & Filter */}
-            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none flex-shrink-0" onClick={toggleAllTeachers}>
+            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
                 <div style={{ color: TEACHER_COLOR }}>
                     <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
@@ -121,18 +100,10 @@ export default function TeacherClassDaily() {
                     <div className="flex flex-col divide-y-2 divide-background">
                         {filteredQueues.length > 0 ? (
                             filteredQueues.map((queue, index) => {
-                                const isExpanded = expandedTeachers.has(queue.teacher.id);
-
+                                const isCollapsed = collapsedTeachers.has(queue.teacher.id);
                                 return (
-                                    <div
-                                        key={`${queue.teacher.id}-${index}`}
-                                        className={"py-2 transition-colors"}
-                                    >
-                                        <TeacherQueueRow
-                                            queue={queue}
-                                            isExpanded={isExpanded}
-                                            onToggleExpand={() => toggleTeacherExpanded(queue.teacher.id)}
-                                        />
+                                    <div key={`${queue.teacher.id}-${index}`} className={"py-2 transition-colors"}>
+                                        <TeacherQueueRow queue={queue} isCollapsed={isCollapsed} onToggleCollapse={() => toggleCollapsed(queue.teacher.id)} />
                                     </div>
                                 );
                             })
@@ -151,15 +122,11 @@ export default function TeacherClassDaily() {
 // ============================================
 interface TeacherQueueRowProps {
     queue: TeacherQueue;
-    isExpanded: boolean;
-    onToggleExpand: () => void;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
 }
 
-function TeacherQueueRow({
-    queue,
-    isExpanded,
-    onToggleExpand,
-}: TeacherQueueRowProps) {
+function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
     const { controller, bookingsForSelectedDate } = useClassboardContext();
     const { draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardActions();
 
@@ -170,13 +137,11 @@ function TeacherQueueRow({
     // In view mode, create temporary QueueController for cascade delete operations
     if (!queueController) {
         const { QueueController } = require("@/src/app/(admin)/(classboard)/QueueController");
-        queueController = new QueueController(queue, controller, () => {});
+        queueController = new QueueController(queue, controller, () => { });
     }
 
-    // Compute view mode: adjustment takes priority over expanded
-    const viewMode: TeacherViewMode = isAdjustmentMode
-        ? "adjustment"
-        : isExpanded ? "expanded" : "collapsed";
+    // Compute view mode: adjustment takes priority, otherwise use isCollapsed state
+    const viewMode: TeacherViewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
 
     // Use queue from QueueController if in adjustment mode (it has the preserved mutations)
     const activeQueue = queueController.getQueue();
@@ -249,7 +214,7 @@ function TeacherQueueRow({
         if (!queueController || !queueController.hasChanges()) return;
 
         const { updates, deletions } = queueController.getChanges();
-        
+
         try {
             await bulkUpdateClassboardEvents(updates, deletions);
             toast.success("Changes saved");
@@ -293,20 +258,12 @@ function TeacherQueueRow({
     }, [queueController, controller, globalFlag]);
 
     return (
-        <div
-            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${
-                canReceiveBooking
-                    ? "ring-2 ring-green-500/50 bg-green-500/5"
-                    : ""
-            }`}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-        >
+        <div className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`} onDragOver={handleDragOver} onDrop={handleDrop}>
             {/* Teacher Card */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
                     queue={activeQueue}
-                    onClick={onToggleExpand}
+                    onClick={onToggleCollapse}
                     viewMode={viewMode}
                     onToggleAdjustment={(value) => {
                         if (value) {
@@ -324,13 +281,7 @@ function TeacherQueueRow({
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
                     <div className="mt-2 px-2" key={globalFlag.getRefreshKey()}>
-                        <LockMutationQueue
-                            isLocked={queueController.isLocked()}
-                            onToggle={handleToggleLock}
-                            isOptimised={queueController.isQueueOptimised()}
-                            optimisationStats={queueController.getOptimisationStats()}
-                            onOptimise={handleOptimise}
-                        />
+                        <LockMutationQueue isLocked={queueController.isLocked()} onToggle={handleToggleLock} isOptimised={queueController.isQueueOptimised()} optimisationStats={queueController.getOptimisationStats()} onOptimise={handleOptimise} />
                     </div>
                 )}
             </div>
@@ -343,19 +294,9 @@ function TeacherQueueRow({
                             eventsWithOptimistic.map(({ node: event, cardStatus }) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                     {viewMode === "adjustment" && queueController ? (
-                                        <EventModCard
-                                            event={event}
-                                            queueController={queueController}
-                                            onDelete={() => queueController.removeFromSnapshot(event.id)}
-                                        />
+                                        <EventModCard event={event} queueController={queueController} onDelete={() => queueController.removeFromSnapshot(event.id)} />
                                     ) : (
-                                        <EventCard
-                                            event={event}
-                                            cardStatus={cardStatus}
-                                            queueController={queueController}
-                                            gapMinutes={controller.gapMinutes}
-                                            showLocation={true}
-                                        />
+                                        <EventCard event={event} cardStatus={cardStatus} queueController={queueController} gapMinutes={controller.gapMinutes} showLocation={true} />
                                     )}
                                 </div>
                             ))

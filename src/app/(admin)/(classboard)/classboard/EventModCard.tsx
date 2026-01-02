@@ -5,10 +5,12 @@ import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDow
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
+import { getPackageInfo } from "@/getters/school-packages-getter";
 import type { EventNode, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import type { QueueController as QueueControllerType } from "@/src/app/(admin)/(classboard)/QueueController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 
 import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
@@ -215,6 +217,12 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
 const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinutes: number; eventDuration: number }) => {
     const remainingMinutes = durationMinutes - eventDuration;
 
+    console.log(`⏱️ [RemainingTimeControl] Rendering:`, {
+        durationMinutes,
+        eventDuration,
+        remainingMinutes,
+    });
+
     return (
         <div className="flex flex-col items-end">
             <span className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
@@ -227,20 +235,32 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
 };
 
 export default function EventModCard({ event, queueController, onDelete }: EventModCardProps) {
+    const { bookingsForSelectedDate } = useClassboardContext();
     const eventId = event.id;
     const allEvents = queueController.getQueue().getAllEvents();
     const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
-    
+
     // Position flags
     const isFirst = currentEventIndex === 0;
     const isLast = currentEventIndex === allEvents.length - 1;
     const canMoveEarlier = queueController.canMoveEarlier(eventId);
     const canMoveLater = queueController.canMoveLater(eventId);
-    
+
     // Use linked list reference for previous event
     const previousEvent = event.prev;
 
-    // TODO: Get total events duration for this lesson (booking data access needed)
+    // Get booking progress duration - calculate from package info
+    const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === event.bookingId);
+    const packageInfo = bookingData ? getPackageInfo(bookingData.schoolPackage, bookingData.lessons) : null;
+    const bookingDurationMinutes = packageInfo?.durationMinutes ?? 0;
+
+    console.log(`📊 [EventModCard] Event ${eventId}:`, {
+        bookingId: event.bookingId,
+        bookingFound: !!bookingData,
+        bookingDurationMinutes,
+        eventDuration: event.eventData.duration,
+        shouldDisplay: bookingDurationMinutes > 0,
+    });
 
     return (
         <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">
@@ -287,6 +307,7 @@ export default function EventModCard({ event, queueController, onDelete }: Event
             {/* Footer: Location & Meta */}
             <div className="px-4 py-2 flex items-end justify-between">
                 <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
+                {bookingDurationMinutes > 0 && <RemainingTimeControl durationMinutes={bookingDurationMinutes} eventDuration={event.eventData.duration} />}
             </div>
         </div>
     );

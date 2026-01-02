@@ -149,7 +149,12 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
                 const queue = queues.get(teacherId);
                 if (!queue) return;
 
-                (lesson.events || []).forEach((event) => {
+                // Sort events by start time to ensure correct insertion order
+                const sortedEvents = (lesson.events || []).sort((a, b) =>
+                    new Date(a.date).getTime() - new Date(b.date).getTime()
+                );
+
+                sortedEvents.forEach((event) => {
                     const eventNode = createEventNode(event, lesson, booking);
                     queue.constructEvents(eventNode);
                 });
