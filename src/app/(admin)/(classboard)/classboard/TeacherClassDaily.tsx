@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import toast from "react-hot-toast";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
@@ -9,10 +9,10 @@ import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useClassboardActions, optimisticEventToNode } from "@/src/providers/classboard-actions-provider";
-import { useTeacherQueue } from "./useTeacherQueue";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -160,23 +160,11 @@ function TeacherQueueRow({
     onToggleExpand,
 }: TeacherQueueRowProps) {
     const { controller, bookingsForSelectedDate } = useClassboardContext();
-    const { draggedBooking, addLessonEvent, optimisticEvents } = useClassboardActions();
+    const { draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardActions();
     
-    // Use custom hook for all queue management logic
-    const {
-        isAdjustmentMode,
-        setIsAdjustmentMode,
-        hasChanges,
-        isQueueOptimised,
-        optimisationStats,
-        isLocked,
-        queueController,
-        handleSubmit,
-        handleReset,
-        handleCancel,
-        handleOptimise,
-        handleToggleLock,
-    } = useTeacherQueue({ queue, controller });
+    // Get QueueController from GlobalFlag (if in adjustment mode)
+    const queueController = globalFlag.getQueueController(queue.teacher.id);
+    const isAdjustmentMode = !!queueController;
 
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === queue.teacher.id) ?? false;
 
@@ -235,6 +223,54 @@ function TeacherQueueRow({
         await addLessonEvent(bookingData, lesson.id);
     };
 
+    // Queue Action Handlers
+    const handleSubmit = useCallback(async () => {
+        if (!queueController || !queueController.hasChanges()) return;
+
+        const { updates, deletions } = queueController.getChanges();
+        
+        try {
+            await bulkUpdateClassboardEvents(updates, deletions);
+            toast.success("Changes saved");
+            globalFlag.optOut(queue.teacher.username);
+        } catch (error) {
+            console.error("❌ Failed to save changes:", error);
+            toast.error("Failed to save changes");
+        }
+    }, [queueController, globalFlag, queue.teacher.username]);
+
+    const handleReset = useCallback(() => {
+        queueController?.resetToSnapshot();
+    }, [queueController]);
+
+    const handleCancel = useCallback(() => {
+        queueController?.resetToSnapshot();
+        globalFlag.optOut(queue.teacher.username);
+    }, [queueController, globalFlag, queue.teacher.username]);
+
+    const handleOptimise = useCallback(() => {
+        if (!queueController) return;
+        const { count } = queueController.optimiseQueue();
+        if (count > 0) {
+            // Auto-enable cascade mode if not enabled
+            if (!queueController.isLocked()) {
+                controller.locked = true;
+                globalFlag.triggerRefresh();
+            }
+            toast.success("Optimised");
+        } else {
+            toast.success("Already optimised");
+        }
+    }, [queueController, controller, globalFlag]);
+
+    const handleToggleLock = useCallback(() => {
+        if (!queueController) return;
+        const newLocked = !queueController.isLocked();
+        controller.locked = newLocked; // Mutate shared settings
+        globalFlag.triggerRefresh();
+        toast.success(newLocked ? "Cascade mode enabled" : "Time-respect mode enabled");
+    }, [queueController, controller, globalFlag]);
+
     return (
         <div
             className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${
@@ -252,21 +288,27 @@ function TeacherQueueRow({
                     onClick={onToggleExpand}
                     isExpanded={isExpanded}
                     isAdjustmentMode={isAdjustmentMode}
-                    onToggleAdjustment={setIsAdjustmentMode}
-                    hasChanges={hasChanges}
-                    changedCount={0}
+                    onToggleAdjustment={(value) => {
+                        if (value) {
+                            globalFlag.optIn(queue.teacher.username);
+                        } else {
+                            globalFlag.optOut(queue.teacher.username);
+                        }
+                    }}
+                    hasChanges={queueController?.hasChanges() ?? false}
+                    changedCount={queueController?.getChanges().updates.length ?? 0}
                     onSubmit={handleSubmit}
                     onReset={handleReset}
                     onCancel={handleCancel}
                 />
                 {/* Optimise and Lock controls - always show in adjustment mode */}
-                {isAdjustmentMode && (
+                {isAdjustmentMode && queueController && (
                     <div className="mt-2 px-2">
                         <LockMutationQueue
-                            isLocked={isLocked}
+                            isLocked={queueController.isLocked()}
                             onToggle={handleToggleLock}
-                            isOptimised={isQueueOptimised}
-                            optimisationStats={optimisationStats}
+                            isOptimised={queueController.isQueueOptimised()}
+                            optimisationStats={queueController.getOptimisationStats()}
                             onOptimise={handleOptimise}
                         />
                     </div>
@@ -290,13 +332,17 @@ function TeacherQueueRow({
                                         <EventCard
                                             event={event}
                                             cardStatus={cardStatus}
-                                            queueController={queueController}
+                                            queueController={queueController} // Can be undefined
                                             onDeleteWithCascade={async (eventId: string) => {
-                                                if (!queueController) return;
+                                                // If no controller, create one temporarily just for the calculation
+                                                let qc = queueController;
+                                                if (!qc) {
+                                                    qc = new QueueController(queue, controller, () => {});
+                                                }
 
                                                 try {
                                                     // Get cascade delete plan
-                                                    const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
+                                                    const { deletedId, updates } = qc.cascadeDeleteAndOptimise(eventId);
 
                                                     console.log(`🗑️ [TeacherClassDaily] Cascade delete: ${deletedId}, ${updates.length} events to update`);
 
@@ -311,9 +357,10 @@ function TeacherQueueRow({
                                                     }
 
                                                     console.log("✅ [TeacherClassDaily] Cascade delete complete");
+                                                    toast.success("Event deleted");
                                                 } catch (error) {
                                                     console.error("❌ [TeacherClassDaily] Cascade delete failed:", error);
-                                                    throw error;
+                                                    toast.error("Failed to delete event");
                                                 }
                                             }}
                                             showLocation={true}

@@ -6,6 +6,7 @@ import { useClassboardContext } from "./classboard-provider";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { createClassboardEvent } from "@/actions/classboard-action";
 import { TeacherQueue, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { GlobalFlag } from "@/backend/models/GlobalFlag";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
@@ -50,6 +51,7 @@ interface ClassboardActionsContextType {
     setDraggedBooking: (booking: DraggableBooking | null) => void;
     addLessonEvent: (bookingData: ClassboardData, lessonId: string) => Promise<void>;
     optimisticEvents: Map<string, OptimisticEvent>;
+    globalFlag: GlobalFlag;
 }
 
 const ClassboardActionsContext = createContext<ClassboardActionsContextType | undefined>(undefined);
@@ -117,6 +119,7 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
     const { teachers: allSchoolTeachers } = useSchoolTeachers();
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
     const [optimisticEvents, setOptimisticEvents] = useState<Map<string, OptimisticEvent>>(new Map());
+    const [flagTick, setFlagTick] = useState(0);
 
     // Cleanup optimistic events when real events appear
     useEffect(() => {
@@ -187,6 +190,17 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
         // Return queues in teacher order
         return activeTeachers.map((teacher) => queues.get(teacher.schema.id)).filter((queue): queue is TeacherQueue => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate]);
+
+    // Instantiate GlobalFlag once
+    const globalFlag = useMemo(() => {
+        return new GlobalFlag(teacherQueues, controller, () => setFlagTick(t => t + 1));
+    }, []); // Created once, dependencies handled by updates
+
+    // Sync GlobalFlag with latest data
+    useEffect(() => {
+        globalFlag.updateTeacherQueues(teacherQueues);
+        globalFlag.updateController(controller);
+    }, [teacherQueues, controller, globalFlag]);
 
     // Event creation handler - takes bookingData and lessonId, figures out the rest
     const addLessonEvent = useCallback(
@@ -325,6 +339,7 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
                 setDraggedBooking,
                 addLessonEvent,
                 optimisticEvents,
+                globalFlag,
             }}
         >
             {children}

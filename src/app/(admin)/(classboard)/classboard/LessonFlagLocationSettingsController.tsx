@@ -215,7 +215,7 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                     {teacherQueues
                         .filter((q) => pendingTeachers.has(q.teacher.username))
                         .map((q) => {
-                            const firstTime = q.getEarliestEventTime();
+                            const firstTime = q.getEarliestTime();
                             const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.username);
                             const individualChanges = globalFlag.collectChangesForTeacher(q.teacher.username);
                             const hasIndividualChanges = individualChanges.length > 0;
