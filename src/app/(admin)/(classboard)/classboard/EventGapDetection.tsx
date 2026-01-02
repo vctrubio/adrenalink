@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AlertTriangle, Clock, Loader2 } from "lucide-react";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
@@ -29,7 +29,6 @@ export default function EventGapDetection({
     wrapperClassName,
     className,
 }: EventGapDetectionProps) {
-    const [gapState, setGapState] = useState<GapDetectionState>("none");
     const [isUpdating, setIsUpdating] = useState(false);
 
     // If no previous event, nothing to detect
@@ -37,14 +36,11 @@ export default function EventGapDetection({
         return null;
     }
 
-    // Detect gap status
-    const gapStatus = detectEventGapStatus(currentEvent, previousEvent, requiredGapMinutes);
-
-    // Update state to reflect current gap status
-    if (gapStatus.state !== gapState) {
-        setGapState(gapStatus.state);
-        onStateChange?.(gapStatus.state, gapStatus.durationMinutes);
-    }
+    // Detect gap status - recalculate when requiredGapMinutes or event dates/durations change
+    const gapStatus = useMemo(() => 
+        detectEventGapStatus(currentEvent, previousEvent, requiredGapMinutes),
+        [currentEvent.eventData.date, currentEvent.eventData.duration, previousEvent.eventData.date, previousEvent.eventData.duration, requiredGapMinutes]
+    );
 
     const handleClick = async () => {
         if (!previousEvent || isUpdating) {

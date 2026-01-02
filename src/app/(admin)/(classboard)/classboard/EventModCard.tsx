@@ -16,7 +16,7 @@ import EventGapDetection from "./EventGapDetection";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 interface EventModCardProps {
-    eventId: string;
+    event: EventNode;
     queueController: QueueControllerType;
     onDelete?: () => void;
 }
@@ -226,25 +226,19 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     );
 };
 
-export default function EventModCard({ eventId, queueController, onDelete }: EventModCardProps) {
-    // Use the passed queueController directly - it already has the parent's refresh callback
-    const cardProps = queueController?.getEventModCardProps(eventId);
-
-    if (!cardProps || !eventId) {
-        return null;
-    }
-
-    const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
-
-    let previousEvent: EventNode | undefined;
-    const queue = queueController?.getQueue();
-    if (queue && eventId) {
-        const allEvents = queue.getAllEvents();
-        const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
-        if (currentEventIndex > 0) {
-            previousEvent = allEvents[currentEventIndex - 1];
-        }
-    }
+export default function EventModCard({ event, queueController, onDelete }: EventModCardProps) {
+    const eventId = event.id;
+    const allEvents = queueController.getQueue().getAllEvents();
+    const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
+    
+    // Position flags
+    const isFirst = currentEventIndex === 0;
+    const isLast = currentEventIndex === allEvents.length - 1;
+    const canMoveEarlier = queueController.canMoveEarlier(eventId);
+    const canMoveLater = queueController.canMoveLater(eventId);
+    
+    // Use linked list reference for previous event
+    const previousEvent = event.prev;
 
     // TODO: Get total events duration for this lesson (booking data access needed)
 

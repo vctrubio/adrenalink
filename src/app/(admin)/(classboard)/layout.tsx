@@ -1,7 +1,6 @@
 import { getClassboardBookings } from "@/actions/classboard-action";
 import { ReactNode } from "react";
 import { ClassboardProvider } from "../../../providers/classboard-provider";
-import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
 
 interface ClassboardLayoutProps {
     children: ReactNode;
@@ -21,9 +20,7 @@ export default async function ClassboardLayout({ children }: ClassboardLayoutPro
 
     return (
         <ClassboardProvider initialClassboardModel={result.data}>
-            <ClassboardRealtimeSync>
-                {children}
-            </ClassboardRealtimeSync>
+            {children}
         </ClassboardProvider>
     );
 }

@@ -13,6 +13,7 @@ import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleto
 import ClassboardFooter from "./classboard/ClassboardFooter";
 import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import { generateDailyScheduleText } from "@/utils/classboard-share";
+import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
 
 export default function ClientClassboard() {
     const { mounted } = useClassboardContext();
@@ -23,7 +24,9 @@ export default function ClientClassboard() {
 
     return (
         <ClassboardActionsProvider>
-            <ClassboardContent />
+            <ClassboardRealtimeSync>
+                <ClassboardContent />
+            </ClassboardRealtimeSync>
         </ClassboardActionsProvider>
     );
 }

@@ -13,17 +13,24 @@ interface ClassboardRealtimeSyncProps {
 
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
     const { setClassboardModel } = useClassboardContext();
+    const { clearOptimisticEvents } = useClassboardActions();
 
     const handleEventDetected = useCallback((newData: ClassboardModel) => {
         console.log("🔔 [SUBSCRIPTION] Event detected, updating classboard");
         setClassboardModel(newData);
-    }, [setClassboardModel]);
+        // Clear optimistic events atomically when real events arrive
+        clearOptimisticEvents();
+    }, [setClassboardModel, clearOptimisticEvents]);
 
     const handleNewBookingDetected = useCallback(async () => {
         console.log("🔔 [SUBSCRIPTION] New booking detected");
         const result = await getClassboardBookings();
-        if (result.success) setClassboardModel(result.data);
-    }, [setClassboardModel]);
+        if (result.success) {
+            setClassboardModel(result.data);
+            // Clear optimistic events atomically when bookings change
+            clearOptimisticEvents();
+        }
+    }, [setClassboardModel, clearOptimisticEvents]);
 
     useAdminClassboardEventListener({ onEventDetected: handleEventDetected });
     useAdminClassboardBookingListener({ onNewBooking: handleNewBookingDetected });

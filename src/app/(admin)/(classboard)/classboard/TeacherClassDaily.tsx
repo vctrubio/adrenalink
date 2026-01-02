@@ -162,34 +162,49 @@ function TeacherQueueRow({
 }: TeacherQueueRowProps) {
     const { controller, bookingsForSelectedDate } = useClassboardContext();
     const { draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardActions();
-    
+
     // Get QueueController from GlobalFlag (if in adjustment mode)
-    const queueController = globalFlag.getQueueController(queue.teacher.id);
+    let queueController = globalFlag.getQueueController(queue.teacher.id);
     const isAdjustmentMode = !!queueController;
 
+    // In view mode, create temporary QueueController for cascade delete operations
+    if (!queueController) {
+        const { QueueController } = require("@/src/app/(admin)/(classboard)/QueueController");
+        queueController = new QueueController(queue, controller, () => {});
+    }
+
     // Compute view mode: adjustment takes priority over expanded
-    const viewMode: TeacherViewMode = isAdjustmentMode 
-        ? "adjustment" 
+    const viewMode: TeacherViewMode = isAdjustmentMode
+        ? "adjustment"
         : isExpanded ? "expanded" : "collapsed";
 
-    const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === queue.teacher.id) ?? false;
+    // Use queue from QueueController if in adjustment mode (it has the preserved mutations)
+    const activeQueue = queueController.getQueue();
+
+    const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
 
     // Merge real events with optimistic events for this teacher
     const eventsWithOptimistic = useMemo(() => {
-        const realEvents = queue.getAllEvents();
+        const realEvents = activeQueue.getAllEvents();
+
+        // Reconstruct linked list references from array order
+        realEvents.forEach((event, index) => {
+            event.prev = index > 0 ? realEvents[index - 1] : null;
+            event.next = index < realEvents.length - 1 ? realEvents[index + 1] : null;
+        });
 
         // Get optimistic events for this teacher
         const teacherOptimisticEvents = Array.from(optimisticEvents.values())
-            .filter((opt) => opt.teacherId === queue.teacher.id)
+            .filter((opt) => opt.teacherId === activeQueue.teacher.id)
             .map((opt) => ({
                 node: optimisticEventToNode(opt),
-                cardStatus: opt.status, // "posting" or "error"
+                cardStatus: undefined, // Posting animation derived from temp- prefix in EventCard
             }));
 
         // Convert real events to include cardStatus
         const realEventsWithStatus = realEvents.map((event) => ({
             node: event,
-            cardStatus: "idle" as const,
+            cardStatus: undefined, // No status = equipment icon
         }));
 
         // Merge and sort by date
@@ -200,7 +215,7 @@ function TeacherQueueRow({
         });
 
         return allEvents;
-    }, [queue, optimisticEvents]);
+    }, [activeQueue, optimisticEvents, globalFlag.getRefreshKey()]);
 
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
@@ -213,9 +228,9 @@ function TeacherQueueRow({
         if (!draggedBooking) return;
 
         // Find the lesson for this teacher
-        const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
+        const lesson = draggedBooking.lessons.find((l) => l.teacherId === activeQueue.teacher.id);
         if (!lesson) {
-            toast.error(`No lesson available for ${queue.teacher.username}`);
+            toast.error(`No lesson available for ${activeQueue.teacher.username}`);
             return;
         }
 
@@ -290,7 +305,7 @@ function TeacherQueueRow({
             {/* Teacher Card */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
-                    queue={queue}
+                    queue={activeQueue}
                     onClick={onToggleExpand}
                     viewMode={viewMode}
                     onToggleAdjustment={(value) => {
@@ -308,7 +323,7 @@ function TeacherQueueRow({
                 />
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
-                    <div className="mt-2 px-2">
+                    <div className="mt-2 px-2" key={globalFlag.getRefreshKey()}>
                         <LockMutationQueue
                             isLocked={queueController.isLocked()}
                             onToggle={handleToggleLock}
@@ -329,7 +344,7 @@ function TeacherQueueRow({
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                     {viewMode === "adjustment" && queueController ? (
                                         <EventModCard
-                                            eventId={event.id}
+                                            event={event}
                                             queueController={queueController}
                                             onDelete={() => queueController.removeFromSnapshot(event.id)}
                                         />
@@ -337,37 +352,8 @@ function TeacherQueueRow({
                                         <EventCard
                                             event={event}
                                             cardStatus={cardStatus}
-                                            queueController={queueController} // Can be undefined
-                                            onDeleteWithCascade={async (eventId: string) => {
-                                                // If no controller, create one temporarily just for the calculation
-                                                let qc = queueController;
-                                                if (!qc) {
-                                                    qc = new QueueController(queue, controller, () => {});
-                                                }
-
-                                                try {
-                                                    // Get cascade delete plan
-                                                    const { deletedId, updates } = qc.cascadeDeleteAndOptimise(eventId);
-
-                                                    console.log(`🗑️ [TeacherClassDaily] Cascade delete: ${deletedId}, ${updates.length} events to update`);
-
-                                                    // Execute: delete from DB + bulk update remaining events
-                                                    const { deleteClassboardEvent } = await import("@/actions/classboard-action");
-                                                    const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
-
-                                                    await deleteClassboardEvent(deletedId);
-
-                                                    if (updates.length > 0) {
-                                                        await bulkUpdateClassboardEvents(updates, []);
-                                                    }
-
-                                                    console.log("✅ [TeacherClassDaily] Cascade delete complete");
-                                                    toast.success("Event deleted");
-                                                } catch (error) {
-                                                    console.error("❌ [TeacherClassDaily] Cascade delete failed:", error);
-                                                    toast.error("Failed to delete event");
-                                                }
-                                            }}
+                                            queueController={queueController}
+                                            gapMinutes={controller.gapMinutes}
                                             showLocation={true}
                                         />
                                     )}

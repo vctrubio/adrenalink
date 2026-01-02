@@ -51,6 +51,7 @@ interface ClassboardActionsContextType {
     setDraggedBooking: (booking: DraggableBooking | null) => void;
     addLessonEvent: (bookingData: ClassboardData, lessonId: string) => Promise<void>;
     optimisticEvents: Map<string, OptimisticEvent>;
+    clearOptimisticEvents: () => void;
     globalFlag: GlobalFlag;
 }
 
@@ -85,8 +86,6 @@ export interface OptimisticEvent {
     date: string;
     duration: number;
     location: string;
-    status: "posting" | "error";
-    timestamp: number;
 }
 
 /**
@@ -121,36 +120,6 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
     const [optimisticEvents, setOptimisticEvents] = useState<Map<string, OptimisticEvent>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
 
-    // Cleanup optimistic events when real events appear
-    useEffect(() => {
-        if (optimisticEvents.size === 0) return;
-
-        // Get all real event lessonIds from bookings
-        const realLessonIds = new Set<string>();
-        bookingsForSelectedDate.forEach((booking) => {
-            booking.lessons.forEach((lesson) => {
-                (lesson.events || []).forEach(() => {
-                    realLessonIds.add(lesson.id);
-                });
-            });
-        });
-
-        // Remove optimistic events that now have real events
-        setOptimisticEvents((prev) => {
-            const updated = new Map(prev);
-            let hasChanges = false;
-
-            prev.forEach((optEvent, tempId) => {
-                if (realLessonIds.has(optEvent.lessonId)) {
-                    console.log("✅ Real event received, removing optimistic:", tempId);
-                    updated.delete(tempId);
-                    hasChanges = true;
-                }
-            });
-
-            return hasChanges ? updated : prev;
-        });
-    }, [bookingsForSelectedDate, optimisticEvents]);
 
     // Build teacher queues from bookings
     const teacherQueues = useMemo(() => {
@@ -259,77 +228,46 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
                     date: eventDate,
                     duration,
                     location: controller.location,
-                    status: "posting",
-                    timestamp: Date.now(),
                 };
 
                 setOptimisticEvents((prev) => new Map(prev).set(tempId, optimisticEvent));
 
-                // Set 5-second timeout for error
-                const timeoutId = setTimeout(() => {
-                    setOptimisticEvents((prev) => {
-                        const updated = new Map(prev);
-                        const event = updated.get(tempId);
-                        if (event && event.status === "posting") {
-                            updated.set(tempId, { ...event, status: "error" });
-                        }
-                        return updated;
-                    });
-                    toast.error("Event creation timeout");
-                }, 5000);
-
                 // Create event via server action
                 const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
 
-                clearTimeout(timeoutId);
-
                 if (!result.success) {
                     console.error("❌ Failed to create event:", result.error);
-                    setOptimisticEvents((prev) => {
-                        const updated = new Map(prev);
-                        updated.set(tempId, { ...optimisticEvent, status: "error" });
-                        return updated;
-                    });
-                    toast.error("Failed to create event");
-
-                    // Remove error state after 3 seconds
-                    setTimeout(() => {
-                        setOptimisticEvents((prev) => {
-                            const updated = new Map(prev);
-                            updated.delete(tempId);
-                            return updated;
-                        });
-                    }, 3000);
-                    return;
-                }
-
-                // Success - Keep optimistic event, subscription will deliver real event
-                // The optimistic event will be filtered out when real event appears
-                console.log("✅ Event created, waiting for subscription");
-            } catch (error) {
-                console.error("❌ Error adding event:", error);
-                setOptimisticEvents((prev) => {
-                    const updated = new Map(prev);
-                    const event = updated.get(tempId);
-                    if (event) {
-                        updated.set(tempId, { ...event, status: "error" });
-                    }
-                    return updated;
-                });
-                toast.error("Error creating event");
-
-                // Remove error state after 3 seconds
-                setTimeout(() => {
+                    // Remove optimistic event on failure
                     setOptimisticEvents((prev) => {
                         const updated = new Map(prev);
                         updated.delete(tempId);
                         return updated;
                     });
-                }, 3000);
+                    toast.error("Failed to create event");
+                    return;
+                }
+
+                // Success - Keep optimistic event, subscription will deliver real event
+                // The optimistic event will be removed when real event appears
+                console.log("✅ Event created, waiting for subscription");
+            } catch (error) {
+                console.error("❌ Error adding event:", error);
+                // Remove optimistic event on error
+                setOptimisticEvents((prev) => {
+                    const updated = new Map(prev);
+                    updated.delete(tempId);
+                    return updated;
+                });
+                toast.error("Error creating event");
             }
         },
         [selectedDate, teacherQueues, controller],
     );
+
+    // Clear all optimistic events - called by subscription handler for atomic cleanup
+    const clearOptimisticEvents = useCallback(() => {
+        setOptimisticEvents(new Map());
+    }, []);
 
     return (
         <ClassboardActionsContext.Provider
@@ -339,6 +277,7 @@ export function ClassboardActionsProvider({ children }: ClassboardActionsProvide
                 setDraggedBooking,
                 addLessonEvent,
                 optimisticEvents,
+                clearOptimisticEvents,
                 globalFlag,
             }}
         >

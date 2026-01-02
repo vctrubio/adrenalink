@@ -231,8 +231,11 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    exitAdjustmentMode(): void {
+    exitAdjustmentMode(shouldDiscard = false): void {
         this.queueControllers.forEach((qc) => {
+            if (shouldDiscard) {
+                qc.resetToSnapshot();
+            }
             qc.exitAdjustmentMode();
         });
         this.queueControllers.clear();

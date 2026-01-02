@@ -60,9 +60,9 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
     const hasChanges = updatesCount > 0;
 
     // Persists changes for a specific teacher and removes them from the global queue
-    const handleIndividualSubmit = async (teacherUsername: string) => {
-        const changes = globalFlag.collectChangesForTeacher(teacherUsername);
-        globalFlag.setSubmitting(teacherUsername, true);
+    const handleIndividualSubmit = async (teacherId: string) => {
+        const changes = globalFlag.collectChangesForTeacher(teacherId);
+        globalFlag.setSubmitting(teacherId, true);
 
         try {
             if (changes.length > 0) {
@@ -70,10 +70,10 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                 if (!result.success) return;
             }
 
-            globalFlag.optOut(teacherUsername);
+            globalFlag.optOut(teacherId);
             onRefresh();
         } finally {
-            globalFlag.setSubmitting(teacherUsername, false);
+            globalFlag.setSubmitting(teacherId, false);
         }
     };
 
@@ -156,7 +156,7 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
     };
 
     const handleCancel = () => {
-        globalFlag.exitAdjustmentMode();
+        globalFlag.exitAdjustmentMode(true); // true = discard changes
         onClose();
     };
 
@@ -235,16 +235,18 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Active Queue ({pendingTeachers.size})</label>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-2 scrollbar-hide">
                     {teacherQueues
-                        .filter((q) => pendingTeachers.has(q.teacher.username))
+                        .filter((q) => pendingTeachers.has(q.teacher.id))
                         .map((q) => {
-                            const firstTime = q.getEarliestTime();
-                            const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.username);
-                            const individualChanges = globalFlag.collectChangesForTeacher(q.teacher.username);
+                            const controller = globalFlag.getControllerForTeacher(q.teacher.id);
+                            const activeQueue = controller?.getQueue() ?? q;
+                            const firstTime = activeQueue.getEarliestTime();
+                            const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.id);
+                            const individualChanges = globalFlag.collectChangesForTeacher(q.teacher.id);
                             const hasIndividualChanges = individualChanges.length > 0;
                             const isMatchingGlobal = firstTime === adjustmentTime;
 
                             return (
-                                <div key={q.teacher.username} className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm animate-in slide-in-from-left-2 duration-200">
+                                <div key={q.teacher.id} className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm animate-in slide-in-from-left-2 duration-200">
                                     <div className="flex items-center gap-4 flex-1 min-w-0">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <HeadsetIcon size={16} className="text-muted-foreground shrink-0" />
@@ -256,11 +258,11 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 ml-2">
-                                        <button onClick={() => globalFlag.optOut(q.teacher.username)} className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors" title="Remove from queue without saving">
+                                        <button onClick={() => globalFlag.optOut(q.teacher.id)} className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors" title="Remove from queue without saving">
                                             <X size={14} />
                                         </button>
                                         <button
-                                            onClick={() => handleIndividualSubmit(q.teacher.username)}
+                                            onClick={() => handleIndividualSubmit(q.teacher.id)}
                                             disabled={!hasIndividualChanges || isIndividualSubmitting}
                                             className={`p-2 rounded-lg transition-all shadow-sm ${hasIndividualChanges ? "bg-cyan-600 text-white hover:bg-cyan-700 shadow-cyan-500/20" : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"}`}
                                             title={hasIndividualChanges ? `Submit changes for ${q.teacher.username}` : "No changes to submit"}

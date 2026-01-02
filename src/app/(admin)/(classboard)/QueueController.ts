@@ -11,7 +11,6 @@ export type { EventCardProps } from "@/types/classboard-teacher-queue";
 
 export class QueueController {
     private originalSnapshot: EventNode[] = [];
-    private isInAdjustmentMode: boolean = false;
 
     constructor(
         private queue: TeacherQueue,
@@ -27,16 +26,22 @@ export class QueueController {
     }
 
     /**
+     * Check if in adjustment mode (snapshot exists)
+     */
+    isInAdjustmentMode(): boolean {
+        return this.originalSnapshot.length > 0;
+    }
+
+    /**
      * Start adjustment mode - take snapshot of current queue state
      */
     startAdjustmentMode(): void {
-        if (this.isInAdjustmentMode) return;
+        if (this.originalSnapshot.length > 0) return; // Already in adjustment mode
         
         this.originalSnapshot = this.queue.getAllEvents().map((e) => ({
             ...e,
             eventData: { ...e.eventData },
         }));
-        this.isInAdjustmentMode = true;
         
         console.log(`📸 [QueueController] Snapshot created: ${this.originalSnapshot.length} events`);
     }
@@ -46,7 +51,6 @@ export class QueueController {
      */
     exitAdjustmentMode(): void {
         this.originalSnapshot = [];
-        this.isInAdjustmentMode = false;
         console.log(`🚪 [QueueController] Exited adjustment mode`);
     }
 
@@ -72,7 +76,7 @@ export class QueueController {
      * Check if there are changes compared to snapshot
      */
     hasChanges(): boolean {
-        if (!this.isInAdjustmentMode || this.originalSnapshot.length === 0) {
+        if (this.originalSnapshot.length === 0) {
             return false;
         }
 
@@ -116,7 +120,7 @@ export class QueueController {
         updates: Array<{ id: string; date?: string; duration?: number; location?: string }>, 
         deletions: string[] 
     } {
-        if (!this.isInAdjustmentMode || this.originalSnapshot.length === 0) {
+        if (this.originalSnapshot.length === 0) {
             return { updates: [], deletions: [] };
         }
 
@@ -724,6 +728,13 @@ export class QueueController {
      */
     isQueueOptimised(): boolean {
         return this.queue.isQueueOptimised(this.settings.gapMinutes);
+    }
+
+    /**
+     * Update controller settings (called when global settings change)
+     */
+    updateSettings(settings: ControllerSettings): void {
+        this.settings = settings;
     }
 
     /**

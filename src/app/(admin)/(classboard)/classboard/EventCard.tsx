@@ -16,21 +16,21 @@ import EventGapDetection from "./EventGapDetection";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
-type EventCardStatus = "idle" | "posting" | "updating" | "deleting" | "error";
+type EventCardStatus = "posting" | "updating" | "deleting" | "error";
 
 interface EventCardProps {
     event: EventNode;
     queueController?: QueueController;
+    gapMinutes?: number;
     onDeleteComplete?: () => void;
-    onDeleteWithCascade?: (eventId: string) => Promise<void>;
     showLocation?: boolean;
     cardStatus?: EventCardStatus;
 }
 
-export default function EventCard({ event, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true, cardStatus = "idle" }: EventCardProps) {
+export default function EventCard({ event, queueController, gapMinutes, onDeleteComplete, showLocation = true, cardStatus }: EventCardProps) {
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-    const [localCardStatus, setLocalCardStatus] = useState<EventCardStatus>(cardStatus);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -38,11 +38,6 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     useEffect(() => {
         setCurrentStatus(event.eventData.status as EventStatus);
     }, [event.eventData.status]);
-
-    // Sync card status from prop
-    useEffect(() => {
-        setLocalCardStatus(cardStatus);
-    }, [cardStatus]);
 
     const eventId = event.id;
     const duration = event.eventData.duration;
@@ -60,23 +55,21 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
 
-    // Previous/Next Logic
-    let previousEvent: EventNode | undefined;
-    if (queueController && eventId) {
-        const allEvents = queueController.getQueue().getAllEvents();
-        const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
-        if (currentEventIndex > 0) {
-            previousEvent = allEvents[currentEventIndex - 1];
-        }
-    }
+    // Use linked list for previous event
+    const previousEvent = event.prev;
 
+    // Check if there's a next event for cascade delete option
+    const hasNextEvent = !!event.next;
     const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
-    const isLoading = localCardStatus === "posting" || localCardStatus === "updating" || localCardStatus === "deleting";
-    const isError = localCardStatus === "error";
+
+    // Derive posting state from temp- prefix
+    const isPosting = eventId.startsWith("temp-");
+    const isLoading = isPosting || cardStatus === "updating" || isDeleting;
+    const isError = cardStatus === "error";
 
     // Status Icon - shows different states
     const StatusIcon = ({ size = 24 }: { size?: number }) => {
-        if (localCardStatus === "posting") {
+        if (isPosting) {
             return (
                 <motion.div
                     initial={{ rotate: -45 }}
@@ -93,7 +86,7 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
             );
         }
 
-        if (localCardStatus === "deleting") {
+        if (isDeleting) {
             return (
                 <motion.div
                     initial={{ rotate: -45 }}
@@ -110,7 +103,7 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
             );
         }
 
-        if (localCardStatus === "error") {
+        if (cardStatus === "error") {
             return (
                 <motion.div
                     initial={{ scale: 0.8 }}
@@ -137,8 +130,7 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
-        if (newStatus === currentStatus || localCardStatus === "updating") return;
-        setLocalCardStatus("updating");
+        if (newStatus === currentStatus || cardStatus === "updating") return;
         try {
             // Optimistic update
             setCurrentStatus(newStatus);
@@ -150,41 +142,46 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
                 console.error("❌ [EventCard] Status update failed:", result.error);
                 // Revert on failure
                 setCurrentStatus(currentStatus);
-                setLocalCardStatus("error");
-                setTimeout(() => setLocalCardStatus("idle"), 3000);
-            } else {
-                setLocalCardStatus("idle");
             }
         } catch (error) {
             console.error("❌ [EventCard] Error updating status:", error);
             setCurrentStatus(currentStatus);
-            setLocalCardStatus("error");
-            setTimeout(() => setLocalCardStatus("idle"), 3000);
         }
     };
 
     const handleDelete = async (cascade: boolean) => {
-        if (!eventId || localCardStatus === "deleting") return;
-        setLocalCardStatus("deleting");
+        if (!eventId || isDeleting) return;
+        setIsDeleting(true);
+
         try {
-            if (cascade && onDeleteWithCascade) {
-                await onDeleteWithCascade(eventId);
+            // Cascade delete: optimize remaining queue
+            if (cascade && queueController) {
+                const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
+
+                // Execute: delete from DB + bulk update remaining events
+                const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
+
+                await deleteClassboardEvent(deletedId);
+
+                if (updates.length > 0) {
+                    await bulkUpdateClassboardEvents(updates, []);
+                }
+
                 onDeleteComplete?.();
                 return;
             }
 
+            // Standard delete: just remove event
             const result = await deleteClassboardEvent(eventId);
             if (!result.success) {
                 console.error("Delete failed:", result.error);
-                setLocalCardStatus("error");
-                setTimeout(() => setLocalCardStatus("idle"), 3000);
+                setIsDeleting(false);
                 return;
             }
             onDeleteComplete?.();
         } catch (error) {
             console.error("Error deleting event:", error);
-            setLocalCardStatus("error");
-            setTimeout(() => setLocalCardStatus("idle"), 3000);
+            setIsDeleting(false);
         }
     };
 
@@ -196,14 +193,14 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     }));
 
     return (
-        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${localCardStatus === "deleting" ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}>
+        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
-                {previousEvent && (
+                {previousEvent && gapMinutes !== undefined && (
                     <EventGapDetection
                         currentEvent={event}
                         previousEvent={previousEvent}
-                        requiredGapMinutes={queueController?.getSettings().gapMinutes || 0}
+                        requiredGapMinutes={gapMinutes}
                         updateMode="updateNow"
                         wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
                         className="w-auto shadow-sm"
@@ -218,8 +215,8 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
                     status={currentStatus}
                     onStatusChange={handleStatusClick}
                     onDelete={handleDelete}
-                    isDeleting={localCardStatus === "deleting"}
-                    canShiftQueue={canShiftQueue}
+                    isDeleting={isDeleting}
+                    canShiftQueue={hasNextEvent}
                     icon={StatusIcon}
                     capacity={capacityEquipment}
                 />
