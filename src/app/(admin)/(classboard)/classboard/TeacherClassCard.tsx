@@ -42,10 +42,11 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, queue, controller }: {
+function TeacherEventProgressBar({ progress, queue, controller, onBulkAction }: {
     progress: EventProgress,
     queue?: TeacherQueue,
     controller?: ControllerSettings,
+    onBulkAction?: (ids: string[], action: "delete" | "update") => void,
 }) {
     const { completed, planned, tbc, total, eventIds = [] } = progress;
     const totalEvents = eventIds.length;
@@ -83,11 +84,13 @@ function TeacherEventProgressBar({ progress, queue, controller }: {
     const handleDeleteAll = async () => {
         if (eventIds.length === 0) return;
         setIsLoading(true);
+        if (onBulkAction) onBulkAction(eventIds, "delete");
         try {
             await bulkDeleteClassboardEvents(eventIds);
             setIsDropdownOpen(false);
         } catch (error) {
             console.error("Batch delete failed", error);
+            if (onBulkAction) onBulkAction([], "delete");
         } finally {
             setIsLoading(false);
         }
@@ -315,6 +318,7 @@ export interface TeacherClassCardProps {
     hasChanges?: boolean;
     changedCount?: number;
     isSubmitting?: boolean;
+    onBulkAction?: (ids: string[], action: "delete" | "update") => void;
 }
 
 export default function TeacherClassCard({
@@ -327,7 +331,8 @@ export default function TeacherClassCard({
     onCancel,
     hasChanges = false,
     changedCount = 0,
-    isSubmitting = false
+    isSubmitting = false,
+    onBulkAction
 }: TeacherClassCardProps) {
     const { controller } = useClassboardContext();
 
@@ -554,6 +559,7 @@ export default function TeacherClassCard({
                             progress={eventProgress}
                             queue={queue}
                             controller={controller}
+                            onBulkAction={onBulkAction}
                         />
                     </div>
                 </div>

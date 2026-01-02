@@ -25,9 +25,10 @@ interface EventCardProps {
     onDeleteComplete?: () => void;
     showLocation?: boolean;
     cardStatus?: EventCardStatus;
+    onCascade?: (ids: string[]) => void;
 }
 
-export default function EventCard({ event, queueController, gapMinutes, onDeleteComplete, showLocation = true, cardStatus }: EventCardProps) {
+export default function EventCard({ event, queueController, gapMinutes, onDeleteComplete, showLocation = true, cardStatus, onCascade }: EventCardProps) {
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -64,12 +65,12 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
 
     // Derive posting state from temp- prefix
     const isPosting = eventId.startsWith("temp-");
-    const isLoading = isPosting || cardStatus === "updating" || isDeleting;
+    const isLoading = isPosting || cardStatus === "updating" || isDeleting || cardStatus === "deleting";
     const isError = cardStatus === "error";
 
     // Status Icon - shows different states
     const StatusIcon = ({ size = 24 }: { size?: number }) => {
-        if (isPosting) {
+        if (isPosting || cardStatus === "updating") {
             return (
                 <motion.div
                     initial={{ rotate: -45 }}
@@ -86,7 +87,7 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
             );
         }
 
-        if (isDeleting) {
+        if (isDeleting || cardStatus === "deleting") {
             return (
                 <motion.div
                     initial={{ rotate: -45 }}
@@ -158,6 +159,11 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
             if (cascade && queueController) {
                 const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
 
+                // Notify parent about cascading events
+                if (updates.length > 0 && onCascade) {
+                    onCascade(updates.map((u) => u.id));
+                }
+
                 // Execute: delete from DB + bulk update remaining events
                 const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
 
@@ -165,6 +171,11 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
 
                 if (updates.length > 0) {
                     await bulkUpdateClassboardEvents(updates, []);
+                }
+
+                // Stop cascading animation
+                if (onCascade) {
+                    onCascade([]);
                 }
 
                 onDeleteComplete?.();
@@ -182,6 +193,7 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
         } catch (error) {
             console.error("Error deleting event:", error);
             setIsDeleting(false);
+            if (onCascade) onCascade([]);
         }
     };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
@@ -22,6 +22,10 @@ interface TeacherQueueRowProps {
 export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
     const { controller, bookingsForSelectedDate } = useClassboardContext();
     const { draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardActions();
+    const [cascadingEventIds, setCascadingEventIds] = useState<{ ids: Set<string>; action: "update" | "delete" }>({
+        ids: new Set(),
+        action: "update",
+    });
 
     // Get QueueController from GlobalFlag (if in adjustment mode)
     let queueController = globalFlag.getQueueController(queue.teacher.id);
@@ -144,6 +148,10 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
         toast.success(newLocked ? "Cascade mode enabled" : "Time-respect mode enabled");
     }, [queueController, controller, globalFlag]);
 
+    const handleBulkAction = useCallback((ids: string[], action: "delete" | "update") => {
+        setCascadingEventIds({ ids: new Set(ids), action });
+    }, []);
+
     return (
         <div
             className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`}
@@ -168,6 +176,7 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                     onSubmit={handleSubmit}
                     onReset={handleReset}
                     onCancel={handleCancel}
+                    onBulkAction={handleBulkAction}
                 />
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
@@ -188,15 +197,29 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {eventsWithOptimistic.length > 0 ? (
-                            eventsWithOptimistic.map(({ node: event, cardStatus }) => (
-                                <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                    {viewMode === "adjustment" && queueController ? (
-                                        <EventModCard event={event} queueController={queueController} onDelete={() => queueController.removeFromSnapshot(event.id)} />
-                                    ) : (
-                                        <EventCard event={event} cardStatus={cardStatus} queueController={queueController} gapMinutes={controller.gapMinutes} showLocation={true} />
-                                    )}
-                                </div>
-                            ))
+                            eventsWithOptimistic.map(({ node: event, cardStatus }) => {
+                                let effectiveCardStatus = cardStatus;
+                                if (cascadingEventIds.ids.has(event.id)) {
+                                    effectiveCardStatus = cascadingEventIds.action === "delete" ? "deleting" : "updating";
+                                }
+
+                                return (
+                                    <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
+                                        {viewMode === "adjustment" && queueController ? (
+                                            <EventModCard event={event} queueController={queueController} onDelete={() => queueController.removeFromSnapshot(event.id)} />
+                                        ) : (
+                                            <EventCard
+                                                event={event}
+                                                cardStatus={effectiveCardStatus}
+                                                queueController={queueController}
+                                                gapMinutes={controller.gapMinutes}
+                                                showLocation={true}
+                                                onCascade={(ids) => setCascadingEventIds({ ids: new Set(ids), action: "update" })}
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })
                         ) : (
                             <div className="flex items-center justify-center w-full text-xs text-muted-foreground">No events today</div>
                         )}
