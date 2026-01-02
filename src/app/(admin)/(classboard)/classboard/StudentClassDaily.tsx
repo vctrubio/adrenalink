@@ -8,8 +8,8 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useClassboardActions } from "@/src/providers/classboard-actions-provider";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
-import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
+import type { ClassboardData } from "@/backend/models/ClassboardModel";
 
 // Muted yellow - softer than entity color
 const STUDENT_COLOR = "#ca8a04";
@@ -26,34 +26,11 @@ export default function StudentClassDaily() {
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.booking.id)));
     const [sortBy, setSortBy] = useState<SortOption>("progression");
 
-    // Global Flag Settings State
-    const [showSettings, setShowSettings] = useState(false);
-    
-    // Force re-render when global flag updates (managed by provider via tick)
-    // We can use globalFlag.getRefreshKey() if we want to be explicit, but React might not see it change 
-    // unless we subscribe. However, provider triggers re-renders which should propagate here if we use context.
-    
-    // Check if global flag is in adjustment mode to sync UI state
-    useEffect(() => {
-        if (globalFlag.isAdjustmentMode() !== showSettings) {
-            setShowSettings(globalFlag.isAdjustmentMode());
-        }
-    }, [globalFlag.isAdjustmentMode()]); // This depends on re-renders triggering this check
-
-    const handleToggleSettings = () => {
-        if (!showSettings) {
-            globalFlag.enterAdjustmentMode();
-            setShowSettings(true);
-            setIsExpanded(true); // Ensure panel is open
-        } else {
-            globalFlag.exitAdjustmentMode();
-            setShowSettings(false);
-        }
-    };
+    // UI state synced directly with GlobalFlag
+    const isAdjustmentMode = globalFlag.isAdjustmentMode();
 
     const handleCloseSettings = () => {
         globalFlag.exitAdjustmentMode();
-        setShowSettings(false);
     };
 
     // Load sort preference from localStorage
@@ -155,8 +132,7 @@ export default function StudentClassDaily() {
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSettingIcon isOpen={showSettings} onClick={handleToggleSettings} />
-                    {!showSettings && (
+                    {!isAdjustmentMode && (
                         <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                     )}
                 </div>
@@ -172,7 +148,7 @@ export default function StudentClassDaily() {
                         transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
                     >
-                        {showSettings ? (
+                        {isAdjustmentMode ? (
                             <LessonFlagLocationSettingsController 
                                 globalFlag={globalFlag}
                                 teacherQueues={teacherQueues}

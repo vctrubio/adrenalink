@@ -75,6 +75,8 @@ export interface DraggableBooking {
     }[];
 }
 
+export type TeacherViewMode = "collapsed" | "expanded" | "adjustment";
+
 /**
  * Event card properties for rendering - gap info and movement constraints
  */
