@@ -28,8 +28,8 @@ export interface EventNode {
     lessonId: string;
     bookingId: string;
     bookingLeaderName: string;
-    // Only include students if capacity > 1
-    bookingStudents: StudentData[] | null;
+    // Always present - needed for export/reporting even for single student bookings
+    bookingStudents: StudentData[];
     capacityStudents: number;
     pricePerStudent: number; // For revenue calculation
     packageDuration: number; // Package expected duration in minutes
@@ -37,7 +37,7 @@ export interface EventNode {
     capacityEquipment: number; // For equipment display
     commission: {
         type: "fixed" | "percentage";
-        cph: number; // cents per hour or percentage
+        cph: number; // Currency per hour (based on school credential currency) or percentage
     };
     eventData: {
         date: string;
