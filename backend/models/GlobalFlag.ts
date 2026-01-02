@@ -36,7 +36,8 @@ export class GlobalFlag {
     private queueControllers = new Map<string, QueueController>();
     
     private submittingTeachers = new Set<string>();
-    private isLocked = false;
+    public isLockedTime = false;
+    public isLockedLocation = false;
     private refreshKey = 0;
 
     constructor(
@@ -66,10 +67,6 @@ export class GlobalFlag {
     
     getQueueController(teacherId: string): QueueController | undefined {
         return this.queueControllers.get(teacherId);
-    }
-
-    isAdjustmentLocked(): boolean {
-        return this.isLocked;
     }
 
     getRefreshKey(): number {
@@ -244,7 +241,8 @@ export class GlobalFlag {
         this.globalTime = null;
         this.globalLocation = null;
         this.submittingTeachers.clear();
-        this.isLocked = false;
+        this.isLockedTime = false;
+        this.isLockedLocation = false;
         this.onRefresh();
     }
 
@@ -294,7 +292,7 @@ export class GlobalFlag {
     // ============ OPERATIONS ============
 
     adjustTime(newTime: string): void {
-        if (this.isLocked) {
+        if (this.isLockedTime) {
             this.adjustTimeLocked(newTime);
         } else {
             this.adjustTimeUnlocked(newTime);
@@ -337,17 +335,10 @@ export class GlobalFlag {
         });
     }
 
-    adapt(): void {
-        if (this.isLocked) {
-            this.isLocked = false;
-            this.refreshKey++;
-            this.onRefresh();
-        } else {
-            this.syncAllToEarliest();
-            this.isLocked = true;
-            this.refreshKey++;
-            this.onRefresh();
-        }
+    unlockTime(): void {
+        this.isLockedTime = false;
+        this.refreshKey++;
+        this.onRefresh();
     }
 
     lockToAdjustmentTime(targetTime: string): void {
@@ -357,7 +348,7 @@ export class GlobalFlag {
             }
         });
 
-        this.isLocked = true;
+        this.isLockedTime = true;
         this.refreshKey++;
         this.onRefresh();
     }
@@ -399,7 +390,13 @@ export class GlobalFlag {
         });
 
         this.globalLocation = targetLocation;
-        this.isLocked = true;
+        this.isLockedLocation = true;
+        this.refreshKey++;
+        this.onRefresh();
+    }
+
+    unlockLocation(): void {
+        this.isLockedLocation = false;
         this.refreshKey++;
         this.onRefresh();
     }

@@ -50,8 +50,10 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
         }
     }, [globalFlag]);
 
-    const { isLockFlagTime, lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
-    const { isLockFlagLocation, lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
+    const { lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
+    const { lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
+    const isLockFlagTime = globalFlag.isLockedTime;
+    const isLockFlagLocation = globalFlag.isLockedLocation;
     const stepDuration = globalFlag.getController().stepDuration || 30;
     const pendingTeachers = globalFlag.getPendingTeachers();
     const updatesCount = globalFlag.getChangedEventsCount();
@@ -83,13 +85,20 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
         globalFlag.adjustTime(newTime);
+        
+        // If time is locked, apply the adjustment to all locked teachers
+        if (isLockFlagTime) {
+            globalFlag.lockToAdjustmentTime(newTime);
+        }
     };
 
     const handleLockTime = () => {
-        if (!isLockFlagTime && adjustmentTime) {
+        if (isLockFlagTime) {
+            // If locked, unlock it
+            globalFlag.unlockTime();
+        } else if (adjustmentTime) {
+            // If not locked, lock to the current adjustment time
             globalFlag.lockToAdjustmentTime(adjustmentTime);
-        } else if (isLockFlagTime) {
-            globalFlag.adapt();
         }
     };
 
@@ -100,11 +109,19 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
         const newLocation = LOCATIONS[newIndex];
         setLocationIndex(newIndex);
         setAdjustmentLocation(newLocation);
-        globalFlag.adjustLocation(newLocation);
+        
+        // If location is locked, apply the adjustment to all teachers
+        if (isLockFlagLocation) {
+            globalFlag.adjustLocation(newLocation);
+        }
     };
 
     const handleLockLocation = () => {
-        if (adjustmentLocation) {
+        if (isLockFlagLocation) {
+            // If locked, unlock it
+            globalFlag.unlockLocation();
+        } else if (adjustmentLocation) {
+            // If not locked, lock to the current adjustment location
             globalFlag.lockToLocation(adjustmentLocation);
         }
     };
