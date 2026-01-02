@@ -80,8 +80,8 @@ export class GlobalFlag {
         return this.controller;
     }
 
-    isSubmitting(teacherUsername: string): boolean {
-        return this.submittingTeachers.has(teacherUsername);
+    isSubmitting(teacherId: string): boolean {
+        return this.submittingTeachers.has(teacherId);
     }
 
     /**
@@ -217,7 +217,6 @@ export class GlobalFlag {
                 );
                 qc.startAdjustmentMode();
                 this.queueControllers.set(queue.teacher.id, qc);
-                this.queueControllers.set(queue.teacher.username, qc); // Allow lookup by username too if needed, but ID is safer
             }
         });
 
@@ -249,9 +248,9 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    optIn(teacherUsername: string): void {
-        const queue = this.teacherQueues.find(q => q.teacher.username === teacherUsername);
-        if (queue && !this.queueControllers.has(queue.teacher.id)) {
+    optIn(teacherId: string): void {
+        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        if (queue && !this.queueControllers.has(teacherId)) {
              const qc = new QueueController(
                 queue, 
                 this.controller, 
@@ -261,29 +260,19 @@ export class GlobalFlag {
                 }
             );
             qc.startAdjustmentMode();
-            this.queueControllers.set(queue.teacher.id, qc);
-            this.queueControllers.set(queue.teacher.username, qc);
+            this.queueControllers.set(teacherId, qc);
         }
         this.onRefresh();
     }
 
-    optOut(teacherUsername: string): void {
-        // Find by username
-        let targetId: string | undefined;
-        this.queueControllers.forEach((qc, id) => {
-            if (qc.getQueue().teacher.username === teacherUsername) {
-                targetId = qc.getQueue().teacher.id;
-            }
-        });
-
-        if (targetId) {
-            const qc = this.queueControllers.get(targetId);
-            qc?.exitAdjustmentMode();
-            this.queueControllers.delete(targetId);
-            this.queueControllers.delete(teacherUsername); // clean up username alias
+    optOut(teacherId: string): void {
+        const qc = this.queueControllers.get(teacherId);
+        if (qc) {
+            qc.exitAdjustmentMode();
+            this.queueControllers.delete(teacherId);
         }
         
-        this.submittingTeachers.delete(teacherUsername);
+        this.submittingTeachers.delete(teacherId);
 
         // Session Rule: If no more teachers are pending, the global session terminates
         if (this.queueControllers.size === 0) {
@@ -293,11 +282,11 @@ export class GlobalFlag {
         this.onRefresh();
     }
 
-    setSubmitting(teacherUsername: string, isSubmitting: boolean): void {
+    setSubmitting(teacherId: string, isSubmitting: boolean): void {
         if (isSubmitting) {
-            this.submittingTeachers.add(teacherUsername);
+            this.submittingTeachers.add(teacherId);
         } else {
-            this.submittingTeachers.delete(teacherUsername);
+            this.submittingTeachers.delete(teacherId);
         }
         this.onRefresh();
     }
@@ -466,20 +455,15 @@ export class GlobalFlag {
         return allUpdates;
     }
 
-    collectChangesForTeacher(teacherUsername: string): { id: string; date: string; duration: number; location: string }[] {
-        // Find controller by username
-        let qc: QueueController | undefined;
-        this.queueControllers.forEach(c => {
-            if (c.getQueue().teacher.username === teacherUsername) qc = c;
-        });
-
+    collectChangesForTeacher(teacherId: string): { id: string; date: string; duration: number; location: string }[] {
+        const qc = this.queueControllers.get(teacherId);
         if (!qc) return [];
 
         const { updates } = qc.getChanges();
         const fullUpdates: { id: string; date: string; duration: number; location: string }[] = [];
         
         updates.forEach(u => {
-             const currentEvent = qc!.getQueue().getAllEvents().find(e => e.id === u.id);
+             const currentEvent = qc.getQueue().getAllEvents().find(e => e.id === u.id);
              if (currentEvent) {
                  fullUpdates.push({
                      id: u.id,

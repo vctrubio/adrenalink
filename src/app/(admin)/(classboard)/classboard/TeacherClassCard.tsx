@@ -42,14 +42,14 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, totalEvents, completedEvents, queue, controller }: {
+function TeacherEventProgressBar({ progress, queue, controller }: {
     progress: EventProgress,
-    totalEvents: number,
-    completedEvents: number,
     queue?: TeacherQueue,
     controller?: ControllerSettings,
 }) {
     const { completed, planned, tbc, total, eventIds = [] } = progress;
+    const totalEvents = eventIds.length;
+    const completedEvents = queue ? queue.getAllEvents().filter(e => e.eventData.status === "completed").length : 0;
     const denominator = total > 0 ? total : 1;
     const completedEnd = (completed / denominator) * 100;
     const plannedEnd = completedEnd + (planned / denominator) * 100;
@@ -552,8 +552,6 @@ export default function TeacherClassCard({
                     <div onClick={(e) => e.stopPropagation()}>
                         <TeacherEventProgressBar
                             progress={eventProgress}
-                            totalEvents={totalEvents}
-                            completedEvents={completedCount}
                             queue={queue}
                             controller={controller}
                         />

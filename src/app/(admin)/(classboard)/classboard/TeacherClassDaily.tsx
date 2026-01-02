@@ -238,12 +238,12 @@ function TeacherQueueRow({
         try {
             await bulkUpdateClassboardEvents(updates, deletions);
             toast.success("Changes saved");
-            globalFlag.optOut(queue.teacher.username);
+            globalFlag.optOut(queue.teacher.id);
         } catch (error) {
             console.error("❌ Failed to save changes:", error);
             toast.error("Failed to save changes");
         }
-    }, [queueController, globalFlag, queue.teacher.username]);
+    }, [queueController, globalFlag, queue.teacher.id]);
 
     const handleReset = useCallback(() => {
         queueController?.resetToSnapshot();
@@ -251,8 +251,8 @@ function TeacherQueueRow({
 
     const handleCancel = useCallback(() => {
         queueController?.resetToSnapshot();
-        globalFlag.optOut(queue.teacher.username);
-    }, [queueController, globalFlag, queue.teacher.username]);
+        globalFlag.optOut(queue.teacher.id);
+    }, [queueController, globalFlag, queue.teacher.id]);
 
     const handleOptimise = useCallback(() => {
         if (!queueController) return;
@@ -295,9 +295,9 @@ function TeacherQueueRow({
                     viewMode={viewMode}
                     onToggleAdjustment={(value) => {
                         if (value) {
-                            globalFlag.optIn(queue.teacher.username);
+                            globalFlag.optIn(queue.teacher.id);
                         } else {
-                            globalFlag.optOut(queue.teacher.username);
+                            globalFlag.optOut(queue.teacher.id);
                         }
                     }}
                     hasChanges={queueController?.hasChanges() ?? false}
