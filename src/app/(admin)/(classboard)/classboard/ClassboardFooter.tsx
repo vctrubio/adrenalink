@@ -35,7 +35,7 @@ export default function ClassboardFooter({
         const newValue = Math.max(15, current + delta);
         setController({ ...controller, [key]: newValue });
     };
-    
+
     const updateGap = (delta: number) => {
         setController({ ...controller, gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
     };

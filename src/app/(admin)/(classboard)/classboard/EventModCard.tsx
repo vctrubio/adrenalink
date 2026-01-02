@@ -217,12 +217,6 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
 const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinutes: number; eventDuration: number }) => {
     const remainingMinutes = durationMinutes - eventDuration;
 
-    console.log(`⏱️ [RemainingTimeControl] Rendering:`, {
-        durationMinutes,
-        eventDuration,
-        remainingMinutes,
-    });
-
     return (
         <div className="flex flex-col items-end">
             <span className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
@@ -253,14 +247,6 @@ export default function EventModCard({ event, queueController, onDelete }: Event
     const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === event.bookingId);
     const packageInfo = bookingData ? getPackageInfo(bookingData.schoolPackage, bookingData.lessons) : null;
     const bookingDurationMinutes = packageInfo?.durationMinutes ?? 0;
-
-    console.log(`📊 [EventModCard] Event ${eventId}:`, {
-        bookingId: event.bookingId,
-        bookingFound: !!bookingData,
-        bookingDurationMinutes,
-        eventDuration: event.eventData.duration,
-        shouldDisplay: bookingDurationMinutes > 0,
-    });
 
     return (
         <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">

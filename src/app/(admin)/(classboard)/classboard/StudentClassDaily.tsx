@@ -18,11 +18,10 @@ type StudentBookingFilter = "available" | "onboard";
 type SortOption = "newest" | "latest" | "progression";
 
 export default function StudentClassDaily() {
-    const { bookingsForSelectedDate: bookings } = useClassboardContext();
+    const { bookingsForSelectedDate: bookings, controller, setController } = useClassboardContext();
     const { teacherQueues, globalFlag } = useClassboardActions();
 
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
-    const [isExpanded, setIsExpanded] = useState(true);
     const [sortBy, setSortBy] = useState<SortOption>("progression");
 
     // UI state synced directly with GlobalFlag
@@ -113,7 +112,7 @@ export default function StudentClassDaily() {
     return (
         <div className="flex flex-col h-full bg-card">
             {/* Header with Icon and Switch */}
-            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none">
                 <div style={{ color: STUDENT_COLOR }}>
                     <HelmetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
@@ -125,50 +124,50 @@ export default function StudentClassDaily() {
 
             {/* Collapsible Cards Container */}
             <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
-                    >
-                        {isAdjustmentMode ? (
-                            <LessonFlagLocationSettingsController
-                                globalFlag={globalFlag}
-                                teacherQueues={teacherQueues}
-                                onClose={handleCloseSettings}
-                                onRefresh={() => { }} // GlobalFlag refresh is handled by provider context update
-                            />
-                        ) : (
-                            <div className="p-4">
-                                <div className="flex flex-row xl:flex-col gap-3">
-                                    {filteredBookings.map((bookingData) => {
-                                        // Check if this booking has any events (bookings already filtered by date)
-                                        const lessons = bookingData.lessons || [];
-                                        const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
+                <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
+                >
+                    {isAdjustmentMode ? (
+                        <LessonFlagLocationSettingsController
+                            globalFlag={globalFlag}
+                            teacherQueues={teacherQueues}
+                            onClose={handleCloseSettings}
+                            onRefresh={() => { }} // GlobalFlag refresh is handled by provider context update
+                            controller={controller}
+                            setController={setController}
+                        />
+                    ) : (
+                        <div className="p-4">
+                            <div className="flex flex-row xl:flex-col gap-3">
+                                {filteredBookings.map((bookingData) => {
+                                    // Check if this booking has any events (bookings already filtered by date)
+                                    const lessons = bookingData.lessons || [];
+                                    const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
 
-                                        // For "available" filter: Show all bookings (regardless of on board status)
-                                        if (filter === "available") {
-                                            if (!hasEventToday) {
-                                                return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
-                                            } else {
-                                                return <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} onClick={() => toggleBookingExpanded(bookingData.booking.id)} />;
-                                            }
-                                        }
-
-                                        // For "onboard" filter: Show StudentBookingCard for bookings WITH events
-                                        if (filter === "onboard" && hasEventToday) {
+                                    // For "available" filter: Show all bookings (regardless of on board status)
+                                    if (filter === "available") {
+                                        if (!hasEventToday) {
                                             return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
+                                        } else {
+                                            return <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} onClick={() => toggleBookingExpanded(bookingData.booking.id)} />;
                                         }
+                                    }
 
-                                        return null;
-                                    })}
-                                </div>
+                                    // For "onboard" filter: Show StudentBookingCard for bookings WITH events
+                                    if (filter === "onboard" && hasEventToday) {
+                                        return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
+                                    }
+
+                                    return null;
+                                })}
                             </div>
-                        )}
-                    </motion.div>
-                )}
+                        </div>
+                    )}
+                </motion.div>
             </AnimatePresence>
         </div>
     );

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin, Clock, Zap, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin, Zap, X, Minus, Plus } from "lucide-react";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import type { GlobalFlag } from "@/backend/models/GlobalFlag";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 const LOCATIONS = ["Beach", "Bay", "Lake", "River", "Pool", "Indoor"];
 const MIN_TIME_MINUTES = 0;
@@ -18,7 +18,8 @@ interface LessonFlagLocationSettingsControllerProps {
     globalFlag: GlobalFlag;
     teacherQueues: TeacherQueue[];
     onClose: () => void;
-    onRefresh: () => void;
+    controller: ControllerSettings;
+    setController: (c: ControllerSettings) => void;
 }
 
 /**
@@ -31,7 +32,7 @@ interface LessonFlagLocationSettingsControllerProps {
  *    centrally managed by the globalFlag instance.
  * 4. Data Safety: "Reset" restores the exact state captured at the start of the session.
  */
-export default function LessonFlagLocationSettingsController({ globalFlag, teacherQueues, onClose, onRefresh }: LessonFlagLocationSettingsControllerProps) {
+export default function LessonFlagLocationSettingsController({ globalFlag, teacherQueues, onClose, controller, setController }: LessonFlagLocationSettingsControllerProps) {
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
     const [locationIndex, setLocationIndex] = useState(0);
@@ -51,13 +52,22 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
     }, [globalFlag]);
 
     const { lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
+
+    // Sync controller changes from context to globalFlag for all pending teachers
+    useEffect(() => {
+        if (globalFlag.isAdjustmentMode() && controller) {
+            globalFlag.updateController(controller);
+        }
+    }, [controller.gapMinutes, controller.stepDuration, controller.locked, globalFlag]);
     const { lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
     const isLockFlagTime = globalFlag.isLockedTime;
     const isLockFlagLocation = globalFlag.isLockedLocation;
-    const stepDuration = globalFlag.getController().stepDuration || 30;
+    const stepDuration = controller.stepDuration || 30;
     const pendingTeachers = globalFlag.getPendingTeachers();
     const updatesCount = globalFlag.getChangedEventsCount();
     const hasChanges = updatesCount > 0;
+    const globalCascadeMode = globalFlag.getGlobalCascadeMode();
+    const optimisationStats = globalFlag.getOptimisationStats();
 
     // Persists changes for a specific teacher and removes them from the global queue
     const handleIndividualSubmit = async (teacherId: string) => {
@@ -71,7 +81,6 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
             }
 
             globalFlag.optOut(teacherId);
-            onRefresh();
         } finally {
             globalFlag.setSubmitting(teacherId, false);
         }
@@ -84,12 +93,20 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
         if (newMinutes < MIN_TIME_MINUTES || newMinutes > MAX_TIME_MINUTES) return;
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
-        globalFlag.adjustTime(newTime);
-        
-        // If time is locked, apply the adjustment to all locked teachers
-        if (isLockFlagTime) {
-            globalFlag.lockToAdjustmentTime(newTime);
-        }
+
+        // Apply adjustment to each pending teacher individually for consistent behavior with EventModCard
+        const pendingTeachersArray = Array.from(pendingTeachers);
+        pendingTeachersArray.forEach((teacherId) => {
+            const qc = globalFlag.getQueueController(teacherId);
+            if (qc) {
+                const events = qc.getQueue().getAllEvents();
+                events.forEach((event) => {
+                    qc.adjustTime(event.id, increment);
+                });
+            }
+        });
+
+        globalFlag.triggerRefresh();
     };
 
     const handleLockTime = () => {
@@ -109,11 +126,20 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
         const newLocation = LOCATIONS[newIndex];
         setLocationIndex(newIndex);
         setAdjustmentLocation(newLocation);
-        
-        // If location is locked, apply the adjustment to all teachers
-        if (isLockFlagLocation) {
-            globalFlag.adjustLocation(newLocation);
-        }
+
+        // Apply location change to each pending teacher individually for consistent behavior with EventModCard
+        const pendingTeachersArray = Array.from(pendingTeachers);
+        pendingTeachersArray.forEach((teacherId) => {
+            const qc = globalFlag.getQueueController(teacherId);
+            if (qc) {
+                const events = qc.getQueue().getAllEvents();
+                events.forEach((event) => {
+                    qc.updateLocation(event.id, newLocation);
+                });
+            }
+        });
+
+        globalFlag.triggerRefresh();
     };
 
     const handleLockLocation = () => {
@@ -136,7 +162,6 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                 if (!result.success) return;
             }
             globalFlag.exitAdjustmentMode();
-            onRefresh();
             onClose();
         } finally {
             setIsSubmitting(false);
@@ -158,6 +183,14 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
     const handleCancel = () => {
         globalFlag.exitAdjustmentMode(true); // true = discard changes
         onClose();
+    };
+
+    const updateGap = (delta: number) => {
+        const newGap = Math.max(0, (controller.gapMinutes || 0) + delta);
+        const newController = { ...controller, gapMinutes: newGap };
+        // Update both context and globalFlag for consistency
+        setController(newController);
+        globalFlag.updateController(newController);
     };
 
     return (
@@ -230,6 +263,52 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
 
             <div className="h-px bg-border/10" />
 
+            {/* Global Optimisation Section */}
+            <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Optimisation ({optimisationStats.optimised}/{optimisationStats.total})</label>
+
+                <div className="space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gap Duration</label>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => updateGap(-stepDuration)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"><Minus size={14}/></button>
+                        <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-center text-sm font-mono font-bold flex items-center justify-center gap-2">
+                            <Zap size={14} className="text-muted-foreground/40" />
+                            {controller.gapMinutes || 0}m
+                        </div>
+                        <button onClick={() => updateGap(stepDuration)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"><Plus size={14}/></button>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => globalFlag.optimiseAllQueues(controller.gapMinutes)}
+                    disabled={optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0}
+                    className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
+                        optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0
+                            ? "bg-green-500/10 border-green-500/30 cursor-default"
+                            : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 active:scale-95 cursor-pointer"
+                    }`}
+                    title="Optimise all queues and enable cascade mode"
+                >
+                    <svg
+                        className={`w-4 h-4 ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "text-green-500" : "text-blue-500"}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        )}
+                    </svg>
+                    <span className={`text-xs font-bold ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "text-green-500" : "text-blue-500"}`}>
+                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "All Optimised" : "Optimise All"}
+                    </span>
+                </button>
+            </div>
+
+            <div className="h-px bg-border/10" />
+
             {/* Live Queue Section */}
             <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Active Queue ({pendingTeachers.size})</label>
@@ -237,7 +316,7 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                     {teacherQueues
                         .filter((q) => pendingTeachers.has(q.teacher.id))
                         .map((q) => {
-                            const controller = globalFlag.getControllerForTeacher(q.teacher.id);
+                            const controller = globalFlag.getQueueController(q.teacher.id);
                             const activeQueue = controller?.getQueue() ?? q;
                             const firstTime = activeQueue.getEarliestTime();
                             const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.id);

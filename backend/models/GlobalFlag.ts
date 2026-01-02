@@ -31,10 +31,11 @@ export class GlobalFlag {
     private adjustmentMode = false;
     private globalTime: string | null = null;
     private globalLocation: string | null = null;
-    
+    private globalCascadeMode = false; // true = cascade mutations, false = respect times
+
     // Map of teacherId -> QueueController
     private queueControllers = new Map<string, QueueController>();
-    
+
     private submittingTeachers = new Set<string>();
     public isLockedTime = false;
     public isLockedLocation = false;
@@ -57,12 +58,8 @@ export class GlobalFlag {
     }
 
     getPendingTeachers(): ReadonlySet<string> {
-        // Derived from active QueueControllers
-        const usernames = new Set<string>();
-        this.queueControllers.forEach((qc) => {
-            usernames.add(qc.getQueue().teacher.username);
-        });
-        return usernames;
+        // Return the teacher IDs (keys in queueControllers map)
+        return new Set(this.queueControllers.keys());
     }
     
     getQueueController(teacherId: string): QueueController | undefined {
@@ -125,6 +122,48 @@ export class GlobalFlag {
         )[0][0];
 
         return mostCommonLocation;
+    }
+
+    getGlobalCascadeMode(): boolean {
+        return this.globalCascadeMode;
+    }
+
+    setGlobalCascadeMode(cascadeMode: boolean): void {
+        this.globalCascadeMode = cascadeMode;
+        // Set the controller's locked state - all QueueControllers read from this
+        this.controller.locked = cascadeMode;
+        this.refreshKey++;
+        this.onRefresh();
+    }
+
+    getOptimisationStats(): { optimised: number; total: number } {
+        let totalEvents = 0;
+        let optimisedEvents = 0;
+
+        this.queueControllers.forEach((qc) => {
+            const allEvents = qc.getQueue().getAllEvents();
+            totalEvents += allEvents.length;
+
+            if (qc.isQueueOptimised()) {
+                optimisedEvents += allEvents.length;
+            }
+        });
+
+        return { optimised: optimisedEvents, total: totalEvents };
+    }
+
+    optimiseAllQueues(gapMinutes?: number): void {
+        // Use provided gap or fall back to controller's gap
+        const gap = gapMinutes ?? this.controller.gapMinutes ?? 0;
+
+        this.queueControllers.forEach((qc) => {
+            qc.optimiseQueue();
+        });
+        // Set all to cascade mode after optimizing
+        this.controller.locked = true;
+        this.globalCascadeMode = true;
+        this.refreshKey++;
+        this.onRefresh();
     }
 
     // ============ LOCK STATUS ============
@@ -529,37 +568,11 @@ export class GlobalFlag {
 
     updateController(controller: ControllerSettings): void {
         this.controller = controller;
-        // Also update all active queue controllers
-        this.queueControllers.forEach(qc => {
-             // QueueController doesn't have setSettings? 
-             // We might need to access it or recreate. 
-             // QueueController takes settings in constructor.
-             // But it references the settings object.
-             // Ideally QueueController should allow updating settings or we rely on reference.
-             // Since we passed `this.controller` which is an object, if we mutate it, it might work?
-             // But here we are receiving a NEW object `controller`.
-             
-             // QueueController doesn't seem to expose a way to update settings. 
-             // However, checking QueueController code: 
-             // constructor(..., private settings: ControllerSettings, ...)
-             // It stores it.
-             
-             // Since we are refactoring GlobalFlag, we can assume QueueController might need an update method
-             // OR we just assume for now that settings updates (like gap change) 
-             // will be handled by re-instantiating or we don't support live settings change during adjustment 
-             // (except via GlobalFlag methods which pass values explicitly).
-             
-             // Wait, QueueController methods use `this.settings`.
-             // If we want to support changing settings (like global gap) while in adjustment mode,
-             // we should probably update the settings in the controllers.
-             // But `updateController` in GlobalFlag is called when context updates.
-             
-             // Let's assume for now we just update `this.controller` and maybe we need to hack it 
-             // or add a method to QueueController.
-             // Given I cannot easily edit QueueController right now (user asked to refactor GlobalFlag),
-             // I'll stick to updating `this.controller`.
-             // If QueueController uses the reference, we are good if we mutate properties.
-             // But `setController` in React usually replaces the object.
+        // Propagate settings changes to all pending QueueControllers
+        this.queueControllers.forEach((qc) => {
+            qc.updateSettings(controller);
         });
+        this.refreshKey++;
+        this.onRefresh();
     }
 }
