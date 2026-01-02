@@ -23,7 +23,6 @@ export default function StudentClassDaily() {
 
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
-    const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.booking.id)));
     const [sortBy, setSortBy] = useState<SortOption>("progression");
 
     // UI state synced directly with GlobalFlag
@@ -47,18 +46,6 @@ export default function StudentClassDaily() {
         localStorage.setItem("studentBookingSort", value);
     };
 
-    const toggleBookingExpanded = (bookingId: string) => {
-        setExpandedBookings((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(bookingId)) {
-                newSet.delete(bookingId);
-            } else {
-                newSet.add(bookingId);
-            }
-            return newSet;
-        });
-    };
-
     const { filteredBookings, counts } = useMemo(() => {
         // All bookings (already filtered by selectedDate in ClientClassboard)
         const allBookings = bookings;
@@ -77,7 +64,7 @@ export default function StudentClassDaily() {
             available: allBookings.length,
         };
 
-        let filteredData = filter === "available" ? allBookings : onboardBookings;
+        const filteredData = filter === "available" ? allBookings : onboardBookings;
 
         // Apply sorting
         const sortedData = [...filteredData].sort((a, b) => {
@@ -132,9 +119,7 @@ export default function StudentClassDaily() {
                 </div>
                 <span className="text-lg font-bold text-foreground">Students</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    {!isAdjustmentMode && (
-                        <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
-                    )}
+                    {!isAdjustmentMode && <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />}
                 </div>
             </div>
 
@@ -149,11 +134,11 @@ export default function StudentClassDaily() {
                         className="overflow-x-auto xl:overflow-y-auto flex-1 min-h-0 max-h-[450px] xl:max-h-none"
                     >
                         {isAdjustmentMode ? (
-                            <LessonFlagLocationSettingsController 
+                            <LessonFlagLocationSettingsController
                                 globalFlag={globalFlag}
                                 teacherQueues={teacherQueues}
                                 onClose={handleCloseSettings}
-                                onRefresh={() => {}} // GlobalFlag refresh is handled by provider context update
+                                onRefresh={() => { }} // GlobalFlag refresh is handled by provider context update
                             />
                         ) : (
                             <div className="p-4">
@@ -166,31 +151,15 @@ export default function StudentClassDaily() {
                                         // For "available" filter: Show all bookings (regardless of on board status)
                                         if (filter === "available") {
                                             if (!hasEventToday) {
-                                                return (
-                                                    <StudentBookingCard
-                                                        key={bookingData.booking.id}
-                                                        bookingData={bookingData}
-                                                    />
-                                                );
+                                                return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
                                             } else {
-                                                return (
-                                                    <BookingOnboardCard
-                                                        key={bookingData.booking.id}
-                                                        bookingData={bookingData}
-                                                        onClick={() => toggleBookingExpanded(bookingData.booking.id)}
-                                                    />
-                                                );
+                                                return <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} onClick={() => toggleBookingExpanded(bookingData.booking.id)} />;
                                             }
                                         }
 
                                         // For "onboard" filter: Show StudentBookingCard for bookings WITH events
                                         if (filter === "onboard" && hasEventToday) {
-                                            return (
-                                                <StudentBookingCard
-                                                    key={bookingData.booking.id}
-                                                    bookingData={bookingData}
-                                                />
-                                            );
+                                            return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
                                         }
 
                                         return null;
