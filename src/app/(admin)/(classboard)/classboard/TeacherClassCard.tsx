@@ -16,6 +16,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { TeacherStats } from "@/backend/ClassboardStatistics";
 import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
@@ -306,8 +307,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
 export interface TeacherClassCardProps {
     queue: TeacherQueue;
     onClick?: () => void;
-    isExpanded?: boolean;
-    isAdjustmentMode?: boolean;
+    viewMode: TeacherViewMode;
     onToggleAdjustment?: (mode: boolean) => void;
     onSubmit?: () => void;
     onReset?: () => void;
@@ -320,8 +320,7 @@ export interface TeacherClassCardProps {
 export default function TeacherClassCard({
     queue,
     onClick,
-    isExpanded = true,
-    isAdjustmentMode = false,
+    viewMode,
     onToggleAdjustment,
     onSubmit,
     onReset,
@@ -331,6 +330,9 @@ export default function TeacherClassCard({
     isSubmitting = false
 }: TeacherClassCardProps) {
     const { controller } = useClassboardContext();
+
+    const isAdjustmentMode = viewMode === "adjustment";
+    const isExpanded = viewMode !== "collapsed";
 
     // Derive all data from queue
     const teacherName = queue.teacher.username;

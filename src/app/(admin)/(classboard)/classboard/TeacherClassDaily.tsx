@@ -11,6 +11,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useClassboardActions, optimisticEventToNode } from "@/src/providers/classboard-actions-provider";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
@@ -166,6 +167,11 @@ function TeacherQueueRow({
     const queueController = globalFlag.getQueueController(queue.teacher.id);
     const isAdjustmentMode = !!queueController;
 
+    // Compute view mode: adjustment takes priority over expanded
+    const viewMode: TeacherViewMode = isAdjustmentMode 
+        ? "adjustment" 
+        : isExpanded ? "expanded" : "collapsed";
+
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === queue.teacher.id) ?? false;
 
     // Merge real events with optimistic events for this teacher
@@ -282,12 +288,11 @@ function TeacherQueueRow({
             onDrop={handleDrop}
         >
             {/* Teacher Card */}
-            <div className={`flex-shrink-0 transition-all duration-200 p-2 ${isExpanded ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
+            <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
                     queue={queue}
                     onClick={onToggleExpand}
-                    isExpanded={isExpanded}
-                    isAdjustmentMode={isAdjustmentMode}
+                    viewMode={viewMode}
                     onToggleAdjustment={(value) => {
                         if (value) {
                             globalFlag.optIn(queue.teacher.username);
@@ -302,7 +307,7 @@ function TeacherQueueRow({
                     onCancel={handleCancel}
                 />
                 {/* Optimise and Lock controls - always show in adjustment mode */}
-                {isAdjustmentMode && queueController && (
+                {viewMode === "adjustment" && queueController && (
                     <div className="mt-2 px-2">
                         <LockMutationQueue
                             isLocked={queueController.isLocked()}
@@ -316,13 +321,13 @@ function TeacherQueueRow({
             </div>
 
             {/* Event Cards */}
-            {isExpanded && (
+            {viewMode !== "collapsed" && (
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {eventsWithOptimistic.length > 0 ? (
                             eventsWithOptimistic.map(({ node: event, cardStatus }) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
-                                    {isAdjustmentMode && queueController ? (
+                                    {viewMode === "adjustment" && queueController ? (
                                         <EventModCard
                                             eventId={event.id}
                                             queueController={queueController}

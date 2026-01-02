@@ -51,7 +51,7 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
     }, [globalFlag]);
 
     const { isLockFlagTime, lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
-    const { isLockFlagLocation, lockLocationCount } = globalFlag.getLockStatusLocation(adjustmentLocation);
+    const { isLockFlagLocation, lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
     const stepDuration = globalFlag.getController().stepDuration || 30;
     const pendingTeachers = globalFlag.getPendingTeachers();
     const updatesCount = globalFlag.getChangedEventsCount();
@@ -168,14 +168,14 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                     </button>
                     <div className="flex-1 flex flex-col items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 relative overflow-hidden group">
                         <span className="font-mono text-xl font-bold tracking-tight">{adjustmentTime || "--:--"}</span>
-                        <div className="absolute inset-x-0 bottom-0 h-1 bg-primary/10">
-                            <div className="h-full bg-primary transition-all duration-300" style={{ width: `${(lockCount / Math.max(pendingTeachers.size, 1)) * 100}%` }} />
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-600/10">
+                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockCount / Math.max(pendingTeachers.size, 1)) * 100}%` }} />
                         </div>
                     </div>
                     <button onClick={() => handleAdjustTime(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                         <ChevronRight size={18} />
                     </button>
-                    <button onClick={handleLockTime} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagTime ? "bg-cyan-500 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
+                    <button onClick={handleLockTime} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagTime ? "bg-cyan-600 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
                         {isLockFlagTime ? <Lock size={18} /> : <LockOpen size={18} />}
                     </button>
                 </div>
@@ -193,14 +193,19 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                     <button onClick={() => handleAdjustLocation(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                         <ChevronLeft size={18} />
                     </button>
-                    <div className="flex-1 flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 px-2">
-                        <MapPin size={16} className="mr-2 text-muted-foreground" />
-                        <span className="font-medium text-sm truncate">{adjustmentLocation || "Select..."}</span>
+                    <div className="flex-1 flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 relative overflow-hidden group">
+                        <div className="flex items-center justify-center w-full h-full px-2">
+                            <MapPin size={16} className="mr-2 text-muted-foreground" />
+                            <span className="font-medium text-sm truncate">{adjustmentLocation || "Select..."}</span>
+                        </div>
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-600/10">
+                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockLocationCount / Math.max(totalLocationEventsForLock, 1)) * 100}%` }} />
+                        </div>
                     </div>
                     <button onClick={() => handleAdjustLocation(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                         <ChevronRight size={18} />
                     </button>
-                    <button onClick={handleLockLocation} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagLocation ? "bg-indigo-500 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
+                    <button onClick={handleLockLocation} className={`p-3 rounded-xl transition-all duration-200 ${isLockFlagLocation ? "bg-cyan-600 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
                         {isLockFlagLocation ? <Lock size={18} /> : <LockOpen size={18} />}
                     </button>
                 </div>
@@ -219,6 +224,7 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                             const isIndividualSubmitting = globalFlag.isSubmitting(q.teacher.username);
                             const individualChanges = globalFlag.collectChangesForTeacher(q.teacher.username);
                             const hasIndividualChanges = individualChanges.length > 0;
+                            const isMatchingGlobal = firstTime === adjustmentTime;
 
                             return (
                                 <div key={q.teacher.username} className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm animate-in slide-in-from-left-2 duration-200">
@@ -228,8 +234,8 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                                             <span className="font-bold text-sm tracking-tight truncate">{q.teacher.username}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 shrink-0">
-                                            <FlagIcon size={14} className="text-primary/60" />
-                                            <span className="font-mono text-xs font-bold text-primary">{firstTime || "--:--"}</span>
+                                            <FlagIcon size={14} className={isMatchingGlobal ? "text-cyan-500" : "text-primary/60"} />
+                                            <span className={`font-mono text-xs font-bold ${isMatchingGlobal ? "text-cyan-600" : "text-primary"}`}>{firstTime || "--:--"}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 ml-2">
