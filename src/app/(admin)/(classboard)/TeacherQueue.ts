@@ -1,25 +1,25 @@
 /**
- * TeacherQueueV2 - Lightweight linked-list queue for managing events on a specific date
+ * TeacherQueue - Lightweight linked-list queue for managing events on a specific date
  * Provides chronological event insertion, statistics, and queue optimization
  */
 
 import { minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
-import type { EventNodeV2, ControllerSettings } from "@/types/classboard-teacher-queue";
+import type { EventNode, ControllerSettings } from "@/types/classboard-teacher-queue";
 
 export interface TeacherInfo {
     id: string; // UUID of teacher
     username: string;
 }
 
-export { type EventNodeV2, type ControllerSettings } from "@/types/classboard-teacher-queue";
+export { type EventNode, type ControllerSettings } from "@/types/classboard-teacher-queue";
 
 /**
- * TeacherQueueV2 - Lightweight teacher queue using EventNodeV2
+ * TeacherQueue - Lightweight teacher queue
  * Manages a linked list of events for a teacher on a specific date
  * Events are constructed from database records and inserted in chronological order
  */
-export class TeacherQueueV2 {
-    private head: EventNodeV2 | null = null;
+export class TeacherQueue {
+    private head: EventNode | null = null;
     public teacher: TeacherInfo;
 
     constructor(teacher: TeacherInfo) {
@@ -30,7 +30,7 @@ export class TeacherQueueV2 {
      * Construct event in queue - inserts event in chronological order
      * Called when building queue from existing database events
      */
-    constructEvents(eventNode: EventNodeV2): void {
+    constructEvents(eventNode: EventNode): void {
         const eventStartMinutes = this.getStartTimeMinutes(eventNode);
 
         if (!this.head) {
@@ -66,7 +66,7 @@ export class TeacherQueueV2 {
      * Rebuild the linked list from an array of events
      * Used after reordering operations (moveUp/moveDown)
      */
-    rebuildQueue(events: EventNodeV2[]): void {
+    rebuildQueue(events: EventNode[]): void {
         this.head = null;
         events.forEach((event) => {
             event.next = null;
@@ -82,8 +82,8 @@ export class TeacherQueueV2 {
         });
     }
 
-    getAllEvents(): EventNodeV2[] {
-        const events: EventNodeV2[] = [];
+    getAllEvents(): EventNode[] {
+        const events: EventNode[] = [];
         let current = this.head;
         while (current) {
             events.push(current);
@@ -294,7 +294,7 @@ export class TeacherQueueV2 {
         };
     }
 
-    private getStartTimeMinutes(eventNode: EventNodeV2): number {
+    private getStartTimeMinutes(eventNode: EventNode): number {
         return getMinutesFromISO(eventNode.eventData.date);
     }
 }

@@ -5,7 +5,7 @@ import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
-import type { EventNodeV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -17,7 +17,7 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
 interface EventCardProps {
-    event: EventNodeV2;
+    event: EventNode;
     queueController?: QueueController;
     onDeleteComplete?: () => void;
     onDeleteWithCascade?: (eventId: string) => Promise<void>;
@@ -55,7 +55,7 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     const studentColor = studentEntity?.color || "#eab308";
 
     // Previous/Next Logic
-    let previousEvent: EventNodeV2 | undefined;
+    let previousEvent: EventNode | undefined;
     if (queueController && eventId) {
         const allEvents = queueController.getQueue().getAllEvents();
         const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);

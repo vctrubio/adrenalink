@@ -3,18 +3,18 @@
  * Encapsulates all business logic for queue manipulation and event state
  */
 
-import { TeacherQueueV2, type ControllerSettings, type EventNodeV2 } from "./TeacherQueue";
+import { TeacherQueue, type ControllerSettings, type EventNode } from "./TeacherQueue";
 import type { EventCardProps } from "@/types/classboard-teacher-queue";
 import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 
 export type { EventCardProps } from "@/types/classboard-teacher-queue";
 
 export class QueueController {
-    private originalSnapshot: EventNodeV2[] = [];
+    private originalSnapshot: EventNode[] = [];
     private isInAdjustmentMode: boolean = false;
 
     constructor(
-        private queue: TeacherQueueV2,
+        private queue: TeacherQueue,
         private settings: ControllerSettings,
         private onRefresh: () => void,
     ) {}
@@ -733,20 +733,20 @@ export class QueueController {
         return this.settings;
     }
 
-    getQueue(): TeacherQueueV2 {
+    getQueue(): TeacherQueue {
         return this.queue;
     }
 
     // ============ PRIVATE HELPERS ============
 
-    private updateEventDateTime(eventNode: EventNodeV2, changeMinutes: number): void {
+    private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
         const currentMinutes = getMinutesFromISO(eventNode.eventData.date);
         const newMinutes = currentMinutes + changeMinutes;
         const datePart = getDatePartFromISO(eventNode.eventData.date);
         eventNode.eventData.date = createISODateTime(datePart, minutesToTime(newMinutes));
     }
 
-    private cascadeTimeAdjustment(startNode: EventNodeV2 | null, changeMinutes: number): void {
+    private cascadeTimeAdjustment(startNode: EventNode | null, changeMinutes: number): void {
         let current = startNode;
         while (current) {
             this.updateEventDateTime(current, changeMinutes);

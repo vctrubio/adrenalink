@@ -10,14 +10,14 @@ import TeacherClassCard from "./TeacherClassCard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useTeacherQueue } from "./useTeacherQueue";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
-import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
 
 interface TeacherClassDailyProps {
-    teacherQueues: TeacherQueueV2[];
+    teacherQueues: TeacherQueue[];
     draggedBooking?: DraggableBooking | null;
     onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
 }
@@ -72,8 +72,8 @@ export default function TeacherClassDaily({
     const { filteredQueues, counts } = useMemo(() => {
         console.log("🔄 [TeacherClassDaily] Filtering queues, filter:", filter);
 
-        const activeQueues: TeacherQueueV2[] = [];
-        const allQueues: TeacherQueueV2[] = teacherQueues;
+        const activeQueues: TeacherQueue[] = [];
+        const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
@@ -168,7 +168,7 @@ export default function TeacherClassDaily({
 // TeacherQueueRow - Individual Teacher Row
 // ============================================
 interface TeacherQueueRowProps {
-    queue: TeacherQueueV2;
+    queue: TeacherQueue;
     isExpanded: boolean;
     onToggleExpand: () => void;
     draggedBooking?: DraggableBooking | null;

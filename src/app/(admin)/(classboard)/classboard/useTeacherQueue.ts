@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import type { TeacherQueueV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface UseTeacherQueueProps {
-    queue: TeacherQueueV2;
+    queue: TeacherQueue;
     controller: ControllerSettings | null;
 }
 

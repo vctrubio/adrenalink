@@ -9,7 +9,7 @@
  * - revenue: total school revenue
  */
 
-import type { TeacherQueueV2 } from "./TeacherQueue";
+import type { TeacherQueue } from "./TeacherQueue";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 export interface RevenueStats {
@@ -20,7 +20,7 @@ export interface RevenueStats {
 
 /**
  * TeacherStats - Per-teacher statistics from their event queue
- * Calculated from TeacherQueueV2.getStats()
+ * Calculated from TeacherQueue.getStats()
  */
 export interface TeacherStats {
     eventCount: number;
@@ -38,19 +38,19 @@ export interface DailyLessonStats {
 }
 
 export class ClassboardStatistics {
-    private teacherQueues: TeacherQueueV2[] | null;
+    private teacherQueues: TeacherQueue[] | null;
     private classboardData: ClassboardModel | null;
     private dateFilter?: string;
     private countAllEvents: boolean;
 
     constructor(
-        teacherQueuesOrData: TeacherQueueV2[] | ClassboardModel,
+        teacherQueuesOrData: TeacherQueue[] | ClassboardModel,
         classboardDataOrDateFilter?: ClassboardModel | string,
         dateFilterOrCountAll?: string | boolean,
         countAllEvents = false
     ) {
         if (Array.isArray(teacherQueuesOrData)) {
-            // First signature: TeacherQueueV2[] with optional ClassboardModel
+            // First signature: TeacherQueue[] with optional ClassboardModel
             this.teacherQueues = teacherQueuesOrData;
             this.classboardData = typeof classboardDataOrDateFilter === "object" && classboardDataOrDateFilter !== null ? classboardDataOrDateFilter : null;
             this.dateFilter = typeof dateFilterOrCountAll === "string" ? dateFilterOrCountAll : undefined;
@@ -69,7 +69,7 @@ export class ClassboardStatistics {
      */
     getDailyLessonStats(): DailyLessonStats {
         if (this.teacherQueues) {
-            // Calculate stats from TeacherQueueV2[] events
+            // Calculate stats from TeacherQueue[] events
             const activeTeacherStats = this.teacherQueues
                 .map(queue => queue.getStats())
                 .filter(stats => stats.eventCount > 0);

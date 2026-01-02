@@ -1,15 +1,16 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegisterQueues } from "./RegisterContext";
 import { ENTITY_DATA } from "@/config/entities";
-import { History, ChevronRight } from "lucide-react";
+import { History } from "lucide-react";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
+import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";
 
 function RegisterQueueComponent() {
     const queues = useRegisterQueues();
@@ -40,6 +41,7 @@ function RegisterQueueComponent() {
 }
 
 function QueueItem({ item }: { item: any }) {
+    const [isHovered, setIsHovered] = useState(false);
     const entityId = item.type === "package" ? "schoolPackage" : item.type;
     const entityConfig = ENTITY_DATA.find(e => e.id === entityId);
     
@@ -77,6 +79,8 @@ function QueueItem({ item }: { item: any }) {
             <Link 
                 href={href}
                 className="flex items-center justify-between py-2.5 group transition-colors hover:bg-muted/30 px-1 -mx-1"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
                 <div className="flex items-center gap-3">
                     <div style={{ color: entityConfig?.color }} className="opacity-80 group-hover:opacity-100 transition-opacity">
@@ -87,7 +91,11 @@ function QueueItem({ item }: { item: any }) {
                     </span>
                 </div>
                 
-                <ChevronRight size={12} className="text-muted-foreground/30 group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
+                <GoToAdranlink 
+                    size={14} 
+                    isHovered={isHovered} 
+                    className="text-muted-foreground/30 group-hover:text-primary transition-colors"
+                />
             </Link>
         </motion.div>
     );

@@ -4,12 +4,12 @@ import { useMemo, useCallback } from "react";
 import StudentClassDaily from "./StudentClassDaily";
 import TeacherClassDaily from "./TeacherClassDaily";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
-import type { TeacherQueueV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 interface ClassboardContentBoardProps {
     bookingsForSelectedDate: ClassboardData[];
-    teacherQueues: TeacherQueueV2[];
+    teacherQueues: TeacherQueue[];
     draggedBooking: DraggableBooking | null;
     onSetDraggedBooking: (booking: DraggableBooking | null) => void;
     onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;

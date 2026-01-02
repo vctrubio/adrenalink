@@ -15,7 +15,7 @@ import { getCompactNumber } from "@/getters/integer-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { TeacherStats } from "@/backend/ClassboardStatistics";
-import type { TeacherQueueV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
@@ -45,7 +45,7 @@ function TeacherEventProgressBar({ progress, totalEvents, completedEvents, queue
     progress: EventProgress,
     totalEvents: number,
     completedEvents: number,
-    queue?: TeacherQueueV2,
+    queue?: TeacherQueue,
     controller?: ControllerSettings,
 }) {
     const { completed, planned, tbc, total, eventIds = [] } = progress;
@@ -311,7 +311,7 @@ export interface TeacherClassCardProps {
     eventProgress: EventProgress;
     onClick?: () => void;
     isExpanded?: boolean;
-    queue?: TeacherQueueV2;
+    queue?: TeacherQueue,
     isAdjustmentMode?: boolean;
     onToggleAdjustment?: (mode: boolean) => void;
     onSubmit?: () => void;

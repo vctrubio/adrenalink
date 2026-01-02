@@ -14,34 +14,8 @@ export interface StudentData {
     phone: string;
 }
 
-export interface PackageData {
-    pricePerStudent: number;
-    durationMinutes: number;
-    description: string;
-    categoryEquipment: string;
-    capacityEquipment: number;
-}
-
-export interface EventNode {
-    id: string;
-    lessonId: string;
-    bookingId: string;
-    leaderStudentName?: string;
-    bookingStudents?: StudentData[];
-    commission: CommissionInfo;
-    eventData: {
-        date: string;
-        duration: number;
-        location: string;
-        status: string;
-    };
-    studentData: StudentData[];
-    packageData: PackageData;
-    next: EventNode | null;
-}
-
 /**
- * EventNodeV2 - Optimized event node with only essential data
+ * EventNode - Optimized event node with only essential data
  * Reduces memory footprint and simplifies data structures
  * Used in TeacherQueue for storing events with all necessary information for:
  * - Event card rendering (lessonId, eventData, students, booking leader)
@@ -49,7 +23,7 @@ export interface EventNode {
  * - Equipment display (categoryEquipment, capacityEquipment)
  * - Teacher queue management
  */
-export interface EventNodeV2 {
+export interface EventNode {
     id: string;
     lessonId: string;
     bookingId: string;
@@ -71,7 +45,7 @@ export interface EventNodeV2 {
         location: string;
         status: "planned" | "tbc" | "completed" | "uncompleted";
     };
-    next: EventNodeV2 | null;
+    next: EventNode | null;
 }
 
 

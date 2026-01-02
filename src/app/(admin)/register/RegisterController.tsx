@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-    ChevronDown, 
-    Check,
-    Target
-} from "lucide-react";
 
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -71,17 +66,15 @@ export default function RegisterController({
     const { credentials } = useSchoolCredentials();
     const bookingForm = useBookingForm();
     
+    // Use school credentials if available, otherwise fallback to prop
     const displaySchool = credentials || school;
-    const [isLeaderDropdownOpen, setIsLeaderDropdownOpen] = useState(false);
-    const leaderDropdownRef = useRef<HTMLDivElement>(null);
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Form state from context
     const { form: studentFormData } = useStudentFormState();
     const { form: teacherFormData } = useTeacherFormState();
     const { form: packageFormData } = usePackageFormState();
-
-    const selectedLeaderStudent = selectedStudents.find((s) => s.id === leaderStudentId);
-    const leaderStudentName = selectedLeaderStudent ? `${selectedLeaderStudent.firstName} ${selectedLeaderStudent.lastName}` : "";
 
     const handleLeaderStudentChange = (studentId: string) => {
         if (onLeaderStudentChange) {
@@ -101,16 +94,6 @@ export default function RegisterController({
             }
         }
     };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (leaderDropdownRef.current && !leaderDropdownRef.current.contains(event.target as Node)) {
-                setIsLeaderDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     const tabs = [
         { id: "booking", label: "Booking", icon: BookingIcon, path: "/register" },

@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDow
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
-import type { EventNodeV2, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { EventNode, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
 import type { QueueController as QueueControllerType } from "@/src/app/(admin)/(classboard)/QueueController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -23,7 +23,7 @@ interface EventModCardProps {
 
 // Sub-components
 
-const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNodeV2; eventId: string; queueController: QueueControllerType; onDelete?: () => void }) => {
+const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueControllerType; onDelete?: () => void }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
@@ -76,7 +76,7 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDel
     );
 };
 
-const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNodeV2; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueControllerType }) => {
+const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueControllerType }) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const startMinutes = timeToMinutes(startTime);
     const endTime = minutesToTime(startMinutes + event.eventData.duration);
@@ -236,7 +236,7 @@ export default function EventModCard({ eventId, queueController, onDelete }: Eve
 
     const { event, isFirst, isLast, canMoveEarlier, canMoveLater } = cardProps;
 
-    let previousEvent: EventNodeV2 | undefined;
+    let previousEvent: EventNode | undefined;
     const queue = queueController?.getQueue();
     if (queue && eventId) {
         const allEvents = queue.getAllEvents();

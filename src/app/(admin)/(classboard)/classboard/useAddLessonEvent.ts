@@ -2,14 +2,14 @@ import { useMemo, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { createClassboardEvent } from "@/actions/classboard-action";
-import { TeacherQueueV2, type EventNodeV2 } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { TeacherQueue, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
 import type { Teacher } from "@/backend/teacher-types";
 
 /**
- * createEventNode - Factory function to create EventNodeV2 from booking data
+ * createEventNode - Factory function to create EventNode from booking data
  */
-function createEventNode(event: any, lesson: any, booking: ClassboardData): EventNodeV2 {
+function createEventNode(event: any, lesson: any, booking: ClassboardData): EventNode {
     return {
         id: event.id,
         lessonId: lesson.id,
@@ -61,7 +61,7 @@ export function useClassboardQueues(
     const teacherQueues = useMemo(() => {
         console.log("🔄 [useClassboardQueues] Building queues");
         
-        const queues = new Map<string, TeacherQueueV2>();
+        const queues = new Map<string, TeacherQueue>();
 
         // Initialize queues for all active teachers
         const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
@@ -69,7 +69,7 @@ export function useClassboardQueues(
         activeTeachers.forEach((teacher) => {
             queues.set(
                 teacher.schema.id,
-                new TeacherQueueV2({
+                new TeacherQueue({
                     id: teacher.schema.id,
                     username: teacher.schema.username,
                 })
@@ -95,7 +95,7 @@ export function useClassboardQueues(
         // Return queues in teacher order
         return activeTeachers
             .map((teacher) => queues.get(teacher.schema.id))
-            .filter((queue): queue is TeacherQueueV2 => queue !== undefined);
+            .filter((queue): queue is TeacherQueue => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate]);
 
     // Event creation handler
