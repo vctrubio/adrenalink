@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import { createContext, useContext, ReactNode, useState, useEffect, useMemo } from "react";
+import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
 import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { getTodayDateString } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
+import { isDateInRange } from "@/getters/date-getter";
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
 const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
@@ -22,7 +23,9 @@ const DEFAULT_CONTROLLER: ControllerSettings = {
 };
 
 interface ClassboardContextType {
-    data: ClassboardModel;
+    classboardModel: ClassboardModel;
+    setClassboardModel: (model: ClassboardModel) => void;
+    bookingsForSelectedDate: ClassboardData[];
     mounted: boolean;
     selectedDate: string;
     setSelectedDate: (date: string) => void;
@@ -34,13 +37,21 @@ const ClassboardContext = createContext<ClassboardContextType | undefined>(undef
 
 interface ClassboardProviderProps {
     children: ReactNode;
-    data: ClassboardModel;
+    initialClassboardModel: ClassboardModel;
 }
 
-export function ClassboardProvider({ children, data }: ClassboardProviderProps) {
+export function ClassboardProvider({ children, initialClassboardModel }: ClassboardProviderProps) {
     const [mounted, setMounted] = useState(false);
+    const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel);
     const [selectedDate, setSelectedDate] = useState(() => getTodayDateString());
     const [controller, setController] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
+
+    // Filter bookings by selected date - single source of truth
+    const bookingsForSelectedDate = useMemo(() => {
+        return Object.values(classboardModel).filter((booking) =>
+            isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd)
+        );
+    }, [classboardModel, selectedDate]);
 
     // Initialize from localStorage on mount
     useEffect(() => {
@@ -77,7 +88,9 @@ export function ClassboardProvider({ children, data }: ClassboardProviderProps) 
     return (
         <ClassboardContext.Provider
             value={{
-                data,
+                classboardModel,
+                setClassboardModel,
+                bookingsForSelectedDate,
                 mounted,
                 selectedDate,
                 setSelectedDate,
@@ -96,8 +109,4 @@ export function useClassboardContext(): ClassboardContextType {
         throw new Error("useClassboardContext must be used within ClassboardProvider");
     }
     return context;
-}
-
-export function useClassboardData(): ClassboardModel {
-    return useClassboardContext().data;
 }

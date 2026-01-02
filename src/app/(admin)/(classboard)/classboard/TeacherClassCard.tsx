@@ -304,14 +304,9 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
 }
 
 export interface TeacherClassCardProps {
-    teacherName: string;
-    stats: TeacherStats;
-    earliestTime: string | null;
-    equipmentCounts: EquipmentCount[];
-    eventProgress: EventProgress;
+    queue: TeacherQueue;
     onClick?: () => void;
     isExpanded?: boolean;
-    queue?: TeacherQueue,
     isAdjustmentMode?: boolean;
     onToggleAdjustment?: (mode: boolean) => void;
     onSubmit?: () => void;
@@ -323,14 +318,9 @@ export interface TeacherClassCardProps {
 }
 
 export default function TeacherClassCard({
-    teacherName,
-    stats,
-    earliestTime,
-    equipmentCounts,
-    eventProgress,
+    queue,
     onClick,
     isExpanded = true,
-    queue,
     isAdjustmentMode = false,
     onToggleAdjustment,
     onSubmit,
@@ -341,7 +331,61 @@ export default function TeacherClassCard({
     isSubmitting = false
 }: TeacherClassCardProps) {
     const { controller } = useClassboardContext();
-    const events = queue?.getAllEvents() || [];
+
+    // Derive all data from queue
+    const teacherName = queue.teacher.username;
+    const stats = useMemo(() => queue.getStats(), [queue]);
+    const earliestTime = queue.getEarliestTime();
+
+    const equipmentCounts = useMemo(() => {
+        const events = queue.getAllEvents();
+        const counts = new Map<string, number>();
+
+        events.forEach((event) => {
+            if (event.categoryEquipment) {
+                const current = counts.get(event.categoryEquipment) || 0;
+                counts.set(event.categoryEquipment, current + (event.capacityEquipment || 1));
+            }
+        });
+
+        return Array.from(counts.entries()).map(([categoryId, count]) => ({
+            categoryId,
+            count,
+        }));
+    }, [queue]);
+
+    const eventProgress = useMemo(() => {
+        const events = queue.getAllEvents();
+        let completed = 0;
+        let planned = 0;
+        let tbc = 0;
+        const eventIds: string[] = [];
+
+        events.forEach((event) => {
+            eventIds.push(event.id);
+            const duration = event.eventData.duration;
+
+            if (event.eventData.status === "completed") {
+                completed += duration;
+            } else if (event.eventData.status === "planned") {
+                planned += duration;
+            } else if (event.eventData.status === "tbc") {
+                tbc += duration;
+            }
+        });
+
+        const total = completed + planned + tbc;
+
+        return {
+            completed,
+            planned,
+            tbc,
+            total,
+            eventIds,
+        };
+    }, [queue]);
+
+    const events = queue.getAllEvents();
     const completedCount = events.filter((e) => e.eventData.status === "completed").length;
     const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
     const totalEvents = completedCount + pendingCount;
@@ -364,23 +408,18 @@ export default function TeacherClassCard({
     // Handle icon click - in collapsed view: enter adjustment mode + expand. In expanded view: toggle adjustment mode
     const handleIconClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        if (queue) {
-            if (isExpanded) {
-                // Expanded view: toggle adjustment mode
-                onToggleAdjustment?.(!isAdjustmentMode);
-            } else {
-                // Collapsed view: enter adjustment mode and expand
-                onClick?.();
-                onToggleAdjustment?.(true);
-            }
+        if (isExpanded) {
+            // Expanded view: toggle adjustment mode
+            onToggleAdjustment?.(!isAdjustmentMode);
+        } else {
+            // Collapsed view: enter adjustment mode and expand
+            onClick?.();
+            onToggleAdjustment?.(true);
         }
-    }, [queue, isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
+    }, [isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
-    const todayEvents = useMemo(() => {
-        if (!queue) return [];
-        return queue.getAllEvents();
-    }, [queue]);
+    const todayEvents = useMemo(() => queue.getAllEvents(), [queue]);
 
     // Collapsed view - single line
     if (!isExpanded) {
@@ -416,8 +455,7 @@ export default function TeacherClassCard({
                 {/* Icon - Enter adjustment mode and expand if collapsed */}
                 <button
                     onClick={handleIconClick}
-                    disabled={!queue}
-                    className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-shrink-0 transition-opacity hover:opacity-80"
                     style={{ color: TEACHER_COLOR }}
                 >
                     <HeadsetIcon size={28} />
@@ -491,8 +529,7 @@ export default function TeacherClassCard({
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
                 <button
                     onClick={handleIconClick}
-                    disabled={!queue}
-                    className="flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-shrink-0 transition-opacity hover:opacity-80"
                 >
                     <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: TEACHER_COLOR }}>
                         <HeadsetIcon size={24} />

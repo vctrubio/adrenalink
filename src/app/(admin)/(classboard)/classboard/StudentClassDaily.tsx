@@ -4,28 +4,18 @@ import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import StudentBookingCard from "./StudentBookingCard";
 import BookingOnboardCard from "./BookingOnboardCard";
-import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
-import type { ClassboardData } from "@/backend/models/ClassboardModel";
-import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 
 // Muted yellow - softer than entity color
 const STUDENT_COLOR = "#ca8a04";
 
-interface StudentClassDailyProps {
-    bookings: ClassboardData[];
-    classboard: {
-        onDragStart: (draggableBooking: DraggableBooking) => void;
-        onDragEnd: () => void;
-        onAddLessonEvent?: (bookingId: string, lessonId: string) => Promise<void>;
-    };
-}
-
 type StudentBookingFilter = "available" | "onboard";
 type SortOption = "newest" | "latest" | "progression";
 
-export default function StudentClassDaily({ bookings, classboard }: StudentClassDailyProps) {
+export default function StudentClassDaily() {
+    const { bookingsForSelectedDate: bookings } = useClassboardContext();
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
     const [isExpanded, setIsExpanded] = useState(true);
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set(bookings.map((b) => b.booking.id)));
@@ -159,8 +149,6 @@ export default function StudentClassDaily({ bookings, classboard }: StudentClass
                                                 <StudentBookingCard
                                                     key={bookingData.booking.id}
                                                     bookingData={bookingData}
-                                                    bookingId={bookingData.booking.id}
-                                                    classboard={classboard}
                                                 />
                                             );
                                         } else {
@@ -180,8 +168,6 @@ export default function StudentClassDaily({ bookings, classboard }: StudentClass
                                             <StudentBookingCard
                                                 key={bookingData.booking.id}
                                                 bookingData={bookingData}
-                                                bookingId={bookingData.booking.id}
-                                                classboard={classboard}
                                             />
                                         );
                                     }

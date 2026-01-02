@@ -16,6 +16,7 @@ import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { useClassboardActions } from "@/src/providers/classboard-actions-provider";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
@@ -265,19 +266,15 @@ const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpande
 
 interface StudentBookingCardProps {
     bookingData: ClassboardData;
-    bookingId: string;
-    classboard: {
-        onDragStart: (draggableBooking: DraggableBooking) => void;
-        onDragEnd: () => void;
-        onAddLessonEvent?: (bookingId: string, lessonId: string) => Promise<void>;
-        availableTeachers?: { username: string; firstName: string; id: string }[];
-    };
 }
 
-export default function StudentBookingCard({ bookingData, bookingId, classboard }: StudentBookingCardProps) {
+export default function StudentBookingCard({ bookingData }: StudentBookingCardProps) {
+    const { setDraggedBooking, draggedBooking, addLessonEvent } = useClassboardActions();
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+
+    const bookingId = bookingData.booking.id;
+    const isDragging = draggedBooking?.bookingId === bookingId;
 
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
@@ -314,28 +311,17 @@ export default function StudentBookingCard({ bookingData, bookingId, classboard 
                 })),
         };
 
-        classboard.onDragStart(draggableBooking);
-        setIsDragging(true);
+        setDraggedBooking(draggableBooking);
     };
 
     const handleDragEnd = () => {
-        classboard.onDragEnd();
-        setIsDragging(false);
+        setDraggedBooking(null);
     };
 
     const handleAddEvent = async (lessonId: string) => {
-        if (!classboard.onAddLessonEvent) return;
-        console.log("➕ [StudentBookingCard] Adding event for lesson:", lessonId);
-        console.log("   - Booking ID:", bookingId);
-
-        const lesson = lessons.find((l) => l.id === lessonId);
-        console.log("   - Lesson teacher ID:", lesson?.teacher?.id);
-        console.log("   - Lesson teacher username:", lesson?.teacher?.username);
-        console.log("   - All lessons in booking:", lessons.map((l) => ({ id: l.id, teacher: l.teacher?.username, teacherId: l.teacher?.id })));
-
         setLoadingLessonId(lessonId);
         try {
-            await classboard.onAddLessonEvent(bookingId, lessonId);
+            await addLessonEvent(bookingData, lessonId);
         } finally {
             setLoadingLessonId(null);
         }

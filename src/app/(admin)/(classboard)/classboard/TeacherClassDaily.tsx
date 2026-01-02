@@ -8,39 +8,22 @@ import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { useClassboardActions, optimisticEventToNode } from "@/src/providers/classboard-actions-provider";
 import { useTeacherQueue } from "./useTeacherQueue";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
-
-interface TeacherClassDailyProps {
-    teacherQueues: TeacherQueue[];
-    draggedBooking?: DraggableBooking | null;
-    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
-}
 
 type TeacherFilter = "active" | "all";
 
 /**
  * TeacherClassDaily - Displays teacher queues in a list
- *
- * CURRENT STATE: Display only - no edit functionality yet
- * - Shows teacher cards with stats
- * - Displays event cards for each teacher
- * - Supports expand/collapse
- * - Filters active vs all teachers
  */
-export default function TeacherClassDaily({
-    teacherQueues,
-    draggedBooking,
-    onAddLessonEvent,
-}: TeacherClassDailyProps) {
-    console.log("👨‍🏫 [TeacherClassDaily] Rendering");
-    console.log("   - Teacher queues:", teacherQueues.length);
-    console.log("   - Dragged booking:", draggedBooking?.bookingId);
+export default function TeacherClassDaily() {
+    const { teacherQueues, draggedBooking } = useClassboardActions();
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [expandedTeachers, setExpandedTeachers] = useState<Set<string>>(new Set(teacherQueues.map((q) => q.teacher.id)));
@@ -148,8 +131,6 @@ export default function TeacherClassDaily({
                                             queue={queue}
                                             isExpanded={isExpanded}
                                             onToggleExpand={() => toggleTeacherExpanded(queue.teacher.id)}
-                                            draggedBooking={draggedBooking}
-                                            onAddLessonEvent={onAddLessonEvent}
                                         />
                                     </div>
                                 );
@@ -171,18 +152,15 @@ interface TeacherQueueRowProps {
     queue: TeacherQueue;
     isExpanded: boolean;
     onToggleExpand: () => void;
-    draggedBooking?: DraggableBooking | null;
-    onAddLessonEvent: (lessonId: string, teacherId: string, capacityStudents: number) => Promise<void>;
 }
 
 function TeacherQueueRow({
     queue,
     isExpanded,
     onToggleExpand,
-    draggedBooking,
-    onAddLessonEvent,
 }: TeacherQueueRowProps) {
-    const { controller } = useClassboardContext();
+    const { controller, bookingsForSelectedDate } = useClassboardContext();
+    const { draggedBooking, addLessonEvent, optimisticEvents } = useClassboardActions();
     
     // Use custom hook for all queue management logic
     const {
@@ -201,7 +179,34 @@ function TeacherQueueRow({
     } = useTeacherQueue({ queue, controller });
 
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === queue.teacher.id) ?? false;
-    const events = queue.getAllEvents();
+
+    // Merge real events with optimistic events for this teacher
+    const eventsWithOptimistic = useMemo(() => {
+        const realEvents = queue.getAllEvents();
+
+        // Get optimistic events for this teacher
+        const teacherOptimisticEvents = Array.from(optimisticEvents.values())
+            .filter((opt) => opt.teacherId === queue.teacher.id)
+            .map((opt) => ({
+                node: optimisticEventToNode(opt),
+                cardStatus: opt.status, // "posting" or "error"
+            }));
+
+        // Convert real events to include cardStatus
+        const realEventsWithStatus = realEvents.map((event) => ({
+            node: event,
+            cardStatus: "idle" as const,
+        }));
+
+        // Merge and sort by date
+        const allEvents = [...realEventsWithStatus, ...teacherOptimisticEvents].sort((a, b) => {
+            const dateA = new Date(a.node.eventData.date).getTime();
+            const dateB = new Date(b.node.eventData.date).getTime();
+            return dateA - dateB;
+        });
+
+        return allEvents;
+    }, [queue, optimisticEvents]);
 
     // Drag-and-drop handlers
     const handleDragOver = (e: React.DragEvent) => {
@@ -213,36 +218,22 @@ function TeacherQueueRow({
         e.preventDefault();
         if (!draggedBooking) return;
 
+        // Find the lesson for this teacher
         const lesson = draggedBooking.lessons.find((l) => l.teacherId === queue.teacher.id);
         if (!lesson) {
             toast.error(`No lesson available for ${queue.teacher.username}`);
             return;
         }
 
-        await onAddLessonEvent(lesson.id, queue.teacher.id, draggedBooking.capacityStudents);
+        // Find the booking data
+        const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === draggedBooking.bookingId);
+        if (!bookingData) {
+            toast.error("Booking not found");
+            return;
+        }
+
+        await addLessonEvent(bookingData, lesson.id);
     };
-
-    // Calculate stats
-    const stats = useMemo(() => queue.getStats(), [queue]);
-    const earliestTime = useMemo(() => queue.getEarliestTime(), [queue]);
-
-    const equipmentCounts = useMemo(() => {
-        const counts = new Map<string, number>();
-        events.forEach((e) => {
-            const cat = e.categoryEquipment;
-            if (cat) counts.set(cat, (counts.get(cat) || 0) + 1);
-        });
-        return Array.from(counts.entries()).map(([categoryId, count]) => ({ categoryId, count }));
-    }, [events]);
-
-    const eventProgress = useMemo(() => {
-        const completed = events.filter((e) => e.eventData.status === "completed").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const planned = events.filter((e) => e.eventData.status === "planned").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const tbc = events.filter((e) => e.eventData.status === "tbc").reduce((sum, e) => sum + (e.eventData.duration || 0), 0);
-        const total = completed + planned + tbc;
-        const eventIds = events.map((e) => e.id);
-        return { completed, planned, tbc, total, eventIds };
-    }, [events]);
 
     return (
         <div
@@ -257,17 +248,13 @@ function TeacherQueueRow({
             {/* Teacher Card */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${isExpanded ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
-                    teacherName={queue.teacher.username}
-                    stats={stats}
-                    earliestTime={earliestTime}
-                    equipmentCounts={equipmentCounts}
-                    eventProgress={eventProgress}
+                    queue={queue}
                     onClick={onToggleExpand}
                     isExpanded={isExpanded}
-                    queue={queue}
                     isAdjustmentMode={isAdjustmentMode}
                     onToggleAdjustment={setIsAdjustmentMode}
                     hasChanges={hasChanges}
+                    changedCount={0}
                     onSubmit={handleSubmit}
                     onReset={handleReset}
                     onCancel={handleCancel}
@@ -290,45 +277,46 @@ function TeacherQueueRow({
             {isExpanded && (
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
-                        {events.length > 0 ? (
-                            events.map((event) => (
+                        {eventsWithOptimistic.length > 0 ? (
+                            eventsWithOptimistic.map(({ node: event, cardStatus }) => (
                                 <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                     {isAdjustmentMode && queueController ? (
-                                        <EventModCard 
-                                            eventId={event.id} 
-                                            queueController={queueController} 
+                                        <EventModCard
+                                            eventId={event.id}
+                                            queueController={queueController}
                                             onDelete={() => queueController.removeFromSnapshot(event.id)}
                                         />
                                     ) : (
-                                        <EventCard 
-                                            event={event} 
-                                            queueController={queueController} 
+                                        <EventCard
+                                            event={event}
+                                            cardStatus={cardStatus}
+                                            queueController={queueController}
                                             onDeleteWithCascade={async (eventId: string) => {
                                                 if (!queueController) return;
-                                                
+
                                                 try {
                                                     // Get cascade delete plan
                                                     const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
-                                                    
+
                                                     console.log(`🗑️ [TeacherClassDaily] Cascade delete: ${deletedId}, ${updates.length} events to update`);
-                                                    
+
                                                     // Execute: delete from DB + bulk update remaining events
                                                     const { deleteClassboardEvent } = await import("@/actions/classboard-action");
                                                     const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
-                                                    
+
                                                     await deleteClassboardEvent(deletedId);
-                                                    
+
                                                     if (updates.length > 0) {
                                                         await bulkUpdateClassboardEvents(updates, []);
                                                     }
-                                                    
+
                                                     console.log("✅ [TeacherClassDaily] Cascade delete complete");
                                                 } catch (error) {
                                                     console.error("❌ [TeacherClassDaily] Cascade delete failed:", error);
                                                     throw error;
                                                 }
                                             }}
-                                            showLocation={true} 
+                                            showLocation={true}
                                         />
                                     )}
                                 </div>

@@ -16,27 +16,33 @@ import EventGapDetection from "./EventGapDetection";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
 
+type EventCardStatus = "idle" | "posting" | "updating" | "deleting" | "error";
+
 interface EventCardProps {
     event: EventNode;
     queueController?: QueueController;
     onDeleteComplete?: () => void;
     onDeleteWithCascade?: (eventId: string) => Promise<void>;
     showLocation?: boolean;
+    cardStatus?: EventCardStatus;
 }
 
-export default function EventCard({ event, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true }: EventCardProps) {
-    const [isDeleting, setIsDeleting] = useState(false);
+export default function EventCard({ event, queueController, onDeleteComplete, onDeleteWithCascade, showLocation = true, cardStatus = "idle" }: EventCardProps) {
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [localCardStatus, setLocalCardStatus] = useState<EventCardStatus>(cardStatus);
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     // Sync local state with prop when event updates from subscription
     useEffect(() => {
-        console.log("🔄 [EventCard] Status prop changed:", event.eventData.status);
         setCurrentStatus(event.eventData.status as EventStatus);
     }, [event.eventData.status]);
+
+    // Sync card status from prop
+    useEffect(() => {
+        setLocalCardStatus(cardStatus);
+    }, [cardStatus]);
 
     const eventId = event.id;
     const duration = event.eventData.duration;
@@ -65,43 +71,74 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     }
 
     const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
-    const isPosting = eventId.startsWith("temp-");
+    const isLoading = localCardStatus === "posting" || localCardStatus === "updating" || localCardStatus === "deleting";
+    const isError = localCardStatus === "error";
 
-    const PostingIcon = ({ size = 24 }: { size?: number }) => (
-        <motion.div
-            initial={{ rotate: -45 }}
-            animate={{ rotate: -45 + 360 }}
-            transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "linear",
-            }}
-            className="flex items-center justify-center shrink-0"
-        >
-            <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
-        </motion.div>
-    );
+    // Status Icon - shows different states
+    const StatusIcon = ({ size = 24 }: { size?: number }) => {
+        if (localCardStatus === "posting") {
+            return (
+                <motion.div
+                    initial={{ rotate: -45 }}
+                    animate={{ rotate: -45 + 360 }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "linear",
+                    }}
+                    className="flex items-center justify-center shrink-0"
+                >
+                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
+                </motion.div>
+            );
+        }
 
-    const DeletingIcon = ({ size = 24 }: { size?: number }) => (
-        <motion.div
-            initial={{ rotate: -45 }}
-            animate={{ rotate: -45 - 360 }}
-            transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "linear",
-            }}
-            className="flex items-center justify-center shrink-0"
-        >
-            <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-60" />
-        </motion.div>
-    );
+        if (localCardStatus === "deleting") {
+            return (
+                <motion.div
+                    initial={{ rotate: -45 }}
+                    animate={{ rotate: -45 - 360 }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "linear",
+                    }}
+                    className="flex items-center justify-center shrink-0"
+                >
+                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-60" />
+                </motion.div>
+            );
+        }
+
+        if (localCardStatus === "error") {
+            return (
+                <motion.div
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: [0.8, 1.1, 0.8] }}
+                    transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                    className="flex items-center justify-center shrink-0"
+                >
+                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-40 ring-2 ring-red-500" />
+                </motion.div>
+            );
+        }
+
+        // Default: show equipment icon
+        if (EquipmentIcon) {
+            return <EquipmentIcon size={size} />;
+        }
+
+        return null;
+    };
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
-        if (newStatus === currentStatus || isUpdating) return;
-        console.log("📝 [EventCard] Updating status:", eventId, "from", currentStatus, "to", newStatus);
-        setIsUpdating(true);
+        if (newStatus === currentStatus || localCardStatus === "updating") return;
+        setLocalCardStatus("updating");
         try {
             // Optimistic update
             setCurrentStatus(newStatus);
@@ -113,41 +150,41 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
                 console.error("❌ [EventCard] Status update failed:", result.error);
                 // Revert on failure
                 setCurrentStatus(currentStatus);
+                setLocalCardStatus("error");
+                setTimeout(() => setLocalCardStatus("idle"), 3000);
             } else {
-                console.log("✅ [EventCard] Status updated successfully");
-                // Subscription will sync the change across all components
+                setLocalCardStatus("idle");
             }
         } catch (error) {
             console.error("❌ [EventCard] Error updating status:", error);
-            // Revert on error
             setCurrentStatus(currentStatus);
-        } finally {
-            setIsUpdating(false);
+            setLocalCardStatus("error");
+            setTimeout(() => setLocalCardStatus("idle"), 3000);
         }
     };
 
     const handleDelete = async (cascade: boolean) => {
-        if (!eventId || isDeleting) return;
-        setIsDeleting(true);
+        if (!eventId || localCardStatus === "deleting") return;
+        setLocalCardStatus("deleting");
         try {
             if (cascade && onDeleteWithCascade) {
-                // Use cascade delete with queue optimization
                 await onDeleteWithCascade(eventId);
                 onDeleteComplete?.();
                 return;
             }
-            
-            // Regular delete without cascade
+
             const result = await deleteClassboardEvent(eventId);
             if (!result.success) {
                 console.error("Delete failed:", result.error);
-                setIsDeleting(false);
+                setLocalCardStatus("error");
+                setTimeout(() => setLocalCardStatus("idle"), 3000);
                 return;
             }
             onDeleteComplete?.();
         } catch (error) {
             console.error("Error deleting event:", error);
-            setIsDeleting(false);
+            setLocalCardStatus("error");
+            setTimeout(() => setLocalCardStatus("idle"), 3000);
         }
     };
 
@@ -159,7 +196,7 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
     }));
 
     return (
-        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isPosting || isDeleting ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""}`}>
+        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${localCardStatus === "deleting" ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
                 {previousEvent && (
@@ -176,14 +213,14 @@ export default function EventCard({ event, queueController, onDeleteComplete, on
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
-                {/* Right Side: Status Label with optional Equipment Icon */}
+                {/* Right Side: Status Label with StatusIcon */}
                 <EventStatusLabel
                     status={currentStatus}
                     onStatusChange={handleStatusClick}
                     onDelete={handleDelete}
-                    isDeleting={isDeleting}
+                    isDeleting={localCardStatus === "deleting"}
                     canShiftQueue={canShiftQueue}
-                    icon={isPosting ? PostingIcon : isDeleting ? DeletingIcon : EquipmentIcon}
+                    icon={StatusIcon}
                     capacity={capacityEquipment}
                 />
             </div>
