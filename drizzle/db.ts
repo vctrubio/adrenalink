@@ -36,31 +36,26 @@ console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5
 const sql =
     globalForDb.conn ??
     postgres(dbUrl, {
-        max: isProduction ? 10 : 20,
-        idle_timeout: 20, // Slightly reduced to free up resources faster in dev
-        connect_timeout: 10, // 10s is a standard engineering baseline for cloud DBs (vs 5s)
+        max: isProduction ? 10 : 20, // Keep dev higher for HMR, production lower for pooling limits
+        idle_timeout: 30,
+        connect_timeout: 5, // Fast failure for better UX (was 10)
         prepare: false,
         backoff: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 10000),
-        onnotice: () => {}, 
+        onnotice: () => {}, // Quiet notices
     });
 
 if (process.env.NODE_ENV !== "production") {
-    // Only register cleanup if we are setting up the global connection for the first time
-    if (!globalForDb.conn) {
-        globalForDb.conn = sql;
-        
-        const cleanup = async () => {
-            console.log("Closing database connections...");
-            await sql.end();
-        };
-        
-        // Ensure we don't duplicate listeners
-        process.removeAllListeners("SIGTERM");
-        process.removeAllListeners("SIGINT");
-        
-        process.once("SIGTERM", cleanup);
-        process.once("SIGINT", cleanup);
-    }
+    globalForDb.conn = sql;
 }
 
 export const db = drizzle(sql, { schema: fullSchema });
+
+// Graceful shutdown
+if (typeof global !== "undefined") {
+    const cleanup = async () => {
+        console.log("Closing database connections...");
+        await sql.end();
+    };
+    process.once("SIGTERM", cleanup);
+    process.once("SIGINT", cleanup);
+}

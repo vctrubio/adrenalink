@@ -40,15 +40,21 @@ export default function BookingOnboardCard({
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
-    // Get package info for progress bar
+    // Get only today's lessons (those with events) for progress bar
+    const todayLessons = lessons.filter(lesson => (lesson.events || []).length > 0);
+
+    // Get package info from all lessons (full booking package duration)
     const packageInfo = getPackageInfo(schoolPackage, lessons);
+
+    // Calculate total minutes for today's events
+    const todayEventMinutes = allEvents.reduce((sum, event) => sum + (event.duration || 0), 0);
 
     return (
         <div
             onClick={onClick}
             className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 cursor-pointer hover:bg-muted/30"
         >
-            <ClassboardProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
+            <ClassboardProgressBar lessons={todayLessons} durationMinutes={todayEventMinutes} />
 
             <div className="h-12 flex items-center justify-between px-6 bg-background gap-4">
                 {/* Left: Student Icon + Name */}

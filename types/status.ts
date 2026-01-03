@@ -33,7 +33,7 @@ export interface EventStatusConfig {
 export const EVENT_STATUS_CONFIG: Record<EventStatus, EventStatusConfig> = {
     planned: {
         status: "planned",
-        color: STATUS_GREY,
+        color: STATUS_DARK,
         label: "Planned",
     },
     tbc: {

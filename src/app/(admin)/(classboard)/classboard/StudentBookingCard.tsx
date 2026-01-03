@@ -50,12 +50,8 @@ const CardHeader = ({
     const endDate = new Date(dateEnd + "T00:00:00");
     const selected = new Date(selectedDate + "T00:00:00");
 
-    console.log(`🗓️ [CardHeader] Date parsing - dateStart: "${dateStart}" -> ${startDate.toISOString()}, selectedDate: "${selectedDate}" -> ${selected.toISOString()}`);
-    console.log(`   startDate.getTime(): ${startDate.getTime()}, selected.getTime(): ${selected.getTime()}`);
-
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const currentDay = Math.ceil((selected.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    console.log(`   totalDays: ${totalDays}, currentDay: ${currentDay}`);
 
     const ratioText = totalDays === 1 ? "" : `${currentDay}/${totalDays} Days`;
     let statusText = totalDays === 1 ? "Single Day Booking" : "";
@@ -74,9 +70,9 @@ const CardHeader = ({
     return (
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date">
-                    <span className="text-xl font-black leading-none text-foreground group-hover/date:text-primary transition-colors">{startDate.getDate()}</span>
-                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1 group-hover/date:text-primary transition-colors">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
+                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-muted/80 transition-colors">
+                    <span className="text-xl font-black leading-none text-foreground">{startDate.getDate()}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
                 </Link>
                 <div className="flex flex-col">
                     <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">
