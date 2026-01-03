@@ -58,7 +58,7 @@ export default function BookingOnboardCard({
         >
             <ClassboardProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
-            <div className="h-12 flex items-center justify-between px-6 bg-background">
+            <div className="h-12 flex items-center justify-between px-6 bg-background gap-4">
                 {/* Left: Student Icon + Name */}
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
@@ -69,7 +69,7 @@ export default function BookingOnboardCard({
                     </span>
                 </div>
 
-                {/* Center: Student Count + Equipment */}
+                {/* Right: Student Count + Equipment + Receipt */}
                 <div className="flex items-center gap-3 shrink-0">
                     {studentCount > 1 && (
                         <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
@@ -84,15 +84,14 @@ export default function BookingOnboardCard({
                             {capacityEquipment > 1 && <span className="text-xs font-semibold">{capacityEquipment}</span>}
                         </div>
                     )}
-                </div>
 
-                {/* Right: Receipt + Total Price Today */}
-                {totalRevenue > 0 && (
-                    <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 shrink-0">
-                        <Receipt size={16} />
-                        <span className="font-bold">{getCompactNumber(totalRevenue)}</span>
-                    </div>
-                )}
+                    {totalRevenue > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                            <Receipt size={14} />
+                            <span className="font-bold">{getCompactNumber(totalRevenue)}</span>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

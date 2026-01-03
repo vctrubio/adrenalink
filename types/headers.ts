@@ -37,10 +37,12 @@ export interface HeaderContext {
  */
 const getSchoolByUsername = unstable_cache(
     async (username: string): Promise<typeof school.$inferSelect | null> => {
+        console.log(`🔍 [DEBUG_CTX] getSchoolByUsername EXECUTING (Cache MISS) for: ${username}`);
         try {
             const result = await db.query.school.findFirst({
                 where: eq(school.username, username),
             });
+            console.log(`🔍 [DEBUG_CTX] getSchoolByUsername DB Result: ${result ? "FOUND" : "NOT FOUND"}`);
             return result || null;
         } catch (error) {
             unstable_rethrow(error);
@@ -70,14 +72,18 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
     const username = headersList.get("x-school-username");
 
     if (!username) {
+        // console.log("🔍 [DEBUG_CTX] No x-school-username header found");
         return null;
     }
+
+    console.log(`🔍 [DEBUG_CTX] getSchoolHeader START for: ${username}`);
 
     let schoolData: typeof school.$inferSelect | null = null;
     let cacheSuccess = false;
 
     try {
         schoolData = await getSchoolByUsername(username);
+        console.log(`🔍 [DEBUG_CTX] Cache/DB Retrieval Success. Data: ${schoolData ? "PRESENT" : "NULL"}`);
         cacheSuccess = true;
     } catch (error) {
         unstable_rethrow(error);
@@ -87,10 +93,12 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
     // Only fallback if cache retrieval failed (threw exception)
     // If cache returned null, we trust it (it means school doesn't exist)
     if (!cacheSuccess) {
+        console.log(`🔍 [DEBUG_CTX] Triggering Direct DB Fallback for: ${username}`);
         try {
             schoolData = await db.query.school.findFirst({
                 where: eq(school.username, username),
             });
+            console.log(`🔍 [DEBUG_CTX] Direct DB Result: ${schoolData ? "FOUND" : "NOT FOUND"}`);
         } catch (error) {
             unstable_rethrow(error);
             console.error(`❌ [getSchoolHeader] Direct DB fallback failed for "${username}":`, error);
@@ -105,12 +113,14 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
 
     if (!schoolData || !schoolData.timezone) {
         if (!schoolData) {
-            console.warn(`[getSchoolHeader] School "${username}" not found after both cache and DB checks.`);
+            console.warn(`🔍 [DEBUG_CTX] School "${username}" not found (Final decision).`);
         } else {
-            console.warn(`[getSchoolHeader] School "${username}" is missing a timezone.`);
+            console.warn(`🔍 [DEBUG_CTX] School "${username}" is missing a timezone.`);
         }
         return null;
     }
+
+    console.log(`🔍 [DEBUG_CTX] Returning Context: ${schoolData.id} / ${schoolData.timezone}`);
 
     return {
         id: schoolData.id,
