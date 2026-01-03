@@ -13,29 +13,21 @@ const STUDENT_COLOR = "#ca8a04";
 
 interface BookingOnboardCardProps {
     bookingData: ClassboardData;
-    selectedDate: string;
     onClick?: () => void;
 }
 
 export default function BookingOnboardCard({
     bookingData,
-    selectedDate,
     onClick
 }: BookingOnboardCardProps) {
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const studentCount = bookingStudents.length;
 
-    // Get today's events
-    const todayEvents = lessons.flatMap(lesson =>
-        (lesson.events || []).filter(event => {
-            if (!event.date) return false;
-            const eventDate = new Date(event.date).toISOString().split("T")[0];
-            return eventDate === selectedDate;
-        })
-    );
+    // Get all events (already filtered by selectedDate in provider)
+    const allEvents = lessons.flatMap(lesson => lesson.events || []);
 
-    // Calculate total revenue from all events today
-    const totalRevenue = todayEvents.reduce((sum, event) => {
+    // Calculate total revenue from all events
+    const totalRevenue = allEvents.reduce((sum, event) => {
         const duration = event.duration || 0;
         const durationHours = duration / 60;
         const pricePerStudent = schoolPackage.pricePerStudent || 0;
