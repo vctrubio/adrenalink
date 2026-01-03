@@ -7,11 +7,10 @@ import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { SchoolModel } from "@/backend/models/SchoolModel";
 import { WindToggle } from "@/src/components/themes/WindToggle";
-import { SportSelection } from "@/src/components/school/SportSelection";
-import { SchoolPackageCard } from "@/src/components/school/SchoolPackageCard";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import { ThemeProvider } from "next-themes";
+import { SchoolPackageBoard } from "@/src/components/school/SchoolPackageBoard";
 
 // Currency Mapping
 const CURRENCY_MAP: Record<string, string> = {
@@ -37,8 +36,6 @@ interface SubDomainHomePageProps {
  * Shared layout component for the School Landing Page
  */
 export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePageProps) {
-    const [selectedSport, setSelectedSport] = useState<string | null>(null);
-
     const { name, country, phone, websiteUrl, instagramUrl, equipmentCategories, currency } = school.schema;
     const currencySymbol = CURRENCY_MAP[currency] || CURRENCY_MAP["YEN"];
 
@@ -59,27 +56,12 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
         return categoryList.filter((cat) => categoriesWithPackages.has(cat));
     }, [categoryList, packages]);
 
-    // Filter packages and calculate counts
-    const filteredPackages = useMemo(() => {
-        if (!selectedSport) return packages;
-        return packages.filter((pkg) => pkg.categoryEquipment === selectedSport);
-    }, [packages, selectedSport]);
-
-    const sportCounts = useMemo(() => {
-        const counts: Record<string, number> = {};
-        packages.forEach((pkg) => {
-            const cat = pkg.categoryEquipment;
-            if (cat) counts[cat] = (counts[cat] || 0) + 1;
-        });
-        return counts;
-    }, [packages]);
-
     return (
-        <div className="light min-h-screen h-full bg-[#f8f9fa] flex flex-col items-center p-4 md:p-8 text-zinc-900">
+        <div className="light min-h-screen h-full bg-[#f8f9fa] flex flex-col items-center p-4 md:p-8 text-zinc-900 overflow-hidden">
             {/* Main Portal Container */}
-            <div className="w-full max-w-7xl flex-1 bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl flex flex-col relative">
+            <div className="w-full max-w-[1600px] flex-1 bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden">
                 {/* 1. Banner Section */}
-                <div className="relative w-full h-48 md:h-80 rounded-t-[2.5rem] overflow-hidden">
+                <div className="relative w-full h-48 md:h-64 shrink-0 rounded-t-[2.5rem] overflow-hidden">
                     <Image
                         src={bannerUrl}
                         alt={`${name} Banner`}
@@ -100,24 +82,24 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                 </div>
 
                 {/* 2. Profile Info Bar */}
-                <div className="relative px-6 md:px-10 pb-8 bg-zinc-50 shrink-0">
+                <div className="relative px-6 md:px-10 pb-6 bg-zinc-50 shrink-0 border-b border-zinc-100">
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
                         {/* School Icon */}
-                        <div className="-mt-16 md:-mt-20 z-10 flex-shrink-0">
-                            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-white bg-zinc-100 overflow-hidden shadow-2xl">
+                        <div className="-mt-16 md:-mt-12 z-10 flex-shrink-0">
+                            <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-3xl border-[6px] border-white bg-zinc-100 overflow-hidden shadow-xl transform rotate-3">
                                 {iconUrl ? (
                                     <img src={iconUrl} alt={`${name} Icon`} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
-                                        <AdranlinkIcon className="text-zinc-400" size={64} />
+                                        <AdranlinkIcon className="text-zinc-400" size={56} />
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Name & Categories */}
-                        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left pt-2 md:pt-4 md:pb-4 gap-2">
-                            <h1 className="text-3xl md:text-5xl font-black text-zinc-900 tracking-tighter leading-none uppercase">{name}</h1>
+                        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left pt-2 md:pb-4 gap-2">
+                            <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tighter leading-none uppercase">{name}</h1>
 
                             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                 {activeCategories.map((cat, index) => {
@@ -130,9 +112,9 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2 + index * 0.1, duration: 0.4, ease: "backOut" }}
                                             key={cat}
-                                            className="px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-zinc-100 text-zinc-700 border border-zinc-200"
+                                            className="px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white text-zinc-600 border border-zinc-200"
                                         >
-                                            <Icon className="w-3 h-3 fill-current text-primary" />
+                                            <Icon className="w-3 h-3 fill-current text-blue-500" />
                                             {config.name}
                                         </motion.span>
                                     );
@@ -144,57 +126,37 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5, ease: "backOut" }} className="flex gap-2.5 md:mb-4 flex-shrink-0">
                             {hasPhone && (
                                 <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer" className={SOCIAL_BUTTON_STYLE}>
-                                    <MessageCircle size={22} />
+                                    <MessageCircle size={20} />
                                 </a>
                             )}
                             {hasWebsite && (
                                 <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className={SOCIAL_BUTTON_STYLE}>
-                                    <Globe size={22} />
+                                    <Globe size={20} />
                                 </a>
                             )}
                             {hasInstagram && (
                                 <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className={SOCIAL_BUTTON_STYLE}>
-                                    <Instagram size={22} />
+                                    <Instagram size={20} />
                                 </a>
                             )}
                         </motion.div>
                     </div>
                 </div>
 
-                {/* 3. Package Content Area */}
-
-                <div className=" backdrop-blur-3xl overflow-hidden flex flex-col rounded-b-[2.5rem]">
-                    <div className="p-6 md:p-10 flex flex-col gap-10 h-full">
-                        {/* Centered Sport Selection */}
-                        {packages.length > 0 && (
-                            <div className="w-full max-w-2xl mx-auto shrink-0">
-                                <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} counts={sportCounts} />
+                {/* 3. Package Content Area - Board Layout */}
+                <div className="flex-1 min-h-0 bg-white/50 backdrop-blur-3xl flex flex-col overflow-hidden">
+                    <div className="flex-1 p-6 md:p-8 overflow-hidden min-h-0">
+                        {packages.length > 0 ? (
+                            <SchoolPackageBoard packages={packages} currencySymbol={currencySymbol} />
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center opacity-10 select-none pointer-events-none">
+                                <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale" />
+                                <div className="mt-6">
+                                    <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2">No Packages</span>
+                                    <span className="text-sm font-bold uppercase tracking-[0.5em]">Available right now</span>
+                                </div>
                             </div>
                         )}
-
-                        {/* Animated Package Grid */}
-
-                        <div className="flex-1 px-2 -mx-2 pb-10 rounded-b-[2.5rem]">
-                            <AnimatePresence mode="popLayout">
-                                {filteredPackages.length > 0 ? (
-                                    <motion.div key={selectedSport || "all"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {filteredPackages.map((pkg) => (
-                                            <SchoolPackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} />
-                                        ))}
-                                    </motion.div>
-                                ) : (
-                                    <motion.div key="empty" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col items-center justify-center text-center opacity-10 select-none pointer-events-none">
-                                        <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale" />
-
-                                        <div className="mt-6">
-                                            <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2">No Packages</span>
-
-                                            <span className="text-sm font-bold uppercase tracking-[0.5em]">For this category</span>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
                     </div>
                 </div>
             </div>
