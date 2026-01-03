@@ -176,6 +176,9 @@ export class GlobalFlag {
             }
             return newQueue;
         });
+
+        this.refreshKey++;
+        this.triggerRefresh();
     }
 
     // ============ ADJUSTMENT MODE ============
