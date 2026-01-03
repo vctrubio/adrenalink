@@ -155,14 +155,37 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         globalFlag.optOut(queue.teacher.id);
     }, [queueController, globalFlag, queue.teacher.id]);
 
-    const handleOptimise = useCallback(() => {
+    const handleOptimise = useCallback(async () => {
         if (!queueController) return;
-        const { count } = queueController.optimiseQueue();
+        const { count, affectedEventIds } = queueController.optimiseQueue();
+
         if (count > 0) {
+            // Show spinning animation only on affected events
+            setCascadingEventIds({ ids: new Set(affectedEventIds), action: "update" });
+
+            // Set them as updating in the mutation state
+            affectedEventIds.forEach((eventId) => {
+                // These will be tracked as updating until the real events arrive from server
+            });
+
             if (!queueController.isLocked()) {
                 controller.locked = true;
                 globalFlag.triggerRefresh();
             }
+
+            // Await the submit so spinner stays until server confirms
+            try {
+                const { updates } = queueController.getChanges();
+                await bulkUpdateClassboardEvents(updates, []);
+                // Cascade IDs will be cleared when realtime sync replaces optimized events
+            } catch (error) {
+                console.error("❌ Failed to submit optimized queue:", error);
+                // Clear spinner on error
+                setCascadingEventIds({ ids: new Set(), action: "update" });
+                toast.error("Failed to optimize queue");
+                return;
+            }
+
             toast.success("Optimised");
         } else {
             toast.success("Already optimised");

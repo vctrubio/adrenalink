@@ -170,19 +170,23 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
             if (cascade && queueController) {
                 const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
 
-                // Notify parent about cascading events for animation
+                // Show spinning only on affected events (cascade IDs)
                 if (updates.length > 0 && onCascade) {
                     onCascade(updates.map((u) => u.id));
                 }
 
-                // Execute: delete from DB + bulk update remaining events
+                // Execute: delete from DB FIRST
                 await deleteClassboardEvent(deletedId);
+                console.log(`  ✅ Deleted event: ${deletedId}`);
 
+                // Then bulk update remaining events - AWAIT this completely
                 if (updates.length > 0) {
                     await bulkUpdateClassboardEvents(updates, []);
+                    console.log(`  ✅ Updated ${updates.length} events after cascade`);
                 }
 
-                // Stop cascading animation
+                // Clear cascading animation ONLY after server operations complete
+                // The realtime sync will handle the actual data update
                 if (onCascade) {
                     onCascade([]);
                 }

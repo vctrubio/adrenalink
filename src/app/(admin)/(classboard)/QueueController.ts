@@ -708,23 +708,25 @@ export class QueueController {
      * Optimize entire queue with proper gaps
      * Applies updates, re-sorts by time, rebuilds queue, and triggers refresh
      */
-    optimiseQueue(): { count: number } {
+    optimiseQueue(): { count: number; affectedEventIds: string[] } {
         const { updates } = this.queue.optimiseQueue(this.settings.gapMinutes);
-        
+
         if (updates.length === 0) {
-            return { count: 0 };
+            return { count: 0, affectedEventIds: [] };
         }
 
         console.log(`🔧 [QueueController.optimiseQueue] Applying ${updates.length} updates...`);
 
         // Get all events and apply updates
         const events = this.queue.getAllEvents();
-        
+        const affectedEventIds: string[] = [];
+
         updates.forEach(update => {
             const event = events.find(e => e.id === update.id);
             if (event) {
                 event.eventData.date = update.date;
                 event.eventData.duration = update.duration;
+                affectedEventIds.push(event.id);
             }
         });
 
@@ -738,10 +740,10 @@ export class QueueController {
         // Rebuild queue with sorted events
         this.queue.rebuildQueue(events);
 
-        console.log(`✅ [QueueController.optimiseQueue] Queue optimized and reordered`);
+        console.log(`✅ [QueueController.optimiseQueue] Queue optimized and reordered | Affected: ${affectedEventIds.length}`);
 
         this.onRefresh();
-        return { count: updates.length };
+        return { count: updates.length, affectedEventIds };
     }
 
     /**
