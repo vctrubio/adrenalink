@@ -60,12 +60,6 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     const eventsWithOptimistic = useMemo(() => {
         const realEvents = activeQueue.getAllEvents();
 
-        // Reconstruct linked list references from array order
-        realEvents.forEach((event, index) => {
-            event.prev = index > 0 ? realEvents[index - 1] : null;
-            event.next = index < realEvents.length - 1 ? realEvents[index + 1] : null;
-        });
-
         // Get optimistic events for this teacher
         const teacherOptimisticEvents = Array.from(optimisticEvents.values())
             .filter((opt) => opt.teacherId === activeQueue.teacher.id)
@@ -87,6 +81,13 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         // Merge and sort by status priority, then by date
         const allEvents = [...realEventsWithStatus, ...deduplicatedOptimistic];
         const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
+
+        // CRITICAL: Reconstruct linked list AFTER sorting to maintain correct prev/next references
+        // This is needed for EventGapDetection to work correctly with merged events
+        sortedByStatus.forEach((event, index) => {
+            event.prev = index > 0 ? sortedByStatus[index - 1] : null;
+            event.next = index < sortedByStatus.length - 1 ? sortedByStatus[index + 1] : null;
+        });
 
         return sortedByStatus.map((node) => ({ node }));
     }, [activeQueue, optimisticEvents]);
