@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ReactNode } from "react";
 import "../css/globals.css";
 import Providers from "../providers/theme-provider";
-import WalletProvider from "../providers/wallet-provider";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -38,9 +37,7 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning className="h-full">
             <body className="h-full bg-background text-foreground">
                 <div className="min-h-screen bg-background">
-                    <Providers>
-                        <WalletProvider>{children}</WalletProvider>
-                    </Providers>
+                    <Providers>{children}</Providers>
                     <Analytics />
                 </div>
             </body>
