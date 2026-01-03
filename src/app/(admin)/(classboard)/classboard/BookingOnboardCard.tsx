@@ -4,7 +4,7 @@ import { Receipt } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { getPackageInfo } from "@/getters/school-packages-getter";
+import { getEventStatusCounts } from "@/getters/booking-progress-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { ClassboardData } from "@/backend/models/ClassboardModel";
 
@@ -40,11 +40,8 @@ export default function BookingOnboardCard({
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
-    // Get only today's lessons (those with events) for progress bar
-    const todayLessons = lessons.filter(lesson => (lesson.events || []).length > 0);
-
-    // Get package info from all lessons (full booking package duration)
-    const packageInfo = getPackageInfo(schoolPackage, lessons);
+    // Calculate event status counts for progress bar
+    const eventCounts = getEventStatusCounts(allEvents);
 
     // Calculate total minutes for today's events
     const todayEventMinutes = allEvents.reduce((sum, event) => sum + (event.duration || 0), 0);
@@ -54,7 +51,7 @@ export default function BookingOnboardCard({
             onClick={onClick}
             className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 cursor-pointer hover:bg-muted/30"
         >
-            <ClassboardProgressBar lessons={todayLessons} durationMinutes={todayEventMinutes} />
+            <ClassboardProgressBar counts={eventCounts} durationMinutes={todayEventMinutes} />
 
             <div className="h-12 flex items-center justify-between px-6 bg-background gap-4">
                 {/* Left: Student Icon + Name */}

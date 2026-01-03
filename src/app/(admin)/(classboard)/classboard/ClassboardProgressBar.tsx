@@ -1,18 +1,18 @@
 "use client";
 
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import { getProgressColor, type EventStatusMinutes } from "@/getters/booking-progress-getter";
 
 interface ClassboardProgressBarProps {
-    lessons: ClassboardLesson[];
     durationMinutes: number;
+    counts: EventStatusMinutes;
 }
 
-export function ClassboardProgressBar({ lessons, durationMinutes }: ClassboardProgressBarProps) {
-    const progressStyle = getBookingProgressBar(lessons, durationMinutes);
+export function ClassboardProgressBar({ durationMinutes, counts }: ClassboardProgressBarProps) {
+    const background = getProgressColor(counts, durationMinutes);
+
     return (
         <div className="h-1.5 w-full bg-muted">
-            <div className="h-full transition-all duration-500 ease-out" style={{ ...progressStyle }} />
+            <div className="h-full transition-all duration-500 ease-out" style={{ background }} />
         </div>
     );
 }

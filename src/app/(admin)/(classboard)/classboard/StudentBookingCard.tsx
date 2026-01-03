@@ -9,7 +9,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, sortEventsByStatus } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
@@ -18,13 +18,8 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 // --- Sub-components ---
 
-const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardLesson[]; durationMinutes: number }) => {
-    const progressStyle = getBookingProgressBar(lessons, durationMinutes);
-    return (
-        <div className="h-1.5 w-full bg-muted">
-            <div className="h-full transition-all duration-500 ease-out" style={{ ...progressStyle }} />
-        </div>
-    );
+const BookingProgressBar = ({ counts, durationMinutes }: { counts: ReturnType<typeof getEventStatusCounts>; durationMinutes: number }) => {
+    return <ClassboardProgressBar counts={counts} durationMinutes={durationMinutes} />;
 };
 
 const CardHeader = ({
@@ -150,7 +145,7 @@ const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonI
             <div className="flex flex-wrap gap-2">
                 {visibleLessons.map((lesson) => {
                     const isLoading = loadingLessonId === lesson.id;
-                    const events = lesson.events || [];
+                    const events = sortEventsByStatus(lesson.events || []);
                     const totalMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
                     const durationStr = getFullDuration(totalMinutes);
                     const eventCount = events.length;
@@ -238,6 +233,8 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
+    const allEvents = lessons.flatMap((l) => l.events || []);
+    const eventCounts = getEventStatusCounts(allEvents);
 
     const students = bookingStudents.map((bs) => bs.student);
     const draggableLessonIds = new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id));
@@ -291,7 +288,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
             onDragEnd={handleDragEnd}
             className={`group relative w-[345px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
         >
-            <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
+            <BookingProgressBar counts={eventCounts} durationMinutes={packageInfo.durationMinutes} />
 
             <div className="p-4 space-y-4">
                 <CardHeader bookingId={booking.id} dateStart={booking.dateStart} dateEnd={booking.dateEnd} selectedDate={selectedDate} leaderName={booking.leaderStudentName} students={students} onExpand={() => setIsExpanded(!isExpanded)} />

@@ -5,8 +5,10 @@ import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
+import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
+import { getEventStatusCounts, sortEventsByStatus, type EventStatusMinutes } from "@/getters/booking-progress-getter";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
@@ -66,15 +68,26 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
             cardStatus: undefined,
         }));
 
-        // Merge and sort by date
-        const allEvents = [...realEventsWithStatus, ...teacherOptimisticEvents].sort((a, b) => {
-            const dateA = new Date(a.node.eventData.date).getTime();
-            const dateB = new Date(b.node.eventData.date).getTime();
-            return dateA - dateB;
-        });
+        // Merge and sort by status priority, then by date
+        const allEvents = [...realEventsWithStatus, ...teacherOptimisticEvents];
+        const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
 
-        return allEvents;
+        return sortedByStatus.map((node) => ({
+            node,
+            cardStatus: undefined,
+        }));
     }, [activeQueue, optimisticEvents]);
+
+    // Calculate progress counts for collapsed view
+    const progressCounts: EventStatusMinutes = useMemo(() => {
+        const allEventNodes = eventsWithOptimistic.map((e) => ({ ...e.node.eventData, date: e.node.eventData.date }));
+        return getEventStatusCounts(allEventNodes as any);
+    }, [eventsWithOptimistic]);
+
+    // Calculate total minutes for today's events
+    const totalEventMinutes = useMemo(() => {
+        return eventsWithOptimistic.reduce((sum, e) => sum + (e.node.eventData.duration || 0), 0);
+    }, [eventsWithOptimistic]);
 
     const handleDragOver = (e: React.DragEvent) => {
         if (!draggedBooking) return;
@@ -176,6 +189,11 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                     onCancel={handleCancel}
                     onBulkAction={handleBulkAction}
                 />
+                {viewMode === "collapsed" && eventsWithOptimistic.length > 0 && (
+                    <div className="mt-2">
+                        <ClassboardProgressBar durationMinutes={totalEventMinutes} counts={progressCounts} />
+                    </div>
+                )}
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
                     <div className="mt-2 px-2">
