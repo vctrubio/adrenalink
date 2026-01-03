@@ -19,6 +19,7 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 // --- Sub-components ---
 
 const BookingProgressBar = ({ counts, durationMinutes }: { counts: ReturnType<typeof getEventStatusCounts>; durationMinutes: number }) => {
+    return <>ppb</>;
     return <ClassboardProgressBar counts={counts} durationMinutes={durationMinutes} />;
 };
 
@@ -40,7 +41,6 @@ const CardHeader = ({
     students: { id: string; firstName: string; lastName: string }[];
     onExpand: () => void;
 }) => {
-
     const startDate = new Date(dateStart + "T00:00:00");
     const endDate = new Date(dateEnd + "T00:00:00");
     const selected = new Date(selectedDate + "T00:00:00");
@@ -70,9 +70,7 @@ const CardHeader = ({
                     <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
                 </Link>
                 <div className="flex flex-col">
-                    <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">
-                        {leaderName}
-                    </div>
+                    <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">{leaderName}</div>
                     <div className="text-[10px] font-medium text-muted-foreground">
                         {ratioText} {statusText && <span className={statusStyle}>{statusText}</span>}
                     </div>

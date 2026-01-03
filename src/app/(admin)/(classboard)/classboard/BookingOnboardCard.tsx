@@ -40,10 +40,8 @@ export default function BookingOnboardCard({
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
-    // Calculate event status counts for progress bar
+    // Calculate event status counts and total minutes for progress bar
     const eventCounts = getEventStatusCounts(allEvents);
-
-    // Calculate total minutes for today's events
     const todayEventMinutes = allEvents.reduce((sum, event) => sum + (event.duration || 0), 0);
 
     return (
