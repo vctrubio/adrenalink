@@ -87,12 +87,12 @@ const CardHeader = ({
                 <div className="flex flex-col">
                     <button
                         ref={studentTriggerRef}
-                        onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                        className={`font-semibold text-foreground truncate flex-1 text-lg text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
+                        onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                        className="font-semibold text-foreground truncate flex-1 text-lg text-left hover:text-primary cursor-pointer transition-colors"
                     >
                         {leaderName}
                     </button>
-                    {studentCount > 1 && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
+                    <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />
                     <div className="text-[10px] font-medium text-muted-foreground">
                         {ratioText} {statusText && <span className={statusStyle}>{statusText}</span>}
                     </div>
@@ -129,8 +129,8 @@ const BookingSummaryBadges = ({
         <div className="relative">
             <button
                 ref={badgeTriggerRef}
-                onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                className={`w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors ${studentCount > 1 ? "hover:bg-muted/50 cursor-pointer" : "cursor-default"}`}
+                onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                className="w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors hover:bg-muted/50 cursor-pointer"
             >
                 <div className="flex-1 overflow-hidden">
                     <EquipmentStudentPackagePriceBadge
@@ -148,7 +148,7 @@ const BookingSummaryBadges = ({
                 </div>
             </button>
 
-            {studentCount > 1 && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={badgeTriggerRef} />}
+            <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={badgeTriggerRef} />
         </div>
     );
 };

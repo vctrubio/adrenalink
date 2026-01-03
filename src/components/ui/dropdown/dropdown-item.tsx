@@ -98,6 +98,7 @@ export function createStudentDropdownItems(
 		id: student.id || index,
 		label: `${student.firstName} ${student.lastName}`,
 		icon: HelmetIcon,
+		href: `/students/${student.id}`,
 	}));
 }
 
