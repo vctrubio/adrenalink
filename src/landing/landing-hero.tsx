@@ -17,14 +17,14 @@ function LandingHeroHeader() {
     );
 }
 
-function LandingHeroDescription() {
+export function LandingHeroDescription() {
     return (
         <div className="max-w-3xl mx-auto mt-8 px-4 space-y-2">
             <div className="text-base md:text-lg text-gray-300 text-center">
-                <span className="font-bold text-secondary">Our technology</span> mints the next community of <span className="font-bold">adrenaline</span> junkies.
+                <span className="font-bold text-secondary">Our technology</span> mints the next community of <span className="font-bold">adrenalines.</span>
             </div>
             <div className="text-base md:text-lg text-gray-300 text-center">
-                We <span className="underline">connect students with schools</span> and fully automate their booking schedules.
+                We <span className="underline">connect students with schools</span> to fully automate their booking schedules.
             </div>
             <div className="text-base md:text-lg text-gray-300 text-center">
                 Tracking <span className="italic">teacher commissions</span>, <span className="italic">lesson planning</span>, and <span className="italic">equipment handling</span>..

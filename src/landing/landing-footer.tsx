@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { LandingHeroDescription } from "./landing-hero";
 
 export function DevAboutMeFooter() {
     const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +72,9 @@ export function DevAboutMeFooter() {
                                                 <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</p>
                                                 <p className="text-sm text-white/60 group-hover:text-white mt-1 transition-colors duration-500">Know when it's time to say goodbye</p>
                                             </div>
+                                        </div>
+                                        <div className="border-t border-white/10 pt-6 pb-6">
+                                            <LandingHeroDescription theme="light" />
                                         </div>
                                     </motion.div>
                                 )}
