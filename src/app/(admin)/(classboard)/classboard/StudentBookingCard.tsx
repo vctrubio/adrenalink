@@ -9,6 +9,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import { getEventStatusCounts, sortEventsByStatus } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
@@ -19,7 +20,6 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 // --- Sub-components ---
 
 const BookingProgressBar = ({ counts, durationMinutes }: { counts: ReturnType<typeof getEventStatusCounts>; durationMinutes: number }) => {
-    return <>ppb</>;
     return <ClassboardProgressBar counts={counts} durationMinutes={durationMinutes} />;
 };
 

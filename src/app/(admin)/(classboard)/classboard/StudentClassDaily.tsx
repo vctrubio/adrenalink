@@ -15,7 +15,7 @@ const STUDENT_COLOR = "#ca8a04";
 type StudentBookingFilter = "available" | "all";
 
 export default function StudentClassDaily() {
-    const { bookingsForSelectedDate: bookings, globalFlag, optimisticEvents } = useClassboardContext();
+    const { bookingsForSelectedDate: bookings, globalFlag, optimisticEvents, selectedDate } = useClassboardContext();
 
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
 
@@ -25,14 +25,16 @@ export default function StudentClassDaily() {
         const hasEvents = (booking: ClassboardData): boolean => {
             const lessons = booking.lessons || [];
 
-            // Check real events
-            const hasRealEvents = lessons.some((lesson) => (lesson.events || []).length > 0);
+            // Check real events for the selected date
+            const hasRealEvents = lessons.some((lesson) => 
+                (lesson.events || []).some(event => event.date.startsWith(selectedDate))
+            );
             if (hasRealEvents) return true;
 
             // Check optimistic events for this booking
             const bookingId = booking.booking.id;
             const hasOptimisticEvent = Array.from(optimisticEvents.values()).some(
-                (opt) => opt.bookingId === bookingId
+                (opt) => opt.bookingId === bookingId && opt.date.startsWith(selectedDate)
             );
             return hasOptimisticEvent;
         };
@@ -85,24 +87,40 @@ export default function StudentClassDaily() {
                     ) : (
                         <div className="p-4">
                             <div className="flex flex-row xl:flex-col gap-3">
-                                {filteredBookings.map((bookingData) => {
-                                    const lessons = bookingData.lessons || [];
-                                    const hasRealEvents = lessons.some((lesson) => (lesson.events || []).length > 0);
-                                    const hasOptimisticEvent = Array.from(optimisticEvents.values()).some(
-                                        (opt) => opt.bookingId === bookingData.booking.id
-                                    );
-                                    const hasEventToday = hasRealEvents || hasOptimisticEvent;
+                                <AnimatePresence mode="popLayout" initial={false}>
+                                    {filteredBookings.map((bookingData) => {
+                                        const lessons = bookingData.lessons || [];
+                                        const hasRealEvents = lessons.some((lesson) => 
+                                            (lesson.events || []).some(event => event.date.startsWith(selectedDate))
+                                        );
+                                        const hasOptimisticEvent = Array.from(optimisticEvents.values()).some(
+                                            (opt) => opt.bookingId === bookingData.booking.id && opt.date.startsWith(selectedDate)
+                                        );
+                                        const hasEventToday = hasRealEvents || hasOptimisticEvent;
 
-                                    // If "all", show all as StudentBookingCard. If "available", show BookingOnboardCard for onboard, StudentBookingCard otherwise
-                                    if (filter === "all") {
-                                        return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
-                                    }
-                                    return hasEventToday ? (
-                                        <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} />
-                                    ) : (
-                                        <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />
-                                    );
-                                })}
+                                        // Determine which component to render
+                                        const Component = (filter === "all" || !hasEventToday) 
+                                            ? StudentBookingCard 
+                                            : BookingOnboardCard;
+
+                                        return (
+                                            <motion.div
+                                                layout="position"
+                                                key={bookingData.booking.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{
+                                                    duration: 0.3,
+                                                    ease: [0.23, 1, 0.32, 1] // Custom quintic ease for a smooth, professional feel
+                                                }}
+                                                className="flex-shrink-0"
+                                            >
+                                                <Component bookingData={bookingData} />
+                                            </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
                             </div>
                         </div>
                     )}

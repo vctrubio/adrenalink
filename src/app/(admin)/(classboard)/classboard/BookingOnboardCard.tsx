@@ -1,6 +1,7 @@
 "use client";
 
 import { Receipt } from "lucide-react";
+import { motion } from "framer-motion";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getCompactNumber } from "@/getters/integer-getter";
@@ -79,10 +80,21 @@ export default function BookingOnboardCard({
                     )}
 
                     {totalRevenue > 0 && (
-                        <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                        <motion.div 
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ 
+                                type: "spring",
+                                stiffness: 80,
+                                damping: 12,
+                                mass: 1,
+                                duration: 1.2
+                            }}
+                            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400"
+                        >
                             <Receipt size={14} />
                             <span className="font-bold">{getCompactNumber(totalRevenue)}</span>
-                        </div>
+                        </motion.div>
                     )}
                 </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
@@ -8,7 +9,6 @@ import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGri
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
-import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
 
 export default function ClientClassboard() {
@@ -50,11 +50,18 @@ function ClassboardContent() {
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex flex-wrap gap-4 p-4">
-                <div className="flex-1 min-w-[280px] max-w-2xl p-4 rounded-2xl flex items-center gap-4 bg-card border border-zinc-200 dark:border-zinc-700">
-                    <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                <div className="flex-1 min-w-[280px] max-w-2xl p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
+                    <div className="relative group/settings">
+                        <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
 
-                    <div className="h-8 w-px bg-border/50 mx-2" />
-                    <ToggleSettingIcon isOpen={isAdjustmentMode} onClick={handleToggleSettings} />
+                        <button
+                            onClick={handleToggleSettings}
+                            className={`absolute -top-3 -right-12 w-10 h-10 transition-all duration-500 hover:scale-110 active:scale-95 z-10 
+                                ${isAdjustmentMode ? "rotate-12 grayscale-0 opacity-100" : "grayscale opacity-20 hover:opacity-100 hover:grayscale-0"}`}
+                        >
+                            <Image src="/ADR.webp" alt="Toggle Settings" fill className="object-contain dark:invert" />
+                        </button>
+                    </div>
                 </div>
                 <ClassboardStatisticsComponent stats={stats} />
             </div>
