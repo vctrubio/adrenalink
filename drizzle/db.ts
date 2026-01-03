@@ -11,6 +11,7 @@ if (!process.env.DATABASE_URL) {
 
 const globalForDb = globalThis as unknown as {
     conn: postgres.Sql | undefined;
+    isCleanupRegistered: boolean | undefined;
 };
 
 // Determine which DATABASE_URL to use:
@@ -28,9 +29,12 @@ if (!dbUrl) {
 }
 
 const isPooled = dbUrl.includes(":6543");
-console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
-console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
-console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
+
+if (!globalForDb.conn) {
+    console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
+    console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
+    console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
+}
 
 // Singleton pattern to prevent connection leaks during HMR in development
 const sql =
@@ -51,11 +55,12 @@ if (process.env.NODE_ENV !== "production") {
 export const db = drizzle(sql, { schema: fullSchema });
 
 // Graceful shutdown
-if (typeof global !== "undefined") {
+if (typeof global !== "undefined" && !globalForDb.isCleanupRegistered) {
     const cleanup = async () => {
         console.log("Closing database connections...");
         await sql.end();
     };
     process.once("SIGTERM", cleanup);
     process.once("SIGINT", cleanup);
+    globalForDb.isCleanupRegistered = true;
 }

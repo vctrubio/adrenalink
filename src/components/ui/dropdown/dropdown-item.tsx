@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { ENTITY_DATA } from "@/config/entities";
 
 export interface DropdownItemProps {
 	id?: string;
@@ -94,10 +95,14 @@ export function DropdownItem({
 export function createStudentDropdownItems(
 	students: { id: string; firstName: string; lastName: string }[],
 ): DropdownItemProps[] {
+	const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
+	const studentColor = studentEntity?.color || "#eab308";
+
 	return students.map((student, index) => ({
 		id: student.id || index,
 		label: `${student.firstName} ${student.lastName}`,
 		icon: HelmetIcon,
+		color: studentColor,
 		href: `/students/${student.id}`,
 	}));
 }
