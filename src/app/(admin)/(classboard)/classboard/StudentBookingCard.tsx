@@ -12,7 +12,6 @@ import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equ
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
-import { ENTITY_DATA } from "@/config/entities";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
@@ -85,11 +84,7 @@ const CardHeader = ({
                     <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1 group-hover/date:text-primary transition-colors">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
                 </Link>
                 <div className="flex flex-col">
-                    <button
-                        ref={studentTriggerRef}
-                        onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                        className="font-semibold text-foreground truncate flex-1 text-lg text-left hover:text-primary cursor-pointer transition-colors"
-                    >
+                    <button ref={studentTriggerRef} onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)} className="font-semibold text-foreground truncate flex-1 text-lg text-left hover:text-primary cursor-pointer transition-colors">
                         {leaderName}
                     </button>
                     <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />
@@ -106,17 +101,7 @@ const CardHeader = ({
     );
 };
 
-const BookingSummaryBadges = ({
-    schoolPackage,
-    lessons,
-    studentCount,
-    students,
-}: {
-    schoolPackage: ClassboardData["schoolPackage"];
-    lessons: ClassboardLesson[];
-    studentCount: number;
-    students: { id: string; firstName: string; lastName: string }[];
-}) => {
+const BookingSummaryBadges = ({ schoolPackage, lessons, studentCount, students }: { schoolPackage: ClassboardData["schoolPackage"]; lessons: ClassboardLesson[]; studentCount: number; students: { id: string; firstName: string; lastName: string }[] }) => {
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const badgeTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -127,11 +112,7 @@ const BookingSummaryBadges = ({
 
     return (
         <div className="relative">
-            <button
-                ref={badgeTriggerRef}
-                onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                className="w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors hover:bg-muted/50 cursor-pointer"
-            >
+            <button ref={badgeTriggerRef} onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)} className="w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors hover:bg-muted/50 cursor-pointer">
                 <div className="flex-1 overflow-hidden">
                     <EquipmentStudentPackagePriceBadge
                         categoryEquipment={schoolPackage.categoryEquipment}
@@ -161,8 +142,7 @@ interface InstructorListProps {
 }
 
 const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonIds }: InstructorListProps) => {
-    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
-    const teacherColor = teacherEntity?.color || "#22c55e";
+    const teacherColor = "#22c55e";
 
     // Filter to only show lessons that have teachers
     const visibleLessons = lessons.filter((lesson) => !draggableLessonIds || draggableLessonIds.has(lesson.id));

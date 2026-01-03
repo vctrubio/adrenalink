@@ -64,54 +64,51 @@ export default function BookingOnboardCard({
         >
             <ClassboardProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
-            <div className="h-16 flex items-center gap-4 px-6 bg-background">
-                {/* Student Icon */}
-            <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
-                <HelmetIcon size={28} />
-            </div>
-
-            {/* Student Name (First Name Only) */}
-            <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">
-                {booking.leaderStudentName.split(" ")[0]}
-            </span>
-
-            {/* Student Count */}
-            {studentCount > 1 && (
-                <div className="flex items-center gap-0.5 text-base text-muted-foreground shrink-0">
-                    <HelmetIcon size={18} />
-                    <span className="font-semibold">{studentCount}</span>
+            <div className="h-14 flex items-center gap-2 px-6 bg-background">
+                {/* Student Icon + Name */}
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
+                        <HelmetIcon size={24} />
+                    </div>
+                    <span className="text-lg font-bold text-foreground truncate">
+                        {booking.leaderStudentName.split(" ")[0]}
+                    </span>
                 </div>
-            )}
 
-            {/* Equipment */}
-            {EquipmentIcon && (
-                <div className="flex items-center gap-0.5 shrink-0" style={{ color: equipmentConfig?.color }}>
-                    <EquipmentIcon size={18} />
-                    {capacityEquipment > 1 && <span className="text-sm font-semibold">{capacityEquipment}</span>}
+                {/* Student Count Badge */}
+                {studentCount > 1 && (
+                    <div className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
+                        <HelmetIcon size={14} />
+                        <span className="font-semibold">{studentCount}</span>
+                    </div>
+                )}
+
+                {/* Equipment Badge */}
+                {EquipmentIcon && (
+                    <div className="flex items-center gap-0.5 shrink-0" style={{ color: equipmentConfig?.color }}>
+                        <EquipmentIcon size={16} />
+                        {capacityEquipment > 1 && <span className="text-xs font-semibold">{capacityEquipment}</span>}
+                    </div>
+                )}
+
+                {/* Status Badge */}
+                <div
+                    className="px-2 py-0.5 rounded-md text-xs font-semibold shrink-0 text-foreground"
+                    style={{ backgroundColor: statusConfig.color }}
+                >
+                    {statusConfig.label}
                 </div>
-            )}
 
-            {/* Status Badge */}
-            <div
-                className="px-2 py-1 rounded-md text-xs font-semibold shrink-0"
-                style={{
-                    backgroundColor: `${statusConfig.color}20`,
-                    color: statusConfig.color
-                }}
-            >
-                {statusConfig.label}
-            </div>
+                {/* Spacer */}
+                <div className="flex-1" />
 
-            {/* Spacer */}
-            <div className="flex-1" />
-
-            {/* Revenue */}
-            {totalRevenue > 0 && (
-                <div className="flex items-center gap-1 text-base text-blue-600 dark:text-blue-400 shrink-0">
-                    <Receipt size={18} />
-                    {getCompactNumber(totalRevenue)}
-                </div>
-            )}
+                {/* Revenue */}
+                {totalRevenue > 0 && (
+                    <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 shrink-0">
+                        <Receipt size={16} />
+                        {getCompactNumber(totalRevenue)}
+                    </div>
+                )}
             </div>
         </div>
     );
