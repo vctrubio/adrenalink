@@ -11,7 +11,6 @@ if (!process.env.DATABASE_URL) {
 
 const globalForDb = globalThis as unknown as {
     conn: postgres.Sql | undefined;
-    isCleanupRegistered: boolean | undefined;
 };
 
 // Determine which DATABASE_URL to use:
@@ -29,44 +28,39 @@ if (!dbUrl) {
 }
 
 const isPooled = dbUrl.includes(":6543");
-
-if (!globalForDb.conn) {
-    console.log(`🔍 [DEBUG_DB] 🚀 INITIALIZING NEW CONNECTION`);
-    console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
-    console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
-    console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
-} else {
-    console.log(`🔍 [DEBUG_DB] ♻️  REUSING EXISTING CONNECTION (Singleton)`);
-}
+console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
+console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
+console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
 
 // Singleton pattern to prevent connection leaks during HMR in development
 const sql =
     globalForDb.conn ??
     postgres(dbUrl, {
-        max: isProduction ? 10 : 20, // Keep dev higher for HMR, production lower for pooling limits
-        idle_timeout: 30,
-        connect_timeout: 5, // Fast failure for better UX (was 10)
+        max: isProduction ? 10 : 20,
+        idle_timeout: 20, // Slightly reduced to free up resources faster in dev
+        connect_timeout: 10, // 10s is a standard engineering baseline for cloud DBs (vs 5s)
         prepare: false,
         backoff: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 10000),
-        onnotice: () => {}, // Quiet notices
+        onnotice: () => {}, 
     });
 
 if (process.env.NODE_ENV !== "production") {
-    globalForDb.conn = sql;
+    // Only register cleanup if we are setting up the global connection for the first time
+    if (!globalForDb.conn) {
+        globalForDb.conn = sql;
+        
+        const cleanup = async () => {
+            console.log("Closing database connections...");
+            await sql.end();
+        };
+        
+        // Ensure we don't duplicate listeners
+        process.removeAllListeners("SIGTERM");
+        process.removeAllListeners("SIGINT");
+        
+        process.once("SIGTERM", cleanup);
+        process.once("SIGINT", cleanup);
+    }
 }
 
 export const db = drizzle(sql, { schema: fullSchema });
-
-// Graceful shutdown
-if (typeof global !== "undefined" && !globalForDb.isCleanupRegistered) {
-    console.log(`🔍 [DEBUG_DB] 🛠️  REGISTERING CLEANUP HANDLERS (SIGTERM/SIGINT)`);
-    const cleanup = async () => {
-        console.log("Closing database connections...");
-        await sql.end();
-    };
-    process.once("SIGTERM", cleanup);
-    process.once("SIGINT", cleanup);
-    globalForDb.isCleanupRegistered = true;
-} else if (typeof global !== "undefined") {
-    console.log(`🔍 [DEBUG_DB] ⏭️  CLEANUP HANDLERS ALREADY REGISTERED - SKIPPING`);
-}

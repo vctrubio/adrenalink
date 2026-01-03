@@ -45,8 +45,6 @@ const CardHeader = ({
     students: { id: string; firstName: string; lastName: string }[];
     onExpand: () => void;
 }) => {
-    const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-    const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     const startDate = new Date(dateStart + "T00:00:00");
     const endDate = new Date(dateEnd + "T00:00:00");
@@ -73,20 +71,17 @@ const CardHeader = ({
         }
     }
 
-    const studentDropdownItems = createStudentDropdownItems(students);
-
     return (
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all group/date">
-                    <span className="text-xl font-black leading-none text-foreground group-hover/date:text-primary transition-colors">{startDate.getDate()}</span>
-                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1 group-hover/date:text-primary transition-colors">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
+                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-secondary/10 hover:border-secondary/20 transition-all group/date">
+                    <span className="text-xl font-black leading-none text-foreground group-hover/date:text-secondary/80 transition-colors">{startDate.getDate()}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1 group-hover/date:text-secondary/80 transition-colors">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
                 </Link>
                 <div className="flex flex-col">
-                    <button ref={studentTriggerRef} onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)} className="font-semibold text-foreground truncate flex-1 text-lg text-left hover:text-primary cursor-pointer transition-colors">
+                    <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">
                         {leaderName}
-                    </button>
-                    <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />
+                    </div>
                     <div className="text-[10px] font-medium text-muted-foreground">
                         {ratioText} {statusText && <span className={statusStyle}>{statusText}</span>}
                     </div>
