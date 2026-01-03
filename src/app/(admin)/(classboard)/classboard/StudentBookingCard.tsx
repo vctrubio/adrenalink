@@ -217,17 +217,6 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     const bookingId = bookingData.booking.id;
     const isDragging = draggedBooking?.bookingId === bookingId;
 
-    // Debug logging
-    console.log(`📋 [StudentBookingCard] Booking: ${bookingData.booking.leaderStudentName}`);
-    console.log(`   Lessons count: ${bookingData.lessons.length}`);
-    bookingData.lessons.forEach((l, idx) => {
-        console.log(`   Lesson ${idx}: ${l.teacher?.username} - Events: ${l.events?.length || 0}`);
-        if (l.events && l.events.length > 0) {
-            l.events.forEach((e) => {
-                console.log(`      Event: ${e.date} | Duration: ${e.duration}m`);
-            });
-        }
-    });
 
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);

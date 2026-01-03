@@ -1,44 +1,44 @@
 export class TeacherSortOrder {
-  private order: string[] = [];
-  private subscribers = new Set<(order: string[]) => void>();
-  private storageKey: string;
+    private order: string[] = [];
+    private subscribers = new Set<(order: string[]) => void>();
+    private storageKey: string;
 
-  constructor(storageKey = "teacher-sort-priority") {
-    this.storageKey = storageKey;
-    this.loadFromStorage();
-  }
-
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.storageKey);
-      if (stored) {
-        this.order = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.warn("Failed to load teacher sort order:", error);
+    constructor(storageKey = "teacher-sort-priority") {
+        this.storageKey = storageKey;
+        this.loadFromStorage();
     }
-  }
 
-  getOrder(): string[] {
-    return [...this.order];
-  }
+    private loadFromStorage(): void {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            if (stored) {
+                this.order = JSON.parse(stored);
+            }
+        } catch (error) {
+            console.warn("Failed to load teacher sort order:", error);
+        }
+    }
 
-  setOrder(order: string[]): void {
-    this.order = order;
-    this.saveToStorage();
-    this.notifySubscribers();
-  }
+    getOrder(): string[] {
+        return [...this.order];
+    }
 
-  private saveToStorage(): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.order));
-  }
+    setOrder(order: string[]): void {
+        this.order = order;
+        this.saveToStorage();
+        this.notifySubscribers();
+    }
 
-  subscribe(callback: (order: string[]) => void): () => void {
-    this.subscribers.add(callback);
-    return () => this.subscribers.delete(callback);
-  }
+    private saveToStorage(): void {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.order));
+    }
 
-  private notifySubscribers(): void {
-    this.subscribers.forEach((callback) => callback(this.getOrder()));
-  }
+    subscribe(callback: (order: string[]) => void): () => void {
+        this.subscribers.add(callback);
+        return () => this.subscribers.delete(callback);
+    }
+
+    private notifySubscribers(): void {
+        this.subscribers.forEach((callback) => callback(this.getOrder()));
+    }
 }

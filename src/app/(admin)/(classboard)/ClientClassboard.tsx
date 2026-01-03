@@ -25,8 +25,12 @@ export default function ClientClassboard() {
     );
 }
 
+/**
+ * ClassboardContent - Reads state from hook context
+ * teacherQueues from context ensure proper re-render tracking
+ */
 function ClassboardContent() {
-    const { selectedDate, setSelectedDate, controller, setController, teacherQueues, globalFlag } = useClassboardContext();
+    const { selectedDate, setSelectedDate, teacherQueues, globalFlag } = useClassboardContext();
 
     const stats = useMemo(() => {
         const statistics = new ClassboardStatistics(teacherQueues);
@@ -57,7 +61,7 @@ function ClassboardContent() {
 
             <ClassboardContentBoard />
 
-            <ClassboardFooter controller={controller} setController={setController} />
+            <ClassboardFooter />
         </div>
     );
 }

@@ -40,18 +40,14 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
 
         // 1. Check icon (school-specific then admin fallback)
         const iconPaths = [`${schoolUsername}/icon.png`, "admin/icon.png"];
-        
+
         // 2. Check banners in parallel
         const bannerExtensions = ["banner.png", "banner.jpeg", "banner.jpg"];
-        const schoolBannerPaths = bannerExtensions.map(ext => `${schoolUsername}/${ext}`);
+        const schoolBannerPaths = bannerExtensions.map((ext) => `${schoolUsername}/${ext}`);
         const adminBannerPath = "admin/banner.png";
-        
+
         // We can fire all checks in parallel
-        const [iconResults, bannerResults, adminBannerExists] = await Promise.all([
-            Promise.all(iconPaths.map(checkExists)),
-            Promise.all(schoolBannerPaths.map(checkExists)),
-            checkExists(adminBannerPath)
-        ]);
+        const [iconResults, bannerResults, adminBannerExists] = await Promise.all([Promise.all(iconPaths.map(checkExists)), Promise.all(schoolBannerPaths.map(checkExists)), checkExists(adminBannerPath)]);
 
         // Resolve icon
         let iconUrl: string | null = null;
@@ -60,7 +56,7 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
 
         // Resolve banner
         let bannerUrl: string | null = null;
-        const foundBannerIndex = bannerResults.findIndex(exists => exists);
+        const foundBannerIndex = bannerResults.findIndex((exists) => exists);
         if (foundBannerIndex !== -1) {
             bannerUrl = `${publicBaseUrl}/${schoolBannerPaths[foundBannerIndex]}`;
         } else if (adminBannerExists) {
@@ -79,19 +75,16 @@ import { unstable_cache } from "next/cache";
 import { getSchoolAssets } from "@/getters/cdn-getter";
 
 // Cache school assets for 1 hour
-const getCachedSchoolAssets = unstable_cache(
-    async (username: string) => fetchSchoolAssets(username),
-    ["school-assets"],
-    { revalidate: 3600, tags: ["school-assets"] }
-);
+const getCachedSchoolAssets = unstable_cache(async (username: string) => fetchSchoolAssets(username), ["school-assets"], { revalidate: 3600, tags: ["school-assets"] });
 
 // Cache school data for 1 hour
 const getCachedSchoolByUsername = unstable_cache(
-    async (username: string) => db.query.school.findFirst({
-        where: eq(school.username, username),
-    }),
+    async (username: string) =>
+        db.query.school.findFirst({
+            where: eq(school.username, username),
+        }),
     ["school-by-username"],
-    { revalidate: 3600, tags: ["school"] }
+    { revalidate: 3600, tags: ["school"] },
 );
 
 export async function getSchoolSubdomain(username: string) {
@@ -101,11 +94,11 @@ export async function getSchoolSubdomain(username: string) {
     try {
         // Step 1: Fetch school data and assets in parallel (Cached)
         const [schoolResult, assets] = await Promise.all([
-            getCachedSchoolByUsername(username).catch(e => {
+            getCachedSchoolByUsername(username).catch((e) => {
                 console.error("❌ [getSchoolSubdomain] Error fetching school:", e);
                 throw e;
             }),
-            getCachedSchoolAssets(username)
+            getCachedSchoolAssets(username),
         ]);
 
         console.log(`⏱️ [getSchoolSubdomain] Base data fetched in ${Date.now() - startTime}ms`);
@@ -135,32 +128,26 @@ export async function getSchoolSubdomain(username: string) {
             })
             .from(schoolPackage)
             .leftJoin(studentPackage, eq(studentPackage.schoolPackageId, schoolPackage.id))
-            .where(
-                and(
-                    eq(schoolPackage.schoolId, schoolResult.id),
-                    eq(schoolPackage.active, true),
-                    eq(schoolPackage.isPublic, true)
-                )
-            )
+            .where(and(eq(schoolPackage.schoolId, schoolResult.id), eq(schoolPackage.active, true), eq(schoolPackage.isPublic, true)))
             .groupBy(schoolPackage.id);
 
         console.log(`⏱️ [getSchoolSubdomain] Total fetch completed in ${Date.now() - startTime}ms`);
 
         const schoolModel = createSchoolModel(schoolResult);
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             data: {
                 school: schoolModel,
                 packages: packages,
-                assets: assets
-            }
+                assets: assets,
+            },
         };
     } catch (error) {
         console.error("💥 [getSchoolSubdomain] Critical error:", error);
-        return { 
-            success: false, 
-            error: error instanceof Error ? error.message : "Failed to fetch school subdomain" 
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch school subdomain",
         };
     }
 }
@@ -181,9 +168,7 @@ const getCachedAllSchoolsWithAssets = unstable_cache(
         return Promise.all(
             schoolsData.map(async (s) => {
                 const assets = await getSchoolAssets(s.username);
-                const categories = s.equipmentCategories 
-                    ? s.equipmentCategories.split(",").map(c => c.trim().toLowerCase())
-                    : [];
+                const categories = s.equipmentCategories ? s.equipmentCategories.split(",").map((c) => c.trim().toLowerCase()) : [];
 
                 return {
                     name: s.name,
@@ -193,11 +178,11 @@ const getCachedAllSchoolsWithAssets = unstable_cache(
                     iconUrl: assets.iconUrl || "/ADR.webp",
                     bannerUrl: assets.bannerUrl || "/beach-banner.jpg",
                 };
-            })
+            }),
         );
     },
     ["all-schools-with-assets"],
-    { revalidate: 3600, tags: ["school", "school-assets"] }
+    { revalidate: 3600, tags: ["school", "school-assets"] },
 );
 
 export async function getAllSchools() {

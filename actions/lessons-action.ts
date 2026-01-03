@@ -36,18 +36,17 @@ export async function createLesson(lessonSchema: LessonForm): Promise<ApiActionR
     }
 }
 
-export async function createLessonWithCommission(
-    bookingId: string,
-    teacherId: string,
-    commissionId: string
-): Promise<ApiActionResponseModel<LessonType>> {
+export async function createLessonWithCommission(bookingId: string, teacherId: string, commissionId: string): Promise<ApiActionResponseModel<LessonType>> {
     try {
-        const result = await db.insert(lesson).values({
-            bookingId,
-            teacherId,
-            commissionId,
-            status: "active",
-        }).returning();
+        const result = await db
+            .insert(lesson)
+            .values({
+                bookingId,
+                teacherId,
+                commissionId,
+                status: "active",
+            })
+            .returning();
 
         revalidatePath("/lessons");
         revalidatePath("/classboard");

@@ -3,17 +3,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
-import {
-    student,
-    teacher,
-    booking,
-    equipment,
-    studentPackage,
-    schoolPackage,
-    referral,
-    rental,
-    event,
-} from "@/drizzle/schema";
+import { student, teacher, booking, equipment, studentPackage, schoolPackage, referral, rental, event } from "@/drizzle/schema";
 import {
     createStudentModel,
     createTeacherModel,
@@ -32,20 +22,10 @@ import {
     type RentalModel,
     type EventModel,
 } from "@/backend/models";
-import {
-    buildStudentStatsQuery,
-    buildTeacherStatsQuery,
-    buildBookingStatsQuery,
-    buildEquipmentStatsQuery,
-    buildStudentPackageStatsQuery,
-    buildSchoolPackageStatsQuery,
-    buildReferralStatsQuery,
-    buildEventStatsQuery,
-    createStatsMap,
-} from "@/getters/databoard-sql-stats";
+import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, buildStudentPackageStatsQuery, buildSchoolPackageStatsQuery, buildReferralStatsQuery, buildEventStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
-type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel |   SchoolPackageModel | ReferralModel | RentalModel | EventModel;
+type EntityType = StudentModel | TeacherModel | BookingModel | EquipmentModel | SchoolPackageModel | ReferralModel | RentalModel | EventModel;
 
 // Entity relation configurations
 const entityRelations = {
@@ -271,31 +251,28 @@ const entityRelations = {
                     with: {
                         studentPackage: {
                             with: {
-                                schoolPackage: true
-                            }
+                                schoolPackage: true,
+                            },
                         },
                         bookingStudents: {
                             with: {
-                                student: true
-                            }
-                        }
-                    }
+                                student: true,
+                            },
+                        },
+                    },
                 },
                 teacher: true,
-            }
+            },
         },
         equipmentEvents: {
             with: {
-                equipment: true
-            }
-        }
-    }
+                equipment: true,
+            },
+        },
+    },
 };
 
-export async function getEntityId(
-    entity: string,
-    id: string,
-): Promise<ApiActionResponseModel<EntityType>> {
+export async function getEntityId(entity: string, id: string): Promise<ApiActionResponseModel<EntityType>> {
     console.log(`getEntityId: Called with entity='${entity}', id='${id}'`);
     try {
         let entityData: any;
@@ -328,14 +305,16 @@ export async function getEntityId(
                     }
 
                     // Filter bookingStudents to only include bookings from the current school
-                    const filteredBookingStudents = studentData.bookingStudents?.filter((bs: any) => {
-                        return bs.booking?.studentPackage?.schoolPackage?.schoolId === schoolId;
-                    }) || [];
+                    const filteredBookingStudents =
+                        studentData.bookingStudents?.filter((bs: any) => {
+                            return bs.booking?.studentPackage?.schoolPackage?.schoolId === schoolId;
+                        }) || [];
 
                     // Filter bookingPayments to only include payments for bookings from the current school
-                    const filteredBookingPayments = studentData.bookingPayments?.filter((bp: any) => {
-                        return filteredBookingStudents.some((bs: any) => bs.bookingId === bp.bookingId);
-                    }) || [];
+                    const filteredBookingPayments =
+                        studentData.bookingPayments?.filter((bp: any) => {
+                            return filteredBookingStudents.some((bs: any) => bs.bookingId === bp.bookingId);
+                        }) || [];
 
                     console.log("=== STUDENT DATA DEBUG ===");
                     console.log("Student ID:", studentData.id);
@@ -345,13 +324,20 @@ export async function getEntityId(
                     console.log("Total bookingPayments:", studentData.bookingPayments?.length);
                     console.log("Filtered bookingPayments:", filteredBookingPayments.length);
                     console.log("bookingPayments data:", JSON.stringify(filteredBookingPayments, null, 2));
-                    console.log("bookingStudents with booking:", JSON.stringify(filteredBookingStudents.map((bs: any) => ({
-                        bookingId: bs.bookingId,
-                        bookingStatus: bs.booking?.status,
-                        lessonsCount: bs.booking?.lessons?.length,
-                        firstLessonEvents: bs.booking?.lessons?.[0]?.events?.length,
-                        schoolPackageId: bs.booking?.studentPackage?.schoolPackage?.schoolId,
-                    })), null, 2));
+                    console.log(
+                        "bookingStudents with booking:",
+                        JSON.stringify(
+                            filteredBookingStudents.map((bs: any) => ({
+                                bookingId: bs.bookingId,
+                                bookingStatus: bs.booking?.status,
+                                lessonsCount: bs.booking?.lessons?.length,
+                                firstLessonEvents: bs.booking?.lessons?.[0]?.events?.length,
+                                schoolPackageId: bs.booking?.studentPackage?.schoolPackage?.schoolId,
+                            })),
+                            null,
+                            2,
+                        ),
+                    );
 
                     entityData = {
                         ...studentData,

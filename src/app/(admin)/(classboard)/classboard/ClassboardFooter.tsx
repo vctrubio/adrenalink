@@ -1,22 +1,28 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { Settings2, MapPin, Clock, Minus, Plus, Calendar, Hash, Users, Zap } from "lucide-react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 
-interface ClassboardFooterProps {
-    controller: ControllerSettings;
-    setController: (c: ControllerSettings) => void;
-}
+/**
+ * ClassboardFooter - Reads controller from GlobalFlag (single source of truth)
+ */
+export default function ClassboardFooter() {
+    const { globalFlag } = useClassboardContext();
+    const renderCount = useRef(0);
+    renderCount.current++;
 
-export default function ClassboardFooter({
-    controller,
-    setController,
-}: ClassboardFooterProps) {
+    // Get controller from GlobalFlag (single source of truth)
+    const controller = globalFlag.getController();
+    const setController = (newController: ControllerSettings) => globalFlag.updateController(newController);
+
+    console.log(`🔧 [ClassboardFooter] Render #${renderCount.current} | Gap: ${controller.gapMinutes}min`);
+
     const [isOpen, setIsOpen] = useState(false);
 
     const updateTime = (minutesToAdd: number) => {

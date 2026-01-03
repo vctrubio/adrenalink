@@ -3,7 +3,7 @@
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
-import PackageIcon from "@/public/appSvgs/PackageIcon";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 interface PackageComparisonBadgeProps {
@@ -15,11 +15,11 @@ interface PackageComparisonBadgeProps {
     currencySymbol: string;
 }
 
-export function PackageComparisonBadge({ 
-    categoryEquipment, 
-    equipmentCapacity, 
-    studentCapacity, 
-    packageDurationHours, 
+export function PackageComparisonBadge({
+    categoryEquipment,
+    equipmentCapacity,
+    studentCapacity,
+    packageDurationHours,
     pricePerHour,
     currencySymbol
 }: PackageComparisonBadgeProps) {
@@ -32,10 +32,12 @@ export function PackageComparisonBadge({
     const equipmentBg = equipmentConfig?.bgColor || "#f3e8ff";
     const CategoryIcon = equipmentConfig?.icon;
     
-    // Derived colors for consistency
-    const studentBg = "#dbeafe"; // blue-100-ish
-    const priceColor = "#f97316"; // orange-500
-    const priceBg = "#ffedd5"; // orange-100
+    // Colors
+    const studentBg = "#dbeafe"; 
+    const priceColor = "#f97316"; 
+    const priceBg = "#ffedd5"; 
+    const bookingColor = "#3b82f6"; // blue-500
+    const bookingBg = "#dbeafe"; // blue-100
 
     return (
         <div className="flex flex-wrap items-center gap-6">
@@ -43,7 +45,7 @@ export function PackageComparisonBadge({
             {equipmentCapacity > 0 && CategoryIcon && (
                 <div className="relative group" title="Equipment">
                     <div 
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 shadow-sm transition-transform hover:scale-105"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                         style={{ backgroundColor: equipmentBg }}
                     >
                         <div style={{ color: equipmentColor }}>
@@ -51,7 +53,7 @@ export function PackageComparisonBadge({
                         </div>
                     </div>
                     {equipmentCapacity > 1 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-black text-white shadow-sm border border-white">
+                        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-[10px] font-black text-white dark:text-zinc-900 shadow-sm border border-white dark:border-zinc-900">
                             x{equipmentCapacity}
                         </span>
                     )}
@@ -61,7 +63,7 @@ export function PackageComparisonBadge({
             {/* Student */}
             <div className="relative group" title="Students">
                 <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 shadow-sm transition-transform hover:scale-105"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                     style={{ backgroundColor: studentBg }}
                 >
                     <div style={{ color: studentColor }}>
@@ -69,32 +71,33 @@ export function PackageComparisonBadge({
                     </div>
                 </div>
                 {studentCapacity > 1 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-black text-white shadow-sm border border-white">
+                    <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-[10px] font-black text-white dark:text-zinc-900 shadow-sm border border-white dark:border-zinc-900">
                         x{studentCapacity}
                     </span>
                 )}
             </div>
 
-            {/* Duration */}
+            {/* Duration (Booking) */}
             <div className="flex items-center gap-3 group" title="Duration">
                 <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 shadow-sm bg-zinc-50 transition-transform hover:scale-105"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
+                    style={{ backgroundColor: bookingBg }}
                 >
-                    <div className="text-zinc-400">
-                        <PackageIcon size={24} />
+                    <div style={{ color: bookingColor }}>
+                        <BookingIcon size={24} />
                     </div>
                 </div>
                 <div className="flex flex-col leading-none">
-                    <span className="text-sm font-black text-zinc-700">{packageDurationHours}</span>
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Hours</span>
+                    <span className="text-sm font-black text-zinc-700 dark:text-zinc-200">{packageDurationHours}</span>
+                    <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Hours</span>
                 </div>
             </div>
 
-            {/* PPH */}
+            {/* PPH (Price) */}
             {pricePerHour > 0 && (
                 <div className="flex items-center gap-3 group" title="Price Per Hour">
                     <div 
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 shadow-sm transition-transform hover:scale-105"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                         style={{ backgroundColor: priceBg }}
                     >
                         <div style={{ color: priceColor }}>
@@ -102,8 +105,8 @@ export function PackageComparisonBadge({
                         </div>
                     </div>
                     <div className="flex flex-col leading-none">
-                        <span className="text-sm font-black text-zinc-700">{pricePerHour.toFixed(0)}</span>
-                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{currencySymbol}/HR</span>
+                        <span className="text-sm font-black text-zinc-700 dark:text-zinc-200">{pricePerHour.toFixed(0)}</span>
+                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{currencySymbol}/HR</span>
                     </div>
                 </div>
             )}

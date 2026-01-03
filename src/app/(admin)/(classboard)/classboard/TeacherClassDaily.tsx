@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
@@ -14,9 +14,20 @@ type TeacherFilter = "active" | "all";
 
 /**
  * TeacherClassDaily - Displays teacher queues in a list
+ * Teachers are never removed, just filtered by "active" (has events) vs "all"
+ *
+ * Reads teacherQueues from hook context for proper re-render tracking
+ * Gets gapMinutes from GlobalFlag (single source of truth)
  */
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking } = useClassboardContext();
+    const { teacherQueues, draggedBooking, globalFlag } = useClassboardContext();
+    const renderCount = useRef(0);
+    renderCount.current++;
+
+    // Get gapMinutes from GlobalFlag (single source of truth)
+    const gapMinutes = globalFlag.getController().gapMinutes;
+
+    console.log(`🏫 [TeacherClassDaily] Render #${renderCount.current} | Queues: ${teacherQueues.length} | Gap: ${gapMinutes}min`);
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [collapsedTeachers, setCollapsedTeachers] = useState<Set<string>>(new Set());
@@ -35,14 +46,11 @@ export default function TeacherClassDaily() {
 
     // Filter teachers based on whether they have events
     const { filteredQueues, counts } = useMemo(() => {
-        console.log("🔄 [TeacherClassDaily] Filtering queues, filter:", filter);
-
         const activeQueues: TeacherQueue[] = [];
         const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
-            // Events are already filtered by date in ClientClassboard, just check if any exist
             const hasEvents = events.length > 0;
 
             if (hasEvents) {
@@ -55,8 +63,7 @@ export default function TeacherClassDaily() {
             all: allQueues.length,
         };
 
-        console.log("   - Active queues:", counts.active);
-        console.log("   - All queues:", counts.all);
+        console.log(`👨‍🏫 [TeacherClassDaily] Filter: "${filter}" | Active: ${counts.active}/${counts.all} teachers with events`);
 
         return {
             filteredQueues: filter === "active" ? activeQueues : allQueues,
@@ -93,9 +100,18 @@ export default function TeacherClassDaily() {
                         {filteredQueues.length > 0 ? (
                             filteredQueues.map((queue, index) => {
                                 const isCollapsed = collapsedTeachers.has(queue.teacher.id);
+                                const queueController = globalFlag.getQueueController(queue.teacher.id);
+                                const isAdjustmentMode = !!queueController;
+                                const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+
                                 return (
                                     <div key={index} className={"py-2 transition-colors"}>
-                                        <TeacherQueueRow queue={queue} isCollapsed={isCollapsed} onToggleCollapse={() => toggleCollapsed(queue.teacher.id)} />
+                                        <TeacherQueueRow
+                                            queue={queue}
+                                            viewMode={viewMode}
+                                            isCollapsed={isCollapsed}
+                                            onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
+                                        />
                                     </div>
                                 );
                             })

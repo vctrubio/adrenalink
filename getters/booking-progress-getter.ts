@@ -35,8 +35,9 @@ export function getEventStatusCounts(events: ClassboardEvent[]): EventStatusMinu
     };
 }
 
-export function getProgressColor(counts: EventStatusMinutes, totalMinutes: number): string {
-    const totalUsedMinutes = counts.completed + counts.uncompleted + counts.planned + counts.tbc;
+export function getProgressColor(counts: EventStatusMinutes | undefined, totalMinutes: number): string {
+    if (!counts) return `${EMPTY_COLOR}`;
+    const totalUsedMinutes = (counts.completed || 0) + (counts.uncompleted || 0) + (counts.planned || 0) + (counts.tbc || 0);
     const denominator = totalUsedMinutes > totalMinutes ? totalUsedMinutes : totalMinutes;
 
     if (denominator === 0) return `${EMPTY_COLOR}`;

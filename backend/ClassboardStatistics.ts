@@ -22,7 +22,7 @@ export interface DailyLessonStats {
     teacherCount: number;
     studentCount: number;
     eventCount: number;
-    durationCount: number;  // in minutes
+    durationCount: number; // in minutes
     revenue: RevenueStats;
 }
 
@@ -50,10 +50,8 @@ export class ClassboardStatistics {
     getDailyLessonStats(): DailyLessonStats {
         if (this.teacherQueues) {
             // Use existing logic for TeacherQueue[]
-            const activeTeacherStats = this.teacherQueues
-                .map(queue => queue.getStats())
-                .filter(stats => stats.eventCount > 0);
-            
+            const activeTeacherStats = this.teacherQueues.map((queue) => queue.getStats()).filter((stats) => stats.eventCount > 0);
+
             const teacherCount = activeTeacherStats.length;
             const studentCount = activeTeacherStats.reduce((sum, stats) => sum + stats.studentCount, 0);
             const eventCount = activeTeacherStats.reduce((sum, stats) => sum + stats.eventCount, 0);
@@ -89,34 +87,35 @@ export class ClassboardStatistics {
                         if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
                             return;
                         }
-                        
+
                         // Count events based on the flag
                         const shouldCountEvent = this.countAllEvents || event.status === "completed" || event.status === "uncompleted";
-                        
+
                         if (shouldCountEvent) {
                             // Track unique teachers (only for events on the filtered date)
                             uniqueTeachers.add(lesson.teacher.username);
-                            
+
                             totalEvents += 1;
                             totalDuration += event.duration;
-                            
+
                             // Track unique students
                             booking.bookingStudents.forEach((student) => {
                                 uniqueStudents.add(student.student.id);
                             });
-                            
+
                             // Calculate revenue and commission
                             const studentCount = booking.bookingStudents.length;
                             const revenue = booking.schoolPackage.pricePerStudent * studentCount;
                             totalRevenue += revenue;
-                            
+
                             // Calculate commission
                             const commissionPerHour = parseFloat(lesson.commission.cph);
                             const hours = event.duration / 60;
                             let commission = 0;
                             if (lesson.commission.type === "fixed") {
                                 commission = commissionPerHour;
-                            } else { // percentage
+                            } else {
+                                // percentage
                                 commission = revenue * (commissionPerHour / 100);
                             }
                             totalCommission += commission;

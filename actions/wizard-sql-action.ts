@@ -94,14 +94,13 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
         const result = await db.execute(query);
         // Normalize rows for different drivers (pg vs vercel-postgres etc)
         const rows = Array.isArray(result) ? result : (result as any).rows || [];
-        
+
         return rows.map((row: any) => ({
             id: row.id,
             title: row.title || "Unknown",
             subtitle: row.subtitle || "",
-            status: row.status
+            status: row.status,
         }));
-
     } catch (error) {
         console.error(`Error fetching wizard entities for ${entityType}:`, error);
         return [];

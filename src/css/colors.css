@@ -48,6 +48,9 @@
 	--color-primary-orange: rgb(var(--primary-orange));
 	--color-primary-blue: rgb(var(--primary-blue));
 	--color-primary-green: rgb(var(--primary-green));
+
+	--color-red-clade: rgb(var(--red-clade));
+	--color-blue-clude: rgb(var(--blue-clude));
 }
 
 @layer base {
@@ -89,6 +92,8 @@
 		--primary-orange: 251 146 60;
 		--primary-blue: 59 130 246;
 		--primary-green: 22 97 14;
+		--red-clade: 239 68 68;
+		--blue-clude: 59 130 246;
 	}
 
 	.dark {
@@ -129,5 +134,7 @@
 		--primary-orange: 251 146 60;
 		--primary-blue: 59 130 246;
 		--primary-green: 22 97 14;
+		--red-clade: 220 38 38;
+		--blue-clude: 96 165 250;
 	}
 }

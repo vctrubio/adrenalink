@@ -7,7 +7,7 @@ export type EventModel = AbstractModel<EventType>;
 export function createEventModel(eventData: any): EventModel {
     const { lesson, equipmentEvents, ...pgTableSchema } = eventData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "event")!;
+    const entityConfig = ENTITY_DATA.find((e) => e.id === "event")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
 
     const model = {

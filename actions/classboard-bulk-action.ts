@@ -11,10 +11,7 @@ import { getSchoolHeader } from "@/types/headers";
  * Optionally delete specified events after updating
  * Priority: UPDATE first, then DELETE
  */
-export async function bulkUpdateClassboardEvents(
-    updates: { id: string; date: string; duration: number; location?: string }[],
-    toDelete?: string[]
-): Promise<ApiActionResponseModel<{ updatedCount: number; deletedCount: number }>> {
+export async function bulkUpdateClassboardEvents(updates: { id: string; date: string; duration: number; location?: string }[], toDelete?: string[]): Promise<ApiActionResponseModel<{ updatedCount: number; deletedCount: number }>> {
     try {
         if (updates.length === 0 && (!toDelete || toDelete.length === 0)) {
             return { success: false, error: "No events provided" };
@@ -46,11 +43,7 @@ export async function bulkUpdateClassboardEvents(
                     continue;
                 }
 
-                const result = await db
-                    .update(event)
-                    .set(updateData)
-                    .where(eq(event.id, update.id))
-                    .returning({ id: event.id });
+                const result = await db.update(event).set(updateData).where(eq(event.id, update.id)).returning({ id: event.id });
 
                 if (result.length > 0) {
                     updatedCount++;

@@ -135,6 +135,27 @@ export default function DesignPage() {
                     </div>
                 </div>
 
+                {/* Theme Variables Test - Red Clade & Blue Clude */}
+                <div className="mt-10">
+                    <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Theme Variables</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                        <div className="rounded-lg p-8 bg-red-clade text-white shadow-md flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="text-lg font-bold">Red Clade</div>
+                                <div className="text-sm opacity-90">text-red-clade • bg-red-clade</div>
+                                <div className="text-xs mt-2">Danger / Delete</div>
+                            </div>
+                        </div>
+                        <div className="rounded-lg p-8 bg-blue-clude text-white shadow-md flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="text-lg font-bold">Blue Clude</div>
+                                <div className="text-sm opacity-90">text-blue-clude • bg-blue-clude</div>
+                                <div className="text-xs mt-2">Information / Primary</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Entity Icon Section */}
                 <div className="mt-16">
                     <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-6">Entity Icons</h2>

@@ -139,9 +139,7 @@ export async function getTeachersBySchoolId(schoolId: string): Promise<ApiAction
 }
 
 // UPDATE TEACHER WITH SCHOOL-SPECIFIC DATA
-export async function updateTeacherDetail(
-    data: TeacherUpdateForm,
-): Promise<ApiActionResponseModel<TeacherModel>> {
+export async function updateTeacherDetail(data: TeacherUpdateForm): Promise<ApiActionResponseModel<TeacherModel>> {
     try {
         const schoolHeader = await getSchoolHeader();
         if (!schoolHeader) {
@@ -149,16 +147,19 @@ export async function updateTeacherDetail(
         }
 
         // Update teacher table
-        await db.update(teacher).set({
-            username: data.username,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            passport: data.passport,
-            country: data.country,
-            phone: data.phone,
-            languages: data.languages,
-            active: data.active,
-        }).where(eq(teacher.id, data.id));
+        await db
+            .update(teacher)
+            .set({
+                username: data.username,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                passport: data.passport,
+                country: data.country,
+                phone: data.phone,
+                languages: data.languages,
+                active: data.active,
+            })
+            .where(eq(teacher.id, data.id));
 
         revalidatePath(`/teachers/${data.username}`);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin, Zap, X, Minus, Plus } from "lucide-react";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
@@ -21,13 +21,24 @@ const MAX_TIME_MINUTES = 1380;
  * 2. Selective Release: Individual teachers can be saved and removed one-by-one.
  * 3. Session Persistence: Adjustments are centrally managed by globalFlag.
  * 4. Data Safety: "Reset" restores the state captured at session start.
+ *
+ * Reads ALL state from GlobalFlag (single source of truth)
  */
 export default function LessonFlagLocationSettingsController() {
-    const { globalFlag, teacherQueues, controller, setController } = useClassboardContext();
+    const { globalFlag } = useClassboardContext();
+    const renderCount = useRef(0);
+    renderCount.current++;
+
+    // Get state from GlobalFlag (single source of truth)
+    const teacherQueues = globalFlag.getTeacherQueues();
+    const controller = globalFlag.getController();
+
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
     const [locationIndex, setLocationIndex] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    console.log(`⚙️ [LessonFlagLocationSettingsController] Render #${renderCount.current} | Gap: ${controller.gapMinutes}min`);
 
     // Initial Sync: Sync local UI state with the centralized global session
     useEffect(() => {
@@ -43,13 +54,6 @@ export default function LessonFlagLocationSettingsController() {
     }, [globalFlag]);
 
     const { lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
-
-    // Sync controller changes from context to globalFlag for all pending teachers
-    useEffect(() => {
-        if (globalFlag.isAdjustmentMode() && controller) {
-            globalFlag.updateController(controller);
-        }
-    }, [controller.gapMinutes, controller.stepDuration, controller.locked, globalFlag]);
     const { lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
     const isLockFlagTime = globalFlag.isLockedTime;
     const isLockFlagLocation = globalFlag.isLockedLocation;
@@ -176,10 +180,9 @@ export default function LessonFlagLocationSettingsController() {
 
     const updateGap = (delta: number) => {
         const newGap = Math.max(0, (controller.gapMinutes || 0) + delta);
-        const newController = { ...controller, gapMinutes: newGap };
-        // Update both context and globalFlag for consistency
-        setController(newController);
-        globalFlag.updateController(newController);
+        // Update GlobalFlag (single source of truth)
+        globalFlag.updateController({ gapMinutes: newGap });
+        console.log(`  🔧 Gap updated: ${controller.gapMinutes} -> ${newGap}min`);
     };
 
     return (
@@ -269,7 +272,7 @@ export default function LessonFlagLocationSettingsController() {
                 </div>
 
                 <button
-                    onClick={() => globalFlag.optimiseAllQueues(controller.gapMinutes)}
+                    onClick={() => globalFlag.optimiseAllQueues()}
                     disabled={optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0}
                     className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
                         optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0

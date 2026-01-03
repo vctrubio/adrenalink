@@ -132,7 +132,7 @@ export async function getEventUserStory(eventId: string): Promise<ApiActionRespo
                         teacher: {
                             with: {
                                 school: true,
-                            }
+                            },
                         },
                         commission: true,
                         booking: {
@@ -145,7 +145,7 @@ export async function getEventUserStory(eventId: string): Promise<ApiActionRespo
                                 bookingStudents: {
                                     with: {
                                         student: true,
-                                    }
+                                    },
                                 },
                             },
                         },

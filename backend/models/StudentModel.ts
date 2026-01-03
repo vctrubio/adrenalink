@@ -18,9 +18,7 @@ export function createStudentModel(studentData: any, schoolId?: string): Student
     const { schoolStudents, studentPackageStudents, bookingStudents, bookingPayments, ...pgTableSchema } = studentData;
 
     // Get the school-specific data from the matching schoolStudent record
-    const schoolStudent = schoolId
-        ? schoolStudents?.find((ss: any) => ss.schoolId === schoolId)
-        : schoolStudents?.[0];
+    const schoolStudent = schoolId ? schoolStudents?.find((ss: any) => ss.schoolId === schoolId) : schoolStudents?.[0];
     const description = schoolStudent?.description || null;
     const active = schoolStudent?.active ?? true;
     const rental = schoolStudent?.rental ?? false;

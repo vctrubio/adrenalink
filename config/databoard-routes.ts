@@ -1,20 +1,12 @@
 import { ENTITY_DATA, type EntityConfig } from "./entities";
 
 // Entities that appear in the databoard navigation
-export const DATABOARD_ENTITY_IDS = [
-    "student",
-    "teacher",
-    "booking",
-    "equipment",
-    "schoolPackage",
-] as const;
+export const DATABOARD_ENTITY_IDS = ["student", "teacher", "booking", "equipment", "schoolPackage"] as const;
 
 export type DataboardEntityId = (typeof DATABOARD_ENTITY_IDS)[number];
 
 // Get entity configs for databoard navigation
-export const DATABOARD_ENTITIES: EntityConfig[] = ENTITY_DATA.filter((entity) =>
-    DATABOARD_ENTITY_IDS.includes(entity.id as DataboardEntityId)
-);
+export const DATABOARD_ENTITIES: EntityConfig[] = ENTITY_DATA.filter((entity) => DATABOARD_ENTITY_IDS.includes(entity.id as DataboardEntityId));
 
 // Helper to check if a route is a databoard route
 export function isDataboardRoute(pathname: string): boolean {

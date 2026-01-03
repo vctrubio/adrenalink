@@ -147,12 +147,7 @@ export async function linkTeacherToEquipment(equipmentId: string, teacherId: str
 // REMOVE TEACHER FROM EQUIPMENT
 export async function removeTeacherFromEquipment(equipmentId: string, teacherId: string): Promise<ApiActionResponseModel<null>> {
     try {
-        await db.delete(teacherEquipment).where(
-            and(
-                eq(teacherEquipment.equipmentId, equipmentId),
-                eq(teacherEquipment.teacherId, teacherId)
-            )
-        );
+        await db.delete(teacherEquipment).where(and(eq(teacherEquipment.equipmentId, equipmentId), eq(teacherEquipment.teacherId, teacherId)));
         revalidatePath("/equipments");
         return { success: true, data: null };
     } catch (error) {

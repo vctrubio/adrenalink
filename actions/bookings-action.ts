@@ -54,22 +54,22 @@ export async function createBooking(bookingSchema: BookingForm): Promise<ApiActi
 export async function getBookings(): Promise<ApiActionResponseModel<BookingModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
-        
+
         let result;
         if (schoolHeader) {
             // School mode: Filter bookings by school ID from header
             result = await db.query.booking.findMany({
                 where: eq(booking.schoolId, schoolHeader.id),
-                with: bookingWithRelations
+                with: bookingWithRelations,
             });
         } else {
             // Sudo mode: Get ALL bookings (full privileges)
             result = await db.query.booking.findMany({
-                with: bookingWithRelations
+                with: bookingWithRelations,
             });
         }
-        
-        const bookings: BookingModel[] = result.map(bookingData => createBookingModel(bookingData));
+
+        const bookings: BookingModel[] = result.map((bookingData) => createBookingModel(bookingData));
         return { success: true, data: bookings };
     } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -81,9 +81,9 @@ export async function getBookingById(id: string): Promise<ApiActionResponseModel
     try {
         const result = await db.query.booking.findFirst({
             where: eq(booking.id, id),
-            with: bookingWithRelations
+            with: bookingWithRelations,
         });
-        
+
         if (result) {
             return { success: true, data: createBookingModel(result) };
         }
@@ -99,7 +99,7 @@ export async function updateBooking(id: string, bookingSchema: Partial<BookingFo
     try {
         const updateData = {
             ...bookingSchema,
-            updatedAt: new Date()
+            updatedAt: new Date(),
         };
         const result = await db.update(booking).set(updateData).where(eq(booking.id, id)).returning();
         revalidatePath("/bookings");

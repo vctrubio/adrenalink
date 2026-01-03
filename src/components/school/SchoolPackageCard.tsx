@@ -10,6 +10,7 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import type { SchoolPackageType } from "@/drizzle/schema";
 import { SPORTS_CONFIG } from "./SportSelection";
 import { ChalkboardTable } from "@/src/components/ui/ChalkboardTable";
+import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";
 
 interface SchoolPackageCardProps {
     pkg: SchoolPackageType & { bookingCount: number };
@@ -34,7 +35,8 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
     const typeBorder = isRental ? "border-red-clade" : "border-blue-clude";
 
     // Calculate PPH if duration != 1hr (60 mins)
-    const pph = durationMinutes !== 60 ? Math.round(pricePerStudent / (durationMinutes / 60)) : null;
+    const durationHours = durationMinutes / 60;
+    const pph = durationMinutes !== 60 ? Math.round(pricePerStudent / durationHours) : null;
 
     const handleCardClick = () => {
         router.push(`/register?add=package:${id}`);
@@ -65,47 +67,16 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
                 </span>
             </div>
 
-            {/* 2. Middle (Patty) - Stats Grid (Equipment & Capacity ONLY) */}
-            <div className="flex-1 px-8 py-8 grid grid-cols-2 gap-y-8 gap-x-4">
-                {/* Equipment Stat */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Equipment</span>
-                    <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${isHovered ? typeBg : "bg-zinc-50"}`}>
-                            {sportConfig ? (
-                                <Image 
-                                    src={sportConfig.image} 
-                                    alt="" 
-                                    width={24} 
-                                    height={24} 
-                                    className={`object-contain transition-all duration-300 ${isHovered ? "brightness-0 opacity-100" : "brightness-0 opacity-30"}`}
-                                    style={{ filter: isHovered ? (isRental ? "invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)" : "invert(38%) sepia(74%) saturate(1638%) hue-rotate(202deg) brightness(101%) contrast(96%)") : undefined }}
-                                />
-                            ) : (
-                                <AdranlinkIcon size={20} className="text-zinc-300" />
-                            )}
-                        </div>
-                        <span className="text-2xl font-black text-zinc-900">x{capacityEquipment}</span>
-                    </div>
-                </div>
-
-                {/* Student Stat */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Capacity</span>
-                    <div className="flex items-center gap-3">
-                        <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${isHovered ? typeBg : "bg-zinc-50"}`}>
-                            <HelmetIcon size={20} className={`transition-colors duration-300 ${isHovered ? typeText : "text-zinc-300"}`} />
-                            
-                            {/* Capacity Badge - Colored based on type */}
-                            {capacityStudents > 0 && (
-                                <div className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-white transition-colors duration-300 ${isRental ? "bg-red-clade text-white" : "bg-blue-clude text-white"}`}>
-                                    {capacityStudents}
-                                </div>
-                            )}
-                        </div>
-                        <span className="text-2xl font-black text-zinc-900">x{capacityStudents}</span>
-                    </div>
-                </div>
+            {/* 2. Middle (Patty) - Package Comparison Badge */}
+            <div className="px-8 py-8 flex items-center">
+                <PackageComparisonBadge 
+                    categoryEquipment={categoryEquipment}
+                    equipmentCapacity={capacityEquipment}
+                    studentCapacity={capacityStudents}
+                    packageDurationHours={parseFloat(durationHours.toFixed(1))}
+                    pricePerHour={pph || pricePerStudent} // Fallback to total if 1hr, logic handled in badge/calc
+                    currencySymbol={currencySymbol}
+                />
             </div>
 
             {/* 3. Footer (Bottom Bun) - Chalkboard Table & Action */}

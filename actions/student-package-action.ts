@@ -45,9 +45,7 @@ export async function getStudentPackagesWithStats(): Promise<ApiActionResponseMo
         }
 
         // 2. Filter by school if schoolId provided (since studentPackage doesn't have direct schoolId field)
-        const filteredPackages = schoolId
-            ? packagesResult.filter(pkg => pkg.schoolPackage?.school?.id === schoolId)
-            : packagesResult;
+        const filteredPackages = schoolId ? packagesResult.filter((pkg) => pkg.schoolPackage?.school?.id === schoolId) : packagesResult;
 
         // 3. Execute SQL stats
         let statsResult;

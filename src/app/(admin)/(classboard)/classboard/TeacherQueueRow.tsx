@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
@@ -16,28 +16,40 @@ import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface TeacherQueueRowProps {
     queue: TeacherQueue;
+    viewMode: TeacherViewMode;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
 }
 
-export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { controller, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardContext();
+/**
+ * TeacherQueueRow - Renders a single teacher's queue row
+ * Reads state from GlobalFlag (single source of truth)
+ */
+export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
+    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticEvents, getEventCardStatus } = useClassboardContext();
+    const renderCount = useRef(0);
+    renderCount.current++;
+
     const [cascadingEventIds, setCascadingEventIds] = useState<{ ids: Set<string>; action: "update" | "delete" }>({
         ids: new Set(),
         action: "update",
     });
 
+    // Get controller from GlobalFlag (source of truth)
+    const controller = globalFlag.getController();
+    const gapMinutes = controller.gapMinutes;
+
+    const isAdjustmentMode = viewMode === "adjustment";
+
     // Get QueueController from GlobalFlag (if in adjustment mode)
-    let queueController = globalFlag.getQueueController(queue.teacher.id);
-    const isAdjustmentMode = !!queueController;
+    let queueController = isAdjustmentMode ? globalFlag.getQueueController(queue.teacher.id) : null;
 
     // In view mode, create temporary QueueController for cascade delete operations
     if (!queueController) {
         queueController = new QueueController(queue, controller, () => {});
     }
 
-    // Compute view mode: adjustment takes priority, otherwise use isCollapsed state
-    const viewMode: TeacherViewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+    console.log(`🎬 [TeacherQueueRow] Render #${renderCount.current} | ${queue.teacher.username} | Events: ${queue.getAllEvents().length} | Mode: ${viewMode} | Gap: ${gapMinutes}min`);
 
     // Use queue from QueueController if in adjustment mode (it has the preserved mutations)
     const activeQueue = queueController.getQueue();
@@ -59,29 +71,28 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
             .filter((opt) => opt.teacherId === activeQueue.teacher.id)
             .map((opt) => ({
                 node: optimisticEventToNode(opt),
-                cardStatus: undefined,
             }));
 
-        // Convert real events to include cardStatus
+        // Convert real events
         const realEventsWithStatus = realEvents.map((event) => ({
             node: event,
-            cardStatus: undefined,
         }));
 
         // Merge and sort by status priority, then by date
         const allEvents = [...realEventsWithStatus, ...teacherOptimisticEvents];
         const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
 
-        return sortedByStatus.map((node) => ({
-            node,
-            cardStatus: undefined,
-        }));
+        return sortedByStatus.map((node) => ({ node }));
     }, [activeQueue, optimisticEvents]);
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
+        if (!eventsWithOptimistic || eventsWithOptimistic.length === 0) {
+            return { completed: 0, uncompleted: 0, planned: 0, tbc: 0 };
+        }
         const allEventNodes = eventsWithOptimistic.map((e) => ({ ...e.node.eventData, date: e.node.eventData.date }));
-        return getEventStatusCounts(allEventNodes as any);
+        const result = getEventStatusCounts(allEventNodes as any);
+        return result || { completed: 0, uncompleted: 0, planned: 0, tbc: 0 };
     }, [eventsWithOptimistic]);
 
     // Calculate total minutes for today's events
@@ -189,7 +200,7 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                     onCancel={handleCancel}
                     onBulkAction={handleBulkAction}
                 />
-                {viewMode === "collapsed" && eventsWithOptimistic.length > 0 && (
+                {viewMode === "collapsed" && eventsWithOptimistic.length > 0 && progressCounts && (
                     <div className="mt-2">
                         <ClassboardProgressBar durationMinutes={totalEventMinutes} counts={progressCounts} />
                     </div>
@@ -213,11 +224,16 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {eventsWithOptimistic.length > 0 ? (
-                            eventsWithOptimistic.map(({ node: event, cardStatus }) => {
-                                let effectiveCardStatus = cardStatus;
+                            eventsWithOptimistic.map(({ node: event }) => {
+                                // Get card status from context (source of truth)
+                                let effectiveCardStatus = getEventCardStatus(event.id);
+
+                                // Override with cascade status if applicable
                                 if (cascadingEventIds.ids.has(event.id)) {
                                     effectiveCardStatus = cascadingEventIds.action === "delete" ? "deleting" : "updating";
                                 }
+
+                                console.log(`  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`);
 
                                 return (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
@@ -228,7 +244,7 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                                                 event={event}
                                                 cardStatus={effectiveCardStatus}
                                                 queueController={queueController}
-                                                gapMinutes={controller.gapMinutes}
+                                                gapMinutes={gapMinutes}
                                                 showLocation={true}
                                                 onCascade={(ids) => setCascadingEventIds({ ids: new Set(ids), action: "update" })}
                                             />

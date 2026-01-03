@@ -45,6 +45,7 @@ export interface EventNode {
         location: string;
         status: "planned" | "tbc" | "completed" | "uncompleted";
     };
+    prev: EventNode | null;
     next: EventNode | null;
 }
 

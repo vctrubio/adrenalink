@@ -1,88 +1,298 @@
 /**
- * GlobalFlag - Centralized state manager for Classboard time/location adjustments.
- * 
- * DESIGN PRINCIPLES (The "WHY"):
- * 
- * 1. Single Source of Truth: All adjustment states (pending teachers, snapshots, submitting status)
- *    live here to prevent synchronization bugs between the sidebar and individual cards.
- * 
- * 2. Session Stability: The class instance is preserved across data refreshes. It uses
- *    "Instance Preservation" (see updateTeacherQueues) to ensure that background data updates 
- *    (e.g., from Supabase real-time or partial submits) do not overwrite local in-memory 
- *    mutations for teachers currently being edited.
- * 
- * 3. Atomic Snapshots: Original state is captured at the moment a teacher enters the queue.
- *    This allows for reliable "Reset" functionality and precise change detection by comparing
- *    the current mutated EventNodes with the saved snapshots.
- * 
- * 4. Automatic Session Management: The session (adjustmentMode) automatically terminates
- *    when the last teacher opts out or is successfully saved. This is handled in optOut().
- * 
- * 5. Coordinated UI Transitions: Individual cards listen to the GlobalFlag session state.
- *    When the global session ends (e.g., sidebar closed), all cards automatically exit 
- *    adjustment mode to maintain a consistent "View" vs "Edit" state across the app.
+ * GlobalFlag - Centralized state manager for Classboard operations.
+ *
+ * RESPONSIBILITIES:
+ * 1. Event Mutations: Tracks which events are being created/updated/deleted (spinner state)
+ * 2. Controller Settings: Manages gap, stepDuration, minDuration (persisted to localStorage)
+ * 3. Adjustment Mode: Manages edit sessions for all teachers
+ * 4. Teacher Queues: Source of truth for all teacher queues on selected date
+ * 5. Date Changes: Auto-exits adjustment mode when date changes
+ *
+ * DESIGN PRINCIPLES:
+ * - Single Source of Truth: All classboard state lives here
+ * - Instance Preservation: Edit sessions survive background data refreshes
+ * - Automatic Session Management: Sessions terminate when last teacher opts out
  */
 
 import { QueueController } from "../../src/app/(admin)/(classboard)/QueueController";
-import type { TeacherQueue, ControllerSettings } from "../../src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "../../src/app/(admin)/(classboard)/TeacherQueue";
+import type { ControllerSettings } from "@/types/classboard-teacher-queue";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
+// Re-export for backwards compatibility
+export type { ControllerSettings } from "@/types/classboard-teacher-queue";
+
+export type EventMutationType = "creating" | "updating" | "deleting";
+
+interface EventMutation {
+    eventId: string;
+    type: EventMutationType;
+    teacherId?: string;
+}
+
+const CONTROLLER_STORAGE_KEY = "classboard-controller-settings";
+
+const DEFAULT_CONTROLLER: ControllerSettings = {
+    submitTime: "09:00",
+    location: "Beach",
+    durationCapOne: 60,
+    durationCapTwo: 90,
+    durationCapThree: 120,
+    gapMinutes: 0,
+    stepDuration: 30,
+    minDuration: 60,
+    maxDuration: 180,
+    locked: false,
+};
+
+// ============ CLASS ============
+
 export class GlobalFlag {
+    // Event Mutations - tracks spinners
+    private eventMutations = new Map<string, EventMutation>();
+
+    // Controller Settings - persisted
+    private controller: ControllerSettings;
+
+    // Adjustment Mode State
     private adjustmentMode = false;
     private globalTime: string | null = null;
     private globalLocation: string | null = null;
-    private globalCascadeMode = false; // true = cascade mutations, false = respect times
+    private globalCascadeMode = false;
 
-    // Map of teacherId -> QueueController
+    // Teacher Queue Controllers (active edit sessions)
     private queueControllers = new Map<string, QueueController>();
-
     private submittingTeachers = new Set<string>();
+
+    // UI State
     public isLockedTime = false;
     public isLockedLocation = false;
     private refreshKey = 0;
 
     constructor(
         private teacherQueues: TeacherQueue[],
-        private controller: ControllerSettings,
-        private onRefresh: () => void
-    ) {}
-
-    // ============ GETTERS ============
-
-    isAdjustmentMode(): boolean {
-        return this.adjustmentMode;
+        private onRefresh: () => void,
+    ) {
+        // Load controller from localStorage or use defaults
+        this.controller = this.loadControllerFromStorage();
     }
 
-    getGlobalTime(): string | null {
-        return this.globalTime;
+    // ============ CONTROLLER SETTINGS (Persisted) ============
+
+    private loadControllerFromStorage(): ControllerSettings {
+        if (typeof window === "undefined") return DEFAULT_CONTROLLER;
+
+        try {
+            const stored = localStorage.getItem(CONTROLLER_STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return { ...DEFAULT_CONTROLLER, ...parsed, locked: false };
+            }
+        } catch (error) {
+            console.warn("[GlobalFlag] Failed to load controller from storage:", error);
+        }
+        return DEFAULT_CONTROLLER;
     }
 
-    getPendingTeachers(): ReadonlySet<string> {
-        // Return the teacher IDs (keys in queueControllers map)
-        return new Set(this.queueControllers.keys());
-    }
-    
-    getQueueController(teacherId: string): QueueController | undefined {
-        return this.queueControllers.get(teacherId);
-    }
+    private saveControllerToStorage(): void {
+        if (typeof window === "undefined") return;
 
-    getRefreshKey(): number {
-        return this.refreshKey;
+        try {
+            const { locked, ...toSave } = this.controller;
+            localStorage.setItem(CONTROLLER_STORAGE_KEY, JSON.stringify(toSave));
+        } catch (error) {
+            console.warn("[GlobalFlag] Failed to save controller to storage:", error);
+        }
     }
 
     getController(): ControllerSettings {
         return this.controller;
     }
 
+    updateController(updates: Partial<ControllerSettings>): void {
+        this.controller = { ...this.controller, ...updates };
+        this.saveControllerToStorage();
+
+        // Propagate to all active QueueControllers
+        this.queueControllers.forEach((qc) => {
+            qc.updateSettings(this.controller);
+        });
+
+        this.refreshKey++;
+        this.triggerRefresh();
+    }
+
+    // ============ EVENT MUTATIONS (Spinner State) ============
+
+    notifyEventMutation(eventId: string, type: EventMutationType, teacherId?: string): void {
+        this.eventMutations.set(eventId, { eventId, type, teacherId });
+    }
+
+    clearEventMutation(eventId: string): void {
+        this.eventMutations.delete(eventId);
+    }
+
+    isEventMutating(eventId: string): boolean {
+        return this.eventMutations.has(eventId);
+    }
+
+    getEventMutation(eventId: string): EventMutation | undefined {
+        return this.eventMutations.get(eventId);
+    }
+
+    getMutatingEventIds(): Set<string> {
+        return new Set(this.eventMutations.keys());
+    }
+
+    // ============ DATE CHANGE HANDLING ============
+
+    onDateChange(): void {
+        // Auto-exit adjustment mode when date changes
+        if (this.adjustmentMode) {
+            console.log("[GlobalFlag] Date changed - exiting adjustment mode");
+            this.exitAdjustmentMode(true); // Discard changes
+        }
+
+        // Clear all mutations
+        this.eventMutations.clear();
+    }
+
+    // ============ TEACHER QUEUES ============
+
+    getTeacherQueues(): TeacherQueue[] {
+        return this.teacherQueues;
+    }
+
+    updateTeacherQueues(queues: TeacherQueue[]): void {
+        // Preserve queues that are being edited
+        const preservedQueues = new Map<string, TeacherQueue>();
+        this.queueControllers.forEach((qc, id) => {
+            preservedQueues.set(id, qc.getQueue());
+        });
+
+        this.teacherQueues = queues.map((newQueue) => {
+            if (preservedQueues.has(newQueue.teacher.id)) {
+                return preservedQueues.get(newQueue.teacher.id)!;
+            }
+            return newQueue;
+        });
+    }
+
+    // ============ ADJUSTMENT MODE ============
+
+    isAdjustmentMode(): boolean {
+        return this.adjustmentMode;
+    }
+
+    getQueueController(teacherId: string): QueueController | undefined {
+        return this.queueControllers.get(teacherId);
+    }
+
+    getPendingTeachers(): ReadonlySet<string> {
+        return new Set(this.queueControllers.keys());
+    }
+
+    getRefreshKey(): number {
+        return this.refreshKey;
+    }
+
+    enterAdjustmentMode(): void {
+        this.queueControllers.clear();
+
+        // Initialize controllers for all queues with events
+        this.teacherQueues.forEach((queue) => {
+            if (queue.getAllEvents().length > 0) {
+                const qc = new QueueController(queue, this.controller, () => {
+                    this.refreshKey++;
+                    this.triggerRefresh();
+                });
+                qc.startAdjustmentMode();
+                this.queueControllers.set(queue.teacher.id, qc);
+            }
+        });
+
+        this.adjustmentMode = true;
+        this.globalTime = this.getGlobalEarliestTime();
+        this.globalLocation = this.getGlobalLocation();
+        this.refreshKey++;
+        this.triggerRefresh();
+    }
+
+    exitAdjustmentMode(shouldDiscard = false): void {
+        this.queueControllers.forEach((qc) => {
+            if (shouldDiscard) {
+                qc.resetToSnapshot();
+            }
+            qc.exitAdjustmentMode();
+        });
+        this.queueControllers.clear();
+
+        this.adjustmentMode = false;
+        this.globalTime = null;
+        this.globalLocation = null;
+        this.submittingTeachers.clear();
+        this.isLockedTime = false;
+        this.isLockedLocation = false;
+        this.refreshKey++;
+        this.triggerRefresh();
+    }
+
+    optIn(teacherId: string): void {
+        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
+        if (queue && !this.queueControllers.has(teacherId)) {
+            const qc = new QueueController(queue, this.controller, () => {
+                this.refreshKey++;
+                this.triggerRefresh();
+            });
+            qc.startAdjustmentMode();
+            this.queueControllers.set(teacherId, qc);
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    optOut(teacherId: string): void {
+        const qc = this.queueControllers.get(teacherId);
+        if (qc) {
+            qc.exitAdjustmentMode();
+            this.queueControllers.delete(teacherId);
+        }
+
+        this.submittingTeachers.delete(teacherId);
+
+        // Auto-terminate session if no teachers left
+        if (this.queueControllers.size === 0) {
+            this.exitAdjustmentMode();
+        } else {
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    discardChanges(): void {
+        this.queueControllers.forEach((qc) => {
+            qc.resetToSnapshot();
+        });
+    }
+
+    // ============ SUBMITTING STATE ============
+
     isSubmitting(teacherId: string): boolean {
         return this.submittingTeachers.has(teacherId);
     }
 
-    /**
-     * Returns the effective list of teacher queues, merging server data with local preserved instances
-     */
-    getTeacherQueues(): TeacherQueue[] {
-        return this.teacherQueues;
+    setSubmitting(teacherId: string, isSubmitting: boolean): void {
+        if (isSubmitting) {
+            this.submittingTeachers.add(teacherId);
+        } else {
+            this.submittingTeachers.delete(teacherId);
+        }
+    }
+
+    // ============ GLOBAL TIME/LOCATION ============
+
+    getGlobalTime(): string | null {
+        return this.globalTime;
     }
 
     getGlobalEarliestTime(): string | null {
@@ -114,14 +324,10 @@ export class GlobalFlag {
                 acc[loc] = (acc[loc] || 0) + 1;
                 return acc;
             },
-            {} as Record<string, number>
+            {} as Record<string, number>,
         );
 
-        const mostCommonLocation = Object.entries(locationCounts).sort(
-            (a, b) => b[1] - a[1]
-        )[0][0];
-
-        return mostCommonLocation;
+        return Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0][0];
     }
 
     getGlobalCascadeMode(): boolean {
@@ -130,208 +336,11 @@ export class GlobalFlag {
 
     setGlobalCascadeMode(cascadeMode: boolean): void {
         this.globalCascadeMode = cascadeMode;
-        // Set the controller's locked state - all QueueControllers read from this
         this.controller.locked = cascadeMode;
         this.refreshKey++;
-        this.onRefresh();
     }
 
-    getOptimisationStats(): { optimised: number; total: number } {
-        let totalEvents = 0;
-        let optimisedEvents = 0;
-
-        this.queueControllers.forEach((qc) => {
-            const allEvents = qc.getQueue().getAllEvents();
-            totalEvents += allEvents.length;
-
-            if (qc.isQueueOptimised()) {
-                optimisedEvents += allEvents.length;
-            }
-        });
-
-        return { optimised: optimisedEvents, total: totalEvents };
-    }
-
-    optimiseAllQueues(gapMinutes?: number): void {
-        // Use provided gap or fall back to controller's gap
-        const gap = gapMinutes ?? this.controller.gapMinutes ?? 0;
-
-        this.queueControllers.forEach((qc) => {
-            qc.optimiseQueue();
-        });
-        // Set all to cascade mode after optimizing
-        this.controller.locked = true;
-        this.globalCascadeMode = true;
-        this.refreshKey++;
-        this.onRefresh();
-    }
-
-    // ============ LOCK STATUS ============
-
-    getLockStatusTime(targetTime?: string | null) {
-        const pendingControllers = Array.from(this.queueControllers.values());
-        const totalTeachers = pendingControllers.length;
-        
-        const pendingTeachersTimes = pendingControllers
-            .map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() }))
-            .filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
-
-        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
-            return { isLockFlagTime: false, lockCount: 0 };
-        }
-
-        const referenceTime = targetTime || pendingTeachersTimes.reduce((min, t) => {
-            const minMinutes = timeToMinutes(min);
-            const tMinutes = timeToMinutes(t.earliestTime);
-            return tMinutes < minMinutes ? t.earliestTime : min;
-        }, pendingTeachersTimes[0].earliestTime);
-
-        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === referenceTime).length;
-
-        return {
-            isLockFlagTime: synchronizedCount === totalTeachers,
-            lockCount: synchronizedCount,
-        };
-    }
-
-    getLockStatusLocation(targetLocation?: string | null) {
-        let totalEventsForLock = 0;
-        let synchronizedEventsCount = 0;
-        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
-
-        this.queueControllers.forEach((qc) => {
-            const events = qc.getQueue().getAllEvents();
-            const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
-            const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
-
-            totalEventsForLock += events.length;
-
-            if (allMatch) {
-                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: allLocations[0] });
-            } else {
-                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: null });
-            }
-        });
-
-        const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
-
-        if (referenceLocation) {
-            this.queueControllers.forEach((qc) => {
-                const events = qc.getQueue().getAllEvents();
-                events.forEach(e => {
-                    if (e.eventData.location === referenceLocation) {
-                        synchronizedEventsCount++;
-                    }
-                });
-            });
-        }
-
-        const allSynchronized = referenceLocation ? pendingTeachersLocations.every((t) => t.location === referenceLocation) : false;
-
-        return {
-            isLockFlagLocation: allSynchronized && referenceLocation !== null,
-            lockLocationCount: synchronizedEventsCount,
-            totalLocationEventsForLock: totalEventsForLock,
-        };
-    }
-
-    // ============ STATE ACTIONS ============
-
-    enterAdjustmentMode(): void {
-        this.queueControllers.clear();
-        
-        // Initialize controllers for all queues with events
-        this.teacherQueues.forEach((queue) => {
-            if (queue.getAllEvents().length > 0) {
-                const qc = new QueueController(
-                    queue, 
-                    this.controller, 
-                    () => {
-                        this.refreshKey++;
-                        this.onRefresh();
-                    }
-                );
-                qc.startAdjustmentMode();
-                this.queueControllers.set(queue.teacher.id, qc);
-            }
-        });
-
-        this.adjustmentMode = true;
-        this.globalTime = this.getGlobalEarliestTime();
-        this.globalLocation = this.getGlobalLocation();
-
-        this.onRefresh();
-    }
-
-    discardChanges(): void {
-        this.queueControllers.forEach((qc) => {
-            qc.resetToSnapshot();
-        });
-        this.onRefresh();
-    }
-
-    exitAdjustmentMode(shouldDiscard = false): void {
-        this.queueControllers.forEach((qc) => {
-            if (shouldDiscard) {
-                qc.resetToSnapshot();
-            }
-            qc.exitAdjustmentMode();
-        });
-        this.queueControllers.clear();
-        
-        this.adjustmentMode = false;
-        this.globalTime = null;
-        this.globalLocation = null;
-        this.submittingTeachers.clear();
-        this.isLockedTime = false;
-        this.isLockedLocation = false;
-        this.onRefresh();
-    }
-
-    optIn(teacherId: string): void {
-        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
-        if (queue && !this.queueControllers.has(teacherId)) {
-             const qc = new QueueController(
-                queue, 
-                this.controller, 
-                () => {
-                    this.refreshKey++;
-                    this.onRefresh();
-                }
-            );
-            qc.startAdjustmentMode();
-            this.queueControllers.set(teacherId, qc);
-        }
-        this.onRefresh();
-    }
-
-    optOut(teacherId: string): void {
-        const qc = this.queueControllers.get(teacherId);
-        if (qc) {
-            qc.exitAdjustmentMode();
-            this.queueControllers.delete(teacherId);
-        }
-        
-        this.submittingTeachers.delete(teacherId);
-
-        // Session Rule: If no more teachers are pending, the global session terminates
-        if (this.queueControllers.size === 0) {
-            this.exitAdjustmentMode();
-        }
-
-        this.onRefresh();
-    }
-
-    setSubmitting(teacherId: string, isSubmitting: boolean): void {
-        if (isSubmitting) {
-            this.submittingTeachers.add(teacherId);
-        } else {
-            this.submittingTeachers.delete(teacherId);
-        }
-        this.onRefresh();
-    }
-
-    // ============ OPERATIONS ============
+    // ============ TIME/LOCATION ADJUSTMENTS ============
 
     adjustTime(newTime: string): void {
         if (this.isLockedTime) {
@@ -342,7 +351,6 @@ export class GlobalFlag {
 
         this.globalTime = newTime;
         this.refreshKey++;
-        this.onRefresh();
     }
 
     private adjustTimeLocked(newTime: string): void {
@@ -377,12 +385,6 @@ export class GlobalFlag {
         });
     }
 
-    unlockTime(): void {
-        this.isLockedTime = false;
-        this.refreshKey++;
-        this.onRefresh();
-    }
-
     lockToAdjustmentTime(targetTime: string): void {
         this.queueControllers.forEach((qc) => {
             if (qc.getQueue().getEarliestTime()) {
@@ -392,28 +394,11 @@ export class GlobalFlag {
 
         this.isLockedTime = true;
         this.refreshKey++;
-        this.onRefresh();
     }
 
-    private syncAllToEarliest(): void {
-        const pendingTimes: string[] = [];
-        this.queueControllers.forEach((qc) => {
-            const earliestTime = qc.getQueue().getEarliestTime();
-            if (earliestTime) {
-                pendingTimes.push(earliestTime);
-            }
-        });
-
-        if (pendingTimes.length === 0) return;
-
-        const minTimeInMinutes = Math.min(...pendingTimes.map((time) => timeToMinutes(time)));
-        const syncTargetTime = minutesToTime(minTimeInMinutes);
-
-        this.queueControllers.forEach((qc) => {
-            if (qc.getQueue().getEarliestTime()) {
-                qc.setFirstEventTime(syncTargetTime);
-            }
-        });
+    unlockTime(): void {
+        this.isLockedTime = false;
+        this.refreshKey++;
     }
 
     adjustLocation(newLocation: string): void {
@@ -423,7 +408,6 @@ export class GlobalFlag {
 
         this.globalLocation = newLocation;
         this.refreshKey++;
-        this.onRefresh();
     }
 
     lockToLocation(targetLocation: string): void {
@@ -434,23 +418,118 @@ export class GlobalFlag {
         this.globalLocation = targetLocation;
         this.isLockedLocation = true;
         this.refreshKey++;
-        this.onRefresh();
     }
 
     unlockLocation(): void {
         this.isLockedLocation = false;
         this.refreshKey++;
-        this.onRefresh();
     }
 
-    // ============ PERSISTENCE ============
+    // ============ LOCK STATUS ============
+
+    getLockStatusTime(targetTime?: string | null) {
+        const pendingControllers = Array.from(this.queueControllers.values());
+        const totalTeachers = pendingControllers.length;
+
+        const pendingTeachersTimes = pendingControllers.map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() })).filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
+
+        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
+            return { isLockFlagTime: false, lockCount: 0 };
+        }
+
+        const referenceTime =
+            targetTime ||
+            pendingTeachersTimes.reduce((min, t) => {
+                const minMinutes = timeToMinutes(min);
+                const tMinutes = timeToMinutes(t.earliestTime);
+                return tMinutes < minMinutes ? t.earliestTime : min;
+            }, pendingTeachersTimes[0].earliestTime);
+
+        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === referenceTime).length;
+
+        return {
+            isLockFlagTime: synchronizedCount === totalTeachers,
+            lockCount: synchronizedCount,
+        };
+    }
+
+    getLockStatusLocation(targetLocation?: string | null) {
+        let totalEventsForLock = 0;
+        let synchronizedEventsCount = 0;
+        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
+
+        this.queueControllers.forEach((qc) => {
+            const events = qc.getQueue().getAllEvents();
+            const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
+            const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
+
+            totalEventsForLock += events.length;
+
+            if (allMatch) {
+                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: allLocations[0] });
+            } else {
+                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: null });
+            }
+        });
+
+        const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
+
+        if (referenceLocation) {
+            this.queueControllers.forEach((qc) => {
+                const events = qc.getQueue().getAllEvents();
+                events.forEach((e) => {
+                    if (e.eventData.location === referenceLocation) {
+                        synchronizedEventsCount++;
+                    }
+                });
+            });
+        }
+
+        const allSynchronized = referenceLocation ? pendingTeachersLocations.every((t) => t.location === referenceLocation) : false;
+
+        return {
+            isLockFlagLocation: allSynchronized && referenceLocation !== null,
+            lockLocationCount: synchronizedEventsCount,
+            totalLocationEventsForLock: totalEventsForLock,
+        };
+    }
+
+    // ============ OPTIMISATION ============
+
+    getOptimisationStats(): { optimised: number; total: number } {
+        let totalEvents = 0;
+        let optimisedEvents = 0;
+
+        this.queueControllers.forEach((qc) => {
+            const allEvents = qc.getQueue().getAllEvents();
+            totalEvents += allEvents.length;
+
+            if (qc.isQueueOptimised()) {
+                optimisedEvents += allEvents.length;
+            }
+        });
+
+        return { optimised: optimisedEvents, total: totalEvents };
+    }
+
+    optimiseAllQueues(): void {
+        this.queueControllers.forEach((qc) => {
+            qc.optimiseQueue();
+        });
+
+        this.controller.locked = true;
+        this.globalCascadeMode = true;
+        this.refreshKey++;
+    }
+
+    // ============ PERSISTENCE / CHANGES ============
 
     getChangedEventsCount(): number {
         let count = 0;
         this.queueControllers.forEach((qc) => {
             if (qc.hasChanges()) {
-                 const { updates } = qc.getChanges();
-                 count += updates.length;
+                const { updates } = qc.getChanges();
+                count += updates.length;
             }
         });
         return count;
@@ -458,39 +537,25 @@ export class GlobalFlag {
 
     collectChanges(): { id: string; date: string; duration: number; location: string }[] {
         const allUpdates: { id: string; date: string; duration: number; location: string }[] = [];
+
         this.queueControllers.forEach((qc) => {
-             const { updates } = qc.getChanges();
-             // Map to expected format if needed, but QueueController returns matching format mostly
-             updates.forEach(u => {
-                 if (u.date && u.duration && u.location) {
-                      allUpdates.push({
+            const { updates } = qc.getChanges();
+            updates.forEach((u) => {
+                const currentEvent = qc
+                    .getQueue()
+                    .getAllEvents()
+                    .find((e) => e.id === u.id);
+                if (currentEvent) {
+                    allUpdates.push({
                         id: u.id,
-                        date: u.date,
-                        duration: u.duration,
-                        location: u.location
+                        date: currentEvent.eventData.date,
+                        duration: currentEvent.eventData.duration,
+                        location: currentEvent.eventData.location,
                     });
-                 } else {
-                     // Fetch full event data if partial update
-                     // (QueueController.getChanges returns partials, but bulkUpdate needs partials is fine?
-                     // actually bulkUpdateClassboardEvents takes partials usually? 
-                     // Let's check GlobalFlag.collectChanges signature in previous file)
-                     // It returned { id, date, duration, location }.
-                     // QueueController returns partials.
-                     // We should probably ensure we return what's expected.
-                     
-                     // Helper: fetch from current queue state
-                     const currentEvent = qc.getQueue().getAllEvents().find(e => e.id === u.id);
-                     if (currentEvent) {
-                         allUpdates.push({
-                             id: u.id,
-                             date: currentEvent.eventData.date,
-                             duration: currentEvent.eventData.duration,
-                             location: currentEvent.eventData.location
-                         });
-                     }
-                 }
-             });
+                }
+            });
         });
+
         return allUpdates;
     }
 
@@ -500,79 +565,26 @@ export class GlobalFlag {
 
         const { updates } = qc.getChanges();
         const fullUpdates: { id: string; date: string; duration: number; location: string }[] = [];
-        
-        updates.forEach(u => {
-             const currentEvent = qc.getQueue().getAllEvents().find(e => e.id === u.id);
-             if (currentEvent) {
-                 fullUpdates.push({
-                     id: u.id,
-                     date: currentEvent.eventData.date,
-                     duration: currentEvent.eventData.duration,
-                     location: currentEvent.eventData.location
-                 });
-             }
+
+        updates.forEach((u) => {
+            const currentEvent = qc
+                .getQueue()
+                .getAllEvents()
+                .find((e) => e.id === u.id);
+            if (currentEvent) {
+                fullUpdates.push({
+                    id: u.id,
+                    date: currentEvent.eventData.date,
+                    duration: currentEvent.eventData.duration,
+                    location: currentEvent.eventData.location,
+                });
+            }
         });
-        
+
         return fullUpdates;
     }
 
     triggerRefresh(): void {
-        this.onRefresh();
-    }
-
-    // ============ DATA SYNC ============
-
-    updateTeacherQueues(queues: TeacherQueue[]): void {
-        // Update the reference
-        this.teacherQueues = queues;
-        
-        // If in adjustment mode, we need to ensure our QueueControllers 
-        // are pointing to the correct queues OR that the queues in the controllers are updated.
-        // QueueController holds a reference to a TeacherQueue. 
-        // If teacherQueues array is replaced, the references in QueueControllers might be stale 
-        // IF the objects themselves were replaced.
-        
-        // ClassboardActionsProvider rebuilds queues every time bookings change.
-        // So the TeacherQueue objects ARE new instances.
-        
-        // However, GlobalFlag design principle #2 says "Instance Preservation".
-        // "If background data updates... do not overwrite local in-memory mutations".
-        
-        // The previous implementation of updateTeacherQueues did:
-        /*
-            this.teacherQueues = queues.map(newQueue => {
-                const username = newQueue.teacher.username;
-                if (this.pendingTeachers.has(username)) {
-                    const existingQueue = this.teacherQueues.find(q => q.teacher.username === username);
-                    return existingQueue || newQueue;
-                }
-                return newQueue;
-            });
-        */
-        
-        // We must maintain this logic. The QueueControllers hold references to the "Preserved" queues.
-        // So we must ensure `this.teacherQueues` keeps those preserved queues for the pending teachers.
-        
-        const preservedQueues = new Map<string, TeacherQueue>();
-        this.queueControllers.forEach((qc, id) => {
-            preservedQueues.set(id, qc.getQueue());
-        });
-        
-        this.teacherQueues = queues.map(newQueue => {
-            if (preservedQueues.has(newQueue.teacher.id)) {
-                return preservedQueues.get(newQueue.teacher.id)!;
-            }
-            return newQueue;
-        });
-    }
-
-    updateController(controller: ControllerSettings): void {
-        this.controller = controller;
-        // Propagate settings changes to all pending QueueControllers
-        this.queueControllers.forEach((qc) => {
-            qc.updateSettings(controller);
-        });
-        this.refreshKey++;
         this.onRefresh();
     }
 }

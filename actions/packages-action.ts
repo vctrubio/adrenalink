@@ -84,21 +84,21 @@ export async function createPackage(packageSchema: SchoolPackageForm): Promise<A
 export async function getPackages(): Promise<ApiActionResponseModel<SchoolPackageModel[]>> {
     try {
         const schoolHeader = await getSchoolHeader();
-        
+
         let result;
         if (schoolHeader) {
             result = await db.query.schoolPackage.findMany({
                 where: eq(schoolPackage.schoolId, schoolHeader.id),
-                with: schoolPackageWithRelations
+                with: schoolPackageWithRelations,
             });
         } else {
             // Global query (admin mode)
             result = await db.query.schoolPackage.findMany({
-                with: schoolPackageWithRelations
+                with: schoolPackageWithRelations,
             });
         }
-        
-        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
+
+        const packages: SchoolPackageModel[] = result.map((packageData) => createSchoolPackageModel(packageData));
         return { success: true, data: packages };
     } catch (error) {
         console.error("Error fetching packages:", error);
@@ -110,9 +110,9 @@ export async function getPackageById(id: string): Promise<ApiActionResponseModel
     try {
         const result = await db.query.schoolPackage.findFirst({
             where: eq(schoolPackage.id, id),
-            with: schoolPackageWithRelations
+            with: schoolPackageWithRelations,
         });
-        
+
         if (result) {
             return { success: true, data: createSchoolPackageModel(result) };
         }
@@ -127,11 +127,11 @@ export async function getPackagesBySchoolId(schoolId: string): Promise<ApiAction
     try {
         const result = await db.query.schoolPackage.findMany({
             where: eq(schoolPackage.schoolId, schoolId),
-            with: schoolPackageWithRelations
+            with: schoolPackageWithRelations,
         });
-        
-        const packages: SchoolPackageModel[] = result.map(packageData => createSchoolPackageModel(packageData));
-        
+
+        const packages: SchoolPackageModel[] = result.map((packageData) => createSchoolPackageModel(packageData));
+
         return { success: true, data: packages };
     } catch (error) {
         console.error("Error fetching packages by school ID:", error);
@@ -164,9 +164,7 @@ export async function deletePackage(id: string): Promise<ApiActionResponseModel<
 }
 
 // UPDATE SCHOOL PACKAGE WITH SCHOOL CONTEXT
-export async function updateSchoolPackageDetail(
-    data: SchoolPackageUpdateForm,
-): Promise<ApiActionResponseModel<SchoolPackageModel>> {
+export async function updateSchoolPackageDetail(data: SchoolPackageUpdateForm): Promise<ApiActionResponseModel<SchoolPackageModel>> {
     try {
         const schoolHeader = await getSchoolHeader();
         if (!schoolHeader) {
@@ -187,17 +185,20 @@ export async function updateSchoolPackageDetail(
         }
 
         // Update school package table
-        await db.update(schoolPackage).set({
-            description: data.description,
-            durationMinutes: data.durationMinutes,
-            pricePerStudent: data.pricePerStudent,
-            capacityStudents: data.capacityStudents,
-            capacityEquipment: data.capacityEquipment,
-            categoryEquipment: data.categoryEquipment,
-            packageType: data.packageType,
-            isPublic: data.isPublic,
-            active: data.active,
-        }).where(eq(schoolPackage.id, data.id));
+        await db
+            .update(schoolPackage)
+            .set({
+                description: data.description,
+                durationMinutes: data.durationMinutes,
+                pricePerStudent: data.pricePerStudent,
+                capacityStudents: data.capacityStudents,
+                capacityEquipment: data.capacityEquipment,
+                categoryEquipment: data.categoryEquipment,
+                packageType: data.packageType,
+                isPublic: data.isPublic,
+                active: data.active,
+            })
+            .where(eq(schoolPackage.id, data.id));
 
         revalidatePath(`/packages/${data.id}`);
 

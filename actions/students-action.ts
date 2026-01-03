@@ -171,9 +171,7 @@ export async function linkStudentToSchool(studentId: string, schoolId: string, d
 }
 
 // UPDATE STUDENT WITH SCHOOL-SPECIFIC DATA
-export async function updateStudentDetail(
-    data: StudentUpdateForm,
-): Promise<ApiActionResponseModel<StudentModel>> {
+export async function updateStudentDetail(data: StudentUpdateForm): Promise<ApiActionResponseModel<StudentModel>> {
     try {
         const schoolHeader = await getSchoolHeader();
         if (!schoolHeader) {
@@ -181,21 +179,27 @@ export async function updateStudentDetail(
         }
 
         // Update student table
-        await db.update(student).set({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            passport: data.passport,
-            country: data.country,
-            phone: data.phone,
-            languages: data.languages,
-        }).where(eq(student.id, data.id));
+        await db
+            .update(student)
+            .set({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                passport: data.passport,
+                country: data.country,
+                phone: data.phone,
+                languages: data.languages,
+            })
+            .where(eq(student.id, data.id));
 
         // Update schoolStudents table
-        await db.update(schoolStudents).set({
-            description: data.description,
-            active: data.active,
-            rental: data.rental,
-        }).where(and(eq(schoolStudents.studentId, data.id), eq(schoolStudents.schoolId, schoolHeader.id)));
+        await db
+            .update(schoolStudents)
+            .set({
+                description: data.description,
+                active: data.active,
+                rental: data.rental,
+            })
+            .where(and(eq(schoolStudents.studentId, data.id), eq(schoolStudents.schoolId, schoolHeader.id)));
 
         revalidatePath(`/students/${data.id}`);
 

@@ -11,3 +11,4 @@ export { createEventModel, type EventModel } from "./EventModel";
 export type { ClassboardModel } from "./ClassboardModel";
 export { createReferralModel, type ReferralModel } from "./ReferralModel";
 export { createRentalModel, type RentalModel } from "./RentalModel";
+export { createStudentPackageModel, type StudentPackageModel } from "./StudentPackageModel";

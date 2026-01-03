@@ -7,7 +7,7 @@ export type CommissionModel = AbstractModel<TeacherCommissionType>;
 export function createCommissionModel(commissionData: any): CommissionModel {
     const { teacher, lessons, ...pgTableSchema } = commissionData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "commission")!;
+    const entityConfig = ENTITY_DATA.find((e) => e.id === "commission")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
 
     const model = {

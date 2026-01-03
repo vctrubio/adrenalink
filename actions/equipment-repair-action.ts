@@ -5,26 +5,23 @@ import { db } from "@/drizzle/db";
 import { equipmentRepair, type EquipmentRepairForm } from "@/drizzle/schema";
 import { getSchoolHeader } from "@/types/headers";
 
-export async function createEquipmentRepair(
-  equipmentId: string,
-  repairData: Omit<EquipmentRepairForm, "id" | "createdAt" | "updatedAt">,
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const schoolHeader = await getSchoolHeader();
+export async function createEquipmentRepair(equipmentId: string, repairData: Omit<EquipmentRepairForm, "id" | "createdAt" | "updatedAt">): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolHeader = await getSchoolHeader();
 
-    if (!schoolHeader) {
-      return { success: false, error: "School not found" };
+        if (!schoolHeader) {
+            return { success: false, error: "School not found" };
+        }
+
+        await db.insert(equipmentRepair).values({
+            ...repairData,
+            equipmentId,
+        });
+
+        revalidatePath(`/equipments/${equipmentId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error creating equipment repair:", error);
+        return { success: false, error: "Failed to create repair record" };
     }
-
-    await db.insert(equipmentRepair).values({
-      ...repairData,
-      equipmentId,
-    });
-
-    revalidatePath(`/equipments/${equipmentId}`);
-    return { success: true };
-  } catch (error) {
-    console.error("Error creating equipment repair:", error);
-    return { success: false, error: "Failed to create repair record" };
-  }
 }

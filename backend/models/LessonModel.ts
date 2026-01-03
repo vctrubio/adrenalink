@@ -7,7 +7,7 @@ export type LessonModel = AbstractModel<LessonType>;
 export function createLessonModel(lessonData: any): LessonModel {
     const { teacher, commission, events, payments, feedback, ...pgTableSchema } = lessonData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "lesson")!;
+    const entityConfig = ENTITY_DATA.find((e) => e.id === "lesson")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
 
     const model = {

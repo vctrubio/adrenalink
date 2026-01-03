@@ -7,9 +7,9 @@ export type SchoolModel = AbstractModel<SchoolType>;
 export function createSchoolModel(schoolData: any): SchoolModel {
     const { schoolStudents, schoolPackages, bookings, ...pgTableSchema } = schoolData;
 
-    const entityConfig = ENTITY_DATA.find(e => e.id === "school")!;
+    const entityConfig = ENTITY_DATA.find((e) => e.id === "school")!;
     const { icon, ...serializableEntityConfig } = entityConfig;
-    
+
     const model = {
         entityConfig: serializableEntityConfig,
         schema: pgTableSchema,
@@ -19,10 +19,10 @@ export function createSchoolModel(schoolData: any): SchoolModel {
             bookings,
         },
     };
-    
+
     if (process.env.JSONIFY === "true") {
         console.log("DEV:JSON: SchoolModel =", model);
     }
-    
+
     return model;
 }

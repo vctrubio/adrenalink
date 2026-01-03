@@ -2,7 +2,20 @@ import { eq, exists, and, count } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { getSchoolHeader } from "@/types/headers";
 import { student, school, schoolStudents, teacher, booking, equipment, event, schoolPackage } from "@/drizzle/schema";
-import { createStudentModel, createTeacherModel, createBookingModel, createEquipmentModel, createEventModel, createSchoolPackageModel, type StudentModel, type TeacherModel, type BookingModel, type EquipmentModel, type EventModel, type SchoolPackageModel } from "@/backend/models";
+import {
+    createStudentModel,
+    createTeacherModel,
+    createBookingModel,
+    createEquipmentModel,
+    createEventModel,
+    createSchoolPackageModel,
+    type StudentModel,
+    type TeacherModel,
+    type BookingModel,
+    type EquipmentModel,
+    type EventModel,
+    type SchoolPackageModel,
+} from "@/backend/models";
 import { buildStudentStatsQuery, buildTeacherStatsQuery, buildBookingStatsQuery, buildEquipmentStatsQuery, buildSchoolPackageStatsQuery, createStatsMap } from "@/getters/databoard-sql-stats";
 import type { ApiActionResponseModel } from "@/types/actions";
 
@@ -13,20 +26,26 @@ export async function getDataboardCounts(): Promise<ApiActionResponseModel<Recor
 
         const whereCondition = (table: any) => (schoolId ? eq(table.schoolId, schoolId) : undefined);
 
-        const [
-            studentCount,
-            teacherCount,
-            bookingCount,
-            equipmentCount,
-            packageCount,
-        ] = await Promise.all([
-            db.select({ value: count() }).from(student).where(schoolId ? exists(db.select().from(schoolStudents).where(and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId)))) : undefined),
+        const [studentCount, teacherCount, bookingCount, equipmentCount, packageCount] = await Promise.all([
+            db
+                .select({ value: count() })
+                .from(student)
+                .where(
+                    schoolId
+                        ? exists(
+                              db
+                                  .select()
+                                  .from(schoolStudents)
+                                  .where(and(eq(schoolStudents.studentId, student.id), eq(schoolStudents.schoolId, schoolId))),
+                          )
+                        : undefined,
+                ),
             db.select({ value: count() }).from(teacher).where(whereCondition(teacher)),
             db.select({ value: count() }).from(booking).where(whereCondition(booking)),
             db.select({ value: count() }).from(equipment).where(whereCondition(equipment)),
             db.select({ value: count() }).from(schoolPackage).where(whereCondition(schoolPackage)),
         ]);
-        
+
         const data = {
             student: studentCount[0].value,
             teacher: teacherCount[0].value,
@@ -36,7 +55,6 @@ export async function getDataboardCounts(): Promise<ApiActionResponseModel<Recor
         };
 
         return { success: true, data };
-
     } catch (error) {
         console.error("Error fetching databoard counts:", error);
         return { success: false, error: "Failed to fetch databoard counts" };
@@ -293,29 +311,29 @@ export async function getEquipments(): Promise<ApiActionResponseModel<EquipmentM
         const whereCondition = schoolId ? eq(equipment.schoolId, schoolId) : undefined;
 
         const equipmentsQuery = db.query.equipment.findMany({
-                  where: whereCondition,
-                  with: {
-                      teacherEquipments: {
-                          with: {
-                              teacher: true,
-                          },
-                      },
-                      equipmentEvents: {
-                          with: {
-                              event: {
-                                  with: {
-                                      lesson: {
-                                          with: {
-                                              teacher: true,
-                                          },
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                      equipmentRepairs: true,
-                  },
-              });
+            where: whereCondition,
+            with: {
+                teacherEquipments: {
+                    with: {
+                        teacher: true,
+                    },
+                },
+                equipmentEvents: {
+                    with: {
+                        event: {
+                            with: {
+                                lesson: {
+                                    with: {
+                                        teacher: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                equipmentRepairs: true,
+            },
+        });
 
         // 2. SQL stats query
         const statsQuery = db.execute(buildEquipmentStatsQuery(schoolId));
@@ -375,7 +393,7 @@ export async function getEvents(): Promise<ApiActionResponseModel<EventModel[]>>
             lesson: {
                 with: {
                     teacher: true,
-                    commission: true, 
+                    commission: true,
                     booking: {
                         with: {
                             studentPackage: {
@@ -449,4 +467,3 @@ export async function getSchoolPackages(): Promise<ApiActionResponseModel<School
         return { success: false, error: "Failed to fetch school packages" };
     }
 }
-

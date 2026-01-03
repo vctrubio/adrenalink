@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import { deleteClassboardEvent, updateEventStatus } from "@/actions/classboard-action";
+import { updateEventStatus, deleteClassboardEvent } from "@/actions/classboard-action";
+import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
@@ -15,25 +16,34 @@ import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import EventGapDetection from "./EventGapDetection";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { ENTITY_DATA } from "@/config/entities";
-
-type EventCardStatus = "posting" | "updating" | "deleting" | "error";
+import { useClassboardContext, type EventCardStatus } from "@/src/providers/classboard-provider";
 
 interface EventCardProps {
     event: EventNode;
     queueController?: QueueController;
-    gapMinutes?: number;
-    onDeleteComplete?: () => void;
+    gapMinutes?: number; // Optional override, defaults to GlobalFlag
     showLocation?: boolean;
     cardStatus?: EventCardStatus;
     onCascade?: (ids: string[]) => void;
 }
 
-export default function EventCard({ event, queueController, gapMinutes, onDeleteComplete, showLocation = true, cardStatus, onCascade }: EventCardProps) {
+/**
+ * EventCard - Renders a single event card
+ * Reads gapMinutes from GlobalFlag (source of truth)
+ */
+export default function EventCard({ event, queueController, gapMinutes: gapMinutesProp, showLocation = true, cardStatus, onCascade }: EventCardProps) {
+    const contextValue = useClassboardContext();
+
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
+
+    // Get gapMinutes from GlobalFlag (source of truth) or use prop override or default
+    const gapMinutes = gapMinutesProp ?? (contextValue?.globalFlag?.getController()?.gapMinutes ?? 0);
+
+    console.log(`🎴 [EventCard] ${event.bookingLeaderName} | Status: ${cardStatus || "idle"} | Gap: ${gapMinutes}min`);
 
     // Sync local state with prop when event updates from subscription
     useEffect(() => {
@@ -152,6 +162,7 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
+        console.log(`🗑️ [EventCard] Deleting ${eventId} | Cascade: ${cascade}`);
         setIsDeleting(true);
 
         try {
@@ -159,14 +170,12 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
             if (cascade && queueController) {
                 const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
 
-                // Notify parent about cascading events
+                // Notify parent about cascading events for animation
                 if (updates.length > 0 && onCascade) {
                     onCascade(updates.map((u) => u.id));
                 }
 
                 // Execute: delete from DB + bulk update remaining events
-                const { bulkUpdateClassboardEvents } = await import("@/actions/classboard-bulk-action");
-
                 await deleteClassboardEvent(deletedId);
 
                 if (updates.length > 0) {
@@ -178,20 +187,23 @@ export default function EventCard({ event, queueController, gapMinutes, onDelete
                     onCascade([]);
                 }
 
-                onDeleteComplete?.();
                 return;
             }
 
             // Standard delete: just remove event
             const result = await deleteClassboardEvent(eventId);
             if (!result.success) {
-                console.error("Delete failed:", result.error);
+                console.error("❌ Delete failed:", result.error);
                 setIsDeleting(false);
                 return;
             }
-            onDeleteComplete?.();
+
+            // Stop cascading animation
+            if (onCascade) {
+                onCascade([]);
+            }
         } catch (error) {
-            console.error("Error deleting event:", error);
+            console.error("❌ [EventCard] Error deleting event:", error);
             setIsDeleting(false);
             if (onCascade) onCascade([]);
         }
