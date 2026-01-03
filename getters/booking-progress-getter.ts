@@ -1,7 +1,7 @@
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import type { ClassboardLesson, ClassboardData } from "@/backend/models/ClassboardModel";
 
-const EMPTY_COLOR = "#374151";
+const EMPTY_COLOR = "#3741F1";
 
 interface BookingProgressResult {
     background: string;

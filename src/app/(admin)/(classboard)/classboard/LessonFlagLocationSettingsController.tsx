@@ -5,34 +5,25 @@ import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin, Zap, X, Minus, Plus 
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
-import type { GlobalFlag } from "@/backend/models/GlobalFlag";
-import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 const LOCATIONS = ["Beach", "Bay", "Lake", "River", "Pool", "Indoor"];
 const MIN_TIME_MINUTES = 0;
 const MAX_TIME_MINUTES = 1380;
 
-interface LessonFlagLocationSettingsControllerProps {
-    globalFlag: GlobalFlag;
-    teacherQueues: TeacherQueue[];
-    onClose: () => void;
-    controller: ControllerSettings;
-    setController: (c: ControllerSettings) => void;
-}
-
 /**
- * LessonFlagLocationSettingsController - Redesigned global adjustment panel.
+ * LessonFlagLocationSettingsController - Global adjustment panel.
  *
  * DESIGN PRINCIPLES:
- * 1. Bulk Actions: Primary controls at the top adjust ALL pending teachers in the queue.
- * 2. Selective Release: Individual teachers can be saved and removed from the global session one-by-one.
- * 3. Session Persistence: Opening/closing the sidebar does not reset adjustments; the state is
- *    centrally managed by the globalFlag instance.
- * 4. Data Safety: "Reset" restores the exact state captured at the start of the session.
+ * 1. Bulk Actions: Primary controls adjust ALL pending teachers in the queue.
+ * 2. Selective Release: Individual teachers can be saved and removed one-by-one.
+ * 3. Session Persistence: Adjustments are centrally managed by globalFlag.
+ * 4. Data Safety: "Reset" restores the state captured at session start.
  */
-export default function LessonFlagLocationSettingsController({ globalFlag, teacherQueues, onClose, controller, setController }: LessonFlagLocationSettingsControllerProps) {
+export default function LessonFlagLocationSettingsController() {
+    const { globalFlag, teacherQueues, controller, setController } = useClassboardContext();
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
     const [locationIndex, setLocationIndex] = useState(0);
@@ -162,7 +153,6 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
                 if (!result.success) return;
             }
             globalFlag.exitAdjustmentMode();
-            onClose();
         } finally {
             setIsSubmitting(false);
         }
@@ -182,7 +172,6 @@ export default function LessonFlagLocationSettingsController({ globalFlag, teach
 
     const handleCancel = () => {
         globalFlag.exitAdjustmentMode(true); // true = discard changes
-        onClose();
     };
 
     const updateGap = (delta: number) => {

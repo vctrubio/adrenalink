@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
-import { useClassboardActions } from "@/src/providers/classboard-actions-provider";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 // Muted green - softer than entity color
@@ -16,7 +16,7 @@ type TeacherFilter = "active" | "all";
  * TeacherClassDaily - Displays teacher queues in a list
  */
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking } = useClassboardActions();
+    const { teacherQueues, draggedBooking } = useClassboardContext();
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [collapsedTeachers, setCollapsedTeachers] = useState<Set<string>>(new Set());

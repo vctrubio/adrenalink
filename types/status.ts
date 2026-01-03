@@ -242,22 +242,3 @@ export const EQUIPMENT_STATUS_CONFIG: Record<EquipmentStatus, EquipmentStatusCon
         label: "RIP",
     },
 } as const;
-
-// ============ PROGRESS BAR HELPER ============
-
-/**
- * Get progress bar color based on event statuses
- * Priority: completed > tbc > uncompleted > planned
- */
-export function getProgressBarColor(events: { status: EventStatus }[]): string {
-    if (events.length === 0) return STATUS_GREY;
-
-    const statusPriority = { completed: 4, tbc: 3, uncompleted: 2, planned: 1 };
-    const dominantStatus = events.reduce((max, evt) => {
-        const maxPriority = statusPriority[max.status as keyof typeof statusPriority] || 0;
-        const evtPriority = statusPriority[evt.status as keyof typeof statusPriority] || 0;
-        return evtPriority > maxPriority ? evt : max;
-    }).status;
-
-    return EVENT_STATUS_CONFIG[dominantStatus].color;
-}

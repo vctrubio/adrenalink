@@ -5,7 +5,7 @@ import { createClient } from "@/supabase/client";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 interface AdminClassboardBookingListenerOptions {
-    onNewBooking: () => void;
+    onNewBooking: (bookingId: string) => void;
 }
 
 export function useAdminClassboardBookingListener({ onNewBooking }: AdminClassboardBookingListenerOptions) {
@@ -46,8 +46,9 @@ export function useAdminClassboardBookingListener({ onNewBooking }: AdminClassbo
                     }
 
                     try {
-                        console.log("🎫 [BOOKING-LISTENER] New booking detected:", payload.new);
-                        await callbackRef.current();
+                        const bookingId = payload.new?.id;
+                        console.log("🎫 [BOOKING-LISTENER] New booking detected:", bookingId);
+                        await callbackRef.current(bookingId);
                     } catch (error) {
                         console.error("❌ [BOOKING-LISTENER] Error calling onNewBooking:", error);
                     }
@@ -57,10 +58,8 @@ export function useAdminClassboardBookingListener({ onNewBooking }: AdminClassbo
                 if (status === "SUBSCRIBED") {
                     isSubscribedRef.current = true;
                     console.log("✅ [BOOKING-LISTENER] SUBSCRIBED and ready to receive events");
-                    // Fetch fresh data immediately when subscription is ready
-                    callbackRef.current().catch((error) => {
-                        console.error("❌ [BOOKING-LISTENER] Error refreshing data on subscribe:", error);
-                    });
+                    // Don't refetch on subscribe - layout already has initial data
+                    // Only refetch when a new booking is actually created
                 } else if (status === "CHANNEL_ERROR") {
                     isSubscribedRef.current = false;
                     console.error("❌ [BOOKING-LISTENER] Channel error");

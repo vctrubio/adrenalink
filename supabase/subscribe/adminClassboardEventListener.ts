@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getClassboardBookings } from "@/actions/classboard-action";
+import { getSQLClassboardData } from "@/supabase/server/classboard";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
@@ -36,12 +36,12 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
                         old: payload.old,
                     });
 
-                    getClassboardBookings()
+                    getSQLClassboardData()
                         .then((result) => {
-                            if (result.success && result.data) {
+                            if ("success" in result && result.success && result.data) {
                                 console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
                                 onEventDetected(result.data);
-                            } else {
+                            } else if ("error" in result) {
                                 console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
                             }
                         })

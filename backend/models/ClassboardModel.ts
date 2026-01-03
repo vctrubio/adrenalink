@@ -47,4 +47,4 @@ export interface ClassboardData {
     lessons: ClassboardLesson[];
 }
 
-export type ClassboardModel = Record<string, ClassboardData>;
+export type ClassboardModel = ClassboardData[];

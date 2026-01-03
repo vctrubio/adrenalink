@@ -26,25 +26,3 @@ export function getTeacherUnfinishedEvents(teacher: TeacherModel): { id: string;
 
     return unfinishedEvents;
 }
-
-export function isTeacherLessonReady(teacher: TeacherModel): boolean {
-    const lessons = teacher.relations?.lessons || [];
-
-    for (const lesson of lessons) {
-        const events = lesson.events || [];
-        const hasPlannedEvent = events.some(event => event.status === "planned");
-
-        if (hasPlannedEvent) {
-            return false;
-        }
-
-        if (lesson.status === "active") {
-            const booking = lesson.booking;
-            if (booking && booking.status === "active") {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}

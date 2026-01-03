@@ -1,4 +1,4 @@
-import { getClassboardBookings } from "@/actions/classboard-action";
+import { getSQLClassboardData } from "@/supabase/server/classboard";
 import { ReactNode } from "react";
 import { ClassboardProvider } from "../../../providers/classboard-provider";
 
@@ -7,7 +7,7 @@ interface ClassboardLayoutProps {
 }
 
 export default async function ClassboardLayout({ children }: ClassboardLayoutProps) {
-    const result = await getClassboardBookings();
+    const result = await getSQLClassboardData();
 
     if (!result.success) {
         return (

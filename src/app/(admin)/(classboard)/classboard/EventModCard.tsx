@@ -12,7 +12,6 @@ import type { QueueController as QueueControllerType } from "@/src/app/(admin)/(
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 
-import { deleteClassboardEvent } from "@/actions/classboard-action";
 import { LOCATION_OPTIONS } from "./EventSettingController";
 import EventGapDetection from "./EventGapDetection";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
@@ -20,38 +19,16 @@ import { LeaderStudent } from "@/src/components/LeaderStudent";
 interface EventModCardProps {
     event: EventNode;
     queueController: QueueControllerType;
-    onDelete?: () => void;
 }
 
 // Sub-components
 
-const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDelete }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueControllerType; onDelete?: () => void }) => {
-    const [isDeleting, setIsDeleting] = useState(false);
+const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueControllerType }) => {
+    const handleDelete = () => {
+        if (!eventId) return;
 
-    const handleDelete = async () => {
-        if (!eventId || isDeleting) return;
-
-        setIsDeleting(true);
-        try {
-            console.log(`🗑️ [EventModCard] Deleting event ${eventId}`);
-
-            // Use QueueController's deleteEvent method - it handles both modes
-            const result = await queueController.deleteEvent(
-                eventId,
-                deleteClassboardEvent,
-                onDelete // This will remove from snapshot
-            );
-
-            if (!result.success) {
-                setIsDeleting(false);
-                return;
-            }
-
-            console.log(`✅ [EventModCard] Event deleted, ${result.updates.length} events updated`);
-        } catch (error) {
-            console.error("Error deleting event:", error);
-            setIsDeleting(false);
-        }
+        console.log(`🗑️ [EventModCard] Marking event ${eventId} for deletion (will delete on submit)`);
+        queueController.removeEventLocally(eventId);
     };
 
     return (
@@ -68,9 +45,8 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController, onDel
             )}
             <button
                 onClick={handleDelete}
-                disabled={isDeleting}
-                className={`p-1.5 rounded-lg transition-colors border border-border/20 ${isDeleting ? "opacity-50 cursor-not-allowed text-red-400" : "bg-muted/50 hover:bg-red-50 text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"}`}
-                title={isDeleting ? "Deleting..." : "Delete event"}
+                className="p-1.5 rounded-lg transition-colors border border-border/20 bg-muted/50 hover:bg-red-50 text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
+                title="Delete event"
             >
                 <X className="w-3.5 h-3.5" />
             </button>
@@ -228,7 +204,7 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     );
 };
 
-export default function EventModCard({ event, queueController, onDelete }: EventModCardProps) {
+export default function EventModCard({ event, queueController }: EventModCardProps) {
     const { bookingsForSelectedDate } = useClassboardContext();
     const eventId = event.id;
     const allEvents = queueController.getQueue().getAllEvents();
@@ -255,7 +231,7 @@ export default function EventModCard({ event, queueController, onDelete }: Event
                 <div className="scale-90 origin-left">
                     <LeaderStudent leaderStudentName={event.bookingLeaderName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
                 </div>
-                <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} onDelete={onDelete} />
+                <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
             </div>
 
             {/* Main Body: Time & Duration */}

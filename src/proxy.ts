@@ -3,7 +3,6 @@ import printf from "../printf.js";
 import { detectSubdomain } from "../types/domain";
 
 export function proxy(request: NextRequest) {
-    const requestStartTime = Date.now();
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
@@ -12,7 +11,7 @@ export function proxy(request: NextRequest) {
         method: request.method,
         url: request.url,
         pathname,
-        hostname
+        hostname,
     });
 
     // Check for subdomain using domain utilities
@@ -39,9 +38,11 @@ export function proxy(request: NextRequest) {
         }
 
         // printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
+        console.log("REQUEST COMPLETED12:");
         return response;
     }
 
+    console.log("REQUEST COMPLETED:");
     return NextResponse.next();
 }
 

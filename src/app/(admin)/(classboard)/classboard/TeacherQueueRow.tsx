@@ -5,8 +5,7 @@ import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
 import TeacherClassCard from "./TeacherClassCard";
-import { useClassboardContext } from "@/src/providers/classboard-provider";
-import { useClassboardActions, optimisticEventToNode } from "@/src/providers/classboard-actions-provider";
+import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
@@ -20,8 +19,7 @@ interface TeacherQueueRowProps {
 }
 
 export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { controller, bookingsForSelectedDate } = useClassboardContext();
-    const { draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardActions();
+    const { controller, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticEvents, globalFlag } = useClassboardContext();
     const [cascadingEventIds, setCascadingEventIds] = useState<{ ids: Set<string>; action: "update" | "delete" }>({
         ids: new Set(),
         action: "update",
@@ -206,7 +204,7 @@ export default function TeacherQueueRow({ queue, isCollapsed, onToggleCollapse }
                                 return (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
                                         {viewMode === "adjustment" && queueController ? (
-                                            <EventModCard event={event} queueController={queueController} onDelete={() => queueController.removeFromSnapshot(event.id)} />
+                                            <EventModCard event={event} queueController={queueController} />
                                         ) : (
                                             <EventCard
                                                 event={event}

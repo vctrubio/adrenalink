@@ -12,12 +12,10 @@ export function getStudentCountFromEvent(eventNode: EventNode): number {
  * This is a pure data transformation function - belongs in getters
  */
 export function createClassboardModel(bookingsData: any[]): ClassboardModel {
-    const result: ClassboardModel = {};
-
-    for (const bookingData of bookingsData) {
+    return bookingsData.map((bookingData) => {
         const { id, dateStart, dateEnd, schoolId, leaderStudentName, studentPackage, bookingStudents, lessons } = bookingData;
 
-        result[id] = {
+        return {
             booking: {
                 id,
                 dateStart,
@@ -26,12 +24,11 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
             },
             schoolPackage: studentPackage.schoolPackage,
             bookingStudents: bookingStudents.map((bs: any) => {
-                // Find the schoolStudent entry for this school
                 const schoolStudentsArray = bs.student.schoolStudents || [];
                 const schoolStudent = schoolStudentsArray.find(
                     (ss: any) => ss.schoolId === schoolId
                 );
-                
+
                 return {
                     student: {
                         id: bs.student.id,
@@ -67,9 +64,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                 })),
             })),
         };
-    }
-
-    return result;
+    });
 }
 
 export function calculateTeacherStatsFromEvents(

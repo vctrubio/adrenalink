@@ -278,6 +278,27 @@ export class QueueController {
     }
 
     /**
+     * Remove event from queue locally (during adjustment mode)
+     * Does NOT delete from database - change is tracked in snapshot comparison
+     * Deletion happens on submit when getChanges() is called
+     */
+    removeEventLocally(eventId: string): void {
+        const events = this.queue.getAllEvents();
+        const eventToDelete = events.find(e => e.id === eventId);
+
+        if (!eventToDelete) {
+            console.warn(`❌ [QueueController.removeEventLocally] Event ${eventId} not found`);
+            return;
+        }
+
+        console.log(`🗑️ [QueueController.removeEventLocally] Removing ${eventId} locally (will be deleted on submit)`);
+
+        const updatedEvents = events.filter(e => e.id !== eventId);
+        this.queue.rebuildQueue(updatedEvents);
+        this.onRefresh();
+    }
+
+    /**
      * Delete event with mode-aware behavior
      * Locked mode: cascade and optimize remaining queue
      * Unlocked mode: just remove event, respect remaining times
@@ -290,7 +311,7 @@ export class QueueController {
     ): Promise<{ success: boolean; updates: Array<{ id: string; date: string; duration: number }> }> {
         const events = this.queue.getAllEvents();
         const eventToDelete = events.find(e => e.id === eventId);
-        
+
         if (!eventToDelete) {
             return { success: false, updates: [] };
         }

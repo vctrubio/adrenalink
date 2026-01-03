@@ -9,14 +9,12 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
-import { CardList } from "@/src/components/ui/card/card-list";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { useClassboardActions } from "@/src/providers/classboard-actions-provider";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
@@ -30,6 +28,17 @@ const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardL
         </div>
     );
 };
+
+const createStudentDropdownItems = (
+    students: { id: string; firstName: string; lastName: string }[],
+    studentColor: string,
+): DropdownItemProps[] =>
+    students.map((bs, index) => ({
+        id: bs.id || index,
+        label: `${bs.firstName} ${bs.lastName}`,
+        icon: HelmetIcon,
+        color: studentColor,
+    }));
 
 const CardHeader = ({
     bookingId,
@@ -76,12 +85,7 @@ const CardHeader = ({
         }
     }
 
-    const studentDropdownItems: DropdownItemProps[] = students.map((bs, index) => ({
-        id: bs.id || index,
-        label: `${bs.firstName} ${bs.lastName}`,
-        icon: HelmetIcon,
-        color: studentColor,
-    }));
+    const studentDropdownItems = createStudentDropdownItems(students, studentColor);
 
     return (
         <div className="flex items-start justify-between">
@@ -94,7 +98,7 @@ const CardHeader = ({
                     <button
                         ref={studentTriggerRef}
                         onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                        className={`font-semibold text-foreground truncate flex-1 tracking-wider text-lg text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
+                        className={`font-semibold text-foreground truncate flex-1 text-lg text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
                         style={studentCount > 1 ? { color: studentColor } : {}}
                     >
                         {leaderName}
@@ -132,12 +136,7 @@ const BookingSummaryBadges = ({
     const packageInfo = getPackageInfo(schoolPackage, lessons);
     const totalPayment = packageInfo.eventHours * packageInfo.pricePerHour;
 
-    const studentDropdownItems: DropdownItemProps[] = students.map((bs, index) => ({
-        id: bs.id || index,
-        label: `${bs.firstName} ${bs.lastName}`,
-        icon: HelmetIcon,
-        color: studentColor,
-    }));
+    const studentDropdownItems = createStudentDropdownItems(students, studentColor);
 
     return (
         <div className="relative">
@@ -261,21 +260,32 @@ interface StudentBookingCardProps {
 }
 
 export default function StudentBookingCard({ bookingData }: StudentBookingCardProps) {
-    const { setDraggedBooking, draggedBooking, addLessonEvent } = useClassboardActions();
+    const { setDraggedBooking, draggedBooking, addLessonEvent } = useClassboardContext();
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
 
     const bookingId = bookingData.booking.id;
     const isDragging = draggedBooking?.bookingId === bookingId;
 
+    // Debug logging
+    console.log(`📋 [StudentBookingCard] Booking: ${bookingData.booking.leaderStudentName}`);
+    console.log(`   Lessons count: ${bookingData.lessons.length}`);
+    bookingData.lessons.forEach((l, idx) => {
+        console.log(`   Lesson ${idx}: ${l.teacher?.username} - Events: ${l.events?.length || 0}`);
+        if (l.events && l.events.length > 0) {
+            l.events.forEach((e) => {
+                console.log(`      Event: ${e.date} | Duration: ${e.duration}m`);
+            });
+        }
+    });
+
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
-    const credentials = useSchoolCredentials();
-    const currency = credentials?.currency || "YEN";
 
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
     const students = bookingStudents.map((bs) => bs.student);
+    const draggableLessonIds = new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id));
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
@@ -320,36 +330,34 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     };
 
     return (
-        <>
-            <div
-                draggable
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                className={`group relative w-[345px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
-            >
-                <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
+        <div
+            draggable
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            className={`group relative w-[345px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
+        >
+            <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
-                <div className="p-4 space-y-4">
-                    <CardHeader
-                        bookingId={booking.id}
-                        dateStart={booking.dateStart}
-                        dateEnd={booking.dateEnd}
-                        leaderName={booking.leaderStudentName}
-                        studentCount={students.length}
-                        students={students}
-                        studentColor={studentColor}
-                        onExpand={() => setIsExpanded(!isExpanded)}
-                    />
+            <div className="p-4 space-y-4">
+                <CardHeader
+                    bookingId={booking.id}
+                    dateStart={booking.dateStart}
+                    dateEnd={booking.dateEnd}
+                    leaderName={booking.leaderStudentName}
+                    studentCount={students.length}
+                    students={students}
+                    studentColor={studentColor}
+                    onExpand={() => setIsExpanded(!isExpanded)}
+                />
 
-                    <div className="space-y-3">
-                        <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
-                    </div>
-
-                    <InstructorList lessons={lessons} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id))} />
+                <div className="space-y-3">
+                    <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
                 </div>
 
-                <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
+                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={draggableLessonIds} />
             </div>
-        </>
+
+            <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
+        </div>
     );
 }
