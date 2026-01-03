@@ -3,10 +3,10 @@ import { eventStatusEnum, lessonStatusEnum, bookingStatusEnum } from "@/drizzle/
 // ============ SHARED COLOR CONSTANTS ============
 // Reusable colors across all status types
 
-export const STATUS_GREY = "#9ca3af";
-export const STATUS_DARK = "#4b5563";
-export const STATUS_PURPLE = "#a855f7";
-export const STATUS_GREEN = "#86efac";
+export const STATUS_GREY = "rgba(107, 114, 128, 0.3)"; // Subtle, works in dark mode
+export const STATUS_DARK = "#6b7280"; // For inactive/sold statuses
+export const STATUS_PURPLE = "#a855f7"; // Equipment color
+export const STATUS_GREEN = "#22c55e"; // Teacher color
 export const STATUS_ORANGE = "#fbbf24";
 export const ACTION_CYAN = "#06b6d4";
 

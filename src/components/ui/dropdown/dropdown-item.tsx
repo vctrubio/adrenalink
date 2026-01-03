@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 export interface DropdownItemProps {
 	id?: string;
@@ -88,5 +89,15 @@ export function DropdownItem({
 			{content}
 		</button>
 	);
+}
+
+export function createStudentDropdownItems(
+	students: { id: string; firstName: string; lastName: string }[],
+): DropdownItemProps[] {
+	return students.map((student, index) => ({
+		id: student.id || index,
+		label: `${student.firstName} ${student.lastName}`,
+		icon: HelmetIcon,
+	}));
 }
 

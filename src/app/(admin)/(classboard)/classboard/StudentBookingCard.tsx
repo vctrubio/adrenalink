@@ -3,12 +3,11 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { MoreVertical, Receipt } from "lucide-react";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
-import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { getBookingProgressBar } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
@@ -29,17 +28,6 @@ const BookingProgressBar = ({ lessons, durationMinutes }: { lessons: ClassboardL
     );
 };
 
-const createStudentDropdownItems = (
-    students: { id: string; firstName: string; lastName: string }[],
-    studentColor: string,
-): DropdownItemProps[] =>
-    students.map((bs, index) => ({
-        id: bs.id || index,
-        label: `${bs.firstName} ${bs.lastName}`,
-        icon: HelmetIcon,
-        color: studentColor,
-    }));
-
 const CardHeader = ({
     bookingId,
     dateStart,
@@ -48,7 +36,6 @@ const CardHeader = ({
     leaderName,
     studentCount,
     students,
-    studentColor,
     onExpand,
 }: {
     bookingId: string;
@@ -58,7 +45,6 @@ const CardHeader = ({
     leaderName: string;
     studentCount: number;
     students: { id: string; firstName: string; lastName: string }[];
-    studentColor: string;
     onExpand: () => void;
 }) => {
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
@@ -68,8 +54,12 @@ const CardHeader = ({
     const endDate = new Date(dateEnd + "T00:00:00");
     const selected = new Date(selectedDate + "T00:00:00");
 
+    console.log(`🗓️ [CardHeader] Date parsing - dateStart: "${dateStart}" -> ${startDate.toISOString()}, selectedDate: "${selectedDate}" -> ${selected.toISOString()}`);
+    console.log(`   startDate.getTime(): ${startDate.getTime()}, selected.getTime(): ${selected.getTime()}`);
+
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const currentDay = Math.ceil((selected.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    console.log(`   totalDays: ${totalDays}, currentDay: ${currentDay}`);
 
     const ratioText = totalDays === 1 ? "" : `${currentDay}/${totalDays} Days`;
     let statusText = totalDays === 1 ? "Single Day Booking" : "";
@@ -85,7 +75,7 @@ const CardHeader = ({
         }
     }
 
-    const studentDropdownItems = createStudentDropdownItems(students, studentColor);
+    const studentDropdownItems = createStudentDropdownItems(students);
 
     return (
         <div className="flex items-start justify-between">
@@ -99,7 +89,6 @@ const CardHeader = ({
                         ref={studentTriggerRef}
                         onClick={() => studentCount > 1 && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
                         className={`font-semibold text-foreground truncate flex-1 text-lg text-left ${studentCount > 1 ? "hover:text-primary cursor-pointer transition-colors" : "cursor-default"}`}
-                        style={studentCount > 1 ? { color: studentColor } : {}}
                     >
                         {leaderName}
                     </button>
@@ -122,13 +111,11 @@ const BookingSummaryBadges = ({
     lessons,
     studentCount,
     students,
-    studentColor,
 }: {
     schoolPackage: ClassboardData["schoolPackage"];
     lessons: ClassboardLesson[];
     studentCount: number;
     students: { id: string; firstName: string; lastName: string }[];
-    studentColor: string;
 }) => {
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const badgeTriggerRef = useRef<HTMLButtonElement>(null);
@@ -136,7 +123,7 @@ const BookingSummaryBadges = ({
     const packageInfo = getPackageInfo(schoolPackage, lessons);
     const totalPayment = packageInfo.eventHours * packageInfo.pricePerHour;
 
-    const studentDropdownItems = createStudentDropdownItems(students, studentColor);
+    const studentDropdownItems = createStudentDropdownItems(students);
 
     return (
         <div className="relative">
@@ -260,7 +247,7 @@ interface StudentBookingCardProps {
 }
 
 export default function StudentBookingCard({ bookingData }: StudentBookingCardProps) {
-    const { setDraggedBooking, draggedBooking, addLessonEvent } = useClassboardContext();
+    const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate } = useClassboardContext();
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
 
@@ -282,8 +269,6 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
 
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
-    const studentColor = studentEntity?.color || "#eab308";
     const students = bookingStudents.map((bs) => bs.student);
     const draggableLessonIds = new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id));
 
@@ -343,15 +328,15 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                     bookingId={booking.id}
                     dateStart={booking.dateStart}
                     dateEnd={booking.dateEnd}
+                    selectedDate={selectedDate}
                     leaderName={booking.leaderStudentName}
                     studentCount={students.length}
                     students={students}
-                    studentColor={studentColor}
                     onExpand={() => setIsExpanded(!isExpanded)}
                 />
 
                 <div className="space-y-3">
-                    <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} studentColor={studentColor} />
+                    <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} />
                 </div>
 
                 <InstructorList lessons={lessons} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={draggableLessonIds} />
