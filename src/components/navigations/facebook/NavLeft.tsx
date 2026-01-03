@@ -11,7 +11,7 @@ import { DropdownItem } from "@/src/components/ui/dropdown";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { NavigationWizardModal } from "@/src/components/modals/admin/NavigationWizardModal";
 
-const NAV_IDS = ["info", "classboard", "data", "users"] as const;
+const NAV_IDS = ["info", "classboard", "data", "users", "invitations"] as const;
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavLeft = () => {
