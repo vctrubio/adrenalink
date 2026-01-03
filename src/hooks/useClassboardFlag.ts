@@ -218,9 +218,11 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                 const queue = queues.get(teacherId);
                 if (!queue) return;
 
-                const sortedEvents = (lesson.events || []).sort(
-                    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-                );
+                const sortedEvents = (lesson.events || [])
+                    .filter((event) => event.date === selectedDate)
+                    .sort(
+                        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                    );
 
                 sortedEvents.forEach((event) => {
                     const eventNode = createEventNode(event, lesson, booking);
@@ -236,7 +238,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         return activeTeachers
             .map((teacher) => queues.get(teacher.schema.id))
             .filter((queue): queue is TeacherQueueClass => queue !== undefined);
-    }, [allSchoolTeachers, bookingsForSelectedDate]);
+    }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
 
     // Create GlobalFlag instance (stable reference)
     const globalFlag = useMemo(() => {
