@@ -353,7 +353,12 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                           ? controller.durationCapTwo
                           : controller.durationCapThree;
 
-                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
+                // Get pending optimistic events for this teacher to calculate slot chronologically
+                const teacherOptimisticEvents = Array.from(optimisticEvents.values())
+                    .filter((opt) => opt.teacherId === lesson.teacher.id)
+                    .map((opt) => optimisticEventToNode(opt));
+
+                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes, teacherOptimisticEvents);
                 const eventDate = `${selectedDate}T${slotTime}:00`;
 
                 console.log(`  📍 Slot: ${slotTime} | Duration: ${duration}min | Teacher: ${queue.teacher.username}`);
@@ -416,7 +421,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                 toast.error("Error creating event");
             }
         },
-        [selectedDate, teacherQueues, controller]
+        [selectedDate, teacherQueues, controller, optimisticEvents]
     );
 
     const deleteEvent = useCallback(

@@ -187,9 +187,12 @@ export class TeacherQueue {
      * Get next available time slot for a new event
      * Checks if submitTime fits, returns next available slot if not
      */
-    getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number): string {
-        const events = this.getAllEvents();
-        if (!events.length) return submitTime;
+    getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number, pendingEvents: EventNode[] = []): string {
+        const allEvents = [...this.getAllEvents(), ...pendingEvents].sort(
+            (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b)
+        );
+        if (!allEvents.length) return submitTime;
+        const events = allEvents;
 
         const submitTimeMinutes = this.timeToMinutes(submitTime);
         const submitEndMinutes = submitTimeMinutes + duration;
