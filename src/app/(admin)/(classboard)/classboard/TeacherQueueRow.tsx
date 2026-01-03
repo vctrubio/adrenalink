@@ -57,40 +57,40 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
 
     // Merge real events with optimistic events for this teacher (with deduplication)
-    const eventsWithOptimistic = useMemo(() => {
-        const realEvents = activeQueue.getAllEvents();
+    // NOTE: Not memoized because queue contents change frequently during adjustment mode
+    // (delete, reorder, duration changes). Fresh computation ensures UI stays in sync.
+    const realEvents = activeQueue.getAllEvents();
 
-        // Get optimistic events for this teacher
-        const teacherOptimisticEvents = Array.from(optimisticEvents.values())
-            .filter((opt) => opt.teacherId === activeQueue.teacher.id)
-            .map((opt) => ({
-                node: optimisticEventToNode(opt),
-            }));
-
-        // Convert real events
-        const realEventsWithStatus = realEvents.map((event) => ({
-            node: event,
+    // Get optimistic events for this teacher
+    const teacherOptimisticEvents = Array.from(optimisticEvents.values())
+        .filter((opt) => opt.teacherId === activeQueue.teacher.id)
+        .map((opt) => ({
+            node: optimisticEventToNode(opt),
         }));
 
-        // Deduplicate: exclude optimistic events that are already in realEvents
-        const realEventIds = new Set(realEvents.map((e) => e.id));
-        const deduplicatedOptimistic = teacherOptimisticEvents.filter(
-            (opt) => !realEventIds.has(opt.node.id)
-        );
+    // Convert real events
+    const realEventsWithStatus = realEvents.map((event) => ({
+        node: event,
+    }));
 
-        // Merge and sort by status priority, then by date
-        const allEvents = [...realEventsWithStatus, ...deduplicatedOptimistic];
-        const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
+    // Deduplicate: exclude optimistic events that are already in realEvents
+    const realEventIds = new Set(realEvents.map((e) => e.id));
+    const deduplicatedOptimistic = teacherOptimisticEvents.filter(
+        (opt) => !realEventIds.has(opt.node.id)
+    );
 
-        // CRITICAL: Reconstruct linked list AFTER sorting to maintain correct prev/next references
-        // This is needed for EventGapDetection to work correctly with merged events
-        sortedByStatus.forEach((event, index) => {
-            event.prev = index > 0 ? sortedByStatus[index - 1] : null;
-            event.next = index < sortedByStatus.length - 1 ? sortedByStatus[index + 1] : null;
-        });
+    // Merge and sort by status priority, then by date
+    const allEvents = [...realEventsWithStatus, ...deduplicatedOptimistic];
+    const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
 
-        return sortedByStatus.map((node) => ({ node }));
-    }, [activeQueue, optimisticEvents, queueController?.getRefreshKey()]);
+    // CRITICAL: Reconstruct linked list AFTER sorting to maintain correct prev/next references
+    // This is needed for EventGapDetection to work correctly with merged events
+    sortedByStatus.forEach((event, index) => {
+        event.prev = index > 0 ? sortedByStatus[index - 1] : null;
+        event.next = index < sortedByStatus.length - 1 ? sortedByStatus[index + 1] : null;
+    });
+
+    const eventsWithOptimistic = sortedByStatus.map((node) => ({ node }));
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
