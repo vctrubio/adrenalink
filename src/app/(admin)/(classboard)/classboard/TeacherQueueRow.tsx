@@ -56,7 +56,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
 
-    // Merge real events with optimistic events for this teacher
+    // Merge real events with optimistic events for this teacher (with deduplication)
     const eventsWithOptimistic = useMemo(() => {
         const realEvents = activeQueue.getAllEvents();
 
@@ -78,8 +78,14 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
             node: event,
         }));
 
+        // Deduplicate: exclude optimistic events that are already in realEvents
+        const realEventIds = new Set(realEvents.map((e) => e.id));
+        const deduplicatedOptimistic = teacherOptimisticEvents.filter(
+            (opt) => !realEventIds.has(opt.node.id)
+        );
+
         // Merge and sort by status priority, then by date
-        const allEvents = [...realEventsWithStatus, ...teacherOptimisticEvents];
+        const allEvents = [...realEventsWithStatus, ...deduplicatedOptimistic];
         const sortedByStatus = sortEventsByStatus(allEvents.map((e) => e.node));
 
         return sortedByStatus.map((node) => ({ node }));

@@ -15,7 +15,7 @@ const STUDENT_COLOR = "#ca8a04";
 type StudentBookingFilter = "available" | "all";
 
 export default function StudentClassDaily() {
-    const { bookingsForSelectedDate: bookings, globalFlag } = useClassboardContext();
+    const { bookingsForSelectedDate: bookings, globalFlag, optimisticEvents } = useClassboardContext();
 
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
 
@@ -24,7 +24,17 @@ export default function StudentClassDaily() {
     const { filteredBookings, counts } = useMemo(() => {
         const hasEvents = (booking: ClassboardData): boolean => {
             const lessons = booking.lessons || [];
-            return lessons.some((lesson) => (lesson.events || []).length > 0);
+
+            // Check real events
+            const hasRealEvents = lessons.some((lesson) => (lesson.events || []).length > 0);
+            if (hasRealEvents) return true;
+
+            // Check optimistic events for this booking
+            const bookingId = booking.booking.id;
+            const hasOptimisticEvent = Array.from(optimisticEvents.values()).some(
+                (opt) => opt.bookingId === bookingId
+            );
+            return hasOptimisticEvent;
         };
 
         const onboardBookings = bookings.filter(hasEvents);
@@ -45,7 +55,7 @@ export default function StudentClassDaily() {
         }
 
         return { filteredBookings: filteredData, counts };
-    }, [bookings, filter]);
+    }, [bookings, filter, optimisticEvents]);
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -77,7 +87,11 @@ export default function StudentClassDaily() {
                             <div className="flex flex-row xl:flex-col gap-3">
                                 {filteredBookings.map((bookingData) => {
                                     const lessons = bookingData.lessons || [];
-                                    const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
+                                    const hasRealEvents = lessons.some((lesson) => (lesson.events || []).length > 0);
+                                    const hasOptimisticEvent = Array.from(optimisticEvents.values()).some(
+                                        (opt) => opt.bookingId === bookingData.booking.id
+                                    );
+                                    const hasEventToday = hasRealEvents || hasOptimisticEvent;
 
                                     // If "all", show all as StudentBookingCard. If "available", show BookingOnboardCard for onboard, StudentBookingCard otherwise
                                     if (filter === "all") {

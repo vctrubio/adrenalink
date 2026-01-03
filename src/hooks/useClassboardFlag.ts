@@ -171,42 +171,14 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
 
     console.log(`🔄 [useClassboardFlag] Render #${renderCount.current} | Date: ${selectedDate}`);
 
-    // Filter bookings by selected date and merge optimistic events
+    // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
         const filtered = classboardModel.filter((booking) =>
             isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd)
         );
-
-        // Merge optimistic events into lessons
-        const withOptimistic = filtered.map((booking) => ({
-            ...booking,
-            lessons: booking.lessons.map((lesson) => {
-                const lessonOptimisticEvents = Array.from(optimisticEvents.values()).filter(
-                    (opt) => opt.lessonId === lesson.id
-                );
-
-                if (lessonOptimisticEvents.length === 0) {
-                    return lesson;
-                }
-
-                const optimisticEventObjects = lessonOptimisticEvents.map((opt) => ({
-                    id: opt.id,
-                    date: opt.date,
-                    duration: opt.duration,
-                    location: opt.location,
-                    status: "planned" as const,
-                }));
-
-                return {
-                    ...lesson,
-                    events: [...(lesson.events || []), ...optimisticEventObjects],
-                };
-            }),
-        }));
-
-        console.log(`📅 [useClassboardFlag] Bookings for ${selectedDate}: ${filtered.length}/${classboardModel.length} (with ${optimisticEvents.size} optimistic events)`);
-        return withOptimistic;
-    }, [classboardModel, selectedDate, optimisticEvents]);
+        console.log(`📅 [useClassboardFlag] Bookings for ${selectedDate}: ${filtered.length}/${classboardModel.length}`);
+        return filtered;
+    }, [classboardModel, selectedDate]);
 
     // Build teacher queues from bookings
     const teacherQueues = useMemo(() => {
@@ -447,7 +419,16 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
 
     const deleteEvent = useCallback(
         async (eventId: string, cascade: boolean, queueController?: any) => {
-            if (eventId.startsWith("temp-")) return;
+            // Clean up optimistic event if it exists
+            if (eventId.startsWith("temp-")) {
+                console.log(`🗑️ [useClassboardFlag] Removing optimistic event: ${eventId}`);
+                setOptimisticEvents((prev) => {
+                    const updated = new Map(prev);
+                    updated.delete(eventId);
+                    return updated;
+                });
+                return;
+            }
             console.log(`🗑️ [useClassboardFlag] Deleting event: ${eventId} | Cascade: ${cascade}`);
 
             setEventMutation(eventId, "deleting");
