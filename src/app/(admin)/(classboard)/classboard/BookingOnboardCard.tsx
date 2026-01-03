@@ -64,8 +64,8 @@ export default function BookingOnboardCard({
         >
             <ClassboardProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
-            <div className="h-14 flex items-center gap-2 px-6 bg-background">
-                {/* Student Icon + Name */}
+            <div className="h-12 flex items-center justify-between px-6 bg-background">
+                {/* Left: Student Icon + Name */}
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
                         <HelmetIcon size={24} />
@@ -75,40 +75,30 @@ export default function BookingOnboardCard({
                     </span>
                 </div>
 
-                {/* Student Count Badge */}
-                {studentCount > 1 && (
-                    <div className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
-                        <HelmetIcon size={14} />
-                        <span className="font-semibold">{studentCount}</span>
-                    </div>
-                )}
+                {/* Center: Student Count + Equipment */}
+                <div className="flex items-center gap-3 shrink-0">
+                    {studentCount > 1 && (
+                        <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                            <HelmetIcon size={14} />
+                            <span className="font-semibold">{studentCount}</span>
+                        </div>
+                    )}
 
-                {/* Equipment Badge */}
-                {EquipmentIcon && (
-                    <div className="flex items-center gap-0.5 shrink-0" style={{ color: equipmentConfig?.color }}>
-                        <EquipmentIcon size={16} />
-                        {capacityEquipment > 1 && <span className="text-xs font-semibold">{capacityEquipment}</span>}
-                    </div>
-                )}
+                    {EquipmentIcon && (
+                        <div className="flex items-center gap-0.5" style={{ color: equipmentConfig?.color }}>
+                            <EquipmentIcon size={18} />
+                            {capacityEquipment > 1 && <span className="text-xs font-semibold">{capacityEquipment}</span>}
+                        </div>
+                    )}
+                </div>
 
-                {/* Status Badge */}
+                {/* Right: Status Badge */}
                 <div
-                    className="px-2 py-0.5 rounded-md text-xs font-semibold shrink-0 text-foreground"
+                    className="px-2.5 py-1 rounded-md text-xs font-semibold shrink-0 text-foreground"
                     style={{ backgroundColor: statusConfig.color }}
                 >
                     {statusConfig.label}
                 </div>
-
-                {/* Spacer */}
-                <div className="flex-1" />
-
-                {/* Revenue */}
-                {totalRevenue > 0 && (
-                    <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 shrink-0">
-                        <Receipt size={16} />
-                        {getCompactNumber(totalRevenue)}
-                    </div>
-                )}
             </div>
         </div>
     );
