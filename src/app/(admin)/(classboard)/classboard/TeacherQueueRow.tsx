@@ -90,7 +90,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         });
 
         return sortedByStatus.map((node) => ({ node }));
-    }, [activeQueue, optimisticEvents]);
+    }, [activeQueue, optimisticEvents, queueController?.getRefreshKey()]);
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
