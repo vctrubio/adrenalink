@@ -219,7 +219,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                 if (!queue) return;
 
                 const sortedEvents = (lesson.events || [])
-                    .filter((event) => event.date === selectedDate)
+                    .filter((event) => event.date.split('T')[0] === selectedDate)
                     .sort(
                         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
                     );
