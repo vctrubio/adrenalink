@@ -33,7 +33,6 @@ const CardHeader = ({
     dateEnd,
     selectedDate,
     leaderName,
-    studentCount,
     students,
     onExpand,
 }: {
@@ -304,16 +303,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
             <BookingProgressBar lessons={lessons} durationMinutes={packageInfo.durationMinutes} />
 
             <div className="p-4 space-y-4">
-                <CardHeader
-                    bookingId={booking.id}
-                    dateStart={booking.dateStart}
-                    dateEnd={booking.dateEnd}
-                    selectedDate={selectedDate}
-                    leaderName={booking.leaderStudentName}
-                    studentCount={students.length}
-                    students={students}
-                    onExpand={() => setIsExpanded(!isExpanded)}
-                />
+                <CardHeader bookingId={booking.id} dateStart={booking.dateStart} dateEnd={booking.dateEnd} selectedDate={selectedDate} leaderName={booking.leaderStudentName} students={students} onExpand={() => setIsExpanded(!isExpanded)} />
 
                 <div className="space-y-3">
                     <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} />

@@ -3,7 +3,6 @@
 import { Receipt } from "lucide-react";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
@@ -34,11 +33,6 @@ export default function BookingOnboardCard({
             return eventDate === selectedDate;
         })
     );
-
-    // Get first event for status
-    const firstEvent = todayEvents[0];
-    const status = firstEvent?.status || "planned";
-    const statusConfig = EVENT_STATUS_CONFIG[status];
 
     // Calculate total revenue from all events today
     const totalRevenue = todayEvents.reduce((sum, event) => {
@@ -92,13 +86,13 @@ export default function BookingOnboardCard({
                     )}
                 </div>
 
-                {/* Right: Status Badge */}
-                <div
-                    className="px-2.5 py-1 rounded-md text-xs font-semibold shrink-0 text-foreground"
-                    style={{ backgroundColor: statusConfig.color }}
-                >
-                    {statusConfig.label}
-                </div>
+                {/* Right: Receipt + Total Price Today */}
+                {totalRevenue > 0 && (
+                    <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 shrink-0">
+                        <Receipt size={16} />
+                        <span className="font-bold">{getCompactNumber(totalRevenue)}</span>
+                    </div>
+                )}
             </div>
         </div>
     );
