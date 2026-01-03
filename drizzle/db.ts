@@ -31,9 +31,12 @@ if (!dbUrl) {
 const isPooled = dbUrl.includes(":6543");
 
 if (!globalForDb.conn) {
+    console.log(`🔍 [DEBUG_DB] 🚀 INITIALIZING NEW CONNECTION`);
     console.log(`📡 [DB] Connecting in ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`🔗 [DB] Target: ${dbUrl.split("@")[1]?.split(":")[0] || "unknown"}`);
     console.log(`🔌 [DB] Type: ${isPooled ? "POOLED (Port 6543)" : "DIRECT (Port 5432)"}`);
+} else {
+    console.log(`🔍 [DEBUG_DB] ♻️  REUSING EXISTING CONNECTION (Singleton)`);
 }
 
 // Singleton pattern to prevent connection leaks during HMR in development
@@ -56,6 +59,7 @@ export const db = drizzle(sql, { schema: fullSchema });
 
 // Graceful shutdown
 if (typeof global !== "undefined" && !globalForDb.isCleanupRegistered) {
+    console.log(`🔍 [DEBUG_DB] 🛠️  REGISTERING CLEANUP HANDLERS (SIGTERM/SIGINT)`);
     const cleanup = async () => {
         console.log("Closing database connections...");
         await sql.end();
@@ -63,4 +67,6 @@ if (typeof global !== "undefined" && !globalForDb.isCleanupRegistered) {
     process.once("SIGTERM", cleanup);
     process.once("SIGINT", cleanup);
     globalForDb.isCleanupRegistered = true;
+} else if (typeof global !== "undefined") {
+    console.log(`🔍 [DEBUG_DB] ⏭️  CLEANUP HANDLERS ALREADY REGISTERED - SKIPPING`);
 }

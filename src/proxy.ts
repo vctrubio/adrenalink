@@ -18,12 +18,12 @@ export function proxy(request: NextRequest) {
     const subdomainInfo = detectSubdomain(hostname);
 
     if (subdomainInfo) {
-        printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
+        console.log(`🔍 [DEBUG_PROXY] Subdomain "${subdomainInfo.subdomain}" detected for ${hostname}`);
 
         // Create response with school context header for all routes
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
-        printf("DEV:DEBUG 📝 SET HEADER x-school-username:", subdomainInfo.subdomain);
+        console.log(`🔍 [DEBUG_PROXY] Header 'x-school-username' set to: ${subdomainInfo.subdomain}`);
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
@@ -31,18 +31,16 @@ export function proxy(request: NextRequest) {
             url.pathname = "/subdomain";
             url.searchParams.set("username", subdomainInfo.subdomain);
 
-            printf("🔄 REWRITING TO:", url.toString());
+            console.log(`🔍 [DEBUG_PROXY] Rewriting "/" to "/subdomain?username=${subdomainInfo.subdomain}"`);
             const rewriteResponse = NextResponse.rewrite(url);
             rewriteResponse.headers.set("x-school-username", subdomainInfo.subdomain);
             return rewriteResponse;
         }
 
-        // printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
-        console.log("REQUEST COMPLETED12:");
         return response;
     }
 
-    console.log("REQUEST COMPLETED:");
+    console.log(`🔍 [DEBUG_PROXY] No school subdomain detected for: ${hostname}`);
     return NextResponse.next();
 }
 

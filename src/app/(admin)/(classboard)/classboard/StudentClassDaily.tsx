@@ -12,12 +12,12 @@ import type { ClassboardData } from "@/backend/models/ClassboardModel";
 
 const STUDENT_COLOR = "#ca8a04";
 
-type StudentBookingFilter = "available" | "onboard";
+type StudentBookingFilter = "all" | "onboard";
 
 export default function StudentClassDaily() {
     const { bookingsForSelectedDate: bookings, globalFlag } = useClassboardContext();
 
-    const [filter, setFilter] = useState<StudentBookingFilter>("available");
+    const [filter, setFilter] = useState<StudentBookingFilter>("all");
 
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
 
@@ -28,13 +28,21 @@ export default function StudentClassDaily() {
         };
 
         const onboardBookings = bookings.filter(hasEvents);
+        const availableBookings = bookings.filter((b) => !hasEvents(b));
 
         const counts = {
             onboard: onboardBookings.length,
-            available: bookings.length,
+            all: bookings.length,
         };
 
-        const filteredData = filter === "available" ? bookings : onboardBookings;
+        let filteredData: ClassboardData[];
+        if (filter === "all") {
+            // Show all bookings, with onboard (hasEvents) sorted to bottom
+            filteredData = [...availableBookings, ...onboardBookings];
+        } else {
+            // Show only onboard bookings
+            filteredData = onboardBookings;
+        }
 
         return { filteredBookings: filteredData, counts };
     }, [bookings, filter]);
@@ -48,7 +56,7 @@ export default function StudentClassDaily() {
                     </div>
                     <span className="text-lg font-bold text-foreground">Students</span>
                     <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                        <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
+                        <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "all", right: "onboard" }} counts={counts} tintColor={STUDENT_COLOR} />
                     </div>
                 </div>
             )}
@@ -68,25 +76,15 @@ export default function StudentClassDaily() {
                         <div className="p-4">
                             <div className="flex flex-row xl:flex-col gap-3">
                                 {filteredBookings.map((bookingData) => {
-                                    // Check if this booking has any events (bookings already filtered by date)
                                     const lessons = bookingData.lessons || [];
                                     const hasEventToday = lessons.some((lesson) => (lesson.events || []).length > 0);
 
-                                    // For "available" filter: Show all bookings (regardless of on board status)
-                                    if (filter === "available") {
-                                        if (!hasEventToday) {
-                                            return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
-                                        } else {
-                                            return <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} />;
-                                        }
-                                    }
-
-                                    // For "onboard" filter: Show StudentBookingCard for bookings WITH events
-                                    if (filter === "onboard" && hasEventToday) {
-                                        return <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />;
-                                    }
-
-                                    return null;
+                                    // Show BookingOnboardCard for bookings with events, StudentBookingCard otherwise
+                                    return hasEventToday ? (
+                                        <BookingOnboardCard key={bookingData.booking.id} bookingData={bookingData} />
+                                    ) : (
+                                        <StudentBookingCard key={bookingData.booking.id} bookingData={bookingData} />
+                                    );
                                 })}
                             </div>
                         </div>
