@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { type EventStatusMinutes } from "@/getters/booking-progress-getter";
-import { EVENT_STATUS_CONFIG } from "@/types/status";
+import { EVENT_STATUS_CONFIG, STATUS_GREY } from "@/types/status";
 
 interface ClassboardProgressBarProps {
     durationMinutes: number;
@@ -11,7 +11,7 @@ interface ClassboardProgressBarProps {
 
 export function ClassboardProgressBar({ durationMinutes, counts }: ClassboardProgressBarProps) {
     const totalUsedMinutes = (counts.completed || 0) + (counts.uncompleted || 0) + (counts.planned || 0) + (counts.tbc || 0);
-    const denominator = totalUsedMinutes > durationMinutes ? totalUsedMinutes : durationMinutes;
+    const denominator = Math.max(totalUsedMinutes, durationMinutes);
 
     if (denominator === 0) {
         return <div className="h-1.5 w-full bg-muted/30" />;
@@ -22,22 +22,23 @@ export function ClassboardProgressBar({ durationMinutes, counts }: ClassboardPro
         { key: "uncompleted", value: counts.uncompleted, color: EVENT_STATUS_CONFIG.uncompleted.color },
         { key: "planned", value: counts.planned, color: EVENT_STATUS_CONFIG.planned.color },
         { key: "tbc", value: counts.tbc, color: EVENT_STATUS_CONFIG.tbc.color },
+        { key: "remaining", value: Math.max(0, denominator - totalUsedMinutes), color: STATUS_GREY },
     ];
 
     return (
-        <div className="h-1.5 w-full bg-muted/30 flex overflow-hidden">
+        <div className="h-1.5 w-full bg-muted/10 flex overflow-hidden">
             {segments.map((segment) => {
                 const widthPercent = (segment.value / denominator) * 100;
-                if (widthPercent <= 0) return null;
 
                 return (
                     <motion.div
+                        layout
                         key={segment.key}
                         initial={{ width: 0 }}
                         animate={{ width: `${widthPercent}%` }}
                         transition={{
                             type: "spring",
-                            stiffness: 100,
+                            stiffness: 80,
                             damping: 20,
                             mass: 1,
                         }}

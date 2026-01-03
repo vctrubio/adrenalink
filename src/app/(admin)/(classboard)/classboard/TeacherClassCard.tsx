@@ -9,7 +9,6 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
@@ -37,6 +36,7 @@ export interface EventProgress {
     completed: number;
     planned: number;
     tbc: number;
+    uncompleted: number;
     total: number;
     eventIds?: string[];
 }
@@ -48,20 +48,9 @@ function TeacherEventProgressBar({ progress, queue, controller, onBulkAction }: 
     controller?: ControllerSettings,
     onBulkAction?: (ids: string[], action: "delete" | "update") => void,
 }) {
-    const { completed, planned, tbc, total, eventIds = [] } = progress;
+    const { completed, planned, tbc, uncompleted, total, eventIds = [] } = progress;
     const totalEvents = eventIds.length;
     const completedEvents = queue ? queue.getAllEvents().filter(e => e.eventData.status === "completed").length : 0;
-    const denominator = total > 0 ? total : 1;
-    const completedEnd = (completed / denominator) * 100;
-    const plannedEnd = completedEnd + (planned / denominator) * 100;
-    const tbcEnd = plannedEnd + (tbc / denominator) * 100;
-
-    const completedColor = EVENT_STATUS_CONFIG.completed.color;
-    const plannedColor = `${EVENT_STATUS_CONFIG.planned.color}40`;
-    const tbcColor = `${EVENT_STATUS_CONFIG.tbc.color}30`;
-    const emptyColor = "#1f293720";
-
-    const background = `linear-gradient(to right, ${completedColor} ${completedEnd}%, ${plannedColor} ${completedEnd}% ${plannedEnd}%, ${tbcColor} ${plannedEnd}% ${tbcEnd}%, ${emptyColor} ${tbcEnd}%)`;
 
     // Dropdown Logic
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -159,13 +148,12 @@ function TeacherEventProgressBar({ progress, queue, controller, onBulkAction }: 
         }] : [])
     ];
 
+    const counts = { completed, planned, tbc, uncompleted };
+
     return (
         <div className="flex items-center w-full gap-3 relative">
-            <div className="flex-1 h-1 bg-muted/50 rounded-full overflow-hidden">
-                <div
-                    className="h-full transition-all duration-500 ease-out rounded-full"
-                    style={{ background, width: "100%" }}
-                />
+            <div className="flex-1 rounded-full overflow-hidden">
+                <ClassboardProgressBar durationMinutes={total} counts={counts} />
             </div>
              
              {/* Clickable Progress Label acting as Dropdown Trigger */}
@@ -366,6 +354,7 @@ export default function TeacherClassCard({
         let completed = 0;
         let planned = 0;
         let tbc = 0;
+        let uncompleted = 0;
         const eventIds: string[] = [];
 
         events.forEach((event) => {
@@ -378,15 +367,18 @@ export default function TeacherClassCard({
                 planned += duration;
             } else if (event.eventData.status === "tbc") {
                 tbc += duration;
+            } else if (event.eventData.status === "uncompleted") {
+                uncompleted += duration;
             }
         });
 
-        const total = completed + planned + tbc;
+        const total = completed + planned + tbc + uncompleted;
 
         return {
             completed,
             planned,
             tbc,
+            uncompleted,
             total,
             eventIds,
         };
@@ -430,30 +422,19 @@ export default function TeacherClassCard({
 
     // Collapsed view - single line
     if (!isExpanded) {
-        // Create synthetic lessons from eventProgress for progress bar
-        // eventProgress already has completed, planned, tbc durations calculated
-        const syntheticLessons = [
-            {
-                events: [
-                    // Completed events
-                    ...Array(completedCount).fill(null).map((_, i) => ({
-                        status: "completed",
-                        duration: Math.floor(eventProgress.completed / Math.max(completedCount, 1))
-                    })),
-                    // Pending events
-                    ...Array(pendingCount).fill(null).map((_, i) => ({
-                        status: "planned",
-                        duration: Math.floor(eventProgress.planned / Math.max(pendingCount, 1))
-                    }))
-                ]
-            }
-        ];
+        // Create counts object from eventProgress for ClassboardProgressBar
+        const counts = {
+            completed: eventProgress.completed,
+            planned: eventProgress.planned,
+            tbc: eventProgress.tbc,
+            uncompleted: eventProgress.uncompleted
+        };
 
         return (
             <div
                 className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200"
             >
-                {<ClassboardProgressBar lessons={syntheticLessons as any} durationMinutes={eventProgress.total} />}
+                {<ClassboardProgressBar counts={counts} durationMinutes={eventProgress.total} />}
 
                 <div
                     onClick={handleHeaderClick}
