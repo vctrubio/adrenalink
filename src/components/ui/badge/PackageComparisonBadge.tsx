@@ -5,6 +5,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { formatDate } from "@/getters/date-getter";
 
 interface PackageComparisonBadgeProps {
     categoryEquipment?: string | null;
@@ -13,31 +14,37 @@ interface PackageComparisonBadgeProps {
     packageDurationHours: number;
     pricePerHour: number;
     currencySymbol: string;
+    startDate?: string | Date;
+    endDate?: string | Date;
 }
 
-export function PackageComparisonBadge({
-    categoryEquipment,
-    equipmentCapacity,
-    studentCapacity,
-    packageDurationHours,
+export function PackageComparisonBadge({ 
+    categoryEquipment, 
+    equipmentCapacity, 
+    studentCapacity, 
+    packageDurationHours, 
     pricePerHour,
-    currencySymbol
+    currencySymbol,
+    startDate,
+    endDate
 }: PackageComparisonBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
 
     const studentColor = studentEntity.color;
-    
     const equipmentColor = equipmentConfig?.color || "#a855f7";
     const equipmentBg = equipmentConfig?.bgColor || "#f3e8ff";
     const CategoryIcon = equipmentConfig?.icon;
     
-    // Colors
     const studentBg = "#dbeafe"; 
     const priceColor = "#f97316"; 
     const priceBg = "#ffedd5"; 
-    const bookingColor = "#3b82f6"; // blue-500
-    const bookingBg = "#dbeafe"; // blue-100
+    const bookingColor = "#3b82f6";
+    const bookingBg = "#dbeafe";
+
+    const diffDays = startDate && endDate 
+        ? Math.ceil(Math.abs(new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
 
     return (
         <div className="flex flex-wrap items-center gap-6">
@@ -45,7 +52,7 @@ export function PackageComparisonBadge({
             {equipmentCapacity > 0 && CategoryIcon && (
                 <div className="relative group" title="Equipment">
                     <div 
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm"
                         style={{ backgroundColor: equipmentBg }}
                     >
                         <div style={{ color: equipmentColor }}>
@@ -63,7 +70,7 @@ export function PackageComparisonBadge({
             {/* Student */}
             <div className="relative group" title="Students">
                 <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm"
                     style={{ backgroundColor: studentBg }}
                 >
                     <div style={{ color: studentColor }}>
@@ -77,10 +84,10 @@ export function PackageComparisonBadge({
                 )}
             </div>
 
-            {/* Duration (Booking) */}
-            <div className="flex items-center gap-3 group" title="Duration">
+            {/* Booking Dates & Duration */}
+            <div className="flex items-center gap-3 group" title="Booking Dates">
                 <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm"
                     style={{ backgroundColor: bookingBg }}
                 >
                     <div style={{ color: bookingColor }}>
@@ -88,8 +95,12 @@ export function PackageComparisonBadge({
                     </div>
                 </div>
                 <div className="flex flex-col leading-none">
-                    <span className="text-sm font-black text-zinc-700 dark:text-zinc-200">{packageDurationHours}</span>
-                    <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Hours</span>
+                    <span className="text-sm font-black text-zinc-700 dark:text-zinc-200">
+                        {startDate ? formatDate(new Date(startDate)) : `${packageDurationHours}h`}
+                    </span>
+                    <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                        {startDate && endDate ? `+${diffDays} ${diffDays === 1 ? "Day" : "Days"}` : "Duration"}
+                    </span>
                 </div>
             </div>
 
@@ -97,7 +108,7 @@ export function PackageComparisonBadge({
             {pricePerHour > 0 && (
                 <div className="flex items-center gap-3 group" title="Price Per Hour">
                     <div 
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm"
                         style={{ backgroundColor: priceBg }}
                     >
                         <div style={{ color: priceColor }}>

@@ -15,7 +15,7 @@ interface ClassboardRealtimeSyncProps {
  * Optimized to only update affected bookings instead of rebuilding everything
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
-    const { setClassboardModel, clearOptimisticEvents, optimisticEvents } = useClassboardContext();
+    const { setClassboardModel, optimisticEvents, setOptimisticEvents } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -23,6 +23,17 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
 
     const handleEventDetected = useCallback((newData: ClassboardModel) => {
         console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
+
+        // Identify which lessons now have real events
+        const lessonsWithRealEvents = new Set<string>();
+        newData.forEach((booking) => {
+            booking.lessons.forEach((lesson) => {
+                if ((lesson.events || []).length > 0) {
+                    lessonsWithRealEvents.add(lesson.id);
+                    console.log(`  ✅ Real event added to lesson: ${lesson.id}`);
+                }
+            });
+        });
 
         // Incremental update: merge new data with existing data
         setClassboardModel((prevModel) => {
@@ -46,20 +57,25 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             return updatedModel;
         });
 
-        // Clear optimistic events that now exist in the real data
-        const allRealEventIds = new Set<string>();
-        newData.forEach((booking) => {
-            booking.lessons.forEach((lesson) => {
-                (lesson.events || []).forEach((event) => {
-                    allRealEventIds.add(event.id);
-                });
-            });
-        });
+        // Selectively remove optimistic events that have been confirmed by real events
+        setOptimisticEvents((prev) => {
+            const updated = new Map(prev);
+            let clearedCount = 0;
 
-        // Only clear optimistic events that have been confirmed
-        clearOptimisticEvents();
-        console.log(`  🧹 Cleared optimistic events (${optimisticEvents.size} pending)`);
-    }, [setClassboardModel, clearOptimisticEvents, optimisticEvents]);
+            updated.forEach((event, key) => {
+                if (lessonsWithRealEvents.has(event.lessonId)) {
+                    updated.delete(key);
+                    clearedCount++;
+                    console.log(`  🗑️ Removed optimistic event: ${key}`);
+                }
+            });
+
+            if (clearedCount > 0) {
+                console.log(`  🧹 Cleared ${clearedCount} optimistic event(s) that now have real events`);
+            }
+            return updated;
+        });
+    }, [setClassboardModel, setOptimisticEvents]);
 
     const handleNewBookingDetected = useCallback(async (bookingId: string) => {
         console.log(`🔔 [ClassboardRealtimeSync] New booking detected: ${bookingId}`);

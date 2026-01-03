@@ -547,6 +547,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
 
         // Optimistic updates
         optimisticEvents,
+        setOptimisticEvents,
         clearOptimisticEvents,
         getEventCardStatus,
 

@@ -52,6 +52,7 @@ interface ClassboardContextType {
 
     // Optimistic updates
     optimisticEvents: Map<string, OptimisticEvent>;
+    setOptimisticEvents: (events: Map<string, OptimisticEvent> | ((prev: Map<string, OptimisticEvent>) => Map<string, OptimisticEvent>)) => void;
     clearOptimisticEvents: () => void;
     getEventCardStatus: (eventId: string) => EventCardStatus | undefined;
 
