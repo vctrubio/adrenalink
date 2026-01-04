@@ -4,7 +4,7 @@ import type { BookingModel } from "@/backend/models";
 import { BookingStats as BookingStatsGetter } from "@/getters/bookings-getter";
 import { createStat } from "@/src/components/databoard/stats/stat-factory";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
 
@@ -57,7 +57,9 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const lessons = booking.relations?.lessons || [];
     const studentPackage = booking.relations?.studentPackage;
     const totalMinutes = studentPackage?.schoolPackage?.durationMinutes || 0;
-    const progressBar = getBookingProgressBar(lessons, totalMinutes);
+    const bookingEvents = lessons.flatMap((lesson) => lesson.events || []);
+    const counts = getEventStatusCounts(bookingEvents as any);
+    const progressBar = { background: getProgressColor(counts, totalMinutes) };
 
     const allEvents = lessons.flatMap((lesson) => lesson.events || []);
     const usedMinutes = allEvents.reduce((sum, event) => sum + (event.duration || 0), 0);

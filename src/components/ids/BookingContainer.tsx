@@ -6,7 +6,7 @@ import { User } from "lucide-react";
 import type { BookingModel } from "@/backend/models";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { getBookingDays } from "@/getters/bookings-getter";
 import { getPackageRevenue } from "@/getters/school-packages-getter";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -415,7 +415,9 @@ export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStu
         return <div className="p-4 text-destructive">Error: School package not found</div>;
     }
 
-    const progressBar = getBookingProgressBar(lessons, schoolPackage.durationMinutes);
+    const bookingEvents = lessons.flatMap((lesson) => lesson.events || []);
+    const counts = getEventStatusCounts(bookingEvents as any);
+    const progressBar = { background: getProgressColor(counts, schoolPackage.durationMinutes) };
 
     const totalMinutesUsed = lessons.reduce((sum, lesson) => {
         const lessonMinutes = lesson.events?.reduce((acc, event) => acc + (event.duration || 0), 0) || 0;

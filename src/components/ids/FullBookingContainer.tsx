@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG } from "@/types/status";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 import { formatDate } from "@/getters/date-getter";
@@ -179,7 +179,9 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     }
 
     // Calculate progress bar
-    const progressBar = getBookingProgressBar(lessons as any, schoolPackage.durationMinutes);
+    const bookingEvents = lessons.flatMap((lesson) => lesson.events || []);
+    const counts = getEventStatusCounts(bookingEvents as any);
+    const progressBar = { background: getProgressColor(counts, schoolPackage.durationMinutes) };
     const usedMinutes = lessons.reduce((sum, lesson) => {
         const lessonMinutes = lesson.events?.reduce((acc, event) => acc + (event.duration || 0), 0) || 0;
         return sum + lessonMinutes;

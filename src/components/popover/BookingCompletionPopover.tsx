@@ -2,7 +2,7 @@
 
 import { RowPopover, type PopoverItem } from "@/src/components/ui/row";
 import { canBookingBeCompleted } from "@/getters/bookings-getter";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import BookingToCompleteIcon from "@/public/appSvgs/BookingToCompleteIcon";
@@ -29,7 +29,13 @@ export const BookingCompletionPopover = ({ booking }: BookingCompletionPopoverPr
     }
 
     const packageInfo = getPackageInfo(schoolPackage, lessons);
-    const progressBarStyle = getBookingProgressBar(lessons, packageInfo.durationMinutes);
+    const bookingEvents = lessons.flatMap((l) => l.events || []);
+    const counts = getEventStatusCounts(bookingEvents as any);
+    const progressBarStyle = getProgressColor(counts, packageInfo.durationMinutes);
+
+    const totalUsedMinutes = (counts.completed || 0) + (counts.uncompleted || 0) + (counts.planned || 0) + (counts.tbc || 0);
+    const denominator = totalUsedMinutes > packageInfo.durationMinutes ? totalUsedMinutes : packageInfo.durationMinutes;
+    const completedEnd = denominator > 0 ? (counts.completed / denominator) * 100 : 0;
 
     const popoverItems: PopoverItem[] = [{
         id: booking.schema.id,
@@ -38,9 +44,9 @@ export const BookingCompletionPopover = ({ booking }: BookingCompletionPopoverPr
         label: (
             <div className="w-full">
                 <div className="text-xs font-medium mb-1">Booking Progress</div>
-                <div className="h-2 w-full rounded-full overflow-hidden" style={progressBarStyle} />
+                <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: progressBarStyle }} />
                 <div className="text-xs text-muted-foreground mt-1">
-                    {Math.round(progressBarStyle.completedEnd)}% Complete
+                    {Math.round(completedEnd)}% Complete
                 </div>
             </div>
         ),

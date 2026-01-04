@@ -6,7 +6,7 @@ export interface PopoverItem {
     id: string;
     icon: ReactNode;
     color: string;
-    label?: string;
+    label?: ReactNode | string;
 }
 
 interface RowPopoverProps {

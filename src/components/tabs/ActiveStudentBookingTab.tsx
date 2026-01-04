@@ -9,7 +9,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
 import { ENTITY_DATA } from "@/config/entities";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { ActiveButtonsFooter } from "./ActiveButtonsFooter";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
@@ -326,7 +326,9 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
     const day = startDate.toLocaleDateString("en-US", { day: "numeric" });
 
     const packageInfo = getPackageInfo(bookingData.schoolPackage, bookingData.lessons);
-    const progressBarStyle = getBookingProgressBar(bookingData.lessons, packageInfo.durationMinutes);
+    const bookingEvents = bookingData.lessons.flatMap((lesson) => lesson.events || []);
+    const counts = getEventStatusCounts(bookingEvents as any);
+    const progressBarStyle = { background: getProgressColor(counts, packageInfo.durationMinutes) };
 
     const tabs: BookingTabsContent = {
         activeTab,

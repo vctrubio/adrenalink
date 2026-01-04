@@ -7,7 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { formatDate } from "@/getters/date-getter";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import { getBookingProgressBar } from "@/getters/booking-progress-getter";
+import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
@@ -127,13 +127,9 @@ function BookingCard({ booking, schoolPackage, formatCurrency, currency, referra
     const pricePerStudent = schoolPackage.schema.pricePerStudent;
 
     // Calculate booking progress for this specific booking
-    const bookingLessons = lessons.map((lesson) => ({
-        events: (lesson.events || []).map((event) => ({
-            duration: event.duration,
-            status: event.status,
-        })),
-    }));
-    const bookingProgress = getBookingProgressBar(bookingLessons as any, packageDurationMinutes);
+    const bookingEvents = lessons.flatMap((lesson) => lesson.events || []);
+    const bookingCounts = getEventStatusCounts(bookingEvents as any);
+    const bookingProgress = { background: getProgressColor(bookingCounts, packageDurationMinutes) };
 
     // Calculate used minutes for this booking
     const usedMinutes = lessons.reduce((sum, lesson) => {
@@ -281,13 +277,9 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                             <div className="space-y-3 mt-3">
                                 {bookings.map((booking) => {
                                     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-                                    const bookingLessons = (booking.lessons || []).map((lesson) => ({
-                                        events: (lesson.events || []).map((event) => ({
-                                            duration: event.duration,
-                                            status: event.status,
-                                        })),
-                                    }));
-                                    const progress = getBookingProgressBar(bookingLessons as any, packageDurationMinutes);
+                                    const bookingEvents = (booking.lessons || []).flatMap((lesson) => lesson.events || []);
+                                    const bookingCounts = getEventStatusCounts(bookingEvents as any);
+                                    const progress = { background: getProgressColor(bookingCounts, packageDurationMinutes) };
                                     const usedMins = (booking.lessons || []).reduce((sum, lesson) => {
                                         const events = lesson.events || [];
                                         return sum + events.reduce((eventSum, e) => eventSum + (e.duration || 0), 0);
