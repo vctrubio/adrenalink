@@ -35,7 +35,7 @@ export default function ClientClassboard() {
  * teacherQueues from context ensure proper re-render tracking
  */
 function ClassboardContent() {
-    const { selectedDate, setSelectedDate, teacherQueues, globalFlag, optimisticOperations } = useClassboardContext();
+    const { selectedDate, setSelectedDate, teacherQueues, globalFlag, optimisticOperations, controller, gapMinutes } = useClassboardContext();
 
     const stats = useMemo(() => {
         // Clone queues to inject optimistic events and remove deleted ones for real-time stats
@@ -111,7 +111,7 @@ function ClassboardContent() {
                         </button>
                     </div>
                 </div>
-                <ClassboardStatisticsComponent stats={stats} />
+                <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
             </div>
 
             <ClassboardContentBoard />

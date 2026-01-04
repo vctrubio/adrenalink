@@ -87,7 +87,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         });
 
         return sortedByStatus.map(node => ({ node }));
-    }, [activeQueue, optimisticOperations, selectedDate]);
+    }, [activeQueue, optimisticOperations, selectedDate, globalFlag.getRefreshKey()]);
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
@@ -155,26 +155,17 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     const handleOptimise = useCallback(async () => {
         if (!queueController) return;
 
-        // Always ensure locked mode is enabled when optimising or clicking the status button
+        // Always ensure locked mode is enabled when optimising
         if (!queueController.isLocked()) {
             controller.locked = true;
             globalFlag.triggerRefresh();
         }
 
-        const { count, affectedEventIds } = queueController.optimiseQueue();
+        // Perform local optimization (updates memory state only)
+        const { count } = queueController.optimiseQueue();
 
         if (count > 0) {
-            // Await the submit so spinner stays until server confirms
-            try {
-                const { updates } = queueController.getChanges();
-                await bulkUpdateClassboardEvents(updates, []);
-            } catch (error) {
-                console.error("❌ Failed to submit optimized queue:", error);
-                toast.error("Failed to optimize queue");
-                return;
-            }
-
-            toast.success("Optimised and Locked");
+            toast.success("Queue Optimised (Preview)");
         } else {
             toast.success("Queue Locked");
         }

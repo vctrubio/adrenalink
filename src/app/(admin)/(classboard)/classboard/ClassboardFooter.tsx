@@ -64,6 +64,20 @@ export default function ClassboardFooter() {
                         {controller.location}
                     </div>
 
+                     <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="inline-flex items-center gap-2 bg-muted/20 dark:bg-zinc-800/40 px-3 py-1 rounded-2xl text-xs font-medium">
+                            <DurationIcon size={12} className="text-muted-foreground/70" />
+                            <span className="text-muted-foreground">Gap</span>
+                            <span className="text-foreground font-semibold">{controller.gapMinutes || 0}m</span>
+                        </span>
+
+                        <span className="inline-flex items-center gap-2 bg-muted/10 dark:bg-zinc-800/30 px-3 py-1 rounded-2xl text-xs font-medium">
+                            <Zap size={12} className="text-muted-foreground/70" />
+                            <span className="text-muted-foreground">Step</span>
+                            <span className="text-foreground font-semibold">{controller.stepDuration || 15}m</span>
+                        </span>
+                     </div>
+
                      <div className="hidden md:flex items-center gap-2 text-muted-foreground font-mono text-xs">
                         <DurationIcon size={12} className="text-muted-foreground/50 mr-1" />
                         <span>1P:{getHMDuration(controller.durationCapOne)}</span>

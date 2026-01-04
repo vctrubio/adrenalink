@@ -427,10 +427,12 @@ export class QueueController {
         const oldEndMinutes = currentStartMinutes + firstEvent.eventData.duration;
         this.updateEventDateTime(firstEvent, offsetMinutes);
 
-        // Only cascade if the next event was touching (no gap)
         if (firstEvent.next) {
             const nextStartMinutes = getMinutesFromISO(firstEvent.next.eventData.date);
-            if (nextStartMinutes === oldEndMinutes) {
+            const newEndMinutes = getMinutesFromISO(firstEvent.eventData.date) + firstEvent.eventData.duration;
+            
+            // Trigger cascade if locked or if overlap occurs
+            if (this.isLocked() || newEndMinutes > nextStartMinutes) {
                 this.cascadeTimeAdjustment(firstEvent.next, offsetMinutes);
             }
         }

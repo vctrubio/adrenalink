@@ -61,6 +61,9 @@ export interface ControllerSettings {
     minDuration: number;
     maxDuration: number;
     locked?: boolean; // Locked = optimize on delete, Unlocked = respect existing times
+    locationOptions?: string[];
+    minTimeMinutes?: number;
+    maxTimeMinutes?: number;
 }
 
 /**

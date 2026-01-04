@@ -64,10 +64,11 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, queue, controller, onBulkAction }: {
+function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBulkAction }: {
     progress: EventProgress,
     queue?: TeacherQueue,
     controller?: ControllerSettings,
+    globalFlag: any,
     onBulkAction?: (ids: string[], action: "delete" | "update") => void,
 }) {
     const { completed, planned, tbc, uncompleted, total, eventIds = [] } = progress;
@@ -111,25 +112,32 @@ function TeacherEventProgressBar({ progress, queue, controller, onBulkAction }: 
         if (!queue || !controller) return;
         setIsLoading(true);
         try {
-            const result = queue.optimiseQueue(controller.gapMinutes);
-            const { updates, skipped } = result;
-
-            // Show toast for each skipped event
-            skipped.forEach((eventId) => {
-                toast.error(`Lesson couldn't fit in queue`);
-            });
-
-            if (updates.length === 0) {
-                console.log("✅ [TeacherEventProgressBar] Queue already optimised");
-                setIsDropdownOpen(false);
-                return;
+            // Use the existing QueueController from globalFlag if available
+            const qc = globalFlag.getQueueController(queue.teacher.id);
+            
+            if (qc) {
+                console.log(`🔧 [TeacherClassCard] Optimising queue locally for ${queue.teacher.username}`);
+                qc.optimiseQueue();
+                
+                if (!qc.isLocked()) {
+                    controller.locked = true;
+                    globalFlag.triggerRefresh();
+                }
+            } else {
+                // Direct Action: Submit immediately if not in edit mode
+                const result = queue.optimiseQueue(controller.gapMinutes);
+                if (result.updates.length > 0) {
+                    await bulkUpdateClassboardEvents(result.updates);
+                    toast.success("Queue Optimised");
+                } else {
+                    toast.success("Already optimised");
+                }
             }
-
-            await bulkUpdateClassboardEvents(updates);
-            console.log(`✅ [TeacherEventProgressBar] Queue optimised: ${updates.length} events updated`);
+            
             setIsDropdownOpen(false);
         } catch (error) {
             console.error("Queue optimisation failed", error);
+            toast.error("Failed to optimise queue");
         } finally {
             setIsLoading(false);
         }
@@ -259,7 +267,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
             {!hasAnyStats ? (
                 <motion.div
                     key="no-activity"
@@ -370,7 +378,7 @@ export default function TeacherClassCard({
     isSubmitting = false,
     onBulkAction
 }: TeacherClassCardProps) {
-    const { controller, optimisticOperations, selectedDate } = useClassboardContext();
+    const { controller, optimisticOperations, selectedDate, globalFlag } = useClassboardContext();
 
     const isAdjustmentMode = viewMode === "adjustment";
     const isExpanded = viewMode !== "collapsed";
@@ -381,7 +389,6 @@ export default function TeacherClassCard({
 
     // Stats calculated in real-time including optimistic operations
     const stats = useMemo(() => {
-        const baseStats = queue.getStats();
         const ops = Array.from(optimisticOperations.values());
         
         const additions = ops.filter((op): op is { type: "add"; event: any } => 
@@ -392,7 +399,7 @@ export default function TeacherClassCard({
             ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map(op => op.eventId)
         );
 
-        if (additions.length === 0 && deletions.size === 0) return baseStats;
+        if (additions.length === 0 && deletions.size === 0) return queue.getStats();
 
         // Merge logic
         const tempQ = new TeacherQueue(queue.teacher);
@@ -408,7 +415,7 @@ export default function TeacherClassCard({
         });
         
         return tempQ.getStats();
-    }, [queue, optimisticOperations, selectedDate]);
+    }, [queue, optimisticOperations, selectedDate, globalFlag.getRefreshKey()]);
 
     const equipmentCounts = useMemo(() => {
         const events = queue.getAllEvents();
@@ -443,7 +450,7 @@ export default function TeacherClassCard({
             categoryId,
             count,
         }));
-    }, [queue, optimisticOperations, selectedDate]);
+    }, [queue, optimisticOperations, selectedDate, globalFlag.getRefreshKey()]);
 
     const eventProgress = useMemo(() => {
         const events = queue.getAllEvents();
@@ -478,11 +485,10 @@ export default function TeacherClassCard({
             total,
             eventIds,
         };
-    }, [queue]);
+    }, [queue, globalFlag.getRefreshKey()]);
 
-    const events = queue.getAllEvents();
-    const completedCount = events.filter((e) => e.eventData.status === "completed").length;
-    const pendingCount = events.filter((e) => e.eventData.status !== "completed").length;
+    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue, globalFlag.getRefreshKey()]);
+    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue, globalFlag.getRefreshKey()]);
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
@@ -514,23 +520,22 @@ export default function TeacherClassCard({
     }, [isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
-    const todayEvents = useMemo(() => queue.getAllEvents(), [queue]);
+    const todayEvents = useMemo(() => queue.getAllEvents(), [queue, globalFlag.getRefreshKey()]);
 
     // Collapsed view - single line
-    if (!isExpanded) {
-        // Create counts object from eventProgress for ClassboardProgressBar
-        const counts = {
-            completed: eventProgress.completed,
-            planned: eventProgress.planned,
-            tbc: eventProgress.tbc,
-            uncompleted: eventProgress.uncompleted
-        };
+    const progressBarCounts = useMemo(() => ({
+        completed: eventProgress.completed,
+        planned: eventProgress.planned,
+        tbc: eventProgress.tbc,
+        uncompleted: eventProgress.uncompleted
+    }), [eventProgress]);
 
+    if (!isExpanded) {
         return (
             <div
                 className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200"
             >
-                {<ClassboardProgressBar counts={counts} durationMinutes={eventProgress.total} />}
+                {<ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
 
                 <div
                     onClick={handleHeaderClick}
@@ -636,6 +641,7 @@ export default function TeacherClassCard({
                             progress={eventProgress}
                             queue={queue}
                             controller={controller}
+                            globalFlag={globalFlag}
                             onBulkAction={onBulkAction}
                         />
                     </div>
