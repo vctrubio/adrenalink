@@ -36,25 +36,11 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
                         old: payload.old,
                     });
 
-                    // Extract lesson_id and booking_id from the event payload
-                    const lessonId = payload.new?.lesson_id || payload.old?.lesson_id;
-                    if (!lessonId) {
-                        console.warn("[EVENT-LISTENER] ⚠️ Cannot determine lesson_id, skipping update");
-                        return;
-                    }
-
-                    // Refetch only affected data instead of entire classboard
                     getSQLClassboardData()
                         .then((result) => {
                             if ("success" in result && result.success && result.data) {
                                 console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
-                                // Filter to include only bookings containing the affected lesson
-                                const affectedBookings = result.data.filter((b) =>
-                                    b.lessons.some((l) => l.id === lessonId)
-                                );
-                                if (affectedBookings.length > 0) {
-                                    onEventDetected(affectedBookings);
-                                }
+                                onEventDetected(result.data);
                             } else if ("error" in result) {
                                 console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
                             }
