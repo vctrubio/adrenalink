@@ -13,14 +13,14 @@ import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
 import { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 export default function ClientClassboard() {
-    const { mounted, error } = useClassboardContext();
+    const { mounted, error, schoolUsername } = useClassboardContext();
 
     if (!mounted) {
         return <ClassboardSkeleton />;
     }
 
     if (error) {
-        return <ClassboardSkeleton error={true} />;
+        return <ClassboardSkeleton error={true} errorMessage={error} schoolUsername={schoolUsername} />;
     }
 
     return (

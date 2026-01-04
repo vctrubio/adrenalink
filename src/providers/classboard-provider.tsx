@@ -34,6 +34,7 @@ interface ClassboardContextType {
     teacherQueues: TeacherQueue[];
     mounted: boolean;
     error: string | null;
+    schoolUsername: string | null;
 
     // Date selection
     selectedDate: string;
@@ -69,13 +70,15 @@ const ClassboardContext = createContext<ClassboardContextType | undefined>(undef
 
 interface ClassboardProviderProps {
     children: ReactNode;
-    initialClassboardModel: ClassboardModel;
+    initialClassboardModel: ClassboardModel | null;
+    serverError?: string | null;
+    schoolUsername?: string | null;
 }
 
-export function ClassboardProvider({ children, initialClassboardModel }: ClassboardProviderProps) {
+export function ClassboardProvider({ children, initialClassboardModel, serverError, schoolUsername }: ClassboardProviderProps) {
     console.log(`🏛️ [ClassboardProvider] Render`);
 
-    const hookValue = useClassboardFlag({ initialClassboardModel });
+    const hookValue = useClassboardFlag({ initialClassboardModel, serverError, schoolUsername });
 
     return (
         <ClassboardContext.Provider value={hookValue}>

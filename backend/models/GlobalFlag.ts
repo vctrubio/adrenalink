@@ -166,11 +166,68 @@ export class GlobalFlag {
         return this.teacherQueues;
     }
 
+    /**
+     * Detect if a queue has changed (different event count or structure)
+     */
+    private hasQueueChanged(oldQueue: TeacherQueue, newQueue: TeacherQueue): boolean {
+        const oldEvents = oldQueue.getAllEvents();
+        const newEvents = newQueue.getAllEvents();
+
+        // Different count = changed
+        if (oldEvents.length !== newEvents.length) return true;
+
+        // Check if event IDs match in same order
+        for (let i = 0; i < oldEvents.length; i++) {
+            if (oldEvents[i].id !== newEvents[i].id) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Update a single teacher's queue (granular update instead of full rebuild)
+     * If the queue changed while in adjustment mode, exit adjustment for that teacher
+     */
+    updateSingleTeacherQueue(newQueue: TeacherQueue): void {
+        const teacherId = newQueue.teacher.id;
+        const existingIndex = this.teacherQueues.findIndex((q) => q.teacher.id === teacherId);
+
+        if (existingIndex < 0) {
+            // Teacher not found, just add it
+            this.teacherQueues.push(newQueue);
+        } else {
+            // Check if this teacher is in adjustment mode
+            const isInAdjustment = this.queueControllers.has(teacherId);
+
+            if (isInAdjustment) {
+                const preservedQueue = this.queueControllers.get(teacherId)?.getQueue();
+
+                // CONFLICT DETECTION: Did the server queue change while user was editing?
+                if (preservedQueue && this.hasQueueChanged(preservedQueue, newQueue)) {
+                    console.log(`⚠️ [GlobalFlag] Queue for ${newQueue.teacher.id} changed on server - exiting adjustment mode`);
+                    // Exit adjustment for this teacher only
+                    this.optOut(teacherId);
+                    // Use fresh server data
+                    this.teacherQueues[existingIndex] = newQueue;
+                } else {
+                    // No conflict - keep the edited queue
+                    // (preservedQueue is already in teacherQueues via updateTeacherQueues)
+                }
+            } else {
+                // Not in adjustment mode - just update normally
+                this.teacherQueues[existingIndex] = newQueue;
+            }
+        }
+
+        this.refreshKey++;
+        this.triggerRefresh();
+    }
+
     updateTeacherQueues(queues: TeacherQueue[]): void {
         // Check if anything actually changed to prevent refresh loops
         const sameLength = this.teacherQueues.length === queues.length;
         const sameReferences = sameLength && this.teacherQueues.every((q, i) => q === queues[i]);
-        
+
         if (sameReferences) {
             return;
         }

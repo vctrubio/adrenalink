@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -7,10 +8,17 @@ import { ClassboardSports } from "./ClassboardSports";
 
 interface ClassboardSkeletonProps {
     error?: boolean;
+    errorMessage?: string | null;
+    schoolUsername?: string | null;
 }
 
-export const ClassboardSkeleton = ({ error }: ClassboardSkeletonProps) => {
+export const ClassboardSkeleton = ({ error, errorMessage, schoolUsername }: ClassboardSkeletonProps) => {
     const credentials = useSchoolCredentials();
+
+    // Freeze at a random category when error occurs
+    const frozenCategory = useMemo(() => {
+        return error ? Math.floor(Math.random() * 3) : undefined;
+    }, [error]);
 
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50">
@@ -45,58 +53,59 @@ export const ClassboardSkeleton = ({ error }: ClassboardSkeletonProps) => {
             >
                 {/* TEXT CONTAINER */}
                 <div className="flex flex-col items-center gap-6 w-full px-4 min-h-[140px]">
-                    {error ? (
-                        <motion.p 
+                    {error && (
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="font-bold tracking-[0.2em] text-xl uppercase text-center text-red-500"
+                            className="flex flex-col items-center gap-3"
                         >
-                            Sorry, there has been a problem...
-                        </motion.p>
-                    ) : (
-                        <>
-                            {credentials?.name ? (
-                                <>
-                                    {/* SCHOOL NAME - Bigger Text */}
-                                    <motion.p
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8 }}
-                                        className="text-4xl schools-name tracking-wide"
-                                    >
-                                        {credentials.name}&apos;s School
-                                    </motion.p>
-
-                                    {/* SPORTS */}
-                                    <motion.div 
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.2, duration: 1 }}
-                                        className="w-full"
-                                    >
-                                        <ClassboardSports animate={true} />
-                                    </motion.div>
-                                </>
-                            ) : (
-                                /* PENDING STATE */
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex flex-col items-center gap-2"
-                                >
-                                    <p className="text-muted-foreground animate-pulse tracking-widest uppercase text-sm">
-                                        Initializing School
-                                    </p>
-                                    <div className="flex gap-1">
-                                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce"></span>
-                                    </div>
-                                </motion.div>
+                            <p className="text-lg text-center text-muted-foreground">
+                                We couldn&apos;t find you
+                            </p>
+                            {schoolUsername && (
+                                <p className="font-semibold text-xl text-foreground">
+                                    {schoolUsername}
+                                </p>
                             )}
-                        </>
+                            {errorMessage && (
+                                <p className="text-xs text-center text-muted-foreground/60 max-w-md px-4 mt-2">
+                                    {errorMessage}
+                                </p>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {!error && credentials?.name && (
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="text-4xl schools-name tracking-wide"
+                        >
+                            {credentials.name}&apos;s School
+                        </motion.p>
+                    )}
+
+                    {!error && !credentials?.name && (
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-muted-foreground animate-pulse tracking-widest uppercase text-sm"
+                        >
+                            Checking the wind...
+                        </motion.p>
                     )}
                 </div>
+
+                {/* SPORTS - Always shown */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 1 }}
+                    className="w-full"
+                >
+                    <ClassboardSports animate={!error} freezeAtCategory={frozenCategory} />
+                </motion.div>
             </motion.div>
         </div>
     );

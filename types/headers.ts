@@ -93,12 +93,7 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
         } catch (error) {
             unstable_rethrow(error);
             console.error(`❌ [getSchoolHeader] Direct DB fallback failed for "${username}":`, error);
-            // In case of DB error, we still return school-not-found to indicate the context is invalid
-            return {
-                id: "none",
-                name: "school-not-found",
-                zone: "UTC"
-            };
+            return null;
         }
     }
 
@@ -106,7 +101,7 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
         if (!schoolData) {
             console.warn(`[getSchoolHeader] School "${username}" not found after both cache and DB checks.`);
         } else {
-            console.warn(`[getSchoolHeader] School "${username}" is missing a timezone.`);
+            console.warn(`[getSchoolHeader] School "${username}" is missing a timezone. Configure timezone in school settings.`);
         }
         return null;
     }

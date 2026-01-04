@@ -12,14 +12,15 @@ const SPORTS = [
 
 interface ClassboardSportsProps {
     animate?: boolean;
+    freezeAtCategory?: number;
 }
 
-export function ClassboardSports({ animate = false }: ClassboardSportsProps) {
+export function ClassboardSports({ animate = false, freezeAtCategory }: ClassboardSportsProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
     useEffect(() => {
         if (!animate) {
-            setActiveIndex(null);
+            setActiveIndex(freezeAtCategory ?? null);
             return;
         }
 

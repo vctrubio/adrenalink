@@ -6,6 +6,16 @@ export function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
+    // Early return for common assets and internal routes
+    // Reduces unnecessary processing and logging for requests that don't need subdomain context
+    if (
+        pathname.startsWith("/_next/") ||
+        pathname.startsWith("/api/") ||
+        pathname.match(/\.(js|css|woff|woff2|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp)$/)
+    ) {
+        return NextResponse.next();
+    }
+
     printf("🚀 [REQUEST START]", {
         time: new Date().toISOString(),
         method: request.method,
@@ -37,7 +47,6 @@ export function proxy(request: NextRequest) {
             return rewriteResponse;
         }
 
-        // printf("🏫 SCHOOL CONTEXT SET:", subdomainInfo.subdomain);
         console.log("REQUEST COMPLETED12:");
         return response;
     }
@@ -46,9 +55,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
 }
 
-// Only run proxy on page routes, not static assets
+// Matcher excludes static files, fonts, and images to reduce middleware invocations
+// Next.js 16 optimization: Early returns in function are more efficient than complex matchers
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+    matcher: [
+        "/((?!_next/static|_next/image|favicon.ico|apple-touch-icon.png|robots.txt|sitemap.xml).*)",
+    ],
 };
 
 export default proxy;

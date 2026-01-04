@@ -150,10 +150,12 @@ export function optimisticEventToNode(event: OptimisticEvent): EventNode {
 // ============ HOOK ============
 
 interface UseClassboardFlagProps {
-    initialClassboardModel: ClassboardModel;
+    initialClassboardModel: ClassboardModel | null;
+    serverError?: string | null;
+    schoolUsername?: string | null;
 }
 
-export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagProps) {
+export function useClassboardFlag({ initialClassboardModel, serverError, schoolUsername }: UseClassboardFlagProps) {
     const { teachers: allSchoolTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
     const renderCount = useRef(0);
     renderCount.current++;
@@ -161,7 +163,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
     // Core state
     const [clientReady, setClientReady] = useState(false);
     const [minDelayPassed, setMinDelayPassed] = useState(false);
-    const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel);
+    const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel || []);
     const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
     const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
@@ -264,16 +266,58 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             .filter((queue): queue is TeacherQueueClass => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
 
-    // Create GlobalFlag instance (stable reference)
-    const globalFlag = useMemo(() => {
-        return new GlobalFlag(teacherQueues, () => {
+    // Create GlobalFlag instance once and keep it stable (don't recreate on teacherQueues change)
+    const globalFlagRef = useRef<GlobalFlag | null>(null);
+    if (!globalFlagRef.current) {
+        globalFlagRef.current = new GlobalFlag(teacherQueues, () => {
             setFlagTick((t) => t + 1);
         });
-    }, [teacherQueues]); 
+    }
+    const globalFlag = globalFlagRef.current;
 
-    // Update GlobalFlag when dependencies change
+    // Update GlobalFlag when teacherQueues changes (granular, selective updates)
     useEffect(() => {
-        globalFlag.updateTeacherQueues(teacherQueues);
+        if (!globalFlag) return;
+
+        // Get previous queues from GlobalFlag to detect changes
+        const prevQueues = globalFlag.getTeacherQueues();
+
+        // Detect which teachers' queues changed
+        const changedTeacherIds = new Set<string>();
+
+        teacherQueues.forEach((newQueue) => {
+            const oldQueue = prevQueues.find((q) => q.teacher.id === newQueue.teacher.id);
+
+            if (!oldQueue) {
+                // New teacher
+                changedTeacherIds.add(newQueue.teacher.id);
+            } else if (oldQueue !== newQueue) {
+                // Queue reference changed (could be new events or structural change)
+                changedTeacherIds.add(newQueue.teacher.id);
+            }
+        });
+
+        // Check for removed teachers
+        prevQueues.forEach((oldQueue) => {
+            if (!teacherQueues.find((q) => q.teacher.id === oldQueue.teacher.id)) {
+                changedTeacherIds.add(oldQueue.teacher.id);
+            }
+        });
+
+        if (changedTeacherIds.size === 0) return; // No changes
+
+        // Log which teachers changed
+        if (changedTeacherIds.size > 0) {
+            console.log(`🔄 [useClassboardFlag] Queue updates detected for: ${Array.from(changedTeacherIds).join(", ")}`);
+        }
+
+        // Granular updates: only update teachers that changed
+        changedTeacherIds.forEach((teacherId) => {
+            const newQueue = teacherQueues.find((q) => q.teacher.id === teacherId);
+            if (newQueue) {
+                globalFlag.updateSingleTeacherQueue(newQueue);
+            }
+        });
     }, [teacherQueues, globalFlag]);
 
     // Sync controller with GlobalFlag on mount/change
@@ -497,7 +541,8 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         bookingsForSelectedDate,
         teacherQueues,
         mounted,
-        error: teachersError,
+        error: serverError || teachersError,
+        schoolUsername: schoolUsername || null,
         selectedDate,
         setSelectedDate,
         controller,
@@ -518,7 +563,9 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         bookingsForSelectedDate,
         teacherQueues,
         mounted,
+        serverError,
         teachersError,
+        schoolUsername,
         selectedDate,
         setSelectedDate,
         controller,

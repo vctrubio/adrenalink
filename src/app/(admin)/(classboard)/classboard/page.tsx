@@ -1,24 +1,20 @@
+import { headers } from "next/headers";
 import { getSQLClassboardData } from "@/supabase/server/classboard";
 import { ClassboardProvider } from "@/src/providers/classboard-provider";
 import ClientClassboard from "../ClientClassboard";
 
 export default async function ClassBoardPage() {
     const result = await getSQLClassboardData();
-
-    if (!result.success) {
-        return (
-            <div className="h-full mx-auto max-w-[2699px] flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-xl font-bold mb-2">Class Board Error</h1>
-                    <p className="text-red-500">Error: {result.error}</p>
-                </div>
-            </div>
-        );
-    }
+    const headersList = await headers();
+    const schoolUsername = headersList.get("x-school-username");
 
     return (
         <div className="h-full mx-auto max-w-[2699px]">
-            <ClassboardProvider initialClassboardModel={result.data}>
+            <ClassboardProvider
+                initialClassboardModel={result.success ? result.data : null}
+                serverError={result.success ? null : result.error}
+                schoolUsername={schoolUsername}
+            >
                 <ClientClassboard />
             </ClassboardProvider>
         </div>
