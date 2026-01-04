@@ -13,13 +13,12 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
  * ClassboardFooter - Reads controller from GlobalFlag (single source of truth)
  */
 export default function ClassboardFooter() {
-    const { globalFlag } = useClassboardContext();
+    const { globalFlag, setController } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
     // Get controller from GlobalFlag (single source of truth)
     const controller = globalFlag.getController();
-    const setController = (newController: ControllerSettings) => globalFlag.updateController(newController);
 
     console.log(`🔧 [ClassboardFooter] Render #${renderCount.current} | Gap: ${controller.gapMinutes}min`);
 

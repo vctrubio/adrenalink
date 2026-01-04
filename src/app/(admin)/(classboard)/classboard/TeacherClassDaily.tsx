@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
@@ -11,23 +12,14 @@ import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 const TEACHER_COLOR = "#16a34a";
 
 type TeacherFilter = "active" | "all";
-
-/**
- * TeacherClassDaily - Displays teacher queues in a list
- * Teachers are never removed, just filtered by "active" (has events) vs "all"
- *
- * Reads teacherQueues from hook context for proper re-render tracking
- * Gets gapMinutes from GlobalFlag (single source of truth)
- */
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag, optimisticEvents, optimisticDeletions, selectedDate } = useClassboardContext();
+    // ... (existing hook logic) ...
+    const { teacherQueues, draggedBooking, globalFlag, optimisticOperations, selectedDate } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
-
-    console.log(`🏫 [TeacherClassDaily] Render #${renderCount.current} | Queues: ${teacherQueues.length} | Gap: ${gapMinutes}min`);
 
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [collapsedTeachers, setCollapsedTeachers] = useState<Set<string>>(new Set());
@@ -50,14 +42,15 @@ export default function TeacherClassDaily() {
         const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
+            const ops = Array.from(optimisticOperations.values());
+            const relevantDeletions = new Set(ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId));
+
             // Check real events, filtering out optimistic deletions
-            const events = queue.getAllEvents().filter(e => !optimisticDeletions.has(e.id));
+            const events = queue.getAllEvents().filter((e) => !relevantDeletions.has(e.id));
             const hasRealEvents = events.length > 0;
-            
+
             // Check if teacher has any optimistic events for this date
-            const hasOptimisticEvents = Array.from(optimisticEvents.values()).some(
-                opt => opt.teacherId === queue.teacher.id && opt.date.startsWith(selectedDate)
-            );
+            const hasOptimisticEvents = ops.some((op) => op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate));
 
             if (hasRealEvents || hasOptimisticEvents) {
                 activeQueues.push(queue);
@@ -69,13 +62,11 @@ export default function TeacherClassDaily() {
             all: allQueues.length,
         };
 
-        console.log(`👨‍🏫 [TeacherClassDaily] Filter: "${filter}" | Active: ${counts.active}/${counts.all} teachers with events`);
-
         return {
             filteredQueues: filter === "active" ? activeQueues : allQueues,
             counts,
         };
-    }, [teacherQueues, filter, optimisticEvents, optimisticDeletions, selectedDate]);
+    }, [teacherQueues, filter, optimisticOperations, selectedDate]);
 
     return (
         <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>
@@ -86,47 +77,87 @@ export default function TeacherClassDaily() {
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSwitch
-                        value={filter}
-                        onChange={(newFilter) => {
-                            console.log("🔄 [TeacherClassDaily] Filter changed to:", newFilter);
-                            setFilter(newFilter as TeacherFilter);
-                        }}
-                        values={{ left: "active", right: "all" }}
-                        counts={counts}
-                        tintColor={TEACHER_COLOR}
-                    />
+                    <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} values={{ left: "active", right: "all" }} counts={counts} tintColor={TEACHER_COLOR} />
                 </div>
             </div>
 
-            {/* Teacher List Content */}
-            <div className="overflow-auto flex-1 min-h-0">
-                <div className="p-2 bg-card">
-                    <div className="flex flex-col divide-y-2 divide-background">
-                        {filteredQueues.length > 0 ? (
-                            filteredQueues.map((queue, index) => {
-                                const isCollapsed = collapsedTeachers.has(queue.teacher.id);
-                                const queueController = globalFlag.getQueueController(queue.teacher.id);
-                                const isAdjustmentMode = !!queueController;
-                                const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+                                    {/* Teacher List Content */}
 
-                                return (
-                                    <div key={index} className={"py-2 transition-colors"}>
-                                        <TeacherQueueRow
-                                            queue={queue}
-                                            viewMode={viewMode}
-                                            isCollapsed={isCollapsed}
-                                            onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
-                                        />
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <div className="flex items-center justify-center w-full h-16 text-xs text-muted-foreground/20">No {filter} teachers</div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                                    <div className="overflow-auto flex-1 min-h-0">
+
+                                        <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
+
+                                            <div className="flex flex-col divide-y-2 divide-background">
+
+                                                <AnimatePresence mode="popLayout" initial={false}>
+
+                                        {filteredQueues.length > 0 && 
+
+                                            filteredQueues.map((queue) => {
+
+                                                const isCollapsed = collapsedTeachers.has(queue.teacher.id);
+
+                                                const queueController = globalFlag.getQueueController(queue.teacher.id);
+
+                                                const isAdjustmentMode = !!queueController;
+
+                                                const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+
+            
+
+                                                return (
+
+                                                    <motion.div 
+
+                                                        layout="position"
+
+                                                        key={queue.teacher.id} 
+
+                                                        initial={{ opacity: 0, y: 10 }}
+
+                                                        animate={{ opacity: 1, y: 0 }}
+
+                                                        exit={{ opacity: 0, y: -10 }}
+
+                                                        transition={{ 
+
+                                                            duration: 0.6, 
+
+                                                            ease: [0.22, 1, 0.36, 1] 
+
+                                                        }}
+
+                                                        className="py-2 transition-colors"
+
+                                                    >
+
+                                                        <TeacherQueueRow
+
+                                                            queue={queue}
+
+                                                            viewMode={viewMode}
+
+                                                            isCollapsed={isCollapsed}
+
+                                                            onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
+
+                                                        />
+
+                                                    </motion.div>
+
+                                                );
+
+                                            })
+
+                                        }
+
+                                    </AnimatePresence>
+
+                                </div>
+
+                            </div>
+
+                        </div>
         </div>
     );
 }

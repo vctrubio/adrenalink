@@ -1,10 +1,11 @@
 "use client";
 
-import { ReactNode, useCallback, useRef } from "react";
+import { ReactNode, useCallback, useRef, useEffect } from "react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
+import toast from "react-hot-toast";
 
 interface ClassboardRealtimeSyncProps {
     children: ReactNode;
@@ -15,11 +16,41 @@ interface ClassboardRealtimeSyncProps {
  * Optimized to only update affected bookings instead of rebuilding everything
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
-    const { setClassboardModel, optimisticEvents, setOptimisticEvents } = useClassboardContext();
+    const { setClassboardModel, optimisticOperations, setOptimisticOperations, classboardModel } = useClassboardContext();
     const renderCount = useRef(0);
+    const modelRef = useRef(classboardModel);
+    modelRef.current = classboardModel; // Keep ref updated
+
     renderCount.current++;
 
     console.log(`🔄 [ClassboardRealtimeSync] Render #${renderCount.current}`);
+
+    // Monitor connectivity status
+    useEffect(() => {
+        const handleOffline = () => {
+            console.log("🔌 [ClassboardRealtimeSync] Connection lost");
+            toast.error("Connection lost. Realtime sync paused.", {
+                id: "connection-status",
+                duration: 5000,
+            });
+        };
+
+        const handleOnline = () => {
+            console.log("🔌 [ClassboardRealtimeSync] Back online");
+            toast.success("Back online. Resuming sync.", {
+                id: "connection-status",
+                duration: 3000,
+            });
+        };
+
+        window.addEventListener("offline", handleOffline);
+        window.addEventListener("online", handleOnline);
+
+        return () => {
+            window.removeEventListener("offline", handleOffline);
+            window.removeEventListener("online", handleOnline);
+        };
+    }, []);
 
     const handleEventDetected = useCallback((newData: ClassboardModel) => {
         console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
@@ -30,52 +61,66 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             booking.lessons.forEach((lesson) => {
                 if ((lesson.events || []).length > 0) {
                     lessonsWithRealEvents.add(lesson.id);
-                    console.log(`  ✅ Real event added to lesson: ${lesson.id}`);
                 }
             });
         });
 
-        // Incremental update: merge new data with existing data
-        setClassboardModel((prevModel) => {
-            const updatedModel = [...prevModel];
+        // 1. Calculate the new model state based on current ref
+        const prevModel = modelRef.current;
+        const updatedModel = [...prevModel];
 
-            // For each booking in newData, update or add it to the model
-            newData.forEach((newBooking) => {
-                const existingIndex = updatedModel.findIndex((b) => b.booking.id === newBooking.booking.id);
-
-                if (existingIndex >= 0) {
-                    // Replace existing booking with updated version
-                    updatedModel[existingIndex] = newBooking;
-                    console.log(`  ♻️ Updated booking: ${newBooking.booking.leaderStudentName}`);
-                } else {
-                    // Add new booking
-                    updatedModel.push(newBooking);
-                    console.log(`  ➕ Added new booking: ${newBooking.booking.leaderStudentName}`);
-                }
-            });
-
-            return updatedModel;
+        newData.forEach((newBooking) => {
+            const existingIndex = updatedModel.findIndex((b) => b.booking.id === newBooking.booking.id);
+            if (existingIndex >= 0) {
+                updatedModel[existingIndex] = newBooking;
+            } else {
+                updatedModel.push(newBooking);
+            }
         });
 
-        // Selectively remove optimistic events that have been confirmed by real events
-        setOptimisticEvents((prev) => {
+        // 2. Update the model state
+        setClassboardModel(updatedModel);
+
+        // 3. Clean up optimistic operations (both add and delete)
+        setOptimisticOperations((prev) => {
+            if (prev.size === 0) return prev;
+            
             const updated = new Map(prev);
             let clearedCount = 0;
 
-            updated.forEach((event, key) => {
-                if (lessonsWithRealEvents.has(event.lessonId)) {
-                    updated.delete(key);
-                    clearedCount++;
-                    console.log(`  🗑️ Removed optimistic event: ${key}`);
+            // Check for additions cleanup
+            updated.forEach((op, key) => {
+                if (op.type === "add") {
+                    if (lessonsWithRealEvents.has(op.event.lessonId)) {
+                        updated.delete(key);
+                        clearedCount++;
+                    }
+                }
+            });
+
+            // Check for deletions cleanup
+            // Collect all current event IDs from the updated model
+            const allEventIds = new Set<string>();
+            updatedModel.forEach(b => b.lessons.forEach(l => (l.events || []).forEach(e => allEventIds.add(e.id))));
+
+            updated.forEach((op, key) => {
+                if (op.type === "delete") {
+                    // If the event ID is NOT in the updated model, the deletion is confirmed
+                    if (!allEventIds.has(op.eventId)) {
+                        updated.delete(key);
+                        clearedCount++;
+                    }
                 }
             });
 
             if (clearedCount > 0) {
-                console.log(`  🧹 Cleared ${clearedCount} optimistic event(s) that now have real events`);
+                console.log(`  🧹 Cleared ${clearedCount} optimistic operation(s)`);
             }
-            return updated;
+            
+            return updated.size !== prev.size ? updated : prev;
         });
-    }, [setClassboardModel, setOptimisticEvents]);
+
+    }, [setClassboardModel, setOptimisticOperations]);
 
     const handleNewBookingDetected = useCallback(async (bookingId: string) => {
         console.log(`🔔 [ClassboardRealtimeSync] New booking detected: ${bookingId}`);

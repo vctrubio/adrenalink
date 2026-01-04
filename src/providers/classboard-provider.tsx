@@ -15,6 +15,7 @@ import {
     optimisticEventToNode,
     type OptimisticEvent,
     type EventCardStatus,
+    type OptimisticOperation,
 } from "@/src/hooks/useClassboardFlag";
 import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
@@ -24,7 +25,7 @@ import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueContro
 
 // Re-export for backwards compatibility
 export { optimisticEventToNode };
-export type { OptimisticEvent, EventCardStatus };
+export type { OptimisticEvent, EventCardStatus, OptimisticOperation };
 
 interface ClassboardContextType {
     // Data
@@ -32,6 +33,7 @@ interface ClassboardContextType {
     bookingsForSelectedDate: ClassboardData[];
     teacherQueues: TeacherQueue[];
     mounted: boolean;
+    error: string | null;
 
     // Date selection
     selectedDate: string;
@@ -50,10 +52,10 @@ interface ClassboardContextType {
     addLessonEvent: (bookingData: ClassboardData, lessonId: string) => Promise<void>;
     deleteEvent: (eventId: string, cascade: boolean, queueController?: QueueController) => Promise<void>;
 
-    // Optimistic updates
-    optimisticEvents: Map<string, OptimisticEvent>;
-    setOptimisticEvents: (events: Map<string, OptimisticEvent> | ((prev: Map<string, OptimisticEvent>) => Map<string, OptimisticEvent>)) => void;
-    clearOptimisticEvents: () => void;
+    // Optimistic updates (Unified)
+    optimisticOperations: Map<string, OptimisticOperation>;
+    setOptimisticOperations: (ops: Map<string, OptimisticOperation> | ((prev: Map<string, OptimisticOperation>) => Map<string, OptimisticOperation>)) => void;
+    clearOptimisticOperations: () => void;
     getEventCardStatus: (eventId: string) => EventCardStatus | undefined;
 
     // Global flag

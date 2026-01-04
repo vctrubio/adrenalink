@@ -1,5 +1,5 @@
 import React from "react";
-import { Lock, LockOpen } from "lucide-react";
+import { Lock, LockOpen, Check, Zap } from "lucide-react";
 
 interface LockMutationQueueProps {
     isLocked: boolean;
@@ -11,14 +11,10 @@ interface LockMutationQueueProps {
 }
 
 /**
- * LockMutationQueue - Combined optimization status and lock toggle
+ * LockMutationQueue - Consolidated single-row adjustment controls
  * 
- * Shows:
- * - x/y Optimised status (clickable to optimize)
- * - Lock/Unlock toggle (only enabled when optimised)
- * 
- * When locked: Mutations will ALWAYS cascade (maintain linked list)
- * When unlocked: Mutations respect times (only cascade on overlap)
+ * Left: Optimisation ratio and status (clickable to optimize)
+ * Right: Lock/Unlock toggle (enabled when optimised)
  */
 export function LockMutationQueue({
     isLocked,
@@ -29,66 +25,47 @@ export function LockMutationQueue({
     className = "",
 }: LockMutationQueueProps) {
     return (
-        <div className={`space-y-2 ${className}`}>
-            {/* Optimisation Status Button */}
+        <div className={`flex items-stretch gap-1.5 h-9 ${className}`}>
+            {/* Left: Optimisation Status / Action */}
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     onOptimise();
                 }}
-                disabled={isOptimised}
-                className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
-                    isOptimised
-                        ? "bg-green-500/10 border-green-500/30 cursor-default"
-                        : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 active:scale-95 cursor-pointer"
+                disabled={isOptimised && isLocked}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 rounded-xl border transition-all duration-200 ${
+                    isOptimised && isLocked
+                        ? "bg-green-500/10 border-green-500/30 text-green-500/80 cursor-default"
+                        : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-500 active:scale-95 cursor-pointer shadow-sm"
                 }`}
             >
-                <svg
-                    className={`w-4 h-4 ${isOptimised ? "text-green-500" : "text-blue-500"}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    {isOptimised ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    )}
-                </svg>
-                <span className={`text-xs font-bold ${isOptimised ? "text-green-500" : "text-blue-500"}`}>
+                {isOptimised ? (
+                    <Check size={14} className="shrink-0" />
+                ) : (
+                    <Zap size={14} className="shrink-0 fill-current" />
+                )}
+                <span className="text-[10px] font-black uppercase tracking-wider">
                     {optimisationStats.adjusted}/{optimisationStats.total} Optimised
                 </span>
             </button>
 
-            {/* Lock/Unlock Toggle */}
+            {/* Right: Lock Toggle */}
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     onToggle();
                 }}
                 disabled={!isOptimised}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 border ${
+                className={`w-11 flex items-center justify-center rounded-xl transition-all duration-200 border ${
                     !isOptimised
                         ? "bg-muted/30 text-muted-foreground/30 border-transparent cursor-not-allowed"
                         : isLocked
                             ? "bg-cyan-600 text-white border-cyan-700 shadow-md hover:bg-cyan-700 active:scale-95 cursor-pointer"
                             : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
                 }`}
-                title={
-                    !isOptimised
-                        ? "Queue must be optimised first"
-                        : isLocked
-                            ? "Locked: Mutations cascade (linked list maintained)"
-                            : "Unlocked: Mutations respect times (cascade only on overlap)"
-                }
+                title={isLocked ? "Locked: Changes cascade" : "Unlocked: Respect times"}
             >
-                <div className="flex items-center gap-2">
-                    {isLocked ? <Lock size={16} className="flex-shrink-0" /> : <LockOpen size={16} className="flex-shrink-0" />}
-                    <span className="text-xs font-bold uppercase tracking-wider">{isLocked ? "Locked" : "Unlocked"}</span>
-                </div>
-                <span className={`text-[10px] font-medium ${isLocked ? "text-cyan-100" : "text-muted-foreground/70"}`}>
-                    {isLocked ? "Cascade changes" : "Respect times"}
-                </span>
+                {isLocked ? <Lock size={16} /> : <LockOpen size={16} />}
             </button>
         </div>
     );

@@ -396,6 +396,8 @@ export class GlobalFlag {
         });
 
         this.isLockedTime = true;
+        this.controller.locked = true;
+        this.globalCascadeMode = true;
         this.refreshKey++;
     }
 
@@ -405,9 +407,12 @@ export class GlobalFlag {
     }
 
     adjustLocation(newLocation: string): void {
-        this.queueControllers.forEach((qc) => {
-            qc.setAllEventsLocation(newLocation);
-        });
+        // Only propagate location change to queues if global location lock is ON
+        if (this.isLockedLocation) {
+            this.queueControllers.forEach((qc) => {
+                qc.setAllEventsLocation(newLocation);
+            });
+        }
 
         this.globalLocation = newLocation;
         this.refreshKey++;
@@ -520,8 +525,12 @@ export class GlobalFlag {
             qc.optimiseQueue();
         });
 
+        // Fully lock the state after optimization
+        this.isLockedTime = true;
+        this.isLockedLocation = true;
         this.controller.locked = true;
         this.globalCascadeMode = true;
+        
         this.refreshKey++;
     }
 

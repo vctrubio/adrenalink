@@ -31,6 +31,10 @@ export class TeacherQueue {
      * Called when building queue from existing database events
      */
     constructEvents(eventNode: EventNode): void {
+        // IMPORTANT: Clear pointers to prevent cycles if node is being reused/cloned
+        eventNode.next = null;
+        eventNode.prev = null;
+
         const eventStartMinutes = this.getStartTimeMinutes(eventNode);
 
         if (!this.head) {
@@ -42,6 +46,7 @@ export class TeacherQueue {
         const firstEventStartMinutes = this.getStartTimeMinutes(this.head);
         if (eventStartMinutes < firstEventStartMinutes) {
             eventNode.next = this.head;
+            this.head.prev = eventNode; // Maintain doubly linked list
             this.head = eventNode;
             return;
         }
@@ -52,6 +57,8 @@ export class TeacherQueue {
             const nextEventStartMinutes = this.getStartTimeMinutes(current.next);
             if (eventStartMinutes < nextEventStartMinutes) {
                 eventNode.next = current.next;
+                eventNode.prev = current;
+                current.next.prev = eventNode;
                 current.next = eventNode;
                 return;
             }
@@ -60,6 +67,7 @@ export class TeacherQueue {
 
         // Add at end
         current.next = eventNode;
+        eventNode.prev = current;
     }
 
     /**
@@ -68,17 +76,18 @@ export class TeacherQueue {
      */
     rebuildQueue(events: EventNode[]): void {
         this.head = null;
+        let prev: EventNode | null = null;
+
         events.forEach((event) => {
             event.next = null;
+            event.prev = prev;
+
             if (!this.head) {
                 this.head = event;
-            } else {
-                let current = this.head;
-                while (current.next) {
-                    current = current.next;
-                }
-                current.next = event;
+            } else if (prev) {
+                prev.next = event;
             }
+            prev = event;
         });
     }
 

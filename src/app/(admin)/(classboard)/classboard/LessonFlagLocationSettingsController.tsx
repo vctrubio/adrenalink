@@ -273,28 +273,30 @@ export default function LessonFlagLocationSettingsController() {
 
                 <button
                     onClick={() => globalFlag.optimiseAllQueues()}
-                    disabled={optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0}
+                    disabled={optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation}
                     className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
-                        optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0
-                            ? "bg-green-500/10 border-green-500/30 cursor-default"
-                            : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 active:scale-95 cursor-pointer"
+                        optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation
+                            ? "bg-green-500/10 border-green-500/30 cursor-default shadow-none"
+                            : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 active:scale-95 cursor-pointer shadow-sm"
                     }`}
                     title="Optimise all queues and enable cascade mode"
                 >
                     <svg
-                        className={`w-4 h-4 ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "text-green-500" : "text-blue-500"}`}
+                        className={`w-4 h-4 ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation ? "text-green-500" : "text-blue-500"}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                     >
-                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? (
+                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation ? (
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         ) : (
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         )}
                     </svg>
-                    <span className={`text-xs font-bold ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "text-green-500" : "text-blue-500"}`}>
-                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 ? "All Optimised" : "Optimise All"}
+                    <span className={`text-[10px] font-black uppercase tracking-wider ${optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation ? "text-green-500/80" : "text-blue-500"}`}>
+                        {optimisationStats.optimised === optimisationStats.total && optimisationStats.total > 0 && isLockFlagTime && isLockFlagLocation 
+                            ? `${optimisationStats.total} Events Synced` 
+                            : `Optimise ${optimisationStats.total} Events`}
                     </span>
                 </button>
             </div>

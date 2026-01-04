@@ -12,7 +12,6 @@ import { getEventStatusCounts, sortEventsByStatus, type EventStatusMinutes } fro
 import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface TeacherQueueRowProps {
     queue: TeacherQueue;
@@ -26,7 +25,7 @@ interface TeacherQueueRowProps {
  * Reads state from GlobalFlag (single source of truth)
  */
 export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticEvents, getEventCardStatus } = useClassboardContext();
+    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticOperations, getEventCardStatus } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -41,7 +40,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     // In view mode, create temporary QueueController for cascade delete operations
     if (!queueController) {
-        queueController = new QueueController(queue, controller, () => {});
+        queueController = new QueueController(queue, controller, () => { });
     }
 
     console.log(`🎬 [TeacherQueueRow] Render #${renderCount.current} | ${queue.teacher.username} | Events: ${queue.getAllEvents().length} | Mode: ${viewMode} | Gap: ${gapMinutes}min`);
@@ -54,13 +53,17 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     // Merge real events with optimistic events for this teacher (with deduplication)
     // NOTE: Not memoized because queue contents change frequently during adjustment mode
     // (delete, reorder, duration changes). Fresh computation ensures UI stays in sync.
+    const allOps = Array.from(optimisticOperations.values());
+    const relevantDeletions = new Set(allOps.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId));
+
+    // Keep all events in the render list so they can show the "Deleting" spinner
     const realEvents = activeQueue.getAllEvents();
 
-    // Get optimistic events for this teacher
-    const teacherOptimisticEvents = Array.from(optimisticEvents.values())
-        .filter((opt) => opt.teacherId === activeQueue.teacher.id)
-        .map((opt) => ({
-            node: optimisticEventToNode(opt),
+    // Get optimistic "add" operations for this teacher
+    const teacherOptimisticEvents = allOps
+        .filter((op): op is { type: "add"; event: any } => op.type === "add" && op.event.teacherId === activeQueue.teacher.id)
+        .map((op) => ({
+            node: optimisticEventToNode(op.event),
         }));
 
     // Convert real events
@@ -70,9 +73,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     // Deduplicate: exclude optimistic events that are already in realEvents
     const realEventIds = new Set(realEvents.map((e) => e.id));
-    const deduplicatedOptimistic = teacherOptimisticEvents.filter(
-        (opt) => !realEventIds.has(opt.node.id)
-    );
+    const deduplicatedOptimistic = teacherOptimisticEvents.filter((opt) => !realEventIds.has(opt.node.id));
 
     // Merge and sort by status priority, then by date
     const allEvents = [...realEventsWithStatus, ...deduplicatedOptimistic];
@@ -152,14 +153,16 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     const handleOptimise = useCallback(async () => {
         if (!queueController) return;
+
+        // Always ensure locked mode is enabled when optimising or clicking the status button
+        if (!queueController.isLocked()) {
+            controller.locked = true;
+            globalFlag.triggerRefresh();
+        }
+
         const { count, affectedEventIds } = queueController.optimiseQueue();
 
         if (count > 0) {
-            if (!queueController.isLocked()) {
-                controller.locked = true;
-                globalFlag.triggerRefresh();
-            }
-
             // Await the submit so spinner stays until server confirms
             try {
                 const { updates } = queueController.getChanges();
@@ -170,9 +173,9 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                 return;
             }
 
-            toast.success("Optimised");
+            toast.success("Optimised and Locked");
         } else {
-            toast.success("Already optimised");
+            toast.success("Queue Locked");
         }
     }, [queueController, controller, globalFlag]);
 
@@ -184,16 +187,25 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         toast.success(newLocked ? "Cascade mode enabled" : "Time-respect mode enabled");
     }, [queueController, controller, globalFlag]);
 
-    const handleBulkAction = useCallback((ids: string[], action: "delete" | "update") => {
-        // Implementation kept for TeacherClassCard but local state removed
-    }, []);
+    const { setOptimisticOperations } = useClassboardContext();
+
+    const handleBulkAction = useCallback(
+        (ids: string[], action: "delete" | "update") => {
+            if (action === "delete") {
+                setOptimisticOperations((prev) => {
+                    const updated = new Map(prev);
+                    ids.forEach((id) => {
+                        updated.set(id, { type: "delete", eventId: id });
+                    });
+                    return updated;
+                });
+            }
+        },
+        [setOptimisticOperations],
+    );
 
     return (
-        <div
-            className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-        >
+        <div className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`} onDragOver={handleDragOver} onDrop={handleDrop}>
             {/* Teacher Card */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
@@ -214,21 +226,10 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                     onCancel={handleCancel}
                     onBulkAction={handleBulkAction}
                 />
-                {viewMode === "collapsed" && eventsWithOptimistic.length > 0 && progressCounts && (
-                    <div className="mt-2">
-                        <ClassboardProgressBar durationMinutes={totalEventMinutes} counts={progressCounts} />
-                    </div>
-                )}
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
                     <div className="mt-2 px-2">
-                        <LockMutationQueue
-                            isLocked={queueController.isLocked()}
-                            onToggle={handleToggleLock}
-                            isOptimised={queueController.isQueueOptimised()}
-                            optimisationStats={queueController.getOptimisationStats()}
-                            onOptimise={handleOptimise}
-                        />
+                        <LockMutationQueue isLocked={queueController.isLocked()} onToggle={handleToggleLock} isOptimised={queueController.isQueueOptimised()} optimisationStats={queueController.getOptimisationStats()} onOptimise={handleOptimise} />
                     </div>
                 )}
             </div>
@@ -245,17 +246,11 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                                 console.log(`  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`);
 
                                 return (
-                                    <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-center">
+                                    <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-start">
                                         {viewMode === "adjustment" && queueController ? (
                                             <EventModCard event={event} queueController={queueController} />
                                         ) : (
-                                            <EventCard
-                                                event={event}
-                                                cardStatus={effectiveCardStatus}
-                                                queueController={queueController}
-                                                gapMinutes={gapMinutes}
-                                                showLocation={true}
-                                            />
+                                            <EventCard event={event} cardStatus={effectiveCardStatus} queueController={queueController} gapMinutes={gapMinutes} showLocation={true} />
                                         )}
                                     </div>
                                 );

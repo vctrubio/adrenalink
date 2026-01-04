@@ -156,12 +156,13 @@ const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonI
                             className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-border/50 text-xs group"
                             title="Click to add event for this teacher"
                         >
-                            <div className="flex items-center justify-center text-muted-foreground group-hover:text-primary">
-                                {isLoading ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <div style={{ color: teacherColor }}>
-                                        <HeadsetIcon size={16} />
+                            <div className="relative flex items-center justify-center text-muted-foreground group-hover:text-primary">
+                                <div style={{ color: teacherColor, opacity: isLoading ? 0.4 : 1 }}>
+                                    <HeadsetIcon size={16} />
+                                </div>
+                                {isLoading && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                     </div>
                                 )}
                             </div>

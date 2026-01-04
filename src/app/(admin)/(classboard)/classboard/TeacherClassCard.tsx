@@ -2,6 +2,7 @@
 
 import { TrendingUpDown, Trash2, CheckCircle2 } from "lucide-react";
 import { useState, useRef, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -9,12 +10,13 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import type { TeacherStats } from "@/backend/ClassboardStatistics";
-import type { TeacherQueue, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { TeacherQueue, type ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
@@ -24,6 +26,26 @@ import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboard
 const TEACHER_COLOR = "#16a34a";
 // Muted amber - softer than student entity color
 const STUDENT_COLOR = "#ca8a04";
+
+// Sub-component for smooth value transitions (fade + slide)
+function ValueTransition({ value, formatter }: { value: any, formatter?: (val: any) => string }) {
+    const displayValue = formatter ? formatter(value) : value;
+    
+    return (
+        <AnimatePresence mode="wait">
+            <motion.span
+                key={displayValue}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="inline-block"
+            >
+                {displayValue}
+            </motion.span>
+        </AnimatePresence>
+    );
+}
 
 // Aggregated equipment counts from events
 export interface EquipmentCount {
@@ -236,62 +258,88 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
     const hasProfit = stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0;
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
-    if (!hasAnyStats) return <div className="text-xs text-muted-foreground text-center py-1">No activity yet</div>;
-
-    const hasMoneyStats = hasDuration || hasCommission || hasProfit;
-
     return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-            {/* Equipment Categories */}
-            <div className="flex items-center gap-3 flex-wrap">
-                {equipmentCounts.map(({ categoryId, count }) => {
-                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-                    if (!config) return null;
-                    const CategoryIcon = config.icon;
-                    return (
-                        <div key={categoryId} className="flex items-center gap-1.5">
-                            <div style={{ color: config.color }}>
-                                <CategoryIcon size={16} />
+        <AnimatePresence mode="wait">
+            {!hasAnyStats ? (
+                <motion.div
+                    key="no-activity"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic"
+                >
+                    No activity yet
+                </motion.div>
+            ) : (
+                <motion.div
+                    key="stats-row"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-3"
+                >
+                    {/* Equipment Categories */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {equipmentCounts.map(({ categoryId, count }) => {
+                            const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
+                            if (!config) return null;
+                            const CategoryIcon = config.icon;
+                            return (
+                                <div key={categoryId} className="flex items-center gap-1.5">
+                                    <div style={{ color: config.color }}>
+                                        <CategoryIcon size={16} />
+                                    </div>
+                                    {count > 1 && (
+                                        <span className="text-sm font-bold text-foreground">
+                                            <ValueTransition value={count} />
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Adaptive Divider: Vertical on desktop, Horizontal line on wrap */}
+                    {hasEquipment && (hasDuration || hasCommission || hasProfit) && (
+                        <>
+                            <div className="h-4 w-px bg-border/60 hidden sm:block" />
+                            <div className="h-px w-full bg-border/10 sm:hidden" />
+                        </>
+                    )}
+
+                    {/* Main Money Stats (Duration & Commission) */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {hasDuration && (
+                            <div className="flex items-center gap-1.5">
+                                <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                                <span className="text-sm font-bold text-foreground">
+                                    <ValueTransition value={stats.totalHours * 60} formatter={getHMDuration} />
+                                </span>
                             </div>
-                            {count > 1 && <span className="text-sm font-bold text-foreground">{count}</span>}
+                        )}
+
+                        {hasCommission && (
+                            <div className="flex items-center gap-1.5">
+                                <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                                <span className="text-sm font-bold text-foreground">
+                                    <ValueTransition value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Revenue - wraps below or stays on right */}
+                    {hasProfit && (
+                        <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                            <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
+                            <span className="text-sm font-bold text-foreground">
+                                <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                            </span>
                         </div>
-                    );
-                })}
-            </div>
-
-            {/* Adaptive Divider: Vertical on desktop, Horizontal line on wrap */}
-            {hasEquipment && hasMoneyStats && (
-                <>
-                    <div className="h-4 w-px bg-border/60 hidden sm:block" />
-                    <div className="h-px w-full bg-border/10 sm:hidden" />
-                </>
+                    )}
+                </motion.div>
             )}
-
-            {/* Main Money Stats (Duration & Commission) */}
-            <div className="flex items-center gap-4 flex-wrap">
-                {hasDuration && (
-                    <div className="flex items-center gap-1.5">
-                        <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">{getHMDuration(stats.totalHours * 60)}</span>
-                    </div>
-                )}
-
-                {hasCommission && (
-                    <div className="flex items-center gap-1.5">
-                        <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.totalRevenue.commission)}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Revenue - wraps below or stays on right */}
-            {hasProfit && (
-                <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                    <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
-                    <span className="text-sm font-bold text-foreground">{getCompactNumber(stats.totalRevenue.revenue)}</span>
-                </div>
-            )}
-        </div>
+        </AnimatePresence>
     );
 }
 
@@ -322,24 +370,72 @@ export default function TeacherClassCard({
     isSubmitting = false,
     onBulkAction
 }: TeacherClassCardProps) {
-    const { controller } = useClassboardContext();
+    const { controller, optimisticOperations, selectedDate } = useClassboardContext();
 
     const isAdjustmentMode = viewMode === "adjustment";
     const isExpanded = viewMode !== "collapsed";
 
     // Derive all data from queue
     const teacherName = queue.teacher.username;
-    const stats = useMemo(() => queue.getStats(), [queue]);
     const earliestTime = queue.getEarliestTime();
+
+    // Stats calculated in real-time including optimistic operations
+    const stats = useMemo(() => {
+        const baseStats = queue.getStats();
+        const ops = Array.from(optimisticOperations.values());
+        
+        const additions = ops.filter((op): op is { type: "add"; event: any } => 
+            op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate)
+        );
+
+        const deletions = new Set(
+            ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map(op => op.eventId)
+        );
+
+        if (additions.length === 0 && deletions.size === 0) return baseStats;
+
+        // Merge logic
+        const tempQ = new TeacherQueue(queue.teacher);
+        queue.getAllEvents().forEach(e => {
+            if (!deletions.has(e.id)) {
+                // Nullify pointers when cloning to prevent circular references
+                tempQ.constructEvents({...e, next: null, prev: null});
+            }
+        });
+        additions.forEach(op => {
+            const node = optimisticEventToNode(op.event);
+            tempQ.constructEvents({...node, next: null, prev: null});
+        });
+        
+        return tempQ.getStats();
+    }, [queue, optimisticOperations, selectedDate]);
 
     const equipmentCounts = useMemo(() => {
         const events = queue.getAllEvents();
+        const ops = Array.from(optimisticOperations.values());
+        const deletions = new Set(
+            ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map(op => op.eventId)
+        );
+        const additions = ops.filter((op): op is { type: "add"; event: any } => 
+            op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate)
+        );
+
         const counts = new Map<string, number>();
 
+        // Process real events
         events.forEach((event) => {
-            if (event.categoryEquipment) {
+            if (event.categoryEquipment && !deletions.has(event.id)) {
                 const current = counts.get(event.categoryEquipment) || 0;
                 counts.set(event.categoryEquipment, current + (event.capacityEquipment || 1));
+            }
+        });
+
+        // Process optimistic additions
+        additions.forEach((op) => {
+            const cat = op.event.categoryEquipment;
+            if (cat) {
+                const current = counts.get(cat) || 0;
+                counts.set(cat, current + (op.event.capacityEquipment || 1));
             }
         });
 
@@ -347,7 +443,7 @@ export default function TeacherClassCard({
             categoryId,
             count,
         }));
-    }, [queue]);
+    }, [queue, optimisticOperations, selectedDate]);
 
     const eventProgress = useMemo(() => {
         const events = queue.getAllEvents();
@@ -577,7 +673,3 @@ export default function TeacherClassCard({
         </div>
     );
 }
-
-
-
-
