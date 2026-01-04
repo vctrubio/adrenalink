@@ -182,6 +182,13 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
     const prevBookingsRef = useRef<ClassboardData[]>([]);
     const lastSyncedControllerRef = useRef<string>("");
 
+    // Refs for capturing latest values (prevents stale closures in callbacks)
+    // Initialized with initial state values that are guaranteed to exist at this point
+    const selectedDateRef = useRef<string>(getTodayDateString());
+    const teacherQueuesRef = useRef<TeacherQueueClass[]>([]);
+    const controllerRef = useRef<ControllerSettings>(DEFAULT_CONTROLLER);
+    const optimisticOperationsRef = useRef<Map<string, OptimisticOperation>>(new Map());
+
     // Min delay effect for branding - run only once
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -265,6 +272,23 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
             .map((teacher) => queues.get(teacher.schema.id))
             .filter((queue): queue is TeacherQueueClass => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
+
+    // Update refs with latest values (for preventing stale closures in callbacks)
+    useEffect(() => {
+        selectedDateRef.current = selectedDate;
+    }, [selectedDate]);
+
+    useEffect(() => {
+        teacherQueuesRef.current = teacherQueues;
+    }, [teacherQueues]);
+
+    useEffect(() => {
+        controllerRef.current = controller;
+    }, [controller]);
+
+    useEffect(() => {
+        optimisticOperationsRef.current = optimisticOperations;
+    }, [optimisticOperations]);
 
     // Create GlobalFlag instance once and keep it stable (don't recreate on teacherQueues change)
     const globalFlagRef = useRef<GlobalFlag | null>(null);
@@ -394,20 +418,21 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                     return;
                 }
 
-                const queue = teacherQueues.find((q) => q.teacher.id === lesson.teacher.id);
+                const queue = teacherQueuesRef.current.find((q) => q.teacher.id === lesson.teacher.id);
                 if (!queue) {
                     toast.error(`${lesson.teacher.username} is not on board today`);
                     return;
                 }
 
-                const teacherOptimisticEvents = Array.from(optimisticOperations.values())
+                const teacherOptimisticEvents = Array.from(optimisticOperationsRef.current.values())
                     .filter((op): op is { type: "add"; event: OptimisticEvent } => op.type === "add" && op.event.teacherId === lesson.teacher.id)
                     .map((op) => optimisticEventToNode(op.event));
 
                 const capacityStudents = bookingData.schoolPackage.capacityStudents;
+                const controller = controllerRef.current;
                 const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
                 const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes, teacherOptimisticEvents);
-                const eventDate = `${selectedDate}T${slotTime}:00`;
+                const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
 
                 const optimisticEvent: OptimisticEvent = {
                     id: tempId,
@@ -450,7 +475,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                 toast.error("Error creating event");
             }
         },
-        [selectedDate, teacherQueues, controller, optimisticOperations]
+        []
     );
 
     const deleteEvent = useCallback(
@@ -580,8 +605,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
         clearOptimisticOperations,
         getEventCardStatus,
         globalFlag,
-        setClassboardModelWrapper,
-        flagTick
+        setClassboardModelWrapper
     ]);
 
     return contextValue;
