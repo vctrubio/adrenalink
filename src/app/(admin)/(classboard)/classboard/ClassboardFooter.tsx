@@ -1,13 +1,17 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { getHMDuration } from "@/getters/duration-getter";
-import { Settings2, MapPin, Clock, Minus, Plus, Calendar, Hash, Users, Zap } from "lucide-react";
+import { Settings2, Clock, MapPin, Users, Hash, Minus, Plus } from "lucide-react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { TimeStepper } from "@/src/components/ui/TimeStepper";
+import { LocationManager } from "@/src/components/ui/LocationManager";
+import { ClockInput } from "@/src/components/ui/ClockInput";
+
 
 /**
  * ClassboardFooter - Reads controller from GlobalFlag (single source of truth)
@@ -17,24 +21,13 @@ export default function ClassboardFooter() {
 
     // Get controller from GlobalFlag (single source of truth)
     const controller = globalFlag.getController();
-
     const [isOpen, setIsOpen] = useState(false);
 
-    const updateTime = (minutesToAdd: number) => {
-        const [h, m] = controller.submitTime.split(":").map(Number);
-        const totalMins = h * 60 + m + minutesToAdd;
-        const newH = Math.floor((totalMins + 1440) / 60) % 24;
-        const newM = (totalMins + 1440) % 60;
-        setController({
-            ...controller,
-            submitTime: `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`,
-        });
-    };
+    const step = controller.stepDuration || 15;
 
-    const updateDuration = (key: keyof ControllerSettings, delta: number) => {
-        const current = controller[key] as number;
-        const newValue = Math.max(15, current + delta);
-        setController({ ...controller, [key]: newValue });
+    // Handlers
+    const updateDuration = (key: keyof ControllerSettings, minutes: number) => {
+        setController({ ...controller, [key]: minutes });
     };
 
     const updateGap = (delta: number) => {
@@ -46,45 +39,46 @@ export default function ClassboardFooter() {
     };
 
     return (
-        <div className="rounded-t-xl overflow-hidden border-t border-x border-border/30 bg-card shadow-sm mt-auto">
+        <div className="rounded-t-2xl overflow-hidden border-t border-x border-border/30 bg-card/95 backdrop-blur-sm shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.1)] mt-auto z-50">
             {/* Toggle Header */}
             <div
-                className="px-4 py-3 flex items-center justify-between cursor-pointer transition-all select-none group hover:bg-muted/30"
+                className="px-6 py-4 flex items-center justify-between cursor-pointer transition-colors select-none group hover:bg-muted/40"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {/* Summary Info */}
-                <div className="flex items-center gap-6 text-sm">
-                    <div className="flex items-center gap-2 text-foreground font-mono font-medium">
-                        <Clock size={14} className="text-muted-foreground" />
-                        {controller.submitTime}
-                    </div>
+                <div className="flex items-center gap-8 text-sm">
                     
-                    <div className="flex items-center gap-2 text-muted-foreground hidden sm:flex">
-                        <MapPin size={14} />
-                        {controller.location}
+                    {/* 1. Time & Location Group */}
+                    <div className="flex items-center gap-3 text-foreground/90 font-medium bg-muted/30 px-3 py-1.5 rounded-lg border border-border/20">
+                        <Clock size={15} className="text-primary" />
+                        <span className="font-mono tracking-wide">{controller.submitTime}</span>
+                        <span className="text-border/60">|</span>
+                        <MapPin size={15} className="text-primary" />
+                        <span className="uppercase tracking-wide text-xs">{controller.location}</span>
                     </div>
 
-                     <div className="flex items-center gap-2 text-muted-foreground">
-                        <span className="inline-flex items-center gap-2 bg-muted/20 dark:bg-zinc-800/40 px-3 py-1 rounded-2xl text-xs font-medium">
-                            <DurationIcon size={12} className="text-muted-foreground/70" />
-                            <span className="text-muted-foreground">Gap</span>
-                            <span className="text-foreground font-semibold">{controller.gapMinutes || 0}m</span>
-                        </span>
+                    {/* 2. Group Limitations (Hidden on mobile) */}
+                    <div className="hidden md:flex items-center gap-4 text-muted-foreground text-xs font-mono">
+                         <div className="flex items-center gap-1.5">
+                            <Users size={12} className="opacity-50" />
+                            <span>1P:<span className="text-foreground ml-0.5">{getHMDuration(controller.durationCapOne)}</span></span>
+                         </div>
+                         <div className="w-px h-3 bg-border/50" />
+                         <div className="flex items-center gap-1.5">
+                            <Users size={12} className="opacity-50" />
+                            <span>2P:<span className="text-foreground ml-0.5">{getHMDuration(controller.durationCapTwo)}</span></span>
+                         </div>
+                         <div className="w-px h-3 bg-border/50" />
+                         <div className="flex items-center gap-1.5">
+                            <Users size={12} className="opacity-50" />
+                            <span>3+:<span className="text-foreground ml-0.5">{getHMDuration(controller.durationCapThree)}</span></span>
+                         </div>
+                    </div>
 
-                        <span className="inline-flex items-center gap-2 bg-muted/10 dark:bg-zinc-800/30 px-3 py-1 rounded-2xl text-xs font-medium">
-                            <Zap size={12} className="text-muted-foreground/70" />
-                            <span className="text-muted-foreground">Step</span>
-                            <span className="text-foreground font-semibold">{controller.stepDuration || 15}m</span>
-                        </span>
-                     </div>
-
-                     <div className="hidden md:flex items-center gap-2 text-muted-foreground font-mono text-xs">
-                        <DurationIcon size={12} className="text-muted-foreground/50 mr-1" />
-                        <span>1P:{getHMDuration(controller.durationCapOne)}</span>
-                        <span className="text-muted-foreground/20 mx-1">|</span>
-                        <span>2P:{getHMDuration(controller.durationCapTwo)}</span>
-                        <span className="text-muted-foreground/20 mx-1">|</span>
-                        <span>3+:{getHMDuration(controller.durationCapThree)}</span>
+                     {/* 3. Gap Interval (Solid) */}
+                     <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full border border-primary/20 shadow-sm">
+                        <DurationIcon size={14} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Gap: {controller.gapMinutes || 0}m</span>
                      </div>
                 </div>
 
@@ -98,150 +92,92 @@ export default function ClassboardFooter() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} // Apple-like ease
                         className="overflow-hidden border-t border-border/20"
                     >
-                        <div className="p-8 space-y-10 bg-gradient-to-b from-card to-background/50">
+                        <div className="p-8 bg-gradient-to-b from-card/50 to-background/80 space-y-10">
                             
-                            {/* Main Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
                                 
-                                {/* 1. General Settings */}
-                                <div className="space-y-5">
-                                    <div className="flex items-center gap-3 border-b border-border/10 pb-2">
-                                        <div className="p-1.5 rounded-lg bg-primary/5">
-                                            <Settings2 size={16} className="text-primary/70" />
-                                        </div>
-                                        <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-                                            Identity
-                                        </h4>
+                                {/* Column 1: Identity (Time & Location) - span 4 */}
+                                <div className="md:col-span-4 space-y-8 border-r border-border/10 pr-6">
+                                    <div className="flex items-center gap-2 text-primary/80 mb-2">
+                                        <Settings2 size={16} />
+                                        <h4 className="text-xs font-bold uppercase tracking-widest">Settings</h4>
                                     </div>
                                     
-                                    <div className="space-y-4">
-                                        {/* Time */}
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Start Time</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateTime(-(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"><Minus size={14}/></button>
-                                                 <input 
-                                                    type="time" 
-                                                    value={controller.submitTime}
-                                                    onChange={(e) => setController({ ...controller, submitTime: e.target.value })}
-                                                    className="flex-1 bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-center text-sm font-mono focus:ring-1 focus:ring-primary/30 outline-none transition-all"
-                                                 />
-                                                 <button onClick={() => updateTime((controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"><Plus size={14}/></button>
-                                            </div>
-                                        </div>
+                                    <ClockInput 
+                                        time={controller.submitTime} 
+                                        onChange={(t) => setController({ ...controller, submitTime: t })}
+                                        step={step}
+                                    />
 
-                                        {/* Location */}
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Location</label>
-                                            <select 
-                                                value={controller.location}
-                                                onChange={(e) => setController({ ...controller, location: e.target.value })}
-                                                className="w-full bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary/30 outline-none cursor-pointer transition-all"
-                                            >
-                                                <option value="BEACH">BEACH</option>
-                                                <option value="FLAT">FLAT</option>
-                                                <option value="BOAT">BOAT</option>
-                                            </select>
+                                    <div className="pt-2">
+                                        <LocationManager 
+                                            selected={controller.location}
+                                            onSelect={(loc) => setController({ ...controller, location: loc })}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Column 2: Structure (Gap & Step) - span 3 */}
+                                <div className="md:col-span-3 space-y-8 border-r border-border/10 pr-6">
+                                    <div className="flex items-center gap-2 text-primary/80 mb-2">
+                                        <Hash size={16} />
+                                        <h4 className="text-xs font-bold uppercase tracking-widest">Structure</h4>
+                                    </div>
+
+                                    {/* Gap */}
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Gap Interval</label>
+                                        <div className="flex items-center gap-2 bg-muted/20 p-2 rounded-xl border border-border/40 justify-between">
+                                             <button onClick={() => updateGap(-5)} className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"><Minus size={14}/></button>
+                                             <span className="font-mono font-bold text-lg">{controller.gapMinutes || 0}m</span>
+                                             <button onClick={() => updateGap(5)} className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"><Plus size={14}/></button>
+                                        </div>
+                                    </div>
+
+                                    {/* Step */}
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Precision Step</label>
+                                        <div className="flex items-center gap-2 bg-muted/20 p-2 rounded-xl border border-border/40 justify-between">
+                                             <button onClick={() => updateStep(-5)} className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"><Minus size={14}/></button>
+                                             <span className="font-mono font-bold text-lg">{controller.stepDuration || 15}m</span>
+                                             <button onClick={() => updateStep(5)} className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"><Plus size={14}/></button>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* 2. Grid Settings */}
-                                <div className="space-y-5">
-                                    <div className="flex items-center gap-3 border-b border-border/10 pb-2">
-                                        <div className="p-1.5 rounded-lg bg-primary/5">
-                                            <Hash size={16} className="text-primary/70" />
-                                        </div>
-                                        <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-                                            Structure
-                                        </h4>
+                                {/* Column 3: Capacities - span 5 */}
+                                <div className="md:col-span-5 space-y-6">
+                                    <div className="flex items-center gap-2 text-primary/80 mb-2">
+                                        <Users size={16} />
+                                        <h4 className="text-xs font-bold uppercase tracking-widest">Group Limits</h4>
                                     </div>
                                     
-                                    <div className="space-y-4">
-                                         {/* Gap */}
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Gap Interval</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateGap(-5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40"><Minus size={14}/></button>
-                                                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-center text-sm font-mono flex items-center justify-center gap-2">
-                                                     <Clock size={12} className="text-muted-foreground/40" />
-                                                     {controller.gapMinutes || 0}m
-                                                 </div>
-                                                 <button onClick={() => updateGap(5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40"><Plus size={14}/></button>
-                                            </div>
-                                        </div>
-
-                                        {/* Step */}
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Step precision</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateStep(-5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40"><Minus size={14}/></button>
-                                                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-center text-sm font-mono flex items-center justify-center gap-2">
-                                                     <Zap size={12} className="text-muted-foreground/40" />
-                                                     {controller.stepDuration || 15}m
-                                                 </div>
-                                                 <button onClick={() => updateStep(5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40"><Plus size={14}/></button>
-                                            </div>
-                                        </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <TimeStepper 
+                                            label="1 Person" 
+                                            value={controller.durationCapOne} 
+                                            onChange={(v) => updateDuration("durationCapOne", v)}
+                                            step={step}
+                                        />
+                                        <TimeStepper 
+                                            label="2 People" 
+                                            value={controller.durationCapTwo} 
+                                            onChange={(v) => updateDuration("durationCapTwo", v)}
+                                            step={step}
+                                        />
+                                        <TimeStepper 
+                                            label="3+ People" 
+                                            value={controller.durationCapThree} 
+                                            onChange={(v) => updateDuration("durationCapThree", v)}
+                                            step={step}
+                                        />
                                     </div>
                                 </div>
 
-                                {/* 3. Duration Caps */}
-                                <div className="space-y-5 col-span-1 md:col-span-2">
-                                    <div className="flex items-center gap-3 border-b border-border/10 pb-2">
-                                        <div className="p-1.5 rounded-lg bg-primary/5">
-                                            <Users size={16} className="text-primary/70" />
-                                        </div>
-                                        <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-                                            Capacity Limitations
-                                        </h4>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-3 gap-6">
-                                        {/* 1 Person */}
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">1 Person</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration("durationCapOne", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
-                                                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
-                                                     <DurationIcon size={12} className="text-primary/50" />
-                                                     {getHMDuration(controller.durationCapOne)}
-                                                 </div>
-                                                 <button onClick={() => updateDuration("durationCapOne", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
-                                            </div>
-                                        </div>
-                                         {/* 2 People */}
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">2 People</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration("durationCapTwo", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
-                                                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
-                                                     <DurationIcon size={12} className="text-primary/50" />
-                                                     {getHMDuration(controller.durationCapTwo)}
-                                                 </div>
-                                                 <button onClick={() => updateDuration("durationCapTwo", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
-                                            </div>
-                                        </div>
-                                         {/* 3+ People */}
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block text-center">3+ People</label>
-                                            <div className="flex items-center gap-1.5">
-                                                 <button onClick={() => updateDuration("durationCapThree", -(controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Minus size={12}/></button>
-                                                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-1 py-2 text-center text-[11px] font-mono flex items-center justify-center gap-1.5">
-                                                     <DurationIcon size={12} className="text-primary/50" />
-                                                     {getHMDuration(controller.durationCapThree)}
-                                                 </div>
-                                                 <button onClick={() => updateDuration("durationCapThree", (controller.stepDuration || 15))} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all border border-border/40"><Plus size={12}/></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-
-            
                         </div>
                     </motion.div>
                 )}

@@ -424,16 +424,17 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                     return;
                 }
 
-                const teacherOptimisticEvents = Array.from(optimisticOperationsRef.current.values())
-                    .filter((op): op is { type: "add"; event: OptimisticEvent } => op.type === "add" && op.event.teacherId === lesson.teacher.id)
-                    .map((op) => optimisticEventToNode(op.event));
-
+                // Get all real events for this teacher from all bookings today
                 const capacityStudents = bookingData.schoolPackage.capacityStudents;
                 const controller = controllerRef.current;
                 const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
-                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes, teacherOptimisticEvents);
 
-                console.log(`📅 [addLessonEvent] Teacher: ${queue.teacher.username} | Duration: ${duration}m | Gap: ${controller.gapMinutes}m | Pending events: ${teacherOptimisticEvents.length} | Next available slot: ${slotTime}`);
+                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
+
+                if (!slotTime) {
+                    toast.error("Lesson past midnight!");
+                    return;
+                }
 
                 const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
 
@@ -465,7 +466,11 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                     location: controller.location,
                 };
 
-                // Add optimistically FIRST - show immediately
+                // Add to queue immediately so next event sees it
+                const optimisticNode = optimisticEventToNode(optimisticEvent);
+                queue.constructEvents(optimisticNode);
+
+                // Add optimistically to state for UI tracking
                 setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
 
                 // Then confirm with server in background

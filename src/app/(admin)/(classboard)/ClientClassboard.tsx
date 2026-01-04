@@ -8,9 +8,9 @@ import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
-import ClassboardFooter from "./classboard/ClassboardFooter";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
 import { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import ClassboardFooter from "./classboard/ClassboardFooter";
 
 export default function ClientClassboard() {
     const { mounted, error, schoolUsername } = useClassboardContext();
@@ -85,30 +85,12 @@ function ClassboardContent() {
         return statistics.getDailyLessonStats();
     }, [teacherQueues, optimisticOperations, selectedDate]);
 
-    const handleToggleSettings = () => {
-        if (!globalFlag.isAdjustmentMode()) {
-            globalFlag.enterAdjustmentMode();
-        } else {
-            globalFlag.exitAdjustmentMode();
-        }
-    };
-
-    const isAdjustmentMode = globalFlag.isAdjustmentMode();
-
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex flex-wrap gap-4 p-4">
-                <div className="flex-1 min-w-[280px] max-w-2xl p-4 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
-                    <div className="relative group/settings">
+                <div className="flex-1 min-w-[280px] max-w-2xl flex items-stretch gap-4">
+                    <div className="p-2 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
                         <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-
-                        <button
-                            onClick={handleToggleSettings}
-                            className={`absolute -top-3 -right-28 w-10 h-10 transition-all duration-500 hover:scale-110 active:scale-95 z-10 
-                                ${isAdjustmentMode ? "rotate-12 grayscale-0 opacity-100" : "grayscale opacity-20 hover:opacity-100 hover:grayscale-0"}`}
-                        >
-                            <Image src="/ADR.webp" alt="Toggle Settings" fill className="object-contain dark:invert" />
-                        </button>
                     </div>
                 </div>
                 <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />

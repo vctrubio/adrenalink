@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { MoreVertical, Receipt } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -17,6 +18,8 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
+
+const TIMEOUT_DURATION = 5000;
 
 // --- Sub-components ---
 
@@ -215,6 +218,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate } = useClassboardContext();
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const bookingId = bookingData.booking.id;
     const isDragging = draggedBooking?.bookingId === bookingId;
@@ -226,6 +230,19 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
     const students = bookingStudents.map((bs) => bs.student);
     const draggableLessonIds = new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id));
+
+    useEffect(() => {
+        if (loadingLessonId) {
+            timeoutRef.current = setTimeout(() => {
+                setLoadingLessonId(null);
+                toast.error("Connection timeout - event not confirmed. Please try again.");
+            }, TIMEOUT_DURATION);
+        }
+
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [loadingLessonId]);
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
@@ -262,11 +279,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
     const handleAddEvent = async (lessonId: string) => {
         setLoadingLessonId(lessonId);
-        try {
-            await addLessonEvent(bookingData, lessonId);
-        } finally {
-            setLoadingLessonId(null);
-        }
+        await addLessonEvent(bookingData, lessonId);
     };
 
     return (

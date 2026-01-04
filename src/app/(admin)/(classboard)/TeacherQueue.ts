@@ -193,57 +193,65 @@ export class TeacherQueue {
     }
 
     /**
-     * Get next available time slot for a new event
-     * Checks if submitTime fits, returns next available slot if not
+     * Check if a time slot is before 23:55 (midnight cutoff)
      */
-    getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number, pendingEvents: EventNode[] = []): string {
-        const allEvents = [...this.getAllEvents(), ...pendingEvents].sort(
-            (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b)
-        );
-        if (!allEvents.length) return submitTime;
-        const events = allEvents;
+    private startsBeforeMidnight(time: string): boolean {
+        const timeMinutes = this.timeToMinutes(time);
+        return timeMinutes < 1435; // 23:55 = 1435 minutes
+    }
+
+    /**
+     * Check if submitTime conflicts with any existing events
+     */
+    private doesTimeConflict(submitTime: string, duration: number, gapMinutes: number, events: EventNode[]): boolean {
+        if (!events.length) return false;
 
         const submitTimeMinutes = this.timeToMinutes(submitTime);
         const submitEndMinutes = submitTimeMinutes + duration;
 
-        // Check if submitTime fits at the head (before first event)
-        const firstEventStartMinutes = this.getStartTimeMinutes(events[0]);
-        if (submitTimeMinutes < firstEventStartMinutes) {
-            if (submitEndMinutes + gapMinutes <= firstEventStartMinutes && submitEndMinutes <= 1440) {
-                return submitTime;
+        for (const event of events) {
+            const eventStart = this.getStartTimeMinutes(event);
+            const eventEnd = eventStart + event.eventData.duration;
+            const gapEnd = eventEnd + gapMinutes;
+
+            // Check if submitTime overlaps with event + gap
+            if (submitTimeMinutes < eventEnd + gapMinutes && submitEndMinutes > eventStart) {
+                return true;
             }
         }
+        return false;
+    }
 
-        // Check if submitTime fits in any gap between events
-        for (let i = 0; i < events.length - 1; i++) {
-            const currentEventEndMinutes = this.getStartTimeMinutes(events[i]) + events[i].eventData.duration;
-            const nextEventStartMinutes = this.getStartTimeMinutes(events[i + 1]);
-            const gapStartMinutes = currentEventEndMinutes + gapMinutes;
+    /**
+     * Get next available time slot for a new event
+     * 1. Check if submitTime works (no conflicts, before 23:55)
+     * 2. If not, find next slot after last event
+     */
+    getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number, pendingEvents: EventNode[] = []): string | null {
+        const allEvents = [...this.getAllEvents(), ...pendingEvents].sort(
+            (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b)
+        );
 
-            if (
-                submitTimeMinutes >= gapStartMinutes &&
-                submitEndMinutes + gapMinutes <= nextEventStartMinutes &&
-                submitEndMinutes <= 1440
-            ) {
-                return submitTime;
-            }
-        }
-
-        // If submitTime is after all events, use it
-        const lastEventEndMinutes = this.getStartTimeMinutes(events[events.length - 1]) + events[events.length - 1].eventData.duration;
-        const requiredGapStartMinutes = lastEventEndMinutes + gapMinutes;
-
-        if (submitTimeMinutes >= requiredGapStartMinutes && submitEndMinutes <= 1440) {
+        // Try submitTime if no conflicts and before midnight
+        if (!this.doesTimeConflict(submitTime, duration, gapMinutes, allEvents) && this.startsBeforeMidnight(submitTime)) {
             return submitTime;
         }
 
-        // Return next available slot after last event
-        if (requiredGapStartMinutes + duration <= 1440) {
-            return minutesToTime(requiredGapStartMinutes);
+        // If no events, submitTime is only option but it failed validation
+        if (!allEvents.length) {
+            return null;
         }
 
-        // Fallback (shouldn't happen with valid times)
-        return submitTime;
+        // Find next slot after last event
+        const lastEvent = allEvents[allEvents.length - 1];
+        const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
+        const nextSlotTime = minutesToTime(lastEventEndMinutes + gapMinutes);
+
+        if (this.startsBeforeMidnight(nextSlotTime)) {
+            return nextSlotTime;
+        }
+
+        return null;
     }
 
     private timeToMinutes(time: string): number {
