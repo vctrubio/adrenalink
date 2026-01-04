@@ -15,8 +15,8 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import type { TeacherStats } from "@/backend/ClassboardStatistics";
-import { TeacherQueue, type ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherStats } from "@/backend/classboard/ClassboardStatistics";
+import { TeacherQueue, type ControllerSettings } from "@/backend/classboard/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
@@ -406,12 +406,12 @@ export default function TeacherClassCard({
         queue.getAllEvents().forEach(e => {
             if (!deletions.has(e.id)) {
                 // Nullify pointers when cloning to prevent circular references
-                tempQ.constructEvents({...e, next: null, prev: null});
+                tempQ.constructEvents({ ...e, next: null, prev: null });
             }
         });
         additions.forEach(op => {
             const node = optimisticEventToNode(op.event);
-            tempQ.constructEvents({...node, next: null, prev: null});
+            tempQ.constructEvents({ ...node, next: null, prev: null });
         });
         
         return tempQ.getStats();

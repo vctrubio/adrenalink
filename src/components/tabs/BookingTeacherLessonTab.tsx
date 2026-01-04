@@ -7,7 +7,7 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo, type CommissionCalculation } from "@/getters/commission-calculator";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 
 const DURATION_COLOR = "#f59e0b";
 

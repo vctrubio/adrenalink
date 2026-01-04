@@ -1,4 +1,4 @@
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 /**
  * Post-processes raw SQL result into ClassboardModel structure

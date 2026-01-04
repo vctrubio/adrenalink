@@ -6,19 +6,33 @@ import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
-import type { EventNode, ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import type { QueueController as QueueControllerType } from "@/src/app/(admin)/(classboard)/QueueController";
+import type { EventNode } from "@/backend/classboard/TeacherQueue";
+import type { QueueController as QueueControllerType } from "@/backend/classboard/QueueController";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 
-import { LOCATION_OPTIONS } from "./EventSettingController";
 import EventGapDetection from "./EventGapDetection";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
+
+// Custom hook for booking duration minutes
+const useBookingDurationMinutes = (bookingId: string) => {
+    const { bookingsForSelectedDate } = useClassboardContext();
+    
+    return useMemo(() => {
+        const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
+        const packageInfo = bookingData ? getPackageInfo(bookingData.schoolPackage, bookingData.lessons) : null;
+        return packageInfo?.durationMinutes ?? 0;
+    }, [bookingsForSelectedDate, bookingId]);
+};
 
 interface EventModCardProps {
     event: EventNode;
     queueController: QueueControllerType;
+    isFirst: boolean;
+    isLast: boolean;
+    canMoveEarlier: boolean;
+    canMoveLater: boolean;
+    previousEvent: EventNode | null;
 }
 
 // Sub-components
@@ -169,7 +183,7 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     );
 };
 
-const LocationControls = ({ eventId, currentLocation, queueController }: { eventId: string; currentLocation: string; queueController: QueueControllerType }) => {
+const LocationControls = ({ eventId, currentLocation, queueController, locationOptions }: { eventId: string; currentLocation: string; queueController: QueueControllerType; locationOptions: string[] }) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -178,7 +192,7 @@ const LocationControls = ({ eventId, currentLocation, queueController }: { event
         setIsOpen(false);
     };
 
-    const locationItems = LOCATION_OPTIONS.map((location) => ({
+    const locationItems = locationOptions.map((location) => ({
         id: location,
         label: location,
         onClick: () => handleLocationSelect(location),
@@ -228,25 +242,15 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
     );
 };
 
-export default function EventModCard({ event, queueController }: EventModCardProps) {
-    const { bookingsForSelectedDate } = useClassboardContext();
+export default function EventModCard({ event, queueController, isFirst, isLast, canMoveEarlier, canMoveLater, previousEvent }: EventModCardProps) {
+    const { globalFlag } = useClassboardContext();
     const eventId = event.id;
-    const allEvents = queueController.getQueue().getAllEvents();
-    const currentEventIndex = allEvents.findIndex((e) => e.id === eventId);
-
-    // Position flags
-    const isFirst = currentEventIndex === 0;
-    const isLast = currentEventIndex === allEvents.length - 1;
-    const canMoveEarlier = queueController.canMoveEarlier(eventId);
-    const canMoveLater = queueController.canMoveLater(eventId);
-
-    // Use linked list reference for previous event
-    const previousEvent = event.prev;
 
     // Get booking progress duration - calculate from package info
-    const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === event.bookingId);
-    const packageInfo = bookingData ? getPackageInfo(bookingData.schoolPackage, bookingData.lessons) : null;
-    const bookingDurationMinutes = packageInfo?.durationMinutes ?? 0;
+    const bookingDurationMinutes = useBookingDurationMinutes(event.bookingId);
+
+    // Get location options from localStorage
+    const locationOptions = globalFlag.getLocationOptionsFromStorage();
 
     return (
         <div className="w-full bg-background border border-border rounded-xl overflow-visible shadow-sm relative">
@@ -292,7 +296,7 @@ export default function EventModCard({ event, queueController }: EventModCardPro
 
             {/* Footer: Location & Meta */}
             <div className="px-4 py-2 flex items-end justify-between">
-                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} />
+                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} locationOptions={locationOptions} />
                 {bookingDurationMinutes > 0 && <RemainingTimeControl durationMinutes={bookingDurationMinutes} eventDuration={event.eventData.duration} />}
             </div>
         </div>

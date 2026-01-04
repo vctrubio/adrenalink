@@ -12,7 +12,7 @@ import { event } from "@/drizzle/schema";
 import { getSchoolHeader } from "@/types/headers";
 import { getSQLClassboardData } from "@/supabase/server/classboard";
 import type { ApiActionResponseModel } from "@/types/actions";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 // Re-export for backwards compatibility
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {

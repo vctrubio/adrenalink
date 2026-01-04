@@ -9,9 +9,9 @@ import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { LockMutationQueue } from "@/src/components/ui/LockMutationQueue";
 import { getEventStatusCounts, sortEventsByStatus, type EventStatusMinutes } from "@/getters/booking-progress-getter";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
-import { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import { QueueController } from "@/backend/classboard/QueueController";
 import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
 
 interface TeacherQueueRowProps {
@@ -231,16 +231,31 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                 <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
                     <div className="flex flex-row gap-4 h-full items-center">
                         {eventsWithOptimistic.length > 0 ? (
-                            eventsWithOptimistic.map(({ node: event }) => {
+                            eventsWithOptimistic.map(({ node: event }, index) => {
                                 // Get card status from context (source of truth)
                                 const effectiveCardStatus = getEventCardStatus(event.id);
+
+                                // Calculate position flags for EventModCard optimization
+                                const isFirst = index === 0;
+                                const isLast = index === eventsWithOptimistic.length - 1;
+                                const canMoveEarlier = queueController ? queueController.canMoveEarlier(event.id) : false;
+                                const canMoveLater = queueController ? queueController.canMoveLater(event.id) : false;
+                                const previousEvent = event.prev;
 
                                 console.log(`  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`);
 
                                 return (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-start">
                                         {viewMode === "adjustment" && queueController ? (
-                                            <EventModCard event={event} queueController={queueController} />
+                                            <EventModCard 
+                                                event={event} 
+                                                queueController={queueController}
+                                                isFirst={isFirst}
+                                                isLast={isLast}
+                                                canMoveEarlier={canMoveEarlier}
+                                                canMoveLater={canMoveLater}
+                                                previousEvent={previousEvent}
+                                            />
                                         ) : (
                                             <EventCard event={event} cardStatus={effectiveCardStatus} queueController={queueController} gapMinutes={gapMinutes} showLocation={true} />
                                         )}

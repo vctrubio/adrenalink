@@ -35,8 +35,8 @@ export function LockMutationQueue({
                 disabled={isOptimised && isLocked}
                 className={`flex-1 flex items-center justify-center gap-2 px-3 rounded-xl border transition-all duration-200 ${
                     isOptimised && isLocked
-                        ? "bg-green-500/10 border-green-500/30 text-green-500/80 cursor-default"
-                        : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-500 active:scale-95 cursor-pointer shadow-sm"
+                        ? "bg-blue-500/10 border-blue-500/30 text-blue-600 cursor-default"
+                        : "bg-muted/50 border-blue-300 text-muted-foreground hover:bg-muted/60 active:scale-95 cursor-pointer shadow-sm"
                 }`}
             >
                 {isOptimised ? (
@@ -60,8 +60,8 @@ export function LockMutationQueue({
                     !isOptimised
                         ? "bg-muted/30 text-muted-foreground/30 border-transparent cursor-not-allowed"
                         : isLocked
-                            ? "bg-cyan-600 text-white border-cyan-700 shadow-md hover:bg-cyan-700 active:scale-95 cursor-pointer"
-                            : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
+                            ? "bg-blue-600 text-white border-blue-700 shadow-md hover:bg-blue-700 active:scale-95 cursor-pointer"
+                            : "bg-muted/50 text-muted-foreground border-blue-300 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
                 }`}
                 title={isLocked ? "Locked: Changes cascade" : "Unlocked: Respect times"}
             >

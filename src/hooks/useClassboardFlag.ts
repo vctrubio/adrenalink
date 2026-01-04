@@ -12,9 +12,9 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
-import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
-import { TeacherQueue as TeacherQueueClass, type EventNode, type ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import { GlobalFlag } from "@/backend/models/GlobalFlag";
+import type { ClassboardModel, ClassboardData } from "@/backend/classboard/ClassboardModel";
+import { TeacherQueue as TeacherQueueClass, type EventNode, type ControllerSettings } from "@/backend/classboard/TeacherQueue";
+import { GlobalFlag } from "@/backend/classboard/GlobalFlag";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";

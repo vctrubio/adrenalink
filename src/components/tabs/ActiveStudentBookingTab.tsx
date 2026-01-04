@@ -12,7 +12,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { getEventStatusCounts, getProgressColor } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { ActiveButtonsFooter } from "./ActiveButtonsFooter";
-import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardData, ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import { BookingPackageTab } from "./BookingPackageTab";

@@ -6,7 +6,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -78,83 +78,83 @@ export default function TeacherClassDaily() {
                 </div>
             </div>
 
-                                    {/* Teacher List Content */}
+            {/* Teacher List Content */}
 
-                                    <div className="overflow-auto flex-1 min-h-0">
+            <div className="overflow-auto flex-1 min-h-0">
 
-                                        <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
+                <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
 
-                                            <div className="flex flex-col divide-y-2 divide-background">
+                    <div className="flex flex-col divide-y-2 divide-background">
 
-                                                <AnimatePresence mode="popLayout" initial={false}>
+                        <AnimatePresence mode="popLayout" initial={false}>
 
-                                        {filteredQueues.length > 0 && 
+                            {filteredQueues.length > 0 &&
 
-                                            filteredQueues.map((queue) => {
+                                filteredQueues.map((queue) => {
 
-                                                const isCollapsed = collapsedTeachers.has(queue.teacher.id);
+                                    const isCollapsed = collapsedTeachers.has(queue.teacher.id);
 
-                                                const queueController = globalFlag.getQueueController(queue.teacher.id);
+                                    const queueController = globalFlag.getQueueController(queue.teacher.id);
 
-                                                const isAdjustmentMode = !!queueController;
+                                    const isAdjustmentMode = !!queueController;
 
-                                                const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+                                    const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
 
-            
 
-                                                return (
 
-                                                    <motion.div 
+                                    return (
 
-                                                        layout="position"
+                                        <motion.div
 
-                                                        key={queue.teacher.id} 
+                                            layout="position"
 
-                                                        initial={{ opacity: 0, y: 10 }}
+                                            key={queue.teacher.id}
 
-                                                        animate={{ opacity: 1, y: 0 }}
+                                            initial={{ opacity: 0, y: 10 }}
 
-                                                        exit={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
 
-                                                        transition={{ 
+                                            exit={{ opacity: 0, y: -10 }}
 
-                                                            duration: 0.6, 
+                                            transition={{
 
-                                                            ease: [0.22, 1, 0.36, 1] 
+                                                duration: 0.6,
 
-                                                        }}
+                                                ease: [0.22, 1, 0.36, 1]
 
-                                                        className="py-2 transition-colors"
+                                            }}
 
-                                                    >
+                                            className="py-2 transition-colors"
 
-                                                        <TeacherQueueRow
+                                        >
 
-                                                            queue={queue}
+                                            <TeacherQueueRow
 
-                                                            viewMode={viewMode}
+                                                queue={queue}
 
-                                                            isCollapsed={isCollapsed}
+                                                viewMode={viewMode}
 
-                                                            onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
+                                                isCollapsed={isCollapsed}
 
-                                                        />
+                                                onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
 
-                                                    </motion.div>
+                                            />
 
-                                                );
+                                        </motion.div>
 
-                                            })
+                                    );
 
-                                        }
+                                })
 
-                                    </AnimatePresence>
+                            }
 
-                                </div>
+                        </AnimatePresence>
 
-                            </div>
+                    </div>
 
-                        </div>
+                </div>
+
+            </div>
         </div>
     );
 }

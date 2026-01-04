@@ -1,5 +1,5 @@
 import { EVENT_STATUS_CONFIG } from "@/types/status";
-import type { ClassboardEvent } from "@/backend/models/ClassboardModel";
+import type { ClassboardEvent } from "@/backend/classboard/ClassboardModel";
 
 const EMPTY_COLOR = "rgba(107, 114, 128, 0.3)";
 

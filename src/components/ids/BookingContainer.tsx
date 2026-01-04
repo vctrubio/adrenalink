@@ -17,7 +17,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
 import type { SchoolPackageType } from "@/drizzle/schema";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { updateLesson } from "@/actions/lessons-action";
 

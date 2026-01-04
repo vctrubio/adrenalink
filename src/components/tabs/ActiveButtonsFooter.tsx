@@ -7,7 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
 import { createLesson } from "@/actions/lessons-action";
 
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { useRouter } from "next/navigation";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 

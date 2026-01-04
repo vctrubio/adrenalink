@@ -7,7 +7,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { getEventStatusCounts } from "@/getters/booking-progress-getter";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import type { ClassboardData } from "@/backend/models/ClassboardModel";
+import type { ClassboardData } from "@/backend/classboard/ClassboardModel";
 
 // Muted amber - softer than student entity color
 const STUDENT_COLOR = "#ca8a04";

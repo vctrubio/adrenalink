@@ -1,4 +1,4 @@
-import { TeacherQueue, type EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import { TeacherQueue, type EventNode } from "@/backend/classboard/TeacherQueue";
 import type { TeacherModel } from "@/backend/models";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 

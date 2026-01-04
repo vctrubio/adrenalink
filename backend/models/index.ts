@@ -8,7 +8,7 @@ export { createEquipmentModel, type EquipmentModel } from "./EquipmentModel";
 export { createTeacherModel, type TeacherModel } from "./TeacherModel";
 export { createCommissionModel, type CommissionModel } from "./CommissionModel";
 export { createEventModel, type EventModel } from "./EventModel";
-export type { ClassboardModel } from "./ClassboardModel";
+export type { ClassboardModel } from "../classboard/ClassboardModel";
 export { createReferralModel, type ReferralModel } from "./ReferralModel";
 export { createRentalModel, type RentalModel } from "./RentalModel";
 export { createStudentPackageModel, type StudentPackageModel } from "./StudentPackageModel";

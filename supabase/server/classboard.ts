@@ -6,7 +6,7 @@ import { booking, bookingStudent, student, schoolStudents, lesson, teacher, teac
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 /**

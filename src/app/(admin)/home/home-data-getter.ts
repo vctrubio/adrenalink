@@ -1,5 +1,5 @@
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
+import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import type { TransactionEventData } from "@/types/transaction-event";
 import type { DateGroup, TransactionEvent, HomeStats } from "./HomePage";
 

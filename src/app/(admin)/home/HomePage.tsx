@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { LayoutGrid, List, Grid3X3 } from "lucide-react";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { GroupingType } from "@/src/components/school/TransactionEventsTable";
 import type { TransactionEventData } from "@/types/transaction-event";
 

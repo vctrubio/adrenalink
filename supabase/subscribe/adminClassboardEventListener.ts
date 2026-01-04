@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { getSQLClassboardData } from "@/supabase/server/classboard";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
     onEventDetected: (data: ClassboardModel) => void;

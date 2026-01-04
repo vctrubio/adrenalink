@@ -3,7 +3,7 @@
  * Encapsulates all business logic for queue manipulation and event state
  */
 
-import { TeacherQueue, type ControllerSettings, type EventNode } from "./TeacherQueue";
+import { TeacherQueue, type ControllerSettings, type EventNode } from "../src/app/(admin)/(classboard)/TeacherQueue";
 import type { EventCardProps } from "@/types/classboard-teacher-queue";
 import { detectGapBefore, getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 
@@ -51,7 +51,7 @@ export class QueueController {
      */
     exitAdjustmentMode(): void {
         this.originalSnapshot = [];
-        console.log(`🚪 [QueueController] Exited adjustment mode`);
+        console.log("🚪 [QueueController] Exited adjustment mode");
     }
 
     /**
@@ -60,7 +60,7 @@ export class QueueController {
     resetToSnapshot(): void {
         if (this.originalSnapshot.length === 0) return;
 
-        console.log(`🔄 [QueueController] Resetting to snapshot`);
+        console.log("🔄 [QueueController] Resetting to snapshot");
 
         // Deep clone snapshot to restore
         const restoredEvents = this.originalSnapshot.map((e) => ({
@@ -117,7 +117,7 @@ export class QueueController {
      * Returns array of updates and array of deletions
      */
     getChanges(): { 
-        updates: Array<{ id: string; date?: string; duration?: number; location?: string }>, 
+        updates: { id: string; date?: string; duration?: number; location?: string }[], 
         deletions: string[] 
     } {
         if (this.originalSnapshot.length === 0) {
@@ -126,7 +126,7 @@ export class QueueController {
 
         const currentEvents = this.queue.getAllEvents();
         const snapshots = this.originalSnapshot;
-        const updates: Array<{ id: string; date?: string; duration?: number; location?: string }> = [];
+        const updates: { id: string; date?: string; duration?: number; location?: string }[] = [];
 
         // Collect changes
         for (const current of currentEvents) {
@@ -234,7 +234,7 @@ export class QueueController {
     /**
      * Check if event can be moved stepDuration minutes earlier
      * Head of queue can move earlier as long as it doesn't go below 00:00
-     * Non-head events cannot move if it would overlap with previous event's gap
+     * Non-head events cannot move if it would overlap with previous event's end time
      */
     canMoveEarlier(eventId: string): boolean {
         const events = this.queue.getAllEvents();
@@ -250,7 +250,7 @@ export class QueueController {
             return currentStartMinutes - this.settings.stepDuration >= 0;
         }
 
-        // Non-head events cannot move if it would overlap with previous event's gap
+        // Non-head events cannot move earlier if it would start before previous event's end time
         const previousEvent = events[index - 1];
         const previousEndMinutes = getMinutesFromISO(previousEvent.eventData.date) + previousEvent.eventData.duration;
 
@@ -259,12 +259,29 @@ export class QueueController {
 
     /**
      * Check if event can be moved 30 minutes later
-     * Cannot move if it would exceed 23:00 (1380 minutes)
+     * Cannot move if it would exceed 23:00 (1380 minutes) or overlap with next event
      */
     canMoveLater(eventId: string): boolean {
-        const event = this.queue.getAllEvents().find((e) => e.id === eventId);
-        if (!event) return false;
-        return getMinutesFromISO(event.eventData.date) < 1380;
+        const events = this.queue.getAllEvents();
+        const index = events.findIndex((e) => e.id === eventId);
+        if (index < 0) return false;
+
+        const currentEvent = events[index];
+        const currentStartMinutes = getMinutesFromISO(currentEvent.eventData.date);
+
+        // Cannot exceed 23:00
+        if (currentStartMinutes >= 1380) return false;
+
+        // If there's a next event, cannot move if it would start after next event's start time
+        if (index < events.length - 1) {
+            const nextEvent = events[index + 1];
+            const nextStartMinutes = getMinutesFromISO(nextEvent.eventData.date);
+            if (currentStartMinutes + this.settings.stepDuration >= nextStartMinutes) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -302,7 +319,7 @@ export class QueueController {
      * Delete event and cascade/optimize remaining queue from deleted event's start time
      * Returns deleted ID and updates for all events that need to be shifted
      */
-    cascadeDeleteAndOptimise(eventId: string): { deletedId: string; updates: Array<{ id: string; date: string; duration: number }> } {
+    cascadeDeleteAndOptimise(eventId: string): { deletedId: string; updates: { id: string; date: string; duration: number }[] } {
         const events = this.queue.getAllEvents();
         const eventToDelete = events.find(e => e.id === eventId);
         
@@ -564,7 +581,7 @@ export class QueueController {
         console.log(`🔧 [QueueController.addGap] Event ${eventId}: actualGap=${actualGap}min, requiredGap=${requiredGap}min, adjusting by ${gapOffset}min`);
 
         if (gapOffset <= 0) {
-            console.log(`⚠️ [QueueController.addGap] No adjustment needed (gap already sufficient)`);
+            console.log("⚠️ [QueueController.addGap] No adjustment needed (gap already sufficient)");
             return;
         }
 

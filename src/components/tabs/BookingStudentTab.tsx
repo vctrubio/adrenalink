@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ENTITY_DATA } from "@/config/entities";
-import type { ClassboardBookingStudent } from "@/backend/models/ClassboardModel";
+import type { ClassboardBookingStudent } from "@/backend/classboard/ClassboardModel";
 
 interface BookingStudentTabProps {
     student: ClassboardBookingStudent["student"];

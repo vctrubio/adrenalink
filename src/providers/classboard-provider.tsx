@@ -17,11 +17,11 @@ import {
     type EventCardStatus,
     type OptimisticOperation,
 } from "@/src/hooks/useClassboardFlag";
-import type { ClassboardModel, ClassboardData } from "@/backend/models/ClassboardModel";
-import type { TeacherQueue, ControllerSettings, EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { GlobalFlag } from "@/backend/models/GlobalFlag";
+import type { ClassboardModel, ClassboardData } from "@/backend/classboard/ClassboardModel";
+import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/classboard/TeacherQueue";
+import type { GlobalFlag } from "@/backend/classboard/GlobalFlag";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
+import type { QueueController } from "@/backend/classboard/QueueController";
 
 // Re-export for backwards compatibility
 export { optimisticEventToNode };

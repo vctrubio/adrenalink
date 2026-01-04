@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Modal from "./Modal";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { ClassboardStudent } from "@/backend/models/ClassboardModel";
+import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
+import type { ClassboardStudent } from "@/backend/classboard/ClassboardModel";
 import { getPrettyDuration } from "@/getters/duration-getter";
 
 interface DailyClassScheduleModalProps {

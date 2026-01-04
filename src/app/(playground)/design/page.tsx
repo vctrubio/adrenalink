@@ -11,15 +11,15 @@ import { WindToggle } from "@/src/components/themes/WindToggle";
 
 // Data Components
 import { StudentRow } from "@/src/components/databoard/rows/StudentRow";
-import ClassboardStatistics from "@/src/app/(admin)/(classboard)/classboard/ClassboardHeaderStatsGrid";
-import EventCard from "@/src/app/(admin)/(classboard)/classboard/EventCard";
+import ClassboardStatistics from "@/src/app/(admin)/classboard/ClassboardHeaderStatsGrid";
+import EventCard from "@/src/app/(admin)/classboard/EventCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 
 // Types for Mock Data
-import type { DailyLessonStats } from "@/backend/ClassboardStatistics";
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { DailyLessonStats } from "@/backend/classboard/ClassboardStatistics";
+import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
+import type { EventNode } from "@/backend/classboard/TeacherQueue";
 import type { StudentModel } from "@/backend/models";
 
 // MOCK DATA

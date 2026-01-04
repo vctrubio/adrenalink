@@ -8,7 +8,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import LessonFlagLocationSettingsController from "./LessonFlagLocationSettingsController";
-import type { ClassboardData } from "@/backend/models/ClassboardModel";
+import type { ClassboardData } from "@/backend/classboard/ClassboardModel";
 
 const STUDENT_COLOR = "#ca8a04";
 

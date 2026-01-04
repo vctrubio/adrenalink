@@ -6,7 +6,7 @@ import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { Settings2, Clock, MapPin, Users, Hash, Minus, Plus } from "lucide-react";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
-import type { ControllerSettings } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { ControllerSettings } from "@/backend/classboard/TeacherQueue";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { TimeStepper } from "@/src/components/ui/TimeStepper";
 import { LocationManager } from "@/src/components/ui/LocationManager";

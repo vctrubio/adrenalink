@@ -4,13 +4,13 @@ import { useMemo } from "react";
 import Image from "next/image";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
-import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
-import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
-import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import ClassboardContentBoard from "./ClassboardContentBoard";
+import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
+import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
-import { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
-import ClassboardFooter from "./classboard/ClassboardFooter";
+import { TeacherQueue } from "@/backend/classboard/TeacherQueue";
+import ClassboardFooter from "./ClassboardFooter";
 
 export default function ClientClassboard() {
     const { mounted, error, schoolUsername } = useClassboardContext();

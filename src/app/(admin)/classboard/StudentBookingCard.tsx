@@ -16,7 +16,7 @@ import { getEventStatusCounts, sortEventsByStatus } from "@/getters/booking-prog
 import { getPackageInfo } from "@/getters/school-packages-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
-import type { ClassboardData, ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardData, ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 
 const TIMEOUT_DURATION = 5000;

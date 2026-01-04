@@ -1,5 +1,5 @@
 import type { SchoolPackageModel } from "@/backend/models/SchoolPackageModel";
-import type { ClassboardLesson } from "@/backend/models/ClassboardModel";
+import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 
 export interface PackageInfo {
     pricePerStudent: number;

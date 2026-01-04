@@ -5,7 +5,7 @@ import { Check, Copy } from "lucide-react";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import type { ClassboardData } from "@/backend/models/ClassboardModel";
+import type { ClassboardData } from "@/backend/classboard/ClassboardModel";
 
 interface BookingPaymentTabProps {
     data: ClassboardData;

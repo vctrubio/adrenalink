@@ -9,9 +9,8 @@
  * - revenue: total school revenue
  */
 
-import type { TeacherQueue } from "../src/app/(admin)/(classboard)/TeacherQueue";
-import type { EventNode } from "@/types/classboard-teacher-queue";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 export interface RevenueStats {
     commission: number;
@@ -19,22 +18,23 @@ export interface RevenueStats {
     profit: number;
 }
 
-export interface DailyLessonStats {
-    teacherCount: number;
-    studentCount: number;
-    eventCount: number;
-    durationCount: number; // in minutes
-    revenue: RevenueStats;
-}
-
 /**
- * TeacherStats - Per-teacher statistics computed from a queue or events
+ * TeacherStats - Per-teacher statistics from their event queue
+ * Calculated from TeacherQueue.getStats()
  */
 export interface TeacherStats {
     eventCount: number;
     studentCount: number;
-    totalHours: number; // in hours
+    totalHours: number;
     totalRevenue: RevenueStats;
+}
+
+export interface DailyLessonStats {
+    teacherCount: number;
+    studentCount: number;
+    eventCount: number;
+    durationCount: number;  // in minutes
+    revenue: RevenueStats;
 }
 
 export class ClassboardStatistics {
@@ -43,66 +43,32 @@ export class ClassboardStatistics {
     private dateFilter?: string;
     private countAllEvents: boolean;
 
-    constructor(input: TeacherQueue[] | ClassboardModel, dateFilter?: string, countAllEvents = false) {
-        if (Array.isArray(input)) {
-            this.teacherQueues = input;
-            this.classboardData = null;
+    constructor(
+        teacherQueuesOrData: TeacherQueue[] | ClassboardModel,
+        classboardDataOrDateFilter?: ClassboardModel | string,
+        dateFilterOrCountAll?: string | boolean,
+        countAllEvents = false
+    ) {
+        // Distinguish between TeacherQueue[] and ClassboardModel (both are arrays)
+        // ClassboardModel elements have 'booking' property, TeacherQueue has 'teacher'
+        const isTeacherQueues = Array.isArray(teacherQueuesOrData) &&
+            teacherQueuesOrData.length > 0 &&
+            'teacher' in teacherQueuesOrData[0] &&
+            typeof (teacherQueuesOrData[0] as any).getStats === 'function';
+
+        if (isTeacherQueues) {
+            // First signature: TeacherQueue[] with optional ClassboardModel
+            this.teacherQueues = teacherQueuesOrData as TeacherQueue[];
+            this.classboardData = typeof classboardDataOrDateFilter === "object" && classboardDataOrDateFilter !== null ? classboardDataOrDateFilter : null;
+            this.dateFilter = typeof dateFilterOrCountAll === "string" ? dateFilterOrCountAll : undefined;
+            this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : countAllEvents;
         } else {
+            // Second signature: ClassboardModel alone
             this.teacherQueues = null;
-            this.classboardData = input;
+            this.classboardData = Array.isArray(teacherQueuesOrData) ? teacherQueuesOrData : null;
+            this.dateFilter = typeof classboardDataOrDateFilter === "string" ? classboardDataOrDateFilter : undefined;
+            this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : false;
         }
-        this.dateFilter = dateFilter;
-        this.countAllEvents = countAllEvents;
-    }
-
-    // Helper to compute stats from an array of EventNode
-    private statsFromEvents(events: EventNode[] = []): TeacherStats {
-        const uniqueStudents = new Set<string>();
-        let totalDurationMinutes = 0;
-        let totalRevenue = 0;
-        let totalCommission = 0;
-
-        const safeEvents = events.filter(Boolean);
-
-        safeEvents.forEach((event) => {
-            // duration
-            const duration = event.eventData?.duration ?? 0;
-            totalDurationMinutes += duration;
-
-            // students
-            const bookingStudents = event.bookingStudents ?? [];
-            bookingStudents.forEach((s) => {
-                if (s?.id) uniqueStudents.add(s.id);
-                else if ((s as any)?.student?.id) uniqueStudents.add((s as any).student.id);
-            });
-
-            // revenue
-            const pricePerStudent = event.pricePerStudent ?? 0;
-            const capacity = event.capacityStudents ?? bookingStudents.length ?? 0;
-            const eventRevenue = pricePerStudent * capacity;
-            totalRevenue += eventRevenue;
-
-            // commission
-            const cph = event.commission?.cph ?? 0;
-            if (event.commission?.type === "fixed") {
-                totalCommission += (cph * (duration / 60));
-            } else {
-                totalCommission += eventRevenue * (cph / 100);
-            }
-        });
-
-        const totalHours = Math.round((totalDurationMinutes / 60) * 100) / 100;
-
-        return {
-            eventCount: safeEvents.length,
-            studentCount: uniqueStudents.size,
-            totalHours,
-            totalRevenue: {
-                revenue: Math.round(totalRevenue * 100) / 100,
-                commission: Math.round(totalCommission * 100) / 100,
-                profit: Math.round((totalRevenue - totalCommission) * 100) / 100,
-            },
-        };
     }
 
     /**
@@ -110,33 +76,16 @@ export class ClassboardStatistics {
      */
     getDailyLessonStats(): DailyLessonStats {
         if (this.teacherQueues) {
-            // Normalize queues to `TeacherStats` using available shapes
-            const normalizeStats = (queue: unknown): TeacherStats | null => {
-                try {
-                    const q: any = queue as any;
-                    if (typeof q?.getStats === "function") {
-                        const s = q.getStats();
-                        // quick shape check
-                        if (s && typeof s.eventCount === "number") return s as TeacherStats;
-                    }
-
-                    if (typeof q?.getAllEvents === "function") return this.statsFromEvents(q.getAllEvents());
-                    if (Array.isArray((q as any).events)) return this.statsFromEvents((q as any).events as EventNode[]);
-                    if (q && typeof (q as any).eventCount === "number") return q as TeacherStats;
-                } catch (e) {
-                    // ignore and fallthrough
-                }
-                return null;
-            };
-
+            // Calculate stats from TeacherQueue[] events
             const activeTeacherStats = this.teacherQueues
-                .map(normalizeStats)
-                .filter((s): s is TeacherStats => s !== null && s.eventCount > 0);
+                .map(queue => queue.getStats())
+                .filter(stats => stats.eventCount > 0);
 
             const teacherCount = activeTeacherStats.length;
             const studentCount = activeTeacherStats.reduce((sum, stats) => sum + stats.studentCount, 0);
             const eventCount = activeTeacherStats.reduce((sum, stats) => sum + stats.eventCount, 0);
-            const durationCount = Math.round(activeTeacherStats.reduce((sum, stats) => sum + stats.totalHours, 0) * 60 * 10) / 10; // minutes rounded to 0.1
+            // totalHours is already in hours, convert to minutes for durationCount
+            const durationCount = activeTeacherStats.reduce((sum, stats) => sum + stats.totalHours * 60, 0);
             const totalRevenue = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.revenue, 0);
             const totalCommission = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.commission, 0);
             const totalProfit = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.profit, 0);
@@ -145,7 +94,7 @@ export class ClassboardStatistics {
                 teacherCount,
                 studentCount,
                 eventCount,
-                durationCount,
+                durationCount: Math.round(durationCount * 10) / 10, // Round to 1 decimal
                 revenue: {
                     commission: Math.round(totalCommission * 100) / 100,
                     revenue: Math.round(totalRevenue * 100) / 100,
@@ -168,35 +117,34 @@ export class ClassboardStatistics {
                         if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
                             return;
                         }
-
+                        
                         // Count events based on the flag
                         const shouldCountEvent = this.countAllEvents || event.status === "completed" || event.status === "uncompleted";
-
+                        
                         if (shouldCountEvent) {
                             // Track unique teachers (only for events on the filtered date)
                             uniqueTeachers.add(lesson.teacher.username);
-
+                            
                             totalEvents += 1;
                             totalDuration += event.duration;
-
+                            
                             // Track unique students
                             booking.bookingStudents.forEach((student) => {
                                 uniqueStudents.add(student.student.id);
                             });
-
+                            
                             // Calculate revenue and commission
                             const studentCount = booking.bookingStudents.length;
                             const revenue = booking.schoolPackage.pricePerStudent * studentCount;
                             totalRevenue += revenue;
-
+                            
                             // Calculate commission
                             const commissionPerHour = parseFloat(lesson.commission.cph);
                             const hours = event.duration / 60;
                             let commission = 0;
                             if (lesson.commission.type === "fixed") {
                                 commission = commissionPerHour;
-                            } else {
-                                // percentage
+                            } else { // percentage
                                 commission = revenue * (commissionPerHour / 100);
                             }
                             totalCommission += commission;

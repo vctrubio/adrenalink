@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useCallback, useRef, useEffect } from "react";
-import type { ClassboardModel } from "@/backend/models/ClassboardModel";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";

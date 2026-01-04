@@ -14,8 +14,8 @@
  * - Automatic Session Management: Sessions terminate when last teacher opts out
  */
 
-import { QueueController } from "../../src/app/(admin)/(classboard)/QueueController";
-import type { TeacherQueue } from "../../src/app/(admin)/(classboard)/TeacherQueue";
+import { QueueController } from "./QueueController";
+import type { TeacherQueue } from "./TeacherQueue";
 import type { ControllerSettings } from "@/types/classboard-teacher-queue";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
 
@@ -110,6 +110,21 @@ export class GlobalFlag {
 
     getController(): ControllerSettings {
         return this.controller;
+    }
+
+    getLocationOptionsFromStorage(): string[] {
+        if (typeof window === "undefined") return DEFAULT_CONTROLLER.locationOptions;
+
+        try {
+            const stored = localStorage.getItem(CONTROLLER_STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return parsed.locationOptions || DEFAULT_CONTROLLER.locationOptions;
+            }
+        } catch (error) {
+            console.warn("[GlobalFlag] Failed to load location options from storage:", error);
+        }
+        return DEFAULT_CONTROLLER.locationOptions;
     }
 
     updateController(updates: Partial<ControllerSettings>): void {
@@ -443,7 +458,7 @@ export class GlobalFlag {
                 qc.setFirstEventTime(newTime);
             });
         } else {
-            console.log(`  ∅ Propagation DISABLED (unlocked)`);
+            console.log("  ∅ Propagation DISABLED (unlocked)");
         }
 
         this.globalTime = newTime;
@@ -472,7 +487,7 @@ export class GlobalFlag {
     }
 
     unlockTime(): void {
-        console.log(`🔓 [GlobalFlag.unlockTime]`);
+        console.log("🔓 [GlobalFlag.unlockTime]");
         this.isLockedTime = false;
         
         // If location is also unlocked, we can unlock the underlying controllers too
@@ -489,12 +504,12 @@ export class GlobalFlag {
         
         // Only propagate location change to queues if global location lock is ON
         if (this.isLockedLocation) {
-            console.log(`  🔗 Propagation ACTIVE`);
+            console.log("  🔗 Propagation ACTIVE");
             this.queueControllers.forEach((qc) => {
                 qc.setAllEventsLocation(newLocation);
             });
         } else {
-            console.log(`  ∅ Propagation DISABLED`);
+            console.log("  ∅ Propagation DISABLED");
         }
 
         this.globalLocation = newLocation;
@@ -517,7 +532,7 @@ export class GlobalFlag {
     }
 
     unlockLocation(): void {
-        console.log(`🔓 [GlobalFlag.unlockLocation]`);
+        console.log("🔓 [GlobalFlag.unlockLocation]");
         this.isLockedLocation = false;
         this.refreshKey++;
         this.triggerRefresh();
