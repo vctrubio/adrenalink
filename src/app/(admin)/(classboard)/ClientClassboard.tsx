@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Image from "next/image";
-import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./classboard/ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./classboard/ClassboardHeaderStatsGrid";
@@ -10,6 +10,7 @@ import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardFooter from "./classboard/ClassboardFooter";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
+import { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 
 export default function ClientClassboard() {
     const { mounted } = useClassboardContext();
@@ -30,12 +31,37 @@ export default function ClientClassboard() {
  * teacherQueues from context ensure proper re-render tracking
  */
 function ClassboardContent() {
-    const { selectedDate, setSelectedDate, teacherQueues, globalFlag } = useClassboardContext();
+    const { selectedDate, setSelectedDate, teacherQueues, globalFlag, optimisticEvents, optimisticDeletions } = useClassboardContext();
 
     const stats = useMemo(() => {
-        const statistics = new ClassboardStatistics(teacherQueues);
+        // Clone queues to inject optimistic events and remove deleted ones for real-time stats
+        const queuesWithOptimistic = teacherQueues.map(q => {
+             const relevantOptimistic = Array.from(optimisticEvents.values())
+                 .filter(opt => opt.teacherId === q.teacher.id && opt.date.startsWith(selectedDate));
+             
+             const hasDeletions = q.getAllEvents().some(e => optimisticDeletions.has(e.id));
+             
+             if (relevantOptimistic.length === 0 && !hasDeletions) return q;
+
+             // Create a temporary queue with merged/filtered events
+             const newQ = new TeacherQueue(q.teacher);
+             
+             // Copy existing events EXCEPT those optimistically deleted
+             q.getAllEvents().forEach(e => {
+                 if (!optimisticDeletions.has(e.id)) {
+                     newQ.constructEvents({...e});
+                 }
+             });
+             
+             // Add optimistic events
+             relevantOptimistic.forEach(opt => newQ.constructEvents(optimisticEventToNode(opt)));
+             
+             return newQ;
+        });
+
+        const statistics = new ClassboardStatistics(queuesWithOptimistic);
         return statistics.getDailyLessonStats();
-    }, [teacherQueues]);
+    }, [teacherQueues, optimisticEvents, optimisticDeletions, selectedDate]);
 
     const handleToggleSettings = () => {
         if (!globalFlag.isAdjustmentMode()) {

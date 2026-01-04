@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState, useRef } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
@@ -29,11 +29,6 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticEvents, getEventCardStatus } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
-
-    const [cascadingEventIds, setCascadingEventIds] = useState<{ ids: Set<string>; action: "update" | "delete" }>({
-        ids: new Set(),
-        action: "update",
-    });
 
     // Get controller from GlobalFlag (source of truth)
     const controller = globalFlag.getController();
@@ -160,14 +155,6 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         const { count, affectedEventIds } = queueController.optimiseQueue();
 
         if (count > 0) {
-            // Show spinning animation only on affected events
-            setCascadingEventIds({ ids: new Set(affectedEventIds), action: "update" });
-
-            // Set them as updating in the mutation state
-            affectedEventIds.forEach((eventId) => {
-                // These will be tracked as updating until the real events arrive from server
-            });
-
             if (!queueController.isLocked()) {
                 controller.locked = true;
                 globalFlag.triggerRefresh();
@@ -177,11 +164,8 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
             try {
                 const { updates } = queueController.getChanges();
                 await bulkUpdateClassboardEvents(updates, []);
-                // Cascade IDs will be cleared when realtime sync replaces optimized events
             } catch (error) {
                 console.error("❌ Failed to submit optimized queue:", error);
-                // Clear spinner on error
-                setCascadingEventIds({ ids: new Set(), action: "update" });
                 toast.error("Failed to optimize queue");
                 return;
             }
@@ -201,7 +185,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     }, [queueController, controller, globalFlag]);
 
     const handleBulkAction = useCallback((ids: string[], action: "delete" | "update") => {
-        setCascadingEventIds({ ids: new Set(ids), action });
+        // Implementation kept for TeacherClassCard but local state removed
     }, []);
 
     return (
@@ -256,12 +240,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                         {eventsWithOptimistic.length > 0 ? (
                             eventsWithOptimistic.map(({ node: event }) => {
                                 // Get card status from context (source of truth)
-                                let effectiveCardStatus = getEventCardStatus(event.id);
-
-                                // Override with cascade status if applicable
-                                if (cascadingEventIds.ids.has(event.id)) {
-                                    effectiveCardStatus = cascadingEventIds.action === "delete" ? "deleting" : "updating";
-                                }
+                                const effectiveCardStatus = getEventCardStatus(event.id);
 
                                 console.log(`  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`);
 
@@ -276,7 +255,6 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                                                 queueController={queueController}
                                                 gapMinutes={gapMinutes}
                                                 showLocation={true}
-                                                onCascade={(ids) => setCascadingEventIds({ ids: new Set(ids), action: "update" })}
                                             />
                                         )}
                                     </div>

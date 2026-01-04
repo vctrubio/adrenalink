@@ -1,5 +1,5 @@
 import React from "react";
-import { Lock, Unlock } from "lucide-react";
+import { Lock, LockOpen } from "lucide-react";
 
 interface LockMutationQueueProps {
     isLocked: boolean;
@@ -67,12 +67,12 @@ export function LockMutationQueue({
                     onToggle();
                 }}
                 disabled={!isOptimised}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 border-2 ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 border ${
                     !isOptimised
                         ? "bg-muted/30 text-muted-foreground/30 border-transparent cursor-not-allowed"
                         : isLocked
-                            ? "bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 hover:border-secondary/30 active:scale-95 cursor-pointer"
-                            : "bg-secondary/5 text-secondary/50 border-secondary/10 hover:bg-secondary/10 hover:border-secondary/20 active:scale-95 cursor-pointer"
+                            ? "bg-cyan-600 text-white border-cyan-700 shadow-md hover:bg-cyan-700 active:scale-95 cursor-pointer"
+                            : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
                 }`}
                 title={
                     !isOptimised
@@ -82,8 +82,13 @@ export function LockMutationQueue({
                             : "Unlocked: Mutations respect times (cascade only on overlap)"
                 }
             >
-                {isLocked ? <Lock size={16} className="flex-shrink-0" /> : <Unlock size={16} className="flex-shrink-0" />}
-                <span className="text-xs font-medium">{isLocked ? "Cascade on modify" : "Respect times"}</span>
+                <div className="flex items-center gap-2">
+                    {isLocked ? <Lock size={16} className="flex-shrink-0" /> : <LockOpen size={16} className="flex-shrink-0" />}
+                    <span className="text-xs font-bold uppercase tracking-wider">{isLocked ? "Locked" : "Unlocked"}</span>
+                </div>
+                <span className={`text-[10px] font-medium ${isLocked ? "text-cyan-100" : "text-muted-foreground/70"}`}>
+                    {isLocked ? "Cascade changes" : "Respect times"}
+                </span>
             </button>
         </div>
     );

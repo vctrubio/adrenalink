@@ -174,16 +174,6 @@ export class QueueController {
     }
 
     /**
-     * Remove event from snapshot (called after DB deletion)
-     */
-    removeFromSnapshot(eventId: string): void {
-        if (this.originalSnapshot.length > 0) {
-            this.originalSnapshot = this.originalSnapshot.filter(e => e.id !== eventId);
-            console.log(`🗑️ [QueueController] Removed ${eventId} from snapshot`);
-        }
-    }
-
-    /**
      * Get optimization statistics for display
      * Returns count of events with proper gaps vs total events
      */
@@ -299,79 +289,6 @@ export class QueueController {
     }
 
     /**
-     * Delete event with mode-aware behavior
-     * Locked mode: cascade and optimize remaining queue
-     * Unlocked mode: just remove event, respect remaining times
-     * Returns updates array for remaining events and handles DB deletion
-     */
-    async deleteEvent(
-        eventId: string,
-        deleteFromDb: (id: string) => Promise<any>,
-        onRemoveFromSnapshot?: (deletedId: string) => void
-    ): Promise<{ success: boolean; updates: Array<{ id: string; date: string; duration: number }> }> {
-        const events = this.queue.getAllEvents();
-        const eventToDelete = events.find(e => e.id === eventId);
-
-        if (!eventToDelete) {
-            return { success: false, updates: [] };
-        }
-
-        console.log(`🗑️ [QueueController.deleteEvent] Mode: ${this.isLocked() ? 'LOCKED (optimize)' : 'UNLOCKED (respect times)'}, deleting ${eventId}`);
-
-        let updates: Array<{ id: string; date: string; duration: number }> = [];
-
-        if (this.isLocked()) {
-            // Locked mode: optimize/cascade remaining queue
-            const deletedStartTimeMinutes = getMinutesFromISO(eventToDelete.eventData.date);
-            
-            // Remove event from queue
-            const updatedEvents = events.filter(e => e.id !== eventId);
-            this.queue.rebuildQueue(updatedEvents);
-
-            // Optimize remaining queue from deleted event's start time
-            const optimizeResult = this.queue.optimiseFromTime(deletedStartTimeMinutes, this.settings.gapMinutes);
-            updates = optimizeResult.updates;
-
-            // Apply updates to events in-place
-            updates.forEach(update => {
-                const event = this.queue.getAllEvents().find(e => e.id === update.id);
-                if (event) {
-                    event.eventData.date = update.date;
-                    event.eventData.duration = update.duration;
-                }
-            });
-
-            console.log(`✅ [QueueController.deleteEvent] Locked mode: ${updates.length} events optimized`);
-        } else {
-            // Unlocked mode: just remove event, keep others at original times
-            const updatedEvents = events.filter(e => e.id !== eventId);
-            this.queue.rebuildQueue(updatedEvents);
-            
-            console.log(`✅ [QueueController.deleteEvent] Unlocked mode: event removed, others unchanged`);
-        }
-
-        // Delete from database
-        try {
-            const result = await deleteFromDb(eventId);
-            if (!result.success) {
-                console.error("❌ [QueueController.deleteEvent] DB deletion failed");
-                return { success: false, updates: [] };
-            }
-        } catch (error) {
-            console.error("❌ [QueueController.deleteEvent] Error deleting from DB:", error);
-            return { success: false, updates: [] };
-        }
-
-        // Notify snapshot removal
-        onRemoveFromSnapshot?.(eventId);
-
-        // Trigger refresh
-        this.onRefresh();
-
-        return { success: true, updates };
-    }
-
-    /**
      * Check if queue can be shifted/cascaded after deleting this event
      * Returns true if there's a next event after this one
      */
@@ -416,7 +333,7 @@ export class QueueController {
      * 
      * Cascade behavior:
      * - LOCKED: Always cascade to maintain linked list structure
-     * - UNLOCKED: Only cascade if events were already linked OR catching up to next event
+     * - UNLOCKED: Only cascade if catching up to/overlapping next event
      */
     adjustDuration(eventId: string, increment: boolean): void {
         const event = this.queue.getAllEvents().find((e) => e.id === eventId);
@@ -425,15 +342,6 @@ export class QueueController {
         const change = increment ? this.settings.stepDuration : -this.settings.stepDuration;
         const oldDuration = event.eventData.duration;
 
-        // Check if events were already linked BEFORE the change
-        let wasLinked = false;
-        if (event.next) {
-            const oldEndMinutes = getMinutesFromISO(event.eventData.date) + oldDuration;
-            const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
-            const oldGap = nextStartMinutes - oldEndMinutes;
-            wasLinked = oldGap === 0;
-        }
-
         event.eventData.duration = Math.max(30, event.eventData.duration + change);
         const actualChange = event.eventData.duration - oldDuration;
 
@@ -441,9 +349,9 @@ export class QueueController {
             const newEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
             const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
             
-            // LOCKED: Always cascade to maintain linked list
-            // UNLOCKED: Only cascade if events were linked OR catching up/overlapping
-            if (this.isLocked() || wasLinked || newEndMinutes >= nextStartMinutes) {
+            // LOCKED: Always cascade
+            // UNLOCKED: Only cascade if overlap occurs
+            if (this.isLocked() || newEndMinutes > nextStartMinutes) {
                 this.cascadeTimeAdjustment(event.next, actualChange);
             }
         }
@@ -457,7 +365,7 @@ export class QueueController {
      * 
      * Cascade behavior:
      * - LOCKED: Always cascade to maintain linked list structure
-     * - UNLOCKED: Only cascade if events were already linked OR catching up to next event
+     * - UNLOCKED: Only cascade if catching up to/overlapping next event
      */
     adjustTime(eventId: string, increment: boolean): void {
         const event = this.queue.getAllEvents().find((e) => e.id === eventId);
@@ -465,24 +373,15 @@ export class QueueController {
 
         const change = increment ? this.settings.stepDuration : -this.settings.stepDuration;
         
-        // Check if events were already linked BEFORE the change
-        let wasLinked = false;
-        if (event.next) {
-            const oldEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
-            const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
-            const oldGap = nextStartMinutes - oldEndMinutes;
-            wasLinked = oldGap === 0;
-        }
-
         this.updateEventDateTime(event, change);
         const newEndMinutes = getMinutesFromISO(event.eventData.date) + event.eventData.duration;
 
         if (event.next) {
             const nextStartMinutes = getMinutesFromISO(event.next.eventData.date);
             
-            // LOCKED: Always cascade to maintain linked list
-            // UNLOCKED: Only cascade if events were linked OR catching up/overlapping
-            if (this.isLocked() || wasLinked || newEndMinutes >= nextStartMinutes) {
+            // LOCKED: Always cascade
+            // UNLOCKED: Only cascade if overlap occurs
+            if (this.isLocked() || newEndMinutes > nextStartMinutes) {
                 this.cascadeTimeAdjustment(event.next, change);
             }
         }

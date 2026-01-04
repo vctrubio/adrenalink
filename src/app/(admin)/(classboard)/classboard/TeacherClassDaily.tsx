@@ -20,7 +20,7 @@ type TeacherFilter = "active" | "all";
  * Gets gapMinutes from GlobalFlag (single source of truth)
  */
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag } = useClassboardContext();
+    const { teacherQueues, draggedBooking, globalFlag, optimisticEvents, optimisticDeletions, selectedDate } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -50,10 +50,16 @@ export default function TeacherClassDaily() {
         const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
-            const events = queue.getAllEvents();
-            const hasEvents = events.length > 0;
+            // Check real events, filtering out optimistic deletions
+            const events = queue.getAllEvents().filter(e => !optimisticDeletions.has(e.id));
+            const hasRealEvents = events.length > 0;
+            
+            // Check if teacher has any optimistic events for this date
+            const hasOptimisticEvents = Array.from(optimisticEvents.values()).some(
+                opt => opt.teacherId === queue.teacher.id && opt.date.startsWith(selectedDate)
+            );
 
-            if (hasEvents) {
+            if (hasRealEvents || hasOptimisticEvents) {
                 activeQueues.push(queue);
             }
         });
@@ -69,7 +75,7 @@ export default function TeacherClassDaily() {
             filteredQueues: filter === "active" ? activeQueues : allQueues,
             counts,
         };
-    }, [teacherQueues, filter]);
+    }, [teacherQueues, filter, optimisticEvents, optimisticDeletions, selectedDate]);
 
     return (
         <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>

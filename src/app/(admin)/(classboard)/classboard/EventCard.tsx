@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode } from "@/src/app/(admin)/(classboard)/TeacherQueue";
 import type { QueueController } from "@/src/app/(admin)/(classboard)/QueueController";
-import { updateEventStatus, deleteClassboardEvent } from "@/actions/classboard-action";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { updateEventStatus } from "@/actions/classboard-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
@@ -24,19 +23,21 @@ interface EventCardProps {
     gapMinutes?: number; // Optional override, defaults to GlobalFlag
     showLocation?: boolean;
     cardStatus?: EventCardStatus;
-    onCascade?: (ids: string[]) => void;
 }
 
 /**
  * EventCard - Renders a single event card
  * Reads gapMinutes from GlobalFlag (source of truth)
  */
-export default function EventCard({ event, queueController, gapMinutes: gapMinutesProp, showLocation = true, cardStatus, onCascade }: EventCardProps) {
+export default function EventCard({ event, queueController, gapMinutes: gapMinutesProp, showLocation = true, cardStatus }: EventCardProps) {
     const contextValue = useClassboardContext();
+    const { deleteEvent } = contextValue;
 
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    
+    // We use context cardStatus for deleting state, but keep local fallback if needed
+    const isDeleting = cardStatus === "deleting";
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -163,53 +164,11 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
         console.log(`🗑️ [EventCard] Deleting ${eventId} | Cascade: ${cascade}`);
-        setIsDeleting(true);
-
+        
         try {
-            // Cascade delete: optimize remaining queue
-            if (cascade && queueController) {
-                const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
-
-                // Show spinning only on affected events (cascade IDs)
-                if (updates.length > 0 && onCascade) {
-                    onCascade(updates.map((u) => u.id));
-                }
-
-                // Execute: delete from DB FIRST
-                await deleteClassboardEvent(deletedId);
-                console.log(`  ✅ Deleted event: ${deletedId}`);
-
-                // Then bulk update remaining events - AWAIT this completely
-                if (updates.length > 0) {
-                    await bulkUpdateClassboardEvents(updates, []);
-                    console.log(`  ✅ Updated ${updates.length} events after cascade`);
-                }
-
-                // Clear cascading animation ONLY after server operations complete
-                // The realtime sync will handle the actual data update
-                if (onCascade) {
-                    onCascade([]);
-                }
-
-                return;
-            }
-
-            // Standard delete: just remove event
-            const result = await deleteClassboardEvent(eventId);
-            if (!result.success) {
-                console.error("❌ Delete failed:", result.error);
-                setIsDeleting(false);
-                return;
-            }
-
-            // Stop cascading animation
-            if (onCascade) {
-                onCascade([]);
-            }
+            await deleteEvent(eventId, cascade, queueController);
         } catch (error) {
             console.error("❌ [EventCard] Error deleting event:", error);
-            setIsDeleting(false);
-            if (onCascade) onCascade([]);
         }
     };
 

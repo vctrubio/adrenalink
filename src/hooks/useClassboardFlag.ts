@@ -151,25 +151,59 @@ interface UseClassboardFlagProps {
 }
 
 export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagProps) {
-    const { teachers: allSchoolTeachers } = useSchoolTeachers();
+    const { teachers: allSchoolTeachers, loading: teachersLoading } = useSchoolTeachers();
     const renderCount = useRef(0);
     renderCount.current++;
 
     // Core state
-    const [mounted, setMounted] = useState(false);
+    const [clientReady, setClientReady] = useState(false);
+    const [minDelayPassed, setMinDelayPassed] = useState(false);
     const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel);
     const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
     const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
     const [optimisticEvents, setOptimisticEvents] = useState<Map<string, OptimisticEvent>>(new Map());
+    const [optimisticDeletions, setOptimisticDeletions] = useState<Set<string>>(new Set());
     const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
+
+    // Derived mounted state: Client is hydrated, teachers are loaded, AND min delay has passed
+    const mounted = clientReady && !teachersLoading && minDelayPassed;
 
     // Track previous values for dependency logging
     const prevTeachersRef = useRef<TeacherModel[]>([]);
     const prevBookingsRef = useRef<ClassboardData[]>([]);
 
-    console.log(`🔄 [useClassboardFlag] Render #${renderCount.current} | Date: ${selectedDate}`);
+    console.log(`🔄 [useClassboardFlag] Render #${renderCount.current} | Date: ${selectedDate} | Ready: ${mounted} (Client: ${clientReady}, Teachers: ${!teachersLoading}, Delay: ${minDelayPassed})`);
+
+    // Min delay effect for branding
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setMinDelayPassed(true);
+        }, 3500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Long loading logger
+    useEffect(() => {
+        if (mounted) return;
+
+        // Start checking after 4 seconds (after min delay)
+        const startTimeout = setTimeout(() => {
+            if (mounted) return;
+            
+            console.log("...fetching again...");
+            const interval = setInterval(() => {
+                if (!mounted) {
+                    console.log("...fetching again...");
+                }
+            }, 2500);
+
+            return () => clearInterval(interval);
+        }, 4000);
+
+        return () => clearTimeout(startTimeout);
+    }, [mounted]);
 
     // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
@@ -439,6 +473,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             console.log(`🗑️ [useClassboardFlag] Deleting event: ${eventId} | Cascade: ${cascade}`);
 
             setEventMutation(eventId, "deleting");
+            setOptimisticDeletions(prev => new Set(prev).add(eventId));
 
             try {
                 if (cascade && queueController) {
@@ -461,6 +496,11 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                     if (!result.success) {
                         console.error("Delete failed:", result.error);
                         clearEventMutation(eventId);
+                        setOptimisticDeletions(prev => {
+                            const updated = new Set(prev);
+                            updated.delete(eventId);
+                            return updated;
+                        });
                         return;
                     }
                 }
@@ -470,6 +510,11 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             } catch (error) {
                 console.error("❌ Error deleting event:", error);
                 clearEventMutation(eventId);
+                setOptimisticDeletions(prev => {
+                    const updated = new Set(prev);
+                    updated.delete(eventId);
+                    return updated;
+                });
             }
         },
         [setEventMutation, clearEventMutation]
@@ -477,8 +522,9 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
 
     // Clear optimistic events (called by realtime sync)
     const clearOptimisticEvents = useCallback(() => {
-        console.log(`🧹 [useClassboardFlag] Clearing ${optimisticEvents.size} optimistic events`);
+        console.log(`🧹 [useClassboardFlag] Clearing optimistic state`);
         setOptimisticEvents(new Map());
+        setOptimisticDeletions(new Set());
     }, [optimisticEvents.size]);
 
     // ============ PERSISTENCE ============
@@ -500,8 +546,8 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             }
         }
 
-        setMounted(true);
-        console.log(`🚀 [useClassboardFlag] Mounted`);
+        setClientReady(true);
+        console.log(`🚀 [useClassboardFlag] Client Ready`);
     }, []);
 
     // Persist selectedDate to localStorage
@@ -555,6 +601,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         // Optimistic updates
         optimisticEvents,
         setOptimisticEvents,
+        optimisticDeletions,
         clearOptimisticEvents,
         getEventCardStatus,
 
