@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { MoreVertical, Receipt } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -269,11 +270,15 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     };
 
     return (
-        <div
+        <motion.div
             draggable
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            className={`group relative w-[355px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${isDragging ? "opacity-50" : "opacity-100"}`}
+            animate={{
+                opacity: loadingLessonId ? 0.3 : isDragging ? 0.5 : 1
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="group relative w-[355px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md"
         >
             <BookingProgressBar counts={eventCounts} durationMinutes={packageInfo.durationMinutes} />
 
@@ -288,6 +293,6 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
             </div>
 
             <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
-        </div>
+        </motion.div>
     );
 }
