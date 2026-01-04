@@ -432,6 +432,9 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                 const controller = controllerRef.current;
                 const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
                 const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes, teacherOptimisticEvents);
+
+                console.log(`📅 [addLessonEvent] Teacher: ${queue.teacher.username} | Duration: ${duration}m | Gap: ${controller.gapMinutes}m | Pending events: ${teacherOptimisticEvents.length} | Next available slot: ${slotTime}`);
+
                 const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
 
                 const optimisticEvent: OptimisticEvent = {
