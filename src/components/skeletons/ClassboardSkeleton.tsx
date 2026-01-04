@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -14,6 +14,16 @@ interface ClassboardSkeletonProps {
 
 export const ClassboardSkeleton = ({ error, errorMessage, schoolUsername }: ClassboardSkeletonProps) => {
     const credentials = useSchoolCredentials();
+    const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+    // Track loading timeout - show refresh prompt after 8 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoadingTimeout(true);
+        }, 8000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     // Freeze at a random category when error occurs
     const frozenCategory = useMemo(() => {
@@ -94,6 +104,18 @@ export const ClassboardSkeleton = ({ error, errorMessage, schoolUsername }: Clas
                         >
                             Checking the wind...
                         </motion.p>
+                    )}
+
+                    {loadingTimeout && !error && (
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            onClick={() => window.location.reload()}
+                            className="mt-4 px-6 py-2 rounded-lg bg-secondary/10 border border-secondary text-secondary hover:bg-secondary/20 transition-all duration-300 active:scale-95 text-sm font-medium"
+                        >
+                            Taking longer than expected - Click to refresh
+                        </motion.button>
                     )}
                 </div>
 
