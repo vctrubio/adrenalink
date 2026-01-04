@@ -27,14 +27,14 @@ export default async function AdminHomePage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
-            <HomeClient 
-                classboardData={classboardData} 
+            <HomeClient
+                classboardData={classboardData}
                 school={{
                     name: credentials?.name || school.name,
                     username: credentials?.username || school.username,
                     country: credentials?.country || "",
                     timezone: credentials?.timezone || null,
-                    currency: credentials?.currency || "EUR",
+                    currency: credentials?.currency || "YEN",
                 }}
             />
         </div>

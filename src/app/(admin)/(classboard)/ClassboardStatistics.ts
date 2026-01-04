@@ -49,16 +49,23 @@ export class ClassboardStatistics {
         dateFilterOrCountAll?: string | boolean,
         countAllEvents = false
     ) {
-        if (Array.isArray(teacherQueuesOrData)) {
+        // Distinguish between TeacherQueue[] and ClassboardModel (both are arrays)
+        // ClassboardModel elements have 'booking' property, TeacherQueue has 'teacher'
+        const isTeacherQueues = Array.isArray(teacherQueuesOrData) &&
+            teacherQueuesOrData.length > 0 &&
+            'teacher' in teacherQueuesOrData[0] &&
+            typeof (teacherQueuesOrData[0] as any).getStats === 'function';
+
+        if (isTeacherQueues) {
             // First signature: TeacherQueue[] with optional ClassboardModel
-            this.teacherQueues = teacherQueuesOrData;
+            this.teacherQueues = teacherQueuesOrData as TeacherQueue[];
             this.classboardData = typeof classboardDataOrDateFilter === "object" && classboardDataOrDateFilter !== null ? classboardDataOrDateFilter : null;
             this.dateFilter = typeof dateFilterOrCountAll === "string" ? dateFilterOrCountAll : undefined;
             this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : countAllEvents;
         } else {
             // Second signature: ClassboardModel alone
             this.teacherQueues = null;
-            this.classboardData = teacherQueuesOrData;
+            this.classboardData = Array.isArray(teacherQueuesOrData) ? teacherQueuesOrData : null;
             this.dateFilter = typeof classboardDataOrDateFilter === "string" ? classboardDataOrDateFilter : undefined;
             this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : false;
         }
@@ -107,7 +114,7 @@ export class ClassboardStatistics {
                 booking.lessons.forEach((lesson) => {
                     lesson.events.forEach((event) => {
                         // Apply date filter if provided
-                        if (this.dateFilter && !event.date.toISOString().startsWith(this.dateFilter)) {
+                        if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
                             return;
                         }
                         

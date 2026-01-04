@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin } from "lucide-react";
 import type { ClassboardModel } from "@/backend/models/ClassboardModel";
-import { ClassboardStatistics } from "@/backend/ClassboardStatistics";
+import { ClassboardStatistics } from "@/src/app/(admin)/(classboard)/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -50,13 +50,14 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                         <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-accent/5 transition-colors" onClick={() => toggleDate(group.date)}>
                             <div className="flex flex-col gap-1 min-w-[140px]">
                                 <span className="font-bold text-xl tracking-tight">
-                                    {new Date(group.date).toLocaleDateString(undefined, {
-                                        weekday: "short",
-                                        day: "numeric",
-                                        month: "short",
-                                    })}
+                                    {(() => {
+                                        const date = new Date(group.date + "T00:00:00");
+                                        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                                        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                        return `${weekdays[date.getUTCDay()]} ${date.getUTCDate()} ${months[date.getUTCMonth()]}`;
+                                    })()}
                                 </span>
-                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date(group.date).getFullYear()}</span>
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date(group.date + "T00:00:00").getUTCFullYear()}</span>
                             </div>
 
                             <div className="flex items-center gap-4 sm:gap-8 text-sm">

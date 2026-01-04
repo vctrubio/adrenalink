@@ -39,46 +39,38 @@ function ClassboardContent() {
 
     const stats = useMemo(() => {
         // Clone queues to inject optimistic events and remove deleted ones for real-time stats
-        const queuesWithOptimistic = teacherQueues.map(q => {
-             // Filter operations for this teacher
-             const ops = Array.from(optimisticOperations.values());
-             
-             // Get additions
-             const relevantAdditions = ops
-                 .filter((op): op is { type: "add"; event: any } => 
-                     op.type === "add" && op.event.teacherId === q.teacher.id && op.event.date.startsWith(selectedDate)
-                 )
-                 .map(op => op.event);
+        const queuesWithOptimistic = teacherQueues.map((q) => {
+            // Filter operations for this teacher
+            const ops = Array.from(optimisticOperations.values());
 
-             // Get deletions
-             const relevantDeletions = new Set(
-                 ops
-                 .filter((op): op is { type: "delete"; eventId: string } => op.type === "delete")
-                 .map(op => op.eventId)
-             );
-             
-             const hasDeletions = q.getAllEvents().some(e => relevantDeletions.has(e.id));
-             
-             if (relevantAdditions.length === 0 && !hasDeletions) return q;
+            // Get additions
+            const relevantAdditions = ops.filter((op): op is { type: "add"; event: any } => op.type === "add" && op.event.teacherId === q.teacher.id && op.event.date.startsWith(selectedDate)).map((op) => op.event);
 
-             // Create a temporary queue with merged/filtered events
-             const newQ = new TeacherQueue(q.teacher);
-             
-             // Copy existing events EXCEPT those optimistically deleted
-             q.getAllEvents().forEach(e => {
-                 if (!relevantDeletions.has(e.id)) {
-                     // Nullify pointers when cloning to prevent circular references
-                     newQ.constructEvents({...e, next: null, prev: null});
-                 }
-             });
-             
-             // Add optimistic events
-             relevantAdditions.forEach(opt => {
-                 const node = optimisticEventToNode(opt);
-                 newQ.constructEvents({...node, next: null, prev: null});
-             });
-             
-             return newQ;
+            // Get deletions
+            const relevantDeletions = new Set(ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId));
+
+            const hasDeletions = q.getAllEvents().some((e) => relevantDeletions.has(e.id));
+
+            if (relevantAdditions.length === 0 && !hasDeletions) return q;
+
+            // Create a temporary queue with merged/filtered events
+            const newQ = new TeacherQueue(q.teacher);
+
+            // Copy existing events EXCEPT those optimistically deleted
+            q.getAllEvents().forEach((e) => {
+                if (!relevantDeletions.has(e.id)) {
+                    // Nullify pointers when cloning to prevent circular references
+                    newQ.constructEvents({ ...e, next: null, prev: null });
+                }
+            });
+
+            // Add optimistic events
+            relevantAdditions.forEach((opt) => {
+                const node = optimisticEventToNode(opt);
+                newQ.constructEvents({ ...node, next: null, prev: null });
+            });
+
+            return newQ;
         });
 
         const statistics = new ClassboardStatistics(queuesWithOptimistic);
@@ -89,7 +81,7 @@ function ClassboardContent() {
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex flex-wrap gap-4 p-4">
                 <div className="flex-1 min-w-[280px] max-w-2xl flex items-stretch gap-4">
-                    <div className="p-2 rounded-2xl flex items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
+                    <div className="p-2 rounded-2xl flex w-full items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
                         <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
                     </div>
                 </div>
