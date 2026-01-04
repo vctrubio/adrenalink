@@ -605,7 +605,8 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
         clearOptimisticOperations,
         getEventCardStatus,
         globalFlag,
-        setClassboardModelWrapper
+        setClassboardModelWrapper,
+        flagTick
     ]);
 
     return contextValue;
