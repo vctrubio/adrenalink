@@ -13,10 +13,7 @@ const TEACHER_COLOR = "#16a34a";
 
 type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
-    // ... (existing hook logic) ...
     const { teacherQueues, draggedBooking, globalFlag, optimisticOperations, selectedDate } = useClassboardContext();
-    const renderCount = useRef(0);
-    renderCount.current++;
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;

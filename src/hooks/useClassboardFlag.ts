@@ -8,11 +8,6 @@
  * 2. Event Mutations - Optimistic updates with smooth animations
  * 3. Controller Settings - Gap, duration, location settings
  * 4. Adjustment Mode - Edit sessions for teachers
- *
- * ELIMINATES:
- * - useAddLessonEvent.ts (consolidated here)
- * - Prop drilling of gapMinutes, onDeleteComplete
- * - Scattered state across components
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -88,9 +83,13 @@ interface EventMutationState {
     cascadeIds?: string[];
 }
 
-// ... (helper functions createEventNode, optimisticEventToNode remain same) ...
+// ============ HELPER FUNCTIONS ============
 
-function createEventNode(event: any, lesson: any, booking: ClassboardData): EventNode {
+function createEventNode(
+    event: { id: string; date: string; duration: number; location?: string; status: string }, 
+    lesson: { id: string; commission: { type: string; cph: string } }, 
+    booking: ClassboardData
+): EventNode {
     return {
         id: event.id,
         lessonId: lesson.id,
@@ -173,17 +172,15 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
     const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
 
-    // Derived mounted state: Client is hydrated, teachers are loaded, AND min delay has passed
+    // Derived mounted state
     const mounted = (clientReady && !teachersLoading && minDelayPassed) || !!teachersError;
 
-    // ... (refs and logging) ...
+    // Track previous values for dependency logging
     const prevTeachersRef = useRef<TeacherModel[]>([]);
     const prevBookingsRef = useRef<ClassboardData[]>([]);
-    
-    console.log(`🔄 [useClassboardFlag] Render #${renderCount.current} | Date: ${selectedDate} | Ready: ${mounted} (Client: ${clientReady}, Teachers: ${!teachersLoading}, Delay: ${minDelayPassed}, Error: ${!!teachersError})`);
+    const lastSyncedControllerRef = useRef<string>("");
 
-    // ... (effects for delays) ...
-    // Min delay effect for branding
+    // Min delay effect for branding - run only once
     useEffect(() => {
         const timer = setTimeout(() => {
             setMinDelayPassed(true);
@@ -191,40 +188,32 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         return () => clearTimeout(timer);
     }, []);
 
-    // Long loading logger
+    // Long loading logger - stabilized to prevent resets during render loops
+    const loadingStartTimeRef = useRef(Date.now());
     useEffect(() => {
         if (mounted) return;
 
-        // Start checking after 4 seconds (after min delay)
-        const startTimeout = setTimeout(() => {
-            if (mounted) return;
-            
-            console.warn("⚠️ [useClassboardFlag] Still waiting for mount. Diagnostics:", {
-                clientReady,
-                teachersLoading,
-                minDelayPassed,
-                hasError: !!teachersError,
-                error: teachersError
-            });
+        const interval = setInterval(() => {
+            if (mounted) {
+                clearInterval(interval);
+                return;
+            }
 
-            const interval = setInterval(() => {
-                if (!mounted) {
-                    console.warn("⏳ [useClassboardFlag] Fetching again / still waiting...", {
-                        clientReady,
-                        teachersLoading,
-                        minDelayPassed,
-                        hasError: !!teachersError
-                    });
-                }
-            }, 2500);
+            const elapsed = Date.now() - loadingStartTimeRef.current;
+            if (elapsed > 4000) {
+                console.warn(`⏳ [useClassboardFlag] Still waiting for mount (${Math.round(elapsed/1000)}s). Diagnostics:`, {
+                    clientReady,
+                    teachersLoading,
+                    minDelayPassed,
+                    hasError: !!teachersError,
+                    mounted
+                });
+            }
+        }, 2500);
 
-            return () => clearInterval(interval);
-        }, 4000);
+        return () => clearInterval(interval);
+    }, [mounted, clientReady, teachersLoading, minDelayPassed, !!teachersError]);
 
-        return () => clearTimeout(startTimeout);
-    }, [mounted, clientReady, teachersLoading, minDelayPassed, teachersError]);
-
-    // ... (bookingsForSelectedDate, teacherQueues, globalFlag, effects, callbacks) ...
     // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
         const filtered = classboardModel.filter((booking) =>
@@ -235,10 +224,9 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
 
     // Build teacher queues from bookings
     const teacherQueues = useMemo(() => {
-        // ... (same as before) ...
         const queues = new Map<string, TeacherQueueClass>();
         const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
-        
+
         prevTeachersRef.current = activeTeachers;
         prevBookingsRef.current = bookingsForSelectedDate;
 
@@ -254,12 +242,15 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             booking.lessons.forEach((lesson) => {
                 const teacherId = lesson.teacher?.id;
                 if (!teacherId) return;
+
                 const queue = queues.get(teacherId);
                 if (!queue) return;
 
                 const sortedEvents = (lesson.events || [])
                     .filter((event) => event.date.split('T')[0] === selectedDate)
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    .sort(
+                        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                    );
 
                 sortedEvents.forEach((event) => {
                     const eventNode = createEventNode(event, lesson, booking);
@@ -273,35 +264,50 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             .filter((queue): queue is TeacherQueueClass => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
 
-    // GlobalFlag instance
+    // Create GlobalFlag instance (stable reference)
     const globalFlag = useMemo(() => {
-        return new GlobalFlag(teacherQueues, () => setFlagTick((t) => t + 1));
-    }, []);
+        return new GlobalFlag(teacherQueues, () => {
+            setFlagTick((t) => t + 1);
+        });
+    }, [teacherQueues]); 
 
-    // Update GlobalFlag
+    // Update GlobalFlag when dependencies change
     useEffect(() => {
         globalFlag.updateTeacherQueues(teacherQueues);
     }, [teacherQueues, globalFlag]);
 
-    // Sync controller
+    // Sync controller with GlobalFlag on mount/change
     useEffect(() => {
-        if (mounted) {
-            globalFlag.updateController(controller);
-        }
-    }, [mounted, globalFlag, controller]);
+        if (!clientReady) return;
 
-    // ... (setSelectedDate, setController, gapMinutes, mutation tracking) ...
-    const setSelectedDate = useCallback((date: string) => {
-        globalFlag.onDateChange();
-        setSelectedDateState(date);
-    }, [selectedDate, globalFlag]);
+        const controllerString = JSON.stringify(controller);
+        if (lastSyncedControllerRef.current === controllerString) return;
 
-    const setController = useCallback((newController: ControllerSettings) => {
-        globalFlag.updateController(newController);
-        setControllerState(newController);
-    }, [globalFlag]);
+        globalFlag.updateController(controller);
+        lastSyncedControllerRef.current = controllerString;
+    }, [clientReady, globalFlag, controller]);
+
+    // Wrapper for setSelectedDate that notifies GlobalFlag
+    const setSelectedDate = useCallback(
+        (date: string) => {
+            globalFlag.onDateChange();
+            setSelectedDateState(date);
+        },
+        [globalFlag]
+    );
+
+    // Wrapper for setController that updates GlobalFlag (source of truth)
+    const setController = useCallback(
+        (newController: ControllerSettings) => {
+            globalFlag.updateController(newController);
+            setControllerState(newController);
+        },
+        [globalFlag]
+    );
 
     const gapMinutes = globalFlag.getController().gapMinutes;
+
+    // ============ EVENT MUTATION TRACKING ============
 
     const setEventMutation = useCallback((eventId: string, status: EventCardStatus, cascadeIds?: string[]) => {
         setEventMutations((prev) => {
@@ -320,24 +326,14 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
     }, []);
 
     const getEventCardStatus = useCallback((eventId: string): EventCardStatus | undefined => {
-        // Check if this event is in optimistic state (posting)
         if (eventId.startsWith("temp-")) return "posting";
-
-        // Check unified optimistic operations
         const op = optimisticOperations.get(eventId);
         if (op?.type === "delete") return "deleting";
-
-        // Check mutation state
         const mutation = eventMutations.get(eventId);
         if (mutation) return mutation.status;
-
-        // Check if this event is part of a cascade
         for (const [, mut] of eventMutations) {
-            if (mut.cascadeIds?.includes(eventId)) {
-                return "updating";
-            }
+            if (mut.cascadeIds?.includes(eventId)) return "updating";
         }
-
         return undefined;
     }, [eventMutations, optimisticOperations]);
 
@@ -346,7 +342,6 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
     const addLessonEvent = useCallback(
         async (bookingData: ClassboardData, lessonId: string) => {
             const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            console.log(`➕ [useClassboardFlag] Adding event: ${tempId}`);
 
             try {
                 const lesson = bookingData.lessons.find((l) => l.id === lessonId);
@@ -361,7 +356,6 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                     return;
                 }
 
-                // Get pending optimistic events for this teacher
                 const teacherOptimisticEvents = Array.from(optimisticOperations.values())
                     .filter((op): op is { type: "add"; event: OptimisticEvent } => op.type === "add" && op.event.teacherId === lesson.teacher.id)
                     .map((op) => optimisticEventToNode(op.event));
@@ -399,7 +393,6 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                     location: controller.location,
                 };
 
-                // Call server action first
                 const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
 
                 if (!result.success) {
@@ -407,9 +400,7 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
                     return;
                 }
 
-                // Add optimistic event operation ONLY after server success
                 setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
-                console.log(`✅ Event created on server | LessonId: ${lessonId} | TempId: ${tempId}`);
             } catch (error) {
                 console.error("❌ Error adding event:", error);
                 toast.error("Error creating event");
@@ -430,7 +421,6 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
             }
 
             setEventMutation(eventId, "deleting");
-            // Add delete operation
             setOptimisticOperations((prev) => new Map(prev).set(eventId, { type: "delete", eventId }));
 
             try {
@@ -466,13 +456,12 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
         [setEventMutation, clearEventMutation]
     );
 
-    // Clear optimistic operations
     const clearOptimisticOperations = useCallback(() => {
-        console.log(`🧹 [useClassboardFlag] Clearing optimistic operations`);
         setOptimisticOperations(new Map());
     }, []);
 
-    // ... (persistence) ...
+    // ============ PERSISTENCE ============
+
     useEffect(() => {
         const storedDate = localStorage.getItem(STORAGE_KEY_DATE);
         if (storedDate) setSelectedDateState(storedDate);
@@ -504,41 +493,25 @@ export function useClassboardFlag({ initialClassboardModel }: UseClassboardFlagP
     );
 
     const contextValue = useMemo(() => ({
-        // Data
         classboardModel,
         bookingsForSelectedDate,
         teacherQueues,
         mounted,
         error: teachersError,
-
-        // Date selection
         selectedDate,
         setSelectedDate,
-
-        // Controller settings
         controller,
         setController,
         gapMinutes,
-
-        // Drag state
         draggedBooking,
         setDraggedBooking,
-
-        // Event actions
         addLessonEvent,
         deleteEvent,
-
-        // Optimistic operations (Unified)
         optimisticOperations,
         setOptimisticOperations,
         clearOptimisticOperations,
-        
         getEventCardStatus,
-
-        // Global flag
         globalFlag,
-
-        // Internal
         setClassboardModel: setClassboardModelWrapper,
     }), [
         classboardModel,

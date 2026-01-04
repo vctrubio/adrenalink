@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useState, useEffect, useMemo, type ReactNode } from "react";
 import { getTeachers } from "@/actions/teachers-action";
 import type { TeacherModel } from "@/backend/models";
 
@@ -52,9 +52,16 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
         fetchTeachers();
     }, []);
 
-    return (
-        <SchoolTeachersContext.Provider value={{ teachers, allTeachers, loading, error, refetch: fetchTeachers }}>
-            {children}
-        </SchoolTeachersContext.Provider>
+    const contextValue = useMemo(
+        () => ({
+            teachers,
+            allTeachers,
+            loading,
+            error,
+            refetch: fetchTeachers,
+        }),
+        [teachers, allTeachers, loading, error],
     );
+
+    return <SchoolTeachersContext.Provider value={contextValue}>{children}</SchoolTeachersContext.Provider>;
 }

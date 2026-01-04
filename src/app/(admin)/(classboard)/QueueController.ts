@@ -670,6 +670,13 @@ export class QueueController {
         return this.queue;
     }
 
+    /**
+     * Get the original snapshot of events captured at the start of adjustment
+     */
+    getOriginalSnapshot(): EventNode[] {
+        return this.originalSnapshot;
+    }
+
     // ============ PRIVATE HELPERS ============
 
     private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {

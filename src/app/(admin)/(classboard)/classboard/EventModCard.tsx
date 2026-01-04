@@ -57,7 +57,15 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
 const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueControllerType }) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const startMinutes = timeToMinutes(startTime);
-    const endTime = minutesToTime(startMinutes + event.eventData.duration);
+    const duration = event.eventData.duration;
+    const endTime = minutesToTime(startMinutes + duration);
+    
+    // Find original state from snapshot to show session-only changes
+    const originalEvent = queueController.getOriginalSnapshot().find(e => e.id === eventId);
+    
+    // Session shifts (vs original snapshot)
+    const timeShift = queueController.getQueue().getEventTimeDifference(eventId, queueController.getOriginalSnapshot());
+    const durationShift = originalEvent ? duration - originalEvent.eventData.duration : 0;
 
     const handleTimeChange = (increment: boolean) => {
         queueController.adjustTime(eventId, increment);
@@ -90,10 +98,26 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
                 </div>
             </div>
 
-            {/* Bottom Row: Times */}
-            <div className="flex items-center">
-                <span className="text-3xl font-black tracking-tighter leading-none text-foreground">{startTime}</span>
-                <span className="ml-2 text-sm font-bold tracking-tight leading-none text-muted-foreground/30">— {endTime}</span>
+            {/* Bottom Row: Times and Session Differences */}
+            <div className="flex items-center justify-between gap-1.5">
+                <span className="text-3xl font-black tracking-tighter leading-none text-foreground truncate">{startTime}</span>
+                
+                <div className="flex flex-col items-end gap-1">
+                    <span className="text-sm font-bold tracking-tight leading-none text-muted-foreground/30">— {endTime}</span>
+
+                    <div className="flex flex-col items-end text-[10px] font-black tracking-tighter text-cyan-600 dark:text-cyan-400 uppercase leading-none">
+                        {timeShift !== 0 && (
+                            <span className="shrink-0">
+                                {timeShift > 0 ? "+" : "-"}{getHMDuration(Math.abs(timeShift))}
+                            </span>
+                        )}
+                        {/* {durationShift !== 0 && (
+                            <span className="shrink-0">
+                                {durationShift > 0 ? "+" : "-"}{getHMDuration(Math.abs(durationShift))}
+                            </span>
+                        )} */}
+                    </div>
+                </div>
             </div>
         </div>
     );

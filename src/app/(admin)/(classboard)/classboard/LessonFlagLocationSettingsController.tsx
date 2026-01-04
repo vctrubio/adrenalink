@@ -53,8 +53,15 @@ export default function LessonFlagLocationSettingsController() {
         }
     }, [globalFlag]);
 
-    const { lockCount } = globalFlag.getLockStatusTime(adjustmentTime);
-    const { lockLocationCount, totalLocationEventsForLock } = globalFlag.getLockStatusLocation(adjustmentLocation);
+    const timeLockStatus = globalFlag.getLockStatusTime(adjustmentTime);
+    const lockCount = timeLockStatus.lockCount;
+    const totalTeachersForTime = timeLockStatus.totalTeachers;
+
+    const locLockStatus = globalFlag.getLockStatusLocation(adjustmentLocation);
+    const lockLocationCount = locLockStatus.lockLocationCount;
+    const totalTeachersForLoc = locLockStatus.totalTeachers;
+    const synchronizedTeachersCount = locLockStatus.synchronizedTeachersCount;
+
     const isLockFlagTime = globalFlag.isLockedTime;
     const isLockFlagLocation = globalFlag.isLockedLocation;
     const stepDuration = controller.stepDuration || 30;
@@ -89,27 +96,14 @@ export default function LessonFlagLocationSettingsController() {
         const newTime = minutesToTime(newMinutes);
         setAdjustmentTime(newTime);
 
-        // Apply adjustment to each pending teacher individually for consistent behavior with EventModCard
-        const pendingTeachersArray = Array.from(pendingTeachers);
-        pendingTeachersArray.forEach((teacherId) => {
-            const qc = globalFlag.getQueueController(teacherId);
-            if (qc) {
-                const events = qc.getQueue().getAllEvents();
-                events.forEach((event) => {
-                    qc.adjustTime(event.id, increment);
-                });
-            }
-        });
-
-        globalFlag.triggerRefresh();
+        // GlobalFlag now handles propagation based on lock state
+        globalFlag.adjustTime(newTime);
     };
 
     const handleLockTime = () => {
         if (isLockFlagTime) {
-            // If locked, unlock it
             globalFlag.unlockTime();
         } else if (adjustmentTime) {
-            // If not locked, lock to the current adjustment time
             globalFlag.lockToAdjustmentTime(adjustmentTime);
         }
     };
@@ -122,27 +116,14 @@ export default function LessonFlagLocationSettingsController() {
         setLocationIndex(newIndex);
         setAdjustmentLocation(newLocation);
 
-        // Apply location change to each pending teacher individually for consistent behavior with EventModCard
-        const pendingTeachersArray = Array.from(pendingTeachers);
-        pendingTeachersArray.forEach((teacherId) => {
-            const qc = globalFlag.getQueueController(teacherId);
-            if (qc) {
-                const events = qc.getQueue().getAllEvents();
-                events.forEach((event) => {
-                    qc.updateLocation(event.id, newLocation);
-                });
-            }
-        });
-
-        globalFlag.triggerRefresh();
+        // GlobalFlag now handles propagation based on lock state
+        globalFlag.adjustLocation(newLocation);
     };
 
     const handleLockLocation = () => {
         if (isLockFlagLocation) {
-            // If locked, unlock it
             globalFlag.unlockLocation();
         } else if (adjustmentLocation) {
-            // If not locked, lock to the current adjustment location
             globalFlag.lockToLocation(adjustmentLocation);
         }
     };
@@ -201,7 +182,7 @@ export default function LessonFlagLocationSettingsController() {
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Start Time</label>
-                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lockCount} SYNCHRONIZED</div>
+                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lockCount}/{totalTeachersForTime} SYNCHRONIZED</div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -211,7 +192,7 @@ export default function LessonFlagLocationSettingsController() {
                     <div className="flex-1 flex flex-col items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700 rounded-xl h-12 relative overflow-hidden group">
                         <span className="font-mono text-xl font-bold tracking-tight">{adjustmentTime || "--:--"}</span>
                         <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-600/10">
-                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockCount / Math.max(pendingTeachers.size, 1)) * 100}%` }} />
+                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockCount / Math.max(totalTeachersForTime, 1)) * 100}%` }} />
                         </div>
                     </div>
                     <button onClick={() => handleAdjustTime(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
@@ -229,7 +210,7 @@ export default function LessonFlagLocationSettingsController() {
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</label>
-                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lockLocationCount} SYNCHRONIZED</div>
+                    <div className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{synchronizedTeachersCount}/{totalTeachersForLoc} SYNCHRONIZED</div>
                 </div>
                 <div className="flex items-center gap-2">
                     <button onClick={() => handleAdjustLocation(false)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
@@ -241,7 +222,7 @@ export default function LessonFlagLocationSettingsController() {
                             <span className="font-medium text-sm truncate">{adjustmentLocation || "Select..."}</span>
                         </div>
                         <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-600/10">
-                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockLocationCount / Math.max(totalLocationEventsForLock, 1)) * 100}%` }} />
+                            <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(synchronizedTeachersCount / Math.max(totalTeachersForLoc, 1)) * 100}%` }} />
                         </div>
                     </div>
                     <button onClick={() => handleAdjustLocation(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">

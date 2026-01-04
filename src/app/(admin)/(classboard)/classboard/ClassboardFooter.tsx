@@ -14,13 +14,9 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
  */
 export default function ClassboardFooter() {
     const { globalFlag, setController } = useClassboardContext();
-    const renderCount = useRef(0);
-    renderCount.current++;
 
     // Get controller from GlobalFlag (single source of truth)
     const controller = globalFlag.getController();
-
-    console.log(`🔧 [ClassboardFooter] Render #${renderCount.current} | Gap: ${controller.gapMinutes}min`);
 
     const [isOpen, setIsOpen] = useState(false);
 

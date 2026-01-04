@@ -44,8 +44,6 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     // Get gapMinutes from GlobalFlag (source of truth) or use prop override or default
     const gapMinutes = gapMinutesProp ?? (contextValue?.globalFlag?.getController()?.gapMinutes ?? 0);
 
-    console.log(`🎴 [EventCard] ${event.bookingLeaderName} | Status: ${cardStatus || "idle"} | Gap: ${gapMinutes}min`);
-
     // Sync local state with prop when event updates from subscription
     useEffect(() => {
         setCurrentStatus(event.eventData.status as EventStatus);

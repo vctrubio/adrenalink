@@ -21,10 +21,6 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
 
-    renderCount.current++;
-
-    console.log(`🔄 [ClassboardRealtimeSync] Render #${renderCount.current}`);
-
     // Monitor connectivity status
     useEffect(() => {
         const handleOffline = () => {

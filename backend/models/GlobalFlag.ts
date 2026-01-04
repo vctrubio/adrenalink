@@ -164,6 +164,16 @@ export class GlobalFlag {
     }
 
     updateTeacherQueues(queues: TeacherQueue[]): void {
+        // Check if anything actually changed to prevent refresh loops
+        const sameLength = this.teacherQueues.length === queues.length;
+        const sameReferences = sameLength && this.teacherQueues.every((q, i) => q === queues[i]);
+        
+        if (sameReferences) {
+            return;
+        }
+
+        console.log(`🔄 [GlobalFlag] Updating teacher queues (${this.teacherQueues.length} -> ${queues.length})`);
+
         // Preserve queues that are being edited
         const preservedQueues = new Map<string, TeacherQueue>();
         this.queueControllers.forEach((qc, id) => {
@@ -199,308 +209,633 @@ export class GlobalFlag {
         return this.refreshKey;
     }
 
-    enterAdjustmentMode(): void {
-        this.queueControllers.clear();
+        enterAdjustmentMode(): void {
 
-        // Initialize controllers for all queues with events
-        this.teacherQueues.forEach((queue) => {
-            if (queue.getAllEvents().length > 0) {
+            this.queueControllers.clear();
+
+    
+
+            // Initialize controllers for all queues with events
+
+            this.teacherQueues.forEach((queue) => {
+
+                if (queue.getAllEvents().length > 0) {
+
+                    const qc = new QueueController(queue, this.controller, () => {
+
+                        this.refreshKey++;
+
+                        this.triggerRefresh();
+
+                    });
+
+                    qc.startAdjustmentMode();
+
+                    this.queueControllers.set(queue.teacher.id, qc);
+
+                }
+
+            });
+
+    
+
+            this.adjustmentMode = true;
+
+            this.globalTime = this.getGlobalEarliestTime();
+
+            this.globalLocation = this.getGlobalLocation();
+
+    
+
+            // Auto-lock if everything is already synchronized on entry
+
+            const timeStatus = this.getLockStatusTime(this.globalTime);
+
+            if (timeStatus.isLockFlagTime && timeStatus.totalTeachers > 0) {
+
+                this.isLockedTime = true;
+
+                this.controller.locked = true;
+
+                this.globalCascadeMode = true;
+
+            }
+
+    
+
+            const locStatus = this.getLockStatusLocation(this.globalLocation);
+
+            if (locStatus.isLockFlagLocation && locStatus.totalTeachers > 0) {
+
+                this.isLockedLocation = true;
+
+            }
+
+    
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        exitAdjustmentMode(shouldDiscard = false): void {
+
+            this.queueControllers.forEach((qc) => {
+
+                if (shouldDiscard) {
+
+                    qc.resetToSnapshot();
+
+                }
+
+                qc.exitAdjustmentMode();
+
+            });
+
+            this.queueControllers.clear();
+
+    
+
+            this.adjustmentMode = false;
+
+            this.globalTime = null;
+
+            this.globalLocation = null;
+
+            this.submittingTeachers.clear();
+
+            this.isLockedTime = false;
+
+            this.isLockedLocation = false;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        optIn(teacherId: string): void {
+
+            const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
+
+            if (queue && !this.queueControllers.has(teacherId)) {
+
                 const qc = new QueueController(queue, this.controller, () => {
+
                     this.refreshKey++;
+
                     this.triggerRefresh();
+
                 });
+
                 qc.startAdjustmentMode();
-                this.queueControllers.set(queue.teacher.id, qc);
-            }
-        });
 
-        this.adjustmentMode = true;
-        this.globalTime = this.getGlobalEarliestTime();
-        this.globalLocation = this.getGlobalLocation();
-        this.refreshKey++;
-        this.triggerRefresh();
-    }
+                this.queueControllers.set(teacherId, qc);
 
-    exitAdjustmentMode(shouldDiscard = false): void {
-        this.queueControllers.forEach((qc) => {
-            if (shouldDiscard) {
-                qc.resetToSnapshot();
-            }
-            qc.exitAdjustmentMode();
-        });
-        this.queueControllers.clear();
-
-        this.adjustmentMode = false;
-        this.globalTime = null;
-        this.globalLocation = null;
-        this.submittingTeachers.clear();
-        this.isLockedTime = false;
-        this.isLockedLocation = false;
-        this.refreshKey++;
-        this.triggerRefresh();
-    }
-
-    optIn(teacherId: string): void {
-        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
-        if (queue && !this.queueControllers.has(teacherId)) {
-            const qc = new QueueController(queue, this.controller, () => {
                 this.refreshKey++;
+
                 this.triggerRefresh();
-            });
-            qc.startAdjustmentMode();
-            this.queueControllers.set(teacherId, qc);
-            this.refreshKey++;
-            this.triggerRefresh();
-        }
-    }
 
-    optOut(teacherId: string): void {
-        const qc = this.queueControllers.get(teacherId);
-        if (qc) {
-            qc.exitAdjustmentMode();
-            this.queueControllers.delete(teacherId);
+            }
+
         }
 
-        this.submittingTeachers.delete(teacherId);
+    
 
-        // Auto-terminate session if no teachers left
-        if (this.queueControllers.size === 0) {
-            this.exitAdjustmentMode();
-        } else {
-            this.refreshKey++;
-            this.triggerRefresh();
-        }
-    }
+        optOut(teacherId: string): void {
 
-    discardChanges(): void {
-        this.queueControllers.forEach((qc) => {
-            qc.resetToSnapshot();
-        });
-    }
+            const qc = this.queueControllers.get(teacherId);
 
-    // ============ SUBMITTING STATE ============
+            if (qc) {
 
-    isSubmitting(teacherId: string): boolean {
-        return this.submittingTeachers.has(teacherId);
-    }
+                qc.exitAdjustmentMode();
 
-    setSubmitting(teacherId: string, isSubmitting: boolean): void {
-        if (isSubmitting) {
-            this.submittingTeachers.add(teacherId);
-        } else {
+                this.queueControllers.delete(teacherId);
+
+            }
+
+    
+
             this.submittingTeachers.delete(teacherId);
-        }
-    }
 
-    // ============ GLOBAL TIME/LOCATION ============
+    
 
-    getGlobalTime(): string | null {
-        return this.globalTime;
-    }
+            // Auto-terminate session if no teachers left
 
-    getGlobalEarliestTime(): string | null {
-        const allEarliestTimes = Array.from(this.queueControllers.values())
-            .map((qc) => qc.getQueue().getEarliestTime())
-            .filter((time) => time !== null) as string[];
+            if (this.queueControllers.size === 0) {
 
-        if (allEarliestTimes.length === 0) return null;
+                this.exitAdjustmentMode();
 
-        const minTimeInMinutes = Math.min(...allEarliestTimes.map((time) => timeToMinutes(time)));
-        return minutesToTime(minTimeInMinutes);
-    }
-
-    getGlobalLocation(): string | null {
-        const allLocations: string[] = [];
-        this.queueControllers.forEach((qc) => {
-            const events = qc.getQueue().getAllEvents();
-            events.forEach((event) => {
-                if (event.eventData.location) {
-                    allLocations.push(event.eventData.location);
-                }
-            });
-        });
-
-        if (allLocations.length === 0) return null;
-
-        const locationCounts = allLocations.reduce(
-            (acc, loc) => {
-                acc[loc] = (acc[loc] || 0) + 1;
-                return acc;
-            },
-            {} as Record<string, number>,
-        );
-
-        return Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0][0];
-    }
-
-    getGlobalCascadeMode(): boolean {
-        return this.globalCascadeMode;
-    }
-
-    setGlobalCascadeMode(cascadeMode: boolean): void {
-        this.globalCascadeMode = cascadeMode;
-        this.controller.locked = cascadeMode;
-        this.refreshKey++;
-    }
-
-    // ============ TIME/LOCATION ADJUSTMENTS ============
-
-    adjustTime(newTime: string): void {
-        if (this.isLockedTime) {
-            this.adjustTimeLocked(newTime);
-        } else {
-            this.adjustTimeUnlocked(newTime);
-        }
-
-        this.globalTime = newTime;
-        this.refreshKey++;
-    }
-
-    private adjustTimeLocked(newTime: string): void {
-        const newMinutes = timeToMinutes(newTime);
-
-        this.queueControllers.forEach((qc) => {
-            const earliestTime = qc.getQueue().getEarliestTime();
-            if (earliestTime) {
-                const currentMinutes = timeToMinutes(earliestTime);
-                if (currentMinutes <= newMinutes) {
-                    qc.setFirstEventTime(newTime);
-                }
-            }
-        });
-
-        this.globalTime = newTime;
-    }
-
-    private adjustTimeUnlocked(newTime: string): void {
-        if (!this.globalTime) return;
-
-        const newMinutes = timeToMinutes(newTime);
-
-        this.queueControllers.forEach((qc) => {
-            const earliestTime = qc.getQueue().getEarliestTime();
-            if (earliestTime) {
-                const queueMinutes = timeToMinutes(earliestTime);
-                if (queueMinutes <= newMinutes) {
-                    qc.setFirstEventTime(newTime);
-                }
-            }
-        });
-    }
-
-    lockToAdjustmentTime(targetTime: string): void {
-        this.queueControllers.forEach((qc) => {
-            if (qc.getQueue().getEarliestTime()) {
-                qc.setFirstEventTime(targetTime);
-            }
-        });
-
-        this.isLockedTime = true;
-        this.controller.locked = true;
-        this.globalCascadeMode = true;
-        this.refreshKey++;
-    }
-
-    unlockTime(): void {
-        this.isLockedTime = false;
-        this.refreshKey++;
-    }
-
-    adjustLocation(newLocation: string): void {
-        // Only propagate location change to queues if global location lock is ON
-        if (this.isLockedLocation) {
-            this.queueControllers.forEach((qc) => {
-                qc.setAllEventsLocation(newLocation);
-            });
-        }
-
-        this.globalLocation = newLocation;
-        this.refreshKey++;
-    }
-
-    lockToLocation(targetLocation: string): void {
-        this.queueControllers.forEach((qc) => {
-            qc.setAllEventsLocation(targetLocation);
-        });
-
-        this.globalLocation = targetLocation;
-        this.isLockedLocation = true;
-        this.refreshKey++;
-    }
-
-    unlockLocation(): void {
-        this.isLockedLocation = false;
-        this.refreshKey++;
-    }
-
-    // ============ LOCK STATUS ============
-
-    getLockStatusTime(targetTime?: string | null) {
-        const pendingControllers = Array.from(this.queueControllers.values());
-        const totalTeachers = pendingControllers.length;
-
-        const pendingTeachersTimes = pendingControllers.map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() })).filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
-
-        if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
-            return { isLockFlagTime: false, lockCount: 0 };
-        }
-
-        const referenceTime =
-            targetTime ||
-            pendingTeachersTimes.reduce((min, t) => {
-                const minMinutes = timeToMinutes(min);
-                const tMinutes = timeToMinutes(t.earliestTime);
-                return tMinutes < minMinutes ? t.earliestTime : min;
-            }, pendingTeachersTimes[0].earliestTime);
-
-        const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === referenceTime).length;
-
-        return {
-            isLockFlagTime: synchronizedCount === totalTeachers,
-            lockCount: synchronizedCount,
-        };
-    }
-
-    getLockStatusLocation(targetLocation?: string | null) {
-        let totalEventsForLock = 0;
-        let synchronizedEventsCount = 0;
-        const pendingTeachersLocations: { username: string; location: string | null }[] = [];
-
-        this.queueControllers.forEach((qc) => {
-            const events = qc.getQueue().getAllEvents();
-            const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
-            const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
-
-            totalEventsForLock += events.length;
-
-            if (allMatch) {
-                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: allLocations[0] });
             } else {
-                pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: null });
+
+                this.refreshKey++;
+
+                this.triggerRefresh();
+
             }
-        });
 
-        const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
-
-        if (referenceLocation) {
-            this.queueControllers.forEach((qc) => {
-                const events = qc.getQueue().getAllEvents();
-                events.forEach((e) => {
-                    if (e.eventData.location === referenceLocation) {
-                        synchronizedEventsCount++;
-                    }
-                });
-            });
         }
 
-        const allSynchronized = referenceLocation ? pendingTeachersLocations.every((t) => t.location === referenceLocation) : false;
+    
 
-        return {
-            isLockFlagLocation: allSynchronized && referenceLocation !== null,
-            lockLocationCount: synchronizedEventsCount,
-            totalLocationEventsForLock: totalEventsForLock,
-        };
-    }
+        discardChanges(): void {
+
+            this.queueControllers.forEach((qc) => {
+
+                qc.resetToSnapshot();
+
+            });
+
+        }
+
+    
+
+        // ============ SUBMITTING STATE ============
+
+    
+
+        isSubmitting(teacherId: string): boolean {
+
+            return this.submittingTeachers.has(teacherId);
+
+        }
+
+    
+
+        setSubmitting(teacherId: string, isSubmitting: boolean): void {
+
+            if (isSubmitting) {
+
+                this.submittingTeachers.add(teacherId);
+
+            } else {
+
+                this.submittingTeachers.delete(teacherId);
+
+            }
+
+        }
+
+    
+
+        // ============ GLOBAL TIME/LOCATION ============
+
+    
+
+        getGlobalTime(): string | null {
+
+            return this.globalTime;
+
+        }
+
+    
+
+        getGlobalEarliestTime(): string | null {
+
+            const allEarliestTimes = Array.from(this.queueControllers.values())
+
+                .map((qc) => qc.getQueue().getEarliestTime())
+
+                .filter((time) => time !== null) as string[];
+
+    
+
+            if (allEarliestTimes.length === 0) return null;
+
+    
+
+            const minTimeInMinutes = Math.min(...allEarliestTimes.map((time) => timeToMinutes(time)));
+
+            return minutesToTime(minTimeInMinutes);
+
+        }
+
+    
+
+        getGlobalLocation(): string | null {
+
+            const allLocations: string[] = [];
+
+            this.queueControllers.forEach((qc) => {
+
+                const events = qc.getQueue().getAllEvents();
+
+                events.forEach((event) => {
+
+                    if (event.eventData.location) {
+
+                        allLocations.push(event.eventData.location);
+
+                    }
+
+                });
+
+            });
+
+    
+
+            if (allLocations.length === 0) return null;
+
+    
+
+            const locationCounts = allLocations.reduce(
+
+                (acc, loc) => {
+
+                    acc[loc] = (acc[loc] || 0) + 1;
+
+                    return acc;
+
+                },
+
+                {} as Record<string, number>,
+
+            );
+
+    
+
+            return Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0][0];
+
+        }
+
+    
+
+        getGlobalCascadeMode(): boolean {
+
+            return this.globalCascadeMode;
+
+        }
+
+    
+
+        setGlobalCascadeMode(cascadeMode: boolean): void {
+
+            this.globalCascadeMode = cascadeMode;
+
+            this.controller.locked = cascadeMode;
+
+            this.refreshKey++;
+
+        }
+
+    
+
+        // ============ TIME/LOCATION ADJUSTMENTS ============
+
+    
+
+        adjustTime(newTime: string): void {
+
+            console.log(`⏱️ [GlobalFlag.adjustTime] New: ${newTime} | Locked: ${this.isLockedTime}`);
+
+            
+
+            // Only propagate time change to queues if global time lock is ON
+
+            if (this.isLockedTime) {
+
+                console.log(`  🔗 Propagation ACTIVE (snapping ${this.queueControllers.size} queues)`);
+
+                this.queueControllers.forEach((qc) => {
+
+                    if (qc.getQueue().getEarliestTime()) {
+
+                        qc.setFirstEventTime(newTime);
+
+                    }
+
+                });
+
+            } else {
+
+                console.log(`  ∅ Propagation DISABLED (unlocked)`);
+
+            }
+
+    
+
+            this.globalTime = newTime;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        lockToAdjustmentTime(targetTime: string): void {
+
+            console.log(`🔒 [GlobalFlag.lockToAdjustmentTime] Target: ${targetTime}`);
+
+            this.queueControllers.forEach((qc) => {
+
+                if (qc.getQueue().getEarliestTime()) {
+
+                    qc.setFirstEventTime(targetTime);
+
+                }
+
+            });
+
+    
+
+            this.isLockedTime = true;
+
+            this.controller.locked = true;
+
+            this.globalCascadeMode = true;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        unlockTime(): void {
+
+            console.log(`🔓 [GlobalFlag.unlockTime]`);
+
+            this.isLockedTime = false;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        adjustLocation(newLocation: string): void {
+
+            console.log(`📍 [GlobalFlag.adjustLocation] New: ${newLocation} | Locked: ${this.isLockedLocation}`);
+
+            
+
+            // Only propagate location change to queues if global location lock is ON
+
+            if (this.isLockedLocation) {
+
+                console.log(`  🔗 Propagation ACTIVE`);
+
+                this.queueControllers.forEach((qc) => {
+
+                    qc.setAllEventsLocation(newLocation);
+
+                }
+
+                );
+
+            } else {
+
+                console.log(`  ∅ Propagation DISABLED`);
+
+            }
+
+    
+
+            this.globalLocation = newLocation;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        lockToLocation(targetLocation: string): void {
+
+            this.queueControllers.forEach((qc) => {
+
+                qc.setAllEventsLocation(targetLocation);
+
+            });
+
+    
+
+            this.globalLocation = targetLocation;
+
+            this.isLockedLocation = true;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        unlockLocation(): void {
+
+            this.isLockedLocation = false;
+
+            this.refreshKey++;
+
+            this.triggerRefresh();
+
+        }
+
+    
+
+        // ============ LOCK STATUS ============
+
+    
+
+        getLockStatusTime(targetTime?: string | null) {
+
+            const pendingControllers = Array.from(this.queueControllers.values());
+
+            const totalTeachers = pendingControllers.length;
+
+    
+
+            const pendingTeachersTimes = pendingControllers.map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() })).filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
+
+    
+
+            if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
+
+                return { isLockFlagTime: false, lockCount: 0, totalTeachers: 0 };
+
+            }
+
+    
+
+            const referenceTime =
+
+                targetTime ||
+
+                pendingTeachersTimes.reduce((min, t) => {
+
+                    const minMinutes = timeToMinutes(min);
+
+                    const tMinutes = timeToMinutes(t.earliestTime);
+
+                    return tMinutes < minMinutes ? t.earliestTime : min;
+
+                }, pendingTeachersTimes[0].earliestTime);
+
+    
+
+            const synchronizedCount = pendingTeachersTimes.filter((t) => t.earliestTime === referenceTime).length;
+
+    
+
+            return {
+
+                isLockFlagTime: synchronizedCount === totalTeachers,
+
+                lockCount: synchronizedCount,
+
+                totalTeachers,
+
+            };
+
+        }
+
+    
+
+        getLockStatusLocation(targetLocation?: string | null) {
+
+            let totalEventsForLock = 0;
+
+            let synchronizedEventsCount = 0;
+
+            const pendingTeachersLocations: { username: string; location: string | null }[] = [];
+
+    
+
+            this.queueControllers.forEach((qc) => {
+
+                const events = qc.getQueue().getAllEvents();
+
+                const allLocations = events.map((e) => e.eventData.location).filter((l) => l !== null && l !== undefined);
+
+                const allMatch = allLocations.length > 0 && allLocations.every((l) => l === allLocations[0]);
+
+    
+
+                totalEventsForLock += events.length;
+
+    
+
+                if (allMatch) {
+
+                    pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: allLocations[0] });
+
+                } else {
+
+                    pendingTeachersLocations.push({ username: qc.getQueue().teacher.username, location: null });
+
+                }
+
+            });
+
+    
+
+            const totalTeachers = pendingTeachersLocations.length;
+
+            const referenceLocation = targetLocation || pendingTeachersLocations.find((t) => t.location !== null)?.location;
+
+    
+
+            if (referenceLocation) {
+
+                this.queueControllers.forEach((qc) => {
+
+                    const events = qc.getQueue().getAllEvents();
+
+                    events.forEach((e) => {
+
+                        if (e.eventData.location === referenceLocation) {
+
+                            synchronizedEventsCount++;
+
+                        }
+
+                    });
+
+                });
+
+            }
+
+    
+
+            const synchronizedTeachersCount = referenceLocation 
+
+                ? pendingTeachersLocations.filter((t) => t.location === referenceLocation).length 
+
+                : 0;
+
+    
+
+            const allSynchronized = referenceLocation ? synchronizedTeachersCount === totalTeachers : false;
+
+    
+
+            return {
+
+                isLockFlagLocation: allSynchronized && referenceLocation !== null,
+
+                lockLocationCount: synchronizedEventsCount,
+
+                totalLocationEventsForLock: totalEventsForLock,
+
+                synchronizedTeachersCount,
+
+                totalTeachers,
+
+            };
+
+        }
 
     // ============ OPTIMISATION ============
 

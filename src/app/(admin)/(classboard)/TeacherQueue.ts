@@ -306,6 +306,21 @@ export class TeacherQueue {
         };
     }
 
+    /**
+     * Calculate time difference in minutes between an event and a reference snapshot
+     */
+    getEventTimeDifference(eventId: string, snapshotEvents: EventNode[]): number {
+        const currentEvent = this.getAllEvents().find((e) => e.id === eventId);
+        const snapshotEvent = snapshotEvents.find((e) => e.id === eventId);
+
+        if (!currentEvent || !snapshotEvent) return 0;
+
+        const currentMins = this.getStartTimeMinutes(currentEvent);
+        const snapshotMins = this.getStartTimeMinutes(snapshotEvent);
+
+        return currentMins - snapshotMins;
+    }
+
     private getStartTimeMinutes(eventNode: EventNode): number {
         return getMinutesFromISO(eventNode.eventData.date);
     }
