@@ -462,14 +462,22 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                     location: controller.location,
                 };
 
+                // Add optimistically FIRST - show immediately
+                setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
+
+                // Then confirm with server in background
                 const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
 
                 if (!result.success) {
+                    // Revert on failure
+                    setOptimisticOperations((prev) => {
+                        const updated = new Map(prev);
+                        updated.delete(tempId);
+                        return updated;
+                    });
                     toast.error("Failed to create event");
                     return;
                 }
-
-                setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
             } catch (error) {
                 console.error("❌ Error adding event:", error);
                 toast.error("Error creating event");

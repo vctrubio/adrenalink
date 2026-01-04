@@ -211,7 +211,7 @@ export default function LessonFlagLocationSettingsController() {
             const idx = LOCATIONS.indexOf(currentGlobalLocation);
             if (idx >= 0) setLocationIndex(idx);
         }
-    }, [globalFlag, globalFlag.getRefreshKey(), LOCATIONS]);
+    }, [globalFlag, LOCATIONS]);
 
     // Computed Lock Status
     const timeLock = globalFlag.getLockStatusTime(adjustmentTime);

@@ -415,7 +415,7 @@ export default function TeacherClassCard({
         });
         
         return tempQ.getStats();
-    }, [queue, optimisticOperations, selectedDate, globalFlag.getRefreshKey()]);
+    }, [queue, optimisticOperations, selectedDate]);
 
     const equipmentCounts = useMemo(() => {
         const events = queue.getAllEvents();
@@ -450,7 +450,7 @@ export default function TeacherClassCard({
             categoryId,
             count,
         }));
-    }, [queue, optimisticOperations, selectedDate, globalFlag.getRefreshKey()]);
+    }, [queue, optimisticOperations, selectedDate]);
 
     const eventProgress = useMemo(() => {
         const events = queue.getAllEvents();
@@ -485,10 +485,10 @@ export default function TeacherClassCard({
             total,
             eventIds,
         };
-    }, [queue, globalFlag.getRefreshKey()]);
+    }, [queue]);
 
-    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue, globalFlag.getRefreshKey()]);
-    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue, globalFlag.getRefreshKey()]);
+    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue]);
+    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue]);
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
@@ -520,7 +520,7 @@ export default function TeacherClassCard({
     }, [isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
-    const todayEvents = useMemo(() => queue.getAllEvents(), [queue, globalFlag.getRefreshKey()]);
+    const todayEvents = useMemo(() => queue.getAllEvents(), [queue]);
 
     // Collapsed view - single line
     const progressBarCounts = useMemo(() => ({
