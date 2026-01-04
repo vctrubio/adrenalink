@@ -12,24 +12,9 @@ import { DailyLessonStats } from "../../../../../backend/ClassboardStatistics";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 
-export default function ClassboardHeaderStatsGrid({ stats, gapMinutes, stepDuration }: { stats: DailyLessonStats; gapMinutes?: number; stepDuration?: number }) {
+export default function ClassboardHeaderStatsGrid({ stats }: { stats: DailyLessonStats }) {
     return (
-        <div className="flex-1 min-w-[260px] rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-3">
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-2 bg-muted/40 dark:bg-zinc-800 px-3 py-1 rounded-2xl text-[12px] font-medium text-muted-foreground">
-                        <DurationIcon size={14} className="text-muted-foreground" />
-                        Gap: <span className="ml-1 text-foreground font-semibold">{gapMinutes ?? 0}m</span>
-                    </span>
-
-                    <span className="inline-flex items-center gap-2 bg-muted/20 dark:bg-zinc-800/60 px-3 py-1 rounded-2xl text-[12px] font-medium text-muted-foreground">
-                        <FlagIcon size={14} className="text-muted-foreground" />
-                        Step: <span className="ml-1 text-foreground font-semibold">{stepDuration ?? 0}m</span>
-                    </span>
-                </div>
-
-                <div className="text-xs text-muted-foreground hidden sm:flex items-center">Classboard stats</div>
-            </div>
+        <div className="flex-1 min-w-[280px] rounded-2xl bg-card border border-zinc-200 dark:border-zinc-700 p-2">
             {/* Row 1: Students, Teachers, Lessons */}
             <div className="grid grid-cols-3 divide-x divide-zinc-400 dark:divide-zinc-500">
                 <motion.div className="flex items-center justify-center gap-2 py-2 px-3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>

@@ -104,7 +104,7 @@ function ClassboardContent() {
 
                         <button
                             onClick={handleToggleSettings}
-                            className={`absolute -top-3 -right-12 w-10 h-10 transition-all duration-500 hover:scale-110 active:scale-95 z-10 
+                            className={`absolute -top-3 -right-28 w-10 h-10 transition-all duration-500 hover:scale-110 active:scale-95 z-10 
                                 ${isAdjustmentMode ? "rotate-12 grayscale-0 opacity-100" : "grayscale opacity-20 hover:opacity-100 hover:grayscale-0"}`}
                         >
                             <Image src="/ADR.webp" alt="Toggle Settings" fill className="object-contain dark:invert" />
