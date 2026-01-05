@@ -13,6 +13,7 @@
  */
 
 import { unstable_cache, revalidateTag } from "next/cache";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 import { db } from "@/drizzle/db";
@@ -59,13 +60,17 @@ const getSchoolByUsername = unstable_cache(
 
 /**
  * Retrieves school context from the 'x-school-username' header.
+ * 
+ * Uses React's cache() for request-level memoization:
+ * - First call: Does DB lookup
+ * - Subsequent calls in same request: Returns cached value (no DB hit)
  *
  * This function follows the `getXHeader` pattern, returning a standardized
  * `HeaderContext` object for the school.
  *
  * @returns {Promise<HeaderContext | null>} A promise that resolves to a `HeaderContext` object for the school, or `null` if the header is not found.
  */
-export async function getSchoolHeader(): Promise<HeaderContext | null> {
+export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => {
     const headersList = await headers();
     const username = headersList.get("x-school-username");
 
@@ -74,9 +79,7 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
     }
 
     let schoolData: typeof school.$inferSelect | null = null;
-    
 
-    ////// we are doing 2 calls to the db here, fucking shit. getschhoolbyusername, lets remake it to getSchool
     try {
         schoolData = await getSchoolByUsername(username);
     } catch (error) {
@@ -111,7 +114,7 @@ export async function getSchoolHeader(): Promise<HeaderContext | null> {
         name: schoolData.username,
         zone: schoolData.timezone,
     };
-}
+});
 
 /**
  * Revalidates the 'school' cache tag.

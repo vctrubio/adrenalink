@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getSQLClassboardData } from "@/supabase/server/classboard";
+import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
@@ -36,9 +36,18 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
                         old: payload.old,
                     });
 
-                    getSQLClassboardData()
+                    // Extract bookingId from the event payload
+                    const bookingId = payload.new?.booking_id || payload.old?.booking_id;
+
+                    if (!bookingId) {
+                        console.warn("[EVENT-LISTENER] ⚠️ Could not extract booking_id from event payload");
+                        return;
+                    }
+
+                    // Only fetch the affected booking instead of all bookings
+                    getSQLClassboardDataForBooking(bookingId)
                         .then((result) => {
-                            if ("success" in result && result.success && result.data) {
+                            if ("success" in result && result.success && result.data && result.data.length > 0) {
                                 console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
                                 onEventDetected(result.data);
                             } else if ("error" in result) {

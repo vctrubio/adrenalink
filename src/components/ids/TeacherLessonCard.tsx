@@ -1,15 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
-import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG } from "@/types/status";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getHMDuration } from "@/getters/duration-getter";
@@ -17,7 +16,6 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { useClassboardContext } from "@/src/providers/classboard-provider";
 
 export interface TeacherLessonCardEvent {
     eventId: string;
@@ -57,7 +55,6 @@ interface TeacherLessonCardProps {
 }
 
 export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLessonCardProps) {
-    const { getEventCardStatus, optimisticOperations } = useClassboardContext();
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === lesson.equipmentCategory);
@@ -68,7 +65,6 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
     return (
         <div className="rounded-xl border border-border overflow-hidden bg-card">
             <button onClick={onToggle} className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors cursor-pointer">
-                {/* ... (button content remains same) ... */}
                 <div className="flex items-center gap-3">
                     <HoverToEntity entity={bookingEntity} id={lesson.bookingId}>
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -117,43 +113,27 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
                 {isExpanded && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                         <div className="px-4 pb-3 space-y-2">
-                            {lesson.events.map((event) => {
-                                const cardStatus = getEventCardStatus(event.eventId);
-                                const isOptimisticDelete = Array.from(optimisticOperations.values()).some(
-                                    op => op.type === "delete" && op.eventId === event.eventId
-                                );
-                                const isDeleting = cardStatus === "deleting" || isOptimisticDelete;
-                                
-                                return (
-                                    <div key={event.eventId} className={`flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 text-sm transition-opacity ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}>
-                                        {/* ... (event info content remains same) ... */}
-                                        <div className="flex items-center gap-3">
-                                            <FlagIcon size={14} style={{ color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }} />
-                                            <span className="font-medium">{event.dateLabel}</span>
-                                            <span className="font-mono text-muted-foreground">{event.time}</span>
-                                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                                                <DurationIcon size={12} />
-                                                <span className="font-mono">{getHMDuration(event.duration)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                                                <MapPin size={12} />
-                                                <span>{event.location}</span>
-                                            </div>
-                                            
-                                            {isDeleting ? (
-                                                <div className="flex items-center gap-1 text-red-500 text-xs font-medium px-2 py-0.5">
-                                                    <Loader2 size={12} className="animate-spin" />
-                                                    <span>Deleting</span>
-                                                </div>
-                                            ) : (
-                                                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color}20`, color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }}>
-                                                    {event.status}
-                                                </span>
-                                            )}
+                            {lesson.events.map((event) => (
+                                <div key={event.eventId} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 text-sm">
+                                    <div className="flex items-center gap-3">
+                                        <FlagIcon size={14} style={{ color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }} />
+                                        <span className="font-medium">{event.dateLabel}</span>
+                                        <span className="font-mono text-muted-foreground">{event.time}</span>
+                                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                                            <DurationIcon size={12} />
+                                            <span className="font-mono">{getHMDuration(event.duration)}</span>
                                         </div>
+                                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                                            <MapPin size={12} />
+                                            <span>{event.location}</span>
+                                        </div>
+                                        
+                                        <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color}20`, color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }}>
+                                            {event.status}
+                                        </span>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                             {lesson.events.length === 0 && (
                                 <div className="text-sm text-muted-foreground py-2 text-center">No events scheduled</div>
                             )}

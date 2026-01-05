@@ -5,7 +5,7 @@ import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
 import { DailyLessonStats } from "../../../../backend/classboard/ClassboardStatistics";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { getDashboardStatsDisplay, STATS_GROUP_TOP, STATS_GROUP_BOTTOM } from "@/getters/classboard-getter";
+import { getDashboardStatsDisplay, STATS_GROUP_TOP, STATS_GROUP_BOTTOM } from "@/backend/RenderStats";
 
 export default function ClassboardHeaderStatsGrid({ stats }: { stats: DailyLessonStats }) {
     const displayStats = getDashboardStatsDisplay(stats);

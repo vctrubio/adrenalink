@@ -16,7 +16,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { transformEventsToRows } from "@/getters/event-getter";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import { SearchInput } from "@/src/components/SearchInput";
-import { calculateLessonRevenue } from "@/getters/commission-calculator";
+import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import type { EventData } from "@/types/booking-lesson-event";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
@@ -216,21 +216,26 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
         const totalHours = totalDuration / 60;
         const cph = parseFloat(commission?.cph || "0");
-        const commissionType = commission?.commissionType || "fixed";
-        const totalEarning = commissionType === "fixed" ? cph * totalHours : cph * totalHours;
-
+        const commissionType = (commission?.commissionType as "fixed" | "percentage") || "fixed";
+        
         const eventRows = transformEventsToRows(events);
+        let totalEarning = 0;
 
         for (const eventRow of eventRows) {
-            const eventEarning = commissionType === "fixed" ? cph * (eventRow.duration / 60) : cph * (eventRow.duration / 60);
-
             // Calculate revenues
             const studentCount = booking?.bookingStudents?.length || 1;
             const pricePerStudent = schoolPackage?.pricePerStudent || 0;
             const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
 
             const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
+            const eventCommission = calculateCommission(eventRow.duration, { type: commissionType, cph }, eventRevenue, packageDurationMinutes);
+            const eventEarning = eventCommission.earned;
+            
+            totalEarning += eventEarning;
             const schoolRevenue = eventRevenue - eventEarning;
+
+            // Override duration label for consistency
+            eventRow.durationLabel = getHMDuration(eventRow.duration);
 
             // Build timeline event
             timelineEvents.push({
@@ -272,7 +277,6 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             cph,
             totalDuration,
             totalHours,
-            totalHours: totalDuration / 60,
             totalEarning,
             eventCount: events.length,
             events: eventRows,

@@ -8,7 +8,7 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { DASHBOARD_STATS_CONFIG, getDashboardStatsDisplay } from "@/getters/classboard-getter";
+import { STAT_CONFIGS, getDashboardStatsDisplay } from "@/backend/RenderStats";
 import { getHMDuration } from "@/getters/duration-getter";
 import type { DateGroup } from "./HomePage";
 
@@ -178,7 +178,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         <div className="font-semibold mb-1 group-hover/row:text-primary transition-colors">{event.packageName}</div>
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-1.5">
-                                                                <DASHBOARD_STATS_CONFIG.teachers.Icon size={14} className="text-muted-foreground/70" />
+                                                                <STAT_CONFIGS.teachers.icon size={14} className="text-muted-foreground/70" />
                                                                 <span>{event.teacherName}</span>
                                                             </div>
                                                             <span className="opacity-30">•</span>
@@ -188,7 +188,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
-                                                                <DASHBOARD_STATS_CONFIG.duration.Icon size={14} className="text-muted-foreground/70" />
+                                                                <STAT_CONFIGS.duration.icon size={14} className="text-muted-foreground/70" />
                                                                 <span>{getHMDuration(event.duration)}</span>
                                                             </div>
                                                         </div>

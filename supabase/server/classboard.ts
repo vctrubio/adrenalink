@@ -1,17 +1,137 @@
 "use server";
 
-import { eq, inArray, desc } from "drizzle-orm";
-import { db } from "@/drizzle/db";
-import { booking, bookingStudent, student, schoolStudents, lesson, teacher, teacherCommission, event } from "@/drizzle/schema";
+import { getServerClient } from "@/supabase/server";
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
 
+// Use Supabase exclusively for classboard to avoid mixing Drizzle + Supabase
+// This ensures consistent connection pooling and row-level security
+const getSupabase = () => getServerClient();
+
 /**
- * Fetches a single booking with all its relations using Drizzle relations
+ * Shared query builder for booking relations
+ * Reduces duplication between single and multiple booking queries
+ */
+function buildBookingQuery() {
+    return `
+        id,
+        date_start,
+        date_end,
+        school_id,
+        leader_student_name,
+        student_package_id,
+        student_package!inner(
+            id,
+            school_package_id,
+            school_package!inner(
+                id,
+                duration_minutes,
+                description,
+                price_per_student,
+                capacity_students,
+                capacity_equipment,
+                category_equipment
+            )
+        ),
+        booking_student!inner(
+            id,
+            student_id,
+            student!inner(
+                id,
+                first_name,
+                last_name,
+                passport,
+                country,
+                phone,
+                languages
+            )
+        ),
+        lesson!inner(
+            id,
+            teacher_id,
+            status,
+            teacher!inner(
+                id,
+                first_name,
+                last_name,
+                username
+            ),
+            teacher_commission!inner(
+                id,
+                cph,
+                commission_type,
+                description
+            ),
+            event!inner(
+                id,
+                lesson_id,
+                date,
+                duration,
+                location,
+                status
+            )
+        )
+    `;
+}
+
+/**
+ * Fetches all classboard bookings for a school
+ * Used for initial page load to populate the entire classboard
+ */
+export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
+    try {
+        const schoolHeader = await getSchoolHeader();
+
+        if (!schoolHeader) {
+            return {
+                success: false,
+                error: "School context could not be determined from header. The school may not exist or is not configured correctly.",
+            };
+        }
+
+        const supabase = getSupabase();
+
+        // Fetch all bookings with full nested relations
+        const { data: bookingsResult, error } = await supabase
+            .from("booking")
+            .select(buildBookingQuery())
+            .eq("school_id", schoolHeader.id)
+            .order("date_start", { ascending: false });
+
+        if (error) {
+            console.error("[CLASSBOARD] Error fetching bookings:", error);
+            return { success: false, error: "Failed to fetch classboard data" };
+        }
+
+        // Data is already properly structured - no merging needed
+        const classboardData: ClassboardModel = createClassboardModel(bookingsResult || []);
+
+        // Convert all event times from UTC to school's local timezone for display
+        classboardData.forEach((bookingData) => {
+            bookingData.lessons?.forEach((lessonData) => {
+                lessonData.events?.forEach((evt) => {
+                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
+                    evt.date = convertedDate.toISOString();
+                });
+            });
+        });
+
+        return { success: true, data: classboardData };
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to fetch classboard data: ${error instanceof Error ? error.message : String(error)}`,
+        };
+    }
+}
+
+/**
+ * Fetches a single booking with all its relations using PostgREST nested queries
  * Returns the full booking with ALL lessons and ALL events (not filtered by date)
+ * Used for realtime sync updates
  */
 export async function getSQLClassboardDataForBooking(bookingId: string): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
@@ -24,79 +144,19 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
             };
         }
 
-        const bookingData = await db.query.booking.findFirst({
-            where: eq(booking.id, bookingId),
-            with: {
-                studentPackage: {
-                    with: {
-                        schoolPackage: {
-                            columns: {
-                                id: true,
-                                durationMinutes: true,
-                                description: true,
-                                pricePerStudent: true,
-                                capacityStudents: true,
-                                capacityEquipment: true,
-                                categoryEquipment: true,
-                            },
-                        },
-                    },
-                },
-                bookingStudents: {
-                    with: {
-                        student: {
-                            columns: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                passport: true,
-                                country: true,
-                                phone: true,
-                                languages: true,
-                            },
-                            with: {
-                                schoolStudents: {
-                                    columns: {
-                                        description: true,
-                                        schoolId: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                lessons: {
-                    with: {
-                        teacher: {
-                            columns: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                username: true,
-                            },
-                        },
-                        commission: {
-                            columns: {
-                                id: true,
-                                cph: true,
-                                commissionType: true,
-                                description: true,
-                            },
-                        },
-                        events: {
-                            columns: {
-                                id: true,
-                                lessonId: true,
-                                date: true,
-                                duration: true,
-                                location: true,
-                                status: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        const supabase = getSupabase();
+
+        // Fetch single booking with full nested relations
+        const { data: bookingData, error } = await supabase
+            .from("booking")
+            .select(buildBookingQuery())
+            .eq("id", bookingId)
+            .single();
+
+        if (error) {
+            console.error("[CLASSBOARD] Error fetching booking:", error);
+            return { success: false, error: "Failed to fetch booking data" };
+        }
 
         if (!bookingData) {
             return { success: true, data: [] };
@@ -123,141 +183,3 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
     }
 }
 
-/**
- * Fetches all classboard data (bookings, students, lessons, events)
- * Uses Drizzle's query builder for type safety and reliability
- */
-export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
-    try {
-        const schoolHeader = await getSchoolHeader();
-
-        if (!schoolHeader) {
-            return {
-                success: false,
-                error: "School context could not be determined from header. The school may not exist or is not configured correctly.",
-            };
-        }
-
-        // Query 1: Get bookings with student package
-        const bookingsResult = await db.query.booking.findMany({
-            where: eq(booking.schoolId, schoolHeader.id),
-            columns: {
-                id: true,
-                dateStart: true,
-                dateEnd: true,
-                schoolId: true,
-                leaderStudentName: true,
-                studentPackageId: true,
-            },
-            with: {
-                studentPackage: {
-                    with: {
-                        schoolPackage: {
-                            columns: {
-                                id: true,
-                                durationMinutes: true,
-                                description: true,
-                                pricePerStudent: true,
-                                capacityStudents: true,
-                                capacityEquipment: true,
-                                categoryEquipment: true,
-                            },
-                        },
-                    },
-                },
-            },
-            orderBy: [desc(booking.dateStart)],
-        });
-
-        const bookingIds = bookingsResult.map((b) => b.id);
-
-        // Query 2: Get all booking students
-        const bookingStudents = bookingIds.length > 0
-            ? await db.query.bookingStudent.findMany({
-                  where: inArray(bookingStudent.bookingId, bookingIds),
-                  with: {
-                      student: {
-                          columns: {
-                              id: true,
-                              firstName: true,
-                              lastName: true,
-                              passport: true,
-                              country: true,
-                              phone: true,
-                              languages: true,
-                          },
-                          with: {
-                              schoolStudents: {
-                                  columns: {
-                                      description: true,
-                                      schoolId: true,
-                                  },
-                              },
-                          },
-                      },
-                  },
-              })
-            : [];
-
-        // Query 3: Get all lessons with relationships
-        const lessons = bookingIds.length > 0
-            ? await db.query.lesson.findMany({
-                  where: inArray(lesson.bookingId, bookingIds),
-                  with: {
-                      teacher: {
-                          columns: {
-                              id: true,
-                              firstName: true,
-                              lastName: true,
-                              username: true,
-                          },
-                      },
-                      commission: {
-                          columns: {
-                              id: true,
-                              cph: true,
-                              commissionType: true,
-                              description: true,
-                          },
-                      },
-                      events: {
-                          columns: {
-                              id: true,
-                              lessonId: true,
-                              date: true,
-                              duration: true,
-                              location: true,
-                              status: true,
-                          },
-                      },
-                  },
-              })
-            : [];
-
-        // Merge data in memory
-        const mergedBookings = bookingsResult.map((b) => ({
-            ...b,
-            bookingStudents: bookingStudents.filter((bs) => bs.bookingId === b.id),
-            lessons: lessons.filter((l) => l.bookingId === b.id),
-        }));
-
-        const classboardData: ClassboardModel = createClassboardModel(mergedBookings);
-
-        // Convert all event times from UTC to school's local timezone for display
-        classboardData.forEach((bookingData) => {
-            bookingData.lessons?.forEach((lessonData) => {
-                lessonData.events?.forEach((evt) => {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
-                    evt.date = convertedDate.toISOString();
-                });
-            });
-        });
-
-        return { success: true, data: classboardData };
-    } catch (error) {
-        return {
-            success: false,
-            error: `Failed to fetch classboard data: ${error instanceof Error ? error.message : String(error)}`,
-        };
-    }
-}

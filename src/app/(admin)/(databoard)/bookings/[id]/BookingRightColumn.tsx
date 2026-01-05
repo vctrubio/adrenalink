@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { BookingModel } from "@/backend/models";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getHMDuration, getPrettyDuration } from "@/getters/duration-getter";
+import { getHMDuration } from "@/getters/duration-getter";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
@@ -178,7 +178,7 @@ export function BookingRightColumn({ booking, stats }: BookingRightColumnProps) 
                     dateLabel: row.dateLabel,
                     dayOfWeek: row.dayOfWeek || "",
                     duration: row.duration,
-                    durationLabel: row.durationLabel,
+                    durationLabel: getHMDuration(row.duration),
                     location: row.location,
                     teacherId: lesson.teacher?.id || "",
                     teacherName: lesson.teacher?.firstName || "Unknown",
