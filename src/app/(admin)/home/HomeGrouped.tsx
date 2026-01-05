@@ -8,8 +8,7 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
+import { DASHBOARD_STATS_CONFIG, getDashboardStatsDisplay } from "@/getters/classboard-getter";
 import { getHMDuration } from "@/getters/duration-getter";
 import type { DateGroup } from "./HomePage";
 
@@ -42,8 +41,8 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
             {groupedEvents.map((group) => {
                 const statsCalculator = new ClassboardStatistics(classboardData, group.date, true);
                 const stats = statsCalculator.getDailyLessonStats();
+                const displayStats = getDashboardStatsDisplay(stats);
                 const isExpanded = expandedDates[group.date] ?? false;
-                const profit = stats.revenue.profit;
 
                 return (
                     <div key={group.date} className="rounded-2xl bg-card border border-border overflow-hidden shadow-sm">
@@ -62,45 +61,98 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
 
                             <div className="flex items-center gap-4 sm:gap-8 text-sm">
                                 <div className="flex flex-col items-center min-w-[60px]">
-                                    <span className="font-semibold text-lg text-foreground">
-                                        {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
-                                    </span>
-                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Completed</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="2xl:hidden flex items-center gap-1.5">
+                                            <displayStats.completed.Icon size={14} className="text-muted-foreground/70" />
+                                            <span className="font-semibold text-lg text-foreground">
+                                                {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
+                                            </span>
+                                        </div>
+                                        <span className="hidden 2xl:inline font-semibold text-lg text-foreground">
+                                            {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
+                                        </span>
+                                    </div>
+                                    <div className="hidden 2xl:flex items-center gap-1">
+                                        <displayStats.completed.Icon size={12} className="text-muted-foreground/70" />
+                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.completed.label}</span>
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col items-center text-emerald-600 dark:text-emerald-400 pl-4 border-l border-border/50 lg:hidden">
-                                    <span className="font-bold text-lg">{profit.toFixed(0)}</span>
-                                    <span className="text-[10px] uppercase tracking-wider font-medium">Profit</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <displayStats.profit.Icon size={14} />
+                                        <span className="font-bold text-lg">{displayStats.profit.formatted}</span>
+                                    </div>
+                                    <div className="hidden 2xl:flex items-center gap-1">
+                                        <displayStats.profit.Icon size={12} />
+                                        <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.profit.label}</span>
+                                    </div>
                                 </div>
 
                                 <div className="hidden sm:flex items-center gap-6 pl-6 border-l border-border/50">
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.studentCount}</span>
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Students</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.students.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
+                                            <span className="font-semibold text-lg text-foreground">{displayStats.students.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.students.Icon size={12} className="text-muted-foreground/70" />
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.students.label}</span>
+                                        </div>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.teacherCount}</span>
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Teachers</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.teachers.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
+                                            <span className="font-semibold text-lg text-foreground">{displayStats.teachers.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.teachers.Icon size={12} className="text-muted-foreground/70" />
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.teachers.label}</span>
+                                        </div>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{getHMDuration(stats.durationCount)}</span>
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Duration</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.duration.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
+                                            <span className="font-semibold text-lg text-foreground">{displayStats.duration.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.duration.Icon size={12} className="text-muted-foreground/70" />
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.duration.label}</span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="hidden lg:flex items-center gap-6 pl-6 border-l border-border/50">
                                     <div className="flex flex-col items-center">
-                                        <span className="font-semibold text-lg text-foreground">{stats.revenue.revenue.toFixed(0)}</span>
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Revenue</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.revenue.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
+                                            <span className="font-semibold text-lg text-foreground">{displayStats.revenue.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.revenue.Icon size={12} className="text-muted-foreground/70" />
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.revenue.label}</span>
+                                        </div>
                                     </div>
                                     <div className="flex flex-col items-center text-muted-foreground">
-                                        <span className="font-medium text-lg">- {stats.revenue.commission.toFixed(0)}</span>
-                                        <span className="text-[10px] uppercase tracking-wider font-medium">Comm.</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.commission.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
+                                            <span className="font-medium text-lg">- {displayStats.commission.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.commission.Icon size={12} className="text-muted-foreground/70" />
+                                            <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.commission.label}</span>
+                                        </div>
                                     </div>
                                     <div className="h-8 w-px bg-border/60 rotate-12 mx-1" />
                                     <div className="flex flex-col items-center text-emerald-600 dark:text-emerald-400">
-                                        <span className="font-bold text-lg">= {profit.toFixed(0)}</span>
-                                        <span className="text-[10px] uppercase tracking-wider font-medium">Profit</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <displayStats.profit.Icon size={16} className="2xl:hidden" />
+                                            <span className="font-bold text-lg">= {displayStats.profit.formatted}</span>
+                                        </div>
+                                        <div className="hidden 2xl:flex items-center gap-1">
+                                            <displayStats.profit.Icon size={12} />
+                                            <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.profit.label}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +178,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         <div className="font-semibold mb-1 group-hover/row:text-primary transition-colors">{event.packageName}</div>
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-1.5">
-                                                                <HeadsetIcon size={14} className="text-muted-foreground/70" />
+                                                                <DASHBOARD_STATS_CONFIG.teachers.Icon size={14} className="text-muted-foreground/70" />
                                                                 <span>{event.teacherName}</span>
                                                             </div>
                                                             <span className="opacity-30">•</span>
@@ -136,7 +188,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
-                                                                <DurationIcon size={14} className="text-muted-foreground/70" />
+                                                                <DASHBOARD_STATS_CONFIG.duration.Icon size={14} className="text-muted-foreground/70" />
                                                                 <span>{getHMDuration(event.duration)}</span>
                                                             </div>
                                                         </div>

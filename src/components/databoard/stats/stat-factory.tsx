@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, TrendingUpDown } from "lucide-react";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { getFullDuration } from "@/getters/duration-getter";
+import { getHMDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import type { StatItem } from "@/src/components/ui/row";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
@@ -80,7 +80,7 @@ const STAT_CONFIGS: Record<StatType, StatConfig> = {
     duration: {
         icon: <DurationIcon />,
         color: "#4b5563",
-        formatter: (value) => getFullDuration(value),
+        formatter: (value) => getHMDuration(value),
     },
     bookings: {
         icon: <BookingIcon />,

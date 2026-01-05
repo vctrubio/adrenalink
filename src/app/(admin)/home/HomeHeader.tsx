@@ -47,9 +47,7 @@ export function HomeHeader({ school, globalTotals }: HomeHeaderProps) {
                     <div className="px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 flex items-center gap-4 text-[10px] font-bold text-primary shadow-sm">
                         <div className="flex items-center gap-1.5">
                             <FlagIcon size={14} />
-                            <span className="tracking-wide">
-                                {globalTotals.events} <span className="font-medium lowercase"></span>
-                            </span>
+                            <span className="tracking-wide">{globalTotals.events}</span>
                         </div>
                         <div className="w-px h-3 bg-primary/20" />
                         <div className="flex items-center gap-1.5">
@@ -59,12 +57,12 @@ export function HomeHeader({ school, globalTotals }: HomeHeaderProps) {
                         <div className="w-px h-3 bg-primary/20" />
                         <div className="flex items-center gap-1.5">
                             <HandshakeIcon size={14} />
-                            <span className="tracking-wide">{getCompactNumber(globalTotals.commissions)} </span>
+                            <span className="tracking-wide">{getCompactNumber(globalTotals.commissions)}</span>
                         </div>
                         <div className="w-px h-3 bg-primary/20" />
                         <div className="flex items-center gap-1.5">
                             <TrendingUp size={14} strokeWidth={3} />
-                            <span className="tracking-tight">{getCompactNumber(globalTotals.profit)} </span>
+                            <span className="tracking-tight">{getCompactNumber(globalTotals.profit)}</span>
                         </div>
                     </div>
                 }
