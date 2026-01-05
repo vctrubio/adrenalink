@@ -1,0 +1,28 @@
+# Supabase Schema Configuration
+# Defines the order in which schema files are applied
+# The files are applied in the order listed below
+
+[schema]
+# Core domain tables - load in dependency order
+files = [
+    "school.sql",       # Base: schools, packages, subscriptions
+    "student.sql",      # Depends on: school
+    "teacher.sql",      # Depends on: school
+    "equipment.sql",    # Depends on: school, event (forward ref OK)
+    "booking.sql",      # Depends on: school, student, teacher, equipment
+    "rental.sql",       # Depends on: school, student, equipment
+    "feedback.sql",     # Depends on: student, lesson, school
+    "payment.sql",      # Depends on: lesson, booking, student, subscription
+    "realtime.sql"      # Depends on: booking, event, lesson (enable listeners)
+]
+
+[schema.description]
+school = "School accounts, packages, subscriptions"
+student = "Students, school associations, student packages"
+teacher = "Teachers, commissions, equipment assignments"
+equipment = "Equipment inventory, repairs, event links"
+booking = "Bookings, students, lessons, events"
+rental = "Equipment rentals with student/equipment junctions"
+feedback = "Student feedback, referrals"
+payment = "Teacher and student payment records"
+realtime = "Realtime listeners for real-time subscriptions"

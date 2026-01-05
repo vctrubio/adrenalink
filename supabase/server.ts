@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Server-side Supabase client
@@ -7,7 +8,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * Note: This uses anon key for row-level security. 
  * If you need service role access, import from supabase/server/index.ts
  */
-export function createServerClient() {
+export function createServerClient(): SupabaseClient {
     return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -17,9 +18,9 @@ export function createServerClient() {
 /**
  * Singleton server client instance for reuse across requests
  */
-let supabaseInstance: ReturnType<typeof createSupabaseClient> | null = null;
+let supabaseInstance: SupabaseClient | null = null;
 
-export function getServerClient(): ReturnType<typeof createSupabaseClient> {
+export function getServerClient(): SupabaseClient {
     if (!supabaseInstance) {
         supabaseInstance = createServerClient();
     }
