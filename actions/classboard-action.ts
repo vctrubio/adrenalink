@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { event } from "@/drizzle/schema";
 import { getSchoolHeader } from "@/types/headers";
-import { getSQLClassboardData } from "@/supabase/server/classboard";
+import { getSQLClassboardData } from "@/supabase/server/classboard-old-schema";
 import type { ApiActionResponseModel } from "@/types/actions";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 

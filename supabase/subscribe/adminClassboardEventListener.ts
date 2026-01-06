@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createClient } from "@/supabase/client";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
+import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard-old-schema";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {

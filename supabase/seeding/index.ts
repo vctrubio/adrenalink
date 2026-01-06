@@ -27,10 +27,13 @@ export { createSchoolPackages, createDefaultSchoolPackages, createStudentPackage
 export { createReferrals, createDefaultReferrals, type ReferralInput } from "./referral";
 
 // Booking seeding
-export { createBookings, linkStudentsToBookings } from "./booking";
+export { createBookings, linkStudentsToBookings, updateStudentPackageStatus } from "./booking";
+
+// Booking orchestrator (high-level utility)
+export { orchestrateBookingFlow, type BookingFlowInput, type BookingFlowResult } from "./booking-orchestrator";
 
 // Lesson & Event seeding
-export { createLessonsAndEvents, createTeacherEquipmentRelations } from "./lesson";
+export { createLessonsAndEvents, addEquipmentToEvents, createStudentLessonFeedback } from "./lesson";
 
 // Payment seeding
 export { createTeacherLessonPayments, createStudentBookingPayments } from "./payment";

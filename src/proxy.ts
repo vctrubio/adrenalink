@@ -6,6 +6,10 @@ export function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
+    // console.log("REQUEST HIT:");
+    //         return NextResponse.next();
+
+
     // Early return for common assets and internal routes
     // Reduces unnecessary processing and logging for requests that don't need subdomain context
     if (
@@ -30,10 +34,19 @@ export function proxy(request: NextRequest) {
     if (subdomainInfo) {
         printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
 
-        // Create response with school context header for all routes
+        // Create response with school context headers for all routes
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
+        
+        // Try to set school ID if available (skip expensive DB lookup)
+        if (subdomainInfo.id) {
+            response.headers.set("x-school-id", subdomainInfo.id);
+        }
+        
         printf("DEV:DEBUG 📝 SET HEADER x-school-username:", subdomainInfo.subdomain);
+        if (subdomainInfo.id) {
+            printf("DEV:DEBUG 📝 SET HEADER x-school-id:", subdomainInfo.id);
+        }
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {

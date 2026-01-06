@@ -29,9 +29,9 @@ export const createTeacherCommissions = async (teacherId: string, commissions: C
 
 export const createDefaultTeacherCommissions = async (teacherId: string): Promise<any[]> => {
     const commissions = [
-        { teacher_id: teacherId, commission_type: "percentage", cph: "20.00", description: "Standard 20% commission", active: true },
-        { teacher_id: teacherId, commission_type: "percentage", cph: "25.00", description: "Premium 25% commission", active: true },
-        { teacher_id: teacherId, commission_type: "fixed", cph: "50.00", description: "Fixed €50 per hour", active: true },
+        { teacher_id: teacherId, commission_type: "percentage", cph: "25.00", description: "Standard", active: true },
+        { teacher_id: teacherId, commission_type: "fixed", cph: "20.00", description: "Standard", active: true },
+        { teacher_id: teacherId, commission_type: "fixed", cph: "12.00", description: "Supervision", active: true },
     ];
 
     const { data, error } = await supabase.from("teacher_commission").insert(commissions).select();

@@ -6,6 +6,23 @@
  * 
  * Unlike Drizzle, Supabase uses PostgREST which infers relationships from FKs.
  * This file is a reference and can be used to generate complex queries.
+ * 
+ * @see supabase/schema/ - SQL table definitions organized by domain
+ * @see supabase/db/types.ts - TypeScript row types (single source of truth)
+ * 
+ * Schema Load Order (dependency-driven):
+ * 1. school.sql
+ * 2. student.sql
+ * 3. teacher.sql
+ * 4. booking.sql (creates booking, booking_student)
+ * 5. lesson.sql (references booking, teacher)
+ * 6. event.sql (references lesson)
+ * 7. equipment.sql (references event via equipment_event)
+ * 8. teacher-equipment.sql (junction: teacher ↔ equipment)
+ * 9. rental.sql
+ * 10. feedback.sql (creates student_lesson_feedback)
+ * 11. payment.sql (creates payment tables)
+ * 12. realtime.sql (ALTER PUBLICATION statements)
  */
 
 /**

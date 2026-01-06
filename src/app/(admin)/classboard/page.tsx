@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getSQLClassboardData } from "@/supabase/server/classboard";
+import { getSQLClassboardData } from "@/supabase/server/classboard-old-schema";
 import { ClassboardProvider } from "@/src/providers/classboard-provider";
 import ClientClassboard from "./ClientClassboard";
 

@@ -2,26 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { School } from "@/supabase/db/types";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SportSelection } from "@/src/components/school/SportSelection";
 import { SchoolIdentificationRow } from "@/src/components/school/SchoolIdentificationRow";
 import { SchoolHeaderContent } from "@/src/components/school/SchoolHeaderContent";
 import { SchoolPageLayout } from "@/src/components/school/SchoolPageLayout";
 
-interface School {
-    name: string;
-    username: string;
-    country: string;
-    categories: string[];
-    iconUrl: string;
-    bannerUrl: string;
-}
-
-interface SchoolsClientProps {
-    schools: School[];
-}
-
-const SchoolsClient = ({ schools }: SchoolsClientProps) => {
+const SchoolsClient = ({ schools }: { schools: School[] }) => {
     const [isStarting, setIsStarting] = useState(false);
     const [isNavigatingWelcome, setIsNavigatingWelcome] = useState(false);
     const [showFooter, setShowFooter] = useState(false);
@@ -52,7 +40,11 @@ const SchoolsClient = ({ schools }: SchoolsClientProps) => {
 
     const filteredSchools = useMemo(() => {
         if (!selectedSport) return schools;
-        return schools.filter(school => school.categories.includes(selectedSport));
+        return schools.filter(school => {
+            if (!school.equipment_categories) return false;
+            const categories = school.equipment_categories.split(",").map(c => c.trim());
+            return categories.includes(selectedSport);
+        });
     }, [schools, selectedSport]);
 
     const isExiting = isStarting || isNavigatingWelcome;

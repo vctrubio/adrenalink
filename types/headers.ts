@@ -16,9 +16,7 @@ import { unstable_cache, revalidateTag } from "next/cache";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
-import { db } from "@/drizzle/db";
-import { school } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { getServerConnection } from "@/supabase/connection";
 
 /**
  * The standardized return object for header context functions.
@@ -37,12 +35,17 @@ export interface HeaderContext {
  * This is the single source of truth for fetching school data from the database.
  */
 const getSchoolByUsername = unstable_cache(
-    async (username: string): Promise<typeof school.$inferSelect | null> => {
+    async (username: string): Promise<any | null> => {
         try {
-            const result = await db.query.school.findFirst({
-                where: eq(school.username, username),
-            });
-            return result || null;
+            const supabase = getServerConnection();
+            const { data, error } = await supabase
+                .from("school")
+                .select("*")
+                .eq("username", username)
+                .single();
+            
+            if (error) throw error;
+            return data || null;
         } catch (error) {
             unstable_rethrow(error);
             // CRITICAL: We THROW here so unstable_cache does NOT cache the failure.
@@ -78,7 +81,7 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
         return null;
     }
 
-    let schoolData: typeof school.$inferSelect | null = null;
+    let schoolData: any | null = null;
 
     try {
         schoolData = await getSchoolByUsername(username);
@@ -90,9 +93,15 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
     // If cached value is null or missing timezone, bypass cache and fetch directly
     if (!schoolData || !schoolData.timezone) {
         try {
-            schoolData = await db.query.school.findFirst({
-                where: eq(school.username, username),
-            });
+            const supabase = getServerConnection();
+            const { data, error } = await supabase
+                .from("school")
+                .select("*")
+                .eq("username", username)
+                .single();
+            
+            if (error) throw error;
+            schoolData = data;
         } catch (error) {
             unstable_rethrow(error);
             console.error(`❌ [getSchoolHeader] Direct DB fallback failed for "${username}":`, error);
