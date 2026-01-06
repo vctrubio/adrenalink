@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { SubDomainHomePage } from "./SubDomainHomePage";
-import { getSchoolSubdomain } from "@/actions/subdomain-action";
+import { getSchoolSubdomain } from "@/supabase/server/subdomain";
 
 export default async function SubdomainPage() {
     const headersList = await headers();
