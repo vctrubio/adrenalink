@@ -18,9 +18,13 @@ export function SchoolCredentialsProvider({
     const router = useRouter();
 
     // If no credentials, redirect to no-credentials page
+    // if (!credentials) {
+    //     router.push("/no-credentials");
+    //     return null;
+    // }
+
     if (!credentials) {
-        router.push("/no-credentials");
-        return null;
+        console.log("ERROR: SchoolCredentialsProvider missing credentials");
     }
 
     return (
