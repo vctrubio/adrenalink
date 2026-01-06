@@ -5,12 +5,16 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
+import { headers } from "next/headers";
 import type { SchoolCredentials } from "@/types/credentials";
 
-export async function getSchoolCredentials(schoolUsername: string): Promise<SchoolCredentials | null> {
+export async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
     try {
+        const headersList = await headers();
+        const schoolUsername = headersList.get("x-school-username");
+
         if (!schoolUsername) {
-            console.error("❌ No school username provided");
+            console.error("❌ No school username in headers");
             return null;
         }
 

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { LayoutGrid, List, Grid3X3 } from "lucide-react";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { GroupingType } from "@/src/components/school/TransactionEventsTable";
 import type { TransactionEventData } from "@/types/transaction-event";
@@ -46,13 +47,6 @@ export interface HomeStats {
 
 interface HomePageProps {
     classboardData: ClassboardModel;
-    school: {
-        name: string;
-        username: string;
-        country: string;
-        timezone: string | null;
-        currency: string;
-    };
 }
 
 const VIEW_CONFIG = {
@@ -73,13 +67,22 @@ const VIEW_CONFIG = {
     },
 };
 
-export function HomePage({ classboardData, school }: HomePageProps) {
+export function HomePage({ classboardData }: HomePageProps) {
+    const credentials = useSchoolCredentials();
     const [viewMode, setViewMode] = useState<ViewMode>("grouped");
     const [groupBy, setGroupBy] = useState<GroupingType>("none");
 
     const globalTotals = useMemo(() => getHomeStats(classboardData), [classboardData]);
     const groupedEvents = useMemo(() => getGroupedEvents(classboardData), [classboardData]);
-    const allTransactionEvents = useMemo(() => getAllTransactionEvents(classboardData, school.currency), [classboardData, school.currency]);
+    const allTransactionEvents = useMemo(() => getAllTransactionEvents(classboardData, credentials.currency), [classboardData, credentials.currency]);
+
+    const school = {
+        name: credentials.name,
+        username: credentials.username,
+        country: credentials.country || "",
+        timezone: credentials.timezone || null,
+        currency: credentials.currency,
+    };
 
     return (
         <div className="space-y-10">

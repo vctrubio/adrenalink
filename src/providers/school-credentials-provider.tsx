@@ -1,13 +1,10 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import type { SchoolCredentials } from "@/types/credentials";
 
-interface SchoolCredentialsContextType {
-    credentials: SchoolCredentials | null;
-}
-
-const SchoolCredentialsContext = createContext<SchoolCredentialsContextType | undefined>(undefined);
+const SchoolCredentialsContext = createContext<{ credentials: SchoolCredentials } | undefined>(undefined);
 
 export interface SchoolCredentialsProviderProps {
     credentials: SchoolCredentials | null;
@@ -18,6 +15,14 @@ export function SchoolCredentialsProvider({
     credentials,
     children,
 }: SchoolCredentialsProviderProps) {
+    const router = useRouter();
+
+    // If no credentials, redirect to no-credentials page
+    if (!credentials) {
+        router.push("/no-credentials");
+        return null;
+    }
+
     return (
         <SchoolCredentialsContext.Provider value={{ credentials }}>
             {children}
@@ -25,13 +30,12 @@ export function SchoolCredentialsProvider({
     );
 }
 
-export function useSchoolCredentials(): SchoolCredentials | null {
+export function useSchoolCredentials(): SchoolCredentials {
     const context = useContext(SchoolCredentialsContext);
     if (context === undefined) {
-        console.warn(
-            "useSchoolCredentials must be used within a SchoolCredentialsProvider"
+        throw new Error(
+            "useSchoolCredentials must be used within a SchoolCredentialsProvider with valid credentials"
         );
-        return null;
     }
     return context.credentials;
 }

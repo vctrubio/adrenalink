@@ -1,35 +1,15 @@
 import { type ReactNode, cache } from "react";
-import { headers } from "next/headers";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import FacebookNav from "@/src/components/navigations/FacebookNav";
-import type { SchoolCredentials } from "@/types/credentials";
 import { getSchoolCredentials as getSchoolCredentialsFromSupabase } from "@/supabase/server/admin";
 
 interface AdminLayoutProps {
     children: ReactNode;
 }
 
-async function getSchoolCredentialsImpl(): Promise<SchoolCredentials | null> {
-    try {
-        const headersList = await headers();
-        const schoolUsername = headersList.get("x-school-username");
-
-        if (!schoolUsername) {
-            console.warn("⚠️ No x-school-username header found");
-            return null;
-        }
-
-        const credentials = await getSchoolCredentialsFromSupabase(schoolUsername);
-        return credentials as SchoolCredentials | null;
-    } catch (error) {
-        console.error("❌ [LAYOUT] Error fetching school credentials:", error);
-        return null;
-    }
-}
-
 // Use React's cache() to memoize across the request
-const getSchoolCredentials = cache(getSchoolCredentialsImpl);
+const getSchoolCredentials = cache(getSchoolCredentialsFromSupabase);
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const credentials = await getSchoolCredentials();
