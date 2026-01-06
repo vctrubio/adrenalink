@@ -4,20 +4,17 @@ import { useMemo, useState } from "react";
 import { LayoutGrid, List, Grid3X3 } from "lucide-react";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
-import type { GroupingType } from "@/src/components/school/TransactionEventsTable";
-import type { TransactionEventData } from "@/types/transaction-event";
-
 import { HomeHeader } from "./HomeHeader";
 import { HomeViewHeader } from "./HomeViewHeader";
 import { HomeViewToggle } from "./HomeViewToggle";
 import { HomeGrouped } from "./HomeGrouped";
 import { HomeTable } from "./HomeTable";
 import { HomeActivity } from "./HomeActivity";
-import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./home-data-getter";
+import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./getters";
 
 export type ViewMode = "grouped" | "table" | "calendar";
 
-export interface TransactionEvent {
+export interface HomeTransactionEvent {
     id: string;
     date: string;
     lessonId: string;
@@ -36,7 +33,7 @@ export interface TransactionEvent {
 
 export interface DateGroup {
     date: string;
-    events: TransactionEvent[];
+    events: HomeTransactionEvent[];
 }
 
 export interface HomeStats {
@@ -44,10 +41,6 @@ export interface HomeStats {
     commissions: number;
     profit: number;
     events: number;
-}
-
-interface HomePageProps {
-    classboardData: ClassboardModel;
 }
 
 const VIEW_CONFIG = {
@@ -68,10 +61,9 @@ const VIEW_CONFIG = {
     },
 };
 
-export function HomePage({ classboardData }: HomePageProps) {
+export function HomePage({ classboardData }: { classboardData: ClassboardModel }) {
     const credentials = useSchoolCredentials();
     const [viewMode, setViewMode] = useState<ViewMode>("grouped");
-    const [groupBy, setGroupBy] = useState<GroupingType>("none");
 
     const globalTotals = useMemo(() => getHomeStats(classboardData), [classboardData]);
     const groupedEvents = useMemo(() => getGroupedEvents(classboardData), [classboardData]);
@@ -83,7 +75,7 @@ export function HomePage({ classboardData }: HomePageProps) {
 
             <div className="flex items-end justify-between border-b border-border pb-6">
                 <HomeViewHeader {...VIEW_CONFIG[viewMode]} />
-                <HomeViewToggle mode={viewMode} setMode={setViewMode} groupBy={groupBy} setGroupBy={setGroupBy} />
+                <HomeViewToggle mode={viewMode} setMode={setViewMode} />
             </div>
 
             <div className="space-y-6">
@@ -92,7 +84,7 @@ export function HomePage({ classboardData }: HomePageProps) {
                 )}
                 
                 {viewMode === "table" && (
-                    <HomeTable events={allTransactionEvents} groupBy={groupBy} />
+                    <HomeTable events={allTransactionEvents} />
                 )}
                 
                 {viewMode === "calendar" && (

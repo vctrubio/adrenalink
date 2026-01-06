@@ -5,7 +5,7 @@ import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
-import { TransactionEventsTable } from "../../components/school/TransactionEventsTable";
+import { TransactionEventsTable } from "../(admin)/(tables)/TransactionEventsTable";
 import { getHMDuration } from "@/getters/duration-getter";
 
 // Icons

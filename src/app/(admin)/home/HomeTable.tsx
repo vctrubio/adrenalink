@@ -1,17 +1,8 @@
 "use client";
 
-import { TransactionEventsTable, type GroupingType } from "@/src/components/school/TransactionEventsTable";
+import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import type { TransactionEventData } from "@/types/transaction-event";
 
-interface HomeTableProps {
-    events: TransactionEventData[];
-    groupBy: GroupingType;
-}
-
-export function HomeTable({ events, groupBy }: HomeTableProps) {
-    return (
-        <div className="space-y-4">
-            <TransactionEventsTable events={events} groupBy={groupBy} />
-        </div>
-    );
+export function HomeTable({ events }: { events: TransactionEventData[] }) {
+    return <TransactionEventsTable events={events} />;
 }

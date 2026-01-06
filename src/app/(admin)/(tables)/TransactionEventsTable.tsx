@@ -15,7 +15,7 @@ import { TransactionEventData } from "@/types/transaction-event";
 import TransactionEventModal from "@/src/components/modals/TransactionEventModal";
 import { getHMDuration } from "@/getters/duration-getter";
 import { StatHeaderItemUI, STAT_CONFIGS } from "@/backend/RenderStats";
-import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "../../app/(admin)/(tables)/MasterTable";
+import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
 // --- Types & Helpers ---
 

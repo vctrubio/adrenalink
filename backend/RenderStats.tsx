@@ -198,6 +198,56 @@ function capitalize(str: string): string {
 }
 
 /**
+ * UI Component to render a stat item with icon, label, and value.
+ * Used for table and group headers.
+ */
+export function StatHeaderItemUI({ 
+    statType, 
+    value,
+    hideLabel = false,
+    variant = "default"
+}: { 
+    statType: StatType;
+    value: string | number;
+    hideLabel?: boolean;
+    variant?: "default" | "profit";
+}) {
+    const config = STAT_CONFIGS[statType];
+    
+    // Handle profit with dynamic icon based on value
+    let IconComponent: React.ElementType | null = null;
+    if (statType === "profit" && typeof value === "number") {
+        const numValue = typeof value === "string" ? parseFloat(value) : value;
+        IconComponent = numValue > 0 ? TrendingUp : numValue < 0 ? TrendingDown : TrendingUpDown;
+    } else if (!React.isValidElement(config.icon)) {
+        IconComponent = config.icon as React.ElementType;
+    }
+    
+    const renderedIcon = React.isValidElement(config.icon) ? (
+        React.cloneElement(config.icon as React.ReactElement, { size: 12 })
+    ) : IconComponent ? (
+        <IconComponent size={12} className={variant === "profit" ? "text-primary dark:text-primary/80" : "text-muted-foreground"} />
+    ) : null;
+
+    // Profit variant styling
+    const profitClass = variant === "profit" ? "px-2.5 py-1.5 rounded-full bg-primary/15 dark:bg-primary/20" : "";
+    const valueClass = variant === "profit" ? "text-primary dark:text-primary/90" : "text-foreground";
+
+    return (
+        <div className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity ${profitClass}`}>
+            {renderedIcon}
+            {!hideLabel && (
+                <>
+                    <span className={`text-[10px] font-bold ${variant === "profit" ? "text-primary/60 dark:text-primary/50" : "text-muted-foreground"} uppercase tracking-wider`}>{config.label}:</span>
+                    <span className={`text-xs font-bold tabular-nums ${valueClass}`}>{value}</span>
+                </>
+            )}
+            {hideLabel && <span className={`text-xs font-bold tabular-nums ${valueClass}`}>{value}</span>}
+        </div>
+    );
+}
+
+/**
  * Core function to generate a standard StatItem.
  * Used by Databoard, Home, and Classboard contexts.
  */

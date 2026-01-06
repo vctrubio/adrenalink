@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Activity, TrendingUp } from "lucide-react";
-import { TransactionEventsTable } from "@/src/components/school/TransactionEventsTable";
+import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
