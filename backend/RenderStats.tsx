@@ -205,11 +205,13 @@ export function StatHeaderItemUI({
     statType, 
     value,
     hideLabel = false,
+    labelOverride,
     variant = "default"
 }: { 
     statType: StatType;
     value: string | number;
     hideLabel?: boolean;
+    labelOverride?: string;
     variant?: "default" | "profit";
 }) {
     const config = STAT_CONFIGS[statType];
@@ -238,7 +240,7 @@ export function StatHeaderItemUI({
             {renderedIcon}
             {!hideLabel && (
                 <>
-                    <span className={`text-[10px] font-bold ${variant === "profit" ? "text-primary/60 dark:text-primary/50" : "text-muted-foreground"} uppercase tracking-wider`}>{config.label}:</span>
+                    <span className={`text-[10px] font-bold ${variant === "profit" ? "text-primary/60 dark:text-primary/50" : "text-muted-foreground"} uppercase tracking-wider`}>{labelOverride || config.label}:</span>
                     <span className={`text-xs font-bold tabular-nums ${valueClass}`}>{value}</span>
                 </>
             )}

@@ -36,12 +36,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
         {
             header: "Students",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => (
-                <div className="flex items-center gap-2">
-                    <HelmetIcon size={16} className="text-muted-foreground/40" />
-                    {getLeaderCapacity(data.leaderStudentName, data.capacityStudents)}
-                </div>
-            ),
+            render: (data) => getLeaderCapacity(data.leaderStudentName, data.capacityStudents),
         },
         {
             header: "Package",
@@ -63,22 +58,19 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             header: "Teachers",
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
-                <div className="flex items-center gap-2">
-                    <HandshakeIcon size={16} className="text-muted-foreground/40 shrink-0" />
-                    <div className="flex flex-wrap gap-2">
-                        {data.lessons.map((lesson) => (
-                            <TeacherLessonStatsBadge
-                                key={lesson.id}
-                                teacherId={lesson.teacherId}
-                                teacherUsername={lesson.teacherUsername}
-                                eventCount={lesson.eventCount}
-                                durationMinutes={lesson.totalDurationHours * 60}
-                                showCommission={true}
-                                commission={lesson.commission}
-                                currency={data.currency}
-                            />
-                        ))}
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                    {data.lessons.map((lesson) => (
+                        <TeacherLessonStatsBadge
+                            key={lesson.id}
+                            teacherId={lesson.teacherId}
+                            teacherUsername={lesson.teacherUsername}
+                            eventCount={lesson.eventCount}
+                            durationMinutes={lesson.totalDurationHours * 60}
+                            showCommission={true}
+                            commission={lesson.commission}
+                            currency={data.currency}
+                        />
+                    ))}
                 </div>
             ),
         },
@@ -88,7 +80,8 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             render: (data) => (
                 <div className="flex justify-start">
                     <StudentTeacherBookingLessonPaymentsBadge 
-                        studentPayment={data.totalPayment}
+                        studentPayment={data.totalStudentPayments}
+                        teacherPayment={data.totalTeacherPayments}
                         teacherCommission={data.totalTeacherCommissions}
                         currency={data.currency}
                     />
@@ -152,7 +145,8 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             render: (data) => (
                 <div className="scale-90 origin-right">
                     <StudentTeacherBookingLessonPaymentsBadge 
-                        studentPayment={data.totalPayment}
+                        studentPayment={data.totalStudentPayments}
+                        teacherPayment={data.totalTeacherPayments}
                         teacherCommission={data.totalTeacherCommissions}
                         currency={data.currency}
                     />
@@ -179,32 +173,56 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             (acc, curr) => {
                 const bookingEvents = curr.lessons.reduce((sum, l) => sum + l.eventCount, 0);
                 const bookingDuration = curr.lessons.reduce((sum, l) => sum + l.totalDurationHours * 60, 0);
+                
+                // Explicitly tracking actual payments
+                const studentPayments = curr.totalStudentPayments;
+                // Use actual teacher payments if available, otherwise fallback to calculated commission for estimation
+                // But prompt said "want student and teacher payments", implying actual payments from the table.
+                // However, if no payments made yet, maybe we show 0? Or the liability (commission)?
+                // "teacher comission ok calculate that, but then we teacherLessonPayments... this is what we want"
+                // I will track both separately in stats if needed, but for "Teacher Payments" header I'll use the one that represents cost.
+                // If I use actual payments, and none are made, Profit looks huge. 
+                // Usually Net = Revenue - Cost (Commission Liability). 
+                // But prompt says "Student and Teacher Payments". 
+                // I will track them as named.
+                
+                const teacherPayments = curr.totalTeacherPayments;
+                const teacherLiabilities = curr.totalTeacherCommissions; 
+
+                // For Net calculation, we usually want (Money In) - (Money Out OR Money Owed).
+                // If we want cash flow net: Student Payments - Teacher Payments.
+                // If we want profit net: Student Payments - Teacher Commissions.
+                // The badge uses `studentPayment - (teacherPayment || teacherCommission)`.
+                // I will follow the badge logic for the group stats to match.
+                const effectiveTeacherCost = teacherPayments || teacherLiabilities;
 
                 return {
-                    eventCount: acc.eventCount + 1, // Number of bookings
+                    eventCount: acc.eventCount + 1,
                     studentCount: acc.studentCount + curr.capacityStudents,
                     totalDuration: acc.totalDuration + bookingDuration,
-                    totalRevenue: acc.totalRevenue + curr.totalPayment,
-                    totalCommissions: acc.totalCommissions + curr.totalTeacherCommissions,
-                    totalProfit: acc.totalProfit + (curr.totalPayment - curr.totalTeacherCommissions),
-                    completedCount: acc.completedCount + bookingEvents, // Total events count
+                    totalEventRevenue: (acc.totalEventRevenue || 0) + curr.totalEventRevenue,
+                    totalStudentPayments: acc.totalStudentPayments + studentPayments,
+                    totalTeacherPayments: acc.totalTeacherPayments + teacherPayments,
+                    totalTeacherCommissions: acc.totalTeacherCommissions + teacherLiabilities,
+                    totalProfit: acc.totalProfit + (studentPayments - effectiveTeacherCost),
+                    completedCount: acc.completedCount + bookingEvents,
                     currency: curr.currency,
                 };
             },
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalCommissions: 0, totalRevenue: 0, totalProfit: 0, currency: "" }
+            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalProfit: 0, currency: "" }
         );
     };
 
     const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
         <>
-            <StatHeaderItemUI statType="students" value={stats.studentCount} hideLabel={hideLabel} />
-            
             <div className="flex items-center gap-1.5 opacity-80">
                 <BookingIcon size={12} className="text-muted-foreground" />
                 {!hideLabel && <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Bookings:</span>}
                 <span className="text-xs font-bold tabular-nums text-foreground">{stats.eventCount}</span>
             </div>
 
+            <StatHeaderItemUI statType="students" value={stats.studentCount} hideLabel={hideLabel} />
+            
             <div className="flex items-center gap-1.5 opacity-80">
                 <FlagIcon size={12} className="text-muted-foreground" />
                 {!hideLabel && <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Events:</span>}
@@ -217,9 +235,10 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 <span className="text-xs font-bold tabular-nums text-foreground">{getHMDuration(stats.totalDuration)}</span>
             </div>
 
-            <StatHeaderItemUI statType="commission" value={`${stats.totalCommissions.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
-            <StatHeaderItemUI statType="revenue" value={`${stats.totalRevenue.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
-            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} variant="profit" />
+            <StatHeaderItemUI statType="revenue" value={`${stats.totalEventRevenue.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} labelOverride="Revenue" />
+            <StatHeaderItemUI statType="moneyToPay" value={`${stats.totalStudentPayments.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} labelOverride="Student Payments" />
+            <StatHeaderItemUI statType="commission" value={`${stats.totalTeacherPayments.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} labelOverride="Teacher Payments" />
+            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} variant="profit" labelOverride="Profit" />
         </>
     );
 

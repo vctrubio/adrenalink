@@ -4,30 +4,34 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 
 interface StudentTeacherBookingLessonPaymentsBadgeProps {
     studentPayment: number;
-    teacherCommission: number;
+    teacherPayment: number;
+    teacherCommission: number; // calculated
     currency: string;
 }
 
 export function StudentTeacherBookingLessonPaymentsBadge({ 
     studentPayment, 
-    teacherCommission, 
+    teacherPayment,
+    teacherCommission,
     currency 
 }: StudentTeacherBookingLessonPaymentsBadgeProps) {
-    const profit = studentPayment - teacherCommission;
+    // Determine which teacher value to use for net calculation (payment if exists, otherwise commission)
+    const teacherCost = teacherPayment || teacherCommission;
+    const profit = studentPayment - teacherCost;
     const isPositive = profit >= 0;
     
     return (
         <div className="flex items-center justify-start gap-4 text-xs font-bold tabular-nums">
             {/* Student Payment */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" title="Student Payments">
                 <HelmetIcon size={14} className="text-muted-foreground/40" />
                 <span className="text-foreground">{studentPayment.toFixed(0)}</span>
             </div>
 
-            {/* Teacher Commission */}
-            <div className="flex items-center gap-1.5">
+            {/* Teacher Payment / Commission */}
+            <div className="flex items-center gap-1.5" title="Lesson Payments">
                 <HandshakeIcon size={14} className="text-muted-foreground/40" />
-                <span className="text-foreground">{teacherCommission.toFixed(0)}</span>
+                <span className="text-foreground">{teacherCost.toFixed(0)}</span>
             </div>
 
             {/* Net / Trending (No background) */}
@@ -41,7 +45,7 @@ export function StudentTeacherBookingLessonPaymentsBadge({
                 ) : (
                     <TrendingDown size={14} />
                 )}
-                <span>
+                <span className={!isPositive ? "font-black" : ""}>
                     {Math.abs(profit).toFixed(0)}
                 </span>
             </div>

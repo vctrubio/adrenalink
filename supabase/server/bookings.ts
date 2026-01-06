@@ -27,7 +27,9 @@ export interface BookingTableData {
             cph: string;
         };
     }[];
-    totalPayment: number;
+    totalStudentPayments: number;
+    totalEventRevenue: number;
+    totalTeacherPayments: number;
     totalTeacherCommissions: number;
     currency: string;
 }
@@ -74,6 +76,9 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                     ),
                     event(
                         duration
+                    ),
+                    teacher_lesson_payment(
+                        amount
                     )
                 ),
                 student_booking_payment(
@@ -94,21 +99,30 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
             const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
 
             let totalTeacherCommissions = 0;
+            let totalTeacherPayments = 0;
+            let totalEventRevenue = 0;
+
             const lessons = booking.lesson.map((l: any) => {
                 const totalDurationHours = l.event.reduce((sum: number, e: any) => sum + e.duration, 0) / 60;
                 const cph = parseFloat(l.teacher_commission.cph || "0");
                 const type = l.teacher_commission.commission_type;
                 
+                // Revenue for this lesson's portion
+                const lessonRevenue = pricePerHourPerStudent * totalDurationHours * studentCount;
+                totalEventRevenue += lessonRevenue;
+
                 let commissions = 0;
                 if (type === "fixed") {
                     commissions = cph * totalDurationHours;
                 } else if (type === "percentage") {
-                    // Revenue for this lesson's portion
-                    const lessonRevenue = pricePerHourPerStudent * totalDurationHours * studentCount;
                     commissions = lessonRevenue * (cph / 100);
                 }
                 
                 totalTeacherCommissions += commissions;
+
+                // Actual recorded payments
+                const recordedPayments = l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
+                totalTeacherPayments += recordedPayments;
 
                 return {
                     id: l.id,
@@ -124,7 +138,7 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                 };
             });
 
-            const totalPayment = booking.student_booking_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
+            const totalStudentPayments = booking.student_booking_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
 
             return {
                 id: booking.id,
@@ -141,7 +155,9 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                     pricePerStudent: booking.school_package.price_per_student,
                 },
                 lessons,
-                totalPayment,
+                totalStudentPayments,
+                totalEventRevenue,
+                totalTeacherPayments,
                 totalTeacherCommissions,
                 currency: schoolCurrency,
             };
