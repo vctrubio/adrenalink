@@ -41,11 +41,11 @@ export async function proxy(request: NextRequest) {
             
             if (!data?.id) {
                 printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
-                return NextResponse.redirect(new URL("/schools", request.url));
+                return NextResponse.redirect(new URL("/www", request.url));
             }
         } catch (error) {
             printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
-            return NextResponse.redirect(new URL("/schools", request.url));
+            return NextResponse.redirect(new URL("/www", request.url));
         }
 
         // Create response with school username header
