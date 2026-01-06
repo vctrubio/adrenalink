@@ -5,6 +5,8 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
+import { createClassboardModel } from "@/getters/classboard-getter";
+import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 /**
  * Query builder for booking with all nested relations
@@ -67,7 +69,7 @@ function buildBookingQuery() {
     `;
 }
 
-export async function getHomeBookings() {
+export async function getHomeBookings(): Promise<ClassboardModel> {
     const headersList = await headers();
     const schoolId = headersList.get("x-school-id");
     
@@ -88,8 +90,8 @@ export async function getHomeBookings() {
         throw new Error(`Failed to fetch bookings: ${bookingsError.message}`);
     }
 
-    return {
-        schoolId,
-        bookings: bookings || [],
-    };
+    // Transform raw booking data into ClassboardModel format
+    const classboardData = createClassboardModel(bookings || []);
+    
+    return classboardData;
 }
