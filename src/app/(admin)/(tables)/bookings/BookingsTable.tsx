@@ -17,7 +17,6 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { StudentTeacherBookingLessonPaymentsBadge } from "@/src/components/ui/badge/student-teacher-booking-lesson-payments";
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -205,11 +204,11 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                     totalStudentPayments: acc.totalStudentPayments + studentPayments,
                     totalTeacherPayments: acc.totalTeacherPayments + teacherPayments,
                     totalTeacherCommissions: acc.totalTeacherCommissions + teacherLiabilities,
-                    totalNet: acc.totalNet + (studentPayments - effectiveTeacherCost),
+                    totalProfit: acc.totalProfit + (studentPayments - effectiveTeacherCost),
                     completedCount: acc.completedCount + bookingEvents,
                 };
             },
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalNet: 0 }
+            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalProfit: 0 }
         );
     };
 
@@ -235,10 +234,10 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 <span className="text-xs font-bold tabular-nums text-foreground">{getHMDuration(stats.totalDuration)}</span>
             </div>
 
-            <StatHeaderItemUI statType="revenue" value={`${stats.totalEventRevenue.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} labelOverride="Revenue" />
-            <StatHeaderItemUI statType="moneyToPay" value={`${stats.totalStudentPayments.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} labelOverride="Student Payments" />
-            <StatHeaderItemUI statType="commission" value={`${stats.totalTeacherPayments.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} labelOverride="Teacher Payments" />
-            <StatHeaderItemUI statType="profit" value={`${stats.totalNet.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} variant="profit" labelOverride="Profit" />
+            <StatHeaderItemUI statType="revenue" value={stats.totalEventRevenue.toFixed(0)} hideLabel={hideLabel} labelOverride="Revenue" />
+            <StatHeaderItemUI statType="moneyToPay" value={stats.totalStudentPayments.toFixed(0)} hideLabel={hideLabel} labelOverride="Student Payments" />
+            <StatHeaderItemUI statType="commission" value={stats.totalTeacherPayments.toFixed(0)} hideLabel={hideLabel} labelOverride="Teacher Payments" />
+            <StatHeaderItemUI statType="profit" value={stats.totalProfit.toFixed(0)} hideLabel={hideLabel} variant="profit" labelOverride="Profit" />
         </>
     );
 
