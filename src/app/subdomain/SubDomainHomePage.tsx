@@ -3,10 +3,8 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { MapPin, Globe, Instagram, MessageCircle } from "lucide-react";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import type { SchoolWithPackages } from "@/supabase/server/subdomain";
-import type { SchoolPackage } from "@/supabase/db/types";
 import { getCurrencySymbol } from "@/supabase/db/currency";
 import { motion } from "framer-motion";
 import { SchoolPackageContainer } from "./SchoolPackageContainer";
@@ -14,12 +12,10 @@ import { SchoolPackageContainer } from "./SchoolPackageContainer";
 // Style Constants
 const SOCIAL_BUTTON_STYLE = "w-12 h-12 flex items-center justify-center rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 text-zinc-600 hover:text-zinc-900 transition-all border border-zinc-200";
 
-interface SubDomainHomePageProps extends SchoolWithPackages {}
-
 /**
  * Shared layout component for the School Landing Page
  */
-export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePageProps) {
+export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackages) {
     const { name, country, phone, website_url: websiteUrl, instagram_url: instagramUrl, equipment_categories: equipmentCategories, currency, username } = school;
     const { bannerUrl, iconUrl } = assets;
     const currencySymbol = getCurrencySymbol(currency);
@@ -62,13 +58,7 @@ export function SubDomainHomePage({ school, packages, assets }: SubDomainHomePag
                         {/* School Icon */}
                         <div className="z-10 flex-shrink-0">
                             <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white bg-zinc-100 overflow-hidden shadow-xl">
-                                {iconUrl ? (
-                                    <img src={iconUrl} alt={`${name} Icon`} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
-                                        <AdranlinkIcon className="text-zinc-400" size={48} />
-                                    </div>
-                                )}
+                                <Image src={iconUrl} alt={`${name} Icon`} fill className="object-cover" />
                             </div>
                         </div>
 
