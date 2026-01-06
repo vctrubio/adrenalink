@@ -57,7 +57,7 @@ async function fetchLogoUrl(schoolUsername: string): Promise<string | null> {
 export async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
     try {
         const headersList = await headers();
-        const schoolUsername = headersList.get("x-school-username");
+        const schoolUsername = headersList.get("username");
 
         if (!schoolUsername) {
             return null;

@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerClient } from "@/supabase/server";
+import { getServerConnection } from "@/supabase/connection";
 
 /**
  * Fetches a complete event with all nested relations using PostgREST
@@ -8,7 +8,7 @@ import { getServerClient } from "@/supabase/server";
  */
 export async function getExampleEventData(eventId: string) {
     try {
-        const supabase = getServerClient();
+        const supabase = getServerConnection();
 
         const { data, error } = await supabase
             .from("event")
