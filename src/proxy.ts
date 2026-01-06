@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import printf from "../printf.js";
 import { detectSubdomain } from "../types/domain";
+import { getServerConnection } from "@/supabase/connection";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
-    // console.log("REQUEST HIT:");
-    //         return NextResponse.next();
-
-
     // Early return for common assets and internal routes
-    // Reduces unnecessary processing and logging for requests that don't need subdomain context
     if (
         pathname.startsWith("/_next/") ||
         pathname.startsWith("/api/") ||
@@ -32,27 +28,36 @@ export function proxy(request: NextRequest) {
     const subdomainInfo = detectSubdomain(hostname);
 
     if (subdomainInfo) {
-        printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain, "TYPE:", subdomainInfo.type);
+        printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain);
 
-        // Create response with school context headers for all routes
+        // Validate school exists (username is indexed via UNIQUE constraint)
+        try {
+            const supabase = getServerConnection();
+            const { data } = await supabase
+                .from("school")
+                .select("id")
+                .eq("username", subdomainInfo.subdomain)
+                .single();
+            
+            if (!data?.id) {
+                printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
+                return NextResponse.redirect(new URL("/schools", request.url));
+            }
+        } catch (error) {
+            printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
+            return NextResponse.redirect(new URL("/schools", request.url));
+        }
+
+        // Create response with school username header
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
         
-        // Try to set school ID if available (skip expensive DB lookup)
-        if (subdomainInfo.id) {
-            response.headers.set("x-school-id", subdomainInfo.id);
-        }
-        
         printf("DEV:DEBUG 📝 SET HEADER x-school-username:", subdomainInfo.subdomain);
-        if (subdomainInfo.id) {
-            printf("DEV:DEBUG 📝 SET HEADER x-school-id:", subdomainInfo.id);
-        }
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
             const url = request.nextUrl.clone();
             url.pathname = "/subdomain";
-            url.searchParams.set("username", subdomainInfo.subdomain);
 
             printf("🔄 REWRITING TO:", url.toString());
             const rewriteResponse = NextResponse.rewrite(url);
@@ -60,11 +65,9 @@ export function proxy(request: NextRequest) {
             return rewriteResponse;
         }
 
-        console.log("REQUEST COMPLETED12:");
         return response;
     }
 
-    console.log("REQUEST COMPLETED:");
     return NextResponse.next();
 }
 

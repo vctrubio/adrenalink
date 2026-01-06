@@ -2,8 +2,14 @@
  * Database Type Definitions
  * Single source of truth for all database row types
  * Mirrors the schema structure from supabase/schema/*.sql
+ * 
+ * Usage:
+ * - Import these types in server functions: `import { School, Student, Teacher } from "@/supabase/db/types"`
+ * - Use them for function return types: `Promise<School[]>`
+ * - Cast query results: `data as School`
  */
 
+/** School entity - Represents a school/institution in the system */
 export interface School {
     id: string;
     wallet_id: string;
@@ -17,13 +23,14 @@ export interface School {
     longitude: number | null;
     timezone: string | null;
     google_place_id: string | null;
-    equipment_categories: string | null;
+    equipment_categories: string | null; // Pipe-separated list: "swimming|diving|kayaking"
     website_url: string | null;
     instagram_url: string | null;
     created_at: string;
     updated_at: string;
 }
 
+/** Student entity - Represents a student/participant */
 export interface Student {
     id: string;
     first_name: string;
@@ -31,11 +38,12 @@ export interface Student {
     passport: string;
     country: string;
     phone: string;
-    languages: string[];
+    languages: string[]; // JSON array: ["English", "Spanish"]
     created_at: string;
     updated_at: string;
 }
 
+/** Teacher entity - Represents an instructor/teacher */
 export interface Teacher {
     id: string;
     school_id: string;
@@ -45,12 +53,13 @@ export interface Teacher {
     passport: string;
     country: string;
     phone: string;
-    languages: string[];
+    languages: string[]; // JSON array: ["English", "Spanish"]
     active: boolean;
     created_at: string;
     updated_at: string;
 }
 
+/** Equipment entity - Represents physical equipment/gear */
 export interface Equipment {
     id: string;
     school_id: string;
@@ -64,6 +73,7 @@ export interface Equipment {
     updated_at: string;
 }
 
+/** SchoolPackage entity - Represents a package/service offering */
 export interface SchoolPackage {
     id: string;
     duration_minutes: number;
@@ -80,6 +90,7 @@ export interface SchoolPackage {
     updated_at: string;
 }
 
+/** Booking entity - Represents a booking/reservation */
 export interface Booking {
     id: string;
     school_id: string;
@@ -92,6 +103,7 @@ export interface Booking {
     updated_at: string;
 }
 
+/** Lesson entity - Represents a lesson/training session */
 export interface Lesson {
     id: string;
     school_id: string;
@@ -103,6 +115,7 @@ export interface Lesson {
     updated_at: string;
 }
 
+/** Event entity - Represents an event/activity occurrence */
 export interface Event {
     id: string;
     school_id: string;

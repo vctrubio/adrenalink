@@ -1,57 +1,29 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { cache } from "react";
 import { SubDomainHomePage } from "./SubDomainHomePage";
-import { getSchoolSubdomain } from "@/supabase/server/subdomain";
+import { getSchool4Subdomain } from "@/supabase/server/subdomain";
+
+const getSchoolData = cache(async (username: string) => {
+    return await getSchool4Subdomain(username);
+});
 
 export default async function SubdomainPage() {
     const headersList = await headers();
-    const username = headersList.get("x-school-username");
+    const username = headersList.get("x-school-username")!;
 
-    if (!username) {
-        redirect("/schools");
-    }
+    const schoolData = await getSchoolData(username);
 
-    let result;
-    try {
-        result = await getSchoolSubdomain(username);
-    } catch (error) {
-        console.error("💥 Error fetching subdomain content:", error);
-    }
-
-    if (!result?.success || !result?.data) {
-        redirect("/schools");
-    }
-
-    const { school, packages, assets } = result.data;
-
-    return <SubDomainHomePage school={school} packages={packages} assets={assets || { iconUrl: null, bannerUrl: null }} />;
+    return <SubDomainHomePage {...schoolData!} />;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-    const schoolHeader = await getSchoolHeader();
-    const username = schoolHeader?.name;
+    const headersList = await headers();
+    const username = headersList.get("x-school-username")!;
 
-    if (!username) {
-        return {
-            title: "Adrenalink",
-            description: "Home of Adrenaline Activity",
-            icons: {
-                icon: "/ADR.webp",
-                apple: "/ADR.webp",
-                shortcut: "/ADR.webp",
-            },
-            openGraph: {
-                title: "Adrenalink",
-                description: "Home of Adrenaline Activity",
-                siteName: "Adrenalink",
-                images: ["/ADR.webp"],
-                type: "website",
-            },
-        };
-    }
-
-    const title = `${username} | Adrenalink School`;
+    const schoolData = await getSchoolData(username);
+    const title = schoolData?.school.name || "Adrenalink School";
 
     return {
         title,
@@ -66,7 +38,6 @@ export async function generateMetadata(): Promise<Metadata> {
             description: "Home of Adrenaline Activity",
             siteName: "Adrenalink",
             images: ["/ADR.webp"],
-            url: `https://adrenalink.tech/subdomain?username=${encodeURIComponent(username)}`,
             type: "website",
         },
         twitter: {

@@ -1,38 +1,81 @@
 import { getServerConnection } from "@/supabase/connection";
-import { School } from "@/supabase/db/types";
+import type { School, SchoolPackage } from "@/supabase/db/types";
 
-export async function getSchoolSubdomain(username: string) {
+export interface SchoolAssets {
+    bannerUrl: string;
+    iconUrl: string;
+}
+
+export interface SchoolWithPackages {
+    school: School;
+    packages: SchoolPackage[];
+    assets: SchoolAssets;
+}
+
+/**
+ * Check if a CDN image exists via HEAD request
+ */
+async function getCDNImageUrl(username: string, imageType: "banner" | "icon"): Promise<string> {
+    const customUrl = `https://cdn.adrenalink.tech/${username}/${imageType}.png`;
+    const adminUrl = `https://cdn.adrenalink.tech/admin/${imageType}.png`;
+
+    try {
+        const response = await fetch(customUrl, { method: "HEAD" });
+        if (response.ok) {
+            return customUrl;
+        }
+    } catch (err) {
+        console.warn(`⚠️ Failed to check ${imageType} for ${username}, using /admin/ fallback`);
+    }
+
+    return adminUrl;
+}
+
+/**
+ * Fetch school for subdomain with all packages (single query with join)
+ * Username is indexed via UNIQUE constraint in schema
+ */
+export async function getSchool4Subdomain(username: string): Promise<SchoolWithPackages | null> {
     try {
         const supabase = getServerConnection();
-        
-        const { data: school, error } = await supabase
+
+        const { data, error } = await supabase
             .from("school")
-            .select("*")
+            .select("*, school_package(*)")
             .eq("username", username)
             .single();
 
         if (error) {
-            console.error(`❌ Error fetching school "${username}":`, error);
-            throw new Error(error.message);
+            console.error(`❌ Error fetching school by username "${username}":`, error);
+            return null;
         }
 
-        if (!school) {
+        if (!data) {
             console.warn(`⚠️ School not found: ${username}`);
-            return { success: false, error: "School not found" };
+            return null;
         }
 
-        console.log(`✅ Fetched school: ${school.name}`);
+        const school = data as School;
+        const packages: SchoolPackage[] = (data as School & { school_package: SchoolPackage[] }).school_package || [];
+        
+        // Fetch asset URLs (check if custom images exist, fallback to /admin/)
+        const [bannerUrl, iconUrl] = await Promise.all([
+            getCDNImageUrl(username, "banner"),
+            getCDNImageUrl(username, "icon"),
+        ]);
+
+        console.log(`✅ Fetched school "${school.name}" with ${packages.length} packages`);
+        console.log(`   Assets: banner=${bannerUrl}, icon=${iconUrl}`);
 
         return {
-            success: true,
-            data: {
-                school,
-                packages: [],
-                assets: { iconUrl: null, bannerUrl: null },
-            },
+            school,
+            packages,
+            assets: { bannerUrl, iconUrl },
         };
     } catch (err) {
-        console.error(`💥 getSchoolSubdomain("${username}") failed:`, err);
-        return { success: false, error: String(err) };
+        console.error(`💥 getSchoolByUsername("${username}") failed:`, err);
+        return null;
     }
 }
+
+

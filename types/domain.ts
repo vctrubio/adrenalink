@@ -17,6 +17,7 @@ export interface SubdomainInfo {
     subdomain: string;
     type: DomainType;
     hostname: string;
+    id?: string;
 }
 
 /**
