@@ -28,17 +28,6 @@ const HEADER_CLASSES = {
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
     const desktopColumns: ColumnDef<StudentTableData>[] = [
         {
-            header: "Status",
-            headerClassName: HEADER_CLASSES.zinc,
-            render: (data) => (
-                <StudentStatusBadge 
-                    bookingCount={data.summaryStats.bookingCount} 
-                    durationHours={data.summaryStats.durationHours} 
-                    allBookingsCompleted={data.summaryStats.allBookingsCompleted} 
-                />
-            ),
-        },
-        {
             header: "Student Profile",
             headerClassName: HEADER_CLASSES.yellow,
             render: (data) => (
@@ -61,6 +50,22 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                     />
                 </div>
             ),
+        },
+        {
+            header: "Status",
+            headerClassName: HEADER_CLASSES.yellow,
+            render: (data) => (
+                <StudentStatusBadge 
+                    bookingCount={data.summaryStats.bookingCount} 
+                    durationHours={data.summaryStats.durationHours} 
+                    allBookingsCompleted={data.summaryStats.allBookingsCompleted} 
+                />
+            ),
+        },
+        {
+            header: "EQUIPMENT",
+            headerClassName: HEADER_CLASSES.purple,
+            render: (data) => <span className="text-zinc-400 text-[10px] font-bold">-</span>, // Placeholder for student equipment
         },
         {
             header: "Activity",

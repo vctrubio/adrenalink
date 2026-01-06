@@ -53,7 +53,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
         },
         {
             header: "Status",
-            headerClassName: HEADER_CLASSES.zinc,
+            headerClassName: HEADER_CLASSES.green,
             render: (data) => (
                 <TeacherStatusBadge 
                     totalLessons={data.lessonStats.totalLessons} 
@@ -62,8 +62,27 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             ),
         },
         {
+            header: "EQUIPMENT",
+            headerClassName: HEADER_CLASSES.purple,
+            render: (data) => (
+                <BrandSizeCategoryList 
+                    equipments={data.equipments.map(e => {
+                        const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
+                        return {
+                            id: e.id,
+                            brand: e.brand,
+                            model: e.model,
+                            size: e.size,
+                            icon: config?.icon
+                        };
+                    })}
+                    showIcon={true}
+                />
+            ),
+        },
+        {
             header: "Activity",
-            headerClassName: HEADER_CLASSES.blue,
+            headerClassName: HEADER_CLASSES.purple,
             render: (data) => <SportActivityList stats={data.activityStats} />,
         },
         {
@@ -100,25 +119,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     </div>
                 );
             },
-        },
-        {
-            header: "Assigned Gear",
-            headerClassName: HEADER_CLASSES.purple,
-            render: (data) => (
-                <BrandSizeCategoryList 
-                    equipments={data.equipments.map(e => {
-                        const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
-                        return {
-                            id: e.id,
-                            brand: e.brand,
-                            model: e.model,
-                            size: e.size,
-                            icon: config?.icon
-                        };
-                    })}
-                    showIcon={true}
-                />
-            ),
         },
     ];
 

@@ -8,6 +8,7 @@ interface EquipmentStudentPackagePriceBadgeProps {
     studentCapacity: number;
     packageDurationHours: number;
     pricePerHour: number;
+    isRental?: boolean;
 }
 
 export function EquipmentStudentPackagePriceBadge({ 
@@ -15,7 +16,8 @@ export function EquipmentStudentPackagePriceBadge({
     equipmentCapacity, 
     studentCapacity, 
     packageDurationHours, 
-    pricePerHour 
+    pricePerHour,
+    isRental = false
 }: EquipmentStudentPackagePriceBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
@@ -60,9 +62,9 @@ export function EquipmentStudentPackagePriceBadge({
 
                     <div className="flex items-center gap-1.5">
 
-                        <div style={{ color: studentColor }}>
+                        <div style={{ color: isRental ? "#ef4444" : studentColor }}>
 
-                            <StudentIcon size={16} />
+                            <StudentIcon size={16} rental={isRental} />
 
                         </div>
 
