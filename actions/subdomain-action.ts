@@ -1,9 +1,5 @@
 "use server";
 
-import { db } from "@/drizzle/db";
-import { schoolPackage, studentPackage, school } from "@/drizzle/schema";
-import { eq, and, sql, inArray } from "drizzle-orm";
-import { createSchoolModel } from "@/backend/models/SchoolModel";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: string | null; bannerUrl: string | null }> {
@@ -73,16 +69,24 @@ async function fetchSchoolAssets(schoolUsername: string): Promise<{ iconUrl: str
 
 import { unstable_cache } from "next/cache";
 import { getSchoolAssets } from "@/getters/cdn-getter";
+import { getServerConnection } from "@/supabase/connection";
 
 // Cache school assets for 1 hour
 const getCachedSchoolAssets = unstable_cache(async (username: string) => fetchSchoolAssets(username), ["school-assets"], { revalidate: 3600, tags: ["school-assets"] });
 
 // Cache school data for 1 hour
 const getCachedSchoolByUsername = unstable_cache(
-    async (username: string) =>
-        db.query.school.findFirst({
-            where: eq(school.username, username),
-        }),
+    async (username: string) => {
+        const supabase = getServerConnection();
+        const { data, error } = await supabase
+            .from("school")
+            .select("*")
+            .eq("username", username)
+            .single();
+        
+        if (error) throw error;
+        return data;
+    },
     ["school-by-username"],
     { revalidate: 3600, tags: ["school"] },
 );

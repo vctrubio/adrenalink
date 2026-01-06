@@ -81,7 +81,11 @@ export const SchoolIdentificationRow = ({
 
             {/* Sport Categories - Interactive Grid */}
             <div className="relative z-10 flex gap-4 md:gap-8">
-                {SPORTS_CONFIG.filter(sport => school.categories.includes(sport.id)).map((sport) => {
+                {SPORTS_CONFIG.filter(sport => {
+                    if (!school.equipment_categories) return false;
+                    const categories = school.equipment_categories.split(",").map(c => c.trim());
+                    return categories.includes(sport.id);
+                }).map((sport) => {
                     const uniqueSportId = `${school.username}-${sport.id}`;
                     const isSportHovered = hoveredSportId === uniqueSportId;
                     
