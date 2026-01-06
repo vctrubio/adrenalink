@@ -31,14 +31,12 @@ export interface BookingTableData {
     totalEventRevenue: number;
     totalTeacherPayments: number;
     totalTeacherCommissions: number;
-    currency: string;
 }
 
 export async function getBookingsTable(): Promise<BookingTableData[]> {
     try {
         const headersList = await headers();
         const schoolId = headersList.get("x-school-id");
-        const schoolCurrency = headersList.get("x-school-currency") || "EUR"; // Fallback currency
 
         if (!schoolId) {
             console.error("❌ No school ID found in headers");
@@ -159,7 +157,6 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                 totalEventRevenue,
                 totalTeacherPayments,
                 totalTeacherCommissions,
-                currency: schoolCurrency,
             };
         });
     } catch (error) {

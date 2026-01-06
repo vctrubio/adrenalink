@@ -13,6 +13,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
 import { StatHeaderItemUI } from "@/backend/RenderStats";
 import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
 // Header className groups for consistent styling across columns
@@ -28,6 +29,8 @@ const HEADER_CLASSES = {
 // --- Main component ---
 
 export function TransactionEventsTable({ events = [] }: { events: TransactionEventData[] }) {
+    const { currency } = useSchoolCredentials();
+
     const desktopColumns: ColumnDef<TransactionEventData>[] = [
         {
             header: "Date",
@@ -217,9 +220,8 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                 totalCommissions: acc.totalCommissions + curr.financials.teacherEarnings,
                 totalRevenue: acc.totalRevenue + curr.financials.studentRevenue,
                 totalProfit: acc.totalProfit + curr.financials.profit,
-                currency: curr.financials.currency,
             }),
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalCommissions: 0, totalRevenue: 0, totalProfit: 0, currency: "" },
+            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalCommissions: 0, totalRevenue: 0, totalProfit: 0 },
         );
     };
 
@@ -228,9 +230,9 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
             <StatHeaderItemUI statType="students" value={stats.studentCount} hideLabel={hideLabel} />
             <StatHeaderItemUI statType="events" value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`} hideLabel={hideLabel} />
             <StatHeaderItemUI statType="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} />
-            <StatHeaderItemUI statType="commission" value={`${stats.totalCommissions.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
-            <StatHeaderItemUI statType="revenue" value={`${stats.totalRevenue.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
-            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} variant="profit" />
+            <StatHeaderItemUI statType="commission" value={`${stats.totalCommissions.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="revenue" value={`${stats.totalRevenue.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}${hideLabel ? "" : ` ${currency}`}`} hideLabel={hideLabel} variant="profit" />
         </>
     );
 
