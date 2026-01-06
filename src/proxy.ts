@@ -37,6 +37,7 @@ export async function proxy(request: NextRequest) {
         printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain);
 
         // Validate school exists (username is indexed via UNIQUE constraint)
+        let schoolId: string | null = null;
         try {
             const supabase = getServerConnection();
             const { data } = await supabase
@@ -60,6 +61,7 @@ export async function proxy(request: NextRequest) {
                 discoverUrl.pathname = "/discover";
                 return NextResponse.redirect(discoverUrl);
             }
+            schoolId = data.id;
         } catch (error) {
             printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
             // Redirect to www domain /discover
@@ -76,11 +78,12 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(discoverUrl);
         }
 
-        // Create response with school username header
+        // Create response with school username and ID headers
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
+        response.headers.set("x-school-id", schoolId!);
         
-        printf("DEV:DEBUG 📝 SET HEADER x-school-username:", subdomainInfo.subdomain);
+        printf("DEV:DEBUG 📝 SET HEADERS:", { username: subdomainInfo.subdomain, id: schoolId });
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
@@ -90,6 +93,7 @@ export async function proxy(request: NextRequest) {
             printf("🔄 REWRITING TO:", url.toString());
             const rewriteResponse = NextResponse.rewrite(url);
             rewriteResponse.headers.set("x-school-username", subdomainInfo.subdomain);
+            rewriteResponse.headers.set("x-school-id", schoolId!);
             return rewriteResponse;
         }
 

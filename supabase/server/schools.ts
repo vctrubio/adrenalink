@@ -1,24 +1,6 @@
 import { getServerConnection } from "@/supabase/connection";
+import { getCDNImages } from "@/supabase/server/cdn";
 import type { SchoolWithAssets } from "@/supabase/db/types";
-
-/**
- * Check if a CDN image exists via HEAD request
- */
-async function getCDNImageUrl(username: string, imageType: "banner" | "icon"): Promise<string> {
-    const customUrl = `https://cdn.adrenalink.tech/${username}/${imageType}.png`;
-    const adminUrl = `https://cdn.adrenalink.tech/admin/${imageType}.png`;
-
-    try {
-        const response = await fetch(customUrl, { method: "HEAD" });
-        if (response.ok) {
-            return customUrl;
-        }
-    } catch (err) {
-        console.warn(`⚠️ Failed to check ${imageType} for ${username}, using /admin/ fallback`);
-    }
-
-    return adminUrl;
-}
 
 export async function getSchools(): Promise<SchoolWithAssets[]> {
     try {
@@ -34,13 +16,16 @@ export async function getSchools(): Promise<SchoolWithAssets[]> {
             throw new Error(error.message);
         }
 
-        // Fetch CDN URLs for each school (check custom first, fallback to /admin/)
+        // Fetch CDN URLs for each school using centralized function
         const schoolsWithAssets = await Promise.all(
-            schools.map(async (school) => ({
-                ...school,
-                bannerUrl: await getCDNImageUrl(school.username, "banner"),
-                iconUrl: await getCDNImageUrl(school.username, "icon"),
-            }))
+            schools.map(async (school) => {
+                const { bannerUrl, iconUrl } = await getCDNImages(school.username);
+                return {
+                    ...school,
+                    bannerUrl,
+                    iconUrl,
+                };
+            })
         );
 
         // Log schools with equipment_categories for debugging

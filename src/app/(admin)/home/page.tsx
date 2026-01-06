@@ -1,43 +1,16 @@
-// import { getSchoolHeader } from "@/types/headers";
-// import { getClassboardBookings } from "@/actions/classboard-action";
-// import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
-// import { HomePage as HomeClient } from "./HomePage";
+import { getHomeBookings } from "@/supabase/server/home";
 
 export default async function AdminHomePage() {
-    return <>welcome home admin</>
-    const school = await getSchoolHeader();
-
-    if (!school) {
-        return (
-            <div>
-                <h1 className="text-3xl font-bold text-foreground">Error</h1>
-                <p className="text-muted-foreground mt-1">Unable to load school information</p>
-            </div>
-        );
-    }
-
-    const credentials = await getSchoolCredentials();
-
-    console.log("Starting fetch for HomePage...");
+    console.log("📊 Starting fetch for AdminHomePage...");
     const start = Date.now();
-    const result = await getClassboardBookings();
+    
+    const homeData = await getHomeBookings();
+    
     const duration = Date.now() - start;
-    console.log(`Fetch completed in ${duration}ms`);
+    console.log(`✅ Fetch completed in ${duration}ms`);
+    console.log("🏫 School ID:", homeData.schoolId);
+    console.log("📚 Bookings count:", homeData.bookings.length);
+    console.log("📚 Bookings:", homeData.bookings);
 
-    const classboardData = result.success && result.data ? result.data : {};
-
-    return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            <HomeClient
-                classboardData={classboardData}
-                school={{
-                    name: credentials?.name || school.name,
-                    username: credentials?.username || school.username,
-                    country: credentials?.country || "",
-                    timezone: credentials?.timezone || null,
-                    currency: credentials?.currency || "YEN",
-                }}
-            />
-        </div>
-    );
+    return <>welcome home admin</>;
 }

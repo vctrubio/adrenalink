@@ -8,6 +8,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import type { HomeEntity } from "@/supabase/server/home";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { ExpandCollapseIcon } from "@/src/components/ui/ExpandCollapseIcon";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 interface HomeClientProps {
     entities: HomeEntity[];
@@ -78,6 +79,7 @@ function EntityHeader({
 
 export function HomeClient({ entities }: HomeClientProps) {
     const router = useRouter();
+    const credentials = useSchoolCredentials();
     const [viewMap, setViewMap] = useState<Record<string, "active" | "inactive">>({});
     const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
