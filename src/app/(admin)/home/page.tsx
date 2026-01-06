@@ -1,9 +1,10 @@
-import { getSchoolHeader } from "@/types/headers";
-import { getClassboardBookings } from "@/actions/classboard-action";
-import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
-import { HomePage as HomeClient } from "./HomePage";
+// import { getSchoolHeader } from "@/types/headers";
+// import { getClassboardBookings } from "@/actions/classboard-action";
+// import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
+// import { HomePage as HomeClient } from "./HomePage";
 
 export default async function AdminHomePage() {
+    return <>welcome home admin</>
     const school = await getSchoolHeader();
 
     if (!school) {
