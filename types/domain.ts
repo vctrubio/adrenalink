@@ -59,26 +59,3 @@ export function detectSubdomain(hostname: string): SubdomainInfo | null {
     
     return null;
 }
-
-/**
- * Checks if hostname is a subdomain (either dev or prod)
- */
-export function isSubdomain(hostname: string): boolean {
-    return detectSubdomain(hostname) !== null;
-}
-
-/**
- * Gets the subdomain name from hostname
- */
-export function getSubdomainName(hostname: string): string | null {
-    const info = detectSubdomain(hostname);
-    return info?.subdomain || null;
-}
-
-/**
- * Gets the domain type (development/production)
- */
-export function getDomainType(hostname: string): DomainType | null {
-    const info = detectSubdomain(hostname);
-    return info?.type || null;
-}

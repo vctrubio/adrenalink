@@ -12,7 +12,7 @@
  * @pattern getXHeader() -> { id: string, name: string, zone: string }
  */
 
-import { unstable_cache, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
@@ -29,37 +29,6 @@ export interface HeaderContext {
     name: string;
     zone: string;
 }
-
-/**
- * Internal cached function to look up the full school object by username.
- * This is the single source of truth for fetching school data from the database.
- */
-const getSchoolByUsername = unstable_cache(
-    async (username: string): Promise<any | null> => {
-        try {
-            const supabase = getServerConnection();
-            const { data, error } = await supabase
-                .from("school")
-                .select("*")
-                .eq("username", username)
-                .single();
-            
-            if (error) throw error;
-            return data || null;
-        } catch (error) {
-            unstable_rethrow(error);
-            // CRITICAL: We THROW here so unstable_cache does NOT cache the failure.
-            // Returning null would cache the "not found" state for 1 hour.
-            console.error(`💥 [getSchoolByUsername] DB Error for "${username}":`, error);
-            throw error; 
-        }
-    },
-    ["school-by-username"],
-    {
-        revalidate: 3600, // Cache for 1 hour
-        tags: ["school"],
-    },
-);
 
 /**
  * Retrieves school context from the 'x-school-username' header.
@@ -81,48 +50,35 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
         return null;
     }
 
-    let schoolData: any | null = null;
-
     try {
-        schoolData = await getSchoolByUsername(username);
-    } catch (error) {
-        unstable_rethrow(error);
-        console.error("⚠️ [getSchoolHeader] Cache fetch failed, attempting direct DB fallback...");
-    }
-
-    // If cached value is null or missing timezone, bypass cache and fetch directly
-    if (!schoolData || !schoolData.timezone) {
-        try {
-            const supabase = getServerConnection();
-            const { data, error } = await supabase
-                .from("school")
-                .select("*")
-                .eq("username", username)
-                .single();
-            
-            if (error) throw error;
-            schoolData = data;
-        } catch (error) {
+        const supabase = getServerConnection();
+        const { data: schoolData, error } = await supabase
+            .from("school")
+            .select("*")
+            .eq("username", username)
+            .single();
+        
+        if (error) {
+            console.error(`❌ [getSchoolHeader] DB lookup failed for "${username}":`, error);
             unstable_rethrow(error);
-            console.error(`❌ [getSchoolHeader] Direct DB fallback failed for "${username}":`, error);
             return null;
         }
-    }
 
-    if (!schoolData || !schoolData.timezone) {
-        if (!schoolData) {
-            console.warn(`[getSchoolHeader] School "${username}" not found after both cache and DB checks.`);
-        } else {
-            console.warn(`[getSchoolHeader] School "${username}" is missing a timezone. Configure timezone in school settings.`);
+        if (!schoolData || !schoolData.timezone) {
+            console.warn(`[getSchoolHeader] School "${username}" is missing required data (id, timezone).`);
+            return null;
         }
+
+        return {
+            id: schoolData.id,
+            name: schoolData.username,
+            zone: schoolData.timezone,
+        };
+    } catch (error) {
+        unstable_rethrow(error);
+        console.error(`💥 [getSchoolHeader] Critical error for "${username}":`, error);
         return null;
     }
-
-    return {
-        id: schoolData.id,
-        name: schoolData.username,
-        zone: schoolData.timezone,
-    };
 });
 
 /**
@@ -137,12 +93,3 @@ export function revalidateSchoolCache(): void {
     console.log("DEV:DEBUG ✅ Revalidated 'school' cache tag.");
 }
 
-/**
- * Gets the user role from the 'x-user-role' header.
- *
- * @returns {Promise<string | null>} The user role (e.g., "student", "teacher") or `null` if the header is not set.
- */
-export async function getUserRole(): Promise<string | null> {
-    const headersList = await headers();
-    return headersList.get("x-user-role");
-}
