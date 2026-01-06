@@ -11,19 +11,24 @@
  * and branding assets.
  *
  * @property {string} id - The school's UUID (primary key)
- * @property {string | null} logo - URL to the school's logo image from R2
+ * @property {string} logo - URL to the school's icon image from CDN
  *   - First tries to load: `{schoolUsername}/icon.png`
  *   - Falls back to: `admin/icon.png`
- *   - Returns null if neither exists
+ * @property {string} banner - URL to the school's banner image from CDN
+ *   - First tries to load: `{schoolUsername}/banner.png`
+ *   - Falls back to: `admin/banner.png`
  * @property {string} currency - The school's currency code (USD, EUR, CHF)
  * @property {string} name - The school's display name
  * @property {string} username - The school's unique username slug
  * @property {string} status - The school's status (active, pending, closed)
  * @property {string} ownerId - UUID of the school owner
+ * @property {string} country - The school's country
+ * @property {string | null} timezone - The school's timezone
  */
 export interface SchoolCredentials {
     id: string;
     logo: string | null;
+    banner: string | null;
     currency: string;
     name: string;
     username: string;

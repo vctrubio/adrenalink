@@ -4,38 +4,10 @@
  */
 
 import { getServerConnection } from "@/supabase/connection";
-import type { School } from "@/supabase/db/types";
+import { getCDNImages } from "@/supabase/server/cdn";
+import type { SchoolCredentials } from "@/types/credentials";
 
-/**
- * Check if a CDN image exists via HEAD request
- */
-async function getCDNImageUrl(username: string, imageType: "banner" | "icon"): Promise<string | null> {
-    const customUrl = `https://cdn.adrenalink.tech/${username}/${imageType}.png`;
-    const adminUrl = `https://cdn.adrenalink.tech/admin/${imageType}.png`;
-
-    try {
-        const response = await fetch(customUrl, { method: "HEAD" });
-        if (response.ok) {
-            return customUrl;
-        }
-    } catch (err) {
-        console.warn(`⚠️ Failed to check ${imageType} for ${username}`);
-    }
-
-    // Try admin fallback
-    try {
-        const response = await fetch(adminUrl, { method: "HEAD" });
-        if (response.ok) {
-            return adminUrl;
-        }
-    } catch (err) {
-        console.warn(`⚠️ Failed to check admin ${imageType}`);
-    }
-
-    return null;
-}
-
-export async function getSchoolCredentials(schoolUsername: string) {
+export async function getSchoolCredentials(schoolUsername: string): Promise<SchoolCredentials | null> {
     try {
         if (!schoolUsername) {
             console.error("❌ No school username provided");
@@ -56,19 +28,21 @@ export async function getSchoolCredentials(schoolUsername: string) {
             return null;
         }
 
-        // Fetch logo URL
-        const logoUrl = await getCDNImageUrl(schoolUsername, "icon");
+        // Fetch verified URLs from CDN
+        const { bannerUrl, iconUrl } = await getCDNImages(schoolUsername);
 
         return {
             id: schoolData.id,
-            logo: logoUrl,
+            logo: iconUrl,
+            banner: bannerUrl,
             currency: schoolData.currency,
             name: schoolData.name,
             username: schoolData.username,
             status: schoolData.status,
             country: schoolData.country,
             timezone: schoolData.timezone,
-        };
+            ownerId: "",
+        } as SchoolCredentials;
     } catch (error) {
         console.error("❌ [ADMIN] Error fetching school credentials:", error);
         return null;

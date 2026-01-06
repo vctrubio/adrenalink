@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerClient } from "@/supabase/server";
+import { getServerConnection } from "../connection";
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
@@ -9,7 +9,7 @@ import type { ApiActionResponseModel } from "@/types/actions";
 
 // Use Supabase exclusively for classboard to avoid mixing Drizzle + Supabase
 // This ensures consistent connection pooling and row-level security
-const getSupabase = () => getServerClient();
+const getSupabase = () => getServerConnection();
 
 /**
  * Shared query builder for booking relations

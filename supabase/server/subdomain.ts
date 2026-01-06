@@ -1,34 +1,16 @@
 import { getServerConnection } from "@/supabase/connection";
+import { getCDNImages } from "@/supabase/server/cdn";
 import type { School, SchoolPackage } from "@/supabase/db/types";
 
 export interface SchoolAssets {
-    bannerUrl: string;
-    iconUrl: string;
+    banner: string;
+    logo: string;
 }
 
 export interface SchoolWithPackages {
     school: School;
     packages: SchoolPackage[];
     assets: SchoolAssets;
-}
-
-/**
- * Check if a CDN image exists via HEAD request
- */
-async function getCDNImageUrl(username: string, imageType: "banner" | "icon"): Promise<string> {
-    const customUrl = `https://cdn.adrenalink.tech/${username}/${imageType}.png`;
-    const adminUrl = `https://cdn.adrenalink.tech/admin/${imageType}.png`;
-
-    try {
-        const response = await fetch(customUrl, { method: "HEAD" });
-        if (response.ok) {
-            return customUrl;
-        }
-    } catch (err) {
-        console.warn(`⚠️ Failed to check ${imageType} for ${username}, using /admin/ fallback`);
-    }
-
-    return adminUrl;
 }
 
 /**
@@ -58,11 +40,8 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         const school = data as School;
         const packages: SchoolPackage[] = (data as School & { school_package: SchoolPackage[] }).school_package || [];
         
-        // Fetch asset URLs (check if custom images exist, fallback to /admin/)
-        const [bannerUrl, iconUrl] = await Promise.all([
-            getCDNImageUrl(username, "banner"),
-            getCDNImageUrl(username, "icon"),
-        ]);
+        // Fetch both asset URLs in one go
+        const { bannerUrl, iconUrl } = await getCDNImages(username);
 
         console.log(`✅ Fetched school "${school.name}" with ${packages.length} packages`);
         console.log(`   Assets: banner=${bannerUrl}, icon=${iconUrl}`);
@@ -70,7 +49,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         return {
             school,
             packages,
-            assets: { bannerUrl, iconUrl },
+            assets: { banner: bannerUrl, logo: iconUrl },
         };
     } catch (err) {
         console.error(`💥 getSchoolByUsername("${username}") failed:`, err);
