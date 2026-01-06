@@ -63,7 +63,15 @@ function buildBookingQuery() {
                 date,
                 duration,
                 location,
-                status
+                status,
+                equipment_event(
+                    equipment(
+                        id,
+                        brand,
+                        model,
+                        size
+                    )
+                )
             )
         )
     `;

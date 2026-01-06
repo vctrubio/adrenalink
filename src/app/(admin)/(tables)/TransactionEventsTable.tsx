@@ -11,6 +11,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
 import { StatHeaderItemUI } from "@/backend/RenderStats";
+import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
 
@@ -21,6 +22,7 @@ const HEADER_CLASSES = {
     zinc: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10",
     zincRight: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right",
     zincRightBold: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right font-bold",
+    purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
 } as const;
 
 // --- Main component ---
@@ -88,6 +90,11 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                 const EquipmentIcon = EQUIPMENT_CATEGORIES.find((c) => c.id === data.packageData.categoryEquipment)?.icon;
                 return EquipmentIcon ? <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={data.packageData.capacityEquipment} studentCapacity={data.packageData.capacityStudents} /> : null;
             },
+        },
+        {
+            header: "Equipment",
+            headerClassName: HEADER_CLASSES.purple,
+            render: (data) => <BrandSizeCategoryList equipments={data.equipments} />,
         },
         {
             header: "Comm.",
@@ -223,7 +230,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
 
         return (
             <tr key={`header-${title}`} className="bg-gradient-to-r from-primary/5 via-primary/[0.02] to-transparent border-y border-primary/10">
-                <td colSpan={13} className="px-4 py-3">
+                <td colSpan={14} className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-primary/10 text-primary">

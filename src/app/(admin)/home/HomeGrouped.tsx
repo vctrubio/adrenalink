@@ -8,6 +8,7 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { BrandSizeCategoryList, BrandSizeCategoryListHorizontal } from "@/src/components/ui/badge/brand-size-category";
 import { STAT_CONFIGS, getDashboardStatsDisplay } from "@/backend/RenderStats";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { EventHomeStatusLabel } from "@/src/components/labels/EventHomeStatusLabel";
@@ -218,10 +219,21 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                                 <span>{getHMDuration(event.duration)}</span>
                                                             </div>
                                                         </div>
+
+                                                        {/* Mobile Equipment */}
+                                                        <BrandSizeCategoryListHorizontal
+                                                            equipments={event.equipments}
+                                                            className="mt-2 sm:hidden"
+                                                        />
                                                     </div>
                                                 </div>
 
-                                                <div className="hidden sm:flex items-center gap-4 self-end sm:self-auto">
+                                                <div className="hidden sm:flex items-center gap-6 self-end sm:self-auto">
+                                                    {/* Desktop Equipment */}
+                                                    <div className="min-w-[90px]">
+                                                        <BrandSizeCategoryList equipments={event.equipments} />
+                                                    </div>
+
                                                     <EquipmentStudentPackagePriceBadge
                                                         categoryEquipment={event.categoryEquipment}
                                                         equipmentCapacity={event.capacityEquipment}

@@ -18,6 +18,13 @@ export interface TransactionEventPackage {
     capacityStudents: number;
 }
 
+export interface TransactionEventEquipment {
+    id: string;
+    brand: string;
+    model: string;
+    size: number | null;
+}
+
 export interface TransactionEventData {
     event: {
         id: string;
@@ -34,4 +41,5 @@ export interface TransactionEventData {
     studentNames: string[];
     packageData: TransactionEventPackage;
     financials: TransactionEventFinancials;
+    equipments?: TransactionEventEquipment[];
 }

@@ -46,6 +46,7 @@ export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
                     capacityStudents: booking.schoolPackage.capacityStudents,
                     packageDurationMinutes: booking.schoolPackage.durationMinutes,
                     pricePerStudent: booking.schoolPackage.pricePerStudent,
+                    equipments: (event as any).equipments || [],
                 });
             });
         });
@@ -107,6 +108,7 @@ export function getAllTransactionEvents(classboardData: ClassboardModel, currenc
                         commissionType: lesson.commission.type as "fixed" | "percentage",
                         commissionValue: cph,
                     },
+                    equipments: (event as any).equipments || [],
                 });
             });
         });

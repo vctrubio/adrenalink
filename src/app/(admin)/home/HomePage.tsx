@@ -28,6 +28,7 @@ export interface HomeTransactionEvent {
     capacityStudents: number;
     packageDurationMinutes: number;
     pricePerStudent: number;
+    equipments?: { id: string; brand: string; model: string; size: number | null }[];
 }
 
 export interface DateGroup {

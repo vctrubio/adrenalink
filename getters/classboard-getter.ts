@@ -67,6 +67,12 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                     duration: evt.duration,
                     location: evt.location,
                     status: evt.status,
+                    equipments: evt.equipment_event?.map((ee: any) => ({
+                        id: ee.equipment.id,
+                        brand: ee.equipment.brand,
+                        model: ee.equipment.model,
+                        size: ee.equipment.size ? parseFloat(ee.equipment.size) : null,
+                    })) || [],
                 })),
             })),
         };

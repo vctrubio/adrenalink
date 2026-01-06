@@ -142,6 +142,12 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                 commissionType: commissionType,
                                 commissionValue: commissionValue,
                             },
+                            equipments: equipments.map((e: any) => ({
+                                id: e.id,
+                                brand: e.brand,
+                                model: e.model,
+                                size: e.size ? parseFloat(e.size) : null,
+                            })),
                         },
                     ]}
                 />
