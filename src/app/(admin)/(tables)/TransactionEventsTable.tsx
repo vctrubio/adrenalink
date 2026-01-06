@@ -8,16 +8,11 @@ import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equ
 import { TeacherUsernameCommissionBadge } from "@/src/components/ui/badge/teacher-username-commission";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { TransactionEventData } from "@/types/transaction-event";
-import TransactionEventModal from "@/src/components/modals/TransactionEventModal";
 import { getHMDuration } from "@/getters/duration-getter";
-import { StatHeaderItemUI, STAT_CONFIGS } from "@/backend/RenderStats";
+import { StatHeaderItemUI } from "@/backend/RenderStats";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
-// --- Types & Helpers ---
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -27,12 +22,6 @@ const HEADER_CLASSES = {
     zincRight: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right",
     zincRightBold: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right font-bold",
 } as const;
-
-function StatItem({ statType, value }: { statType: any; value: string | number }) {
-    return <StatHeaderItemUI statType={statType} value={value} />;
-}
-
-// --- Main component ---
 
 // --- Main component ---
 
@@ -217,6 +206,17 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
         );
     };
 
+    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+        <>
+            <StatHeaderItemUI statType="students" value={stats.studentCount} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="events" value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="commission" value={`${stats.totalCommissions.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="revenue" value={`${stats.totalRevenue.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}${hideLabel ? "" : ` ${stats.currency}`}`} hideLabel={hideLabel} variant="profit" />
+        </>
+    );
+
     const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => {
         const displayTitle =
             groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" }) : groupBy === "week" ? `Week ${title.split("-W")[1]} of ${title.split("-W")[0]}` : title;
@@ -233,12 +233,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                            <StatItem statType="students" value={stats.studentCount} />
-                            <StatItem statType="events" value={`${stats.completedCount}/${stats.eventCount}`} />
-                            <StatItem statType="duration" value={getHMDuration(stats.totalDuration)} />
-                            <StatItem statType="commission" value={`${stats.totalCommissions.toFixed(0)} ${stats.currency}`} />
-                            <StatItem statType="revenue" value={`${stats.totalRevenue.toFixed(0)} ${stats.currency}`} />
-                            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)} ${stats.currency}`} variant="profit" />
+                            <GroupHeaderStats stats={stats} />
                         </div>
                     </div>
                 </td>
@@ -265,11 +260,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                             <span className="text-xs font-black text-foreground">{displayTitle}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <StatHeaderItemUI statType="students" value={stats.studentCount} hideLabel />
-                            <StatHeaderItemUI statType="events" value={stats.eventCount} hideLabel />
-                            <StatHeaderItemUI statType="duration" value={getHMDuration(stats.totalDuration)} hideLabel />
-                            <StatHeaderItemUI statType="commission" value={`${stats.totalCommissions.toFixed(0)}`} hideLabel />
-                            <StatHeaderItemUI statType="profit" value={`${stats.totalProfit.toFixed(0)}`} hideLabel variant="profit" />
+                            <GroupHeaderStats stats={stats} hideLabel />
                         </div>
                     </div>
                 </td>

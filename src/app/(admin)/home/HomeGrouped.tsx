@@ -9,7 +9,12 @@ import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics"
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { STAT_CONFIGS, getDashboardStatsDisplay } from "@/backend/RenderStats";
+import { EVENT_STATUS_CONFIG } from "@/types/status";
+import { EventHomeStatusLabel } from "@/src/components/labels/EventHomeStatusLabel";
 import { getHMDuration } from "@/getters/duration-getter";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import type { DateGroup } from "./HomePage";
 
 interface HomeGroupedProps {
@@ -173,18 +178,33 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                 onClick={() => router.push(`/example?id=${event.id}`)}
                                             >
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-                                                    <div className="text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                                                    <div className="sm:hidden flex items-center justify-between w-full mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div style={{ color: EVENT_STATUS_CONFIG[event.status].color }}>
+                                                                <FlagIcon size={16} className="opacity-80" />
+                                                            </div>
+                                                            <span className="text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                                        </div>
+                                                        <EquipmentStudentPackagePriceBadge
+                                                            categoryEquipment={event.categoryEquipment}
+                                                            equipmentCapacity={event.capacityEquipment}
+                                                            studentCapacity={event.capacityStudents}
+                                                            packageDurationHours={event.packageDurationMinutes / 60}
+                                                            pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
+                                                        />
+                                                    </div>
+                                                    <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                                                     <div>
                                                         <div className="mb-1 group-hover/row:text-primary transition-colors flex items-center gap-2">
                                                             <span>{event.packageName}</span>
-                                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-yellow-student text-foreground">
                                                                 <span className="font-semibold text-foreground">{event.leaderStudentName}</span>
                                                                 {event.capacityStudents > 1 && <span className="text-[10px] font-bold">+{event.capacityStudents - 1}</span>}
                                                             </span>
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-1.5">
-                                                                <STAT_CONFIGS.teachers.icon size={14} className="text-muted-foreground/70" />
+                                                                <HeadsetIcon size={14} className="text-muted-foreground/70" />
                                                                 <span>{event.teacherUsername}</span>
                                                             </div>
                                                             <span className="opacity-30">•</span>
@@ -194,14 +214,14 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
-                                                                <STAT_CONFIGS.duration.icon size={14} className="text-muted-foreground/70" />
+                                                                <DurationIcon size={14} className="text-muted-foreground/70" />
                                                                 <span>{getHMDuration(event.duration)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-4 self-end sm:self-auto">
+                                                <div className="hidden sm:flex items-center gap-4 self-end sm:self-auto">
                                                     <EquipmentStudentPackagePriceBadge
                                                         categoryEquipment={event.categoryEquipment}
                                                         equipmentCapacity={event.capacityEquipment}
@@ -210,16 +230,10 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
                                                     />
 
-                                                    <span
-                                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.status === "completed" || event.status === "uncompleted"
-                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                                            : event.status === "planned"
-                                                                ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
-                                                                : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
-                                                            }`}
-                                                    >
-                                                        {event.status}
-                                                    </span>
+                                                    <EventHomeStatusLabel
+                                                        eventId={event.id}
+                                                        status={event.status}
+                                                    />
                                                 </div>
                                             </motion.div>
                                         ))}

@@ -51,6 +51,20 @@
 
 	--color-red-clade: rgb(var(--red-clade));
 	--color-blue-clude: rgb(var(--blue-clude));
+
+	/* Entity-based colors */
+	--color-yellow-student: rgb(var(--yellow-student));
+	--color-yellow-student-foreground: rgb(var(--yellow-student-foreground));
+	--color-yellow-helmet: rgb(var(--yellow-helmet));
+	--color-yellow-helmet-foreground: rgb(var(--yellow-helmet-foreground));
+	--color-green-teacher: rgb(var(--green-teacher));
+	--color-green-teacher-foreground: rgb(var(--green-teacher-foreground));
+	--color-red-rental: rgb(var(--red-rental));
+	--color-red-rental-foreground: rgb(var(--red-rental-foreground));
+	--color-purple-equipment: rgb(var(--purple-equipment));
+	--color-purple-equipment-foreground: rgb(var(--purple-equipment-foreground));
+	--color-blue-booking: rgb(var(--blue-booking));
+	--color-blue-booking-foreground: rgb(var(--blue-booking-foreground));
 }
 
 @layer base {
@@ -94,6 +108,20 @@
 		--primary-green: 22 97 14;
 		--red-clade: 239 68 68;
 		--blue-clude: 59 130 246;
+
+		/* Entity-based colors - Light mode */
+		--yellow-student: 234 179 8 / 0.35; /* #eab308 with 35% opacity */
+		--yellow-student-foreground: 82 82 82; /* Dark text */
+		--yellow-helmet: 234 179 8; /* #eab308 bright */
+		--yellow-helmet-foreground: 82 82 82; /* Dark text */
+		--green-teacher: 34 197 94 / 0.15; /* #22c55e with opacity */
+		--green-teacher-foreground: 22 97 14; /* Dark green text */
+		--red-rental: 239 68 68 / 0.15; /* #ef4444 with opacity */
+		--red-rental-foreground: 127 29 29; /* Dark red text */
+		--purple-equipment: 168 85 247 / 0.15; /* #a855f7 with opacity */
+		--purple-equipment-foreground: 88 28 135; /* Dark purple text */
+		--blue-booking: 59 130 246 / 0.15; /* #3b82f6 with opacity */
+		--blue-booking-foreground: 30 58 138; /* Dark blue text */
 	}
 
 	.dark {
@@ -136,5 +164,19 @@
 		--primary-green: 22 97 14;
 		--red-clade: 220 38 38;
 		--blue-clude: 96 165 250;
+
+		/* Entity-based colors - Dark mode */
+		--yellow-student: 202 138 4 / 0.45; /* #ca8a04 darker with 45% opacity */
+		--yellow-student-foreground: 255 255 255; /* White text */
+		--yellow-helmet: 202 138 4; /* #ca8a04 bright */
+		--yellow-helmet-foreground: 255 255 255; /* White text */
+		--green-teacher: 22 163 74 / 0.2; /* #16a34a with opacity */
+		--green-teacher-foreground: 255 255 255; /* White text */
+		--red-rental: 220 38 38 / 0.2; /* #dc2626 with opacity */
+		--red-rental-foreground: 255 255 255; /* White text */
+		--purple-equipment: 147 51 234 / 0.2; /* #9333ea with opacity */
+		--purple-equipment-foreground: 255 255 255; /* White text */
+		--blue-booking: 37 99 235 / 0.2; /* #2563eb with opacity */
+		--blue-booking-foreground: 255 255 255; /* White text */
 	}
 }

@@ -6,7 +6,6 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { HomeHeader } from "./HomeHeader";
 import { HomeViewHeader } from "./HomeViewHeader";
-import { HomeViewToggle } from "./HomeViewToggle";
 import { HomeGrouped } from "./HomeGrouped";
 import { HomeTable } from "./HomeTable";
 import { HomeActivity } from "./HomeActivity";
@@ -60,6 +59,26 @@ const VIEW_CONFIG = {
         icon: Grid3X3,
     },
 };
+
+function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMode) => void }) {
+    return (
+        <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit">
+            <button onClick={() => setMode("grouped")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "grouped" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <LayoutGrid size={14} />
+                <span>Grouped</span>
+            </button>
+            <button onClick={() => setMode("table")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "table" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <List size={14} />
+                <span>Table</span>
+            </button>
+            <button onClick={() => setMode("calendar")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "calendar" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <Grid3X3 size={14} />
+                <span>Activity</span>
+            </button>
+        </div>
+    );
+}
+
 
 export function HomePage({ classboardData }: { classboardData: ClassboardModel }) {
     const credentials = useSchoolCredentials();
