@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import adrLogo from "@/public/ADR.webp";
-import { SPORTS_CONFIG } from "./SportSelection";
-import type { School } from "@/supabase/db/types";
+import { SPORTS_CONFIG } from "../../components/school/SportSelection";
+import type { SchoolWithAssets } from "@/supabase/db/types";
 
 interface SchoolIdentificationRowProps {
-    school: School;
+    school: SchoolWithAssets;
     index: number;
     hoveredIndex: number | null;
     setHoveredIndex: (i: number | null) => void;
@@ -48,7 +48,7 @@ export const SchoolIdentificationRow = ({
             {/* Banner Background */}
             <div className="absolute inset-0 z-0">
                 <Image 
-                    src={school.bannerUrl as string}
+                    src={school.bannerUrl}
                     alt="" 
                     fill 
                     className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-[0.15] group-hover:opacity-[0.3]"
@@ -59,7 +59,7 @@ export const SchoolIdentificationRow = ({
             {/* School Icon */}
             <div className="relative z-10 w-32 h-32 md:w-48 md:h-48 flex-shrink-0 transition-all duration-700 rounded-full overflow-hidden shadow-2xl bg-background border-4 border-card">
                 <Image 
-                    src={school.iconUrl as string}
+                    src={school.iconUrl}
                     alt={school.name}
                     fill
                     className="object-cover"
@@ -93,7 +93,7 @@ export const SchoolIdentificationRow = ({
                             onMouseLeave={() => setHoveredSportId(null)}
                             layout
                             animate={{
-                                width: isSportHovered ? (typeof window !== 'undefined' && window.innerWidth < 768 ? 140 : 220) : (typeof window !== 'undefined' && window.innerWidth < 768 ? 72 : 96),
+                                width: isSportHovered ? (typeof window !== "undefined" && window.innerWidth < 768 ? 140 : 220) : (typeof window !== "undefined" && window.innerWidth < 768 ? 72 : 96),
                                 backgroundColor: isSportHovered ? "rgba(var(--secondary), 0.1)" : "rgba(255,255,255,0.03)"
                             }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}

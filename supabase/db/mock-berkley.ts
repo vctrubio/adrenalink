@@ -1,11 +1,11 @@
 /**
- * Mock Reva Kite School - Complete Seed
+ * Mock Berkley Windsurf Academy - Complete Seed
  * 
  * Comprehensive seeding flow:
- * 1. School setup
+ * 1. School setup with equipment_categories
  * 2. Teachers & Commissions
  * 3. Students & School Association
- * 4. Equipment (36 items: 12 kites, 12 wings, 12 windsurfs)
+ * 4. Equipment (36 items: 12 windsurfs, 12 wings, 12 foils)
  * 5. School Packages (4 packages with student capacity)
  * 6. Student Packages
  * 7. Bookings (today to +3 days, respecting package capacity)
@@ -15,7 +15,7 @@
  * 11. Student Feedback
  * 12. Teacher & Student Payments
  * 
- * Usage: bun supabase/db/mock-reva.ts
+ * Usage: bun supabase/db/mock-berkley.ts
  */
 
 import {
@@ -39,19 +39,19 @@ import {
     supabase,
 } from "../seeding/index";
 
-const seedRevaKiteSchoolFresh = async () => {
+const seedBerkleyWindsurfAcademyFresh = async () => {
     try {
-        console.log("🌱 Starting Reva Kite School FRESH Seed...\n");
+        console.log("🌱 Starting Berkley Windsurf Academy FRESH Seed...\n");
 
-        // Delete existing Reva school completely
+        // Delete existing Berkley school completely
         const { data: existingSchools } = await supabase
             .from("school")
             .select("id")
-            .eq("username", "reva10");
+            .eq("username", "berkley12");
 
         if (existingSchools && existingSchools.length > 0) {
             const schoolId = existingSchools[0].id;
-            console.log("🗑️  Cleaning up existing Reva school...\n");
+            console.log("🗑️  Cleaning up existing Berkley school...\n");
 
             // Delete all related data in reverse dependency order
             const { data: bookings } = await supabase
@@ -146,26 +146,26 @@ const seedRevaKiteSchoolFresh = async () => {
         // 1. Create School
         console.log("1️⃣  Creating school...");
         const school = await createSchool({
-            name: "Reva Kite School",
-            username: "reva10",
-            country: "Spain",
-            phone: "34912345678",
+            name: "Berkley Windsurf Academy",
+            username: "berkley12",
+            country: "USA",
+            phone: "15105551234",
             status: "beta",
-            currency: "EUR",
-            latitude: "40.4168",
-            longitude: "-3.7038",
-            timezone: "Europe/Madrid",
-            website_url: "https://revakiteschool.com",
-            instagram_url: "https://instagram.com/revakiteschool",
+            currency: "USD",
+            latitude: "37.8716",
+            longitude: "-122.2727",
+            timezone: "America/Los_Angeles",
+            website_url: "https://berkleywindsurf.com",
+            instagram_url: "https://instagram.com/berkleywindsurf",
         });
         const schoolId = school.id;
 
         // Update school with equipment_categories
         await supabase
             .from("school")
-            .update({ equipment_categories: "kite,wing,windsurf" })
+            .update({ equipment_categories: "windsurf,wing,foil" })
             .eq("id", schoolId);
-        console.log("✅ Updated with equipment_categories: kite,wing,windsurf");
+        console.log("✅ Updated with equipment_categories: windsurf,wing,foil");
 
         // 2. Create Teachers & Commissions
         console.log("2️⃣  Creating teachers and commissions...");
@@ -180,7 +180,7 @@ const seedRevaKiteSchoolFresh = async () => {
 
         // 3. Create Students & Associate
         console.log("3️⃣  Creating students...");
-        const students = await createStudents(8);
+        const students = await createStudents(6);
         await associateStudentsWithSchool(schoolId, students);
 
         // 4. Create Equipment & Packages
@@ -244,9 +244,9 @@ const seedRevaKiteSchoolFresh = async () => {
         console.log("1️⃣2️⃣  Creating student booking payments...");
         await createStudentBookingPayments(bookingData.bookings, bookingData.studentMap, packageMap);
 
-        console.log("\n✨ Reva Kite School FRESH seed completed successfully!");
+        console.log("\n✨ Berkley Windsurf Academy FRESH seed completed successfully!");
         console.log(`   School ID: ${schoolId}`);
-        console.log("   Username: reva10");
+        console.log("   Username: berkley12");
         console.log(`   Teachers: ${teachers.length}`);
         console.log(`   Students: ${students.length}`);
         console.log(`   Packages: ${packages.length}`);
@@ -261,7 +261,7 @@ const seedRevaKiteSchoolFresh = async () => {
     }
 };
 
-seedRevaKiteSchoolFresh().then(() => {
+seedBerkleyWindsurfAcademyFresh().then(() => {
     console.log("✨ Done! Exiting...");
     process.exit(0);
 });

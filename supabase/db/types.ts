@@ -30,6 +30,12 @@ export interface School {
     updated_at: string;
 }
 
+/** School with verified CDN assets - Used for display pages */
+export interface SchoolWithAssets extends School {
+    bannerUrl: string;
+    iconUrl: string;
+}
+
 /** Student entity - Represents a student/participant */
 export interface Student {
     id: string;

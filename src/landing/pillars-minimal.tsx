@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolHeaderContent } from "@/src/components/school/SchoolHeaderContent";
-import { SchoolPageLayout } from "@/src/components/school/SchoolPageLayout";
+import { SchoolPageLayout } from "@/src/app/discover/SchoolPageLayout";
 
 const pillarConfig = [
     { id: "student", number: "01", title: "Students", description: "Registration & tracking" },

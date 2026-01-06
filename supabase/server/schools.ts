@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { School } from "@/supabase/db/types";
+import type { SchoolWithAssets } from "@/supabase/db/types";
 
 /**
  * Check if a CDN image exists via HEAD request
@@ -20,7 +20,7 @@ async function getCDNImageUrl(username: string, imageType: "banner" | "icon"): P
     return adminUrl;
 }
 
-export async function getSchools(): Promise<School[]> {
+export async function getSchools(): Promise<SchoolWithAssets[]> {
     try {
         const supabase = getServerConnection();
         
@@ -49,7 +49,7 @@ export async function getSchools(): Promise<School[]> {
             console.log(`  ${s.name}: categories=${s.equipment_categories || "EMPTY"}`);
         });
         
-        return schoolsWithAssets as any;
+        return schoolsWithAssets as SchoolWithAssets[];
     } catch (err) {
         console.error("💥 getSchools() failed:", err);
         throw err;
