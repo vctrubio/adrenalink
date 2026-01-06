@@ -24,6 +24,12 @@ export async function proxy(request: NextRequest) {
         hostname,
     });
 
+    // Redirect www root to /discover page
+    if ((hostname === "www.lvh.me:3000" || hostname === "www.adrenalink.tech") && pathname === "/") {
+        printf("DEV:DEBUG 🔄 REDIRECTING WWW ROOT TO /discover");
+        return NextResponse.redirect(new URL("/discover", request.url));
+    }
+
     // Check for subdomain using domain utilities
     const subdomainInfo = detectSubdomain(hostname);
 
@@ -41,11 +47,19 @@ export async function proxy(request: NextRequest) {
             
             if (!data?.id) {
                 printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
-                return NextResponse.redirect(new URL("/www", request.url));
+                // Redirect to www domain /discover
+                const discoverUrl = request.nextUrl.clone();
+                discoverUrl.hostname = subdomainInfo.baseDomain || "www.lvh.me:3000";
+                discoverUrl.pathname = "/discover";
+                return NextResponse.redirect(discoverUrl);
             }
         } catch (error) {
             printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
-            return NextResponse.redirect(new URL("/www", request.url));
+            // Redirect to www domain /discover
+            const discoverUrl = request.nextUrl.clone();
+            discoverUrl.hostname = subdomainInfo.baseDomain || "www.lvh.me:3000";
+            discoverUrl.pathname = "/discover";
+            return NextResponse.redirect(discoverUrl);
         }
 
         // Create response with school username header

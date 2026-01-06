@@ -1,19 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import adrLogo from "@/public/ADR.webp";
 import { SPORTS_CONFIG } from "./SportSelection";
-
-interface School {
-    name: string;
-    username: string;
-    country: string;
-    categories: string[];
-    iconUrl: string;
-    bannerUrl: string;
-}
+import type { School } from "@/supabase/db/types";
 
 interface SchoolIdentificationRowProps {
     school: School;
@@ -37,6 +30,15 @@ export const SchoolIdentificationRow = ({
 }: SchoolIdentificationRowProps) => {
     const isRowHovered = hoveredIndex === index;
 
+    // Build CDN URLs with fallbacks
+    const cdnUrls = useMemo(() => {
+        const CDN_BASE = "https://cdn.adrenalink.tech";
+        return {
+            banner: `${CDN_BASE}/${school.username}/banner.png`,
+            icon: `${CDN_BASE}/${school.username}/icon.png`,
+        };
+    }, [school.username]);
+
     return (
         <Link
             href={`https://${school.username}.adrenalink.tech`}
@@ -56,17 +58,30 @@ export const SchoolIdentificationRow = ({
             {/* Banner Background */}
             <div className="absolute inset-0 z-0">
                 <Image 
-                    src={school.bannerUrl} 
+                    src={cdnUrls.banner}
                     alt="" 
                     fill 
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-[0.15] group-hover:opacity-[0.3]" 
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-[0.15] group-hover:opacity-[0.3]"
+                    onError={(e) => {
+                        // Fallback to admin banner if custom doesn't exist
+                        e.currentTarget.src = `https://cdn.adrenalink.tech/admin/banner.png`;
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-background via-background/20 to-transparent" />
             </div>
 
             {/* School Icon */}
             <div className="relative z-10 w-32 h-32 md:w-48 md:h-48 flex-shrink-0 transition-all duration-700 rounded-full overflow-hidden shadow-2xl bg-background border-4 border-card">
-                <Image src={school.iconUrl} alt={school.name} fill className="object-cover" />
+                <Image 
+                    src={cdnUrls.icon}
+                    alt={school.name}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                        // Fallback to admin icon if custom doesn't exist
+                        e.currentTarget.src = `https://cdn.adrenalink.tech/admin/icon.png`;
+                    }}
+                />
             </div>
 
             {/* Name and Info */}
