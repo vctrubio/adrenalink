@@ -7,57 +7,61 @@ export { getDashboardStatsDisplay, STATS_GROUP_TOP, STATS_GROUP_BOTTOM, STATS_GR
 /**
  * Transforms raw database booking data into ClassboardModel format
  * This is a pure data transformation function - belongs in getters
+ * Handles snake_case fields from Supabase PostgREST API
  */
 export function createClassboardModel(bookingsData: any[]): ClassboardModel {
     return bookingsData.map((bookingData) => {
-        const { id, dateStart, dateEnd, schoolId, leaderStudentName, studentPackage, bookingStudents, lessons } = bookingData;
+        const { id, date_start, date_end, school_id, leader_student_name, school_package, booking_student, lesson } = bookingData;
 
         return {
             booking: {
                 id,
-                dateStart,
-                dateEnd,
-                leaderStudentName,
+                dateStart: date_start,
+                dateEnd: date_end,
+                leaderStudentName: leader_student_name,
             },
-            schoolPackage: studentPackage.schoolPackage,
-            bookingStudents: bookingStudents.map((bs: any) => {
-                const schoolStudentsArray = bs.student.schoolStudents || [];
-                const schoolStudent = schoolStudentsArray.find((ss: any) => ss.schoolId === schoolId);
-
-                return {
-                    student: {
-                        id: bs.student.id,
-                        firstName: bs.student.firstName,
-                        lastName: bs.student.lastName,
-                        passport: bs.student.passport || "",
-                        country: bs.student.country || "",
-                        phone: bs.student.phone || "",
-                        languages: bs.student.languages || [],
-                        description: schoolStudent?.description || null,
-                    },
-                };
-            }),
-            lessons: lessons.map((lesson: any) => ({
-                id: lesson.id,
-                teacher: lesson.teacher
+            schoolPackage: {
+                id: school_package.id,
+                durationMinutes: school_package.duration_minutes,
+                description: school_package.description,
+                pricePerStudent: school_package.price_per_student,
+                capacityStudents: school_package.capacity_students,
+                capacityEquipment: school_package.capacity_equipment,
+                categoryEquipment: school_package.category_equipment,
+            },
+            bookingStudents: booking_student.map((bs: any) => ({
+                student: {
+                    id: bs.student.id,
+                    firstName: bs.student.first_name,
+                    lastName: bs.student.last_name,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                    languages: bs.student.languages || [],
+                    description: null, // school_student reference not available in this query
+                },
+            })),
+            lessons: lesson.map((les: any) => ({
+                id: les.id,
+                teacher: les.teacher
                     ? {
-                          id: lesson.teacher.id,
-                          username: lesson.teacher.username,
+                          id: les.teacher.id,
+                          username: les.teacher.username,
                       }
                     : undefined,
-                status: lesson.status,
+                status: les.status,
                 commission: {
-                    id: lesson.commission.id,
-                    type: lesson.commission.commissionType as "fixed" | "percentage",
-                    cph: lesson.commission.cph,
-                    description: lesson.commission.description,
+                    id: les.teacher_commission.id,
+                    type: les.teacher_commission.commission_type as "fixed" | "percentage",
+                    cph: les.teacher_commission.cph,
+                    description: les.teacher_commission.description,
                 },
-                events: lesson.events.map((event: any) => ({
-                    id: event.id,
-                    date: event.date,
-                    duration: event.duration,
-                    location: event.location,
-                    status: event.status,
+                events: les.event.map((evt: any) => ({
+                    id: evt.id,
+                    date: evt.date,
+                    duration: evt.duration,
+                    location: evt.location,
+                    status: evt.status,
                 })),
             })),
         };
