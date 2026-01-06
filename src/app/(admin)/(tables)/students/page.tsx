@@ -1,6 +1,17 @@
-
-
+import { getStudentsTable } from "@/supabase/server/students";
+import { StudentsTable } from "./StudentsTable";
 
 export default async function StudentsMasterTablePage() {
-    return <div>i want to fetch using supaabse server and pass the data into master table. create the component StudentsTable , like trasnasctioneeventstable. and follow the same pattern . </div>;
+    const students = await getStudentsTable();
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">Students Master Table</h1>
+                <p className="text-muted-foreground">Manage students, view their bookings, and track payment status.</p>
+            </div>
+
+            <StudentsTable students={students} />
+        </div>
+    );
 }

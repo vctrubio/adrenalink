@@ -5,12 +5,14 @@ interface BrandSizeCategoryBadgeProps {
     model: string;
     size: number | null;
     className?: string;
+    icon?: React.ComponentType<{ size?: number; className?: string }>;
 }
 
-export function BrandSizeCategoryBadge({ id, model, size, className = "" }: BrandSizeCategoryBadgeProps) {
+export function BrandSizeCategoryBadge({ id, model, size, className = "", icon: Icon }: BrandSizeCategoryBadgeProps) {
     return (
         <Link href={`/equipments/${id}`} onClick={(e) => e.stopPropagation()}>
             <div className={`flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer ${className}`}>
+                {Icon && <Icon size={12} className="text-purple-600/70" />}
                 <span className="text-purple-700 dark:text-purple-300 font-bold text-[10px] uppercase truncate max-w-[80px]">
                     {model}
                 </span>
@@ -24,7 +26,17 @@ export function BrandSizeCategoryBadge({ id, model, size, className = "" }: Bran
     );
 }
 
-export function BrandSizeCategoryList({ equipments, emptyLabel = "N/A", className = "" }: { equipments?: { id: string; model: string; size: number | null }[], emptyLabel?: string, className?: string }) {
+export function BrandSizeCategoryList({ 
+    equipments, 
+    emptyLabel = "N/A", 
+    className = "",
+    showIcon = false 
+}: { 
+    equipments?: { id: string; model: string; size: number | null; icon?: React.ComponentType<any> }[], 
+    emptyLabel?: string, 
+    className?: string,
+    showIcon?: boolean
+}) {
     if (!equipments || equipments.length === 0) {
         return <span className="text-zinc-400 text-[10px] font-bold">{emptyLabel}</span>;
     }
@@ -32,7 +44,13 @@ export function BrandSizeCategoryList({ equipments, emptyLabel = "N/A", classNam
     return (
         <div className={`flex flex-col gap-0.5 ${className}`}>
             {equipments.map((eq, i) => (
-                <BrandSizeCategoryBadge key={i} id={eq.id} model={eq.model} size={eq.size} />
+                <BrandSizeCategoryBadge 
+                    key={i} 
+                    id={eq.id} 
+                    model={eq.model} 
+                    size={eq.size} 
+                    icon={showIcon ? eq.icon : undefined}
+                />
             ))}
         </div>
     );
