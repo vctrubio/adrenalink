@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { SubDomainHomePage } from "./SubDomainHomePage";
 import { getSchoolSubdomain } from "@/actions/subdomain-action";
-import { getSchoolHeader } from "@/types/headers";
 
 export default async function SubdomainPage() {
-    const schoolHeader = await getSchoolHeader();
-    const username = schoolHeader?.name;
+    const headersList = await headers();
+    const username = headersList.get("x-school-username");
 
     if (!username) {
         redirect("/schools");
