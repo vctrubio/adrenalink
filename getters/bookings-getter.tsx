@@ -165,3 +165,26 @@ export function getBookingStudentNames(booking: BookingModel): string {
     const studentNames = bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
     return studentNames.join(" ");
 }
+
+/**
+ * Returns a React element representing the leader name and additional student count
+ * Reusable for tables and lists
+ */
+export function getLeaderCapacity(leaderName: string, totalStudents: number) {
+    if (totalStudents <= 1) {
+        return (
+            <span className="text-foreground font-semibold">
+                {leaderName}
+            </span>
+        );
+    }
+
+    return (
+        <span className="text-foreground flex items-center">
+            <span className="font-semibold">{leaderName}</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1.5">
+                +{totalStudents - 1}
+            </span>
+        </span>
+    );
+}

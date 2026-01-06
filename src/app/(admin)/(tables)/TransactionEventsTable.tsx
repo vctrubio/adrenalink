@@ -10,10 +10,10 @@ import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getLeaderCapacity } from "@/getters/bookings-getter";
 import { StatHeaderItemUI } from "@/backend/RenderStats";
 import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
-
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -61,14 +61,9 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
             render: (data) => <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{data.teacher.username}</span>,
         },
         {
-            header: "Student",
+            header: "Students",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => (
-                <span className="text-foreground bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
-                    <span className="font-semibold">{data.leaderStudentName}</span>
-                    {data.studentCount > 1 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1.5">+{data.studentCount - 1}</span>}
-                </span>
-            ),
+            render: (data) => <span className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{getLeaderCapacity(data.leaderStudentName, data.studentCount)}</span>,
         },
         {
             header: "Package",
@@ -80,7 +75,11 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => {
                 const pricePerHour = data.packageData.durationMinutes / 60 > 0 ? data.packageData.pricePerStudent / (data.packageData.durationMinutes / 60) : 0;
-                return <span className="tabular-nums text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-bold">{pricePerHour.toFixed(0)} <span className="text-[10px] font-normal">{data.financials.currency}</span></span>;
+                return (
+                    <span className="tabular-nums text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-bold">
+                        {pricePerHour.toFixed(0)} <span className="text-[10px] font-normal">{data.financials.currency}</span>
+                    </span>
+                );
             },
         },
         {
@@ -97,19 +96,30 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
             render: (data) => <BrandSizeCategoryList equipments={data.equipments} />,
         },
         {
-            header: "Comm.",
+            header: "Commission",
             headerClassName: HEADER_CLASSES.zincRight,
             render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{data.financials.teacherEarnings.toFixed(0)}</span>,
         },
         {
-            header: "Rev.",
+            header: "Revenue",
             headerClassName: HEADER_CLASSES.zincRight,
             render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{data.financials.studentRevenue.toFixed(0)}</span>,
         },
         {
-            header: "Profit",
+            header: "Net",
             headerClassName: HEADER_CLASSES.zincRightBold,
-            render: (data) => <span className="text-right tabular-nums font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/[0.02]">{data.financials.profit.toFixed(0)}</span>,
+            render: (data) => {
+                const profit = data.financials.profit;
+                const isPositive = profit >= 0;
+                return (
+                    <div className="flex items-center justify-end gap-1 bg-emerald-500/[0.02]">
+                        {isPositive ? <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" /> : <TrendingDown size={14} className="text-rose-600 dark:text-rose-400" />}
+                        <span className={`text-right tabular-nums font-black ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                            {Math.abs(profit).toFixed(0)}
+                        </span>
+                    </div>
+                );
+            },
         },
         {
             header: "Status",
@@ -225,8 +235,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
     );
 
     const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => {
-        const displayTitle =
-            groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" }) : groupBy === "week" ? `Week ${title.split("-W")[1]} of ${title.split("-W")[0]}` : title;
+        const displayTitle = groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" }) : groupBy === "week" ? `Week ${title.split("-W")[1]} of ${title.split("-W")[0]}` : title;
 
         return (
             <tr key={`header-${title}`} className="bg-gradient-to-r from-primary/5 via-primary/[0.02] to-transparent border-y border-primary/10">
@@ -249,12 +258,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
     };
 
     const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => {
-        const displayTitle = 
-            groupBy === "date" 
-                ? new Date(title).toLocaleDateString(undefined, { day: "numeric", month: "short" })
-                : groupBy === "week"
-                ? `Week ${title.split("-W")[1]}`
-                : title;
+        const displayTitle = groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : groupBy === "week" ? `Week ${title.split("-W")[1]}` : title;
 
         return (
             <tr key={`mobile-header-${title}`} className="bg-primary/[0.03]">
@@ -275,16 +279,5 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
         );
     };
 
-    return (
-        <MasterTable
-            rows={events}
-            columns={desktopColumns}
-            mobileColumns={mobileColumns}
-            getGroupKey={getGroupKey}
-            calculateStats={calculateStats}
-            renderGroupHeader={renderGroupHeader}
-            renderMobileGroupHeader={renderMobileGroupHeader}
-            showGroupToggle={true}
-        />
-    );
+    return <MasterTable rows={events} columns={desktopColumns} mobileColumns={mobileColumns} getGroupKey={getGroupKey} calculateStats={calculateStats} renderGroupHeader={renderGroupHeader} renderMobileGroupHeader={renderMobileGroupHeader} showGroupToggle={true} />;
 }

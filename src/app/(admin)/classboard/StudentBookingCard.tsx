@@ -9,6 +9,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
+import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
@@ -149,40 +150,18 @@ const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonI
                     const isLoading = loadingLessonId === lesson.id;
                     const events = sortEventsByStatus(lesson.events || []);
                     const totalMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
-                    const durationStr = getFullDuration(totalMinutes);
                     const eventCount = events.length;
 
                     return (
-                        <button
+                        <TeacherLessonStatsBadge
                             key={lesson.id}
+                            teacherId={lesson.teacher.id}
+                            teacherUsername={lesson.teacher.username}
+                            eventCount={eventCount}
+                            durationMinutes={totalMinutes}
+                            isLoading={isLoading}
                             onClick={() => onAddEvent(lesson.id)}
-                            disabled={isLoading}
-                            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-border/50 text-xs group"
-                            title="Click to add event for this teacher"
-                        >
-                            <div className="relative flex items-center justify-center text-muted-foreground group-hover:text-primary">
-                                <div style={{ color: teacherColor, opacity: isLoading ? 0.4 : 1 }}>
-                                    <HeadsetIcon size={16} />
-                                </div>
-                                {isLoading && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                    </div>
-                                )}
-                            </div>
-                            <span className="font-medium text-foreground">{lesson.teacher.username}</span>
-                            <div className="h-3 w-px bg-border/60 mx-0.5" />
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 text-muted-foreground" title="Events">
-                                    <FlagIcon size={12} />
-                                    <span className="font-medium">{eventCount}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-muted-foreground" title="Duration">
-                                    <DurationIcon size={12} />
-                                    <span className="font-medium">{durationStr}</span>
-                                </div>
-                            </div>
-                        </button>
+                        />
                     );
                 })}
             </div>
