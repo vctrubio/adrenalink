@@ -40,15 +40,19 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
             <div className="w-full max-w-[1600px] flex-1 bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden">
                 {/* 1. Banner Section */}
                 <div className="relative w-full h-48 md:h-64 shrink-0 rounded-t-[2.5rem] overflow-hidden">
-                    <Image
-                        src={bannerUrl}
-                        alt={`${name} Banner`}
-                        fill
-                        className="object-cover"
-                        priority
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
-                    />
+                    {bannerUrl ? (
+                        <Image
+                            src={bannerUrl}
+                            alt={`${name} Banner`}
+                            fill
+                            className="object-cover"
+                            priority
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-zinc-200 to-zinc-300" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 </div>
 

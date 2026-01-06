@@ -1,5 +1,5 @@
 import { getExampleEventData } from "@/supabase/server/example";
-import { getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
+import { getSchoolCredentials } from "@/supabase/server/admin";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";

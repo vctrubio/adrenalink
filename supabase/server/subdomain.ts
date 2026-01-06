@@ -3,8 +3,8 @@ import { getCDNImages } from "@/supabase/server/cdn";
 import type { School, SchoolPackage } from "@/supabase/db/types";
 
 export interface SchoolAssets {
-    banner: string;
-    logo: string;
+    bannerUrl: string;
+    iconUrl: string;
 }
 
 export interface SchoolWithPackages {
@@ -49,7 +49,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         return {
             school,
             packages,
-            assets: { banner: bannerUrl, logo: iconUrl },
+            assets: { bannerUrl, iconUrl },
         };
     } catch (err) {
         console.error(`💥 getSchoolByUsername("${username}") failed:`, err);

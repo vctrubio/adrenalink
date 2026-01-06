@@ -11,10 +11,10 @@
  * and branding assets.
  *
  * @property {string} id - The school's UUID (primary key)
- * @property {string} logo - URL to the school's icon image from CDN
+ * @property {string | null} logoUrl - URL to the school's icon image from CDN
  *   - First tries to load: `{schoolUsername}/icon.png`
  *   - Falls back to: `admin/icon.png`
- * @property {string} banner - URL to the school's banner image from CDN
+ * @property {string | null} bannerUrl - URL to the school's banner image from CDN
  *   - First tries to load: `{schoolUsername}/banner.png`
  *   - Falls back to: `admin/banner.png`
  * @property {string} currency - The school's currency code (USD, EUR, CHF)
@@ -27,8 +27,8 @@
  */
 export interface SchoolCredentials {
     id: string;
-    logo: string | null;
-    banner: string | null;
+    logoUrl: string | null;
+    bannerUrl: string | null;
     currency: string;
     name: string;
     username: string;

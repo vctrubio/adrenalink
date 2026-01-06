@@ -27,7 +27,7 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
     // Check cache first
     const cached = CDN_IMAGE_CACHE.get(username);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`✅ CDN cache hit for ${username}`);
+        console.log(`✅ CDN cache hit for ${username}: banner=${cached.bannerUrl}, icon=${cached.iconUrl}`);
         return { bannerUrl: cached.bannerUrl, iconUrl: cached.iconUrl };
     }
 
@@ -40,17 +40,28 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
     let iconUrl = adminIconUrl;
 
     try {
+        console.log(`🔍 Checking CDN for custom assets: ${username}`);
         const [bannerRes, iconRes] = await Promise.all([
             fetch(customBannerUrl, { method: "HEAD" }),
             fetch(customIconUrl, { method: "HEAD" }),
         ]);
 
-        if (bannerRes.ok) bannerUrl = customBannerUrl;
-        if (iconRes.ok) iconUrl = customIconUrl;
+        if (bannerRes.ok) {
+            bannerUrl = customBannerUrl;
+            console.log(`✅ Found custom banner for ${username}`);
+        } else {
+            console.log(`⚠️ Custom banner not found for ${username} (${bannerRes.status}), using admin fallback`);
+        }
 
-        console.log(`✅ CDN cache miss for ${username}, fetched from CDN`);
+        if (iconRes.ok) {
+            iconUrl = customIconUrl;
+            console.log(`✅ Found custom icon for ${username}`);
+        } else {
+            console.log(`⚠️ Custom icon not found for ${username} (${iconRes.status}), using admin fallback`);
+        }
     } catch (err) {
-        console.warn(`⚠️ Failed to check CDN images for ${username}, using /admin/ fallbacks`);
+        console.warn(`⚠️ Failed to check CDN images for ${username}:`, err);
+        console.log(`   Using admin fallbacks: banner=${adminBannerUrl}, icon=${adminIconUrl}`);
     }
 
     // Store in cache
@@ -60,6 +71,7 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
         timestamp: Date.now(),
     });
 
+    console.log(`💾 CDN cache stored for ${username}: banner=${bannerUrl}, icon=${iconUrl}`);
     return { bannerUrl, iconUrl };
 }
 

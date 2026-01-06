@@ -11,16 +11,33 @@ const getSchoolData = cache(async (username: string) => {
 
 export default async function SubdomainPage() {
     const headersList = await headers();
-    const username = headersList.get("x-school-username")!;
+    const username = headersList.get("x-school-username");
+
+    if (!username) {
+        console.error("❌ No school username found in headers");
+        redirect("/");
+    }
 
     const schoolData = await getSchoolData(username);
 
-    return <SubDomainHomePage {...schoolData!} />;
+    if (!schoolData) {
+        console.error(`❌ School not found for username: ${username}`);
+        redirect("/");
+    }
+
+    return <SubDomainHomePage {...schoolData} />;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
     const headersList = await headers();
-    const username = headersList.get("x-school-username")!;
+    const username = headersList.get("x-school-username");
+
+    if (!username) {
+        return {
+            title: "Adrenalink School",
+            description: "Home of Adrenaline Activity",
+        };
+    }
 
     const schoolData = await getSchoolData(username);
     const title = schoolData?.school.name || "Adrenalink School";
