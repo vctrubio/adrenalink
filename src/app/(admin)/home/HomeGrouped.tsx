@@ -175,11 +175,17 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                                                     <div className="text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                                                     <div>
-                                                        <div className="font-semibold mb-1 group-hover/row:text-primary transition-colors">{event.packageName}</div>
+                                                        <div className="mb-1 group-hover/row:text-primary transition-colors flex items-center gap-2">
+                                                            <span>{event.packageName}</span>
+                                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                                                <span className="font-semibold text-foreground">{event.leaderStudentName}</span>
+                                                                {event.capacityStudents > 1 && <span className="text-[10px] font-bold">+{event.capacityStudents - 1}</span>}
+                                                            </span>
+                                                        </div>
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-1.5">
                                                                 <STAT_CONFIGS.teachers.icon size={14} className="text-muted-foreground/70" />
-                                                                <span>{event.teacherName}</span>
+                                                                <span>{event.teacherUsername}</span>
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">

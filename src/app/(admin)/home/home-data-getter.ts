@@ -17,6 +17,9 @@ export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
     const groups: Record<string, DateGroup> = {};
 
     Object.values(classboardData).forEach((booking) => {
+        const leaderStudent = booking.bookingStudents[0]?.student;
+        const leaderStudentName = leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "Unknown";
+
         booking.lessons.forEach((lesson) => {
             lesson.events.forEach((event) => {
                 const dateKey = event.date.split("T")[0];
@@ -35,8 +38,9 @@ export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
                     location: event.location,
                     duration: event.duration,
                     status: event.status,
-                    teacherName: `${lesson.teacher.firstName} ${lesson.teacher.lastName}`,
+                    teacherUsername: lesson.teacher.username,
                     packageName: booking.schoolPackage.description,
+                    leaderStudentName,
                     categoryEquipment: booking.schoolPackage.categoryEquipment,
                     capacityEquipment: booking.schoolPackage.capacityEquipment,
                     capacityStudents: booking.schoolPackage.capacityStudents,

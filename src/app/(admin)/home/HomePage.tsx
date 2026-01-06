@@ -24,8 +24,9 @@ export interface TransactionEvent {
     location: string | null;
     duration: number;
     status: string;
-    teacherName: string;
+    teacherUsername: string;
     packageName: string;
+    leaderStudentName: string;
     categoryEquipment: string;
     capacityEquipment: number;
     capacityStudents: number;

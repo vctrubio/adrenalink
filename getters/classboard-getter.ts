@@ -45,12 +45,15 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
             })),
             lessons: lesson.map((les: any) => ({
                 id: les.id,
-                teacher: les.teacher
+                teacher: les.teacher && les.teacher.username
                     ? {
                           id: les.teacher.id,
                           username: les.teacher.username,
                       }
-                    : undefined,
+                    : {
+                          id: "unknown",
+                          username: "Unknown Teacher",
+                      },
                 status: les.status,
                 commission: {
                     id: les.teacher_commission.id,
