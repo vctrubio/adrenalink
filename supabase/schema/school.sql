@@ -51,3 +51,17 @@ CREATE TABLE school_subscription (
 );
 
 CREATE INDEX school_subscription_school_id_idx ON school_subscription(school_id);
+CREATE TABLE referral (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(100) NOT NULL,
+    school_id UUID NOT NULL REFERENCES school(id),
+    commission_type TEXT NOT NULL,
+    commission_value VARCHAR(100) NOT NULL,
+    description TEXT,
+    active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+CREATE INDEX referral_school_id_idx ON referral(school_id);
+CREATE INDEX referral_code_idx ON referral(code);

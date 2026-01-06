@@ -6,9 +6,10 @@
 CREATE TABLE equipment (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sku VARCHAR(100) NOT NULL,
+    brand VARCHAR(100) NOT NULL,
     model VARCHAR(255) NOT NULL,
     color VARCHAR(100),
-    size INTEGER,
+    size NUMERIC(4, 1),
     status TEXT,
     school_id UUID NOT NULL REFERENCES school(id),
     category TEXT NOT NULL,

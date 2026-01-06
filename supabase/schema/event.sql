@@ -1,16 +1,19 @@
 -- ============================================================================
--- Feedback Domain Tables
--- Manages feedback and student assessments
+-- Event Tables
+-- Manages events within lessons
 -- ============================================================================
 
-CREATE TABLE student_lesson_feedback (
+CREATE TABLE event (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id UUID NOT NULL REFERENCES student(id),
+    school_id UUID NOT NULL REFERENCES school(id),
     lesson_id UUID NOT NULL REFERENCES lesson(id),
-    feedback TEXT,
+    date TIMESTAMP WITH TIME ZONE NOT NULL,
+    duration INTEGER NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
 
-CREATE INDEX student_lesson_feedback_student_id_idx ON student_lesson_feedback(student_id);
-CREATE INDEX student_lesson_feedback_lesson_id_idx ON student_lesson_feedback(lesson_id);
+CREATE INDEX event_school_id_idx ON event(school_id);
+CREATE INDEX event_lesson_id_idx ON event(lesson_id);

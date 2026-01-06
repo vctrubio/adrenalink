@@ -1,6 +1,6 @@
 -- ============================================================================
--- Teacher Domain Tables
--- Manages teachers, commissions, and their equipment assignments
+-- Teacher Core Tables
+-- Manages teachers and commissions
 -- ============================================================================
 
 CREATE TABLE teacher (
@@ -32,14 +32,3 @@ CREATE TABLE teacher_commission (
 );
 
 CREATE INDEX teacher_commission_teacher_id_idx ON teacher_commission(teacher_id);
-
-CREATE TABLE teacher_equipment (
-    teacher_id UUID NOT NULL REFERENCES teacher(id),
-    equipment_id UUID NOT NULL REFERENCES equipment(id),
-    active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (teacher_id, equipment_id)
-);
-
-CREATE INDEX teacher_equipment_teacher_id_idx ON teacher_equipment(teacher_id);
-CREATE INDEX teacher_equipment_equipment_id_idx ON teacher_equipment(equipment_id);
