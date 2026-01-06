@@ -10,7 +10,9 @@ export { getDashboardStatsDisplay, STATS_GROUP_TOP, STATS_GROUP_BOTTOM, STATS_GR
  * Handles snake_case fields from Supabase PostgREST API
  */
 export function createClassboardModel(bookingsData: any[]): ClassboardModel {
-    return bookingsData.map((bookingData) => {
+    return bookingsData
+        .filter((bookingData) => bookingData.school_package) // Filter out bookings without school_package
+        .map((bookingData) => {
         const { id, date_start, date_end, school_id, leader_student_name, school_package, booking_student, lesson } = bookingData;
 
         return {
