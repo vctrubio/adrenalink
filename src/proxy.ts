@@ -49,7 +49,14 @@ export async function proxy(request: NextRequest) {
                 printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
                 // Redirect to www domain /discover
                 const discoverUrl = request.nextUrl.clone();
-                discoverUrl.hostname = subdomainInfo.baseDomain || "www.lvh.me:3000";
+                // Construct proper www hostname based on domain type
+                if (subdomainInfo.type === "development") {
+                    discoverUrl.hostname = "www.lvh.me";
+                    discoverUrl.port = "3000";
+                } else {
+                    discoverUrl.hostname = "www.adrenalink.tech";
+                    discoverUrl.port = "";
+                }
                 discoverUrl.pathname = "/discover";
                 return NextResponse.redirect(discoverUrl);
             }
@@ -57,7 +64,14 @@ export async function proxy(request: NextRequest) {
             printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
             // Redirect to www domain /discover
             const discoverUrl = request.nextUrl.clone();
-            discoverUrl.hostname = subdomainInfo.baseDomain || "www.lvh.me:3000";
+            // Construct proper www hostname based on domain type
+            if (subdomainInfo.type === "development") {
+                discoverUrl.hostname = "www.lvh.me";
+                discoverUrl.port = "3000";
+            } else {
+                discoverUrl.hostname = "www.adrenalink.tech";
+                discoverUrl.port = "";
+            }
             discoverUrl.pathname = "/discover";
             return NextResponse.redirect(discoverUrl);
         }

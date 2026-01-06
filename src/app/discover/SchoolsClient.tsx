@@ -41,8 +41,11 @@ const SchoolsClient = ({ schools }: { schools: School[] }) => {
     const filteredSchools = useMemo(() => {
         if (!selectedSport) return schools;
         return schools.filter(school => {
-            if (!school.equipment_categories) return false;
-            const categories = school.equipment_categories.split(",").map(c => c.trim());
+            if (!school.equipment_categories || school.equipment_categories.trim() === "") {
+                console.warn(`⚠️ School "${school.name}" has no equipment_categories`);
+                return false;
+            }
+            const categories = school.equipment_categories.split(",").map(c => c.trim()).filter(c => c);
             return categories.includes(selectedSport);
         });
     }, [schools, selectedSport]);
