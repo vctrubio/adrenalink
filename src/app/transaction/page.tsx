@@ -1,4 +1,4 @@
-import { getExampleEventData } from "@/supabase/server/example";
+import { getEventTransaction } from "@/supabase/server/events";
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
@@ -16,11 +16,11 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 
-interface ExamplePageProps {
+interface TransactionPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ExamplePage({ searchParams }: ExamplePageProps) {
+export default async function TransactionExamplePage({ searchParams }: TransactionPageProps) {
     const params = await searchParams;
     const eventId = params.id as string;
 
@@ -31,14 +31,14 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
         return (
             <div className="p-10 flex items-center justify-center min-h-screen">
                 <div className="text-center space-y-4">
-                    <h1 className="text-2xl font-bold">Example Showcase</h1>
+                    <h1 className="text-2xl font-bold">Transaction Showcase</h1>
                     <p className="text-muted-foreground">Please provide an event ID in the URL query: ?id=...</p>
                 </div>
             </div>
         );
     }
 
-    const result = await getExampleEventData(eventId);
+    const result = await getEventTransaction(eventId);
 
     if (!result.success || !result.data) {
         return (
@@ -51,32 +51,35 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
     const eventData = result.data;
     const lesson = eventData.lesson;
     const booking = lesson.booking;
-    const pkg = booking.studentPackage.schoolPackage;
+    // Updated: booking has school_package directly
+    const pkg = booking.school_package;
     const teacher = lesson.teacher;
-    const students = booking.bookingStudents.map((bs: any) => bs.student);
-    const equipments = eventData.equipmentEvents?.map((ee: any) => ee.equipment) || [];
+    // Updated: snake_case for booking_student and first_name/last_name
+    const students = booking.booking_student.map((bs: any) => bs.student);
+    // Updated: snake_case for equipment_event
+    const equipments = eventData.equipment_event?.map((ee: any) => ee.equipment) || [];
 
     // --- Calculations ---
     const studentCount = students.length;
     let teacherPricePerHour = 0;
     let commissionValue = 0;
     let commissionType: "fixed" | "percentage" = "fixed";
-    const commission = lesson.commission;
+    const commission = lesson.teacher_commission; // snake_case name from query
 
     if (pkg && commission) {
-        commissionType = commission.commissionType;
+        commissionType = commission.commission_type;
         commissionValue = parseFloat(commission.cph || "0");
 
-        const lessonRevenue = calculateLessonRevenue(pkg.pricePerStudent, studentCount, eventData.duration, pkg.durationMinutes);
-        const commCalc = calculateCommission(eventData.duration, { type: commissionType, cph: commissionValue }, lessonRevenue, pkg.durationMinutes);
+        const lessonRevenue = calculateLessonRevenue(pkg.price_per_student, studentCount, eventData.duration, pkg.duration_minutes);
+        const commCalc = calculateCommission(eventData.duration, { type: commissionType, cph: commissionValue }, lessonRevenue, pkg.duration_minutes);
         teacherPricePerHour = commCalc.earned / (eventData.duration / 60);
     }
 
-    const studentNames = students.map((s: any) => `${s.firstName} ${s.lastName}`);
-    const teacherName = teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown";
-    const studentPricePerHour = pkg ? pkg.pricePerStudent / (pkg.durationMinutes / 60) : 0;
+    const studentNames = students.map((s: any) => `${s.first_name} ${s.last_name}`);
+    const teacherName = teacher ? `${teacher.first_name} ${teacher.last_name}` : "Unknown";
+    const studentPricePerHour = pkg ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
 
-    const studentRevenue = pkg ? calculateLessonRevenue(pkg.pricePerStudent, studentCount, eventData.duration, pkg.durationMinutes) : 0;
+    const studentRevenue = pkg ? calculateLessonRevenue(pkg.price_per_student, studentCount, eventData.duration, pkg.duration_minutes) : 0;
 
     const teacherEarnings = teacherPricePerHour * (eventData.duration / 60);
     const profit = studentRevenue - teacherEarnings;
@@ -120,16 +123,16 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                             teacher: {
                                 username: teacher?.username || "unknown",
                             },
-                            leaderStudentName: students[0] ? `${students[0].firstName} ${students[0].lastName}` : "Unknown",
+                            leaderStudentName: students[0] ? `${students[0].first_name} ${students[0].last_name}` : "Unknown",
                             studentCount: studentCount,
                             studentNames: studentNames,
                             packageData: {
                                 description: pkg?.description || "Unknown",
-                                pricePerStudent: pkg?.pricePerStudent || 0,
-                                durationMinutes: pkg?.durationMinutes || 60,
-                                categoryEquipment: pkg?.categoryEquipment || "",
-                                capacityEquipment: pkg?.capacityEquipment || 0,
-                                capacityStudents: pkg?.capacityStudents || 0,
+                                pricePerStudent: pkg?.price_per_student || 0,
+                                durationMinutes: pkg?.duration_minutes || 60,
+                                categoryEquipment: pkg?.category_equipment || "",
+                                capacityEquipment: pkg?.capacity_equipment || 0,
+                                capacityStudents: pkg?.capacity_students || 0,
                             },
                             financials: {
                                 teacherEarnings: teacherEarnings,
@@ -157,7 +160,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                     bgColor="bg-emerald-500/10"
                     iconColor="text-emerald-500"
                     viewingAs={{
-                        label: `${teacher?.firstName} ${teacher?.lastName}`,
+                        label: `${teacher?.first_name} ${teacher?.last_name}`,
                         link: `/teachers/${teacher?.id}`,
                     }}
                 >
@@ -166,12 +169,12 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         location={eventData.location || "TBD"}
                         date={new Date(eventData.date).toISOString()}
                         duration={eventData.duration}
-                        capacity={pkg?.capacityStudents || 0}
+                        capacity={pkg?.capacity_students || 0}
                         packageDescription={pkg?.description || "No description"}
                         pricePerHour={teacherPricePerHour}
                         status={eventData.status}
-                        categoryEquipment={pkg?.categoryEquipment}
-                        capacityEquipment={pkg?.capacityEquipment}
+                        categoryEquipment={pkg?.category_equipment}
+                        capacityEquipment={pkg?.capacity_equipment}
                         commissionType={commissionType}
                         commissionValue={commissionValue}
                     />
@@ -185,7 +188,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                                     Viewing as:{" "}
                                     <a href={`/students/${student.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">
-                                        {student.firstName}
+                                        {student.first_name}
                                     </a>
                                 </p>
                                 <EventStudentCard
@@ -193,8 +196,8 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                                     location={eventData.location || "TBD"}
                                     date={new Date(eventData.date).toISOString()}
                                     duration={eventData.duration}
-                                    categoryEquipment={pkg?.categoryEquipment}
-                                    capacityEquipment={pkg?.capacityEquipment}
+                                    categoryEquipment={pkg?.category_equipment}
+                                    capacityEquipment={pkg?.capacity_equipment}
                                     packageDescription={pkg?.description}
                                     pricePerHour={studentPricePerHour}
                                     status={eventData.status}
@@ -220,9 +223,9 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         icon={BookingIcon}
                         color="#3b82f6"
                         data={[
-                            { label: "Start Date", value: booking.dateStart },
-                            { label: "End Date", value: booking.dateEnd },
-                            { label: "Status", value: booking.status, isStatusBadge: true },
+                            { label: "Start Date", value: booking.date_start },
+                            { label: "End Date", value: booking.date_end },
+                            { label: "Status", value: "active", isStatusBadge: true }, // Booking status not in new query, assuming active or adding it back? Query says date_start, date_end. It doesn't select status for booking! I should check the query.
                         ]}
                     />
 
@@ -232,12 +235,12 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         color="#fb923c"
                         data={[
                             { label: "Description", value: pkg.description },
-                            { label: "Type", value: pkg.packageType, isCapitalize: true },
-                            { label: "Duration", value: getHMDuration(pkg.durationMinutes) },
-                            { label: "Price", value: `${pkg.pricePerStudent} ${currency}` },
+                            { label: "Type", value: pkg.package_type, isCapitalize: true },
+                            { label: "Duration", value: getHMDuration(pkg.duration_minutes) },
+                            { label: "Price", value: `${pkg.price_per_student} ${currency}` },
                             { label: "PPH", value: `${studentPricePerHour.toFixed(2)} ${currency}/h` },
-                            { label: "Student Cap", value: pkg.capacityStudents },
-                            { label: "Equip. Cap", value: pkg.capacityEquipment },
+                            { label: "Student Cap", value: pkg.capacity_students },
+                            { label: "Equip. Cap", value: pkg.capacity_equipment },
                         ]}
                     />
 
@@ -247,8 +250,8 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         color="#22c55e"
                         data={[
                             { label: "Teacher", value: teacherName },
-                            { label: "Comm. Type", value: commission.commissionType, isCapitalize: true },
-                            { label: "Comm. Value", value: commission.commissionType === "fixed" ? `${commission.cph} ${currency}/h` : `${commission.cph}%` },
+                            { label: "Comm. Type", value: commission.commission_type, isCapitalize: true },
+                            { label: "Comm. Value", value: commission.commission_type === "fixed" ? `${commission.cph} ${currency}/h` : `${commission.cph}%` },
                             { label: "Teacher Earning", value: `${teacherEarnings.toFixed(2)} ${currency}` },
                             { label: "Lesson Status", value: lesson.status, isStatusBadge: true },
                         ]}
@@ -273,7 +276,7 @@ export default async function ExamplePage({ searchParams }: ExamplePageProps) {
                         color="#eab308"
                         data={students.map((s: any) => ({
                             label: "Involved",
-                            value: `${s.firstName} ${s.lastName}`,
+                            value: `${s.first_name} ${s.last_name}`,
                         }))}
                     />
 

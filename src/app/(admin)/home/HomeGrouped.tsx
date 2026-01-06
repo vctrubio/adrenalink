@@ -175,7 +175,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                             <motion.div
                                                 key={event.id}
                                                 className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-accent/5 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
-                                                onClick={() => router.push(`/example?id=${event.id}`)}
+                                                onClick={() => router.push(`/transaction?id=${event.id}`)}
                                             >
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                                                     <div className="sm:hidden flex items-center justify-between w-full mb-2">

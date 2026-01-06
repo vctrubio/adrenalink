@@ -68,7 +68,7 @@ A powerful, data-dense view for financial auditing and analysis.
     - **Revenue** (ReceiptIcon): Total student billing.
     - **Profit** (ActivityIcon): Net margin after payouts.
 
-### 3. Individual Transaction Record (`example/page.tsx`)
+### 3. Individual Transaction Record (`transaction/page.tsx`)
 The deep-dive view for a single event.
 - **Perspectives**: Separate cards for "The Instructor" and "The Student".
 - **Resume**: Comprehensive breakdown of Booking, Package, Lesson/Teacher, Event Specifics, Involved Students, and Linked Equipment.
