@@ -76,17 +76,9 @@ export function HomePage({ classboardData }: HomePageProps) {
     const groupedEvents = useMemo(() => getGroupedEvents(classboardData), [classboardData]);
     const allTransactionEvents = useMemo(() => getAllTransactionEvents(classboardData, credentials.currency), [classboardData, credentials.currency]);
 
-    const school = {
-        name: credentials.name,
-        username: credentials.username,
-        country: credentials.country || "",
-        timezone: credentials.timezone || null,
-        currency: credentials.currency,
-    };
-
     return (
         <div className="space-y-10">
-            <HomeHeader school={school} globalTotals={globalTotals} />
+            <HomeHeader school={credentials} globalTotals={globalTotals} />
 
             <div className="flex items-end justify-between border-b border-border pb-6">
                 <HomeViewHeader {...VIEW_CONFIG[viewMode]} />

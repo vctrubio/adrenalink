@@ -7,15 +7,10 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { TrendingUp } from "lucide-react";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
+import type { SchoolCredentials } from "@/types/credentials";
 
 interface HomeHeaderProps {
-    school: {
-        name: string;
-        username: string;
-        country: string;
-        timezone: string | null;
-        currency: string;
-    };
+    school: SchoolCredentials;
     globalTotals: {
         events: number;
         duration: number;
