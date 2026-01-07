@@ -12,9 +12,20 @@ export interface TableStat {
 export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
     if (!stats || stats.length === 0) return null;
 
+    const visibleStats = stats.filter(stat => {
+        const val = stat.value;
+        if (typeof val === 'number') return val > 0;
+        if (typeof val === 'string') {
+            return val !== "0" && val !== "0h" && val !== "0.0h";
+        }
+        return true;
+    });
+
+    if (visibleStats.length === 0) return null;
+
     return (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 bg-muted/30 rounded-xl border border-border/50">
-            {stats.map((stat, index) => (
+            {visibleStats.map((stat, index) => (
                 <div key={index} className="flex items-center" title={stat.label}>
                     <StatHeaderItemUI 
                         statType={stat.type} 
@@ -22,7 +33,7 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                         hideLabel={true}
                         variant={stat.variant}
                     />
-                    {index < stats.length - 1 && (
+                    {index < visibleStats.length - 1 && (
                         <div className="ml-6 h-4 w-px bg-border/60 rotate-12" />
                     )}
                 </div>
