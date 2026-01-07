@@ -71,7 +71,7 @@ export function PackagePublicLabel({ packageId, isPublic }: PackagePublicLabelPr
                 onClose={() => setIsOpen(false)}
                 items={dropdownItems}
                 triggerRef={triggerRef}
-                align="end"
+                align="right"
             />
         </div>
     );

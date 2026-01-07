@@ -68,7 +68,7 @@ export function SchoolStudentStatusLabel({ studentId, status, description }: Sch
                 onClose={() => setIsOpen(false)}
                 items={dropdownItems}
                 triggerRef={triggerRef}
-                align="end"
+                align="right"
             />
         </div>
     );

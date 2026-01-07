@@ -75,7 +75,7 @@ export function PackageStatusLabel({ packageId, isActive }: PackageStatusLabelPr
                 onClose={() => setIsOpen(false)}
                 items={dropdownItems}
                 triggerRef={triggerRef}
-                align="end"
+                align="right"
             />
         </div>
     );

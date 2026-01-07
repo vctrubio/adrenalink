@@ -213,7 +213,7 @@ export interface EquipmentStatusConfig {
 export const EQUIPMENT_STATUS_CONFIG: Record<EquipmentStatus, EquipmentStatusConfig> = {
     rental: {
         status: "rental",
-        color: STATUS_PURPLE,
+        color: "#ef4444",
         label: "Rental",
     },
     public: {

@@ -1,59 +1,82 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { type EquipmentStatus, EQUIPMENT_STATUS_CONFIG } from "@/types/status";
-import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
-
-const EQUIPMENT_STATUSES: EquipmentStatus[] = ["rental", "public", "selling", "sold", "inrepair", "rip"];
+import { ChevronDown, Check, Settings, Trash2, ShoppingCart, User, AlertCircle, Package } from "lucide-react";
+import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
+import { updateEquipmentStatus } from "@/supabase/server/equipment-status";
+import { Dropdown } from "@/src/components/ui/dropdown";
+import toast from "react-hot-toast";
 
 interface EquipmentStatusLabelProps {
-  status: EquipmentStatus;
-  onStatusChange: (newStatus: EquipmentStatus) => void;
-  size?: number;
+    equipmentId: string;
+    status: string;
 }
 
-export function EquipmentStatusLabel({ status, onStatusChange, size = 16 }: EquipmentStatusLabelProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownTriggerRef = useRef<HTMLDivElement>(null);
+const ICON_MAP: Record<string, any> = {
+    rental: Package,
+    public: User,
+    selling: ShoppingCart,
+    sold: Trash2,
+    inrepair: Settings,
+    rip: AlertCircle
+};
 
-  const statusConfig = EQUIPMENT_STATUS_CONFIG[status] || EQUIPMENT_STATUS_CONFIG.public;
+export function EquipmentStatusLabel({ equipmentId, status }: EquipmentStatusLabelProps) {
+    const [isPending, setIsPending] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+    const currentStatus = status.toLowerCase() as EquipmentStatus;
+    const config = EQUIPMENT_STATUS_CONFIG[currentStatus] || { label: status, color: "#6b7280" };
 
-  const dropdownItems: DropdownItemProps[] = EQUIPMENT_STATUSES.map((statusOption) => ({
-    id: statusOption,
-    label: EQUIPMENT_STATUS_CONFIG[statusOption].label,
-    icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EQUIPMENT_STATUS_CONFIG[statusOption].color }} />,
-    color: EQUIPMENT_STATUS_CONFIG[statusOption].color,
-    onClick: () => {
-      onStatusChange(statusOption);
-      setIsDropdownOpen(false);
-    },
-  }));
+    const handleStatusChange = async (newStatus: string) => {
+        if (newStatus === status) return;
+        
+        setIsPending(true);
+        setIsOpen(false);
+        
+        const result = await updateEquipmentStatus(equipmentId, newStatus);
+        
+        if (result.success) {
+            toast.success(`Equipment status updated to ${newStatus}`);
+        } else {
+            toast.error(result.error || "Failed to update status");
+        }
+        
+        setIsPending(false);
+    };
 
-  return (
-    <div className="relative inline-block">
-      <div
-        ref={dropdownTriggerRef}
-        onClick={handleClick}
-        className="flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors bg-muted hover:bg-muted/80"
-        style={{ color: statusConfig.color }}
-      >
-        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusConfig.color }} />
-        {statusConfig.label}
-      </div>
-      <Dropdown
-        isOpen={isDropdownOpen}
-        onClose={() => setIsDropdownOpen(false)}
-        items={dropdownItems}
-        align="right"
-        initialFocusedId={status}
-        triggerRef={dropdownTriggerRef}
-      />
-    </div>
-  );
+    const dropdownItems = Object.entries(EQUIPMENT_STATUS_CONFIG).map(([key, cfg]) => ({
+        label: cfg.label,
+        icon: ICON_MAP[key] || Check,
+        onClick: () => handleStatusChange(key),
+        className: currentStatus === key ? "bg-accent" : "",
+    }));
+
+    return (
+        <div className="relative">
+            <button
+                ref={triggerRef}
+                onClick={() => setIsOpen(!isOpen)}
+                disabled={isPending}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border transition-all ${isPending ? "opacity-50 cursor-wait" : "hover:opacity-80"}`}
+                style={{
+                    backgroundColor: `${config.color}15`,
+                    color: config.color,
+                    borderColor: `${config.color}30`
+                }}
+            >
+                <span>{config.label}</span>
+                <ChevronDown size={10} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <Dropdown
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                items={dropdownItems}
+                triggerRef={triggerRef}
+                align="right"
+            />
+        </div>
+    );
 }
