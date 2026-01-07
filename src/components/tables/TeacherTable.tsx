@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 import { filterBySearch } from "@/types/searching-entities";
 
@@ -174,7 +175,14 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
                                             <div className="text-foreground">
                                                 {selectedTeacher.firstName} {selectedTeacher.lastName}
                                             </div>
-                                            <div className="text-xs text-muted-foreground">@{selectedTeacher.username}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {teacherEntity && (
+                                                    <HoverToEntity entity={teacherEntity} id={selectedTeacher.id}>
+                                                        @{selectedTeacher.username}
+                                                    </HoverToEntity>
+                                                )}
+                                                {!teacherEntity && `@${selectedTeacher.username}`}
+                                            </div>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -246,7 +254,14 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
                                             <div>
                                                 {teacher.firstName} {teacher.lastName}
                                             </div>
-                                            <div className="text-xs text-muted-foreground">{teacher.username}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {teacherEntity && (
+                                                    <HoverToEntity entity={teacherEntity} id={teacher.id}>
+                                                        {teacher.username}
+                                                    </HoverToEntity>
+                                                )}
+                                                {!teacherEntity && teacher.username}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">{teacher.languages.join(", ")}</TableCell>

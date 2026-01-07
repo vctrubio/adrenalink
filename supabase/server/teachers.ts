@@ -34,6 +34,74 @@ export interface TeacherTableData {
     }[];
 }
 
+export interface TeacherProvider {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    active: boolean;
+    lessonStats: {
+        totalLessons: number;
+        completedLessons: number;
+    };
+}
+
+export async function getSchoolTeacherProvider(): Promise<TeacherProvider[]> {
+    try {
+        const headersList = await headers();
+        const schoolId = headersList.get("x-school-id");
+
+        if (!schoolId) {
+            console.error("❌ No school ID found in headers");
+            return [];
+        }
+
+        const supabase = getServerConnection();
+
+        // Optimized query for provider usage
+        const { data, error } = await supabase
+            .from("teacher")
+            .select(`
+                id,
+                username,
+                first_name,
+                last_name,
+                active,
+                lesson (
+                    status
+                )
+            `)
+            .eq("school_id", schoolId)
+            .order("username", { ascending: true });
+
+        if (error) {
+            console.error("Error fetching teachers provider:", error);
+            return [];
+        }
+
+        return data.map((t: any) => {
+            const lessons = t.lesson || [];
+            const totalLessons = lessons.length;
+            const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
+
+            return {
+                id: t.id,
+                username: t.username,
+                firstName: t.first_name,
+                lastName: t.last_name,
+                active: t.active,
+                lessonStats: {
+                    totalLessons,
+                    completedLessons,
+                }
+            };
+        });
+    } catch (error) {
+        console.error("Unexpected error in getSchoolTeacherProvider:", error);
+        return [];
+    }
+}
+
 export async function getTeachersTable(): Promise<TeacherTableData[]> {
     try {
         const headersList = await headers();

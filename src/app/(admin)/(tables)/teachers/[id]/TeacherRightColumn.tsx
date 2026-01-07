@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { TeacherModel } from "@/backend/models";
+import type { TeacherData } from "@/backend/data/TeacherData";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline, type TimelineEvent } from "@/src/components/timeline";
@@ -10,12 +10,11 @@ import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { MapPin, Calendar, List } from "lucide-react";
+import { MapPin, Calendar, List, Table } from "lucide-react";
 import { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEvent, type LessonEventRowData, TeacherBookingLessonTable, type TeacherBookingLessonTableData } from "@/src/components/ids";
 import { getHMDuration } from "@/getters/duration-getter";
 import { transformEventsToRows } from "@/getters/event-getter";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { SearchInput } from "@/src/components/SearchInput";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import type { EventData } from "@/types/booking-lesson-event";
 
@@ -92,12 +91,19 @@ function CommissionsView({
     studentEntity: any;
     formatCurrency: (num: number) => string;
 }) {
-    // Group lessons by commission type
+    // Group lessons by unique commission rate (type + cph)
     const commissionGroups = lessonRows.reduce(
         (acc, lesson) => {
-            const key = lesson.commissionType;
+            const key = `${lesson.commissionType}-${lesson.cph}`;
             if (!acc[key]) {
-                acc[key] = { type: key, hours: 0, earning: 0, cph: lesson.cph, lessons: [] as LessonRow[], lessonCount: 0 };
+                acc[key] = { 
+                    type: lesson.commissionType, 
+                    hours: 0, 
+                    earning: 0, 
+                    cph: lesson.cph, 
+                    lessons: [] as LessonRow[], 
+                    lessonCount: 0 
+                };
             }
             acc[key].hours += lesson.totalHours;
             acc[key].earning += lesson.totalEarning;
@@ -112,8 +118,8 @@ function CommissionsView({
 
     return (
         <motion.div key="commissions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-            {commissionArray.map((commission) => (
-                <div key={commission.type} className="space-y-2">
+            {commissionArray.map((commission, idx) => (
+                <div key={idx} className="space-y-2">
                     <CommissionHeader commission={commission} formatCurrency={formatCurrency} />
                     <div className="space-y-2">
                         {commission.lessons.map((lesson) => {
@@ -186,7 +192,7 @@ function LessonsView({ lessonRows, expandedLesson, setExpandedLesson, bookingEnt
 
 // Main Component
 interface TeacherRightColumnProps {
-    teacher: TeacherModel;
+    teacher: TeacherData;
 }
 
 export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
@@ -210,22 +216,22 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     for (const lesson of lessons) {
         const events = (lesson.events || []) as EventData[];
         const booking = lesson.booking;
-        const commission = lesson.commission;
-        const schoolPackage = booking?.studentPackage?.schoolPackage;
+        const commission = lesson.teacher_commission;
+        const schoolPackage = booking?.school_package;
 
         const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
         const totalHours = totalDuration / 60;
         const cph = parseFloat(commission?.cph || "0");
-        const commissionType = (commission?.commissionType as "fixed" | "percentage") || "fixed";
+        const commissionType = (commission?.commission_type as "fixed" | "percentage") || "fixed";
         
         const eventRows = transformEventsToRows(events);
         let totalEarning = 0;
 
         for (const eventRow of eventRows) {
             // Calculate revenues
-            const studentCount = booking?.bookingStudents?.length || 1;
-            const pricePerStudent = schoolPackage?.pricePerStudent || 0;
-            const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
+            const studentCount = schoolPackage?.capacity_students || 1;
+            const pricePerStudent = schoolPackage?.price_per_student || 0;
+            const packageDurationMinutes = schoolPackage?.duration_minutes || 60;
 
             const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
             const eventCommission = calculateCommission(eventRow.duration, { type: commissionType, cph }, eventRevenue, packageDurationMinutes);
@@ -249,7 +255,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 durationLabel: eventRow.durationLabel,
                 location: eventRow.location,
                 teacherId: teacher.schema.id,
-                teacherName: teacher.schema.firstName || "Unknown",
+                teacherName: teacher.schema.first_name || "Unknown",
                 teacherUsername: teacher.schema.username,
                 eventStatus: eventRow.status,
                 lessonStatus: lesson.status,
@@ -258,19 +264,19 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 totalRevenue: eventRevenue,
                 commissionType,
                 commissionCph: cph,
-                bookingStudents: booking?.bookingStudents?.map((bs: any) => bs.student) || [],
-                equipmentCategory: schoolPackage?.categoryEquipment,
-                capacityEquipment: schoolPackage?.capacityEquipment,
-                capacityStudents: schoolPackage?.capacityStudents,
+                bookingStudents: [], // Potentially fetch if needed
+                equipmentCategory: schoolPackage?.category_equipment,
+                capacityEquipment: schoolPackage?.capacity_equipment,
+                capacityStudents: schoolPackage?.capacity_students,
             });
         }
 
         lessonRows.push({
             lessonId: lesson.id,
             bookingId: booking?.id || "",
-            leaderName: booking?.leaderStudentName || "Unknown",
-            dateStart: booking?.dateStart || "",
-            dateEnd: booking?.dateEnd || "",
+            leaderName: booking?.leader_student_name || "Unknown",
+            dateStart: booking?.date_start || "",
+            dateEnd: booking?.date_end || "",
             lessonStatus: lesson.status,
             bookingStatus: booking!.status,
             commissionType,
@@ -280,8 +286,8 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             totalEarning,
             eventCount: events.length,
             events: eventRows,
-            equipmentCategory: schoolPackage?.categoryEquipment!,
-            studentCapacity: schoolPackage?.capacityStudents!,
+            equipmentCategory: schoolPackage?.category_equipment!,
+            studentCapacity: schoolPackage?.capacity_students!,
         });
     }
 
@@ -291,24 +297,13 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     const filteredLessonRows = lessonRows.filter((row) => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
-        // Check leader name
-        if (row.leaderName.toLowerCase().includes(query)) return true;
-
-        // Check student names (need to find original booking to get students, or use what we have)
-        // Since we don't have full student list in LessonRow easily accessible beyond leader,
-        // we might want to check the timeline events for this lesson or modify LessonRow to include student names string.
-        // For now, let's filter by leader name which is the primary student.
-        return false;
+        return row.leaderName.toLowerCase().includes(query);
     });
 
     const filteredTimelineEvents = timelineEvents.filter((event) => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
-        // Check booking students
-        if (event.bookingStudents) {
-            return event.bookingStudents.some((s) => s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query));
-        }
-        return false;
+        return event.location.toLowerCase().includes(query);
     });
 
     if (lessonRows.length === 0) {

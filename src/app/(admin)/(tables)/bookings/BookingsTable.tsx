@@ -6,6 +6,8 @@ import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
+import { ENTITY_DATA } from "@/config/entities";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { BookingTableData } from "@/supabase/server/bookings";
 import { getHMDuration } from "@/getters/duration-getter";
 import { Calendar, TrendingUp, TrendingDown, Check } from "lucide-react";
@@ -27,11 +29,17 @@ const HEADER_CLASSES = {
 } as const;
 
 export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
+    const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
+
     const desktopColumns: ColumnDef<BookingTableData>[] = [
         {
             header: "Date Range",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <DateRangeBadge startDate={data.dateStart} endDate={data.dateEnd} />,
+            render: (data) => (
+                <HoverToEntity entity={bookingEntity} id={data.id}>
+                    <DateRangeBadge startDate={data.dateStart} endDate={data.dateEnd} />
+                </HoverToEntity>
+            ),
         },
         {
             header: "Students",
@@ -108,7 +116,9 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             label: "Booking",
             render: (data) => (
                 <div className="flex flex-col gap-2">
-                    <DateRangeBadge startDate={data.dateStart} endDate={data.dateEnd} />
+                    <HoverToEntity entity={bookingEntity} id={data.id}>
+                        <DateRangeBadge startDate={data.dateStart} endDate={data.dateEnd} />
+                    </HoverToEntity>
                     <div className="flex items-center gap-2">
                         {getLeaderCapacity(data.leaderStudentName, data.capacityStudents)}
                     </div>

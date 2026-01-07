@@ -38,7 +38,7 @@ interface BookingReceiptTotals {
 }
 
 interface BookingReceiptProps {
-    booking: BookingModel;
+    booking: any; // Support both BookingModel and BookingData
     eventRows: BookingReceiptEventRow[];
     totals: BookingReceiptTotals;
     schoolPackage: any;
@@ -48,13 +48,18 @@ interface BookingReceiptProps {
 
 export function BookingReceipt({ booking, eventRows, totals, schoolPackage, formatCurrency, currency }: BookingReceiptProps) {
     const [copied, setCopied] = useState(false);
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-
+    
+    // Abstract data access to support both structures
+    const isSupabase = !!booking.schema.date_start;
+    const dateStart = isSupabase ? booking.schema.date_start : booking.schema.dateStart;
+    const dateEnd = isSupabase ? booking.schema.date_end : booking.schema.dateEnd;
+    
     const packageDescription = schoolPackage?.description || "No Package";
-    const packageHours = schoolPackage ? Math.round(schoolPackage.durationMinutes / 60) : 0;
-    const packageCategory = schoolPackage?.categoryEquipment || "No Category";
-    const equipmentCapacity = schoolPackage?.capacityEquipment || 0;
-    const studentCapacity = schoolPackage?.capacityStudents || 0;
+    const packageMinutes = schoolPackage?.duration_minutes ?? schoolPackage?.durationMinutes ?? 0;
+    const packageHours = Math.round(packageMinutes / 60);
+    const packageCategory = schoolPackage?.category_equipment ?? schoolPackage?.categoryEquipment ?? "No Category";
+    const equipmentCapacity = schoolPackage?.capacity_equipment ?? schoolPackage?.capacityEquipment ?? 0;
+    const studentCapacity = schoolPackage?.capacity_students ?? schoolPackage?.capacityStudents ?? 0;
     const totalHours = totals.duration / 60;
 
     let packageTypeStr = packageCategory;
@@ -62,18 +67,23 @@ export function BookingReceipt({ booking, eventRows, totals, schoolPackage, form
         packageTypeStr += ` (x${equipmentCapacity})`;
     }
 
-    const bookingStartDate = formatBookingDate(booking.schema.dateStart);
-    const bookingEndDate = formatBookingDate(booking.schema.dateEnd);
+    const bookingStartDate = formatBookingDate(dateStart);
+    const bookingEndDate = formatBookingDate(dateEnd);
     const pricePerStudent = studentCapacity > 1 ? totals.totalRevenue / studentCapacity : totals.totalRevenue;
 
-    const bookingStudents = booking.relations?.bookingStudents || [];
-    const students = bookingStudents.map((bs) => ({
-        firstName: bs.student?.firstName || "Unknown",
-        lastName: bs.student?.lastName || "",
-        passport: bs.student?.passport || undefined,
-    }));
+    const students = isSupabase 
+        ? (booking.relations?.students || []).map((s: any) => ({
+            firstName: s.first_name,
+            lastName: s.last_name,
+            passport: s.passport,
+          }))
+        : (booking.relations?.bookingStudents || []).map((bs: any) => ({
+            firstName: bs.student?.firstName || "Unknown",
+            lastName: bs.student?.lastName || "",
+            passport: bs.student?.passport || undefined,
+          }));
 
-    const receiptText = formatBookingReceiptText(bookingStartDate, bookingEndDate, students, packageDescription, packageHours, packageTypeStr, studentCapacity, totalHours, formatCurrency, totals.totalRevenue, pricePerStudent, eventRows);
+    const receiptText = formatBookingReceiptText(bookingStartDate, bookingEndDate, students, packageDescription, packageHours, packageTypeStr, studentCapacity, totalHours, formatCurrency, totals.totalRevenue, pricePerStudent, eventRows as any);
 
     const handleCopy = async () => {
         await navigator.clipboard.writeText(receiptText);

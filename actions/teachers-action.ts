@@ -60,21 +60,26 @@ export async function createTeacher(teacherSchema: TeacherForm): Promise<ApiActi
     }
 }
 
+import { getTeachersTable, getSchoolTeacherProvider, type TeacherTableData, type TeacherProvider } from "@/supabase/server/teachers";
+
 // READ
-export async function getTeachers(): Promise<ApiActionResponseModel<TeacherModel[]>> {
+export async function getTeachers(): Promise<ApiActionResponseModel<TeacherTableData[]>> {
     try {
-        const result = await db.query.teacher.findMany({
-            with: teacherWithRelations,
-        });
-
-        const teachers: TeacherModel[] = result.map((teacherData) => {
-            return createTeacherModel(teacherData);
-        });
-
+        const teachers = await getTeachersTable();
         return { success: true, data: teachers };
     } catch (error) {
         console.error("Error fetching teachers:", error);
         return { success: false, error: "Failed to fetch teachers" };
+    }
+}
+
+export async function getSchoolTeachersProviderAction(): Promise<ApiActionResponseModel<TeacherProvider[]>> {
+    try {
+        const teachers = await getSchoolTeacherProvider();
+        return { success: true, data: teachers };
+    } catch (error) {
+        console.error("Error fetching teachers provider:", error);
+        return { success: false, error: "Failed to fetch teachers provider" };
     }
 }
 

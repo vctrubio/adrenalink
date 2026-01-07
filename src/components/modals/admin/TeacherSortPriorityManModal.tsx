@@ -15,7 +15,7 @@ import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
 import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { DragSortList } from "@/src/components/ui/DragSortList";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
-import type { TeacherModel } from "@/backend/models";
+import type { TeacherProvider } from "@/supabase/server/teachers";
 import { Check } from "lucide-react";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
@@ -27,7 +27,7 @@ interface TeacherSortPriorityManModalProps {
 
 interface TeacherSortItem {
     id: string;
-    teacher: TeacherModel;
+    teacher: TeacherProvider;
     title: string;
     subtitle: string;
     icon: React.ReactNode;
@@ -54,8 +54,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             let sorted = [...allTeachers];
             if (savedOrder.length > 0) {
                 sorted = sorted.sort((a, b) => {
-                    const aIndex = savedOrder.indexOf(a.schema.id);
-                    const bIndex = savedOrder.indexOf(b.schema.id);
+                    const aIndex = savedOrder.indexOf(a.id);
+                    const bIndex = savedOrder.indexOf(b.id);
                     if (aIndex === -1) return 1;
                     if (bIndex === -1) return -1;
                     return aIndex - bIndex;
@@ -63,11 +63,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             }
 
             const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
-                id: teacher.schema.id,
-                title: teacher.schema.username,
+                id: teacher.id,
+                title: teacher.username,
                 subtitle: "",
                 icon: <HeadsetIcon size={20} />,
-                isActive: teacher.schema.active,
+                isActive: teacher.active,
                 color: teacherEntity?.color || "#fff",
                 teacher,
             }));
@@ -85,9 +85,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     }, [isOpen, initializeItems]);
 
     const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
-        // Find original status to check if it's a real change
-        const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
-        const originalActive = originalTeacher?.schema.active;
+        const originalTeacher = allTeachers.find(t => t.id === teacherId);
+        const originalActive = originalTeacher?.active;
 
         setStatusChanges((prev) => {
             const newChanges = new Map(prev);
@@ -102,7 +101,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         setItems((prev) =>
             prev.map((item) =>
                 item.id === teacherId
-                    ? { ...item, isActive: active, teacher: { ...item.teacher, schema: { ...item.teacher.schema, active } } }
+                    ? { ...item, isActive: active, teacher: { ...item.teacher, active } }
                     : item
             )
         );
@@ -114,7 +113,6 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                 for (const [teacherId, active] of statusChanges.entries()) {
                     await updateTeacherActive(teacherId, active);
                 }
-                // Refetch teachers to reflect active status changes in TeacherClassDaily
                 await refetch();
             }
 
@@ -290,10 +288,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         
                                                         <div className="flex items-center gap-3 flex-shrink-0">
                                                             {(() => {
-                                                                const lessons = item.teacher.relations?.lessons || [];
-                                                                const totalLessons = lessons.length;
-                                                                const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
-                                                                return <TeacherActiveLesson totalLessons={totalLessons} completedLessons={completedLessons} />;
+                                                                const stats = item.teacher.lessonStats;
+                                                                return <TeacherActiveLesson totalLessons={stats.totalLessons} completedLessons={stats.completedLessons} />;
                                                             })()}
 
                                                             <StatusToggle
@@ -307,7 +303,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                             />
                                                             
                                                             <GoToAdranlink
-                                                                href={`/teachers/${item.teacher.schema.id}`}
+                                                                href={`/teachers/${item.teacher.id}`}
                                                                 onNavigate={onClose}
                                                                 isHovered={isHovered}
                                                             />

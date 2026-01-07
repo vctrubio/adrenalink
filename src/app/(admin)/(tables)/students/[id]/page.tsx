@@ -1,7 +1,7 @@
 import { getStudentId } from "@/supabase/server/student-id";
 import { StudentData } from "@/backend/data/StudentData";
 import { StudentTableGetters } from "@/getters/table-getters";
-import { createStat } from "@/src/components/databoard/stats/stat-factory";
+import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { StudentLeftColumn } from "./StudentLeftColumn";
 import { StudentRightColumn } from "./StudentRightColumn";
@@ -16,14 +16,13 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
     const student: StudentData = result.data;
 
-    // Use stat-factory as single source of truth for presentation
     const stats = [
-        createStat("student", `${student.schema.first_name} ${student.schema.last_name}`, student.schema.first_name),
-        createStat("bookings", StudentTableGetters.getBookingCount(student), "Bookings"),
-        createStat("events", StudentTableGetters.getEventCount(student), "Events"),
-        createStat("duration", StudentTableGetters.getTotalDurationMinutes(student), "Duration"),
-        createStat("revenue", StudentTableGetters.getTotalPaid(student), "Revenue"),
-        createStat("profit", StudentTableGetters.getProfit(student), "Profit"),
+        getStat("student", `${student.schema.first_name} ${student.schema.last_name}`, student.schema.first_name),
+        getStat("bookings", StudentTableGetters.getBookingCount(student)),
+        getStat("events", StudentTableGetters.getEventCount(student)),
+        getStat("duration", StudentTableGetters.getTotalDurationMinutes(student)),
+        getStat("studentPayments", StudentTableGetters.getTotalPaid(student)),
+        getStat("profit", StudentTableGetters.getProfit(student)),
     ].filter(Boolean) as any[];
 
     return (

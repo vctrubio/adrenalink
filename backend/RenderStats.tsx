@@ -40,11 +40,14 @@ export type StatType =
     | "events"
     | "completed" // Alias/Specific for events
     | "duration"
+    | "booking"
     | "bookings"
     | "commission"
     | "revenue"
+    | "receipt"
     | "expenses"
     | "profit"
+    | "moneyToPay"
     | "studentPayments"
     | "teacherPayments"
     | "rentals"
@@ -131,6 +134,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => value,
         label: "Bookings",
     },
+    booking: {
+        icon: BookingIcon,
+        color: bookingEntity.color,
+        formatter: (value) => value,
+        label: "Booking",
+    },
     commission: {
         icon: HandshakeIcon,
         color: commissionEntity?.color || "#a78bfa",
@@ -143,6 +152,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => getCompactNumber(value),
         label: "Revenue",
     },
+    receipt: {
+        icon: CreditIcon,
+        color: paymentEntity?.color || "rgb(251, 146, 60)",
+        formatter: (value) => getCompactNumber(value),
+        label: "Receipt",
+    },
     expenses: {
         icon: <TrendingDown size={20} />,
         color: "rgb(251, 146, 60)",
@@ -154,6 +169,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         color: "rgb(251, 146, 60)",
         formatter: (value) => getCompactNumber(value),
         label: "Profit",
+    },
+    moneyToPay: {
+        icon: CreditIcon,
+        color: "#ef4444",
+        formatter: (value) => getCompactNumber(value),
+        label: "Due",
     },
     schoolNet: {
         icon: <TrendingUp size={20} />,

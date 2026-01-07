@@ -3,22 +3,21 @@
 import { useState } from "react";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
-import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress";
-import { TeacherDataboard } from "@/getters/databoard-getter";
-import { createStat } from "@/src/components/databoard/stats/stat-factory";
+import { TeacherTableGetters } from "@/getters/table-getters";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TeacherCommissionPanelModal } from "@/src/components/modals/admin/TeacherCommissionPanelModal";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { Percent } from "lucide-react";
-import type { TeacherModel } from "@/backend/models";
+import type { TeacherData } from "@/backend/data/TeacherData";
 import type { LeftColumnCardData } from "@/types/left-column";
 
 interface TeacherLeftColumnProps {
-  teacher: TeacherModel;
+  teacher: TeacherData;
 }
 
 export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
@@ -39,7 +38,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
 
   // Lesson Stats
   const lessons = teacher.relations?.lessons || [];
-  const plannedLessons = lessons.filter(l => l.status === "active" || l.status === "rest").length;
+  const plannedLessons = lessons.filter(l => l.status === "active" || l.status === "planned").length;
   const completedLessons = lessons.filter(l => l.status === "completed").length;
   const uncompletedLessons = lessons.filter(l => l.status === "uncompleted").length;
   const totalLessons = lessons.length;
@@ -50,10 +49,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   const progressBar = {
     background: `linear-gradient(to right, ${lessonEntity.color} ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`,
   };
-
-  // Teacher Stats
-  const commissionsStats = createStat("commission", TeacherDataboard.getCommission(teacher), "Commission");
-  const profitStats = createStat("profit", TeacherDataboard.getProfit(teacher), "School Profit");
 
   // Teacher Card
   const teacherCardData: LeftColumnCardData = {
@@ -71,27 +66,27 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
       },
       {
         label: "First Name",
-        value: teacher.updateForm.firstName,
+        value: teacher.schema.first_name,
       },
       {
         label: "Last Name",
-        value: teacher.updateForm.lastName,
+        value: teacher.schema.last_name,
       },
       {
         label: "Passport",
-        value: teacher.updateForm.passport,
+        value: teacher.schema.passport,
       },
       {
         label: "Country",
-        value: teacher.updateForm.country,
+        value: teacher.schema.country,
       },
       {
         label: "Phone",
-        value: teacher.updateForm.phone,
+        value: teacher.schema.phone,
       },
       {
         label: "Languages",
-        value: teacher.updateForm.languages.join(", "),
+        value: teacher.schema.languages.join(", "),
       },
       {
         label: "Active",
@@ -99,7 +94,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
       },
       {
         label: "Created",
-        value: formatDate(teacher.schema.createdAt),
+        value: formatDate(teacher.schema.created_at),
       },
     ],
     accentColor: teacherEntity.color,
@@ -109,7 +104,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   // Lessons Card - Group by equipment category
   const categoryCount: Record<string, number> = {};
   lessons.forEach((lesson: any) => {
-    const category = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
+    const category = lesson.booking?.school_package?.category_equipment;
     if (category) {
       categoryCount[category] = (categoryCount[category] || 0) + 1;
     }
@@ -143,17 +138,17 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   // Commission Card
   const commissions = teacher.relations?.commissions || [];
   const commissionFields = commissions.map((commission) => ({
-    label: commission.schema.commissionType,
-    value: `${commission.schema.cph} ${currency}`,
+    label: commission.commission_type,
+    value: `${commission.cph} ${currency}`,
   }));
 
   // Calculate commission ranges by type
   const fixedCommissions = commissions
-    .filter(c => c.schema.commissionType === "fixed")
-    .map(c => parseFloat(c.schema.cph));
+    .filter(c => c.commission_type === "fixed")
+    .map(c => parseFloat(c.cph));
   const percentageCommissions = commissions
-    .filter(c => c.schema.commissionType === "percentage")
-    .map(c => parseFloat(c.schema.cph));
+    .filter(c => c.commission_type === "percentage")
+    .map(c => parseFloat(c.cph));
 
   const commissionStatusElements = [];
 
@@ -211,7 +206,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
     return sum + lessonPayments;
   }, 0);
 
-  const totalEarned = parseFloat(commissionsStats?.value || "0");
+  const totalEarned = TeacherTableGetters.getCommissionEarned(teacher);
   const paymentProgressPercentage = totalEarned > 0 ? (totalPaid / totalEarned) * 100 : 0;
   const paymentProgressBar = {
     background: `linear-gradient(to right, ${paymentEntity.color} ${paymentProgressPercentage}%, #e5e7eb ${paymentProgressPercentage}%)`,
@@ -241,7 +236,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         <CreditIcon size={40} />
       </div>
     ),
-    fields: paymentFields.length > 0 ? paymentFields : [{ label: "Payments", value: "No payments received" }],
+    fields: paymentFields,
     accentColor: paymentEntity.color,
     isAddable: true,
   };
@@ -249,7 +244,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   // Equipment Card
   const equipments = teacher.relations?.equipments || [];
 
-  // Group equipment by category and count
   const equipmentByCategory: Record<string, number> = {};
   equipments.forEach((te: any) => {
     const category = te.equipment?.category;
@@ -258,7 +252,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
     }
   });
 
-  // Create status badge with equipment icons and counts
   const equipmentStatusElements = Object.entries(equipmentByCategory).map(([category, count]) => {
     const categoryConfig = EQUIPMENT_CATEGORIES.find(cat => cat.id === category);
     if (!categoryConfig) return null;
@@ -280,7 +273,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
     </div>
   ) : "No equipment";
 
-  // Create equipment fields
   const equipmentFields = equipments.map((te: any) => {
     const equipment = te.equipment;
     if (!equipment) return null;
@@ -299,7 +291,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         <EquipmentIcon className="w-10 h-10" />
       </div>
     ),
-    fields: equipmentFields.length > 0 ? equipmentFields : [{ label: "Equipment", value: "No equipment assigned" }],
+    fields: equipmentFields as any,
     accentColor: equipmentEntity.color,
     isAddable: true,
   };
@@ -315,6 +307,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         teacherId={teacher.schema.id}
         teacherUsername={teacher.schema.username}
         commissions={teacher.relations?.commissions || []}
+        lessons={teacher.relations?.lessons || []}
         currency={currency}
       />
     </>

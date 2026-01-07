@@ -57,8 +57,7 @@ function TeacherCommissionDropdown({ teacherId, currency, color, onAdd }: Teache
             });
 
             if (result.success && result.data) {
-                const commissionModel = createCommissionModel(result.data);
-                onAdd(commissionModel);
+                onAdd(result.data);
                 setFormData({ commissionType: "fixed", cph: "", description: "" });
                 setIsExpanded(false);
             } else {
@@ -211,7 +210,8 @@ interface TeacherCommissionPanelModalProps {
     onClose: () => void;
     teacherId: string;
     teacherUsername: string;
-    commissions: CommissionModel[];
+    commissions: any[]; // Changed from CommissionModel[]
+    lessons: any[];     // Added lessons to check for usage
     currency?: string;
 }
 
@@ -221,6 +221,7 @@ export function TeacherCommissionPanelModal({
     teacherId,
     teacherUsername,
     commissions: initialCommissions,
+    lessons,
     currency = "EUR",
 }: TeacherCommissionPanelModalProps) {
     const [commissions, setCommissions] = useState(initialCommissions);
@@ -230,11 +231,13 @@ export function TeacherCommissionPanelModal({
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const color = commissionEntity?.color || "#fff";
 
-    // Helper to get equipment category counts from lessons
-    const getCategoryCounts = (lessons: any[]) => {
+    // Helper to get equipment category counts from lessons for a specific commission
+    const getCategoryCounts = (commissionId: string) => {
         const counts: Record<string, number> = {};
-        lessons.forEach((lesson: any) => {
-            const category = lesson.booking?.studentPackage?.schoolPackage?.categoryEquipment;
+        const commissionLessons = (lessons || []).filter(l => l.commission_id === commissionId);
+        
+        commissionLessons.forEach((lesson: any) => {
+            const category = lesson.booking?.school_package?.category_equipment;
             if (category) {
                 counts[category] = (counts[category] || 0) + 1;
             }
@@ -245,7 +248,7 @@ export function TeacherCommissionPanelModal({
     // Map commissions to items for navigation
     const commissionItems = useMemo(() =>
         commissions.map((c: any) => ({
-            id: c.schema.id,
+            id: c.id,
             commission: c,
         })),
         [commissions]
@@ -256,7 +259,7 @@ export function TeacherCommissionPanelModal({
         try {
             const result = await deleteCommission(commissionId);
             if (result.success) {
-                setCommissions((prev) => prev.filter((c: any) => c.schema.id !== commissionId));
+                setCommissions((prev) => prev.filter((c: any) => c.id !== commissionId));
             }
         } catch (error) {
             console.error("Error deleting commission:", error);
@@ -277,13 +280,13 @@ export function TeacherCommissionPanelModal({
         items: commissionItems,
         filterField: (item) => {
             const c = item.commission;
-            return `${c.schema.commissionType} ${c.schema.cph} ${c.schema.description || ""}`;
+            return `${c.commission_type} ${c.cph} ${c.description || ""}`;
         },
         isOpen,
         isActive: true,
         onSelect: (item) => {
-            const canDelete = (item.commission.relations?.lessons || []).length === 0;
-            if (canDelete) {
+            const inUse = (lessons || []).some(l => l.commission_id === item.id);
+            if (!inUse) {
                 handleDelete(item.id);
             }
         },
@@ -323,10 +326,10 @@ export function TeacherCommissionPanelModal({
                     ) : (
                         filteredItems.map((item, index) => {
                             const commission = item.commission;
-                            const data = commission.schema;
-                            const lessons = commission.relations?.lessons || [];
-                            const canDelete = lessons.length === 0;
-                            const categoryCounts = getCategoryCounts(lessons);
+                            const data = commission;
+                            const commissionLessons = (lessons || []).filter(l => l.commission_id === data.id);
+                            const canDelete = commissionLessons.length === 0;
+                            const categoryCounts = getCategoryCounts(data.id);
                             const isFocused = index === focusedIndex;
 
                             return (
@@ -361,7 +364,7 @@ export function TeacherCommissionPanelModal({
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <span className={`font-medium truncate ${isFocused ? "font-bold popup-text-primary" : "popup-text-primary"}`}>
-                                                {data.commissionType === "fixed"
+                                                {data.commission_type === "fixed"
                                                     ? `${data.cph} ${currency}/hour`
                                                     : `${data.cph}%`}
                                             </span>

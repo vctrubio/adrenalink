@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useState, useEffect, useMemo, type ReactNode } from "react";
-import { getTeachers } from "@/actions/teachers-action";
-import type { TeacherModel } from "@/backend/models";
+import { getSchoolTeachersProviderAction } from "@/actions/teachers-action";
+import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface SchoolTeachersContextType {
-    teachers: TeacherModel[];
-    allTeachers: TeacherModel[];
+    teachers: TeacherProvider[];
+    allTeachers: TeacherProvider[];
     loading: boolean;
     error: string | null;
     refetch: () => Promise<void>;
@@ -19,8 +19,8 @@ interface SchoolTeachersProviderProps {
 }
 
 export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps) {
-    const [teachers, setTeachers] = useState<TeacherModel[]>([]);
-    const [allTeachers, setAllTeachers] = useState<TeacherModel[]>([]);
+    const [teachers, setTeachers] = useState<TeacherProvider[]>([]);
+    const [allTeachers, setAllTeachers] = useState<TeacherProvider[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -29,13 +29,13 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
         setError(null);
 
         try {
-            const result = await getTeachers();
+            const result = await getSchoolTeachersProviderAction();
 
             if (result.success && result.data) {
                 // Store all teachers (including inactive)
                 setAllTeachers(result.data);
-                // Filter for active teachers only (for classboard/default use)
-                const activeTeachers = result.data.filter((teacher) => teacher.schema.active);
+                // Filter for active teachers only
+                const activeTeachers = result.data.filter((teacher) => teacher.active);
                 setTeachers(activeTeachers);
             } else {
                 setError(result.error || "Failed to fetch teachers");
