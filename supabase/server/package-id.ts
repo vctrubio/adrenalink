@@ -1,7 +1,35 @@
+"use server";
+
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
-import { PackageData, PackageUpdateForm, PackageRelations } from "@/backend/data/PackageData";
+import { PackageData, PackageUpdateForm, PackageRelations } from "@/backend/data/BookingData"; // Actually PackageData
 import { SchoolPackage } from "@/supabase/db/types";
+import { revalidatePath } from "next/cache";
+
+/**
+ * Updates specific boolean configuration flags for a package.
+ */
+export async function updatePackageConfig(id: string, updates: { active?: boolean; is_public?: boolean }): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) return { success: false, error: "School context not found" };
+
+        const supabase = getServerConnection();
+        const { error } = await supabase
+            .from("school_package")
+            .update(updates)
+            .eq("id", id)
+            .eq("school_id", schoolHeader.id);
+
+        if (error) throw error;
+
+        revalidatePath("/packages");
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating package config:", error);
+        return { success: false, error: "Update failed" };
+    }
+}
 
 /**
  * Fetches a school package by ID with all relations mapped to PackageData interface.

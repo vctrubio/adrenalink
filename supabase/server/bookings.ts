@@ -1,37 +1,9 @@
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
+import type { BookingWithLessonAndPayments, LessonWithPayments, BookingStudentPayments, BookingTableStats } from "@/config/tables";
+import { calculateBookingStats } from "@/backend/data/BookingData";
 
-export interface BookingTableData {
-    id: string;
-    dateStart: string;
-    dateEnd: string;
-    leaderStudentName: string;
-    packageName: string;
-    status: string;
-    capacityStudents: number;
-    packageDetails: {
-        categoryEquipment: string;
-        capacityEquipment: number;
-        durationMinutes: number;
-        pricePerStudent: number;
-    };
-    lessons: {
-        id: string;
-        teacherId: string;
-        teacherUsername: string;
-        eventCount: number;
-        totalDurationHours: number;
-        status: string;
-        commission: {
-            type: "fixed" | "percentage";
-            cph: string;
-        };
-    }[];
-    totalStudentPayments: number;
-    totalEventRevenue: number;
-    totalTeacherPayments: number;
-    totalTeacherCommissions: number;
-}
+export type BookingTableData = BookingWithLessonAndPayments & { stats: BookingTableStats; currency: string };
 
 export async function getBookingsTable(): Promise<BookingTableData[]> {
     try {
@@ -53,6 +25,7 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                 date_end,
                 leader_student_name,
                 status,
+                school!inner(currency),
                 school_package!inner(
                     description,
                     capacity_students,
@@ -73,15 +46,17 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                         commission_type
                     ),
                     event(
-                        duration
+                        duration,
+                        status
                     ),
-                    teacher_lesson_payment(
+                        teacher_lesson_payment(
+                            amount
+                        )
+                ),
+                    student_booking_payment(
+                        student_id,
                         amount
                     )
-                ),
-                student_booking_payment(
-                    amount
-                )
             `)
             .eq("school_id", schoolId)
             .order("date_start", { ascending: false });
@@ -92,71 +67,68 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
         }
 
         return data.map((booking: any) => {
-            const studentCount = booking.school_package.capacity_students || 1;
             const pkg = booking.school_package;
-            const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+            const currency = booking.school?.currency || "EUR";
+            const studentCount = pkg.capacity_students || 1;
+            const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
 
-            let totalTeacherCommissions = 0;
-            let totalTeacherPayments = 0;
-            let totalEventRevenue = 0;
+            const lessons: LessonWithPayments[] = booking.lesson.map((l: any) => {
+                const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0); // minutes
+                const totalCount = l.event.length;
 
-            const lessons = booking.lesson.map((l: any) => {
-                const totalDurationHours = l.event.reduce((sum: number, e: any) => sum + e.duration, 0) / 60;
-                const cph = parseFloat(l.teacher_commission.cph || "0");
-                const type = l.teacher_commission.commission_type;
-                
-                // Revenue for this lesson's portion
-                const lessonRevenue = pricePerHourPerStudent * totalDurationHours * studentCount;
-                totalEventRevenue += lessonRevenue;
-
-                let commissions = 0;
-                if (type === "fixed") {
-                    commissions = cph * totalDurationHours;
-                } else if (type === "percentage") {
-                    commissions = lessonRevenue * (cph / 100);
-                }
-                
-                totalTeacherCommissions += commissions;
-
-                // Actual recorded payments
-                const recordedPayments = l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
-                totalTeacherPayments += recordedPayments;
+                const recordedPayments = l.teacher_lesson_payment ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) : 0;
 
                 return {
                     id: l.id,
                     teacherId: l.teacher.id,
                     teacherUsername: l.teacher.username,
-                    eventCount: l.event.length,
-                    totalDurationHours,
                     status: l.status,
                     commission: {
                         type: l.teacher_commission.commission_type as "fixed" | "percentage",
                         cph: l.teacher_commission.cph,
                     },
+                    events: {
+                        totalCount,
+                        totalDuration: totalDuration,
+                        details: l.event.map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
+                    },
+                    teacherPayments: recordedPayments,
                 };
             });
 
-            const totalStudentPayments = booking.student_booking_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
+            const payments: BookingStudentPayments[] = booking.student_booking_payment
+                ? booking.student_booking_payment.map((p: any) => ({ student_id: p.student_id ?? 0, amount: p.amount }))
+                : [];
+
+            const pkgOut = {
+                description: pkg.description,
+                categoryEquipment: pkg.category_equipment,
+                capacityEquipment: pkg.capacity_equipment,
+                capacityStudents: pkg.capacity_students,
+                durationMinutes: pkg.duration_minutes,
+                pricePerStudent: pkg.price_per_student,
+                pph: pricePerHourPerStudent,
+            };
+
+            const result: BookingWithLessonAndPayments = {
+                booking: {
+                    id: booking.id,
+                    dateStart: booking.date_start,
+                    dateEnd: booking.date_end,
+                    leaderStudentName: booking.leader_student_name,
+                    status: booking.status,
+                },
+                package: pkgOut,
+                lessons,
+                payments,
+            };
+
+            const stats = calculateBookingStats(result);
 
             return {
-                id: booking.id,
-                dateStart: booking.date_start,
-                dateEnd: booking.date_end,
-                leaderStudentName: booking.leader_student_name,
-                packageName: booking.school_package.description,
-                status: booking.status,
-                capacityStudents: booking.school_package.capacity_students,
-                packageDetails: {
-                    categoryEquipment: booking.school_package.category_equipment,
-                    capacityEquipment: booking.school_package.capacity_equipment,
-                    durationMinutes: booking.school_package.duration_minutes,
-                    pricePerStudent: booking.school_package.price_per_student,
-                },
-                lessons,
-                totalStudentPayments,
-                totalEventRevenue,
-                totalTeacherPayments,
-                totalTeacherCommissions,
+                ...result,
+                stats,
+                currency,
             };
         });
     } catch (error) {

@@ -13,6 +13,7 @@ export interface ColumnDef<T> {
 export interface MobileColumnDef<T> {
     label: string;
     render: (row: T) => ReactNode;
+    headerClassName?: string;
 }
 
 export type GroupStats = Record<string, any>;
@@ -97,7 +98,7 @@ function MobileTable<T extends Record<string, any>>({
                 <thead className="text-[10px] uppercase bg-muted/50 text-muted-foreground border-b border-border">
                     <tr>
                         {mobileColumns.map((col, idx) => (
-                            <th key={idx} className="px-3 py-2 font-black">
+                            <th key={idx} className={col.headerClassName || "px-3 py-2 font-black"}>
                                 {col.label}
                             </th>
                         ))}

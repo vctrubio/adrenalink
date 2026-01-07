@@ -1,39 +1,30 @@
 import { getEquipmentsTable } from "@/supabase/server/equipments";
 import { EquipmentsTable } from "./EquipmentsTable";
-import { TablesPageClient } from "@/src/components/tables/TablesPageClient";
-import type { TableStat } from "@/src/components/tables/TablesHeaderStats";
+import { TablesPageClient } from "../TablesPageClient";
+import type { TableStat } from "../TablesHeaderStats";
 
 export default async function EquipmentsMasterTablePage() {
     const equipments = await getEquipmentsTable();
 
-    // Calculate stats
-    const totalEquipment = equipments.length;
-    let totalRentals = 0;
-    let totalEvents = 0;
-    let totalRepairs = 0;
-    let totalDurationMinutes = 0;
-
-    equipments.forEach(e => {
-        totalRentals += e.rentalStats.count;
-        totalEvents += e.activityStats.eventCount;
-        totalRepairs += e.repairStats.count;
-        totalDurationMinutes += e.activityStats.totalDurationMinutes;
-    });
+    const stats_data = equipments.reduce(
+        (acc, curr) => ({
+            equipmentCount: acc.equipmentCount + curr.stats.equipmentCount,
+            totalRepairs: acc.totalRepairs + curr.stats.totalRepairs,
+            totalRentalsCount: acc.totalRentalsCount + curr.stats.totalRentalsCount,
+            totalLessonEventsCount: acc.totalLessonEventsCount + curr.stats.totalLessonEventsCount,
+        }),
+        { equipmentCount: 0, totalRepairs: 0, totalRentalsCount: 0, totalLessonEventsCount: 0 },
+    );
 
     const stats: TableStat[] = [
-        { type: "equipment", value: totalEquipment },
-        { type: "rentals", value: totalRentals },
-        { type: "repairs", value: totalRepairs },
-        { type: "events", value: totalEvents, label: "Usage" },
-        { type: "duration", value: (totalDurationMinutes / 60).toFixed(1) + "h" }
+        { type: "equipment", value: stats_data.equipmentCount, desc: "Total gear in inventory" },
+        { type: "events", value: stats_data.totalLessonEventsCount, label: "Activity", desc: "Lessons using this gear" },
+        { type: "rentals", value: stats_data.totalRentalsCount, desc: "Direct student rentals" },
+        { type: "repairs", value: stats_data.totalRepairs, desc: "Total maintenance logs" },
     ];
 
     return (
-        <TablesPageClient
-            title="Equipments Master Table"
-            description="Monitor gear inventory, repair history, teacher assignments, and total usage."
-            stats={stats}
-        >
+        <TablesPageClient stats={stats}>
             <EquipmentsTable equipments={equipments} />
         </TablesPageClient>
     );

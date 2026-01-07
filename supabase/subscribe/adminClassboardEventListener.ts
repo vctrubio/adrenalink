@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createClient } from "@/supabase/client";
+import { getClientConnection as createClient } from "@/supabase/connection";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard-old-schema";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";

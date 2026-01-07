@@ -1,40 +1,32 @@
 import { getBookingsTable } from "@/supabase/server/bookings";
 import { BookingsTable } from "./BookingsTable";
-import { TablesPageClient } from "@/src/components/tables/TablesPageClient";
-import type { TableStat } from "@/src/components/tables/TablesHeaderStats";
+import { TablesPageClient } from "../TablesPageClient";
+import type { TableStat } from "../TablesHeaderStats";
+import { getAggregateBookings } from "@/backend/data/BookingStats";
 
 export default async function BookingsMasterTablePage() {
     const bookings = await getBookingsTable();
-
-    // Calculate stats
-    const totalBookings = bookings.length;
-    let totalCapacity = 0;
-    let totalEventRevenue = 0;
-    let totalStudentPayments = 0;
-    let totalTeacherCost = 0;
-
-    bookings.forEach(b => {
-        totalCapacity += b.capacityStudents;
-        totalEventRevenue += b.totalEventRevenue;
-        totalStudentPayments += b.totalStudentPayments;
-        // Teacher cost is payment if exists, else commission (liability)
-        totalTeacherCost += (b.totalTeacherPayments || b.totalTeacherCommissions);
-    });
-
-    const profit = totalStudentPayments - totalTeacherCost;
+    const stats_data = getAggregateBookings(bookings);
 
     const stats: TableStat[] = [
-        { type: "bookings", value: totalBookings },
-        { type: "student", value: totalCapacity, label: "Capacity" },
-        { type: "revenue", value: totalEventRevenue.toFixed(0), label: "Event Rev" },
-        { type: "studentPayments", value: totalStudentPayments.toFixed(0), label: "Payments" },
-        { type: "profit", value: profit.toFixed(0), label: "Profit", variant: "profit" }
+        { type: "bookings", value: stats_data.totalBookings, desc: "Total amount of bookings" },
+        { 
+            type: "students", 
+            value: bookings.reduce((sum, b) => sum + b.package.capacityStudents, 0), 
+            label: "Students", 
+            desc: "Total amount of students" 
+        },
+        { type: "events", value: stats_data.events.count, label: "Events", desc: "Total amount of events" },
+        { 
+            type: stats_data.balance >= 0 ? "profit" : "loss", 
+            value: Math.abs(stats_data.balance).toFixed(0), 
+            label: stats_data.balance >= 0 ? "Profit" : "Deficit",
+            desc: stats_data.balance >= 0 ? "Operating profit" : "Operating deficit"
+        },
     ];
 
     return (
         <TablesPageClient
-            title="Bookings Master Table"
-            description="Comprehensive view of all school bookings and their status."
             stats={stats}
         >
             <BookingsTable bookings={bookings} />

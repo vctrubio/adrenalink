@@ -24,22 +24,12 @@ interface TeacherLessonStatsBadgeProps {
     currency?: string;
 }
 
-export function TeacherLessonStatsBadge({
-    teacherId,
-    teacherUsername,
-    eventCount,
-    durationMinutes,
-    isLoading = false,
-    status = "active",
-    onClick,
-    showCommission = false,
-    commission,
-    currency = "EUR",
-}: TeacherLessonStatsBadgeProps) {
+export function TeacherLessonStatsBadge({ teacherId, teacherUsername, eventCount, durationMinutes, isLoading = false, status = "active", onClick, showCommission = false, commission }: TeacherLessonStatsBadgeProps) {
     const router = useRouter();
     const config = LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] || { color: "#22c55e", label: status };
     const teacherColor = config.color;
-    const durationStr = getFullDuration(durationMinutes);
+    const safeDuration = durationMinutes || 0;
+    const durationStr = getFullDuration(safeDuration);
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -50,9 +40,8 @@ export function TeacherLessonStatsBadge({
         }
     };
 
-    const formattedCommission = commission 
-        ? Math.round(parseFloat(commission.cph)).toString() + (commission.type === "percentage" ? "%" : "")
-        : "";
+    const cphValue = commission ? parseFloat(commission.cph) : 0;
+    const formattedCommission = !isNaN(cphValue) ? Math.round(cphValue).toString() + (commission?.type === "percentage" ? "%" : "") : "0";
 
     return (
         <button
@@ -63,7 +52,7 @@ export function TeacherLessonStatsBadge({
         >
             <div className="relative flex items-center justify-center text-muted-foreground group-hover:text-primary">
                 <div style={{ color: teacherColor, opacity: isLoading ? 0.4 : 1 }}>
-                    <HeadsetIcon size={16} />
+                    <HeadsetIcon size={16} className="text-emerald-600 dark:text-emerald-400" />
                 </div>
                 {isLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -72,13 +61,11 @@ export function TeacherLessonStatsBadge({
                 )}
             </div>
             <span className="font-medium text-foreground">{teacherUsername}</span>
-            
-            {showCommission && commission && (
+
+            {showCommission && (
                 <div className="flex items-center gap-1 ml-0.5">
-                    <HandshakeIcon size={14} className="text-emerald-600/70" />
-                    <span className="font-bold text-[10px] text-emerald-700 dark:text-emerald-400">
-                        {formattedCommission}
-                    </span>
+                    <HandshakeIcon size={12} className="text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-black text-[10px] ">{formattedCommission}</span>
                 </div>
             )}
 

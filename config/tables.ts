@@ -1,48 +1,366 @@
-import { ENTITY_DATA, type EntityConfig } from "./entities";
-import OctagonIcon from "../public/appSvgs/OctagonIcon.jsx";
+/**
+TYPES OF TABLE DATA
+ */
+import { BOOKING_STATUS, LESSON_STATUS } from "supabase/db/enums";
 
-// users dont need to know about this.
-export const HIDDEN_ENTITIES: EntityConfig[] = [
-    {
-        id: "school_students",
-        name: "School Students",
-        icon: OctagonIcon,
-        color: "text-amber-600",
-        bgColor: "bg-amber-400",
-        link: "/schools",
-        description: ["Manages the relationship between schools and students."],
-        relations: ["school", "student"],
-    },
-    {
-        id: "booking_student",
-        name: "Students Bookings",
-        icon: OctagonIcon,
-        color: "text-blue-500",
-        bgColor: "bg-blue-300",
-        link: "/bookings",
-        description: ["Links students to specific bookings."],
-        relations: ["booking", "student"],
-    },
-    {
-        id: "equipment_event",
-        name: "Equipment Events",
-        icon: OctagonIcon,
-        color: "text-sky-500",
-        bgColor: "bg-sky-300",
-        link: "/events?equipment=true",
-        description: ["Assigns specific equipment to scheduled events."],
-        relations: ["equipment", "event"],
-    },
-    {
-        id: "teacher_equipment",
-        name: "Equipment Permissions",
-        icon: OctagonIcon,
-        color: "text-teal-500",
-        bgColor: "bg-teal-300",
-        link: "/permissions",
-        description: ["Assigns specific equipment to authorized teachers."],
-        relations: ["teacher", "equipment"],
-    },
-];
+export interface Booking {
+    id: string;
+    dateStart: string;
+    dateEnd: string;
+    leaderStudentName: string;
+    status: (typeof BOOKING_STATUS)[keyof typeof BOOKING_STATUS];
+}
 
-export const TABLE_CONFIG: EntityConfig[] = [...ENTITY_DATA, ...HIDDEN_ENTITIES];
+export interface Package {
+    description: string;
+    categoryEquipment: string;
+    capacityEquipment: number;
+    capacityStudents: number;
+    durationMinutes: number;
+    pricePerStudent: number;
+    pph: number; // price per hour per student
+}
+
+export interface Commission {
+    type: "fixed" | "percentage";
+    cph: string;
+}
+
+export interface LessonEvents {
+    id: string;
+    teacherId: string;
+    teacherUsername: string;
+    status: (typeof LESSON_STATUS)[keyof typeof LESSON_STATUS];
+    commission: Commission;
+    events: {
+        totalCount: number;
+        totalDuration: number; // in minutes
+        details: { status: string; duration: number }[];
+    };
+}
+
+export interface LessonWithPayments extends LessonEvents {
+    teacherPayments: number;
+    dateCreated: string;
+    category: string;
+    lessonRevenue: number;
+    leaderStudentName: string;
+    capacityStudents: number;
+    bookingId: string;
+}
+
+export interface BookingStudentPayments {
+    student_id: number;
+    amount: number;
+}
+
+export interface BookingWithLessonAndPayments {
+    booking: Booking;
+    package: Package;
+    lessons: LessonWithPayments[];
+    payments: BookingStudentPayments[];
+}
+
+export interface Students {
+    id: string;
+    firstName: string;
+    lastName: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    bookings: BookingWithLessonAndPayments[];
+}
+
+export interface Teachers {
+
+    id: string;
+
+    username: string;
+
+    firstName: string;
+
+    lastName: string;
+
+    country: string;
+
+    phone: string;
+
+    languages: string[];
+
+    lessons: LessonEvents[];
+
+}
+
+
+
+export interface TeacherWithLessonsAndPayments {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    active: boolean;
+    lessons: LessonWithPayments[];
+    equipments: {
+        id: string;
+        model: string;
+        brand: string;
+        size: number | null;
+        category: string;
+    }[];
+    activityStats: Record<string, { count: number; durationMinutes: number }>;
+}
+
+
+
+export type TeacherTableData = TeacherWithLessonsAndPayments & { stats: TeacherTableStats };
+
+
+
+/*
+
+TABLE STATS INTERFACES
+
+*/
+
+
+
+export interface BookingTableStats {
+
+    events: {
+
+        count: number;
+
+        duration: number;
+
+        revenue: number;
+
+        statusCounts: {
+
+            planned: number;
+
+            tbc: number;
+
+            completed: number;
+
+            uncompleted: number;
+
+        };
+
+    };
+
+    payments: {
+
+        student: number;
+
+        teacher: number;
+
+    };
+
+    commissions: number;
+
+    balance: number;
+
+}
+
+
+
+export interface StudentTableStats {
+
+    totalBookings: number;
+
+    totalEvents: number;
+
+    totalDurationMinutes: number;
+
+    totalRevenue: number;
+
+    totalPayments: number;
+
+}
+
+
+
+export interface TeacherTableStats {
+
+    teacherCount: number;
+
+    totalLessons: number;
+
+    totalDurationMinutes: number;
+
+    totalCommissions: number;
+
+    totalPayments: number;
+
+}
+
+
+
+export interface EquipmentTableStats {
+    equipmentCount: number;
+    totalRentalsCount: number;
+    totalLessonEventsCount: number;
+    totalRepairs: number;
+}
+
+export interface EquipmentAssignedTeacher {
+    id: string;
+    username: string;
+    eventCount: number;
+    durationMinutes: number;
+}
+
+export interface EquipmentWithRepairsRentalsEvents {
+    id: string;
+    sku: string;
+    brand: string;
+    model: string;
+    color: string | null;
+    size: number | null;
+    category: string;
+    status: string;
+    assignedTeachers: EquipmentAssignedTeacher[];
+    repairStats: {
+        count: number;
+    };
+    rentalStats: {
+        count: number;
+    };
+    activityStats: {
+        eventCount: number;
+        totalDurationMinutes: number;
+    };
+}
+
+export type EquipmentTableData = EquipmentWithRepairsRentalsEvents & { stats: EquipmentTableStats };
+
+export interface PackageWithUsageStats {
+    id: string;
+    description: string;
+    categoryEquipment: string;
+    capacityEquipment: number;
+    capacityStudents: number;
+    durationMinutes: number;
+    pricePerStudent: number;
+    packageType: string;
+    isPublic: boolean;
+    active: boolean;
+    usageStats: {
+        bookingCount: number;
+        requestCount: number;
+        revenue: number;
+    };
+}
+
+export type PackageTableData = PackageWithUsageStats & { stats: PackageTableStats };
+
+/*
+TABLE STATS INTERFACES
+*/
+
+export interface BookingTableStats {
+    events: {
+        count: number;
+        duration: number;
+        revenue: number;
+        statusCounts: {
+            planned: number;
+            tbc: number;
+            completed: number;
+            uncompleted: number;
+        };
+    };
+    payments: {
+        student: number;
+        teacher: number;
+    };
+    commissions: number;
+    balance: number;
+}
+
+export interface StudentTableStats {
+    totalBookings: number;
+    totalEvents: number;
+    totalDurationMinutes: number;
+    totalRevenue: number;
+    totalPayments: number;
+}
+
+export interface TeacherTableStats {
+    teacherCount: number;
+    totalLessons: number;
+    totalDurationMinutes: number;
+    totalCommissions: number;
+    totalPayments: number;
+}
+
+export interface EquipmentTableStats {
+    equipmentCount: number;
+    totalRentalsCount: number;
+    totalLessonEventsCount: number;
+    totalRepairs: number;
+}
+
+export interface EquipmentAssignedTeacher {
+    id: string;
+    username: string;
+    eventCount: number;
+    durationMinutes: number;
+}
+
+export interface EquipmentWithRepairsRentalsEvents {
+    id: string;
+    sku: string;
+    brand: string;
+    model: string;
+    color: string | null;
+    size: number | null;
+    category: string;
+    status: string;
+    assignedTeachers: EquipmentAssignedTeacher[];
+    repairStats: {
+        count: number;
+    };
+    rentalStats: {
+        count: number;
+    };
+    activityStats: {
+        eventCount: number;
+        totalDurationMinutes: number;
+    };
+}
+
+export type EquipmentTableData = EquipmentWithRepairsRentalsEvents & { stats: EquipmentTableStats };
+
+export interface StudentWithBookingsAndPayments {
+    id: string;
+    firstName: string;
+    lastName: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    schoolStudentStatus: string;
+    schoolStudentDescription: string | null;
+    bookings: {
+        id: string;
+        status: string;
+        dateStart: string;
+        dateEnd: string;
+        packageName: string;
+        packageDetails: Package;
+        lessons: LessonWithPayments[];
+        stats: BookingTableStats;
+    }[];
+}
+
+export type StudentTableData = StudentWithBookingsAndPayments & { stats: StudentTableStats };
+
+export interface PackageTableStats {
+    packageCount: number;
+    totalBookings: number;
+    totalRequests: number;
+    totalRevenue: number;
+}

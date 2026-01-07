@@ -42,7 +42,7 @@ export function BrandSizeCategoryList({
     }
 
     return (
-        <div className={`flex flex-col gap-0.5 ${className}`}>
+        <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
             {equipments.map((eq, i) => (
                 <BrandSizeCategoryBadge 
                     key={i} 

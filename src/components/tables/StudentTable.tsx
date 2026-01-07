@@ -7,6 +7,8 @@ import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 import { filterBySearch } from "@/types/searching-entities";
+import ReactCountryFlag from "react-country-flag";
+import { COUNTRIES } from "@/config/countries";
 
 interface Student {
     id: string;
@@ -42,7 +44,7 @@ interface StudentTableProps {
     studentStatsMap?: Record<string, StudentStats>;
 }
 
-type SortColumn = "firstName" | "lastName" | "country" | "languages" | "status" | null;
+type SortColumn = "firstName" | "lastName" | "status" | null;
 
 export function StudentTable({
     students,
@@ -91,12 +93,6 @@ export function StudentTable({
                         break;
                     case "lastName":
                         comparison = studentA.lastName.localeCompare(studentB.lastName);
-                        break;
-                    case "country":
-                        comparison = studentA.country.localeCompare(studentB.country);
-                        break;
-                    case "languages":
-                        comparison = (studentA.languages[0] || "").localeCompare(studentB.languages[0] || "");
                         break;
                     case "status":
                         const countA = statsA?.bookingCount || 0;
@@ -149,23 +145,7 @@ export function StudentTable({
                             sortDirection={sortDirection}
                             onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}
                         >
-                            Name
-                        </TableHead>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "country"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("country")}
-                        >
-                            Country
-                        </TableHead>
-                        <TableHead
-                            sortable
-                            sortActive={sortColumn === "languages"}
-                            sortDirection={sortDirection}
-                            onSort={() => handleSort("languages")}
-                        >
-                            Languages
+                            Student Profile
                         </TableHead>
                         <TableHead
                             sortable
@@ -194,13 +174,19 @@ export function StudentTable({
                             className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                         >
                             <TableCell className="font-medium text-foreground">
-                                <div>
-                                    <div>{student.firstName} {student.lastName}</div>
-                                    <div className="text-xs text-muted-foreground">{student.passport}</div>
+                                <div className="flex flex-col gap-0.5">
+                                    <div className="font-bold text-sm">{student.firstName} {student.lastName}</div>
+                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-tight font-black">
+                                        <span>{student.passport}</span>
+                                        <span className="opacity-20 text-foreground">|</span>
+                                        <div className="flex items-center gap-1">
+                                            <ReactCountryFlag countryCode={getCountryCode(student.country)} svg style={{ width: '1.2em', height: '1.2em' }} />
+                                        </div>
+                                        <span className="opacity-20 text-foreground">|</span>
+                                        <span className="truncate max-w-[200px]">{student.languages.join(", ")}</span>
+                                    </div>
                                 </div>
                             </TableCell>
-                            <TableCell>{student.country}</TableCell>
-                            <TableCell>{student.languages.join(", ")}</TableCell>
                             <TableCell>
                                 <StudentStatusBadge
                                     bookingCount={stats.bookingCount}
@@ -215,4 +201,9 @@ export function StudentTable({
         </Table>
         </div>
     );
+}
+
+function getCountryCode(countryName: string): string {
+    const country = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
+    return country?.code || "US";
 }

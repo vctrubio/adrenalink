@@ -1,13 +1,14 @@
 "use client";
 
 import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
-import { PackageStatusLabel } from "@/src/components/labels/PackageStatusLabel";
-import { PackagePublicLabel } from "@/src/components/labels/PackagePublicLabel";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { ENTITY_DATA } from "@/config/entities";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import type { PackageTableData } from "@/supabase/server/packages";
+import type { PackageTableData } from "@/config/tables";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
+import RequestIcon from "@/public/appSvgs/RequestIcon";
+import { StatItemUI } from "@/backend/data/StatsData";
+import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -49,30 +50,41 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             ),
         },
         {
-            header: "Bookings",
+            header: "Activity",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => (
-                <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
-                    <BookingIcon size={16} className="text-blue-600/40" />
-                    <span>{data.usageStats.bookingCount}</span>
+                <div className="flex items-center gap-4">
+                    <StatItemUI 
+                        type="bookings" 
+                        value={data.usageStats.bookingCount} 
+                        iconColor={true} 
+                        desc="Total confirmed bookings"
+                    />
+                    <StatItemUI 
+                        type="requests" 
+                        value={data.usageStats.requestCount} 
+                        iconColor={true} 
+                        desc="Pending package requests"
+                    />
+                    <StatItemUI 
+                        type="revenue" 
+                        value={data.usageStats.revenue.toFixed(0)} 
+                        iconColor={true} 
+                        desc="Revenue from confirmed bookings"
+                    />
                 </div>
             ),
         },
         {
-            header: "Visibility",
+            header: "Config",
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
                 <div className="flex justify-center">
-                    <PackagePublicLabel packageId={data.id} isPublic={data.isPublic} />
-                </div>
-            ),
-        },
-        {
-            header: "Status",
-            headerClassName: HEADER_CLASSES.center,
-            render: (data) => (
-                <div className="flex justify-center">
-                    <PackageStatusLabel packageId={data.id} isActive={data.active} />
+                    <PackageConfigToggles 
+                        packageId={data.id} 
+                        isActive={data.active} 
+                        isPublic={data.isPublic} 
+                    />
                 </div>
             ),
         },
@@ -81,6 +93,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
     const mobileColumns: MobileColumnDef<PackageTableData>[] = [
         {
             label: "Package",
+            headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
@@ -102,20 +115,26 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             ),
         },
         {
-            label: "Bookings",
+            label: "Activity",
+            headerClassName: HEADER_CLASSES.blue,
             render: (data) => (
-                <div className="flex items-center gap-1 text-[10px] font-black text-blue-600">
-                    <BookingIcon size={12} />
-                    <span>{data.usageStats.bookingCount}</span>
+                <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
+                    <StatItemUI type="bookings" value={data.usageStats.bookingCount} iconColor={true} />
+                    <StatItemUI type="requests" value={data.usageStats.requestCount} iconColor={true} />
+                    <StatItemUI type="revenue" value={data.usageStats.revenue.toFixed(0)} iconColor={true} />
                 </div>
             ),
         },
         {
-            label: "Status",
+            label: "Config",
+            headerClassName: HEADER_CLASSES.center,
             render: (data) => (
-                <div className="flex flex-col gap-1 items-end scale-90 origin-right">
-                    <PackageStatusLabel packageId={data.id} isActive={data.active} />
-                    <PackagePublicLabel packageId={data.id} isPublic={data.isPublic} />
+                <div className="flex justify-end scale-90 origin-right">
+                    <PackageConfigToggles 
+                        packageId={data.id} 
+                        isActive={data.active} 
+                        isPublic={data.isPublic} 
+                    />
                 </div>
             ),
         },

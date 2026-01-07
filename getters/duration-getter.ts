@@ -37,6 +37,10 @@ export function getHMDuration(durationMinutes: number, withUnits = true): string
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
+    if (totalMinutes === 0) {
+        return "0";
+    }
+
     if (!withUnits) {
         if (hours === 0) {
             return `${minutes}`;

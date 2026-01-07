@@ -3,14 +3,14 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 
-interface SportActivityBadgeProps {
+interface SportEquipmentDurationBadgeProps {
     category: string;
     count: number;
     durationMinutes: number;
     className?: string;
 }
 
-export function SportActivityBadge({ category, count, durationMinutes, className = "" }: SportActivityBadgeProps) {
+export function SportEquipmentDurationBadge({ category, count, durationMinutes, className = "" }: SportEquipmentDurationBadgeProps) {
     const config = EQUIPMENT_CATEGORIES.find(c => c.id === category);
     const Icon = config?.icon || FlagIcon;
     const color = config?.color || "#a855f7";
@@ -32,7 +32,7 @@ export function SportActivityBadge({ category, count, durationMinutes, className
     );
 }
 
-export function SportActivityList({ stats, className = "" }: { stats: Record<string, { count: number, durationMinutes: number }>, className?: string }) {
+export function SportEquipmentDurationList({ stats, className = "" }: { stats: Record<string, { count: number, durationMinutes: number }>, className?: string }) {
     const entries = Object.entries(stats);
     if (entries.length === 0) {
         return <span className="text-xs text-muted-foreground italic">-</span>;
@@ -41,7 +41,7 @@ export function SportActivityList({ stats, className = "" }: { stats: Record<str
     return (
         <div className={`flex flex-wrap gap-2 ${className}`}>
             {entries.map(([category, data]) => (
-                <SportActivityBadge 
+                <SportEquipmentDurationBadge 
                     key={category} 
                     category={category} 
                     count={data.count} 

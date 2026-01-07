@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode, createContext, useContext, useState, useCallback } from "react";
-import type { TableStat } from "@/src/components/tables/TablesHeaderStats";
-import { TableLayout } from "@/src/components/layouts/TableLayout";
+import { ReactNode, createContext, useContext, useState, useCallback, useMemo } from "react";
+import type { TableStat } from "./TablesHeaderStats";
+import { TableLayout } from "./TableLayout";
 
 interface TablesController {
     stats: TableStat[];
@@ -26,18 +26,17 @@ export default function TablesLayout({ children }: { children: ReactNode }) {
         setStats(newStats);
     }, []);
 
-    const controller: TablesController = {
-        stats,
-        onStatsChange: handleStatsChange,
-    };
+    const controller: TablesController = useMemo(
+        () => ({
+            stats,
+            onStatsChange: handleStatsChange,
+        }),
+        [stats, handleStatsChange],
+    );
 
     return (
         <TablesContext.Provider value={controller}>
-            <div className="p-6">
-                <TableLayout stats={stats}>
-                    {children}
-                </TableLayout>
-            </div>
+            <TableLayout stats={stats}>{children}</TableLayout>
         </TablesContext.Provider>
     );
 }

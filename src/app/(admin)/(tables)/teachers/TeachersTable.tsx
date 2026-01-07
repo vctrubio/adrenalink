@@ -1,24 +1,17 @@
 "use client";
 
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { COUNTRIES } from "@/config/countries";
 import { ENTITY_DATA } from "@/config/entities";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
-import { TeacherStatusLabel } from "@/src/components/labels/TeacherStatusLabel";
-import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
+import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
 import { TeacherStatusBadge } from "@/src/components/ui/badge";
-import { SportActivityList } from "@/src/components/ui/badge/sport-activity";
-import { getHMDuration } from "@/getters/duration-getter";
-import type { TeacherTableData } from "@/supabase/server/teachers";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import LessonIcon from "@/public/appSvgs/LessonIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import CreditIcon from "@/public/appSvgs/CreditIcon";
+import { StatItemUI } from "@/backend/data/StatsData";
+import { type TeacherTableData } from "@/config/tables";
+import { SportEquipmentDurationList } from "@/src/components/ui/badge/sport-equipment-duration";
+import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
+import { ActiveTeacherLessonBadge } from "@/src/components/ui/badge/active-teacher-lesson";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import ReactCountryFlag from "react-country-flag";
-import { TrendingDown, Check } from "lucide-react";
+import Link from "next/link";
+import { COUNTRIES } from "@/config/countries";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -30,158 +23,167 @@ const HEADER_CLASSES = {
 } as const;
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
+    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+
     const desktopColumns: ColumnDef<TeacherTableData>[] = [
         {
             header: "Teacher Profile",
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
-                <div className="flex flex-col gap-1.5 items-start">
-                    <div className="flex items-center gap-3">
-                        <HoverToEntity entity={ENTITY_DATA.find(e => e.id === "teacher")!} id={data.id}>
-                            <span className="font-bold text-foreground whitespace-nowrap">{data.firstName} {data.lastName}</span>
-                        </HoverToEntity>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1" title={data.country}>
-                                <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
-                                <span>{data.country}</span>
-                            </div>
-                            <span>•</span>
-                            <span className="truncate max-w-[150px]">{data.languages.join(", ")}</span>
+                <div className="flex flex-col gap-1 items-start">
+                    <Link 
+                        href={`${teacherEntity.link}/${data.id}`}
+                        className="flex items-center gap-2 group"
+                    >
+                        <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">{data.firstName} {data.lastName}</span>
+                        <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} title={data.active ? "Active" : "Inactive"} />
+                    </Link>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-tight">
+                        <div className="flex items-center" title={data.country}>
+                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1.2em', height: '1.2em' }} />
                         </div>
+                        <span className="opacity-20 text-foreground">|</span>
+                        <span className="tabular-nums">{data.phone}</span>
+                        <span className="opacity-20 text-foreground">|</span>
+                        <span className="tabular-nums">@{data.username}</span>
                     </div>
-                    <TeacherStatusLabel 
-                        teacherId={data.id} 
-                        isActive={data.active} 
+                </div>
+            ),
+        },
+        {
+            header: "Lessons",
+            headerClassName: HEADER_CLASSES.blue,
+            render: (data) => {
+                const activeTeacherLessons = data.lessons.filter(l => l.status === "active" || l.status === "rest");
+                
+                return (
+                    <div className="flex flex-col gap-2">
+                        {activeTeacherLessons.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pb-2 mb-1 border-b border-border/40">
+                                {activeTeacherLessons.map(l => (
+                                    <ActiveTeacherLessonBadge 
+                                        key={l.id}
+                                        bookingId={l.bookingId}
+                                        category={l.category}
+                                        leaderName={l.leaderStudentName}
+                                        capacity={l.capacityStudents}
+                                        status={l.status}
+                                        commission={l.commission}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        <SportEquipmentDurationList stats={data.activityStats} />
+                    </div>
+                );
+            },
+        },
+        {
+            header: "Equipment",
+            headerClassName: HEADER_CLASSES.purple,
+            render: (data) => (
+                <div className="flex flex-row flex-wrap gap-3 max-w-[300px]">
+                    <BrandSizeCategoryList 
+                        equipments={data.equipments.map(e => {
+                            const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
+                            return {
+                                id: e.id,
+                                brand: e.brand,
+                                model: e.model,
+                                size: e.size,
+                                icon: config?.icon
+                            };
+                        })}
+                        showIcon={true}
                     />
                 </div>
             ),
         },
         {
-            header: "Status",
-            headerClassName: HEADER_CLASSES.green,
-            render: (data) => (
-                <TeacherStatusBadge 
-                    totalLessons={data.lessonStats.totalLessons} 
-                    plannedLessons={data.lessonStats.plannedLessons} 
-                />
-            ),
-        },
-        {
-            header: "EQUIPMENT",
-            headerClassName: HEADER_CLASSES.purple,
-            render: (data) => (
-                <BrandSizeCategoryList 
-                    equipments={data.equipments.map(e => {
-                        const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
-                        return {
-                            id: e.id,
-                            brand: e.brand,
-                            model: e.model,
-                            size: e.size,
-                            icon: config?.icon
-                        };
-                    })}
-                    showIcon={true}
-                />
-            ),
-        },
-        {
-            header: "Activity",
-            headerClassName: HEADER_CLASSES.purple,
-            render: (data) => <SportActivityList stats={data.activityStats} />,
-        },
-        {
-            header: "Financials",
+            header: "Stats",
             headerClassName: HEADER_CLASSES.zinc,
-            render: (data) => {
-                const earned = data.financialStats.totalCommissions;
-                const paid = data.financialStats.totalPayments;
-                const balance = earned - paid;
-                const isSettled = Math.abs(balance) < 1;
-
-                return (
-                    <div className="flex items-center gap-4 text-xs font-bold tabular-nums">
-                        <div className="flex items-center gap-1.5" title="Total Earned (Commissions)">
-                            <HandshakeIcon size={14} className="text-muted-foreground/40" />
-                            <span className="text-foreground">{earned.toFixed(0)}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5" title="Total Paid">
-                            <CreditIcon size={14} className="text-muted-foreground/40" />
-                            <span className="text-foreground">{paid.toFixed(0)}</span>
-                        </div>
-                        {!isSettled && (
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600">
-                                <TrendingDown size={12} />
-                                <span>{balance.toFixed(0)} due</span>
-                            </div>
-                        )}
-                        {isSettled && earned > 0 && (
-                            <div className="text-emerald-600 flex items-center gap-1">
-                                <Check size={12} strokeWidth={3} />
-                                <span className="text-[10px] uppercase font-black">Settled</span>
-                            </div>
-                        )}
-                    </div>
-                );
-            },
+            render: (data) => (
+                <div className="flex items-center gap-4">
+                    <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} />
+                    <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} />
+                    <StatItemUI type="commission" value={data.stats.totalCommissions.toFixed(0)} iconColor={true} />
+                    <StatItemUI type="teacherPayments" value={data.stats.totalPayments.toFixed(0)} labelOverride="Paid" iconColor={true} />
+                </div>
+            ),
         },
     ];
 
     const mobileColumns: MobileColumnDef<TeacherTableData>[] = [
         {
             label: "Teacher",
+            headerClassName: HEADER_CLASSES.green,
             render: (data) => (
                 <div className="flex flex-col gap-1">
-                    <HoverToEntity entity={ENTITY_DATA.find(e => e.id === "teacher")!} id={data.id}>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
                         <div className="font-bold text-sm">{data.firstName} {data.lastName}</div>
-                    </HoverToEntity>
-                    <div className="text-[10px] font-medium text-muted-foreground">@{data.username}</div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
+                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
+                        <span className="opacity-20 text-foreground">|</span>
+                        <span>@{data.username}</span>
+                    </div>
                 </div>
             ),
         },
         {
-            label: "Stats",
+            label: "Activity",
+            headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                const stats = Object.values(data.activityStats).reduce(
-                    (acc, curr) => ({
-                        count: acc.count + curr.count,
-                        durationMinutes: acc.durationMinutes + curr.durationMinutes,
-                    }),
-                    { count: 0, durationMinutes: 0 }
-                );
+                const activeTeacherLessons = data.lessons.filter(l => l.status === "active" || l.status === "rest");
                 
+                if (activeTeacherLessons.length > 0) {
+                    return (
+                        <div className="flex flex-col gap-1.5 scale-90 origin-right items-end">
+                            {activeTeacherLessons.map(l => (
+                                <ActiveTeacherLessonBadge 
+                                    key={l.id}
+                                    bookingId={l.bookingId}
+                                    category={l.category}
+                                    leaderName={l.leaderStudentName}
+                                    capacity={l.capacityStudents}
+                                    status={l.status}
+                                    commission={l.commission}
+                                />
+                            ))}
+                        </div>
+                    );
+                }
+
                 return (
-                    <div className="flex flex-col gap-1 text-[10px] font-bold">
-                        <div className="flex items-center gap-1" title="Lessons">
-                            <LessonIcon size={10} className="text-muted-foreground/60" />
-                            <span>{stats.count}</span>
-                        </div>
-                        <div className="flex items-center gap-1" title="Duration">
-                            <DurationIcon size={10} className="text-muted-foreground/60" />
-                            <span>{(stats.durationMinutes / 60).toFixed(1)}h</span>
-                        </div>
+                    <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
+                        <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} />
+                        <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} />
+                        <StatItemUI type="commission" value={data.stats.totalCommissions.toFixed(0)} iconColor={true} />
+                        <StatItemUI type="teacherPayments" value={data.stats.totalPayments.toFixed(0)} iconColor={true} />
                     </div>
                 );
             },
         },
         {
-            label: "Balance",
-            render: (data) => {
-                const balance = data.financialStats.totalCommissions - data.financialStats.totalPayments;
-                return (
-                    <span className={`text-xs font-black ${balance > 1 ? "text-rose-600" : "text-emerald-600"}`}>
-                        {balance > 1 ? balance.toFixed(0) : "Paid"}
-                    </span>
-                );
-            },
-        },
-        {
-            label: "Status",
+            label: "Equipment",
+            headerClassName: HEADER_CLASSES.purple,
             render: (data) => (
-                <TeacherStatusLabel 
-                    teacherId={data.id} 
-                    isActive={data.active} 
-                />
+                <div className="scale-90 origin-right flex justify-end">
+                    <BrandSizeCategoryList 
+                        equipments={data.equipments.map(e => {
+                            const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
+                            return {
+                                id: e.id,
+                                brand: e.brand,
+                                model: e.model,
+                                size: e.size,
+                                icon: config?.icon
+                            };
+                        })}
+                        showIcon={true}
+                    />
+                </div>
             ),
         },
     ];

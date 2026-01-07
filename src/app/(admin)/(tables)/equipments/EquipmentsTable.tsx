@@ -6,13 +6,15 @@ import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLab
 import { getHMDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
-import type { EquipmentTableData } from "@/supabase/server/equipments";
+import type { EquipmentTableData } from "@/config/tables";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import RepairIcon from "@/public/appSvgs/RepairIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { Activity } from "lucide-react";
+
+import { StatItemUI } from "@/backend/data/StatsData";
 
 const HEADER_CLASSES = {
     purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
@@ -58,22 +60,34 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             },
         },
         {
-            header: "Repairs",
-            headerClassName: HEADER_CLASSES.purple,
+            header: "Activity",
+            headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <div className="flex items-center gap-2 text-sm font-bold text-purple-600 dark:text-purple-400">
-                    <RepairIcon size={16} className="text-purple-600/40" />
-                    <span>{data.repairStats.count}</span>
-                </div>
-            ),
-        },
-        {
-            header: "Rentals",
-            headerClassName: HEADER_CLASSES.red,
-            render: (data) => (
-                <div className="flex items-center gap-2 text-sm font-bold text-rose-600 dark:text-rose-400">
-                    <HelmetIcon size={16} className="text-rose-600/40" />
-                    <span>{data.rentalStats.count}</span>
+                <div className="flex items-center gap-4 text-xs font-medium">
+                    <StatItemUI 
+                        type="events" 
+                        value={data.activityStats.eventCount} 
+                        iconColor={true} 
+                        desc={`Total lessons using ${data.brand} ${data.model}`}
+                    />
+                    <StatItemUI 
+                        type="duration" 
+                        value={data.activityStats.totalDurationMinutes} 
+                        iconColor={true} 
+                        desc={`Total operating hours for this gear`}
+                    />
+                    <StatItemUI 
+                        type="rentals" 
+                        value={data.rentalStats.count} 
+                        iconColor={true} 
+                        desc={`Total student rentals`}
+                    />
+                    <StatItemUI 
+                        type="repairs" 
+                        value={data.repairStats.count} 
+                        iconColor={true} 
+                        desc={`Total repair logs`}
+                    />
                 </div>
             ),
         },
@@ -89,34 +103,22 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                                 <span className="text-foreground font-bold">{teacher.username}</span>
                             </div>
                             <div className="flex items-center gap-3 ml-2 border-l border-border/50 pl-2">
-                                <div className="flex items-center gap-1 text-muted-foreground/70" title="Events">
-                                    <FlagIcon size={12} />
-                                    <span>{teacher.eventCount}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-muted-foreground/70" title="Duration">
-                                    <DurationIcon size={12} />
-                                    <span>{getHMDuration(teacher.durationMinutes)}</span>
-                                </div>
+                                <StatItemUI 
+                                    type="events" 
+                                    value={teacher.eventCount} 
+                                    iconColor={true} 
+                                    desc={`Lessons by ${teacher.username}`}
+                                />
+                                <StatItemUI 
+                                    type="duration" 
+                                    value={teacher.durationMinutes} 
+                                    iconColor={true} 
+                                    desc={`Duration by ${teacher.username}`}
+                                />
                             </div>
                         </div>
                     ))}
                     {data.assignedTeachers.length === 0 && <span className="text-xs text-muted-foreground italic">-</span>}
-                </div>
-            ),
-        },
-        {
-            header: "Usage",
-            headerClassName: HEADER_CLASSES.zinc,
-            render: (data) => (
-                <div className="flex items-center gap-4 text-xs font-medium">
-                    <div className="flex items-center gap-1.5" title="Total Events">
-                        <FlagIcon size={14} className="text-zinc-600/60" />
-                        <span>{data.activityStats.eventCount}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5" title="Total Duration">
-                        <DurationIcon size={14} className="text-zinc-600/60" />
-                        <span>{getHMDuration(data.activityStats.totalDurationMinutes)}</span>
-                    </div>
                 </div>
             ),
         },
@@ -133,57 +135,45 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
 
     const mobileColumns: MobileColumnDef<EquipmentTableData>[] = [
         {
-            label: "Gear",
+            label: "Equipment",
+            headerClassName: HEADER_CLASSES.purple,
             render: (data) => {
                 const config = EQUIPMENT_CATEGORIES.find(c => c.id === data.category);
                 const Icon = config?.icon || Activity;
                 const color = config?.color || "#a855f7";
                 
                 return (
-                    <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2">
-                            <div style={{ color }}>
-                                <Icon size={14} />
-                            </div>
-                            <HoverToEntity entity={equipmentEntity} id={data.id}>
-                                <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
-                            </HoverToEntity>
+                    <div className="flex items-center gap-2">
+                        <div style={{ color }}>
+                            <Icon size={14} />
                         </div>
+                        <HoverToEntity entity={equipmentEntity} id={data.id}>
+                            <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
+                        </HoverToEntity>
                         {data.size && (
-                            <div className="w-fit bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px]">
+                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
                                 {data.size}
-                            </div>
+                            </span>
                         )}
                     </div>
                 );
             },
         },
         {
-            label: "Rentals",
-            render: (data) => (
-                <div className="flex items-center gap-1 text-sm font-bold text-rose-600 dark:text-rose-400">
-                    <HelmetIcon size={14} className="text-rose-600/40" />
-                    <span>{data.rentalStats.count}</span>
-                </div>
-            ),
-        },
-        {
             label: "Activity",
+            headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <div className="flex flex-col gap-1 text-[10px] font-bold">
-                    <div className="flex items-center gap-1">
-                        <FlagIcon size={10} />
-                        <span>{data.activityStats.eventCount}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <DurationIcon size={10} />
-                        <span>{getHMDuration(data.activityStats.totalDurationMinutes)}</span>
-                    </div>
+                <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
+                    <StatItemUI type="events" value={data.activityStats.eventCount} iconColor={true} />
+                    <StatItemUI type="duration" value={data.activityStats.totalDurationMinutes} iconColor={true} />
+                    <StatItemUI type="rentals" value={data.rentalStats.count} iconColor={true} />
+                    <StatItemUI type="repairs" value={data.repairStats.count} iconColor={true} />
                 </div>
             ),
         },
         {
             label: "Status",
+            headerClassName: HEADER_CLASSES.center,
             render: (data) => <EquipmentStatusLabel equipmentId={data.id} status={data.status} />,
         },
     ];

@@ -1,32 +1,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
-
-export interface EquipmentTableData {
-    id: string;
-    sku: string;
-    brand: string;
-    model: string;
-    color: string | null;
-    size: number | null;
-    category: string;
-    status: string;
-    assignedTeachers: {
-        id: string;
-        username: string;
-        eventCount: number;
-        durationMinutes: number;
-    }[];
-    repairStats: {
-        count: number;
-    };
-    rentalStats: {
-        count: number;
-    };
-    activityStats: {
-        eventCount: number;
-        totalDurationMinutes: number;
-    };
-}
+import type { EquipmentWithRepairsRentalsEvents, EquipmentTableData } from "@/config/tables";
+import { calculateEquipmentStats } from "@/backend/data/EquipmentData";
 
 export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
     try {
@@ -117,7 +92,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
             const eventCount = equipmentEvents.length;
             const totalDurationMinutes = equipmentEvents.reduce((sum: number, ee: any) => sum + (ee.event.duration || 0), 0);
 
-            return {
+            const result: EquipmentWithRepairsRentalsEvents = {
                 id: e.id,
                 sku: e.sku,
                 brand: e.brand,
@@ -137,6 +112,13 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                     eventCount,
                     totalDurationMinutes,
                 },
+            };
+
+            const stats = calculateEquipmentStats(result);
+            
+            return {
+                ...result,
+                stats
             };
         });
     } catch (error) {

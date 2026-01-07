@@ -1,9 +1,9 @@
 "use client";
 
 import { ReactNode } from "react";
-import { TablesNavigationRoutes } from "../tables/TablesNavigationRoutes";
-import { TablesHeaderStats } from "../tables/TablesHeaderStats";
-import type { TableStat } from "../tables/TablesHeaderStats";
+import { TablesNavigationRoutes } from "./TablesNavigationRoutes";
+import { TablesHeaderStats } from "./TablesHeaderStats";
+import type { TableStat } from "./TablesHeaderStats";
 
 interface TableLayoutProps {
     children: ReactNode;

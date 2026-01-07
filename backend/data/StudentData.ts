@@ -1,20 +1,20 @@
-import { Student } from "@/supabase/db/types";
-import { AbstractData } from "./AbstractData";
+import type { StudentWithBookingsAndPayments, StudentTableStats } from "@/config/tables";
 
-export interface StudentRelations {
-    student_package: any[]; // student_package records
-    bookings: any[];       // booking records with nested relations
-    school_students: any[]; // school_students context
-    student_booking_payment: any[]; // student_booking_payment
-}
-
-export interface StudentUpdateForm extends Student {
-    description?: string | null;
-    active?: boolean;
-    rental?: boolean;
-    schoolId?: string;
-}
-
-export interface StudentData extends AbstractData<Student, StudentUpdateForm, StudentRelations> {
-    // Plain object interface
+/**
+ * Calculate stats for a single student record
+ */
+export function calculateStudentStats(student: StudentWithBookingsAndPayments): StudentTableStats {
+    return student.bookings.reduce((acc, b) => ({
+        totalBookings: acc.totalBookings + 1,
+        totalEvents: acc.totalEvents + b.stats.events.count,
+        totalDurationMinutes: acc.totalDurationMinutes + (b.stats.events.duration * 60),
+        totalRevenue: acc.totalRevenue + b.stats.events.revenue,
+        totalPayments: acc.totalPayments + b.stats.payments.student,
+    }), {
+        totalBookings: 0,
+        totalEvents: 0,
+        totalDurationMinutes: 0,
+        totalRevenue: 0,
+        totalPayments: 0,
+    });
 }

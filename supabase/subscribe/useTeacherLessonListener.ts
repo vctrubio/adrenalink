@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/supabase/client";
+import { getClientConnection as createClient } from "@/supabase/connection";
 import { getTeacherPackageBookingLessons, type TeacherPackageBookingLessons } from "@/actions/user-action";
 import type { ApiActionResponseModel } from "@/types/actions";
 

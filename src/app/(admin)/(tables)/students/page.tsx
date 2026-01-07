@@ -1,38 +1,22 @@
 import { getStudentsTable } from "@/supabase/server/students";
 import { StudentsTable } from "./StudentsTable";
-import { TablesPageClient } from "@/src/components/tables/TablesPageClient";
-import type { TableStat } from "@/src/components/tables/TablesHeaderStats";
+import { TablesPageClient } from "../TablesPageClient";
+import type { TableStat } from "../TablesHeaderStats";
+import { getAggregateStudents } from "@/backend/data/StudentStats";
 
 export default async function StudentsMasterTablePage() {
     const students = await getStudentsTable();
-
-    // Calculate stats
-    const totalStudents = students.length;
-    let totalBookings = 0;
-    let totalPaid = 0;
-    let totalExpected = 0;
-
-    students.forEach(s => {
-        totalBookings += s.bookings.length;
-        s.bookings.forEach(b => {
-            totalPaid += b.totalPayments;
-            totalExpected += b.expectedRevenue;
-        });
-    });
-
-    const net = totalPaid - totalExpected;
+    const stats_data = getAggregateStudents(students);
 
     const stats: TableStat[] = [
-        { type: "student", value: totalStudents, label: "Students" },
-        { type: "bookings", value: totalBookings },
-        { type: "studentPayments", value: totalPaid.toFixed(0), label: "Total Paid" }, 
-        { type: "profit", value: net.toFixed(0), label: "Net Balance", variant: "profit" }
+        { type: "students", value: stats_data.studentCount, desc: "Total registered students" },
+        { type: "events", value: stats_data.totalEvents, label: "Events", desc: "Total events attended" },
+        { type: "duration", value: stats_data.totalDurationMinutes, desc: "Total time spent in lessons" },
+        { type: "studentPayments", value: stats_data.totalPayments.toFixed(0), label: "Payments", desc: "Total payments from bookings" }
     ];
 
     return (
         <TablesPageClient 
-            title="Students Master Table" 
-            description="Manage students, view their bookings, and track payment status."
             stats={stats}
         >
             <StudentsTable students={students} />

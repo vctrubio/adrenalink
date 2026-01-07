@@ -1,16 +1,30 @@
-import { Teacher } from "@/supabase/db/types";
-import { AbstractData } from "./AbstractData";
+import type { TeacherWithLessonsAndPayments, TeacherTableStats } from "@/config/tables";
 
-export interface TeacherRelations {
-    teacher_commission: any[];    // teacher_commission records
-    lesson: any[];        // lesson records with nested booking, events, payments
-    teacher_equipment: any[];     // equipment assigned to teacher
-}
+/**
+ * Calculate stats for a single teacher record
+ */
+export function calculateTeacherStats(teacher: TeacherWithLessonsAndPayments): TeacherTableStats {
+    const totalLessons = teacher.lessons.length;
+    const totalDurationMinutes = teacher.lessons.reduce((sum, l) => sum + l.events.totalDuration, 0);
+    const totalCommissions = teacher.lessons.reduce((sum, l) => {
+        const { commission, events, lessonRevenue } = l;
+        const duration = events.totalDuration / 60;
+        const cph = parseFloat(commission.cph || "0");
+        
+        if (commission.type === "fixed") {
+            return sum + (cph * duration);
+        } else if (commission.type === "percentage") {
+            return sum + (lessonRevenue * (cph / 100));
+        }
+        return sum; 
+    }, 0);
+    const totalPayments = teacher.lessons.reduce((sum, l) => sum + l.teacherPayments, 0);
 
-export interface TeacherUpdateForm extends Teacher {
-    // Standard fields plus any school-specific context if needed
-}
-
-export interface TeacherData extends AbstractData<Teacher, TeacherUpdateForm, TeacherRelations> {
-    // Plain object interface
+    return {
+        teacherCount: 1,
+        totalLessons,
+        totalDurationMinutes,
+        totalCommissions,
+        totalPayments,
+    };
 }

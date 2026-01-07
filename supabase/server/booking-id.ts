@@ -1,3 +1,5 @@
+"use server";
+
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
@@ -90,5 +92,35 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
     } catch (error) {
         console.error("Unexpected error in getBookingId:", error);
         return { success: false, error: "Failed to fetch booking" };
+    }
+}
+
+/**
+ * Updates the status of a booking.
+ */
+export async function updateBookingStatus(bookingId: string, status: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        const { error } = await supabase
+            .from("booking")
+            .update({ status })
+            .eq("id", bookingId)
+            .eq("school_id", schoolHeader.id);
+
+        if (error) {
+            console.error("Error updating booking status:", error);
+            return { success: false, error: "Failed to update booking status" };
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Unexpected error in updateBookingStatus:", error);
+        return { success: false, error: "Failed to update booking status" };
     }
 }

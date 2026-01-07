@@ -41,8 +41,7 @@ export const NavLeft = () => {
         <>
             <div className="flex items-center gap-1">
                 <Link href="/" className="flex items-center">
-                    {logoUrl ? <Image src={logoUrl} alt={schoolUsername || "School Logo"} width={36} height={36} className="rounded-full object-cover md:w-10 md:h-10" priority /> : <AdranlinkIcon size={36} className="text-secondary md:hidden" />}
-                    {!logoUrl && <AdranlinkIcon size={40} className="text-secondary hidden md:block" />}
+                    <Image src={logoUrl} alt={schoolUsername || "School Logo"} width={36} height={36} className="rounded-full object-cover md:w-10 md:h-10" priority />
                 </Link>
 
                 {/* Desktop navigation */}

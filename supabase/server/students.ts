@@ -1,40 +1,8 @@
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
-
-export interface StudentTableData {
-    studentId: string;
-    firstName: string;
-    lastName: string;
-    country: string;
-    phone: string;
-    languages: string[];
-    schoolStudentStatus: string;
-    schoolStudentDescription: string | null;
-    bookings: {
-        id: string;
-        status: string;
-        dateStart: string;
-        dateEnd: string;
-        packageName: string;
-        packageDetails: {
-            categoryEquipment: string;
-            capacityEquipment: number;
-            capacityStudents: number;
-            durationMinutes: number;
-            pricePerStudent: number;
-        };
-        eventCount: number;
-        totalDurationHours: number;
-        expectedRevenue: number;
-        totalPayments: number;
-    }[];
-    activityStats: Record<string, { count: number; durationMinutes: number }>;
-    summaryStats: {
-        bookingCount: number;
-        durationHours: number;
-        allBookingsCompleted: boolean;
-    };
-}
+import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
+import { calculateStudentStats } from "@/backend/data/StudentData";
+import { calculateBookingStats } from "@/backend/data/BookingData";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {
     try {
@@ -76,7 +44,12 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                                 price_per_student
                             ),
                             lesson(
-                                event(duration)
+                                id,
+                                status,
+                                teacher!inner(id, username),
+                                teacher_commission!inner(cph, commission_type),
+                                event(duration, status),
+                                teacher_lesson_payment(amount)
                             ),
                             student_booking_payment(amount)
                         )
@@ -92,61 +65,65 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
 
         return data.map((ss: any) => {
             const student = ss.student;
-            const activityStats: Record<string, { count: number; durationMinutes: number }> = {};
-            let totalDurationMinutes = 0;
-            let allBookingsCompleted = true;
             
             const bookings = student.booking_student.map((bs: any) => {
-                const booking = bs.booking;
-                const pkg = booking.school_package;
+                const b = bs.booking;
+                const pkg = b.school_package;
                 
-                if (booking.status !== "completed") {
-                    allBookingsCompleted = false;
-                }
+                const lessons: LessonWithPayments[] = b.lesson.map((l: any) => {
+                    const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
+                    const recordedPayments = l.teacher_lesson_payment ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) : 0;
 
-                // Calculate stats from lessons/events
-                const lessons = booking.lesson || [];
-                const events = lessons.flatMap((l: any) => l.event || []);
-                const eventCount = events.length;
-                const bookingDurationMinutes = events.reduce((sum: number, e: any) => sum + e.duration, 0);
-                totalDurationMinutes += bookingDurationMinutes;
+                    return {
+                        id: l.id,
+                        teacherId: l.teacher.id,
+                        teacherUsername: l.teacher.username,
+                        status: l.status,
+                        commission: {
+                            type: l.teacher_commission.commission_type as "fixed" | "percentage",
+                            cph: l.teacher_commission.cph,
+                        },
+                        events: {
+                            totalCount: l.event.length,
+                            totalDuration: totalDuration,
+                            details: l.event.map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
+                        },
+                        teacherPayments: recordedPayments,
+                    };
+                });
 
-                // Aggregate activity stats by category
-                const category = pkg.category_equipment;
-                if (!activityStats[category]) {
-                    activityStats[category] = { count: 0, durationMinutes: 0 };
-                }
-                activityStats[category].count += eventCount;
-                activityStats[category].durationMinutes += bookingDurationMinutes;
+                const payments: BookingStudentPayments[] = b.student_booking_payment.map((p: any) => ({ student_id: 0, amount: p.amount }));
 
-                // Revenue calculation (Total Booking Revenue vs Total Booking Payments)
-                const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
-                const bookingStudentCount = booking.booking_student ? booking.booking_student.length : 1;
-                const expectedRevenue = pricePerHourPerStudent * (bookingDurationMinutes / 60) * bookingStudentCount;
-                const totalPayments = booking.student_booking_payment.reduce((sum: number, p: any) => sum + p.amount, 0);
-
-                return {
-                    id: booking.id,
-                    status: booking.status,
-                    dateStart: booking.date_start,
-                    dateEnd: booking.date_end,
-                    packageName: pkg.description,
-                    packageDetails: {
+                const bookingData = {
+                    package: {
+                        description: pkg.description,
                         categoryEquipment: pkg.category_equipment,
                         capacityEquipment: pkg.capacity_equipment,
                         capacityStudents: pkg.capacity_students,
                         durationMinutes: pkg.duration_minutes,
                         pricePerStudent: pkg.price_per_student,
+                        pph: pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0,
                     },
-                    eventCount,
-                    totalDurationHours: bookingDurationMinutes / 60,
-                    expectedRevenue,
-                    totalPayments,
+                    lessons,
+                    payments,
+                };
+
+                const bookingStats = calculateBookingStats(bookingData as any);
+
+                return {
+                    id: b.id,
+                    status: b.status,
+                    dateStart: b.date_start,
+                    dateEnd: b.date_end,
+                    packageName: pkg.description,
+                    packageDetails: bookingData.package,
+                    lessons,
+                    stats: bookingStats,
                 };
             });
 
-            return {
-                studentId: student.id,
+            const result: StudentWithBookingsAndPayments = {
+                id: student.id,
                 firstName: student.first_name,
                 lastName: student.last_name,
                 country: student.country,
@@ -155,12 +132,13 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                 schoolStudentStatus: ss.active ? "active" : "inactive",
                 schoolStudentDescription: ss.description,
                 bookings,
-                activityStats,
-                summaryStats: {
-                    bookingCount: bookings.length,
-                    durationHours: totalDurationMinutes / 60,
-                    allBookingsCompleted: bookings.length > 0 && allBookingsCompleted,
-                }
+            };
+
+            const stats = calculateStudentStats(result);
+
+            return {
+                ...result,
+                stats
             };
         });
     } catch (error) {
