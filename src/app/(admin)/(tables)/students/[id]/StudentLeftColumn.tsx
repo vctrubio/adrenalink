@@ -7,11 +7,11 @@ import { formatDate } from "@/getters/date-getter";
 import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
-import type { StudentModel } from "@/backend/models";
+import type { StudentData } from "@/backend/data/StudentData";
 import type { LeftColumnCardData } from "@/types/left-column";
 
 interface StudentLeftColumnProps {
-  student: StudentModel;
+  student: StudentData;
 }
 
 export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
@@ -19,7 +19,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   const currency = credentials?.currency || "YEN";
 
   const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-  const packageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
+  const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
   const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
   const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
 
@@ -29,7 +29,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
 
   // Student Card
   const studentCardData: LeftColumnCardData = {
-    name: `${student.updateForm.firstName} ${student.updateForm.lastName}`,
+    name: `${student.updateForm.first_name} ${student.updateForm.last_name}`,
     status: student.updateForm.active ? "Active" : "Inactive",
     avatar: (
       <div className="flex-shrink-0" style={{ color: studentEntity.color }}>
@@ -63,31 +63,25 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
       },
       {
         label: "Created",
-        value: formatDate(student.schema.createdAt),
+        value: formatDate(student.schema.created_at),
       },
     ],
     accentColor: studentEntity.color,
     isEditable: true,
   };
 
-  // Packages Card
-  const studentPackageStudents = student.relations?.studentPackageStudents || [];
-  const packages = studentPackageStudents.map((sps: any) => sps.studentPackage).filter(Boolean);
-
-  // Group packages by status
-  const requestedPackages = packages.filter((p: any) => p.status === "requested").length;
-  const acceptedPackages = packages.filter((p: any) => p.status === "accepted").length;
-  const rejectedPackages = packages.filter((p: any) => p.status === "rejected").length;
+  // Packages Card (student_package relation)
+  const packages = student.relations?.studentPackage || [];
   const totalPackages = packages.length;
+  const acceptedPackages = packages.filter((p: any) => p.status === "confirmed" || p.status === "purchased").length;
 
-  // Calculate progress percentage (accepted / total)
   const packageProgressPercentage = totalPackages > 0 ? (acceptedPackages / totalPackages) * 100 : 0;
   const packageProgressBar = {
     background: `linear-gradient(to right, ${packageEntity.color} ${packageProgressPercentage}%, #e5e7eb ${packageProgressPercentage}%)`,
   };
 
   const packageFields = packages.map((pkg: any) => ({
-    label: pkg.schoolPackage?.description || "Unknown Package",
+    label: pkg.school_package?.description || "Unknown Package",
     value: pkg.status.charAt(0).toUpperCase() + pkg.status.slice(1),
   }));
 
@@ -112,27 +106,25 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   };
 
   // Bookings Card
-  const bookingStudents = student.relations?.bookingStudents || [];
-  const bookings = bookingStudents.map((bs: any) => bs.booking).filter(Boolean);
+  const bookings = student.relations?.bookings || [];
 
-  // Calculate lesson count, total event duration, and money spent
   let totalLessonCount = 0;
   let totalEventDuration = 0;
   let totalMoneySpent = 0;
 
   bookings.forEach((booking: any) => {
-    const lessons = booking.lessons || [];
+    const lessons = booking.lesson || [];
     totalLessonCount += lessons.length;
 
-    const packageDuration = booking.studentPackage?.schoolPackage?.durationMinutes || 0;
-    const pricePerStudent = booking.studentPackage?.schoolPackage?.pricePerStudent || 0;
+    const pkg = booking.school_package;
+    const packageDuration = pkg?.duration_minutes || 0;
+    const pricePerStudent = pkg?.price_per_student || 0;
 
     lessons.forEach((lesson: any) => {
-      const events = lesson.events || [];
+      const events = lesson.event || [];
       const lessonDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
       totalEventDuration += lessonDuration;
 
-      // Calculate money spent for this lesson
       if (packageDuration > 0) {
         const lessonCost = (pricePerStudent * lessonDuration) / packageDuration;
         totalMoneySpent += lessonCost;
@@ -141,7 +133,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   });
 
   const bookingFields = bookings.map((booking: any) => ({
-    label: booking.studentPackage?.schoolPackage?.description || "Unknown Package",
+    label: booking.school_package?.description || "Unknown Package",
     value: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
   }));
 
@@ -167,12 +159,10 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   // Payments Card
   const payments = student.relations?.bookingPayments || [];
   const totalPaymentsMade = payments.reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
-
-  // Calculate due: money spent on bookings - payments made
   const due = Math.round(totalMoneySpent - totalPaymentsMade);
 
   const paymentFields = payments.map((payment: any) => ({
-    label: formatDate(payment.createdAt),
+    label: formatDate(payment.created_at),
     value: payment.amount.toString(),
   }));
 

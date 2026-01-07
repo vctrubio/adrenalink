@@ -15,7 +15,7 @@ export type StudentModel = AbstractModel<StudentUpdateForm> & {
 };
 
 export function createStudentModel(studentData: any, schoolId?: string): StudentModel {
-    const { schoolStudents, studentPackageStudents, bookingStudents, bookingPayments, ...pgTableSchema } = studentData;
+    const { schoolStudents, studentPackage, bookingStudents, bookingPayments, ...pgTableSchema } = studentData;
 
     // Get the school-specific data from the matching schoolStudent record
     const schoolStudent = schoolId ? schoolStudents?.find((ss: any) => ss.schoolId === schoolId) : schoolStudents?.[0];
@@ -33,7 +33,7 @@ export function createStudentModel(studentData: any, schoolId?: string): Student
         },
         relations: {
             schoolStudents,
-            studentPackageStudents,
+            studentPackage,
             bookingStudents,
             bookingPayments,
         },

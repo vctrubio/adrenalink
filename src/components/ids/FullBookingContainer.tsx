@@ -32,7 +32,7 @@ export interface BookingData {
     dateEnd: string;
     createdAt: string;
     lessons?: LessonData[];
-    studentPackage?: StudentPackageData;
+    schoolPackage?: SchoolPackageData;
     bookingStudents?: BookingStudentData[];
     studentBookingPayments?: PaymentData[];
 }
@@ -170,7 +170,7 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     const TeacherIcon = teacherEntity.icon;
 
     const lessons = bookingData.lessons || [];
-    const schoolPackage = bookingData.studentPackage?.schoolPackage;
+    const schoolPackage = bookingData.schoolPackage;
     const payments = bookingData.studentBookingPayments || [];
     const studentCount = bookingData.bookingStudents?.length || 1;
 

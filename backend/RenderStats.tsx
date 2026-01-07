@@ -13,6 +13,7 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
+import RepairIcon from "@/public/appSvgs/RepairIcon";
 import type { DailyLessonStats } from "@/backend/classboard/ClassboardStatistics";
 
 // --- Entity Data & Colors ---

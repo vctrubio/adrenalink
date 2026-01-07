@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useDataboardController } from "@/src/components/layouts/DataboardLayout";
-import type { StatItem } from "@/src/components/ui/row";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+import type { StatItem } from "@/backend/RenderStats";
 
 interface EntityIdLayoutProps {
     stats: StatItem[];
@@ -11,11 +11,11 @@ interface EntityIdLayoutProps {
 }
 
 export function EntityIdLayout({ stats, leftColumn, rightColumn }: EntityIdLayoutProps) {
-    const controller = useDataboardController();
+    const controller = useTablesController();
 
     useEffect(() => {
         controller.onStatsChange(stats);
-    }, [stats, controller.onStatsChange]);
+    }, [stats, controller]);
 
     return (
         <div className="lg:grid lg:grid-cols-12 lg:gap-8 space-y-6 lg:space-y-0">

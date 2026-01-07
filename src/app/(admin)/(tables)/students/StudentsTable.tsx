@@ -2,6 +2,8 @@
 
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { COUNTRIES } from "@/config/countries";
+import { ENTITY_DATA } from "@/config/entities";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { SchoolStudentStatusLabel } from "@/src/components/labels/SchoolStudentStatusLabel";
@@ -33,7 +35,9 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-1.5 items-start">
                     <div className="flex items-center gap-3">
-                        <span className="font-bold text-foreground whitespace-nowrap">{data.firstName} {data.lastName}</span>
+                        <HoverToEntity entity={ENTITY_DATA.find(e => e.id === "student")!} id={data.studentId}>
+                            <span className="font-bold text-foreground whitespace-nowrap">{data.firstName} {data.lastName}</span>
+                        </HoverToEntity>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1" title={data.country}>
                                 <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
@@ -184,7 +188,9 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col gap-1">
-                        <div className="font-bold text-sm">{data.firstName} {data.lastName}</div>
+                        <HoverToEntity entity={ENTITY_DATA.find(e => e.id === "student")!} id={data.studentId}>
+                            <div className="font-bold text-sm">{data.firstName} {data.lastName}</div>
+                        </HoverToEntity>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
                             <span>{data.country}</span>
