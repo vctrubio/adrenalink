@@ -197,11 +197,6 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                             allBookingsCompleted={data.summaryStats.allBookingsCompleted} 
                         />
                     </div>
-                    <SchoolStudentStatusLabel 
-                        studentId={data.studentId} 
-                        status={data.schoolStudentStatus as SchoolStudentStatus} 
-                        description={null} // Simplified for mobile
-                    />
                 </div>
             ),
         },
@@ -219,6 +214,16 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                     </span>
                 );
             },
+        },
+        {
+            label: "Status",
+            render: (data) => (
+                <SchoolStudentStatusLabel 
+                    studentId={data.studentId} 
+                    status={data.schoolStudentStatus as SchoolStudentStatus} 
+                    description={null} 
+                />
+            ),
         },
     ];
 

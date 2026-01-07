@@ -128,12 +128,27 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
     const mobileColumns: MobileColumnDef<EquipmentTableData>[] = [
         {
             label: "Gear",
-            render: (data) => (
-                <div className="flex flex-col gap-1">
-                    <div className="font-bold text-sm">{data.brand} {data.model}</div>
-                    <div className="text-[10px] font-bold text-muted-foreground uppercase">{data.sku}</div>
-                </div>
-            ),
+            render: (data) => {
+                const config = EQUIPMENT_CATEGORIES.find(c => c.id === data.category);
+                const Icon = config?.icon || Activity;
+                const color = config?.color || "#a855f7";
+                
+                return (
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                            <div style={{ color }}>
+                                <Icon size={14} />
+                            </div>
+                            <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
+                        </div>
+                        {data.size && (
+                            <div className="w-fit bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px]">
+                                {data.size}
+                            </div>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             label: "Rentals",

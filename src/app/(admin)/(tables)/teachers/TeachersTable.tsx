@@ -14,8 +14,9 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import LessonIcon from "@/public/appSvgs/LessonIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
 import ReactCountryFlag from "react-country-flag";
-import { TrendingUp, TrendingDown, Check } from "lucide-react";
+import { TrendingDown, Check } from "lucide-react";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -101,7 +102,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                             <span className="text-foreground">{earned.toFixed(0)}</span>
                         </div>
                         <div className="flex items-center gap-1.5" title="Total Paid">
-                            <TrendingUp size={14} className="text-muted-foreground/40" />
+                            <CreditIcon size={14} className="text-muted-foreground/40" />
                             <span className="text-foreground">{paid.toFixed(0)}</span>
                         </div>
                         {!isSettled && (
@@ -128,14 +129,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-1">
                     <div className="font-bold text-sm">{data.firstName} {data.lastName}</div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
-                        <span>{data.country}</span>
-                    </div>
-                    <TeacherStatusLabel 
-                        teacherId={data.id} 
-                        isActive={data.active} 
-                    />
+                    <div className="text-[10px] font-medium text-muted-foreground">@{data.username}</div>
                 </div>
             ),
         },
@@ -174,6 +168,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     </span>
                 );
             },
+        },
+        {
+            label: "Status",
+            render: (data) => (
+                <TeacherStatusLabel 
+                    teacherId={data.id} 
+                    isActive={data.active} 
+                />
+            ),
         },
     ];
 
