@@ -146,12 +146,12 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 
                 return (
                     <div className="flex flex-col gap-1 text-[10px] font-bold">
-                        <div className="flex items-center gap-1">
-                            <FlagIcon size={10} />
+                        <div className="flex items-center gap-1" title="Lessons">
+                            <LessonIcon size={10} className="text-muted-foreground/60" />
                             <span>{stats.count}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <DurationIcon size={10} />
+                        <div className="flex items-center gap-1" title="Duration">
+                            <DurationIcon size={10} className="text-muted-foreground/60" />
                             <span>{(stats.durationMinutes / 60).toFixed(1)}h</span>
                         </div>
                     </div>

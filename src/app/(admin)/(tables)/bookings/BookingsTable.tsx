@@ -235,8 +235,8 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             </div>
 
             <StatHeaderItemUI statType="revenue" value={stats.totalEventRevenue.toFixed(0)} hideLabel={hideLabel} labelOverride="Revenue" />
-            <StatHeaderItemUI statType="moneyToPay" value={stats.totalStudentPayments.toFixed(0)} hideLabel={hideLabel} labelOverride="Student Payments" />
-            <StatHeaderItemUI statType="commission" value={stats.totalTeacherPayments.toFixed(0)} hideLabel={hideLabel} labelOverride="Teacher Payments" />
+            <StatHeaderItemUI statType="studentPayments" value={stats.totalStudentPayments.toFixed(0)} hideLabel={hideLabel} />
+            <StatHeaderItemUI statType="teacherPayments" value={stats.totalTeacherPayments.toFixed(0)} hideLabel={hideLabel} />
             <StatHeaderItemUI statType="profit" value={stats.totalProfit.toFixed(0)} hideLabel={hideLabel} variant="profit" labelOverride="Profit" />
         </>
     );

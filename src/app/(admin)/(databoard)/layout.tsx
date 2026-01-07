@@ -17,7 +17,6 @@ const ENTITY_ID_MAP: Record<string, string> = {
     bookings: "booking",
     packages: "schoolPackage",
     equipments: "equipment",
-    events: "event",
 };
 
 export default function DataboardLayoutWrapper({ children }: DataboardLayoutWrapperProps) {

@@ -44,11 +44,12 @@ export type StatType =
     | "revenue"
     | "expenses"
     | "profit"
-    | "moneyToPay"
-    | "moneyPaid"
+    | "studentPayments"
+    | "teacherPayments"
     | "rentals"
     | "package"
     | "equipment"
+    | "repairs"
     | "schoolNet";
 
 export interface StatItem {
@@ -159,17 +160,17 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => getCompactNumber(value),
         label: "Net",
     },
-    moneyToPay: {
+    studentPayments: {
         icon: CreditIcon,
-        color: paymentEntity?.color || "rgb(251, 146, 60)",
+        color: studentEntity.color,
         formatter: (value) => getCompactNumber(value),
-        label: "To Pay",
+        label: "Student Payments",
     },
-    moneyPaid: {
-        icon: <TrendingUp size={20} />,
-        color: "rgb(251, 146, 60)",
+    teacherPayments: {
+        icon: CreditIcon,
+        color: teacherEntity.color,
         formatter: (value) => getCompactNumber(value),
-        label: "Paid",
+        label: "Teacher Payments",
     },
     rentals: {
         icon: <HelmetIcon className="w-5 h-5" />,
@@ -188,6 +189,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         color: equipmentEntity.color,
         formatter: (value) => value,
         label: "Equipment",
+    },
+    repairs: {
+        icon: RepairIcon,
+        color: "#a855f7",
+        formatter: (value) => value,
+        label: "Repairs",
     },
 };
 
@@ -236,7 +243,10 @@ export function StatHeaderItemUI({
     const valueClass = variant === "profit" ? "text-primary dark:text-primary/90" : "text-foreground";
 
     return (
-        <div className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity ${profitClass}`}>
+        <div 
+            className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity ${profitClass}`}
+            title={hideLabel ? (labelOverride || config.label) : undefined}
+        >
             {renderedIcon}
             {!hideLabel && (
                 <>

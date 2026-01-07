@@ -134,9 +134,8 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                     activityStats[category] = { count: 0, durationMinutes: 0 };
                 }
                 
-                // If the user wants to count "how many lesson equiopment he has had", do we count lessons or events?
-                // "count of event and total duraiton" -> I will count events.
-                activityStats[category].count += events.length;
+                // Count lessons instead of events
+                activityStats[category].count += 1;
                 activityStats[category].durationMinutes += lessonDurationMinutes;
 
                 // Actual Payments
