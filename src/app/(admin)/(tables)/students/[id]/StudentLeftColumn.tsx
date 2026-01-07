@@ -51,7 +51,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
       },
       {
         label: "Languages",
-        value: student.updateForm.languages.join(", "),
+        value: student.updateForm.languages?.join(", ") || "",
       },
       {
         label: "Active",
@@ -71,7 +71,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   };
 
   // Packages Card (student_package relation)
-  const packages = student.relations?.studentPackage || [];
+  const packages = student.relations?.student_package || [];
   const totalPackages = packages.length;
   const acceptedPackages = packages.filter((p: any) => p.status === "confirmed" || p.status === "purchased").length;
 
@@ -113,7 +113,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   let totalMoneySpent = 0;
 
   bookings.forEach((booking: any) => {
-    const lessons = booking.lesson || [];
+    const lessons = booking.lessons || [];
     totalLessonCount += lessons.length;
 
     const pkg = booking.school_package;
@@ -121,7 +121,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
     const pricePerStudent = pkg?.price_per_student || 0;
 
     lessons.forEach((lesson: any) => {
-      const events = lesson.event || [];
+      const events = lesson.event || lesson.events || [];
       const lessonDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
       totalEventDuration += lessonDuration;
 
@@ -157,7 +157,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
   };
 
   // Payments Card
-  const payments = student.relations?.bookingPayments || [];
+  const payments = student.relations?.student_booking_payment || [];
   const totalPaymentsMade = payments.reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
   const due = Math.round(totalMoneySpent - totalPaymentsMade);
 

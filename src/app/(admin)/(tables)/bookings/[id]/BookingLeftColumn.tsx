@@ -27,7 +27,7 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
   const receiptEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
 
   const students = booking.relations?.students || [];
-  const schoolPackage = booking.relations?.schoolPackage;
+  const schoolPackage = booking.relations?.school_package;
 
   const StudentIcon = studentEntity.icon;
   const PackageIcon = packageEntity.icon;
@@ -82,11 +82,12 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
     : [];
 
   // Payment Fields
+  const payments = booking.relations?.student_booking_payment || [];
   const paymentFields =
-    booking.relations?.payments && booking.relations.payments.length > 0
-      ? booking.relations.payments.map((payment) => ({
-          label: formatDate(payment.createdAt),
-          value: `${payment.amount} ${currency} (${payment.studentName})`,
+    payments.length > 0
+      ? payments.map((payment) => ({
+          label: formatDate(payment.created_at),
+          value: `${payment.amount} ${currency} (${payment.student_name})`,
         }))
       : [{ label: "Payments", value: "No Payments done" }];
 

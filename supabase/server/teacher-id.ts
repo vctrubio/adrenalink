@@ -45,21 +45,17 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             return { success: false, error: "Teacher not found" };
         }
 
-        // Map Relations
+        // Map Relations to standardized snake_case
         const relations: TeacherRelations = {
-            commissions: teacher.teacher_commission || [],
-            lessons: (teacher.lesson || []).map((l: any) => ({
+            teacher_commission: teacher.teacher_commission || [],
+            lesson: (teacher.lesson || []).map((l: any) => ({
                 ...l,
+                teacher_commission: l.teacher_commission,
                 booking: l.booking,
-                events: l.event || [],
-                teacher_commission: l.teacher_commission, // Ensure this field exists for RightColumn
-                teacherLessonPayments: (l.teacher_lesson_payment || []).map((p: any) => ({
-                    id: p.id,
-                    amount: p.amount,
-                    createdAt: p.created_at,
-                })),
+                event: l.event || [],
+                teacher_lesson_payment: l.teacher_lesson_payment || []
             })),
-            equipments: teacher.teacher_equipment || [],
+            teacher_equipment: teacher.teacher_equipment || [],
         };
 
         const schema: Teacher = {

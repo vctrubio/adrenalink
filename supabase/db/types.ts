@@ -133,3 +133,37 @@ export interface Event {
     created_at: string;
     updated_at: string;
 }
+
+/** StudentPackage entity - Represents a request/purchase of a package by a student */
+export interface StudentPackage {
+    id: string;
+    school_package_id: string;
+    referral_id: string | null;
+    wallet_id: string;
+    requested_date_start: string;
+    requested_date_end: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+}
+
+/** StudentPackageStudent junction entity */
+export interface StudentPackageStudent {
+    id: string;
+    student_package_id: string;
+    student_id: string;
+    created_at: string;
+}
+
+/** Referral entity - Represents a partner/referral code */
+export interface Referral {
+    id: string;
+    code: string;
+    school_id: string;
+    commission_type: string;
+    commission_value: string;
+    description: string | null;
+    active: boolean;
+    created_at: string;
+    updated_at: string;
+}

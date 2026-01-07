@@ -4,6 +4,8 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
 import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
 import { getHMDuration } from "@/getters/duration-getter";
+import { ENTITY_DATA } from "@/config/entities";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { EquipmentTableData } from "@/supabase/server/equipments";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -22,6 +24,8 @@ const HEADER_CLASSES = {
 } as const;
 
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
+    const equipmentEntity = ENTITY_DATA.find(e => e.id === "equipment")!;
+
     const desktopColumns: ColumnDef<EquipmentTableData>[] = [
         {
             header: "Equipment",
@@ -37,7 +41,9 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                             <div style={{ color }}>
                                 <Icon size={16} />
                             </div>
-                            <span className="font-bold text-foreground">{data.brand} {data.model}</span>
+                            <HoverToEntity entity={equipmentEntity} id={data.id}>
+                                <span className="font-bold text-foreground">{data.brand} {data.model}</span>
+                            </HoverToEntity>
                             {data.size && (
                                 <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
                                     {data.size}
@@ -139,7 +145,9 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                             <div style={{ color }}>
                                 <Icon size={14} />
                             </div>
-                            <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
+                            <HoverToEntity entity={equipmentEntity} id={data.id}>
+                                <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
+                            </HoverToEntity>
                         </div>
                         {data.size && (
                             <div className="w-fit bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px]">

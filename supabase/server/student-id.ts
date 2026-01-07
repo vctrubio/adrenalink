@@ -64,18 +64,18 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                 return {
                     id: b.id,
                     status: b.status,
-                    leaderStudentName: b.leader_student_name,
-                    dateStart: b.date_start,
-                    dateEnd: b.date_end,
-                    createdAt: b.created_at,
-                    schoolPackage: {
+                    leader_student_name: b.leader_student_name,
+                    date_start: b.date_start,
+                    date_end: b.date_end,
+                    created_at: b.created_at,
+                    school_package: {
                         id: b.school_package.id,
                         description: b.school_package.description,
-                        durationMinutes: b.school_package.duration_minutes,
-                        pricePerStudent: b.school_package.price_per_student,
-                        capacityStudents: b.school_package.capacity_students,
-                        capacityEquipment: b.school_package.capacity_equipment,
-                        categoryEquipment: b.school_package.category_equipment,
+                        duration_minutes: b.school_package.duration_minutes,
+                        price_per_student: b.school_package.price_per_student,
+                        capacity_students: b.school_package.capacity_students,
+                        capacity_equipment: b.school_package.capacity_equipment,
+                        category_equipment: b.school_package.category_equipment,
                     },
                     lessons: (b.lesson || []).map((l: any) => ({
                         id: l.id,
@@ -83,25 +83,25 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         teacher: {
                             id: l.teacher?.id,
                             username: l.teacher?.username,
-                            firstName: l.teacher?.first_name,
+                            first_name: l.teacher?.first_name,
                         },
                         events: l.event || [],
                         commission: {
-                            commissionType: l.teacher_commission?.commission_type,
+                            commission_type: l.teacher_commission?.commission_type,
                             cph: l.teacher_commission?.cph,
                         }
                     })),
-                    studentBookingPayments: (b.student_booking_payment || []).map((p: any) => ({
+                    student_booking_payment: (b.student_booking_payment || []).map((p: any) => ({
                         id: p.id,
                         amount: p.amount,
-                        createdAt: p.created_at,
+                        created_at: p.created_at,
                     })),
                 };
             })
             .filter((b: any) => b !== null);
 
         // Aggregate ALL payments from all participating bookings
-        const allBookingPayments = bookings.flatMap(b => b.studentBookingPayments);
+        const allBookingPayments = bookings.flatMap(b => b.student_booking_payment);
 
         // 4. Fetch associated student packages (requests)
         const { data: studentPackages } = await supabase
@@ -115,13 +115,13 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
         const schoolStudent = student.school_students[0];
 
         const relations: StudentRelations = {
-            schoolStudents: student.school_students,
-            studentPackage: (studentPackages || []).map((sp: any) => ({
+            school_students: student.school_students,
+            student_package: (studentPackages || []).map((sp: any) => ({
                 ...sp,
-                schoolPackage: sp.school_package
+                school_package: sp.school_package
             })),
             bookings: bookings,
-            bookingPayments: allBookingPayments,
+            student_booking_payment: allBookingPayments,
         };
 
         const schema: Student = {

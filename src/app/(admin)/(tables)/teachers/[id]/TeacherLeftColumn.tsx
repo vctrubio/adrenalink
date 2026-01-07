@@ -7,6 +7,7 @@ import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress"
 import { TeacherTableGetters } from "@/getters/table-getters";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
+import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TeacherCommissionPanelModal } from "@/src/components/modals/admin/TeacherCommissionPanelModal";
@@ -36,8 +37,8 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   const CommissionIcon = commissionEntity.icon;
   const EquipmentIcon = equipmentEntity.icon;
 
-  // Lesson Stats
-  const lessons = teacher.relations?.lessons || [];
+  // Lesson Stats - Use standardized snake_case relation
+  const lessons = teacher.relations?.lesson || [];
   const plannedLessons = lessons.filter(l => l.status === "active" || l.status === "planned").length;
   const completedLessons = lessons.filter(l => l.status === "completed").length;
   const uncompletedLessons = lessons.filter(l => l.status === "uncompleted").length;
@@ -86,7 +87,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
       },
       {
         label: "Languages",
-        value: teacher.schema.languages.join(", "),
+        value: teacher.schema.languages?.join(", ") || "",
       },
       {
         label: "Active",
@@ -136,7 +137,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   };
 
   // Commission Card
-  const commissions = teacher.relations?.commissions || [];
+  const commissions = teacher.relations?.teacher_commission || [];
   const commissionFields = commissions.map((commission) => ({
     label: commission.commission_type,
     value: `${commission.cph} ${currency}`,
@@ -201,7 +202,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
 
   // Payments Card
   const totalPaid = lessons.reduce((sum, lesson: any) => {
-    const payments = lesson.teacherLessonPayments || [];
+    const payments = lesson.teacher_lesson_payment || [];
     const lessonPayments = payments.reduce((lessonSum: number, payment: any) => lessonSum + (payment.amount || 0), 0);
     return sum + lessonPayments;
   }, 0);
@@ -213,10 +214,10 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   };
 
   const paymentFields = lessons
-    .filter((lesson: any) => lesson.teacherLessonPayments && lesson.teacherLessonPayments.length > 0)
+    .filter((lesson: any) => lesson.teacher_lesson_payment && lesson.teacher_lesson_payment.length > 0)
     .flatMap((lesson: any) =>
-      lesson.teacherLessonPayments.map((payment: any) => ({
-        label: formatDate(payment.createdAt),
+      lesson.teacher_lesson_payment.map((payment: any) => ({
+        label: formatDate(payment.created_at),
         value: `${payment.amount} ${currency}`,
       }))
     );
@@ -242,7 +243,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
   };
 
   // Equipment Card
-  const equipments = teacher.relations?.equipments || [];
+  const equipments = teacher.relations?.teacher_equipment || [];
 
   const equipmentByCategory: Record<string, number> = {};
   equipments.forEach((te: any) => {
@@ -306,8 +307,8 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         onClose={() => setIsCommissionPanelOpen(false)}
         teacherId={teacher.schema.id}
         teacherUsername={teacher.schema.username}
-        commissions={teacher.relations?.commissions || []}
-        lessons={teacher.relations?.lessons || []}
+        commissions={teacher.relations?.teacher_commission || []}
+        lessons={teacher.relations?.lesson || []}
         currency={currency}
       />
     </>

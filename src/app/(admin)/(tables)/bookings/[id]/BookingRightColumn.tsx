@@ -141,7 +141,7 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
     const TeacherIcon = teacherEntity.icon;
 
     const lessons = booking.relations?.lessons || [];
-    const schoolPackage = booking.relations?.schoolPackage;
+    const schoolPackage = booking.relations?.school_package;
     const studentCount = booking.relations?.students?.length || 1;
 
     const formatCurrency = (num: number): string => {

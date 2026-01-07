@@ -42,3 +42,14 @@ CREATE TABLE student_package (
 
 CREATE INDEX student_package_school_package_id_idx ON student_package(school_package_id);
 CREATE INDEX student_package_referral_id_idx ON student_package(referral_id);
+
+CREATE TABLE student_package_student (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_package_id UUID NOT NULL REFERENCES student_package(id),
+    student_id UUID NOT NULL REFERENCES student(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    UNIQUE(student_package_id, student_id)
+);
+
+CREATE INDEX student_package_student_package_id_idx ON student_package_student(student_package_id);
+CREATE INDEX student_package_student_student_id_idx ON student_package_student(student_id);

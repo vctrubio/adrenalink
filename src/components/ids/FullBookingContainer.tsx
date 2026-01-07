@@ -27,14 +27,14 @@ import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 export interface BookingData {
     id: string;
     status: string;
-    leaderStudentName: string;
-    dateStart: string;
-    dateEnd: string;
-    createdAt: string;
+    leader_student_name: string;
+    date_start: string;
+    date_end: string;
+    created_at: string;
     lessons?: LessonData[];
-    schoolPackage?: SchoolPackageData;
-    bookingStudents?: BookingStudentData[];
-    studentBookingPayments?: PaymentData[];
+    school_package?: SchoolPackageData;
+    booking_student?: BookingStudentData[];
+    student_booking_payment?: PaymentData[];
 }
 
 export interface LessonData {
@@ -43,11 +43,11 @@ export interface LessonData {
     teacher?: {
         id: string;
         username: string;
-        firstName?: string;
+        first_name?: string;
     };
     events?: EventData[];
     commission?: {
-        commissionType: string;
+        commission_type: string;
         cph: string;
     };
 }
@@ -63,33 +63,33 @@ export interface EventData {
 export interface StudentPackageData {
     id: string;
     status: string;
-    walletId: string;
-    schoolPackage?: SchoolPackageData;
+    wallet_id: string;
+    school_package?: SchoolPackageData;
     referral?: { code: string };
 }
 
 export interface SchoolPackageData {
     id: string;
     description: string;
-    durationMinutes: number;
-    pricePerStudent: number;
-    capacityStudents: number;
-    capacityEquipment: number;
-    categoryEquipment: string;
+    duration_minutes: number;
+    price_per_student: number;
+    capacity_students: number;
+    capacity_equipment: number;
+    category_equipment: string;
 }
 
 export interface BookingStudentData {
     student?: {
         id: string;
-        firstName: string;
-        lastName: string;
+        first_name: string;
+        last_name: string;
     };
 }
 
 export interface PaymentData {
     id: string;
     amount: number;
-    createdAt: string;
+    created_at: string;
 }
 
 interface TeacherLessonRow {
@@ -134,7 +134,7 @@ function PaymentsSection({ payments, currency }: { payments: PaymentData[]; curr
                 <div className="space-y-1 pl-4">
                     {payments.map((payment) => (
                         <div key={payment.id} className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">{formatDate(payment.createdAt)}</span>
+                            <span className="text-muted-foreground">{formatDate(payment.created_at)}</span>
                             <span className="font-medium text-green-600 dark:text-green-400">
                                 {payment.amount} {currency}
                             </span>
@@ -167,12 +167,11 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const bookingEntity_color = bookingEntity.color;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    const TeacherIcon = teacherEntity.icon;
 
     const lessons = bookingData.lessons || [];
-    const schoolPackage = bookingData.schoolPackage;
-    const payments = bookingData.studentBookingPayments || [];
-    const studentCount = bookingData.bookingStudents?.length || 1;
+    const schoolPackage = bookingData.school_package;
+    const payments = bookingData.student_booking_payment || [];
+    const studentCount = bookingData.booking_student?.length || 1;
 
     if (!schoolPackage) {
         return <div className="rounded-xl border border-border p-4 text-muted-foreground">Booking missing package information</div>;
@@ -181,7 +180,7 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     // Calculate progress bar
     const bookingEvents = lessons.flatMap((lesson) => lesson.events || []);
     const counts = getEventStatusCounts(bookingEvents as any);
-    const progressBar = { background: getProgressColor(counts, schoolPackage.durationMinutes) };
+    const progressBar = { background: getProgressColor(counts, schoolPackage.duration_minutes) };
     const usedMinutes = lessons.reduce((sum, lesson) => {
         const lessonMinutes = lesson.events?.reduce((acc, event) => acc + (event.duration || 0), 0) || 0;
         return sum + lessonMinutes;
@@ -191,19 +190,19 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     const teacherLessons: TeacherLessonRow[] = lessons.map((lesson) => {
         const events = lesson.events || [];
         const lessonDurationMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
-        const lessonRevenue = calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, lessonDurationMinutes, schoolPackage.durationMinutes);
+        const lessonRevenue = calculateLessonRevenue(schoolPackage.price_per_student, studentCount, lessonDurationMinutes, schoolPackage.duration_minutes);
 
-        const commissionType = (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed";
+        const commissionType = (lesson.commission?.commission_type as "fixed" | "percentage") || "fixed";
         const cph = parseFloat(lesson.commission?.cph || "0");
         const commissionInfo: CommissionInfo = { type: commissionType, cph };
-        const commission = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, schoolPackage.durationMinutes);
+        const commission = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, schoolPackage.duration_minutes);
 
-        const eventRows = transformEventsToRows(events);
+        const eventRows = transformEventsToRows(events as any);
 
         return {
             lessonId: lesson.id,
             teacherId: lesson.teacher?.id || "",
-            teacherName: lesson.teacher?.firstName || lesson.teacher?.username || "Unknown",
+            teacherName: lesson.teacher?.first_name || lesson.teacher?.username || "Unknown",
             teacherUsername: lesson.teacher?.username || "unknown",
             lessonStatus: lesson.status,
             commissionType,
@@ -230,14 +229,14 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     );
 
     // Calculate total revenue and school revenue
-    const totalRevenue = calculateLessonRevenue(schoolPackage.pricePerStudent, studentCount, totals.duration, schoolPackage.durationMinutes);
+    const totalRevenue = calculateLessonRevenue(schoolPackage.price_per_student, studentCount, totals.duration, schoolPackage.duration_minutes);
     totals.totalRevenue = totalRevenue;
     totals.schoolRevenue = totalRevenue - totals.teacherEarnings;
 
-    const packageDurationHours = Math.round(schoolPackage.durationMinutes / 60);
+    const packageDurationHours = Math.round(schoolPackage.duration_minutes / 60);
 
     return (
-        <button onClick={() => setIsExpanded(!isExpanded)} className="w-full text-left outline-none cursor-pointer">
+        <div onClick={() => setIsExpanded(!isExpanded)} className="w-full text-left outline-none cursor-pointer group/booking">
             <div className="rounded-xl border border-border overflow-hidden bg-card">
                 {/* Progress Bar */}
                 <div className="h-2" style={{ background: progressBar.background }} />
@@ -247,24 +246,24 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 space-y-2">
                             {/* Date and Progress Badge */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
                                 <BookingStatusLabel 
                                     status={bookingData.status} 
                                     bookingId={bookingData.id}
-                                    startDate={bookingData.dateStart} 
-                                    endDate={bookingData.dateEnd} 
+                                    startDate={bookingData.date_start} 
+                                    endDate={bookingData.date_end} 
                                 />
-                                <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.durationMinutes} background={progressBar.background} />
+                                <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.duration_minutes} background={progressBar.background} />
                             </div>
 
                             {/* Package Info and Revenue Row */}
                             <div className="flex items-center justify-between gap-4">
                                 <EquipmentStudentPaymentsBadge
-                                    categoryEquipment={schoolPackage.categoryEquipment}
-                                    equipmentCapacity={schoolPackage.capacityEquipment}
-                                    studentCapacity={schoolPackage.capacityStudents}
+                                    categoryEquipment={schoolPackage.category_equipment}
+                                    equipmentCapacity={schoolPackage.capacity_equipment}
+                                    studentCapacity={schoolPackage.capacity_students}
                                     packageDurationHours={packageDurationHours}
-                                    pricePerHour={schoolPackage.pricePerStudent}
+                                    pricePerHour={schoolPackage.price_per_student}
                                     currency={currency}
                                 />
                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border border-border/50 text-xs font-bold whitespace-nowrap">
@@ -294,32 +293,36 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                                 <div className="space-y-1.5">
                                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Package</div>
                                     {schoolPackage && (
-                                        <HoverToEntity entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!} id={schoolPackage.id}>
-                                            <div className="text-sm font-semibold text-foreground cursor-pointer transition-colors hover:opacity-80" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
-                                                {schoolPackage.description}
-                                            </div>
-                                        </HoverToEntity>
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <HoverToEntity entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!} id={schoolPackage.id}>
+                                                <div className="text-sm font-semibold text-foreground cursor-pointer transition-colors hover:opacity-80" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
+                                                    {schoolPackage.description}
+                                                </div>
+                                            </HoverToEntity>
+                                        </div>
                                     )}
                                 </div>
 
                                 {/* Students */}
-                                {bookingData.bookingStudents && bookingData.bookingStudents.length > 0 && (
+                                {bookingData.booking_student && bookingData.booking_student.length > 0 && (
                                     <div className="space-y-1.5">
                                         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Students</div>
                                         <div className="space-y-1">
-                                            {bookingData.bookingStudents.map((bs) => {
+                                            {bookingData.booking_student.map((bs) => {
                                                 const student = bs.student;
-                                                const studentName = student ? `${student.firstName} ${student.lastName}` : "Unknown";
+                                                const studentName = student ? `${student.first_name} ${student.last_name}` : "Unknown";
                                                 const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
                                                 return (
-                                                    <HoverToEntity key={student?.id || "unknown"} entity={studentEntity} id={student?.id || ""}>
-                                                        <div className="flex items-center gap-2 text-xs cursor-pointer py-1">
-                                                            <div style={{ color: studentEntity.color }}>
-                                                                <HelmetIcon size={14} />
+                                                    <div key={student?.id || "unknown"} onClick={(e) => e.stopPropagation()}>
+                                                        <HoverToEntity entity={studentEntity} id={student?.id || ""}>
+                                                            <div className="flex items-center gap-2 text-xs cursor-pointer py-1">
+                                                                <div style={{ color: studentEntity.color }}>
+                                                                    <HelmetIcon size={14} />
+                                                                </div>
+                                                                <span className="font-medium text-foreground">{studentName}</span>
                                                             </div>
-                                                            <span className="font-medium text-foreground">{studentName}</span>
-                                                        </div>
-                                                    </HoverToEntity>
+                                                        </HoverToEntity>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -353,6 +356,6 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                     )}
                 </AnimatePresence>
             </div>
-        </button>
+        </div>
     );
 }

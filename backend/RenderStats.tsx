@@ -36,12 +36,14 @@ export type StatType =
     | "studentPackage"
     | "teacher"
     | "teachers" // Alias for teacher
+    | "lesson"
     | "lessons"
     | "events"
     | "completed" // Alias/Specific for events
     | "duration"
     | "booking"
     | "bookings"
+    | "requests"
     | "commission"
     | "revenue"
     | "receipt"
@@ -104,6 +106,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         formatter: (value) => value,
         label: "Teachers",
     },
+    lesson: {
+        icon: LessonIcon,
+        color: lessonEntity.color,
+        formatter: (value) => value,
+        label: "Lesson",
+    },
     lessons: {
         icon: LessonIcon,
         color: lessonEntity.color,
@@ -133,6 +141,12 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         color: bookingEntity.color,
         formatter: (value) => value,
         label: "Bookings",
+    },
+    requests: {
+        icon: RequestIcon,
+        color: studentPackageEntity.color,
+        formatter: (value) => value,
+        label: "Requests",
     },
     booking: {
         icon: BookingIcon,
@@ -244,6 +258,10 @@ export function StatHeaderItemUI({
     variant?: "default" | "profit";
 }) {
     const config = STAT_CONFIGS[statType];
+    
+    if (!config) {
+        return null;
+    }
     
     // Handle profit with dynamic icon based on value
     let IconComponent: React.ElementType | null = null;

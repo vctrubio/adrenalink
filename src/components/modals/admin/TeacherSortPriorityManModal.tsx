@@ -54,8 +54,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             let sorted = [...allTeachers];
             if (savedOrder.length > 0) {
                 sorted = sorted.sort((a, b) => {
-                    const aIndex = savedOrder.indexOf(a.id);
-                    const bIndex = savedOrder.indexOf(b.id);
+                    const aIndex = savedOrder.indexOf(a.schema.id);
+                    const bIndex = savedOrder.indexOf(b.schema.id);
                     if (aIndex === -1) return 1;
                     if (bIndex === -1) return -1;
                     return aIndex - bIndex;
@@ -63,11 +63,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             }
 
             const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
-                id: teacher.id,
-                title: teacher.username,
+                id: teacher.schema.id,
+                title: teacher.schema.username,
                 subtitle: "",
                 icon: <HeadsetIcon size={20} />,
-                isActive: teacher.active,
+                isActive: teacher.schema.active,
                 color: teacherEntity?.color || "#fff",
                 teacher,
             }));
@@ -85,8 +85,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     }, [isOpen, initializeItems]);
 
     const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
-        const originalTeacher = allTeachers.find(t => t.id === teacherId);
-        const originalActive = originalTeacher?.active;
+        const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
+        const originalActive = originalTeacher?.schema.active;
 
         setStatusChanges((prev) => {
             const newChanges = new Map(prev);
@@ -101,7 +101,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         setItems((prev) =>
             prev.map((item) =>
                 item.id === teacherId
-                    ? { ...item, isActive: active, teacher: { ...item.teacher, active } }
+                    ? { ...item, isActive: active, teacher: { ...item.teacher, schema: { ...item.teacher.schema, active } } }
                     : item
             )
         );
@@ -303,7 +303,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                             />
                                                             
                                                             <GoToAdranlink
-                                                                href={`/teachers/${item.teacher.id}`}
+                                                                href={`/teachers/${item.teacher.schema.id}`}
                                                                 onNavigate={onClose}
                                                                 isHovered={isHovered}
                                                             />

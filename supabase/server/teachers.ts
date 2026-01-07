@@ -35,11 +35,13 @@ export interface TeacherTableData {
 }
 
 export interface TeacherProvider {
-    id: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    active: boolean;
+    schema: {
+        id: string;
+        username: string;
+        first_name: string;
+        last_name: string;
+        active: boolean;
+    };
     lessonStats: {
         totalLessons: number;
         completedLessons: number;
@@ -85,11 +87,13 @@ export async function getSchoolTeacherProvider(): Promise<TeacherProvider[]> {
             const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
 
             return {
-                id: t.id,
-                username: t.username,
-                firstName: t.first_name,
-                lastName: t.last_name,
-                active: t.active,
+                schema: {
+                    id: t.id,
+                    username: t.username,
+                    first_name: t.first_name,
+                    last_name: t.last_name,
+                    active: t.active,
+                },
                 lessonStats: {
                     totalLessons,
                     completedLessons,

@@ -3,10 +3,9 @@
 import { motion } from "framer-motion";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { ENTITY_DATA } from "@/config/entities";
-import type { TeacherModel } from "@/backend/models";
 
 interface TeacherModalListRowProps {
-    teacher: TeacherModel;
+    teacher: any; // Flexible to support TeacherProvider or TeacherData
     index: number;
     isFocused: boolean;
     isHovered: boolean;
@@ -77,7 +76,7 @@ export function TeacherModalListRow({
                         {teacher.schema.username}
                     </span>
                     <span className="text-xs popup-text-tertiary">
-                        {teacher.schema.firstName} {teacher.schema.lastName}
+                        {teacher.schema.first_name} {teacher.schema.last_name}
                     </span>
                 </div>
             </div>

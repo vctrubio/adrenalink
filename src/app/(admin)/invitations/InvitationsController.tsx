@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { StudentPackageModel } from "@/backend/models";
+import type { StudentPackageRequest } from "@/supabase/server/student-package";
 import { InvitationsTable } from "./InvitationsTable";
 import { SearchInput } from "@/src/components/SearchInput";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 
 interface InvitationsControllerProps {
-    invitations: StudentPackageModel[];
+    invitations: StudentPackageRequest[];
 }
 
 const STATUS_OPTIONS = ["All", "requested", "accepted", "rejected"] as const;
@@ -18,8 +18,8 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
 
     const filteredInvitations = useMemo(() => {
         return invitations.filter((invitation) => {
-            const matchesSearch = invitation.schema.walletId.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === "All" || invitation.schema.status === statusFilter;
+            const matchesSearch = invitation.wallet_id.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesStatus = statusFilter === "All" || invitation.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
     }, [invitations, searchQuery, statusFilter]);
@@ -50,4 +50,3 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
         </div>
     );
 }
-

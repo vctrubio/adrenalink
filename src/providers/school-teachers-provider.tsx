@@ -35,7 +35,7 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
                 // Store all teachers (including inactive)
                 setAllTeachers(result.data);
                 // Filter for active teachers only
-                const activeTeachers = result.data.filter((teacher) => teacher.active);
+                const activeTeachers = result.data.filter((teacher) => teacher.schema.active);
                 setTeachers(activeTeachers);
             } else {
                 setError(result.error || "Failed to fetch teachers");

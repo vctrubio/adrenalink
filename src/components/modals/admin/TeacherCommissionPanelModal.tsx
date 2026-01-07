@@ -12,7 +12,6 @@ import { Trash2, Plus, Check } from "lucide-react";
 import { Modal } from "@/src/components/modals";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
-import { createCommissionModel, type CommissionModel } from "@/backend/models";
 
 // ============================================================================
 // TeacherCommissionDropdown - Subcomponent for adding commissions
@@ -210,8 +209,8 @@ interface TeacherCommissionPanelModalProps {
     onClose: () => void;
     teacherId: string;
     teacherUsername: string;
-    commissions: any[]; // Changed from CommissionModel[]
-    lessons: any[];     // Added lessons to check for usage
+    commissions: any[]; 
+    lessons: any[];     
     currency?: string;
 }
 

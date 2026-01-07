@@ -2,10 +2,10 @@ import { Student } from "@/supabase/db/types";
 import { AbstractData } from "./AbstractData";
 
 export interface StudentRelations {
-    studentPackage: any[]; // student_package records
+    student_package: any[]; // student_package records
     bookings: any[];       // booking records with nested relations
-    schoolStudents: any[]; // school_students context
-    bookingPayments: any[]; // student_booking_payment
+    school_students: any[]; // school_students context
+    student_booking_payment: any[]; // student_booking_payment
 }
 
 export interface StudentUpdateForm extends Student {

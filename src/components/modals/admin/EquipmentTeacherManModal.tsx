@@ -7,7 +7,7 @@ import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/actions/equipments-action";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
-import type { EquipmentModel } from "@/backend/models";
+import type { EquipmentData } from "@/backend/data/EquipmentData";
 import { Check, X } from "lucide-react";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
 import { Modal, TeacherModalListRow } from "@/src/components/modals";
@@ -15,7 +15,7 @@ import { Modal, TeacherModalListRow } from "@/src/components/modals";
 interface EquipmentTeacherManModalProps {
   isOpen: boolean;
   onClose: () => void;
-  equipment: EquipmentModel;
+  equipment: EquipmentData;
 }
 
 export function EquipmentTeacherManModal({
@@ -26,7 +26,8 @@ export function EquipmentTeacherManModal({
   const router = useRouter();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [filterMode, setFilterMode] = useState<"active" | "all">("all");
-  const { teachers } = useSchoolTeachers();
+  const { teachers, allTeachers } = useSchoolTeachers();
+  
   const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
   const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
   const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment");
@@ -35,9 +36,9 @@ export function EquipmentTeacherManModal({
 
   const equipmentDisplayName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
 
-  // Get linked teacher IDs
+  // Get linked teacher IDs from standardized relations
   const linkedTeacherIds = new Set(
-    equipment.relations?.teacherEquipments?.map((te: any) => te.teacher?.id).filter(Boolean) || []
+    equipment.relations?.teachers?.map((t: any) => t.id).filter(Boolean) || []
   );
 
   const handleAddTeacher = async (teacherId: string) => {
@@ -54,7 +55,7 @@ export function EquipmentTeacherManModal({
     }
   };
 
-  const handleToggleLink = (teacher: typeof teachers[number]) => {
+  const handleToggleLink = (teacher: any) => {
     const isLinked = linkedTeacherIds.has(teacher.schema.id);
     if (isLinked) {
       handleRemoveTeacher(teacher.schema.id);
@@ -63,15 +64,15 @@ export function EquipmentTeacherManModal({
     }
   };
 
-  const handleNavigate = (teacher: typeof teachers[number]) => {
+  const handleNavigate = (teacher: any) => {
     router.push(`/teachers/${teacher.schema.id}`);
     onClose();
   };
 
   const displayTeachers = useMemo(() => {
-    if (filterMode === "all") return teachers;
-    return teachers.filter(t => t.schema.active);
-  }, [teachers, filterMode]);
+    if (filterMode === "all") return allTeachers;
+    return teachers;
+  }, [teachers, allTeachers, filterMode]);
 
   // Keyboard navigation
   const {
@@ -91,7 +92,7 @@ export function EquipmentTeacherManModal({
   });
 
   const linkedCount = filteredTeachers.filter((t) => linkedTeacherIds.has(t.schema.id)).length;
-  const activeCount = teachers.filter(t => t.schema.active).length;
+  const activeCount = teachers.length;
 
   return (
     <Modal
@@ -118,7 +119,7 @@ export function EquipmentTeacherManModal({
                 onClick={() => setFilterMode("all")}
                 className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "all" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
-                All ({teachers.length})
+                All ({allTeachers.length})
             </button>
             <button 
                 onClick={() => setFilterMode("active")}
@@ -146,10 +147,6 @@ export function EquipmentTeacherManModal({
               const isLinked = linkedTeacherIds.has(teacher.schema.id);
               const isFocused = index === focusedIndex;
               const isHovered = index === hoveredIndex;
-
-              const lessons = teacher.relations?.lessons || [];
-              const totalLessons = lessons.length;
-              const plannedLessons = lessons.filter(l => l.status === "active" || l.status === "rest").length;
 
               return (
                 <TeacherModalListRow

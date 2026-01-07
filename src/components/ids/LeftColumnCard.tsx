@@ -21,17 +21,22 @@ export function LeftColumnCard({ name, status, avatar, fields, accentColor, isEd
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <button
+    <div
       onClick={() => setIsOpen(!isOpen)}
-      className="w-full text-left outline-none cursor-pointer"
+      className="w-full text-left outline-none cursor-pointer group/card"
     >
       <Card accentColor={accentColor}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-6 flex-1">
             {avatar}
             <div className="flex-1">
-              <h3 className="text-3xl font-bold text-foreground">{name}</h3>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">{status}</div>
+              <h3 className="text-3xl font-bold text-foreground transition-colors group-hover/card:text-primary/80">{name}</h3>
+              <div 
+                className="text-xs uppercase tracking-wider text-muted-foreground"
+                onClick={(e) => e.stopPropagation()} // Prevent expansion when clicking status label buttons
+              >
+                {status}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -85,6 +90,6 @@ export function LeftColumnCard({ name, status, avatar, fields, accentColor, isEd
           </div>
         )}
       </Card>
-    </button>
+    </div>
   );
 }

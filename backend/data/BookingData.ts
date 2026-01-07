@@ -4,7 +4,7 @@ import { AbstractData } from "./AbstractData";
 export interface BookingUpdateForm extends Booking {}
 
 export interface BookingRelations {
-    schoolPackage: SchoolPackage;
+    school_package: SchoolPackage;
     students: Student[];
     lessons: (Lesson & {
         teacher: {
@@ -15,12 +15,12 @@ export interface BookingRelations {
         };
         events: Event[];
     })[];
-    payments: {
+    student_booking_payment: {
         id: string;
         amount: number;
-        createdAt: string;
-        studentId: string;
-        studentName: string;
+        created_at: string;
+        student_id: string;
+        student_name: string;
     }[];
 }
 

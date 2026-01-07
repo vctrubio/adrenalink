@@ -1,13 +1,17 @@
 "use client";
 
-import type { StudentPackageModel } from "@/backend/models";
+import { useState } from "react";
+import type { StudentPackageRequest } from "@/supabase/server/student-package";
+import { updateStudentPackageStatus } from "@/supabase/server/student-package";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import Image from "next/image";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";
+import { Check, X, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface InvitationsTableProps {
-    invitations: StudentPackageModel[];
+    invitations: StudentPackageRequest[];
 }
 
 export function InvitationsTable({ invitations }: InvitationsTableProps) {
@@ -33,7 +37,7 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
                     </thead>
                     <tbody>
                         {invitations.map((invitation) => (
-                            <InvitationRow key={invitation.schema.id} invitation={invitation} />
+                            <InvitationRow key={invitation.id} invitation={invitation} />
                         ))}
                     </tbody>
                 </table>
@@ -42,38 +46,48 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
     );
 }
 
-function InvitationRow({ invitation }: { invitation: StudentPackageModel }) {
-    const { requestedDateStart, requestedDateEnd, status, walletId } = invitation.schema;
-    const { 
-        description: packageDesc, 
-        categoryEquipment, 
-        capacityEquipment, 
-        capacityStudents, 
-        packageType,
-        durationMinutes,
-        pricePerStudent,
-        currency
-    } = invitation.relations?.schoolPackage || {
+function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
+    const [isPending, setIsPending] = useState(false);
+    const { id, requested_date_start, requested_date_end, status, wallet_id } = invitation;
+    const {
+        description: packageDesc,
+        category_equipment,
+        capacity_equipment,
+        capacity_students,
+        package_type,
+        duration_minutes,
+        price_per_student,
+    } = invitation.school_package || {
         description: "Unknown",
-        categoryEquipment: "kite",
-        capacityEquipment: 1,
-        capacityStudents: 1,
-        packageType: "lessons",
-        durationMinutes: 60,
-        pricePerStudent: 0,
-        currency: "EUR"
+        category_equipment: "kite",
+        capacity_equipment: 1,
+        capacity_students: 1,
+        package_type: "lessons",
+        duration_minutes: 60,
+        price_per_student: 0,
     };
-    
+
     // Calculation logic
-    const durationHours = durationMinutes / 60;
-    const pph = durationMinutes !== 60 ? Math.round(pricePerStudent / durationHours) : pricePerStudent;
-    const currencySymbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : currency;
-    const isRental = packageType?.toLowerCase().includes("rental");
+    const durationHours = duration_minutes / 60;
+    const pph = duration_minutes !== 60 ? Math.round(price_per_student / durationHours) : price_per_student;
+    const currencySymbol = "€"; // Standardized for now, or fetch from school context
+    const isRental = package_type?.toLowerCase().includes("rental");
 
     const statusColors = {
         requested: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
         accepted: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
         rejected: "bg-red-50 text-red-600 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+    } as Record<string, string>;
+
+    const handleAction = async (newStatus: string) => {
+        setIsPending(true);
+        const result = await updateStudentPackageStatus(id, newStatus);
+        if (result.success) {
+            toast.success(`Request ${newStatus}`);
+        } else {
+            toast.error(result.error || "Failed to update request");
+        }
+        setIsPending(false);
     };
 
     return (
@@ -86,10 +100,10 @@ function InvitationRow({ invitation }: { invitation: StudentPackageModel }) {
                             {packageDesc}
                         </span>
                     </div>
-                    <PackageComparisonBadge 
-                        categoryEquipment={categoryEquipment}
-                        equipmentCapacity={capacityEquipment}
-                        studentCapacity={capacityStudents}
+                    <PackageComparisonBadge
+                        categoryEquipment={category_equipment}
+                        equipmentCapacity={capacity_equipment}
+                        studentCapacity={capacity_students}
                         packageDurationHours={parseFloat(durationHours.toFixed(1))}
                         pricePerHour={pph}
                         currencySymbol={currencySymbol}
@@ -99,7 +113,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageModel }) {
 
             {/* Dates Column */}
             <td className="px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <DateRangeBadge startDate={requestedDateStart.toString()} endDate={requestedDateEnd.toString()} />
+                <DateRangeBadge startDate={requested_date_start} endDate={requested_date_end} />
             </td>
 
             {/* Wallet Column */}
@@ -108,11 +122,11 @@ function InvitationRow({ invitation }: { invitation: StudentPackageModel }) {
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500">From</span>
                         <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded border ${isRental ? "text-red-400 border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10" : "text-blue-400 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"}`}>
-                            {packageType}
+                            {package_type}
                         </span>
                     </div>
-                    <span className="font-mono text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[140px] bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-700 select-all" title={walletId}>
-                        {walletId}
+                    <span className="font-mono text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[140px] bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-700 select-all" title={wallet_id}>
+                        {wallet_id}
                     </span>
                 </div>
             </td>
@@ -120,9 +134,31 @@ function InvitationRow({ invitation }: { invitation: StudentPackageModel }) {
             {/* Status Column */}
             <td className="px-6 py-8 align-middle text-right rounded-r-3xl border-y border-r border-zinc-100 dark:border-zinc-800 shadow-sm">
                 <div className="flex flex-col items-end gap-4">
-                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}>
-                        {status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        {status === "requested" && (
+                            <div className="flex items-center gap-2 mr-2">
+                                <button
+                                    onClick={() => handleAction("accepted")}
+                                    disabled={isPending}
+                                    className="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+                                    title="Accept Request"
+                                >
+                                    {isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} strokeWidth={3} />}
+                                </button>
+                                <button
+                                    onClick={() => handleAction("rejected")}
+                                    disabled={isPending}
+                                    className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-lg shadow-red-500/20"
+                                    title="Reject Request"
+                                >
+                                    <X size={16} strokeWidth={3} />
+                                </button>
+                            </div>
+                        )}
+                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}>
+                            {status}
+                        </span>
+                    </div>
                     <div className="relative w-8 h-8 opacity-10 grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110">
                         <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
                     </div>

@@ -207,31 +207,33 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
-    const lessons = teacher.relations?.lessons || [];
+    // Use standardized snake_case relation
+    const lessons = teacher.relations?.lesson || [];
 
     // Build lesson rows and timeline events from lessons data
     const lessonRows: LessonRow[] = [];
     const timelineEvents: TimelineEvent[] = [];
 
     for (const lesson of lessons) {
-        const events = (lesson.events || []) as EventData[];
+        // Use standardized snake_case properties
+        const events = (lesson.event || []) as EventData[];
         const booking = lesson.booking;
         const commission = lesson.teacher_commission;
-        const schoolPackage = booking?.school_package;
+        const school_package = booking?.school_package;
 
         const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
         const totalHours = totalDuration / 60;
         const cph = parseFloat(commission?.cph || "0");
         const commissionType = (commission?.commission_type as "fixed" | "percentage") || "fixed";
         
-        const eventRows = transformEventsToRows(events);
+        const eventRows = transformEventsToRows(events as any);
         let totalEarning = 0;
 
         for (const eventRow of eventRows) {
             // Calculate revenues
-            const studentCount = schoolPackage?.capacity_students || 1;
-            const pricePerStudent = schoolPackage?.price_per_student || 0;
-            const packageDurationMinutes = schoolPackage?.duration_minutes || 60;
+            const studentCount = school_package?.capacity_students || 1;
+            const pricePerStudent = school_package?.price_per_student || 0;
+            const packageDurationMinutes = school_package?.duration_minutes || 60;
 
             const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
             const eventCommission = calculateCommission(eventRow.duration, { type: commissionType, cph }, eventRevenue, packageDurationMinutes);
@@ -265,9 +267,9 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 commissionType,
                 commissionCph: cph,
                 bookingStudents: [], // Potentially fetch if needed
-                equipmentCategory: schoolPackage?.category_equipment,
-                capacityEquipment: schoolPackage?.capacity_equipment,
-                capacityStudents: schoolPackage?.capacity_students,
+                equipmentCategory: school_package?.category_equipment,
+                capacityEquipment: school_package?.capacity_equipment,
+                capacityStudents: school_package?.capacity_students,
             });
         }
 
@@ -286,8 +288,8 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             totalEarning,
             eventCount: events.length,
             events: eventRows,
-            equipmentCategory: schoolPackage?.category_equipment!,
-            studentCapacity: schoolPackage?.capacity_students!,
+            equipmentCategory: school_package?.category_equipment!,
+            studentCapacity: school_package?.capacity_students!,
         });
     }
 
@@ -307,7 +309,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     });
 
     if (lessonRows.length === 0) {
-        return <div className="flex items-center justify-center h-64 text-muted-foreground">No lessons found for this teacher</div>;
+        return <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">No lessons found for this teacher</div>;
     }
 
     return (
@@ -325,7 +327,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             <AnimatePresence mode="wait">
                 {viewMode === "lessons" && <LessonsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}
                 {viewMode === "commissions" && <CommissionsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} formatCurrency={formatCurrency} />}
-                {viewMode === "timeline" && <Timeline events={filteredTimelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={false} showFinancials={true} searchPlaceholder="Search student names or locations..." />}
+                {viewMode === "timeline" && <Timeline events={filteredTimelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={false} showFinancials={true} searchPlaceholder="Search locations..." />}
             </AnimatePresence>
         </div>
     );

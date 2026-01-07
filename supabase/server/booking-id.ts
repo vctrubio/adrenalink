@@ -50,19 +50,19 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
 
         // Map Relations
         const relations: BookingRelations = {
-            schoolPackage: booking.school_package,
+            school_package: booking.school_package,
             students: (booking.booking_student || []).map((bs: any) => bs.student).filter(Boolean),
             lessons: (booking.lesson || []).map((l: any) => ({
                 ...l,
                 teacher: l.teacher,
                 events: l.event || [],
             })),
-            payments: (booking.student_booking_payment || []).map((p: any) => ({
+            student_booking_payment: (booking.student_booking_payment || []).map((p: any) => ({
                 id: p.id,
                 amount: p.amount,
-                createdAt: p.created_at,
-                studentId: p.student_id,
-                studentName: p.student ? `${p.student.first_name} ${p.student.last_name}` : "Unknown Student",
+                created_at: p.created_at,
+                student_id: p.student_id,
+                student_name: p.student ? `${p.student.first_name} ${p.student.last_name}` : "Unknown Student",
             })),
         };
 

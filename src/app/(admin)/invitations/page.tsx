@@ -1,10 +1,9 @@
-import { getStudentPackageRequests } from "@/actions/student-package-action";
+import { getStudentPackageRequests } from "@/supabase/server/student-package";
 import { InvitationsController } from "./InvitationsController";
 
 export default async function InvitationsPage() {
     const response = await getStudentPackageRequests();
     
-    // In a real app, you might want to handle error states more gracefully or show empty state if null
     const invitations = response.success && response.data ? response.data : [];
 
     return (

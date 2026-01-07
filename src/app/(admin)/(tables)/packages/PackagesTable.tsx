@@ -4,6 +4,8 @@ import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTabl
 import { PackageStatusLabel } from "@/src/components/labels/PackageStatusLabel";
 import { PackagePublicLabel } from "@/src/components/labels/PackagePublicLabel";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { ENTITY_DATA } from "@/config/entities";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { PackageTableData } from "@/supabase/server/packages";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 
@@ -15,6 +17,8 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
+    const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
+
     const desktopColumns: ColumnDef<PackageTableData>[] = [
         {
             header: "Type",
@@ -30,7 +34,9 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
                 <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-bold text-foreground whitespace-nowrap">{data.description}</span>
+                    <HoverToEntity entity={packageEntity} id={data.id}>
+                        <span className="font-bold text-foreground whitespace-nowrap">{data.description}</span>
+                    </HoverToEntity>
                     <EquipmentStudentPackagePriceBadge 
                         categoryEquipment={data.categoryEquipment}
                         equipmentCapacity={data.capacityEquipment}
@@ -78,7 +84,9 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm">{data.description}</span>
+                        <HoverToEntity entity={packageEntity} id={data.id}>
+                            <span className="font-bold text-sm">{data.description}</span>
+                        </HoverToEntity>
                     </div>
                     <div className="scale-90 origin-left">
                         <EquipmentStudentPackagePriceBadge 
