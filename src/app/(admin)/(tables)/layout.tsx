@@ -1,11 +1,12 @@
 "use client";
 
 import { ReactNode, createContext, useContext, useState, useCallback } from "react";
-import type { StatItem } from "@/backend/RenderStats";
+import type { TableStat } from "@/src/components/tables/TablesHeaderStats";
+import { TableLayout } from "@/src/components/layouts/TableLayout";
 
 interface TablesController {
-    stats: StatItem[];
-    onStatsChange: (stats: StatItem[]) => void;
+    stats: TableStat[];
+    onStatsChange: (stats: TableStat[]) => void;
 }
 
 const TablesContext = createContext<TablesController | null>(null);
@@ -19,9 +20,9 @@ export function useTablesController() {
 }
 
 export default function TablesLayout({ children }: { children: ReactNode }) {
-    const [stats, setStats] = useState<StatItem[]>([]);
+    const [stats, setStats] = useState<TableStat[]>([]);
 
-    const handleStatsChange = useCallback((newStats: StatItem[]) => {
+    const handleStatsChange = useCallback((newStats: TableStat[]) => {
         setStats(newStats);
     }, []);
 
@@ -32,8 +33,10 @@ export default function TablesLayout({ children }: { children: ReactNode }) {
 
     return (
         <TablesContext.Provider value={controller}>
-            <div className="space-y-6 p-6">
-                {children}
+            <div className="p-6">
+                <TableLayout stats={stats}>
+                    {children}
+                </TableLayout>
             </div>
         </TablesContext.Provider>
     );
