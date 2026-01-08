@@ -55,13 +55,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     const selectedReferral = bookingForm.form.selectedReferral;
     const dateRange = bookingForm.form.dateRange;
 
-    // Sort packages by category by default
-    const sortedPackages = useMemo(() => {
-        return [...currentPackages].sort((a, b) => {
-            return (a.categoryEquipment || "").localeCompare(b.categoryEquipment || "");
-        });
-    }, [currentPackages]);
-
     // Local state for UI only
     const [error, setError] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
@@ -265,7 +258,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             />
 
             <PackageSection
-                packages={sortedPackages}
+                packages={currentPackages}
                 selectedPackage={selectedPackage}
                 onSelect={handlePackageSelect}
                 isExpanded={expandedSections.has("package-section")}
