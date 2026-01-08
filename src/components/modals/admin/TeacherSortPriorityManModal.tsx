@@ -16,9 +16,9 @@ import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { DragSortList } from "@/src/components/ui/DragSortList";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import type { TeacherProvider } from "@/supabase/server/teachers";
-import { Check } from "lucide-react";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
+import React from "react";
 
 interface TeacherSortPriorityManModalProps {
     isOpen: boolean;
@@ -50,7 +50,6 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     // Initialize items based on order from hook
     const initializeItems = useCallback(() => {
         if (allTeachers.length > 0) {
-
             let sorted = [...allTeachers];
             if (savedOrder.length > 0) {
                 sorted = sorted.sort((a, b) => {
@@ -197,8 +196,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="relative flex flex-col max-h-[85vh]"
+                                transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
+                                className="relative flex flex-col max-h-[85vh] bg-background/95 backdrop-blur-xl rounded-3xl border border-border/40 p-6 shadow-2xl"
                             >
                                 <PopUpHeader
                                     title="Manage Teachers"
@@ -216,13 +215,13 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                     <div className="flex p-1 bg-muted/30 rounded-xl border border-border/50 flex-shrink-0">
                                         <button 
                                             onClick={() => setFilterMode("all")}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "all" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                            className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterMode === "all" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
                                             All ({items.length})
                                         </button>
                                         <button 
                                             onClick={() => setFilterMode("active")}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filterMode === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                            className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterMode === "active" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
                                             Active ({activeCount})
                                         </button>
@@ -243,7 +242,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                         <DragSortList
                                             items={filteredItems}
                                             onReorder={handleReorder}
-                                            renderItem={(item, isDragging) => {
+                                            renderItem={(item) => {
                                                 const index = filteredItems.findIndex(i => i.id === item.id);
                                                 const isFocused = index === focusedIndex;
                                                 const isHovered = index === hoveredIndex;
@@ -251,8 +250,8 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                 return (
                                                     <motion.div
                                                         className={`
-                                                            flex items-center justify-between px-4 py-3 gap-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing group relative overflow-hidden
-                                                            ${isFocused ? "popup-row-focused" : "popup-row"}
+                                                            flex items-center justify-between px-4 py-3 gap-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing group relative overflow-hidden transition-all
+                                                            ${isFocused ? "bg-primary/10 border-primary/20 shadow-sm" : "bg-muted/5 border-transparent hover:border-border/30"}
                                                         `}
                                                         onClick={() => setFocusedIndex(index)}
                                                         onMouseEnter={() => setHoveredIndex(index)}
@@ -261,7 +260,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         {isFocused && (
                                                             <motion.div
                                                                 layoutId="active-indicator"
-                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
+                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
                                                                 style={{ backgroundColor: item.color }}
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}
@@ -272,15 +271,15 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         <div className="flex items-center gap-3 flex-1 min-w-0">
                                                             <div
                                                                 style={{
-                                                                    color: item.isActive ? item.color : "#9ca3af",
-                                                                    opacity: item.isActive ? 1 : 0.5,
+                                                                    color: item.isActive ? item.color : "rgb(var(--muted-foreground))",
+                                                                    opacity: item.isActive ? 1 : 0.4,
                                                                 }}
                                                                 className="transition-all duration-200 flex-shrink-0"
                                                             >
                                                                 {item.icon}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black popup-text-primary" : `font-medium ${item.isActive ? "popup-text-primary" : "popup-text-secondary"}`}`}>
+                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black text-foreground" : `font-bold ${item.isActive ? "text-foreground" : "text-muted-foreground/60"}`}`}>
                                                                     {item.title}
                                                                  </span>
                                                             </div>
@@ -331,31 +330,31 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                      />
 
                                      <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-border/20">
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
-                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Go-To</span>
-                                            <span className="popup-hint-key text-[10px]">ENTER</span>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Go-To</span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ENTER</span>
                                         </div>
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
-                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Submit</span>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Submit</span>
                                             <div className="flex gap-1">
-                                                <span className="popup-hint-key text-[9px] px-1">⇧</span>
-                                                <span className="popup-hint-key text-[10px]">ENTER</span>
+                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">⇧</span>
+                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ENTER</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
-                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Toggle</span>
-                                            <span className="popup-hint-key text-[10px]">TAB</span>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Toggle</span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">TAB</span>
                                         </div>
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
-                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Reset</span>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Reset</span>
                                             <div className="flex gap-1">
-                                                <span className="popup-hint-key text-[9px] px-1">⇧</span>
-                                                <span className="popup-hint-key text-[10px]">TAB</span>
+                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">⇧</span>
+                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">TAB</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/10">
-                                            <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight">Close</span>
-                                            <span className="popup-hint-key text-[10px]">ESC</span>
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Close</span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ESC</span>
                                         </div>
                                      </div>
                                 </div>

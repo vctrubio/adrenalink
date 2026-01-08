@@ -38,7 +38,7 @@ export function WizardTable<T>({
     getRowId,
     getRowAccentColor,
     selectedId,
-    accentColor = "#3b82f6", // Default blue
+    accentColor = "rgb(var(--primary))", 
     hideHeader = false,
     className = "",
     entityId,
@@ -86,10 +86,10 @@ export function WizardTable<T>({
     };
 
     return (
-        <div className={`w-full overflow-hidden rounded-2xl border border-border/30 dark:border-white/10 bg-card/50 backdrop-blur-xl shadow-2xl ${className}`}>
+        <div className={`w-full overflow-hidden ${className}`}>
             {!hideHeader && (
                 <div
-                    className="grid border-b border-border/30 dark:border-white/10 bg-muted/30 dark:bg-white/5 py-4 px-12 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/80"
+                    className="grid border-b border-border/30 bg-muted/30 py-4 px-12 font-bold text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80"
                     style={{
                         gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
                     }}
@@ -102,7 +102,7 @@ export function WizardTable<T>({
                 </div>
             )}
 
-            <div className="custom-scrollbar overflow-y-auto max-h-[70vh] flex flex-col gap-3 p-4">
+            <div className="custom-scrollbar overflow-y-auto max-h-[70vh] flex flex-col gap-3 p-1">
                 {groups.map(([groupKey, groupData], groupIdx) => (
                     <div key={groupKey} className="flex flex-col gap-3">
                         {groupBy && groupKey !== "All" && (
@@ -116,7 +116,7 @@ export function WizardTable<T>({
                                 }}
                                 transition={{ duration: 0.3, ease: "easeOut" }}
                                 onClick={() => toggleGroup(groupKey)}
-                                className={`relative group rounded-xl border cursor-pointer ${expandedGroups.has(groupKey) ? "popup-row-focused" : "popup-row"}`}
+                                className={`relative group rounded-xl border cursor-pointer transition-all ${expandedGroups.has(groupKey) ? "popup-row-focused" : "popup-row"}`}
                                 style={{
                                     gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
                                 }}
@@ -124,8 +124,7 @@ export function WizardTable<T>({
                                 {expandedGroups.has(groupKey) && (
                                     <motion.div
                                         layoutId={`wizard-group-indicator-${groupKey}`}
-                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
-                                        style={{ backgroundColor: accentColor }}
+                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ duration: 0.2 }}
@@ -135,15 +134,15 @@ export function WizardTable<T>({
                                     {groupHeader ? (
                                         groupHeader(groupKey, groupData.length, expandedGroups.has(groupKey))
                                     ) : (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 p-3">
                                             <ToggleAdranalinkIcon 
                                                 isOpen={expandedGroups.has(groupKey)} 
                                                 color={accentColor} 
                                             />
-                                            <span className="font-bold text-lg tracking-tight" style={{ color: accentColor }}>
+                                            <span className="font-black text-lg tracking-tighter uppercase" style={{ color: accentColor }}>
                                                 {groupKey}
                                             </span>
-                                            <span className="text-muted-foreground/50 text-xs font-mono">[{groupData.length} UNITS]</span>
+                                            <span className="text-muted-foreground/50 text-[10px] font-black uppercase tracking-widest">[{groupData.length} UNITS]</span>
                                         </div>
                                     )}
                                 </div>
@@ -193,7 +192,7 @@ export function WizardTable<T>({
                                                 {isSelected && (
                                                     <motion.div
                                                         layoutId="wizard-selection-indicator"
-                                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
+                                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
                                                         style={{ backgroundColor: rowColor }}
                                                         initial={{ opacity: 0 }}
                                                         animate={{ opacity: 1 }}

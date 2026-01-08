@@ -13,12 +13,12 @@ export const Popup = ({ children, className = "" }: PopupProps) => {
     return (
         <div 
             className={`
-                bg-[#1e2433] border border-white/10 rounded-2xl shadow-2xl 
-                w-full h-full flex flex-col
+                bg-background/95 border border-border/40 rounded-3xl shadow-2xl 
+                w-full h-full flex flex-col backdrop-blur-xl
                 ${className}
             `}
             style={{
-                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)"
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(var(--border), 0.1)"
             }}
         >
             {children}

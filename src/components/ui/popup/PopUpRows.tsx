@@ -22,20 +22,20 @@ export function PopUpRows<T extends PopUpItem>({ items, renderItem, selectedId, 
                                 initial={{ opacity: 0, x: -5 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -5 }}
-                                transition={{ delay: index * 0.02, duration: 0.2, ease: "easeOut" }}
+                                transition={{ delay: index * 0.01, duration: 0.2, ease: "easeOut" }}
                                 onClick={() => onSelect?.(item)}
                                 className={`
                                     relative rounded-xl border transition-all cursor-pointer group
                                     ${isSelected 
-                                        ? "bg-white/10 border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]" 
-                                        : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/5"
+                                        ? "bg-primary/10 border-primary/20 shadow-sm" 
+                                        : "bg-transparent border-transparent hover:bg-muted/10 hover:border-border/20"
                                     }
                                 `}
                             >
                                 {isSelected && (
                                     <motion.div
                                         layoutId="popup-selection-indicator"
-                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-secondary"
+                                        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
