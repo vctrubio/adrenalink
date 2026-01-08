@@ -1,4 +1,4 @@
--- enriched RPC for Transaction table with all Students (ID only, no username)
+-- enriched RPC for Transaction table with Timezone conversion
 DROP FUNCTION IF EXISTS get_event_transaction(UUID);
 DROP FUNCTION IF EXISTS get_event_transactions_batch(UUID[]);
 
@@ -9,7 +9,7 @@ RETURNS TABLE (
     booking_id UUID,
     teacher_id UUID,
     school_id UUID,
-    event_date TIMESTAMP WITH TIME ZONE,
+    event_date TIMESTAMP, -- Using TIMESTAMP without zone to return the "wall clock" local time
     event_duration INTEGER,
     event_location VARCHAR,
     event_status TEXT,
@@ -37,7 +37,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        e.date,
+        (e.date AT TIME ZONE s.timezone)::TIMESTAMP, -- Convert UTC to school timezone
         e.duration,
         e.location,
         e.status,
@@ -56,9 +56,9 @@ BEGIN
         ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student bs WHERE bs.booking_id = b.id))::NUMERIC 
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC,
         COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('id', s.id, 'name', s.first_name || ' ' || s.last_name))
+            (SELECT jsonb_agg(jsonb_build_object('id', s_inner.id, 'name', s_inner.first_name || ' ' || s_inner.last_name))
              FROM booking_student bs
-             JOIN student s ON bs.student_id = s.id
+             JOIN student s_inner ON bs.student_id = s_inner.id
              WHERE bs.booking_id = b.id),
             '[]'::jsonb
         ),
@@ -70,6 +70,7 @@ BEGIN
             '[]'::jsonb
         )
     FROM event e
+    JOIN school s ON e.school_id = s.id -- Joined school to get the timezone
     JOIN lesson l ON e.lesson_id = l.id
     JOIN booking b ON l.booking_id = b.id
     JOIN school_package sp ON b.school_package_id = sp.id
@@ -86,7 +87,7 @@ RETURNS TABLE (
     booking_id UUID,
     teacher_id UUID,
     school_id UUID,
-    event_date TIMESTAMP WITH TIME ZONE,
+    event_date TIMESTAMP,
     event_duration INTEGER,
     event_location VARCHAR,
     event_status TEXT,
@@ -114,7 +115,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        e.date,
+        (e.date AT TIME ZONE s.timezone)::TIMESTAMP,
         e.duration,
         e.location,
         e.status,
@@ -133,9 +134,9 @@ BEGIN
         ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student bs WHERE bs.booking_id = b.id))::NUMERIC 
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC,
         COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('id', s.id, 'name', s.first_name || ' ' || s.last_name))
+            (SELECT jsonb_agg(jsonb_build_object('id', s_inner.id, 'name', s_inner.first_name || ' ' || s_inner.last_name))
              FROM booking_student bs
-             JOIN student s ON bs.student_id = s.id
+             JOIN student s_inner ON bs.student_id = s_inner.id
              WHERE bs.booking_id = b.id),
             '[]'::jsonb
         ),
@@ -147,6 +148,7 @@ BEGIN
             '[]'::jsonb
         )
     FROM event e
+    JOIN school s ON e.school_id = s.id
     JOIN lesson l ON e.lesson_id = l.id
     JOIN booking b ON l.booking_id = b.id
     JOIN school_package sp ON b.school_package_id = sp.id
