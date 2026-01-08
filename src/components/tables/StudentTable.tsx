@@ -157,6 +157,7 @@ function StudentTable({
                         >
                             Student Profile
                         </TableHead>
+                        <TableHead>Description</TableHead>
                         <TableHead
                             sortable
                             sortActive={sortColumn === "status"}
@@ -173,7 +174,7 @@ function StudentTable({
                     const isSelected = selectedStudentIds.includes(student.id);
                     const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;
 
-                    const stats = studentStatsMap[student.id] || { bookingCount: 0, durationHours: 0 };
+                    const stats = studentStatsMap[student.id] || { bookingCount: 0, durationHours: 0, totalEventCount: 0, totalEventDuration: 0 };
 
                     return (
                         <TableRow
@@ -196,6 +197,9 @@ function StudentTable({
                                         <span className="truncate max-w-[200px]">{student.languages.join(", ")}</span>
                                     </div>
                                 </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                                {schoolStudent.description || "-"}
                             </TableCell>
                             <TableCell>
                                 <StudentStatusBadge
