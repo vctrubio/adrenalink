@@ -9,7 +9,7 @@ import { TeacherTable } from "@/src/components/tables/TeacherTable";
 import { TeacherCommissionBadge } from "@/src/components/ui/badge";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
-import { createAndLinkTeacher } from "@/actions/register-action";
+import { createAndLinkTeacher } from "@/supabase/server/register";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 
 interface Commission {

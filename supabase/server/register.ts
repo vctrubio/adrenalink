@@ -1,307 +1,370 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { db } from "@/drizzle/db";
-import {
-    schoolPackage,
-    schoolStudents,
-    teacher,
-    referral,
-    booking,
-    lesson,
-    student,
-    teacherCommission,
-    studentPackage,
-} from "@/drizzle/schema";
+import { getServerConnection } from "@/supabase/connection";
+import { headers } from "next/headers";
+import type { ApiActionResponseModel } from "@/types/actions";
 
-// Types for register tables
-export interface RegisterPackage {
-    id: string;
-    durationMinutes: number;
-    description: string | null;
-    pricePerStudent: number;
-    capacityStudents: number;
-    capacityEquipment: number;
-    categoryEquipment: string;
-    packageType: string;
-    isPublic: boolean;
-    active: boolean;
+export interface StudentPayload {
+  first_name: string;
+  last_name: string;
+  passport: string;
+  country: string;
+  phone: string;
+  languages: string[];
 }
 
-export interface RegisterStudent {
-    id: string;
-    firstName: string;
-    lastName: string;
-    passport: string;
-    country: string;
-    phone: string;
-    languages: string[];
+export interface TeacherPayload {
+  first_name: string;
+  last_name: string;
+  username: string;
+  passport: string;
+  country: string;
+  phone: string;
+  languages: string[];
 }
 
-export interface RegisterSchoolStudent {
-    id: string;
-    studentId: string;
-    description: string | null;
-    active: boolean;
-    rental: boolean;
-    student: RegisterStudent;
+export interface CommissionPayload {
+  commission_type: "fixed" | "percentage";
+  cph: string;
+  description?: string;
 }
 
-export interface RegisterCommission {
-    id: string;
-    teacherId: string;
-    commissionType: string;
-    description: string | null;
-    cph: string;
-    active: boolean;
-}
-
-export interface RegisterTeacher {
-    id: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    passport: string;
-    country: string;
-    phone: string;
-    languages: string[];
-    schoolId: string;
-    active: boolean;
-    commissions: RegisterCommission[];
-}
-
-export interface RegisterReferral {
-    id: string;
-    code: string;
-    description: string | null;
-    commissionType: string;
-    commissionValue: string;
-    active: boolean;
-}
-
-export interface StudentBookingTableStats {
-    bookingCount: number;
-    durationHours: number;
-    allBookingsCompleted: boolean;
-}
-
-export interface TeacherLessonTableStats {
-    totalLessons: number;
-    plannedLessons: number;
-}
-
-export interface RegisterTables {
-    school: { id: string; name: string; username: string };
-    packages: RegisterPackage[];
-    students: RegisterSchoolStudent[];
-    teachers: RegisterTeacher[];
-    referrals: RegisterReferral[];
-    studentBookingStats: Record<string, StudentBookingTableStats>;
-    teacherLessonStats: Record<string, TeacherLessonTableStats>;
+export interface PackagePayload {
+  duration_minutes: number;
+  description: string;
+  price_per_student: number;
+  capacity_students?: number;
+  capacity_equipment?: number;
+  category_equipment: string;
+  package_type: string;
+  is_public?: boolean;
+  active?: boolean;
 }
 
 /**
- * Fetch all register page data using optimized parallel Drizzle queries
- * No unnecessary transformations - Drizzle handles camelCase automatically
+ * Create student and link to school in a single transaction
  */
-export async function getRegisterTables(
-    schoolId: string,
-    schoolName: string,
-    schoolUsername: string
-): Promise<{ success: true; data: RegisterTables } | { success: false; error: string }> {
-    return { success: false, error: "Not implemented - use supabase" };
-    // try {
-    //     // Run all queries in parallel for maximum performance
-    //     const [packagesData, studentsData, teachersData, referralsData, bookingsData, lessonsData] =
-    //         await Promise.all([
-    //             // 1. Packages - active only, oldest first
-    //             db.query.schoolPackage.findMany({
-    //                 where: eq(schoolPackage.schoolId, schoolId),
-    //                 orderBy: (sp) => sp.createdAt,
-    //             }),
+export async function createAndLinkStudent(
+  studentData: StudentPayload,
+  canRent = false,
+  description?: string,
+): Promise<
+  ApiActionResponseModel<{
+    student: any;
+    schoolStudent: any;
+  }>
+> {
+  try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
 
-    //             // 2. School Students with student relations - active only, newest first
-    //             db.query.schoolStudents.findMany({
-    //                 where: eq(schoolStudents.schoolId, schoolId),
-    //                 with: {
-    //                     student: {
-    //                         columns: {
-    //                             id: true,
-    //                             firstName: true,
-    //                             lastName: true,
-    //                             passport: true,
-    //                             country: true,
-    //                             phone: true,
-    //                             languages: true,
-    //                         },
-    //                     },
-    //                 },
-    //                 orderBy: (ss) => ss.createdAt,
-    //             }),
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
 
-    //             // 3. Teachers with commissions - active only, oldest first
-    //             db.query.teacher.findMany({
-    //                 where: eq(teacher.schoolId, schoolId),
-    //                 with: {
-    //                     commissions: {
-    //                         columns: {
-    //                             id: true,
-    //                             teacherId: true,
-    //                             commissionType: true,
-    //                             description: true,
-    //                             cph: true,
-    //                             active: true,
-    //                         },
-    //                     },
-    //                 },
-    //                 orderBy: (t) => t.createdAt,
-    //             }),
+    const supabase = getServerConnection();
 
-    //             // 4. Referrals - active only
-    //             db.query.referral.findMany({
-    //                 where: eq(referral.schoolId, schoolId),
-    //             }),
+    // Create student
+    const { data: createdStudent, error: studentError } = await supabase
+      .from("student")
+      .insert(studentData)
+      .select()
+      .single();
 
-    //             // 5. Bookings with student packages for stats calculation
-    //             db.query.booking.findMany({
-    //                 where: eq(booking.schoolId, schoolId),
-    //                 columns: {
-    //                     id: true,
-    //                     status: true,
-    //                     studentPackageId: true,
-    //                 },
-    //                 with: {
-    //                     studentPackage: {
-    //                         columns: {
-    //                             schoolPackageId: true,
-    //                         },
-    //                         with: {
-    //                             schoolPackage: {
-    //                                 columns: {
-    //                                     durationMinutes: true,
-    //                                 },
-    //                             },
-    //                         },
-    //                     },
-    //                     bookingStudents: {
-    //                         columns: {
-    //                             studentId: true,
-    //                         },
-    //                     },
-    //                 },
-    //             }),
+    if (studentError || !createdStudent) {
+      if (
+        studentError?.code === "23505" ||
+        studentError?.message?.includes("unique constraint")
+      ) {
+        return { success: false, error: "Student with this passport already exists" };
+      }
+      return { success: false, error: "Failed to create student" };
+    }
 
-    //             // 6. All lessons by teacher for stats
-    //             db.query.lesson.findMany({
-    //                 where: eq(lesson.schoolId, schoolId),
-    //                 columns: {
-    //                     id: true,
-    //                     teacherId: true,
-    //                     status: true,
-    //                 },
-    //             }),
-    //         ]);
+    // Link to school
+    const { data: createdSchoolStudent, error: linkError } = await supabase
+      .from("school_students")
+      .insert({
+        school_id: schoolId,
+        student_id: createdStudent.id,
+        description: description || null,
+        active: true,
+        rental: canRent,
+      })
+      .select()
+      .single();
 
-    //     // Compute student booking stats
-    //     const studentBookingStats: Record<string, StudentBookingTableStats> = {};
+    if (linkError || !createdSchoolStudent) {
+      return { success: false, error: "Failed to link student to school" };
+    }
 
-    //     for (const b of bookingsData) {
-    //         const bookingStudentList = b.bookingStudents || [];
-    //         for (const bs of bookingStudentList) {
-    //             const studentId = bs.studentId;
-    //             const durationMinutes = b.studentPackage?.schoolPackage?.durationMinutes || 0;
-    //             const isCompleted = b.status === "active";
+    return {
+      success: true,
+      data: {
+        student: createdStudent,
+        schoolStudent: createdSchoolStudent,
+      },
+    };
+  } catch (error) {
+    console.error("Error creating and linking student:", error);
+    return { success: false, error: "Failed to create and link student" };
+  }
+}
 
-    //             if (!studentBookingStats[studentId]) {
-    //                 studentBookingStats[studentId] = {
-    //                     bookingCount: 0,
-    //                     durationHours: 0,
-    //                     allBookingsCompleted: true,
-    //                 };
-    //             }
+/**
+ * Create and link teacher to school with commissions
+ */
+export async function createAndLinkTeacher(
+  teacherData: Omit<TeacherPayload, "schoolId">,
+  commissionsData: CommissionPayload[],
+): Promise<
+  ApiActionResponseModel<{
+    teacher: any;
+    commissions: any[];
+  }>
+> {
+  try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
 
-    //             studentBookingStats[studentId].bookingCount += 1;
-    //             studentBookingStats[studentId].durationHours += Math.floor(durationMinutes / 60);
-    //             if (!isCompleted) {
-    //                 studentBookingStats[studentId].allBookingsCompleted = false;
-    //             }
-    //         }
-    //     }
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
 
-    //     // Compute teacher lesson stats
-    //     const teacherLessonStats: Record<string, TeacherLessonTableStats> = {};
+    const supabase = getServerConnection();
 
-    //     for (const l of lessonsData) {
-    //         const teacherId = l.teacherId;
-    //         if (!teacherLessonStats[teacherId]) {
-    //             teacherLessonStats[teacherId] = {
-    //                 totalLessons: 0,
-    //                 plannedLessons: 0,
-    //             };
-    //         }
+    // Create teacher
+    const { data: createdTeacher, error: teacherError } = await supabase
+      .from("teacher")
+      .insert({
+        ...teacherData,
+        school_id: schoolId,
+      })
+      .select()
+      .single();
 
-    //         teacherLessonStats[teacherId].totalLessons += 1;
-    //         if (l.status === "planned") {
-    //             teacherLessonStats[teacherId].plannedLessons += 1;
-    //         }
-    //     }
+    if (teacherError || !createdTeacher) {
+      if (
+        teacherError?.code === "23505" ||
+        teacherError?.message?.includes("unique constraint")
+      ) {
+        if (teacherError?.message?.includes("passport")) {
+          return { success: false, error: "Teacher with this passport already exists" };
+        } else if (teacherError?.message?.includes("username")) {
+          return { success: false, error: "Teacher with this username already exists for this school" };
+        }
+      }
+      return { success: false, error: "Failed to create teacher" };
+    }
 
-    //     // Transform teachers - filter active commissions
-    //     const transformedTeachers: RegisterTeacher[] = teachersData.map((t) => ({
-    //         id: t.id,
-    //         firstName: t.firstName,
-    //         lastName: t.lastName,
-    //         username: t.username,
-    //         passport: t.passport,
-    //         country: t.country,
-    //         phone: t.phone,
-    //         languages: t.languages,
-    //         schoolId: t.schoolId,
-    //         active: t.active,
-    //         commissions: (t.commissions || [])
-    //             .filter((c) => c.active)
-    //             .map((c) => ({
-    //                 id: c.id,
-    //                 teacherId: c.teacherId,
-    //                 commissionType: c.commissionType,
-    //                 description: c.description,
-    //                 cph: c.cph,
-    //                 active: c.active,
-    //             })),
-    //     }));
+    // Create commissions
+    const createdCommissions: any[] = [];
+    for (const commissionData of commissionsData) {
+      const { data: createdCommission, error: commissionError } = await supabase
+        .from("teacher_commission")
+        .insert({
+          teacher_id: createdTeacher.id,
+          commission_type: commissionData.commission_type,
+          cph: commissionData.cph,
+          description: commissionData.description || null,
+        })
+        .select()
+        .single();
 
-    //     // Transform students
-    //     const transformedStudents: RegisterSchoolStudent[] = studentsData.map((ss) => ({
-    //         id: ss.id,
-    //         studentId: ss.studentId,
-    //         description: ss.description,
-    //         active: ss.active,
-    //         rental: ss.rental,
-    //         student: {
-    //             id: ss.student.id,
-    //             firstName: ss.student.firstName,
-    //             lastName: ss.student.lastName,
-    //             passport: ss.student.passport,
-    //             country: ss.student.country,
-    //             phone: ss.student.phone,
-    //             languages: ss.student.languages,
-    //         },
-    //     }));
+      if (commissionError || !createdCommission) {
+        return { success: false, error: "Failed to create teacher commissions" };
+      }
 
-    //     return {
-    //         success: true,
-    //         data: {
-    //             school: { id: schoolId, name: schoolName, username: schoolUsername },
-    //             packages: packagesData as RegisterPackage[],
-    //             students: transformedStudents,
-    //             teachers: transformedTeachers,
-    //             referrals: referralsData as RegisterReferral[],
-    //             studentBookingStats,
-    //             teacherLessonStats,
-    //         },
-    //     };
-    // } catch (error) {
-    //     console.error("Error in getRegisterTables:", error);
-    //     return { success: false, error: "Failed to fetch register data" };
-    // }
+      createdCommissions.push(createdCommission);
+    }
+
+    return {
+      success: true,
+      data: {
+        teacher: createdTeacher,
+        commissions: createdCommissions,
+      },
+    };
+  } catch (error) {
+    console.error("Error creating teacher:", error);
+    return { success: false, error: "Failed to create teacher" };
+  }
+}
+
+/**
+ * Create school package
+ */
+export async function createSchoolPackage(
+  packageData: PackagePayload,
+): Promise<ApiActionResponseModel<any>> {
+  try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
+
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
+
+    const supabase = getServerConnection();
+
+    const { data: createdPackage, error } = await supabase
+      .from("school_package")
+      .insert({
+        ...packageData,
+        school_id: schoolId,
+      })
+      .select()
+      .single();
+
+    if (error || !createdPackage) {
+      return { success: false, error: "Failed to create package" };
+    }
+
+    return { success: true, data: createdPackage };
+  } catch (error) {
+    console.error("Error creating package:", error);
+    return { success: false, error: "Failed to create package" };
+  }
+}
+
+/**
+ * Create school equipment
+ */
+export async function createSchoolEquipment(equipmentData: {
+  category: string;
+  sku: string;
+  model: string;
+  color?: string;
+  size?: number;
+  status?: string;
+}): Promise<ApiActionResponseModel<any>> {
+  try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
+
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
+
+    const supabase = getServerConnection();
+
+    const { data: createdEquipment, error } = await supabase
+      .from("equipment")
+      .insert({
+        ...equipmentData,
+        school_id: schoolId,
+      })
+      .select()
+      .single();
+
+    if (error || !createdEquipment) {
+      return { success: false, error: "Failed to create equipment" };
+    }
+
+    return { success: true, data: createdEquipment };
+  } catch (error) {
+    console.error("Error creating equipment:", error);
+    return { success: false, error: "Failed to create equipment" };
+  }
+}
+
+/**
+ * Master booking creation with students and optional lesson
+ */
+export async function masterBookingAdd(
+  packageId: string,
+  studentIds: string[],
+  dateStart: string,
+  dateEnd: string,
+  teacherId?: string,
+  commissionId?: string,
+  referralId?: string,
+  leaderStudentName?: string,
+): Promise<
+  ApiActionResponseModel<{
+    booking: any;
+    lesson?: any;
+  }>
+> {
+  try {
+    if (studentIds.length === 0) {
+      return { success: false, error: "At least one student is required" };
+    }
+
+    if (teacherId && !commissionId) {
+      return { success: false, error: "Commission ID is required when teacher is provided" };
+    }
+
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
+
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
+
+    const supabase = getServerConnection();
+
+    // Create booking
+    const { data: createdBooking, error: bookingError } = await supabase
+      .from("booking")
+      .insert({
+        school_id: schoolId,
+        school_package_id: packageId,
+        date_start: new Date(dateStart),
+        date_end: new Date(dateEnd),
+        leader_student_name: leaderStudentName || "",
+        status: "active",
+      })
+      .select()
+      .single();
+
+    if (bookingError || !createdBooking) {
+      return { success: false, error: "Failed to create booking" };
+    }
+
+    // Link students to booking
+    for (const studentId of studentIds) {
+      const { error: linkError } = await supabase.from("booking_student").insert({
+        booking_id: createdBooking.id,
+        student_id: studentId,
+      });
+
+      if (linkError) {
+        return { success: false, error: "Failed to link students to booking" };
+      }
+    }
+
+    // Create lesson if teacher provided
+    let createdLesson;
+    if (teacherId && commissionId) {
+      const { data: lesson, error: lessonError } = await supabase
+        .from("lesson")
+        .insert({
+          school_id: schoolId,
+          teacher_id: teacherId,
+          booking_id: createdBooking.id,
+          commission_id: commissionId,
+          status: "active",
+        })
+        .select()
+        .single();
+
+      if (lessonError) {
+        return { success: false, error: "Failed to create lesson" };
+      }
+
+      createdLesson = lesson;
+    }
+
+    return {
+      success: true,
+      data: {
+        booking: createdBooking,
+        lesson: createdLesson,
+      },
+    };
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    return { success: false, error: "Failed to create booking" };
+  }
 }

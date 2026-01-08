@@ -1,3 +1,5 @@
+"use server";
+
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
@@ -17,14 +19,14 @@ export interface TeacherProvider {
     };
 }
 
-export async function getSchoolTeacherProvider(): Promise<TeacherProvider[]> {
+export async function getSchoolTeacherProvider(): Promise<{ success: boolean; data?: TeacherProvider[]; error?: string }> {
     try {
         const headersList = await headers();
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
             console.error("❌ No school ID found in headers");
-            return [];
+            return { success: false, error: "School ID not found" };
         }
 
         const supabase = getServerConnection();
@@ -47,10 +49,10 @@ export async function getSchoolTeacherProvider(): Promise<TeacherProvider[]> {
 
         if (error) {
             console.error("Error fetching teachers provider:", error);
-            return [];
+            return { success: false, error: "Failed to fetch teachers" };
         }
 
-        return data.map((t: any) => {
+        const teachers = data.map((t: any) => {
             const lessons = t.lesson || [];
             const totalLessons = lessons.length;
             const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
@@ -69,9 +71,11 @@ export async function getSchoolTeacherProvider(): Promise<TeacherProvider[]> {
                 }
             };
         });
+
+        return { success: true, data: teachers };
     } catch (error) {
         console.error("Unexpected error in getSchoolTeacherProvider:", error);
-        return [];
+        return { success: false, error: "An unexpected error occurred" };
     }
 }
 
@@ -230,4 +234,27 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
         console.error("Unexpected error in getTeachersTable:", error);
         return [];
     }
+}
+
+export async function updateTeacherActive(
+  teacherId: string,
+  active: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getServerConnection();
+
+    const { error } = await supabase
+      .from("teacher")
+      .update({ active })
+      .eq("id", teacherId);
+
+    if (error) {
+      return { success: false, error: "Failed to update teacher status" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating teacher status:", error);
+    return { success: false, error: "Failed to update teacher status" };
+  }
 }

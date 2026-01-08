@@ -6,7 +6,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useTeacherSortOrder, updateTeacherSortOrder } from "@/src/hooks/useTeacherSortOrder";
-import { updateTeacherActive } from "@/actions/teachers-action";
+import { updateTeacherActive } from "@/supabase/server/teachers";
 import { ENTITY_DATA } from "@/config/entities";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";

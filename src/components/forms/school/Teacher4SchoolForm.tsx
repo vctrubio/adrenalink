@@ -5,7 +5,7 @@ import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
-import { languagesEnum } from "@/drizzle/schema";
+import { LANGUAGES } from "@/supabase/db/enums";
 import TeacherCommissionForm from "../TeacherCommissionForm";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
@@ -13,7 +13,7 @@ import { MasterSchoolForm } from "./MasterSchoolForm";
 import { teacherFormSchema, defaultTeacherForm, type TeacherFormData } from "@/types/form-entities";
 
 // Export the language options from the enum
-export const LANGUAGE_OPTIONS = languagesEnum.enumValues;
+export const LANGUAGE_OPTIONS = Object.values(LANGUAGES);
 
 // Re-export for backward compatibility
 export { teacherFormSchema, type TeacherFormData };

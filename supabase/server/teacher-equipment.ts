@@ -1,0 +1,65 @@
+import { getServerConnection } from "@/supabase/connection";
+
+export async function linkTeacherToEquipment(
+  equipmentId: string,
+  teacherId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getServerConnection();
+
+    // Try to insert, if exists update active status
+    const { error: insertError } = await supabase
+      .from("teacher_equipment")
+      .insert({
+        teacher_id: teacherId,
+        equipment_id: equipmentId,
+        active: true,
+      });
+
+    if (insertError) {
+      // If conflict, set active to true
+      if (insertError.code === "23505") {
+        const { error: updateError } = await supabase
+          .from("teacher_equipment")
+          .update({ active: true })
+          .eq("teacher_id", teacherId)
+          .eq("equipment_id", equipmentId);
+
+        if (updateError) {
+          return { success: false, error: "Failed to link teacher to equipment" };
+        }
+      } else {
+        return { success: false, error: "Failed to link teacher to equipment" };
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error linking teacher to equipment:", error);
+    return { success: false, error: "Failed to link teacher to equipment" };
+  }
+}
+
+export async function removeTeacherFromEquipment(
+  equipmentId: string,
+  teacherId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getServerConnection();
+
+    const { error } = await supabase
+      .from("teacher_equipment")
+      .delete()
+      .eq("teacher_id", teacherId)
+      .eq("equipment_id", equipmentId);
+
+    if (error) {
+      return { success: false, error: "Failed to remove teacher from equipment" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error removing teacher from equipment:", error);
+    return { success: false, error: "Failed to remove teacher from equipment" };
+  }
+}

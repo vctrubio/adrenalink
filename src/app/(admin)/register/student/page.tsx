@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, useStudentFormState, useFormRegistration } from "../RegisterContext";
 import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
 import { defaultStudentForm } from "@/types/form-entities";
-import { createAndLinkStudent } from "@/actions/register-action";
+import { createAndLinkStudent } from "@/supabase/server/register";
 import toast from "react-hot-toast";
 
 export default function StudentPage() {

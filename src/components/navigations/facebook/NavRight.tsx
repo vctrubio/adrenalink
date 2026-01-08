@@ -27,7 +27,7 @@ import {
     type PackageFormData,
     type EquipmentFormData,
 } from "@/types/form-entities";
-import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, createSchoolEquipment } from "@/actions/register-action";
+import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, createSchoolEquipment } from "@/supabase/server/register";
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 

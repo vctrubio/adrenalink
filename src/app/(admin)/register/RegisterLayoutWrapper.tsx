@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
-import { masterBookingAdd } from "@/actions/register-action";
+import { masterBookingAdd } from "@/supabase/server/register";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
 import { useRegisterData, useBookingForm, useRegisterActions, useFormRegistration } from "./RegisterContext";
 import RegisterController from "./RegisterController";

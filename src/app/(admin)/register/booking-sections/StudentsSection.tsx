@@ -7,7 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { StudentTable } from "@/src/components/tables/StudentTable";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import StudentForm, { studentFormSchema, type StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
-import { createAndLinkStudent } from "@/actions/register-action";
+import { createAndLinkStudent } from "@/supabase/server/register";
 import { useStudentFormState, useFormRegistration, useRegisterActions } from "../RegisterContext";
 
 interface Student {

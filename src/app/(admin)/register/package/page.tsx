@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
-import { createSchoolPackage } from "@/actions/register-action";
+import { createSchoolPackage } from "@/supabase/server/register";
 import toast from "react-hot-toast";
 
 const defaultPackageForm: PackageFormData = {

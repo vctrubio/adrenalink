@@ -10,7 +10,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
 import { defaultPackageForm } from "@/types/form-entities";
-import { createSchoolPackage } from "@/actions/register-action";
+import { createSchoolPackage } from "@/supabase/server/register";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 
 interface Package {

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useState, useEffect, useMemo, type ReactNode } from "react";
-import { getSchoolTeachersProviderAction } from "@/actions/teachers-action";
+import { getSchoolTeacherProvider } from "@/supabase/server/teachers";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface SchoolTeachersContextType {
@@ -29,7 +29,7 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
         setError(null);
 
         try {
-            const result = await getSchoolTeachersProviderAction();
+            const result = await getSchoolTeacherProvider();
 
             if (result.success && result.data) {
                 // Store all teachers (including inactive)

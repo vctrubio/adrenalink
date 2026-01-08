@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
-import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/actions/equipments-action";
+import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/supabase/server/teacher-equipment";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
 import type { EquipmentData } from "@/backend/data/EquipmentData";

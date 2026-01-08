@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
-import { getWizardEntities, type WizardEntity } from "@/actions/wizard-sql-action";
+import { getWizardEntities, type WizardEntity } from "@/supabase/server/wizard-entities";
 import { PopUpRows } from "@/src/components/ui/popup/PopUpRows";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
 import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";

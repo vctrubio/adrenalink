@@ -1,4 +1,4 @@
-import { eventStatusEnum, lessonStatusEnum, bookingStatusEnum } from "@/drizzle/schema";
+import { EVENT_STATUS, LESSON_STATUS, BOOKING_STATUS } from "@/supabase/db/enums";
 
 // ============ SHARED COLOR CONSTANTS ============
 // Reusable colors across all status types
@@ -22,7 +22,7 @@ export const BADGE_BG_OPACITY_MEDIUM = "30"; // For secondary badges
 export const BADGE_BG_OPACITY_LIGHT = "20"; // For light badges
 
 // ============ EVENT STATUS CONFIGURATION ============
-export type EventStatus = (typeof eventStatusEnum.enumValues)[number];
+export type EventStatus = typeof EVENT_STATUS[keyof typeof EVENT_STATUS];
 
 export interface EventStatusConfig {
     status: EventStatus;
@@ -54,7 +54,7 @@ export const EVENT_STATUS_CONFIG: Record<EventStatus, EventStatusConfig> = {
 } as const;
 
 // ============ LESSON STATUS CONFIGURATION ============
-export type LessonStatus = (typeof lessonStatusEnum.enumValues)[number];
+export type LessonStatus = typeof LESSON_STATUS[keyof typeof LESSON_STATUS];
 
 export interface LessonStatusConfig {
     status: LessonStatus;
@@ -109,7 +109,7 @@ export const ACTION_BUTTON_CONFIG: Record<ActionType, ActionButtonConfig> = {
 } as const;
 
 // ============ BOOKING STATUS CONFIGURATION ============
-export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
 
 export interface BookingStatusConfig {
     status: BookingStatus;

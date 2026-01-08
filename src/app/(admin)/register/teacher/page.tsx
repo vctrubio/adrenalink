@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { defaultTeacherForm } from "@/types/form-entities";
-import { createAndLinkTeacher } from "@/actions/register-action";
+import { createAndLinkTeacher } from "@/supabase/server/register";
 import toast from "react-hot-toast";
 
 export default function TeacherPage() {

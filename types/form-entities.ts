@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { equipmentStatusEnum } from "@/drizzle/schema";
+import { EQUIPMENT_STATUS } from "@/supabase/db/enums";
 
 // ============================================================================
 // STUDENT FORM
@@ -104,7 +104,7 @@ export const equipmentFormSchema = z.object({
     model: z.string().min(1, "Model is required"),
     color: z.string().optional(),
     size: z.number().optional(),
-    status: z.enum(equipmentStatusEnum.enumValues).optional(),
+    status: z.enum([...Object.values(EQUIPMENT_STATUS)] as const).optional(),
 });
 
 export type EquipmentFormData = z.infer<typeof equipmentFormSchema>;
