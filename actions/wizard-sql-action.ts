@@ -27,7 +27,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
                         s.id,
                         s.first_name || ' ' || s.last_name as title,
                         s.country as subtitle,
-                        CASE WHEN s.active THEN 'Active' ELSE 'Inactive' END as status
+                        CASE WHEN ss.active THEN 'Active' ELSE 'Inactive' END as status
                     FROM student s
                     JOIN school_students ss ON ss.student_id = s.id
                     WHERE ss.school_id = ${schoolId}
