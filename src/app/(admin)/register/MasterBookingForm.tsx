@@ -38,6 +38,16 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         currentPackages: contextData.packages || schoolPackages,
     }), [contextData.students, contextData.teachers, contextData.packages, students, teachers, schoolPackages]);
 
+    // Sort packages by category if param exists or students are selected
+    const sortedPackages = useMemo(() => {
+        const shouldSort = studentIdParam || selectedStudentIds.length > 0;
+        if (!shouldSort) return currentPackages;
+
+        return [...currentPackages].sort((a, b) => {
+            return (a.categoryEquipment || "").localeCompare(b.categoryEquipment || "");
+        });
+    }, [currentPackages, studentIdParam, selectedStudentIds.length]);
+
     useEffect(() => {
         console.log("[MasterBookingForm] data changed:", {
             studentCount: currentStudents?.length || 0,
@@ -258,7 +268,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             />
 
             <PackageSection
-                packages={currentPackages}
+                packages={sortedPackages}
                 selectedPackage={selectedPackage}
                 onSelect={handlePackageSelect}
                 isExpanded={expandedSections.has("package-section")}
