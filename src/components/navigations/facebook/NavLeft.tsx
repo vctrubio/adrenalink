@@ -49,9 +49,7 @@ export const NavLeft = () => {
                     {routesToRender.map((route) => {
                         let isActive = false;
                         if (route.id === "data") {
-                            isActive = databoardPaths.some((path) => pathname.startsWith(path));
-                        } else if (route.id === "info") {
-                            isActive = pathname.startsWith("/home");
+                            isActive = pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
                         } else {
                             isActive = pathname.startsWith(route.href);
                         }
@@ -59,7 +57,7 @@ export const NavLeft = () => {
                         if (route.id === "data") {
                             return (
                                 <DropdownItem
-                                    key={route.href}
+                                    key={route.id}
                                     item={{
                                         icon: route.icon,
                                         active: isActive,
@@ -72,9 +70,9 @@ export const NavLeft = () => {
 
                         return (
                             <DropdownItem
-                                key={route.href}
+                                key={route.id}
                                 item={{
-                                    href: route.id === "info" ? "/home" : route.href,
+                                    href: route.href,
                                     icon: route.icon,
                                     active: isActive,
                                 }}

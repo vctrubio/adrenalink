@@ -23,9 +23,7 @@ export const NavCenter = () => {
     const mobileMenuItems: DropdownItemProps[] = routesToRender.map((route) => {
         let isActive = false;
         if (route.id === "data") {
-            isActive = databoardPaths.some((path) => pathname.startsWith(path));
-        } else if (route.id === "info") {
-            isActive = pathname.startsWith("/home");
+            isActive = pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
         } else {
             isActive = pathname.startsWith(route.href);
         }
@@ -48,7 +46,7 @@ export const NavCenter = () => {
             label: route.label,
             icon: route.icon,
             active: isActive,
-            href: route.id === "info" ? "/home" : route.href,
+            href: route.href,
             onClick: () => setIsMobileMenuOpen(false),
         };
     });

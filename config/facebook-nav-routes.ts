@@ -8,7 +8,7 @@ export const FACEBOOK_NAV_ROUTES = [
     {
         id: "info",
         name: "Info",
-        href: "/info",
+        href: "/home",
         icon: SchoolIcon,
     },
     {
@@ -20,7 +20,7 @@ export const FACEBOOK_NAV_ROUTES = [
     {
         id: "data",
         name: "Tables",
-        href: "/data",
+        href: "/tables",
         icon: TableIcon,
     },
     {
