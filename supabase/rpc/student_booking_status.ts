@@ -2,11 +2,22 @@ import { getServerConnection } from "@/supabase/connection";
 
 export interface StudentBookingStatusResult {
   student_id: string;
+  first_name: string;
+  last_name: string;
+  passport: string;
+  country: string;
+  phone: string;
+  languages: string[];
+  school_student_id: string;
+  description: string | null;
+  active: boolean;
+  rental: boolean;
   booking_count: number;
   duration_hours: number;
   total_event_count: number;
   total_event_duration: number;
   all_bookings_completed: boolean;
+  created_at: string;
 }
 
 export async function getStudentBookingStatus(schoolId: string) {
