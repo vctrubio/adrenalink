@@ -368,3 +368,196 @@ export async function masterBookingAdd(
     return { success: false, error: "Failed to create booking" };
   }
 }
+
+/**
+ * Data type for register tables
+ */
+export interface RegisterTables {
+  students: Array<{
+    id: string;
+    studentId: string;
+    description: string | null;
+    active: boolean;
+    rental: boolean;
+    createdAt: string;
+    student: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      passport: string;
+      country: string;
+      phone: string;
+      languages: string[];
+    };
+  }>;
+  teachers: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    passport: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    active: boolean;
+  }>;
+  packages: Array<{
+    id: string;
+    durationMinutes: number;
+    description: string;
+    pricePerStudent: number;
+    capacityStudents: number;
+    capacityEquipment: number;
+    categoryEquipment: string;
+    packageType: string;
+    isPublic: boolean;
+    active: boolean;
+  }>;
+  referrals: Array<{
+    id: string;
+    code: string;
+    commissionType: string;
+    commissionValue: string;
+    description: string | null;
+    active: boolean;
+  }>;
+}
+
+/**
+ * Fetch all register tables data for a school
+ */
+export async function getRegisterTables(
+  schoolId: string,
+  schoolName: string,
+  schoolUsername: string,
+): Promise<ApiActionResponseModel<RegisterTables>> {
+  try {
+    const supabase = getServerConnection();
+
+    // Fetch students linked to school
+    const { data: students, error: studentsError } = await supabase
+      .from("school_students")
+      .select(`
+        id,
+        student_id,
+        description,
+        active,
+        rental,
+        created_at,
+        student:student_id (
+          id,
+          first_name,
+          last_name,
+          passport,
+          country,
+          phone,
+          languages
+        )
+      `)
+      .eq("school_id", schoolId);
+
+    if (studentsError) {
+      console.error("Error fetching students:", studentsError);
+      return { success: false, error: "Failed to fetch students" };
+    }
+
+    // Fetch teachers
+    const { data: teachers, error: teachersError } = await supabase
+      .from("teacher")
+      .select("*")
+      .eq("school_id", schoolId);
+
+    if (teachersError) {
+      console.error("Error fetching teachers:", teachersError);
+      return { success: false, error: "Failed to fetch teachers" };
+    }
+
+    // Fetch packages
+    const { data: packages, error: packagesError } = await supabase
+      .from("school_package")
+      .select("*")
+      .eq("school_id", schoolId);
+
+    if (packagesError) {
+      console.error("Error fetching packages:", packagesError);
+      return { success: false, error: "Failed to fetch packages" };
+    }
+
+    // Fetch referrals
+    const { data: referrals, error: referralsError } = await supabase
+      .from("referral")
+      .select("*")
+      .eq("school_id", schoolId);
+
+    if (referralsError) {
+      console.error("Error fetching referrals:", referralsError);
+      return { success: false, error: "Failed to fetch referrals" };
+    }
+
+    // Transform data to match RegisterTables interface
+    const transformedStudents = (students || []).map((s: any) => ({
+      id: s.id,
+      studentId: s.student_id,
+      description: s.description,
+      active: s.active,
+      rental: s.rental,
+      createdAt: s.created_at,
+      student: s.student ? {
+        id: s.student.id,
+        firstName: s.student.first_name,
+        lastName: s.student.last_name,
+        passport: s.student.passport,
+        country: s.student.country,
+        phone: s.student.phone,
+        languages: s.student.languages,
+      } : null,
+    }));
+
+    const transformedTeachers = (teachers || []).map((t: any) => ({
+      id: t.id,
+      firstName: t.first_name,
+      lastName: t.last_name,
+      username: t.username,
+      passport: t.passport,
+      country: t.country,
+      phone: t.phone,
+      languages: t.languages,
+      active: t.active,
+    }));
+
+    const transformedPackages = (packages || []).map((p: any) => ({
+      id: p.id,
+      durationMinutes: p.duration_minutes,
+      description: p.description,
+      pricePerStudent: p.price_per_student,
+      capacityStudents: p.capacity_students,
+      capacityEquipment: p.capacity_equipment,
+      categoryEquipment: p.category_equipment,
+      packageType: p.package_type,
+      isPublic: p.is_public,
+      active: p.active,
+    }));
+
+    const transformedReferrals = (referrals || []).map((r: any) => ({
+      id: r.id,
+      code: r.code,
+      commissionType: r.commission_type,
+      commissionValue: r.commission_value,
+      description: r.description,
+      active: r.active,
+    }));
+
+    return {
+      success: true,
+      data: {
+        students: transformedStudents,
+        teachers: transformedTeachers,
+        packages: transformedPackages,
+        referrals: transformedReferrals,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getRegisterTables:", error);
+    return { success: false, error: "Failed to fetch register tables" };
+  }
+}
