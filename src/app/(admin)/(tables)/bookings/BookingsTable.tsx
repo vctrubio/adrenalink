@@ -19,7 +19,7 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 import { filterBookings } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -31,38 +31,18 @@ const HEADER_CLASSES = {
 } as const;
 
 export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
-    const { search, status, group } = useTablesController();
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
-    // Filter bookings by search AND status
-    const filteredBookings = filterBookings(bookings, search).filter(booking => {
-        if (status === "All") return true;
-        if (status === "Active") return booking.booking.status === "active";
-        if (status === "Inactive") return booking.booking.status !== "active";
-        return true;
+    const { filteredRows: filteredBookings, masterTableGroupBy, getGroupKey } = useTableLogic({
+        data: bookings,
+        filterSearch: filterBookings,
+        filterStatus: (booking, status) => {
+            if (status === "Active") return booking.booking.status === "active";
+            if (status === "Inactive") return booking.booking.status !== "active";
+            return true;
+        },
+        dateField: (row) => row.booking.dateStart
     });
-
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = 
-        group === "Weekly" ? "week" : 
-        group === "Monthly" ? "month" :
-        "all"; 
-
-    const getGroupKey = (row: BookingTableData, groupBy: GroupingType) => {
-        if (groupBy === "date") {
-            return row.booking.dateStart; 
-        } else if (groupBy === "week") {
-            const date = new Date(row.booking.dateStart);
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        } else if (groupBy === "month") {
-            const date = new Date(row.booking.dateStart);
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-        }
-        return "";
-    };
 
     const calculateStats = (groupRows: BookingTableData[]): GroupStats => {
         return groupRows.reduce(

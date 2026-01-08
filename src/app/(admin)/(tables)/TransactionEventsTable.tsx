@@ -15,11 +15,7 @@ import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-cate
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
 import { filterTransactionEvents } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-import { StatItemUI } from "@/backend/data/StatsData";
-import { BOOKING_STATUS_CONFIG } from "@/types/status";
-
-import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -34,26 +30,11 @@ const HEADER_CLASSES = {
 // --- Main component ---
 
 export function TransactionEventsTable({ events = [] }: { events: TransactionEventData[] }) {
-    const { search, group } = useTablesController();
-    const filteredEvents = filterTransactionEvents(events, search);
-
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
-
-    const getGroupKey = (row: TransactionEventData, groupBy: GroupingType) => {
-        const date = new Date(row.event.date);
-        if (groupBy === "date") {
-            return row.event.date.split("T")[0];
-        } else if (groupBy === "week") {
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        } else if (groupBy === "month") {
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-        }
-        return "";
-    };
+    const { filteredRows: filteredEvents, masterTableGroupBy, getGroupKey } = useTableLogic({
+        data: events,
+        filterSearch: filterTransactionEvents,
+        dateField: (row) => row.event.date
+    });
 
     const desktopColumns: ColumnDef<TransactionEventData>[] = [
         {

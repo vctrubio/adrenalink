@@ -15,9 +15,7 @@ import { COUNTRIES } from "@/config/countries";
 import { Calendar } from "lucide-react";
 
 import { filterTeachers } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-import type { GroupingType, GroupStats } from "../MasterTable";
-
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 const HEADER_CLASSES = {
@@ -30,24 +28,20 @@ const HEADER_CLASSES = {
 } as const;
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
-    const { search, status, group } = useTablesController();
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
 
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = 
-        group === "Weekly" ? "week" : 
-        group === "Monthly" ? "month" :
-        "all";
-
-    console.log("TeachersTable Debug:", { group, masterTableGroupBy, teachersCount: teachers.length });
-
-    // 1. Filter teachers by search and basic status first
-    const filteredTeachers = filterTeachers(teachers, search).filter(teacher => {
-        if (status === "All") return true;
-        if (status === "Active") return teacher.active;
-        if (status === "Inactive") return !teacher.active;
-        return true;
+    const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
+        data: teachers,
+        filterSearch: filterTeachers,
+        filterStatus: (teacher, status) => {
+            if (status === "Active") return teacher.active;
+            if (status === "Inactive") return !teacher.active;
+            return true;
+        },
+        // We don't use dateField here because we have custom grouping logic
     });
+
+    console.log("TeachersTable Debug:", { masterTableGroupBy, teachersCount: teachers.length });
 
     // 2. Transform rows based on grouping (Activity-based grouping)
     const displayRows = useMemo(() => {

@@ -8,16 +8,12 @@ import type { StudentTableData } from "@/config/tables";
 import ReactCountryFlag from "react-country-flag";
 import { StudentBookingActivityCard } from "./StudentBookingActivityCard";
 import { filterStudents } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { COUNTRIES } from "@/config/countries";
 import { ENTITY_DATA } from "@/config/entities";
-
 import { StatItemUI } from "@/backend/data/StatsData";
-import { Calendar } from "lucide-react";
-
-import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
-
 import { getHMDuration } from "@/getters/duration-getter";
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -28,37 +24,20 @@ const HEADER_CLASSES = {
 } as const;
 
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
-    const { search, status, group } = useTablesController();
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-
-    // Filter students
-    const filteredStudents = filterStudents(students, search).filter((student) => {
-        if (status === "All") return true;
-        if (status === "Active") return student.schoolStudentStatus === "active";
-        if (status === "Inactive") return student.schoolStudentStatus !== "active";
-        return true;
+    const {
+        filteredRows: filteredStudents,
+        masterTableGroupBy,
+        getGroupKey,
+    } = useTableLogic({
+        data: students,
+        filterSearch: filterStudents,
+        filterStatus: (student, status) => {
+            if (status === "Active") return student.schoolStudentStatus === "active";
+            if (status === "Inactive") return student.schoolStudentStatus !== "active";
+            return true;
+        },
+        dateField: "createdAt",
     });
-
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
-
-    const getGroupKey = (row: StudentTableData, groupBy: GroupingType) => {
-        if (!row.createdAt) return "";
-
-        if (groupBy === "date") {
-            return row.createdAt.split("T")[0];
-        } else if (groupBy === "week") {
-            const date = new Date(row.createdAt);
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        } else if (groupBy === "month") {
-            const date = new Date(row.createdAt);
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-        }
-        return "";
-    };
 
     const calculateStats = (groupRows: StudentTableData[]): GroupStats => {
         return groupRows.reduce(

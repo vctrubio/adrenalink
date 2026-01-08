@@ -18,13 +18,10 @@ import { StatItemUI } from "@/backend/data/StatsData";
 import { Calendar } from "lucide-react";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 
-import { filterEquipment } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-
-import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 
 const HEADER_CLASSES = {
-    purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
+    purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-yellow-900/10",
     green: "px-4 py-3 font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10",
     orange: "px-4 py-3 font-medium text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/10",
     red: "px-4 py-3 font-medium text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-900/10",
@@ -33,37 +30,19 @@ const HEADER_CLASSES = {
 } as const;
 
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
-    const { search, status, group } = useTablesController();
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
-    // Filter equipment
-    const filteredEquipment = filterEquipment(equipments, search).filter((eq) => {
-        if (status === "All") return true;
-        const isActive = eq.status === "public" || eq.status === "rental";
-        if (status === "Active") return isActive;
-        if (status === "Inactive") return !isActive;
-        return true;
+    const { filteredRows: filteredEquipment, masterTableGroupBy, getGroupKey } = useTableLogic({
+        data: equipments,
+        filterSearch: filterEquipment,
+        filterStatus: (eq, status) => {
+            const isActive = eq.status === "public" || eq.status === "rental";
+            if (status === "Active") return isActive;
+            if (status === "Inactive") return !isActive;
+            return true;
+        },
+        dateField: "createdAt"
     });
-
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
-
-    const getGroupKey = (row: EquipmentTableData, groupBy: GroupingType) => {
-        if (!row.createdAt) return "";
-        if (groupBy === "date") {
-            return row.createdAt.split("T")[0];
-        } else if (groupBy === "week") {
-            const date = new Date(row.createdAt);
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        } else if (groupBy === "month") {
-            const date = new Date(row.createdAt);
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-        }
-        return "";
-    };
 
     const calculateStats = (groupRows: EquipmentTableData[]): GroupStats => {
         return groupRows.reduce(

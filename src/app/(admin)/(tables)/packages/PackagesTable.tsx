@@ -12,9 +12,7 @@ import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggl
 import { Calendar } from "lucide-react";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
-import { filterPackages } from "@/types/searching-entities";
-import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-import type { GroupingType, GroupStats } from "../MasterTable";
+import { useTableLogic } from "@/src/hooks/useTableLogic";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -24,39 +22,18 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
-    const { search, status, group } = useTablesController();
     const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
 
-    // Filter packages
-    const filteredPackages = filterPackages(packages, search).filter(pkg => {
-        if (status === "All") return true;
-        if (status === "Active") return pkg.active;
-        if (status === "Inactive") return !pkg.active;
-        return true;
+    const { filteredRows: filteredPackages, masterTableGroupBy, getGroupKey } = useTableLogic({
+        data: packages,
+        filterSearch: filterPackages,
+        filterStatus: (pkg, status) => {
+            if (status === "Active") return pkg.active;
+            if (status === "Inactive") return !pkg.active;
+            return true;
+        },
+        dateField: "createdAt"
     });
-
-    // Map controller group to MasterTable grouping
-    const masterTableGroupBy: GroupingType = 
-        group === "Weekly" ? "week" : 
-        group === "Monthly" ? "month" :
-        "all";
-
-    const getGroupKey = (row: PackageTableData, groupBy: GroupingType) => {
-        if (!row.createdAt) return "";
-        if (groupBy === "date") {
-            return row.createdAt.split("T")[0];
-        } else if (groupBy === "week") {
-            const date = new Date(row.createdAt);
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        } else if (groupBy === "month") {
-            const date = new Date(row.createdAt);
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-        }
-        return "";
-    };
 
     const calculateStats = (groupRows: PackageTableData[]): GroupStats => {
         return groupRows.reduce((acc, curr) => ({
