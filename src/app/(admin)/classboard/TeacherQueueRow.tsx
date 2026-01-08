@@ -12,7 +12,7 @@ import { getEventStatusCounts, sortEventsByStatus, type EventStatusMinutes } fro
 import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { QueueController } from "@/backend/classboard/QueueController";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 
 interface TeacherQueueRowProps {
     queue: TeacherQueue;

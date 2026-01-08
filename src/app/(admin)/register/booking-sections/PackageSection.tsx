@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
@@ -12,6 +13,7 @@ import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/s
 import { defaultPackageForm } from "@/types/form-entities";
 import { createSchoolPackage } from "@/supabase/server/register";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
+import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 
 interface Package {
     id: string;
@@ -41,6 +43,8 @@ export function PackageSection({
     onToggle,
     selectedStudentCount = 0
 }: PackageSectionProps) {
+    const pathname = usePathname();
+    const router = useRouter();
     const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage");
     const { refreshData } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
@@ -49,6 +53,7 @@ export function PackageSection({
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
 
     // Update context when form data changes
@@ -89,68 +94,48 @@ export function PackageSection({
         : "Select Package";
 
     const handleSubmit = useCallback(async () => {
-        if (!isFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
+        setSubmitLoading(true);
+        await handleEntityCreation({
+            isFormValid,
+            entityName: "Package",
+            createFn: () =>
+                createSchoolPackage({
+                    duration_minutes: formData.durationMinutes,
+                    description: formData.description,
+                    price_per_student: formData.pricePerStudent,
+                    capacity_students: formData.capacityStudents,
+                    capacity_equipment: formData.capacityEquipment,
+                    category_equipment: formData.categoryEquipment,
+                    package_type: formData.packageType,
+                    is_public: formData.isPublic,
+                }),
+            onSuccess: async (data) => {
+                const newPackage: Package = {
+                    id: data.id,
+                    description: data.description,
+                    durationMinutes: data.duration_minutes,
+                    pricePerStudent: data.price_per_student,
+                    capacityStudents: data.capacity_students,
+                    capacityEquipment: data.capacity_equipment,
+                    categoryEquipment: data.category_equipment,
+                    isPublic: data.is_public,
+                };
 
-        setLoading(true);
-        try {
-            const result = await createSchoolPackage({
-                durationMinutes: formData.durationMinutes,
-                description: formData.description,
-                pricePerStudent: formData.pricePerStudent,
-                capacityStudents: formData.capacityStudents,
-                capacityEquipment: formData.capacityEquipment,
-                categoryEquipment: formData.categoryEquipment,
-                packageType: formData.packageType,
-                isPublic: formData.isPublic,
-            });
-
-            if (!result.success) {
-                toast.error(result.error || "Failed to create package");
-                setLoading(false);
-                return;
-            }
-
-            const newPackage = {
-                id: result.data.id,
-                description: result.data.description,
-                durationMinutes: result.data.durationMinutes,
-                pricePerStudent: result.data.pricePerStudent,
-                capacityStudents: result.data.capacityStudents,
-                capacityEquipment: result.data.capacityEquipment,
-                categoryEquipment: result.data.categoryEquipment,
-                isPublic: result.data.isPublic,
-            };
-
-            // Add to queue with full package data for rendering
-            addToQueue("packages", {
-                id: result.data.id,
-                name: formData.description,
-                timestamp: Date.now(),
-                type: "package",
-                metadata: newPackage,
-            });
-
-            // Refresh data to get the newly created package in the list
-            await refreshData();
-
-            // Select the newly created package
-            onSelect(newPackage);
-
-            // Close dialog and reset form
-            setIsDialogOpen(false);
-            setFormData(defaultPackageForm);
-
-            setLoading(false);
-        } catch (error) {
-            console.error("Package creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setLoading(false);
-        }
-    }, [isFormValid, formData, onSelect, refreshData]);
+                await handlePostCreation({
+                    pathname,
+                    entityId: data.id,
+                    closeDialog: () => setIsDialogOpen(false),
+                    onSelectId: () => onSelect(newPackage),
+                    onRefresh: refreshData,
+                    onAddToQueue: () => {},
+                    setFormData,
+                    defaultForm: defaultPackageForm,
+                });
+            },
+            successMessage: `Package created: ${formData.description}`,
+        });
+        setSubmitLoading(false);
+    }, [isFormValid, formData, onSelect, refreshData, pathname, router]);
 
     return (
         <>
@@ -185,7 +170,7 @@ export function PackageSection({
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
-                    isLoading={loading}
+                    isLoading={submitLoading}
                     onClose={() => setIsDialogOpen(false)}
                 />
             </EntityAddDialog>

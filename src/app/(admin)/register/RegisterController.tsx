@@ -11,7 +11,6 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { useBookingForm, useStudentFormState, useTeacherFormState, usePackageFormState } from "./RegisterContext";
 import RegisterQueue from "./RegisterQueue";
 
@@ -24,6 +23,7 @@ import { ControllerActions } from "./controller-sections/ControllerActions";
 type FormType = "booking" | "student" | "package" | "teacher";
 
 interface RegisterControllerProps {
+    school: any;
     activeForm: FormType;
     selectedPackage: any;
     selectedStudents: any[];
@@ -33,7 +33,6 @@ interface RegisterControllerProps {
     dateRange: { startDate: string; endDate: string };
     onReset: () => void;
     loading: boolean;
-    school: any;
     isMobile?: boolean;
     error?: string | null;
     leaderStudentId?: string;
@@ -44,6 +43,7 @@ interface RegisterControllerProps {
 }
 
 export default function RegisterController({
+    school,
     activeForm,
     selectedPackage,
     selectedStudents,
@@ -53,7 +53,6 @@ export default function RegisterController({
     dateRange,
     onReset,
     loading,
-    school,
     isMobile = false,
     error = null,
     leaderStudentId = "",
@@ -63,11 +62,10 @@ export default function RegisterController({
     referrals,
 }: RegisterControllerProps) {
     const router = useRouter();
-    const { credentials } = useSchoolCredentials();
     const bookingForm = useBookingForm();
     
-    // Use school credentials if available, otherwise fallback to prop
-    const displaySchool = credentials || school;
+    // Use school from props
+    const displaySchool = school;
     
     const [isSubmitting, setIsSubmitting] = useState(false);
 

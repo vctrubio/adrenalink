@@ -20,7 +20,7 @@ import { TeacherQueue, type ControllerSettings } from "@/backend/classboard/Teac
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
-import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";

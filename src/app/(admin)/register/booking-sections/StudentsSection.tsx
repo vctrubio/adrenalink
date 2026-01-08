@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
-import { StudentTable } from "@/src/components/tables/StudentTable";
+import { MemoStudentTable as StudentTable } from "@/src/components/tables/StudentTable";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import StudentForm, { studentFormSchema, type StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
 import { createAndLinkStudent } from "@/supabase/server/register";
 import { useStudentFormState, useFormRegistration, useRegisterActions } from "../RegisterContext";
+import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 
 interface Student {
     id: string;
@@ -64,6 +66,8 @@ const defaultStudentForm: StudentFormData = {
 };
 
 export function StudentsSection({ students, selectedStudentIds, onToggle, capacity, isExpanded, onSectionToggle, studentStatsMap, selectedPackage }: StudentsSectionProps) {
+    const pathname = usePathname();
+    const router = useRouter();
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
     const { setFormValidity } = useFormRegistration();
@@ -71,7 +75,7 @@ export function StudentsSection({ students, selectedStudentIds, onToggle, capaci
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [formData, setFormData] = useState<StudentFormData>(contextForm || defaultStudentForm);
 
     // Update context when form data changes
@@ -106,59 +110,39 @@ export function StudentsSection({ students, selectedStudentIds, onToggle, capaci
                         : "Select Students";
 
     const handleSubmit = useCallback(async () => {
-        if (!isFormValid) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const result = await createAndLinkStudent(
-                {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    passport: formData.passport,
-                    country: formData.country,
-                    phone: formData.phone,
-                    languages: formData.languages,
-                },
-                formData.canRent,
-                formData.description || undefined,
-            );
-
-            if (!result.success) {
-                toast.error(result.error || "Failed to create student");
-                setLoading(false);
-                return;
-            }
-
-            // Refresh data to get the newly created student in the list
-            await refreshData();
-
-            // Select the newly created student in the table
-            onToggle(result.data.student.id);
-
-            // Close dialog and reset form
-            setIsDialogOpen(false);
-            setFormData({
-                firstName: "",
-                lastName: "",
-                passport: "",
-                country: "",
-                phone: "",
-                languages: [],
-                description: "",
-                canRent: false,
-            });
-
-            setLoading(false);
-        } catch (error) {
-            console.error("Student creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-            setLoading(false);
-        }
-    }, [isFormValid, formData, onToggle, refreshData]);
+        setSubmitLoading(true);
+        await handleEntityCreation({
+            isFormValid,
+            entityName: "Student",
+            createFn: () =>
+                createAndLinkStudent(
+                    {
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        passport: formData.passport,
+                        country: formData.country,
+                        phone: formData.phone,
+                        languages: formData.languages,
+                    },
+                    formData.canRent,
+                    formData.description || undefined,
+                ),
+            onSuccess: async (data) => {
+                await handlePostCreation({
+                    pathname,
+                    entityId: data.student.id,
+                    closeDialog: () => setIsDialogOpen(false),
+                    onSelectId: () => onToggle(data.student.id),
+                    onRefresh: refreshData,
+                    onAddToQueue: () => {},
+                    setFormData,
+                    defaultForm: defaultStudentForm,
+                });
+            },
+            successMessage: `Student created: ${formData.firstName} ${formData.lastName}`,
+        });
+        setSubmitLoading(false);
+    }, [isFormValid, formData, onToggle, refreshData, pathname, router]);
 
     return (
         <>
@@ -185,7 +169,7 @@ export function StudentsSection({ students, selectedStudentIds, onToggle, capaci
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
-                    isLoading={loading}
+                    isLoading={submitLoading}
                 />
             </EntityAddDialog>
         </>

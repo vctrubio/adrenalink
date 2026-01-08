@@ -2,7 +2,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { TeacherStatusBadge } from "@/src/components/ui/badge";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useEffect } from "react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -43,7 +43,7 @@ interface TeacherTableProps {
 
 type SortColumn = "firstName" | "lastName" | "languages" | "status" | null;
 
-export function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectTeacher, onSelectCommission, onSectionClose, teacherStatsMap = {} }: TeacherTableProps) {
+function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectTeacher, onSelectCommission, onSectionClose, teacherStatsMap = {} }: TeacherTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
@@ -94,6 +94,10 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
 
         return filtered;
     }, [teachers, search, sortColumn, sortDirection, statusFilter, teacherStatsMap]);
+
+    useEffect(() => {
+        console.log("[TeacherTable] filter changed:", { teachersCount: teachers.length, filteredCount: filteredTeachers.length, search, statusFilter, sortColumn });
+    }, [filteredTeachers.length, search, statusFilter, sortColumn, teachers.length]);
 
     if (teachers.length === 0) {
         return <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">No teachers available</div>;
@@ -277,3 +281,5 @@ export function TeacherTable({ teachers, selectedTeacher, selectedCommission, on
         </div>
     );
 }
+
+export const MemoTeacherTable = memo(TeacherTable);

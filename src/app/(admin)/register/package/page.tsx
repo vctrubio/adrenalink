@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
 import { createSchoolPackage } from "@/supabase/server/register";
+import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import toast from "react-hot-toast";
 
 const defaultPackageForm: PackageFormData = {
@@ -24,6 +24,7 @@ export default function PackagePage() {
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
+    const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
     useEffect(() => {
@@ -42,60 +43,55 @@ export default function PackagePage() {
 
     // Define and memoize submit handler
     const handleSubmit = useCallback(async () => {
-        if (!isFormValid) return;
-
-        try {
-            const result = await createSchoolPackage({
-                durationMinutes: formData.durationMinutes,
-                description: formData.description || null,
-                pricePerStudent: formData.pricePerStudent,
-                capacityStudents: formData.capacityStudents,
-                capacityEquipment: formData.capacityEquipment,
-                categoryEquipment: formData.categoryEquipment,
-                packageType: formData.packageType,
-                isPublic: formData.isPublic,
-            });
-
-            if (!result.success) {
-                toast.error(result.error || "Failed to create package");
-                return;
-            }
-
-            // Add to queue for quick access in booking form
-            addToQueue("packages", {
-                id: result.data.id,
-                name: formData.description,
-                timestamp: Date.now(),
-                type: "package",
-                metadata: {
-                    id: result.data.id,
-                    description: result.data.description,
-                    durationMinutes: result.data.durationMinutes,
-                    pricePerStudent: result.data.pricePerStudent,
-                    capacityStudents: result.data.capacityStudents,
-                    capacityEquipment: result.data.capacityEquipment,
-                    categoryEquipment: result.data.categoryEquipment,
-                    isPublic: result.data.isPublic,
-                },
-            });
-
-            // Reset form
-            setFormData({
-                durationMinutes: 60,
-                description: "",
-                pricePerStudent: 0,
-                capacityStudents: 1,
-                capacityEquipment: 1,
-                categoryEquipment: "" as any,
-                packageType: "" as any,
-                isPublic: true,
-            });
-        } catch (error) {
-            console.error("Package creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-        }
-    }, [isFormValid, formData, addToQueue, setContextForm]);
+        setLoading(true);
+        await handleEntityCreation({
+            isFormValid,
+            entityName: "Package",
+            createFn: () =>
+                createSchoolPackage({
+                    duration_minutes: formData.durationMinutes,
+                    description: formData.description || null,
+                    price_per_student: formData.pricePerStudent,
+                    capacity_students: formData.capacityStudents,
+                    capacity_equipment: formData.capacityEquipment,
+                    category_equipment: formData.categoryEquipment,
+                    package_type: formData.packageType,
+                    is_public: formData.isPublic,
+                }),
+            onSuccess: async (data) => {
+                await handlePostCreation({
+                    pathname: "/register/package",
+                    entityId: data.id,
+                    closeDialog: () => {},
+                    onSelectId: () => {},
+                    onRefresh: async () => {},
+                    onAddToQueue: () => {
+                        addToQueue("packages", {
+                            id: data.id,
+                            name: formData.description,
+                            timestamp: Date.now(),
+                            type: "package",
+                            metadata: {
+                                id: data.id,
+                                description: data.description,
+                                durationMinutes: data.duration_minutes,
+                                pricePerStudent: data.price_per_student,
+                                capacityStudents: data.capacity_students,
+                                capacityEquipment: data.capacity_equipment,
+                                categoryEquipment: data.category_equipment,
+                                packageType: data.package_type,
+                                isPublic: data.is_public,
+                            },
+                        });
+                    },
+                    setFormData,
+                    defaultForm: defaultPackageForm,
+                });
+            },
+            successMessage: `Package created: ${formData.description}`,
+        });
+        setLoading(false);
+    }, [isFormValid, formData, addToQueue]);
 
     // Register submit handler in context
     useEffect(() => {
@@ -110,7 +106,7 @@ export default function PackagePage() {
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
-                    isLoading={false}
+                    isLoading={loading}
                 />
             </div>
         </div>

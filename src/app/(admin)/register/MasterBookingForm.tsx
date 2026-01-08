@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
 import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues } from "./RegisterContext";
@@ -27,7 +27,7 @@ interface BookingFormProps {
     studentStats?: Record<string, StudentStats>;
 }
 
-export default function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps) {
+function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
@@ -40,9 +40,19 @@ export default function BookingForm({ school, schoolPackages, students, teachers
     const queues = useRegisterQueues();
 
     // Use context data (updated by refreshData) or fall back to props for initial load
-    const currentStudents = contextData.students || students;
-    const currentTeachers = contextData.teachers || teachers;
-    const currentPackages = contextData.packages || schoolPackages;
+    const { currentStudents, currentTeachers, currentPackages } = useMemo(() => ({
+        currentStudents: contextData.students || students,
+        currentTeachers: contextData.teachers || teachers,
+        currentPackages: contextData.packages || schoolPackages,
+    }), [contextData.students, contextData.teachers, contextData.packages, students, teachers, schoolPackages]);
+
+    useEffect(() => {
+        console.log("[MasterBookingForm] data changed:", {
+            studentCount: currentStudents?.length || 0,
+            teacherCount: currentTeachers?.length || 0,
+            packageCount: currentPackages?.length || 0,
+        });
+    }, [currentStudents?.length, currentTeachers?.length, currentPackages?.length]);
 
     // Use context state
     const selectedPackage = bookingForm.form.selectedPackage;
@@ -294,3 +304,5 @@ export default function BookingForm({ school, schoolPackages, students, teachers
         </div>
     );
 }
+
+export default memo(BookingForm);

@@ -6,7 +6,7 @@ import { getPrettyDuration } from "@/getters/duration-getter";
 import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO } from "@/getters/queue-getter";
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
 import type { EventNode } from "@/types/classboard-teacher-queue";
-import { updateEventStartTime } from "@/actions/classboard-action";
+import { updateEventStartTime } from "@/supabase/server/classboard";
 
 interface EventGapDetectionProps {
     currentEvent: EventNode;

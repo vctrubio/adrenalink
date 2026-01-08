@@ -17,6 +17,7 @@ export function SchoolCredentialsProvider({
 }: SchoolCredentialsProviderProps) {
     const router = useRouter();
 
+
     // If no credentials, redirect to no-credentials page
     // if (!credentials) {
     //     router.push("/no-credentials");

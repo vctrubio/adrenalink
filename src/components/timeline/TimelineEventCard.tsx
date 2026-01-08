@@ -12,7 +12,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { getHMDuration } from "@/getters/duration-getter";
 import { EventDurationTag } from "@/src/components/tags/EventDurationTag";
-import { updateEventStatus } from "@/actions/classboard-action";
+import { updateEventStatus } from "@/supabase/server/classboard";
 import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import type { TimelineEvent } from "./types";
 

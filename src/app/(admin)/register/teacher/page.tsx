@@ -1,19 +1,29 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
-import { defaultTeacherForm } from "@/types/form-entities";
 import { createAndLinkTeacher } from "@/supabase/server/register";
+import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import toast from "react-hot-toast";
 
+const defaultTeacherForm: TeacherFormData = {
+    firstName: "",
+    lastName: "",
+    username: "",
+    passport: "",
+    country: "",
+    phone: "",
+    languages: ["English"],
+    commissions: [],
+};
+
 export default function TeacherPage() {
-    const router = useRouter();
     const { addToQueue } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<TeacherFormData>(contextForm || defaultTeacherForm);
+    const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
     useEffect(() => {
@@ -32,60 +42,54 @@ export default function TeacherPage() {
 
     // Define and memoize submit handler
     const handleSubmit = useCallback(async () => {
-        if (!isFormValid) return;
-
-        try {
-            const result = await createAndLinkTeacher(
-                {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    username: formData.username,
-                    passport: formData.passport,
-                    country: formData.country,
-                    phone: formData.phone,
-                    languages: formData.languages,
-                },
-                formData.commissions.map(c => ({
-                    commissionType: c.commissionType,
-                    commissionValue: c.commissionValue,
-                    commissionDescription: c.commissionDescription,
-                }))
-            );
-
-            if (!result.success) {
-                toast.error(result.error || "Failed to create teacher");
-                return;
-            }
-
-            // Add to queue for quick access in booking form
-            addToQueue("teachers", {
-                id: result.data.teacher.id,
-                name: result.data.teacher.username,
-                timestamp: Date.now(),
-                type: "teacher",
-                metadata: {
-                    ...result.data.teacher,
-                    commissions: result.data.teacher.commissions || [],
-                },
-            });
-
-            // Reset form but keep country and phone for next entry
-            setFormData({
-                firstName: "",
-                lastName: "",
-                username: "",
-                passport: "",
-                country: formData.country,
-                phone: formData.phone,
-                languages: [],
-                commissions: [],
-            });
-        } catch (error) {
-            console.error("Teacher creation error:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            toast.error(errorMessage);
-        }
-    }, [isFormValid, formData, addToQueue, setContextForm]);
+        setLoading(true);
+        await handleEntityCreation({
+            isFormValid,
+            entityName: "Teacher",
+            createFn: () =>
+                createAndLinkTeacher(
+                    {
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        username: formData.username,
+                        passport: formData.passport,
+                        country: formData.country,
+                        phone: formData.phone,
+                        languages: formData.languages,
+                    },
+                    formData.commissions.map((c) => ({
+                        commission_type: c.commissionType as "fixed" | "percentage",
+                        cph: c.commissionValue,
+                        description: c.commissionDescription,
+                    })),
+                ),
+            onSuccess: async (data) => {
+                await handlePostCreation({
+                    pathname: "/register/teacher",
+                    entityId: data.teacher.id,
+                    closeDialog: () => {},
+                    onSelectId: () => {},
+                    onRefresh: async () => {},
+                    onAddToQueue: () => {
+                        addToQueue("teachers", {
+                            id: data.teacher.id,
+                            name: data.teacher.username,
+                            timestamp: Date.now(),
+                            type: "teacher",
+                            metadata: {
+                                ...data.teacher,
+                                commissions: data.teacher.commissions || [],
+                            },
+                        });
+                    },
+                    setFormData,
+                    defaultForm: defaultTeacherForm,
+                });
+            },
+            successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
+        });
+        setLoading(false);
+    }, [isFormValid, formData, addToQueue]);
 
     // Register submit handler in context
     useEffect(() => {
@@ -100,7 +104,7 @@ export default function TeacherPage() {
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
-                    isLoading={false}
+                    isLoading={loading}
                 />
             </div>
         </div>

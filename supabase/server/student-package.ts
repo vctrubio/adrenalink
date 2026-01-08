@@ -1,3 +1,4 @@
+"use server";
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { StudentPackage, SchoolPackage, Referral } from "@/supabase/db/types";
@@ -22,11 +23,13 @@ export async function getStudentPackageRequests(): Promise<{ success: boolean; d
 
         const { data, error } = await supabase
             .from("student_package")
-            .select(`
+            .select(
+                `
                 *,
                 school_package!inner(*),
                 referral(*)
-            `)
+            `,
+            )
             .eq("school_package.school_id", schoolHeader.id)
             .order("created_at", { ascending: false });
 
@@ -51,9 +54,9 @@ export async function updateStudentPackageStatus(id: string, status: string): Pr
 
         const { error } = await supabase
             .from("student_package")
-            .update({ 
+            .update({
                 status,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
             })
             .eq("id", id);
 
@@ -82,7 +85,7 @@ export interface StudentPackageWithStats extends StudentPackageRequest {
         event_count: number;
         total_duration_minutes: number;
         total_revenue: number;
-    }
+    };
 }
 
 /**
@@ -100,7 +103,8 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
         // Fetch student packages with their bookings, lessons, and events
         const { data, error } = await supabase
             .from("student_package")
-            .select(`
+            .select(
+                `
                 *,
                 school_package!inner(*),
                 referral(*),
@@ -111,7 +115,8 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
                         event(duration)
                     )
                 )
-            `)
+            `,
+            )
             .eq("school_package.school_id", schoolHeader.id)
             .order("created_at", { ascending: false });
 
@@ -123,7 +128,7 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
         const packagesWithStats = (data || []).map((sp: any) => {
             const bookings = sp.booking || [];
             const booking_count = bookings.length;
-            
+
             let event_count = 0;
             let total_duration_minutes = 0;
 
@@ -146,8 +151,8 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
                     booking_count,
                     event_count,
                     total_duration_minutes,
-                    total_revenue
-                }
+                    total_revenue,
+                },
             } as StudentPackageWithStats;
         });
 

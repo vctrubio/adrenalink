@@ -400,6 +400,12 @@ export interface RegisterTables {
     phone: string;
     languages: string[];
     active: boolean;
+    commissions: Array<{
+      id: string;
+      commissionType: string;
+      cph: string;
+      description: string | null;
+    }>;
   }>;
   packages: Array<{
     id: string;
@@ -421,6 +427,15 @@ export interface RegisterTables {
     description: string | null;
     active: boolean;
   }>;
+  studentBookingStats: Record<string, {
+    bookingCount: number;
+    durationHours: number;
+    allBookingsCompleted?: boolean;
+  }>;
+  teacherLessonStats: Record<string, {
+    totalLessons: number;
+    plannedLessons: number;
+  }>;
 }
 
 /**
@@ -441,7 +456,6 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
     const { data: students, error: studentsError } = await supabase
       .from("school_students")
       .select(`
-        id,
         student_id,
         description,
         active,
@@ -464,10 +478,18 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       return { success: false, error: "Failed to fetch students" };
     }
 
-    // Fetch teachers
+    // Fetch teachers with commissions
     const { data: teachers, error: teachersError } = await supabase
       .from("teacher")
-      .select("*")
+      .select(`
+        *,
+        teacher_commission (
+          id,
+          commission_type,
+          cph,
+          description
+        )
+      `)
       .eq("school_id", schoolId);
 
     if (teachersError) {
@@ -497,9 +519,38 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       return { success: false, error: "Failed to fetch referrals" };
     }
 
+    // Fetch student booking stats
+    const { data: bookingStats, error: bookingStatsError } = await supabase
+      .from("booking")
+      .select(`
+        booking_student (
+          student_id
+        ),
+        school_package (
+          duration_minutes
+        )
+      `)
+      .eq("school_id", schoolId);
+
+    if (bookingStatsError) {
+      console.error("Error fetching booking stats:", bookingStatsError);
+      return { success: false, error: "Failed to fetch booking stats" };
+    }
+
+    // Fetch teacher lesson stats
+    const { data: lessonStats, error: lessonStatsError } = await supabase
+      .from("lesson")
+      .select("teacher_id, status")
+      .eq("school_id", schoolId);
+
+    if (lessonStatsError) {
+      console.error("Error fetching lesson stats:", lessonStatsError);
+      return { success: false, error: "Failed to fetch lesson stats" };
+    }
+
     // Transform data to match RegisterTables interface
     const transformedStudents = (students || []).map((s: any) => ({
-      id: s.id,
+      id: s.student_id,
       studentId: s.student_id,
       description: s.description,
       active: s.active,
@@ -526,6 +577,12 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       phone: t.phone,
       languages: t.languages,
       active: t.active,
+      commissions: (t.teacher_commission || []).map((c: any) => ({
+        id: c.id,
+        commissionType: c.commission_type,
+        cph: c.cph,
+        description: c.description,
+      })),
     }));
 
     const transformedPackages = (packages || []).map((p: any) => ({
@@ -550,6 +607,41 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       active: r.active,
     }));
 
+    // Compute student booking stats
+    const studentBookingStats: Record<string, { bookingCount: number; durationHours: number; allBookingsCompleted?: boolean }> = {};
+    if (bookingStats) {
+      for (const booking of bookingStats) {
+        const durationMinutes = booking.school_package?.duration_minutes || 0;
+        const durationHours = durationMinutes / 60;
+
+        if (booking.booking_student && Array.isArray(booking.booking_student)) {
+          for (const bs of booking.booking_student) {
+            const studentId = bs.student_id;
+            if (!studentBookingStats[studentId]) {
+              studentBookingStats[studentId] = { bookingCount: 0, durationHours: 0 };
+            }
+            studentBookingStats[studentId].bookingCount += 1;
+            studentBookingStats[studentId].durationHours += durationHours;
+          }
+        }
+      }
+    }
+
+    // Compute teacher lesson stats
+    const teacherLessonStats: Record<string, { totalLessons: number; plannedLessons: number }> = {};
+    if (lessonStats) {
+      for (const lesson of lessonStats) {
+        const teacherId = lesson.teacher_id;
+        if (!teacherLessonStats[teacherId]) {
+          teacherLessonStats[teacherId] = { totalLessons: 0, plannedLessons: 0 };
+        }
+        teacherLessonStats[teacherId].totalLessons += 1;
+        if (lesson.status === "planned" || lesson.status === "active") {
+          teacherLessonStats[teacherId].plannedLessons += 1;
+        }
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -557,6 +649,8 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
         teachers: transformedTeachers,
         packages: transformedPackages,
         referrals: transformedReferrals,
+        studentBookingStats,
+        teacherLessonStats,
       },
     };
   } catch (error) {

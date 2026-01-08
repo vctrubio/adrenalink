@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode } from "@/backend/classboard/TeacherQueue";
 import type { QueueController } from "@/backend/classboard/QueueController";
-import { updateEventStatus } from "@/actions/classboard-action";
+import { updateEventStatus } from "@/supabase/server/classboard";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";

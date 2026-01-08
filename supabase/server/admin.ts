@@ -32,6 +32,7 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
             return null;
         }
 
+
         // Fetch verified URLs from CDN
         const { bannerUrl, iconUrl } = await getCDNImages(schoolUsername);
 

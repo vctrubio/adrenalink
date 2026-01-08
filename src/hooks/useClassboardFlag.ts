@@ -18,8 +18,7 @@ import { GlobalFlag } from "@/backend/classboard/GlobalFlag";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { createClassboardEvent, deleteClassboardEvent } from "@/actions/classboard-action";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { createClassboardEvent, deleteClassboardEvent, bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { TeacherModel } from "@/backend/models/TeacherModel";
 

@@ -2,7 +2,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { StudentStatusBadge } from "@/src/components/ui/badge";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
@@ -46,7 +46,7 @@ interface StudentTableProps {
 
 type SortColumn = "firstName" | "lastName" | "status" | null;
 
-export function StudentTable({
+function StudentTable({
     students,
     selectedStudentIds,
     onToggle,
@@ -106,6 +106,10 @@ export function StudentTable({
 
         return filtered;
     }, [students, search, sortColumn, sortDirection, statusFilter, studentStatsMap]);
+
+    useEffect(() => {
+        console.log("[StudentTable] filter changed:", { studentsCount: students.length, filteredCount: filteredStudents.length, search, statusFilter, sortColumn });
+    }, [filteredStudents.length, search, statusFilter, sortColumn, students.length]);
 
     if (students.length === 0) {
         return (
@@ -202,6 +206,8 @@ export function StudentTable({
         </div>
     );
 }
+
+export const MemoStudentTable = memo(StudentTable);
 
 function getCountryCode(countryName: string): string {
     const country = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, ReactNode } from "react";
+import { useState, useMemo, useEffect, ReactNode, memo } from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 import { masterBookingAdd } from "@/supabase/server/register";
@@ -12,9 +12,10 @@ type ActiveForm = "booking" | "student" | "teacher" | "package";
 
 interface RegisterLayoutWrapperProps {
     children: ReactNode;
+    school: any;
 }
 
-export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrapperProps) {
+function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps) {
     const pathname = usePathname();
     const data = useRegisterData();
     const bookingFormState = useBookingForm();
@@ -22,6 +23,10 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
     const { registerSubmitHandler, setFormValidity, submitHandler: registeredSubmitHandler, isFormValid: formIsValid } = useFormRegistration();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log("[RegisterLayoutWrapper] pathname changed:", { school: school?.name, pathname });
+    }, [pathname, school?.name]);
 
     // Determine active form based on pathname
     const activeForm: ActiveForm = useMemo(() => {
@@ -122,6 +127,7 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
         <RegisterFormLayout
             controller={
                 <RegisterController
+                    school={school}
                     activeForm={activeForm}
                     selectedPackage={bookingFormState.form.selectedPackage}
                     selectedStudents={selectedStudents}
@@ -131,7 +137,6 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
                     dateRange={bookingFormState.form.dateRange}
                     onReset={bookingFormState.reset}
                     loading={loading}
-                    school={data.school}
                     leaderStudentId={bookingFormState.form.leaderStudentId}
                     error={error}
                     submitHandler={registeredSubmitHandler}
@@ -143,3 +148,5 @@ export default function RegisterLayoutWrapper({ children }: RegisterLayoutWrappe
         />
     );
 }
+
+export default memo(RegisterLayoutWrapper);

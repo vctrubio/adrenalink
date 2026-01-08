@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Lock, LockOpen, MapPin, Zap, X, Minus, Plus, Clock } from "lucide-react";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { timeToMinutes, minutesToTime } from "@/getters/queue-getter";
-import { bulkUpdateClassboardEvents } from "@/actions/classboard-bulk-action";
+import { bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
