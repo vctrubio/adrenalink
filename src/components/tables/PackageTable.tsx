@@ -153,16 +153,13 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
                         <TableHead sortable sortActive={sortColumn === "capacity"} sortDirection={sortDirection} onSort={() => handleSort("capacity")}>
                             Category
                         </TableHead>
-                        <TableHead>Description</TableHead>
                         <TableHead sortable sortActive={sortColumn === "duration"} sortDirection={sortDirection} onSort={() => handleSort("duration")}>
                             Duration
-                        </TableHead>
-                        <TableHead sortable sortActive={sortColumn === "price"} sortDirection={sortDirection} onSort={() => handleSort("price")} align="right">
-                            Price
                         </TableHead>
                         <TableHead sortable sortActive={sortColumn === "pricePerHour"} sortDirection={sortDirection} onSort={() => handleSort("pricePerHour")} align="right">
                             Per Hour
                         </TableHead>
+                        <TableHead>Description</TableHead>
                         <TableHead>Access</TableHead>
                     </tr>
                 </TableHeader>
@@ -178,15 +175,14 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
                         return (
                             <TableRow key={pkg.id} onClick={() => onSelect(pkg)} isSelected={isSelected} selectedColor={packageEntity?.color} className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}>
                                 <TableCell>{EquipmentIcon && <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={pkg.capacityEquipment} studentCapacity={pkg.capacityStudents} />}</TableCell>
+                                <TableCell>{getPrettyDuration(pkg.durationMinutes)}</TableCell>
+                                <TableCell className="text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
                                 <TableCell className="font-medium text-foreground">
                                     <div className="flex items-center gap-2">
                                         {pkg.description}
                                         {matchesCount && <span className="text-xs text-green-600 dark:text-green-400">✓ Match ({pkg.capacityStudents})</span>}
                                     </div>
                                 </TableCell>
-                                <TableCell>{getPrettyDuration(pkg.durationMinutes)}</TableCell>
-                                <TableCell className="font-semibold text-primary text-right">{pkg.pricePerStudent}</TableCell>
-                                <TableCell className="text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
                                 <TableCell className="text-xs font-medium">
                                     <span className={pkg.isPublic ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}>{pkg.isPublic ? "Public" : "Private"}</span>
                                 </TableCell>
