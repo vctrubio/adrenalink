@@ -1,6 +1,11 @@
 "use client";
 
 import { useMemo, ReactNode, useState } from "react";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+import { SearchX } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { SEARCH_FIELDS_DESCRIPTION } from "@/types/searching-entities";
+import { ENTITY_DATA } from "@/config/entities";
 
 export type GroupingType = "all" | "date" | "week";
 
@@ -138,6 +143,12 @@ export function MasterTable<T extends Record<string, any>>({
     showGroupToggle = true,
 }: MasterTableProps<T>) {
     const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy);
+    const { search, onSearchChange } = useTablesController();
+    const pathname = usePathname();
+
+    // Determine current entity for search hints
+    const entity = ENTITY_DATA.find(e => pathname.includes(e.link));
+    const searchFields = entity ? SEARCH_FIELDS_DESCRIPTION[entity.id as keyof typeof SEARCH_FIELDS_DESCRIPTION] : [];
 
     const groupedData = useMemo(() => {
         if (!rows || rows.length === 0) return null;
@@ -153,7 +164,47 @@ export function MasterTable<T extends Record<string, any>>({
         return groups;
     }, [rows, groupBy, getGroupKey]);
 
-    if (!groupedData) return null;
+    if (!groupedData || rows.length === 0) {
+        return (
+            <div className="w-full py-24 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-muted/30 rounded-full p-6 mb-6">
+                    <SearchX size={48} className="text-muted-foreground/50" />
+                </div>
+                
+                <h3 className="font-bold text-xl text-foreground mb-2">No results found</h3>
+                
+                {search ? (
+                    <div className="space-y-6 max-w-md mx-auto">
+                        <p className="text-muted-foreground">
+                            We couldn&apos;t find any matches for <span className="font-bold text-foreground">&quot;{search}&quot;</span>.
+                        </p>
+                        
+                        {searchFields && searchFields.length > 0 && (
+                            <div className="text-xs text-muted-foreground/80 bg-muted/20 p-4 rounded-xl border border-border/40">
+                                <span className="font-semibold block mb-2 uppercase tracking-wider text-[10px]">Try searching by:</span>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    {searchFields.map(field => (
+                                        <span key={field} className="px-2 py-1 bg-background rounded-md border border-border shadow-sm font-medium">
+                                            {field}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <button 
+                            onClick={() => onSearchChange("")}
+                            className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:opacity-90 transition-all active:scale-95"
+                        >
+                            Clear Search Filters
+                        </button>
+                    </div>
+                ) : (
+                    <p className="text-muted-foreground">No data available to display.</p>
+                )}
+            </div>
+        );
+    }
 
     const sortedGroupEntries = Object.entries(groupedData).sort((a, b) => b[0].localeCompare(a[0]));
 

@@ -15,6 +15,9 @@ import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import ReactCountryFlag from "react-country-flag";
 import Link from "next/link";
 
+import { filterBookings } from "@/types/searching-entities";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -25,7 +28,11 @@ const HEADER_CLASSES = {
 } as const;
 
 export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
+    const { search } = useTablesController();
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+
+    // Filter bookings
+    const filteredBookings = filterBookings(bookings, search);
 
     const desktopColumns: ColumnDef<BookingTableData>[] = [
         {
@@ -279,5 +286,5 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
         );
     };
 
-    return <MasterTable rows={bookings} columns={desktopColumns} mobileColumns={mobileColumns} getGroupKey={getGroupKey} calculateStats={calculateStats} renderGroupHeader={renderGroupHeader} renderMobileGroupHeader={renderMobileGroupHeader} showGroupToggle={true} />;
+    return <MasterTable rows={filteredBookings} columns={desktopColumns} mobileColumns={mobileColumns} getGroupKey={getGroupKey} calculateStats={calculateStats} renderGroupHeader={renderGroupHeader} renderMobileGroupHeader={renderMobileGroupHeader} showGroupToggle={true} />;
 }

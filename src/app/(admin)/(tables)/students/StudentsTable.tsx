@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
 import { StudentStatusBadge } from "@/src/components/ui/badge";
 import { SchoolStudentStatus } from "@/types/status";
 import type { StudentTableData } from "@/config/tables";
 import ReactCountryFlag from "react-country-flag";
 import { StudentBookingActivityCard } from "./StudentBookingActivityCard";
+import { filterBySearch } from "@/types/searching-entities";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { COUNTRIES } from "@/config/countries";
-import Link from "next/link";
+import { ENTITY_DATA } from "@/config/entities";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -18,6 +21,11 @@ const HEADER_CLASSES = {
 } as const;
 
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
+    const { search } = useTablesController();
+
+    // Filter students
+    const filteredStudents = filterBySearch(students, search, (s) => `${s.firstName} ${s.lastName} ${s.id}`);
+
     const desktopColumns: ColumnDef<StudentTableData>[] = [
         {
             header: "Student Profile",
@@ -109,7 +117,7 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         },
     ];
 
-    return <MasterTable rows={students} columns={desktopColumns} mobileColumns={mobileColumns} groupBy="all" showGroupToggle={false} />;
+    return <MasterTable rows={filteredStudents} columns={desktopColumns} mobileColumns={mobileColumns} groupBy="all" showGroupToggle={false} />;
 }
 
 // Helper to attempt mapping country name to code (simple fallback)

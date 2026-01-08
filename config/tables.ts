@@ -72,23 +72,14 @@ export interface Students {
 }
 
 export interface Teachers {
-
     id: string;
-
     username: string;
-
     firstName: string;
-
     lastName: string;
-
     country: string;
-
     phone: string;
-
     languages: string[];
-
     lessons: LessonEvents[];
-
 }
 
 

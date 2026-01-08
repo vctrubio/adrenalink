@@ -10,6 +10,9 @@ import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
 
+import { filterPackages } from "@/types/searching-entities";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
     orange: "px-4 py-3 font-medium text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/10",
@@ -18,7 +21,11 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
+    const { search } = useTablesController();
     const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
+
+    // Filter packages
+    const filteredPackages = filterPackages(packages, search);
 
     const desktopColumns: ColumnDef<PackageTableData>[] = [
         {
@@ -142,7 +149,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
 
     return (
         <MasterTable
-            rows={packages}
+            rows={filteredPackages}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
             groupBy="all"

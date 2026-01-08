@@ -13,6 +13,9 @@ import ReactCountryFlag from "react-country-flag";
 import Link from "next/link";
 import { COUNTRIES } from "@/config/countries";
 
+import { filterTeachers } from "@/types/searching-entities";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -23,7 +26,11 @@ const HEADER_CLASSES = {
 } as const;
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
+    const { search } = useTablesController();
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+
+    // Filter teachers
+    const filteredTeachers = filterTeachers(teachers, search);
 
     const desktopColumns: ColumnDef<TeacherTableData>[] = [
         {
@@ -59,7 +66,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 return (
                     <div className="flex flex-col gap-2">
                         {activeTeacherLessons.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 pb-2 mb-1 border-b border-border/40">
+                            <div className="flex flex-wrap gap-1.5 pb-2 mb-1 border-b border-border/40 max-h-[150px] overflow-y-auto custom-scrollbar">
                                 {activeTeacherLessons.map(l => (
                                     <ActiveTeacherLessonBadge 
                                         key={l.id}
@@ -139,7 +146,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 
                 if (activeTeacherLessons.length > 0) {
                     return (
-                        <div className="flex flex-col gap-1.5 scale-90 origin-right items-end">
+                        <div className="flex flex-col gap-1.5 scale-90 origin-right items-end max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
                             {activeTeacherLessons.map(l => (
                                 <ActiveTeacherLessonBadge 
                                     key={l.id}
@@ -190,7 +197,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
     return (
         <MasterTable
-            rows={teachers}
+            rows={filteredTeachers}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
             groupBy="all"

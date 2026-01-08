@@ -16,6 +16,9 @@ import { Activity } from "lucide-react";
 
 import { StatItemUI } from "@/backend/data/StatsData";
 
+import { filterEquipment } from "@/types/searching-entities";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+
 const HEADER_CLASSES = {
     purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
     green: "px-4 py-3 font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10",
@@ -26,7 +29,11 @@ const HEADER_CLASSES = {
 } as const;
 
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
+    const { search } = useTablesController();
     const equipmentEntity = ENTITY_DATA.find(e => e.id === "equipment")!;
+
+    // Filter equipment
+    const filteredEquipment = filterEquipment(equipments, search);
 
     const desktopColumns: ColumnDef<EquipmentTableData>[] = [
         {
@@ -180,7 +187,7 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
 
     return (
         <MasterTable
-            rows={equipments}
+            rows={filteredEquipment}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
             groupBy="all"
