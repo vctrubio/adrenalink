@@ -19,7 +19,6 @@ const defaultPackageForm: PackageFormData = {
 };
 
 export default function PackagePage() {
-    const router = useRouter();
     const { addToQueue } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();

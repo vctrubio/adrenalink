@@ -30,8 +30,11 @@ const HEADER_CLASSES = {
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
+    // Only show active teachers
+    const activeTeachers = teachers.filter(t => t.active);
+
     const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
-        data: teachers,
+        data: activeTeachers,
         filterSearch: filterTeachers,
         filterStatus: (teacher, status) => {
             if (status === "Active") return teacher.active;

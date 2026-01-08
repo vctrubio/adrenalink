@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, ReactNode, memo } from "react";
+import { useState, useMemo, useEffect, ReactNode, memo, useRef } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 import { masterBookingAdd } from "@/supabase/server/register";
@@ -21,6 +22,7 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
     const bookingFormState = useBookingForm();
     const { addToQueue } = useRegisterActions();
     const { registerSubmitHandler, setFormValidity, submitHandler: registeredSubmitHandler, isFormValid: formIsValid } = useFormRegistration();
+    const formRef = useRef<{ resetSections: () => void }>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -97,6 +99,9 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
             // Success toast
             toast.success(`Booking created: ${leaderStudentName}`);
 
+            // Reset sections to open them all again
+            formRef.current?.resetSections();
+
             // Reset form
             bookingFormState.reset();
             setLoading(false);
@@ -144,7 +149,7 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
                     referrals={data.referrals}
                 />
             }
-            form={children}
+            form={React.cloneElement(children as React.ReactElement, { ref: formRef })}
         />
     );
 }

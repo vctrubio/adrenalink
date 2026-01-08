@@ -11,7 +11,17 @@ export interface TeacherProvider {
         username: string;
         first_name: string;
         last_name: string;
+        passport: string;
+        country: string;
+        phone: string;
+        languages: string[];
         active: boolean;
+        commissions: Array<{
+            id: string;
+            commissionType: string;
+            cph: string;
+            description: string | null;
+        }>;
     };
     lessonStats: {
         totalLessons: number;
@@ -39,7 +49,17 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
                 username,
                 first_name,
                 last_name,
+                passport,
+                country,
+                phone,
+                languages,
                 active,
+                teacher_commission (
+                    id,
+                    commission_type,
+                    cph,
+                    description
+                ),
                 lesson (
                     status
                 )
@@ -63,7 +83,17 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
                     username: t.username,
                     first_name: t.first_name,
                     last_name: t.last_name,
+                    passport: t.passport,
+                    country: t.country,
+                    phone: t.phone,
+                    languages: t.languages,
                     active: t.active,
+                    commissions: (t.teacher_commission || []).map((c: any) => ({
+                        id: c.id,
+                        commissionType: c.commission_type,
+                        cph: c.cph,
+                        description: c.description,
+                    })),
                 },
                 lessonStats: {
                     totalLessons,

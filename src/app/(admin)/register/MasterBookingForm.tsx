@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, memo, useMemo, forwardRef, useImperativeHandle } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
 import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues } from "./RegisterContext";
@@ -25,9 +25,10 @@ interface BookingFormProps {
     teachers: any[];
     referrals: any[];
     studentStats?: Record<string, StudentStats>;
+    onResetSections?: () => void;
 }
 
-function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps) {
+const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats, onResetSections }: BookingFormProps, ref) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
@@ -68,6 +69,13 @@ function BookingForm({ school, schoolPackages, students, teachers, referrals, st
     const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
         () => new Set(studentIdParam ? ["package-section", "teacher-section", "commission-section"] : ["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"])
     );
+
+    // Expose resetSections via ref
+    useImperativeHandle(ref, () => ({
+        resetSections: () => {
+            setExpandedSections(new Set(["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"]));
+        },
+    }), []);
 
     // Track if we've processed the add param to avoid infinite loops
     const processedParamRef = useRef<string | null>(null);
@@ -303,6 +311,6 @@ function BookingForm({ school, schoolPackages, students, teachers, referrals, st
             )}
         </div>
     );
-}
+});
 
 export default memo(BookingForm);

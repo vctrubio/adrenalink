@@ -5,10 +5,11 @@ import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
-import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 import { filterBySearch } from "@/types/searching-entities";
 import ReactCountryFlag from "react-country-flag";
 import { COUNTRIES } from "@/config/countries";
+
+const STUDENT_STATUS_FILTERS = ["All", "New", "Ongoing", "Available"] as const;
 
 interface Student {
     id: string;
@@ -45,6 +46,7 @@ interface StudentTableProps {
 }
 
 type SortColumn = "firstName" | "lastName" | "status" | null;
+type StatusFilter = "All" | "New" | "Ongoing" | "Available";
 
 function StudentTable({
     students,
@@ -54,7 +56,7 @@ function StudentTable({
     studentStatsMap = {}
 }: StudentTableProps) {
     const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
     const studentEntity = ENTITY_DATA.find(e => e.id === "student");
 
@@ -74,6 +76,8 @@ function StudentTable({
                 return !stats || stats.bookingCount === 0;
             } else if (statusFilter === "Ongoing") {
                 return stats && stats.bookingCount > 0;
+            } else if (statusFilter === "Available") {
+                return stats && stats.allBookingsCompleted === true;
             }
 
             return true; // "All"
@@ -134,8 +138,8 @@ function StudentTable({
                     <FilterDropdown
                         label="Status"
                         value={statusFilter}
-                        options={STATUS_FILTER_OPTIONS}
-                        onChange={(v) => setStatusFilter(v as StatusFilterType)}
+                        options={STUDENT_STATUS_FILTERS}
+                        onChange={(v) => setStatusFilter(v as StatusFilter)}
                         entityColor={studentEntity.color}
                     />
                 )}

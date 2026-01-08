@@ -390,23 +390,6 @@ export interface RegisterTables {
       languages: string[];
     };
   }>;
-  teachers: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    passport: string;
-    country: string;
-    phone: string;
-    languages: string[];
-    active: boolean;
-    commissions: Array<{
-      id: string;
-      commissionType: string;
-      cph: string;
-      description: string | null;
-    }>;
-  }>;
   packages: Array<{
     id: string;
     durationMinutes: number;
@@ -427,15 +410,6 @@ export interface RegisterTables {
     description: string | null;
     active: boolean;
   }>;
-  studentBookingStats: Record<string, {
-    bookingCount: number;
-    durationHours: number;
-    allBookingsCompleted?: boolean;
-  }>;
-  teacherLessonStats: Record<string, {
-    totalLessons: number;
-    plannedLessons: number;
-  }>;
 }
 
 /**
@@ -452,7 +426,7 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
 
     const supabase = getServerConnection();
 
-    // Fetch students linked to school
+    // Fetch students linked to school (newest first)
     const { data: students, error: studentsError } = await supabase
       .from("school_students")
       .select(`
@@ -471,30 +445,12 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
           languages
         )
       `)
-      .eq("school_id", schoolId);
+      .eq("school_id", schoolId)
+      .order("created_at", { ascending: false });
 
     if (studentsError) {
       console.error("Error fetching students:", studentsError);
       return { success: false, error: "Failed to fetch students" };
-    }
-
-    // Fetch teachers with commissions
-    const { data: teachers, error: teachersError } = await supabase
-      .from("teacher")
-      .select(`
-        *,
-        teacher_commission (
-          id,
-          commission_type,
-          cph,
-          description
-        )
-      `)
-      .eq("school_id", schoolId);
-
-    if (teachersError) {
-      console.error("Error fetching teachers:", teachersError);
-      return { success: false, error: "Failed to fetch teachers" };
     }
 
     // Fetch packages
@@ -519,34 +475,6 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       return { success: false, error: "Failed to fetch referrals" };
     }
 
-    // Fetch student booking stats
-    const { data: bookingStats, error: bookingStatsError } = await supabase
-      .from("booking")
-      .select(`
-        booking_student (
-          student_id
-        ),
-        school_package (
-          duration_minutes
-        )
-      `)
-      .eq("school_id", schoolId);
-
-    if (bookingStatsError) {
-      console.error("Error fetching booking stats:", bookingStatsError);
-      return { success: false, error: "Failed to fetch booking stats" };
-    }
-
-    // Fetch teacher lesson stats
-    const { data: lessonStats, error: lessonStatsError } = await supabase
-      .from("lesson")
-      .select("teacher_id, status")
-      .eq("school_id", schoolId);
-
-    if (lessonStatsError) {
-      console.error("Error fetching lesson stats:", lessonStatsError);
-      return { success: false, error: "Failed to fetch lesson stats" };
-    }
 
     // Transform data to match RegisterTables interface
     const transformedStudents = (students || []).map((s: any) => ({
@@ -565,24 +493,6 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
         phone: s.student.phone,
         languages: s.student.languages,
       } : null,
-    }));
-
-    const transformedTeachers = (teachers || []).map((t: any) => ({
-      id: t.id,
-      firstName: t.first_name,
-      lastName: t.last_name,
-      username: t.username,
-      passport: t.passport,
-      country: t.country,
-      phone: t.phone,
-      languages: t.languages,
-      active: t.active,
-      commissions: (t.teacher_commission || []).map((c: any) => ({
-        id: c.id,
-        commissionType: c.commission_type,
-        cph: c.cph,
-        description: c.description,
-      })),
     }));
 
     const transformedPackages = (packages || []).map((p: any) => ({
@@ -607,50 +517,12 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       active: r.active,
     }));
 
-    // Compute student booking stats
-    const studentBookingStats: Record<string, { bookingCount: number; durationHours: number; allBookingsCompleted?: boolean }> = {};
-    if (bookingStats) {
-      for (const booking of bookingStats) {
-        const durationMinutes = booking.school_package?.duration_minutes || 0;
-        const durationHours = durationMinutes / 60;
-
-        if (booking.booking_student && Array.isArray(booking.booking_student)) {
-          for (const bs of booking.booking_student) {
-            const studentId = bs.student_id;
-            if (!studentBookingStats[studentId]) {
-              studentBookingStats[studentId] = { bookingCount: 0, durationHours: 0 };
-            }
-            studentBookingStats[studentId].bookingCount += 1;
-            studentBookingStats[studentId].durationHours += durationHours;
-          }
-        }
-      }
-    }
-
-    // Compute teacher lesson stats
-    const teacherLessonStats: Record<string, { totalLessons: number; plannedLessons: number }> = {};
-    if (lessonStats) {
-      for (const lesson of lessonStats) {
-        const teacherId = lesson.teacher_id;
-        if (!teacherLessonStats[teacherId]) {
-          teacherLessonStats[teacherId] = { totalLessons: 0, plannedLessons: 0 };
-        }
-        teacherLessonStats[teacherId].totalLessons += 1;
-        if (lesson.status === "planned" || lesson.status === "active") {
-          teacherLessonStats[teacherId].plannedLessons += 1;
-        }
-      }
-    }
-
     return {
       success: true,
       data: {
         students: transformedStudents,
-        teachers: transformedTeachers,
         packages: transformedPackages,
         referrals: transformedReferrals,
-        studentBookingStats,
-        teacherLessonStats,
       },
     };
   } catch (error) {

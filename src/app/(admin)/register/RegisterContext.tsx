@@ -95,14 +95,6 @@ export function RegisterProvider({
         bookings: []
     });
 
-    // UI Coordination
-    const [scrollTarget, setScrollTarget] = useState<string | null>(null);
-
-    const scrollToSection = useCallback((sectionId: string) => {
-        setScrollTarget(sectionId);
-        setTimeout(() => setScrollTarget(null), 100);
-    }, []);
-
     // Booking form state
     const [bookingForm, setBookingFormState] = useState<BookingFormState>(defaultBookingForm);
 
@@ -157,13 +149,6 @@ export function RegisterProvider({
         setQueues(prev => ({
             ...prev,
             [type]: prev[type].filter(item => item.id !== id)
-        }));
-    }, []);
-
-    const clearQueue = useCallback((type: keyof EntityQueues) => {
-        setQueues(prev => ({
-            ...prev,
-            [type]: []
         }));
     }, []);
 
@@ -231,41 +216,6 @@ export function useRegisterQueues() {
     return context.queues;
 }
 
-export function useSchool() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useSchool must be used within RegisterProvider");
-    return context.data.school;
-}
-
-export function usePackages() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("usePackages must be used within RegisterProvider");
-    return context.data.packages;
-}
-
-export function useTeachers() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useTeachers must be used within RegisterProvider");
-    return context.data.teachers;
-}
-
-export function useStudents() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useStudents must be used within RegisterProvider");
-    return context.data.students;
-}
-
-export function useStudentBookingStats() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useStudentBookingStats must be used within RegisterProvider");
-    return context.data.studentBookingStats;
-}
-
-export function useTeacherLessonStats() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useTeacherLessonStats must be used within RegisterProvider");
-    return context.data.teacherLessonStats;
-}
 
 export function useBookingForm() {
     const context = useContext(RegisterContext);
