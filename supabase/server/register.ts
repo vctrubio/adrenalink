@@ -3,6 +3,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { getStudentBookingStatus } from "@/supabase/rpc/student_booking_status";
 
 export interface StudentPayload {
   first_name: string;
@@ -410,6 +411,13 @@ export interface RegisterTables {
     description: string | null;
     active: boolean;
   }>;
+  studentBookingStats: Record<string, {
+    bookingCount: number;
+    durationHours: number;
+    totalEventCount: number;
+    totalEventDuration: number;
+    allBookingsCompleted?: boolean;
+  }>;
 }
 
 /**
@@ -517,12 +525,33 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       active: r.active,
     }));
 
+    // Get student booking stats from RPC
+    const bookingStatsResults = await getStudentBookingStatus(schoolId);
+    const studentBookingStats: Record<string, {
+      bookingCount: number;
+      durationHours: number;
+      totalEventCount: number;
+      totalEventDuration: number;
+      allBookingsCompleted?: boolean
+    }> = {};
+
+    bookingStatsResults.forEach((stat: any) => {
+      studentBookingStats[stat.student_id] = {
+        bookingCount: stat.booking_count,
+        durationHours: stat.duration_hours,
+        totalEventCount: stat.total_event_count,
+        totalEventDuration: stat.total_event_duration,
+        allBookingsCompleted: stat.all_bookings_completed,
+      };
+    });
+
     return {
       success: true,
       data: {
         students: transformedStudents,
         packages: transformedPackages,
         referrals: transformedReferrals,
+        studentBookingStats,
       },
     };
   } catch (error) {
