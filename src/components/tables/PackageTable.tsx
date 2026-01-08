@@ -1,5 +1,5 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
-import { getPrettyDuration } from "@/getters/duration-getter";
+import { getHMDuration } from "@/getters/duration-getter";
 import { getPricePerHour } from "@/getters/package-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
@@ -156,6 +156,9 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
                         <TableHead sortable sortActive={sortColumn === "duration"} sortDirection={sortDirection} onSort={() => handleSort("duration")}>
                             Duration
                         </TableHead>
+                        <TableHead sortable sortActive={sortColumn === "price"} sortDirection={sortDirection} onSort={() => handleSort("price")} align="right">
+                            Price
+                        </TableHead>
                         <TableHead sortable sortActive={sortColumn === "pricePerHour"} sortDirection={sortDirection} onSort={() => handleSort("pricePerHour")} align="right">
                             Per Hour
                         </TableHead>
@@ -175,8 +178,9 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
                         return (
                             <TableRow key={pkg.id} onClick={() => onSelect(pkg)} isSelected={isSelected} selectedColor={packageEntity?.color} className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}>
                                 <TableCell className="w-20">{EquipmentIcon && <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={pkg.capacityEquipment} studentCapacity={pkg.capacityStudents} />}</TableCell>
-                                <TableCell className="w-24">{getPrettyDuration(pkg.durationMinutes)}</TableCell>
-                                <TableCell className="w-20 text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
+                                <TableCell className="w-24">{getHMDuration(pkg.durationMinutes)}</TableCell>
+                                <TableCell className="w-20 text-muted-foreground text-right">{pkg.pricePerStudent.toFixed(2)}</TableCell>
+                                <TableCell className="w-20 text-muted-foreground text-right">{pricePerHour.toFixed(2)}</TableCell>
                                 <TableCell className="font-medium text-foreground flex-1">
                                     <div className="flex items-center gap-2">
                                         {pkg.description}

@@ -34,7 +34,8 @@ interface SchoolStudent {
 
 interface StudentStats {
     bookingCount: number;
-    durationHours: number;
+    totalEventCount: number;
+    totalEventDuration: number;
     allBookingsCompleted?: boolean;
 }
 

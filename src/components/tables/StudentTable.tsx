@@ -33,7 +33,6 @@ interface SchoolStudent {
 
 interface StudentStats {
     bookingCount: number;
-    durationHours: number;
     totalEventCount: number;
     totalEventDuration: number;
     allBookingsCompleted?: boolean;
@@ -174,7 +173,7 @@ function StudentTable({
                     const isSelected = selectedStudentIds.includes(student.id);
                     const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;
 
-                    const stats = studentStatsMap[student.id] || { bookingCount: 0, durationHours: 0, totalEventCount: 0, totalEventDuration: 0 };
+                    const stats = studentStatsMap[student.id] || { bookingCount: 0, totalEventCount: 0, totalEventDuration: 0 };
 
                     return (
                         <TableRow
@@ -204,7 +203,7 @@ function StudentTable({
                             <TableCell>
                                 <StudentStatusBadge
                                     bookingCount={stats.bookingCount}
-                                    durationHours={stats.durationHours}
+                                    totalEventDuration={stats.totalEventDuration}
                                     allBookingsCompleted={stats.allBookingsCompleted}
                                 />
                             </TableCell>

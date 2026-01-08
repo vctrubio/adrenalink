@@ -4,15 +4,16 @@ import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/
 
 interface StudentStatusBadgeProps {
   bookingCount: number;
-  durationHours: number;
+  totalEventDuration: number;
   allBookingsCompleted?: boolean;
 }
 
 export function StudentStatusBadge({
   bookingCount,
-  durationHours,
+  totalEventDuration,
   allBookingsCompleted = true,
 }: StudentStatusBadgeProps) {
+  console.log("[StudentStatusBadge]", { bookingCount, totalEventDuration, allBookingsCompleted });
   // Show "New" if no bookings
   if (bookingCount === 0) {
     return (
@@ -27,6 +28,8 @@ export function StudentStatusBadge({
     );
   }
 
+  const eventDurationHours = Math.round(totalEventDuration / 60);
+
   // Show bookings + duration with green background if all completed
   if (allBookingsCompleted) {
     return (
@@ -39,7 +42,7 @@ export function StudentStatusBadge({
         <BookingIcon size={14} />
         <span>{bookingCount}</span>
         <DurationIcon size={14} />
-        <span>{durationHours}h</span>
+        <span>{eventDurationHours}h</span>
       </div>
     );
   }
@@ -55,7 +58,7 @@ export function StudentStatusBadge({
       <BookingIcon size={14} />
       <span>{bookingCount}</span>
       <DurationIcon size={14} />
-      <span>{durationHours}h</span>
+      <span>{eventDurationHours}h</span>
     </div>
   );
 }

@@ -1,7 +1,5 @@
--- Migration: Add student_booking_status RPC function
--- Date: 2025-01-08
--- Purpose: Calculate student booking stats and event metrics with student info in a single query
-
+-- Fix student_booking_status RPC: complete GROUP BY and fix completion logic
+-- Changes: removed duration_hours, fixed GROUP BY clause, check booking.status = 'active' instead of events
 DROP FUNCTION IF EXISTS get_student_booking_status(UUID);
 
 CREATE OR REPLACE FUNCTION get_student_booking_status(p_school_id UUID)
@@ -52,7 +50,6 @@ BEGIN
     LEFT JOIN school_students ss ON s.id = ss.student_id
     LEFT JOIN booking_student bs ON s.id = bs.student_id
     LEFT JOIN booking b ON bs.booking_id = b.id
-    LEFT JOIN school_package sp ON b.school_package_id = sp.id
     LEFT JOIN lesson l ON b.id = l.booking_id
     LEFT JOIN event e ON l.id = e.lesson_id
     WHERE ss.school_id = p_school_id

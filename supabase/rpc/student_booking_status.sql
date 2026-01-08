@@ -15,7 +15,6 @@ RETURNS TABLE (
     active BOOLEAN,
     rental BOOLEAN,
     booking_count INTEGER,
-    duration_hours NUMERIC,
     total_event_count INTEGER,
     total_event_duration INTEGER,
     all_bookings_completed BOOLEAN,
@@ -36,17 +35,14 @@ BEGIN
         ss.active,
         ss.rental,
         COALESCE(COUNT(DISTINCT b.id), 0)::INTEGER as booking_count,
-        COALESCE(SUM(sp.duration_minutes)::NUMERIC / 60, 0) as duration_hours,
         COALESCE(COUNT(DISTINCT e.id), 0)::INTEGER as total_event_count,
         COALESCE(SUM(e.duration), 0)::INTEGER as total_event_duration,
         NOT EXISTS (
             SELECT 1
             FROM booking_student bs
             JOIN booking b2 ON bs.booking_id = b2.id
-            JOIN lesson l ON b2.id = l.booking_id
-            JOIN event e2 ON l.id = e2.lesson_id
             WHERE bs.student_id = s.id
-            AND e2.status = 'planned'
+            AND b2.status = 'active'
         ) as all_bookings_completed,
         s.created_at
     FROM student s
@@ -57,7 +53,7 @@ BEGIN
     LEFT JOIN lesson l ON b.id = l.booking_id
     LEFT JOIN event e ON l.id = e.lesson_id
     WHERE ss.school_id = p_school_id
-    GROUP BY s.id, ss.school_id, ss.description, ss.active, ss.rental
+    GROUP BY s.id, s.first_name, s.last_name, s.passport, s.country, s.phone, s.languages, s.created_at, ss.school_id, ss.description, ss.active, ss.rental
     ORDER BY s.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE;

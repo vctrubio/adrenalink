@@ -19,7 +19,7 @@ interface BookingFormProps {
     teachers: any[];
     referrals: any[];
     teacherStats?: Record<string, { totalLessons: number; plannedLessons: number }>;
-    studentStats?: Record<string, { bookingCount: number; durationHours: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }>;
+    studentStats?: Record<string, { bookingCount: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }>;
 }
 
 const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, teacherStats, studentStats }: BookingFormProps, ref) {

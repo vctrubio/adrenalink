@@ -25,6 +25,7 @@ interface Teacher {
 export default function RegisterPage() {
     const data = useRegisterData();
     const { teachers: schoolTeachers } = useSchoolTeachers();
+    console.log("[RegisterPage] data.studentBookingStats:", data.studentBookingStats);
 
     // Transform TeacherProvider to Teacher interface for BookingForm
     const transformedTeachers: Teacher[] = schoolTeachers.map(t => ({

@@ -413,7 +413,6 @@ export interface RegisterTables {
   }>;
   studentBookingStats: Record<string, {
     bookingCount: number;
-    durationHours: number;
     totalEventCount: number;
     totalEventDuration: number;
     allBookingsCompleted?: boolean;
@@ -434,32 +433,8 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
 
     const supabase = getServerConnection();
 
-    // Fetch students linked to school (newest first)
-    const { data: students, error: studentsError } = await supabase
-      .from("school_students")
-      .select(`
-        student_id,
-        description,
-        active,
-        rental,
-        created_at,
-        student:student_id (
-          id,
-          first_name,
-          last_name,
-          passport,
-          country,
-          phone,
-          languages
-        )
-      `)
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
-
-    if (studentsError) {
-      console.error("Error fetching students:", studentsError);
-      return { success: false, error: "Failed to fetch students" };
-    }
+    // Get student booking stats from RPC (includes all student data)
+    const bookingStatsResults = await getStudentBookingStatus(schoolId);
 
     // Fetch packages
     const { data: packages, error: packagesError } = await supabase
@@ -483,24 +458,23 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       return { success: false, error: "Failed to fetch referrals" };
     }
 
-
-    // Transform data to match RegisterTables interface
-    const transformedStudents = (students || []).map((s: any) => ({
-      id: s.student_id,
-      studentId: s.student_id,
-      description: s.description,
-      active: s.active,
-      rental: s.rental,
-      createdAt: s.created_at,
-      student: s.student ? {
-        id: s.student.id,
-        firstName: s.student.first_name,
-        lastName: s.student.last_name,
-        passport: s.student.passport,
-        country: s.student.country,
-        phone: s.student.phone,
-        languages: s.student.languages,
-      } : null,
+    // Transform RPC results to RegisterTables format
+    const transformedStudents = bookingStatsResults.map((stat: any) => ({
+      id: stat.student_id,
+      studentId: stat.student_id,
+      description: stat.description,
+      active: stat.active,
+      rental: stat.rental,
+      createdAt: stat.created_at,
+      student: {
+        id: stat.student_id,
+        firstName: stat.first_name,
+        lastName: stat.last_name,
+        passport: stat.passport,
+        country: stat.country,
+        phone: stat.phone,
+        languages: stat.languages,
+      },
     }));
 
     const transformedPackages = (packages || []).map((p: any) => ({
@@ -525,11 +499,9 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
       active: r.active,
     }));
 
-    // Get student booking stats from RPC
-    const bookingStatsResults = await getStudentBookingStatus(schoolId);
+    // Transform RPC results to studentBookingStats (already have bookingStatsResults from above)
     const studentBookingStats: Record<string, {
       bookingCount: number;
-      durationHours: number;
       totalEventCount: number;
       totalEventDuration: number;
       allBookingsCompleted?: boolean
@@ -538,12 +510,12 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
     bookingStatsResults.forEach((stat: any) => {
       studentBookingStats[stat.student_id] = {
         bookingCount: stat.booking_count,
-        durationHours: stat.duration_hours,
         totalEventCount: stat.total_event_count,
         totalEventDuration: stat.total_event_duration,
         allBookingsCompleted: stat.all_bookings_completed,
       };
     });
+    console.log("[getRegisterTables] studentBookingStats:", studentBookingStats);
 
     return {
       success: true,

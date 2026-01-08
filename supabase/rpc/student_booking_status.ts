@@ -13,7 +13,6 @@ export interface StudentBookingStatusResult {
   active: boolean;
   rental: boolean;
   booking_count: number;
-  duration_hours: number;
   total_event_count: number;
   total_event_duration: number;
   all_bookings_completed: boolean;
