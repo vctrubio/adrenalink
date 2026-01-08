@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getEventTransaction, mapTransactionToEventData } from "@/supabase/db/rpc/eventTransaction";
+import { getEventTransaction, mapTransactionToEventData } from "@/supabase/rpc/event_transaction";
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";

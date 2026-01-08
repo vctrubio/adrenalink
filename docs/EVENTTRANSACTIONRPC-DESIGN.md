@@ -89,7 +89,7 @@ $$ LANGUAGE plpgsql STABLE;
 Create a utility function to call the RPC:
 
 ```typescript
-// supabase/db/rpc/eventTransaction.ts
+// supabase/rpc/event_transaction.ts
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -196,7 +196,7 @@ export function summarizeTransactions(transactions: EventTransaction[]) {
 
 ```typescript
 // components/TransactionRow.tsx
-import { getEventTransaction } from '@/supabase/db/rpc/eventTransaction';
+import { getEventTransaction } from '@/supabase/rpc/event_transaction';
 import { useAsync } from '@react-hookz/web'; // or your favorite async hook
 
 export function TransactionRow({ eventId }: { eventId: string }) {
@@ -226,7 +226,7 @@ export function TransactionRow({ eventId }: { eventId: string }) {
 
 ```typescript
 // components/BookingTransactions.tsx
-import { getBookingEventTransactions, summarizeTransactions } from '@/supabase/db/rpc/eventTransaction';
+import { getBookingEventTransactions, summarizeTransactions } from '@/supabase/rpc/event_transaction';
 import { useAsync } from '@react-hookz/web';
 
 export function BookingTransactions({ bookingId }: { bookingId: string }) {
@@ -301,7 +301,7 @@ export function BookingTransactions({ bookingId }: { bookingId: string }) {
 
 ```typescript
 // pages/TransactionDashboard.tsx
-import { getBookingEventTransactions, summarizeTransactions } from '@/supabase/db/rpc/eventTransaction';
+import { getBookingEventTransactions, summarizeTransactions } from '@/supabase/rpc/event_transaction';
 import { useAsync } from '@react-hookz/web';
 
 export function TransactionDashboard({ schoolId }: { schoolId: string }) {
@@ -570,10 +570,10 @@ $$ LANGUAGE plpgsql STABLE;
 ## Setup Steps
 
 1. Create the RPC functions in Supabase SQL Editor (copy the functions above)
-2. Create the TypeScript wrapper file: `supabase/db/rpc/eventTransaction.ts`
+2. Create the TypeScript wrapper file: `supabase/rpc/event_transaction.ts`
 3. Import and use in components:
    ```typescript
-   import { getEventTransaction } from '@/supabase/db/rpc/eventTransaction';
+   import { getEventTransaction } from '@/supabase/rpc/event_transaction';
    
    const revenue = await getEventTransaction(supabase, eventId);
    ```
