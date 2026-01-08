@@ -50,7 +50,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             <StatItemUI type="package" value={stats.packageCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="bookings" value={stats.totalBookings} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="requests" value={stats.totalRequests} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="revenue" value={stats.totalRevenue.toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI type="revenue" value={stats.totalRevenue} hideLabel={hideLabel} variant="primary" iconColor={false} />
         </>
     );
 
@@ -116,7 +116,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                     />
                     <StatItemUI 
                         type="revenue" 
-                        value={data.usageStats.revenue.toFixed(0)} 
+                        value={data.usageStats.revenue} 
                         iconColor={true} 
                         hideLabel={true}
                         desc="Revenue from confirmed bookings"
@@ -170,7 +170,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                 <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
                     <StatItemUI type="bookings" value={data.usageStats.bookingCount} iconColor={true} hideLabel={true} />
                     <StatItemUI type="requests" value={data.usageStats.requestCount} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="revenue" value={data.usageStats.revenue.toFixed(0)} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="revenue" value={data.usageStats.revenue} iconColor={true} hideLabel={true} />
                 </div>
             ),
         },

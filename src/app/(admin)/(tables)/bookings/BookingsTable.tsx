@@ -101,8 +101,8 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 );
             })}
 
-            <StatItemUI type="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="revenue" value={stats.totalEventRevenue.toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="revenue" value={stats.totalEventRevenue} hideLabel={hideLabel} variant="primary" iconColor={false} />
         </>
     );
 
@@ -191,9 +191,9 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex items-center gap-4">
-                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI type="payments" value={data.stats.events.revenue} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
+                        <StatItemUI type="commission" value={data.stats.commissions} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
+                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
                     </div>
                 );
             },
@@ -263,9 +263,9 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex flex-col gap-1 scale-90 origin-right items-end">
-                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI type="payments" value={data.stats.events.revenue} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
+                        <StatItemUI type="commission" value={data.stats.commissions} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
+                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
                     </div>
                 );
             },

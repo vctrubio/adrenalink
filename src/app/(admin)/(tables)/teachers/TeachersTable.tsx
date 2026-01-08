@@ -28,7 +28,7 @@ const HEADER_CLASSES = {
 } as const;
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
         data: teachers,
@@ -51,11 +51,11 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
         console.log("Starting transformation for teachers:", filteredTeachers.length);
 
-        filteredTeachers.forEach(teacher => {
-            const periods: Record<string, { lessons: any[], duration: number, commission: number, payments: number, categoryStats: any }> = {};
+        filteredTeachers.forEach((teacher) => {
+            const periods: Record<string, { lessons: any[]; duration: number; commission: number; payments: number; categoryStats: any }> = {};
 
-            teacher.lessons.forEach(lesson => {
-                const date = lesson.dateCreated || (teacher as any).createdAt; 
+            teacher.lessons.forEach((lesson) => {
+                const date = lesson.dateCreated || (teacher as any).createdAt;
                 // console.log("Processing lesson:", { id: lesson.id, date, masterTableGroupBy });
                 if (!date) return;
 
@@ -66,8 +66,8 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
                 periods[periodKey].lessons.push(lesson);
                 periods[periodKey].duration += lesson.events.totalDuration;
-                periods[periodKey].commission += parseFloat(lesson.commission.cph) * (lesson.events.totalDuration / 60); 
-                
+                periods[periodKey].commission += parseFloat(lesson.commission.cph) * (lesson.events.totalDuration / 60);
+
                 const cat = lesson.category;
                 if (!periods[periodKey].categoryStats[cat]) {
                     periods[periodKey].categoryStats[cat] = { count: 0, duration: 0 };
@@ -87,11 +87,9 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                         totalLessons: stats.lessons.length,
                         totalDurationMinutes: stats.duration,
                         totalCommissions: stats.commission,
-                        totalPayments: 0, 
+                        totalPayments: 0,
                     },
-                    activityStats: Object.fromEntries(
-                        Object.entries(stats.categoryStats).map(([cat, s]: [string, any]) => [cat, { count: s.count, durationMinutes: s.duration }])
-                    )
+                    activityStats: Object.fromEntries(Object.entries(stats.categoryStats).map(([cat, s]: [string, any]) => [cat, { count: s.count, durationMinutes: s.duration }])),
                 } as any);
             });
         });
@@ -106,47 +104,52 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
     };
 
     const calculateStats = (groupRows: any[]): GroupStats => {
-        return groupRows.reduce((acc, curr) => {
-            const newStats = {
-                teacherCount: acc.teacherCount + 1,
-                totalLessons: acc.totalLessons + curr.stats.totalLessons,
-                totalCommissions: acc.totalCommissions + curr.stats.totalCommissions,
-                totalPayments: acc.totalPayments + curr.stats.totalPayments,
-                categoryStats: { ...acc.categoryStats }
-            };
+        return groupRows.reduce(
+            (acc, curr) => {
+                const newStats = {
+                    teacherCount: acc.teacherCount + 1,
+                    totalLessons: acc.totalLessons + curr.stats.totalLessons,
+                    totalCommissions: acc.totalCommissions + curr.stats.totalCommissions,
+                    totalPayments: acc.totalPayments + curr.stats.totalPayments,
+                    categoryStats: { ...acc.categoryStats },
+                };
 
-            // Aggregate category stats
-            Object.entries(curr.activityStats).forEach(([category, stats]: [string, any]) => {
-                if (!newStats.categoryStats[category]) {
-                    newStats.categoryStats[category] = { count: 0, durationMinutes: 0 };
-                }
-                newStats.categoryStats[category].count += stats.count;
-                newStats.categoryStats[category].durationMinutes += stats.durationMinutes;
-            });
+                // Aggregate category stats
+                Object.entries(curr.activityStats).forEach(([category, stats]: [string, any]) => {
+                    if (!newStats.categoryStats[category]) {
+                        newStats.categoryStats[category] = { count: 0, durationMinutes: 0 };
+                    }
+                    newStats.categoryStats[category].count += stats.count;
+                    newStats.categoryStats[category].durationMinutes += stats.durationMinutes;
+                });
 
-            return newStats;
-        }, { teacherCount: 0, totalLessons: 0, totalCommissions: 0, totalPayments: 0, categoryStats: {} as Record<string, { count: number; durationMinutes: number }> });
+                return newStats;
+            },
+            { teacherCount: 0, totalLessons: 0, totalCommissions: 0, totalPayments: 0, categoryStats: {} as Record<string, { count: number; durationMinutes: number }> },
+        );
     };
 
     const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
         <>
             <StatItemUI type="teachers" value={stats.teacherCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="lessons" value={stats.totalLessons} hideLabel={hideLabel} iconColor={false} />
-            
+
             {/* Category Breakdowns */}
             {Object.entries(stats.categoryStats as Record<string, { count: number }>).map(([catId, stat]) => {
-                const config = EQUIPMENT_CATEGORIES.find(c => c.id === catId);
-                const Icon = config?.icon || Calendar; 
-                
+                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === catId);
+                const Icon = config?.icon || Calendar;
+
                 return (
                     <div key={catId} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity" title={`${config?.label || catId} Events`}>
-                        <span className="text-muted-foreground"><Icon size={12} /></span>
+                        <span className="text-muted-foreground">
+                            <Icon size={12} />
+                        </span>
                         <span className="tabular-nums text-xs font-bold text-foreground">{stat.count}</span>
                     </div>
                 );
             })}
 
-            <StatItemUI type="commission" value={stats.totalCommissions.toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI type="commission" value={stats.totalCommissions} hideLabel={hideLabel} variant="primary" iconColor={false} />
         </>
     );
 
@@ -168,16 +171,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
                 <div className="flex flex-col gap-1 items-start">
-                    <Link 
-                        href={`${teacherEntity.link}/${data.id}`}
-                        className="flex items-center gap-2 group"
-                    >
-                        <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">{data.firstName} {data.lastName}</span>
+                    <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group">
+                        <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
+                            {data.firstName} {data.lastName}
+                        </span>
                         <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} title={data.active ? "Active" : "Inactive"} />
                     </Link>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-tight">
                         <div className="flex items-center" title={data.country}>
-                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1.2em', height: '1.2em' }} />
+                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1.2em", height: "1.2em" }} />
                         </div>
                         <span className="opacity-20 text-foreground">|</span>
                         <span className="tabular-nums">{data.phone}</span>
@@ -188,27 +190,40 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             ),
         },
         {
+            header: "Equipment",
+            headerClassName: HEADER_CLASSES.purple,
+            render: (data) => (
+                <div className="flex flex-row flex-wrap gap-3 max-w-[300px]">
+                    <BrandSizeCategoryList
+                        equipments={data.equipments.map((e) => {
+                            const config = EQUIPMENT_CATEGORIES.find((c) => c.id === e.category);
+                            return {
+                                id: e.id,
+                                brand: e.brand,
+                                model: e.model,
+                                size: e.size,
+                                icon: config?.icon,
+                            };
+                        })}
+                        showIcon={true}
+                    />
+                </div>
+            ),
+        },
+        {
             header: "Lessons",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
                 // If we are in a period-specific row, we should only show lessons for that period
                 // But for now, showing all active lessons is fine as the Stats column will show period totals
-                const activeTeacherLessons = data.lessons.filter(l => l.status === "active" || l.status === "rest");
-                
+                const activeTeacherLessons = data.lessons.filter((l) => l.status === "active" || l.status === "rest");
+
                 return (
                     <div className="flex flex-col gap-2">
                         {activeTeacherLessons.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 pb-2 mb-1 border-b border-border/40 max-h-[150px] overflow-y-auto custom-scrollbar">
-                                {activeTeacherLessons.map(l => (
-                                    <ActiveTeacherLessonBadge 
-                                        key={l.id}
-                                        bookingId={l.bookingId}
-                                        category={l.category}
-                                        leaderName={l.leaderStudentName}
-                                        capacity={l.capacityStudents}
-                                        status={l.status}
-                                        commission={l.commission}
-                                    />
+                                {activeTeacherLessons.map((l) => (
+                                    <ActiveTeacherLessonBadge key={l.id} bookingId={l.bookingId} category={l.category} leaderName={l.leaderStudentName} capacity={l.capacityStudents} status={l.status} commission={l.commission} />
                                 ))}
                             </div>
                         )}
@@ -218,37 +233,14 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             },
         },
         {
-            header: "Equipment",
-            headerClassName: HEADER_CLASSES.purple,
-            render: (data) => (
-                <div className="flex flex-row flex-wrap gap-3 max-w-[300px]">
-                    <BrandSizeCategoryList 
-                        equipments={data.equipments.map(e => {
-                            const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
-                            return {
-                                id: e.id,
-                                brand: e.brand,
-                                model: e.model,
-                                size: e.size,
-                                icon: config?.icon
-                            };
-                        })}
-                        showIcon={true}
-                    />
-                </div>
-            ),
-        },
-        {
             header: "Stats",
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
                 <div className="flex items-center gap-4">
                     <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
                     <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="commission" value={data.stats.totalCommissions.toFixed(0)} iconColor={true} hideLabel={true} />
-                    {masterTableGroupBy === 'all' && (
-                        <StatItemUI type="teacherPayments" value={data.stats.totalPayments.toFixed(0)} labelOverride="Paid" iconColor={true} hideLabel={true} />
-                    )}
+                    <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
+                    {masterTableGroupBy === "all" && <StatItemUI type="teacherPayments" value={data.stats.totalPayments} labelOverride="Paid" iconColor={true} hideLabel={true} />}
                 </div>
             ),
         },
@@ -262,10 +254,12 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
-                        <div className="font-bold text-sm">{data.firstName} {data.lastName}</div>
+                        <div className="font-bold text-sm">
+                            {data.firstName} {data.lastName}
+                        </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
-                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: '1em', height: '1em' }} />
+                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
                         <span className="opacity-20 text-foreground">|</span>
                         <span>@{data.username}</span>
                     </div>
@@ -276,21 +270,13 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             label: "Activity",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                const activeTeacherLessons = data.lessons.filter(l => l.status === "active" || l.status === "rest");
-                
+                const activeTeacherLessons = data.lessons.filter((l) => l.status === "active" || l.status === "rest");
+
                 if (activeTeacherLessons.length > 0) {
                     return (
                         <div className="flex flex-col gap-1.5 scale-90 origin-right items-end max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                            {activeTeacherLessons.map(l => (
-                                <ActiveTeacherLessonBadge 
-                                    key={l.id}
-                                    bookingId={l.bookingId}
-                                    category={l.category}
-                                    leaderName={l.leaderStudentName}
-                                    capacity={l.capacityStudents}
-                                    status={l.status}
-                                    commission={l.commission}
-                                />
+                            {activeTeacherLessons.map((l) => (
+                                <ActiveTeacherLessonBadge key={l.id} bookingId={l.bookingId} category={l.category} leaderName={l.leaderStudentName} capacity={l.capacityStudents} status={l.status} commission={l.commission} />
                             ))}
                         </div>
                     );
@@ -300,8 +286,8 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
                         <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
                         <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
-                        <StatItemUI type="commission" value={data.stats.totalCommissions.toFixed(0)} iconColor={true} hideLabel={true} />
-                        <StatItemUI type="teacherPayments" value={data.stats.totalPayments.toFixed(0)} iconColor={true} hideLabel={true} />
+                        <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
+                        <StatItemUI type="teacherPayments" value={data.stats.totalPayments} iconColor={true} hideLabel={true} />
                     </div>
                 );
             },
@@ -311,15 +297,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             headerClassName: HEADER_CLASSES.purple,
             render: (data) => (
                 <div className="scale-90 origin-right flex justify-end">
-                    <BrandSizeCategoryList 
-                        equipments={data.equipments.map(e => {
-                            const config = EQUIPMENT_CATEGORIES.find(c => c.id === e.category);
+                    <BrandSizeCategoryList
+                        equipments={data.equipments.map((e) => {
+                            const config = EQUIPMENT_CATEGORIES.find((c) => c.id === e.category);
                             return {
                                 id: e.id,
                                 brand: e.brand,
                                 model: e.model,
                                 size: e.size,
-                                icon: config?.icon
+                                icon: config?.icon,
                             };
                         })}
                         showIcon={true}
@@ -361,6 +347,6 @@ function getPeriodKey(dateStr: string, groupBy: GroupingType) {
 
 // Helper to attempt mapping country name to code (simple fallback)
 function getCountryCode(countryName: string): string {
-    const country = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
+    const country = COUNTRIES.find((c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
     return country?.code || "US";
 }

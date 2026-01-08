@@ -6,6 +6,8 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { getHMDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
 import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import type { BookingTableStats, Package, LessonWithPayments } from "@/config/tables";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
@@ -65,7 +67,7 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                                 <span className="font-black uppercase text-[8px]">Paid</span>
                             </div>
                         ) : (
-                            <span className="text-rose-600 font-black uppercase text-[8px]">{balance.toFixed(0)} Due</span>
+                            <span className="text-rose-600 font-black uppercase text-[8px]">{getCompactNumber(balance)} Due</span>
                         )}
                     </div>
                     <div className="hidden sm:block">{isOpen ? <ChevronDown size={14} className="text-muted-foreground/40" /> : <ChevronRight size={14} className="text-muted-foreground/40" />}</div>
@@ -97,9 +99,9 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                             <div className="flex items-center gap-3 border border-border/40 rounded-lg px-2 py-1 bg-muted/5 shrink-0">
                                 {/* Progress Hours */}
                                 <div className="flex items-center gap-1 text-[9px] font-black text-muted-foreground uppercase tracking-tighter shrink-0">
-                                    <span>{(stats.events.statusCounts.completed / 60).toFixed(1)}</span>
+                                    <span>{getHMDuration(stats.events.statusCounts.completed)}</span>
                                     <span className="opacity-30">/</span>
-                                    <span className="opacity-60">{(booking.packageDetails.durationMinutes / 60).toFixed(1)}H</span>
+                                    <span className="opacity-60">{getHMDuration(booking.packageDetails.durationMinutes)}</span>
                                 </div>
 
                                 <div className="h-3 w-px bg-border/60 shrink-0" />
@@ -108,11 +110,11 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                                 <div className="flex items-center gap-3 text-[10px] font-bold shrink-0 opacity-60">
                                     <div className="flex items-center gap-1" title="Revenue">
                                         <TrendingUp size={10} className="text-yellow-500" />
-                                        <span className="text-foreground">{revenue.toFixed(0)}</span>
+                                        <span className="text-foreground">{getCompactNumber(revenue)}</span>
                                     </div>
                                     <div className="flex items-center gap-1" title="Paid">
                                         <CreditIcon size={10} className="text-muted-foreground" />
-                                        <span className="text-foreground">{paid.toFixed(0)}</span>
+                                        <span className="text-foreground">{getCompactNumber(paid)}</span>
                                     </div>
                                 </div>
                             </div>

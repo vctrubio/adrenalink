@@ -58,8 +58,8 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="bookings" value={stats.bookingCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="events" value={stats.eventCount} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="studentPayments" value={stats.totalPayments.toFixed(0)} labelOverride="Paid" hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="studentPayments" value={stats.totalPayments} labelOverride="Paid" hideLabel={hideLabel} variant="primary" iconColor={false} />
         </>
     );
 

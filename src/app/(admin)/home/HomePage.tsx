@@ -82,7 +82,6 @@ function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMo
     );
 }
 
-
 export function HomePage({ classboardData }: { classboardData: ClassboardModel }) {
     const credentials = useSchoolCredentials();
     const [viewMode, setViewMode] = useState<ViewMode>("grouped");
@@ -102,20 +101,16 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
                 </div>
 
                 <div className="space-y-6">
-                    {viewMode === "grouped" && (
-                        <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />
-                    )}
-                    
+                    {viewMode === "grouped" && <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />}
+
                     {viewMode === "table" && (
                         <div className="space-y-4">
                             <TablesSearchHeader entityId="booking" />
                             <HomeTable events={allTransactionEvents} />
                         </div>
                     )}
-                    
-                    {viewMode === "calendar" && (
-                        <HomeActivity events={allTransactionEvents} />
-                    )}
+
+                    {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} />}
                 </div>
             </div>
         </TablesProvider>

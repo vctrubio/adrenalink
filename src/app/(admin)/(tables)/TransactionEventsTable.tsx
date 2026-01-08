@@ -10,12 +10,14 @@ import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
 import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 
 import { filterTransactionEvents } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -56,7 +58,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
         {
             header: "Dur",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{(data.event.duration / 60).toFixed(1)}h</span>,
+            render: (data) => <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{getHMDuration(data.event.duration)}</span>,
         },
         {
             header: "Loc",
@@ -85,7 +87,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                 const pricePerHour = data.packageData.durationMinutes / 60 > 0 ? data.packageData.pricePerStudent / (data.packageData.durationMinutes / 60) : 0;
                 return (
                     <span className="tabular-nums text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-bold">
-                        {pricePerHour.toFixed(0)} <span className="text-[10px] font-normal">{data.financials.currency}</span>
+                        {getCompactNumber(pricePerHour)} <span className="text-[10px] font-normal">{data.financials.currency}</span>
                     </span>
                 );
             },
@@ -106,12 +108,12 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
         {
             header: "Commission",
             headerClassName: HEADER_CLASSES.zincRight,
-            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{data.financials.teacherEarnings.toFixed(0)}</span>,
+            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{getCompactNumber(data.financials.teacherEarnings)}</span>,
         },
         {
             header: "Revenue",
             headerClassName: HEADER_CLASSES.zincRight,
-            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{data.financials.studentRevenue.toFixed(0)}</span>,
+            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{getCompactNumber(data.financials.studentRevenue)}</span>,
         },
         {
             header: "Profit",
@@ -122,7 +124,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                 return (
                     <div className="flex items-center justify-end gap-1 bg-emerald-500/[0.02]">
                         {isPositive ? <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" /> : <TrendingDown size={14} className="text-rose-600 dark:text-rose-400" />}
-                        <span className={`text-right tabular-nums font-black ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>{Math.abs(profit).toFixed(0)}</span>
+                        <span className={`text-right tabular-nums font-black ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>{getCompactNumber(Math.abs(profit))}</span>
                     </div>
                 );
             },
@@ -153,7 +155,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                             <span className="text-[10px] font-black text-muted-foreground/60">{new Date(data.event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}</span>
                             <span className="text-sm font-black text-foreground">{timeFormat.format(new Date(data.event.date))}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">+{(data.event.duration / 60).toFixed(1)}h</span>
+                        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">+{getHMDuration(data.event.duration)}</span>
                     </div>
                 );
             },
@@ -193,7 +195,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
                 return statusConfig ? (
                     <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tighter" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}>
                         {data.financials.profit >= 0 ? <TrendingUp size={12} strokeWidth={4} className="shrink-0" /> : <TrendingDown size={12} strokeWidth={4} className="shrink-0" />}
-                        {Math.abs(data.financials.profit).toFixed(0)}
+                        {getCompactNumber(Math.abs(data.financials.profit))}
                     </div>
                 ) : null;
             },
@@ -219,10 +221,10 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
         <>
             <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="events" value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="commission" value={stats.totalCommissions.toFixed(0)} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="revenue" value={stats.totalRevenue.toFixed(0)} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type={stats.totalProfit >= 0 ? "profit" : "loss"} value={Math.abs(stats.totalProfit).toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="commission" value={stats.totalCommissions} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="revenue" value={stats.totalRevenue} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type={stats.totalProfit >= 0 ? "profit" : "loss"} value={Math.abs(stats.totalProfit)} hideLabel={hideLabel} variant="primary" iconColor={false} />
         </>
     );
 
