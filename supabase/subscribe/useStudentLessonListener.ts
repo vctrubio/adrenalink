@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getClientConnection as createClient } from "@/supabase/connection";
-import { getStudentPackageBookingLessons, type StudentPackageBookingLessons } from "@/actions/user-action";
+import { getStudentPackageBookingLessons, type StudentPackageBookingLessons } from "@/supabase/server/user";
 import type { ApiActionResponseModel } from "@/types/actions";
 
 interface UseStudentLessonListenerOptions {
