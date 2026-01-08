@@ -63,6 +63,10 @@ interface RegisterContextValue {
     registerSubmitHandler: (handler: () => Promise<void>) => void;
     isFormValid: boolean;
     setFormValidity: (valid: boolean) => void;
+
+    // Section state
+    shouldOpenAllSections: boolean;
+    setShouldOpenAllSections: (open: boolean) => void;
 }
 
 const RegisterContext = createContext<RegisterContextValue | undefined>(undefined);
@@ -106,6 +110,9 @@ export function RegisterProvider({
     // Generic Form Coordination
     const [submitHandler, setSubmitHandlerState] = useState<(() => Promise<void>) | undefined>();
     const [isFormValid, setFormValidity] = useState(false);
+
+    // Section state
+    const [shouldOpenAllSections, setShouldOpenAllSections] = useState(false);
 
     // Wrap setSubmitHandler to ensure stable reference if needed, 
     // but React's setState is already stable. 
@@ -182,6 +189,8 @@ export function RegisterProvider({
         registerSubmitHandler,
         isFormValid,
         setFormValidity,
+        shouldOpenAllSections,
+        setShouldOpenAllSections,
     };
 
     return (
@@ -261,5 +270,14 @@ export function useFormRegistration() {
         registerSubmitHandler: context.registerSubmitHandler,
         isFormValid: context.isFormValid,
         setFormValidity: context.setFormValidity,
+    };
+}
+
+export function useShouldOpenSections() {
+    const context = useContext(RegisterContext);
+    if (!context) throw new Error("useShouldOpenSections must be used within RegisterProvider");
+    return {
+        shouldOpenAllSections: context.shouldOpenAllSections,
+        setShouldOpenAllSections: context.setShouldOpenAllSections,
     };
 }

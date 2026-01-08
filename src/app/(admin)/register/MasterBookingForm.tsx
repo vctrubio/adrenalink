@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo, forwardRef, useImperativeHandle } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
-import { useTeacherLessonStats, useStudentBookingStats, useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues } from "./RegisterContext";
+import { useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues, useShouldOpenSections } from "./RegisterContext";
 import { DateSection } from "./booking-sections/DateSection";
 import { PackageSection } from "./booking-sections/PackageSection";
 import { StudentsSection } from "./booking-sections/StudentsSection";
@@ -12,33 +12,24 @@ import { TeacherSection } from "./booking-sections/TeacherSection";
 
 type SectionId = "dates-section" | "package-section" | "students-section" | "referral-section" | "teacher-section" | "commission-section";
 
-interface StudentStats {
-    bookingCount: number;
-    durationHours: number;
-    allBookingsCompleted?: boolean;
-}
-
 interface BookingFormProps {
     school: any;
     schoolPackages: any[];
     students: any[];
     teachers: any[];
     referrals: any[];
-    studentStats?: Record<string, StudentStats>;
-    onResetSections?: () => void;
 }
 
-const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats, onResetSections }: BookingFormProps, ref) {
+const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals }: BookingFormProps, ref) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
     const addParam = searchParams.get("add");
-    const studentBookingStats = useStudentBookingStats();
-    const teacherLessonStats = useTeacherLessonStats();
     const { removeFromQueue, refreshData, isRefreshing } = useRegisterActions();
     const contextData = useRegisterData();
     const bookingForm = useBookingForm();
     const queues = useRegisterQueues();
+    const { shouldOpenAllSections, setShouldOpenAllSections } = useShouldOpenSections();
 
     // Use context data (updated by refreshData) or fall back to props for initial load
     const { currentStudents, currentTeachers, currentPackages } = useMemo(() => ({
@@ -76,6 +67,14 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             setExpandedSections(new Set(["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"]));
         },
     }), []);
+
+    // Open all sections when booking is submitted
+    useEffect(() => {
+        if (shouldOpenAllSections) {
+            setExpandedSections(new Set(["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"]));
+            setShouldOpenAllSections(false);
+        }
+    }, [shouldOpenAllSections, setShouldOpenAllSections]);
 
     // Track if we've processed the add param to avoid infinite loops
     const processedParamRef = useRef<string | null>(null);
@@ -124,14 +123,12 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         const extraId = parts[2];
 
         if (entityType === "student") {
-            setExpandedSections(prev => new Set([...prev, "students-section"]));
             if (!selectedStudentIds.includes(entityId)) {
                 bookingForm.setForm({ selectedStudentIds: [...selectedStudentIds, entityId] });
             }
             removeFromQueue("students", entityId);
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
-            setExpandedSections(prev => new Set([...prev, "teacher-section"]));
             const queueItem = queues.teachers.find((item: any) => item.id === entityId);
             const teacher = queueItem?.metadata || currentTeachers.find(t => t.id === entityId);
             if (teacher) {
@@ -146,7 +143,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             removeFromQueue("teachers", entityId);
             router.replace("/register", { scroll: false });
         } else if (entityType === "package") {
-            setExpandedSections(prev => new Set([...prev, "package-section"]));
             const queueItem = queues.packages.find((item: any) => item.id === entityId);
             const pkg = queueItem?.metadata || currentPackages.find(p => p.id === entityId);
             if (pkg) {
@@ -276,7 +272,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onToggle={handleStudentToggle}
                 isExpanded={expandedSections.has("students-section")}
                 onSectionToggle={() => toggleSection("students-section")}
-                studentStatsMap={studentBookingStats}
                 selectedPackage={selectedPackage}
             />
 
@@ -289,7 +284,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onAddCommission={handleAddCommission}
                 isExpanded={expandedSections.has("teacher-section")}
                 onToggle={() => toggleSection("teacher-section")}
-                teacherStatsMap={teacherLessonStats}
                 onClose={() => closeSection("teacher-section")}
             />
 

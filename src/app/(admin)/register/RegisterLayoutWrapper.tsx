@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect, ReactNode, memo, useRef } from "react";
-import React from "react";
+import { useState, useMemo, useEffect, ReactNode, memo } from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 import { masterBookingAdd } from "@/supabase/server/register";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
-import { useRegisterData, useBookingForm, useRegisterActions, useFormRegistration } from "./RegisterContext";
+import { useRegisterData, useBookingForm, useRegisterActions, useFormRegistration, useShouldOpenSections } from "./RegisterContext";
 import RegisterController from "./RegisterController";
 
 type ActiveForm = "booking" | "student" | "teacher" | "package";
@@ -22,7 +21,7 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
     const bookingFormState = useBookingForm();
     const { addToQueue } = useRegisterActions();
     const { registerSubmitHandler, setFormValidity, submitHandler: registeredSubmitHandler, isFormValid: formIsValid } = useFormRegistration();
-    const formRef = useRef<{ resetSections: () => void }>(null);
+    const { setShouldOpenAllSections } = useShouldOpenSections();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -99,8 +98,8 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
             // Success toast
             toast.success(`Booking created: ${leaderStudentName}`);
 
-            // Reset sections to open them all again
-            formRef.current?.resetSections();
+            // Signal to open all sections
+            setShouldOpenAllSections(true);
 
             // Reset form
             bookingFormState.reset();
@@ -149,7 +148,7 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
                     referrals={data.referrals}
                 />
             }
-            form={React.cloneElement(children as React.ReactElement, { ref: formRef })}
+            form={children}
         />
     );
 }
