@@ -174,16 +174,16 @@ export function PackageTable({ packages, selectedPackage, onSelect, selectedStud
 
                         return (
                             <TableRow key={pkg.id} onClick={() => onSelect(pkg)} isSelected={isSelected} selectedColor={packageEntity?.color} className={matchesCount && !isSelected ? "bg-green-50 dark:bg-green-900/10" : ""}>
-                                <TableCell>{EquipmentIcon && <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={pkg.capacityEquipment} studentCapacity={pkg.capacityStudents} />}</TableCell>
-                                <TableCell>{getPrettyDuration(pkg.durationMinutes)}</TableCell>
-                                <TableCell className="text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
-                                <TableCell className="font-medium text-foreground">
+                                <TableCell className="w-20">{EquipmentIcon && <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={pkg.capacityEquipment} studentCapacity={pkg.capacityStudents} />}</TableCell>
+                                <TableCell className="w-24">{getPrettyDuration(pkg.durationMinutes)}</TableCell>
+                                <TableCell className="w-20 text-muted-foreground text-right">{pricePerHour.toFixed(2)}/h</TableCell>
+                                <TableCell className="font-medium text-foreground flex-1">
                                     <div className="flex items-center gap-2">
                                         {pkg.description}
                                         {matchesCount && <span className="text-xs text-green-600 dark:text-green-400">✓ Match ({pkg.capacityStudents})</span>}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-xs font-medium">
+                                <TableCell className="w-16 text-xs font-medium">
                                     <span className={pkg.isPublic ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}>{pkg.isPublic ? "Public" : "Private"}</span>
                                 </TableCell>
                             </TableRow>
