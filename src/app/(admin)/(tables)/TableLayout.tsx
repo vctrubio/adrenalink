@@ -1,8 +1,11 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { TablesNavigationRoutes } from "./TablesNavigationRoutes";
 import { TablesHeaderStats } from "./TablesHeaderStats";
+import { TablesSearchHeader } from "./TablesSearchHeader";
+import { useTablesController } from "./layout";
 import type { TableStat } from "./TablesHeaderStats";
 
 interface TableLayoutProps {
@@ -11,6 +14,21 @@ interface TableLayoutProps {
 }
 
 export function TableLayout({ children, stats }: TableLayoutProps) {
+    const controller = useTablesController();
+    const pathname = usePathname();
+
+    // Sync local page stats to the global controller in the layout
+    useEffect(() => {
+        if (stats) {
+            controller.onStatsChange(stats);
+        }
+    }, [stats, controller]); // Removed controller.onStatsChange dependency to avoid potential loops if reference unstable, though it should be stable. Controller is stable.
+
+    // Clear search on navigation
+    useEffect(() => {
+        controller.onSearchChange("");
+    }, [pathname, controller]);
+
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
             {/* Header Row: Navigation (Left) + Stats (Right) */}
@@ -19,7 +37,10 @@ export function TableLayout({ children, stats }: TableLayoutProps) {
                 <TablesHeaderStats stats={stats} />
             </div>
             
-            {children}
+            <div className="space-y-6">
+                <TablesSearchHeader />
+                {children}
+            </div>
         </div>
     );
 }

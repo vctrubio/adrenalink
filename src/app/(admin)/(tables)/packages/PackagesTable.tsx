@@ -13,6 +13,7 @@ import { Calendar } from "lucide-react";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 import { useTableLogic } from "@/src/hooks/useTableLogic";
+import { filterPackages } from "@/types/searching-entities";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",

@@ -1,6 +1,6 @@
 import { getPackagesTable } from "@/supabase/server/packages";
 import { PackagesTable } from "./PackagesTable";
-import { TablesPageClient } from "../TablesPageClient";
+import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 import { getAggregatePackages } from "@/backend/data/PackageStats";
 
@@ -16,12 +16,8 @@ export default async function PackagesMasterTablePage() {
     ];
 
     return (
-        <TablesPageClient
-            title="Packages Master Table"
-            description="Manage school packages, lesson pricing, and student capacity."
-            stats={stats}
-        >
+        <TableLayout stats={stats}>
             <PackagesTable packages={packages} />
-        </TablesPageClient>
+        </TableLayout>
     );
 }

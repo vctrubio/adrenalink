@@ -1,6 +1,6 @@
 import { getTeachersTable } from "@/supabase/server/teachers";
 import { TeachersTable } from "./TeachersTable";
-import { TablesPageClient } from "../TablesPageClient";
+import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 import { getAggregateTeachers } from "@/backend/data/TeacherStats";
 
@@ -17,8 +17,8 @@ export default async function TeachersMasterTablePage() {
     ];
 
     return (
-        <TablesPageClient title="Teachers Master Table" description="Manage instructors, track lessons, earnings and assigned gear." stats={stats}>
+        <TableLayout stats={stats}>
             <TeachersTable teachers={teachers} />
-        </TablesPageClient>
+        </TableLayout>
     );
 }

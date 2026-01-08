@@ -1,6 +1,6 @@
 import { getBookingsTable } from "@/supabase/server/bookings";
 import { BookingsTable } from "./BookingsTable";
-import { TablesPageClient } from "../TablesPageClient";
+import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 import { getAggregateBookings } from "@/backend/data/BookingStats";
 
@@ -26,10 +26,8 @@ export default async function BookingsMasterTablePage() {
     ];
 
     return (
-        <TablesPageClient
-            stats={stats}
-        >
+        <TableLayout stats={stats}>
             <BookingsTable bookings={bookings} />
-        </TablesPageClient>
+        </TableLayout>
     );
 }

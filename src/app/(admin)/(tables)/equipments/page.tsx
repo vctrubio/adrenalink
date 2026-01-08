@@ -1,6 +1,6 @@
 import { getEquipmentsTable } from "@/supabase/server/equipments";
 import { EquipmentsTable } from "./EquipmentsTable";
-import { TablesPageClient } from "../TablesPageClient";
+import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 
 export default async function EquipmentsMasterTablePage() {
@@ -24,8 +24,8 @@ export default async function EquipmentsMasterTablePage() {
     ];
 
     return (
-        <TablesPageClient stats={stats}>
+        <TableLayout stats={stats}>
             <EquipmentsTable equipments={equipments} />
-        </TablesPageClient>
+        </TableLayout>
     );
 }

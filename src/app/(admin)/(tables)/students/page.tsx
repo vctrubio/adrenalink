@@ -1,6 +1,6 @@
 import { getStudentsTable } from "@/supabase/server/students";
 import { StudentsTable } from "./StudentsTable";
-import { TablesPageClient } from "../TablesPageClient";
+import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 import { getAggregateStudents } from "@/backend/data/StudentStats";
 
@@ -16,10 +16,8 @@ export default async function StudentsMasterTablePage() {
     ];
 
     return (
-        <TablesPageClient 
-            stats={stats}
-        >
+        <TableLayout stats={stats}>
             <StudentsTable students={students} />
-        </TablesPageClient>
+        </TableLayout>
     );
 }

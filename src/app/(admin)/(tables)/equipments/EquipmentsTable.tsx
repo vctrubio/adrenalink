@@ -18,7 +18,9 @@ import { StatItemUI } from "@/backend/data/StatsData";
 import { Calendar } from "lucide-react";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 
+import { filterEquipment } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 const HEADER_CLASSES = {
     purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-yellow-900/10",
