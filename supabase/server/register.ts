@@ -424,14 +424,17 @@ export interface RegisterTables {
 }
 
 /**
- * Fetch all register tables data for a school
+ * Fetch all register tables data for a school from headers
  */
-export async function getRegisterTables(
-  schoolId: string,
-  schoolName: string,
-  schoolUsername: string,
-): Promise<ApiActionResponseModel<RegisterTables>> {
+export async function getRegisterTables(): Promise<ApiActionResponseModel<RegisterTables>> {
   try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
+
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
+
     const supabase = getServerConnection();
 
     // Fetch students linked to school
