@@ -40,6 +40,15 @@ export default function RegisterPage() {
         commissions: t.schema.commissions,
     }));
 
+    // Create teacher stats map from lessonStats
+    const teacherStatsMap = schoolTeachers.reduce((acc, t) => {
+        acc[t.schema.id] = {
+            totalLessons: t.lessonStats.totalLessons,
+            plannedLessons: t.lessonStats.completedLessons,
+        };
+        return acc;
+    }, {} as Record<string, { totalLessons: number; plannedLessons: number }>);
+
     return (
         <BookingForm
             school={data.school}
@@ -47,7 +56,7 @@ export default function RegisterPage() {
             students={data.students}
             teachers={transformedTeachers}
             referrals={data.referrals}
-            studentStats={data.studentStats}
+            teacherStats={teacherStatsMap}
         />
     );
 }
