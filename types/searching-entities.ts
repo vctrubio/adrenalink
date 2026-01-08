@@ -1,4 +1,5 @@
 import type { BookingTableData, EquipmentTableData, PackageTableData, StudentTableData, TeacherTableData } from "@/config/tables";
+import type { TransactionEventData } from "@/types/transaction-event";
 
 export const SEARCH_FIELDS_DESCRIPTION = {
     student: ["First Name", "Last Name", "Passport (ID)"],
@@ -6,6 +7,7 @@ export const SEARCH_FIELDS_DESCRIPTION = {
     booking: ["Leader Student Name", "Teacher Username"],
     schoolPackage: ["Description", "Type", "Category"],
     equipment: ["Brand", "Model", "SKU", "Size"],
+    transactionEvent: ["Student Name", "Teacher Username", "Location"],
 };
 
 /**
@@ -39,6 +41,18 @@ export function filterBookings(bookings: BookingTableData[], search: string): Bo
         const studentText = b.booking.leaderStudentName;
         const teacherText = b.lessons.map(l => l.teacherUsername).join(" ");
         return `${studentText} ${teacherText}`;
+    });
+}
+
+/**
+ * Filter transaction events by Student Name, Teacher Username, or Location
+ */
+export function filterTransactionEvents(events: TransactionEventData[], search: string): TransactionEventData[] {
+    return filterBySearch(events, search, (e) => {
+        const studentNames = e.studentNames.join(" ");
+        const teacherName = e.teacher.username;
+        const location = e.event.location || "";
+        return `${studentNames} ${e.leaderStudentName} ${teacherName} ${location}`;
     });
 }
 

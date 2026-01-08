@@ -82,17 +82,17 @@ export interface Teachers {
     lessons: LessonEvents[];
 }
 
-
-
 export interface TeacherWithLessonsAndPayments {
     id: string;
     username: string;
     firstName: string;
     lastName: string;
+    passport: string;
     country: string;
     phone: string;
     languages: string[];
     active: boolean;
+    createdAt: string;
     lessons: LessonWithPayments[];
     equipments: {
         id: string;
@@ -104,98 +104,7 @@ export interface TeacherWithLessonsAndPayments {
     activityStats: Record<string, { count: number; durationMinutes: number }>;
 }
 
-
-
 export type TeacherTableData = TeacherWithLessonsAndPayments & { stats: TeacherTableStats };
-
-
-
-/*
-
-TABLE STATS INTERFACES
-
-*/
-
-
-
-export interface BookingTableStats {
-
-    events: {
-
-        count: number;
-
-        duration: number;
-
-        revenue: number;
-
-        statusCounts: {
-
-            planned: number;
-
-            tbc: number;
-
-            completed: number;
-
-            uncompleted: number;
-
-        };
-
-    };
-
-    payments: {
-
-        student: number;
-
-        teacher: number;
-
-    };
-
-    commissions: number;
-
-    balance: number;
-
-}
-
-
-
-export interface StudentTableStats {
-
-    totalBookings: number;
-
-    totalEvents: number;
-
-    totalDurationMinutes: number;
-
-    totalRevenue: number;
-
-    totalPayments: number;
-
-}
-
-
-
-export interface TeacherTableStats {
-
-    teacherCount: number;
-
-    totalLessons: number;
-
-    totalDurationMinutes: number;
-
-    totalCommissions: number;
-
-    totalPayments: number;
-
-}
-
-
-
-export interface EquipmentTableStats {
-    equipmentCount: number;
-    totalRentalsCount: number;
-    totalLessonEventsCount: number;
-    totalRepairs: number;
-}
 
 export interface EquipmentAssignedTeacher {
     id: string;
@@ -213,6 +122,7 @@ export interface EquipmentWithRepairsRentalsEvents {
     size: number | null;
     category: string;
     status: string;
+    createdAt: string;
     assignedTeachers: EquipmentAssignedTeacher[];
     repairStats: {
         count: number;
@@ -228,6 +138,31 @@ export interface EquipmentWithRepairsRentalsEvents {
 
 export type EquipmentTableData = EquipmentWithRepairsRentalsEvents & { stats: EquipmentTableStats };
 
+export interface StudentWithBookingsAndPayments {
+    id: string;
+    firstName: string;
+    lastName: string;
+    passport: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    schoolStudentStatus: string;
+    schoolStudentDescription: string | null;
+    createdAt: string;
+    bookings: {
+        id: string;
+        status: string;
+        dateStart: string;
+        dateEnd: string;
+        packageName: string;
+        packageDetails: Package;
+        lessons: LessonWithPayments[];
+        stats: BookingTableStats;
+    }[];
+}
+
+export type StudentTableData = StudentWithBookingsAndPayments & { stats: StudentTableStats };
+
 export interface PackageWithUsageStats {
     id: string;
     description: string;
@@ -239,6 +174,7 @@ export interface PackageWithUsageStats {
     packageType: string;
     isPublic: boolean;
     active: boolean;
+    createdAt: string;
     usageStats: {
         bookingCount: number;
         requestCount: number;
@@ -294,60 +230,6 @@ export interface EquipmentTableStats {
     totalLessonEventsCount: number;
     totalRepairs: number;
 }
-
-export interface EquipmentAssignedTeacher {
-    id: string;
-    username: string;
-    eventCount: number;
-    durationMinutes: number;
-}
-
-export interface EquipmentWithRepairsRentalsEvents {
-    id: string;
-    sku: string;
-    brand: string;
-    model: string;
-    color: string | null;
-    size: number | null;
-    category: string;
-    status: string;
-    assignedTeachers: EquipmentAssignedTeacher[];
-    repairStats: {
-        count: number;
-    };
-    rentalStats: {
-        count: number;
-    };
-    activityStats: {
-        eventCount: number;
-        totalDurationMinutes: number;
-    };
-}
-
-export type EquipmentTableData = EquipmentWithRepairsRentalsEvents & { stats: EquipmentTableStats };
-
-export interface StudentWithBookingsAndPayments {
-    id: string;
-    firstName: string;
-    lastName: string;
-    country: string;
-    phone: string;
-    languages: string[];
-    schoolStudentStatus: string;
-    schoolStudentDescription: string | null;
-    bookings: {
-        id: string;
-        status: string;
-        dateStart: string;
-        dateEnd: string;
-        packageName: string;
-        packageDetails: Package;
-        lessons: LessonWithPayments[];
-        stats: BookingTableStats;
-    }[];
-}
-
-export type StudentTableData = StudentWithBookingsAndPayments & { stats: StudentTableStats };
 
 export interface PackageTableStats {
     packageCount: number;

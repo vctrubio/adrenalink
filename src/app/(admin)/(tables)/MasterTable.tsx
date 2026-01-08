@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, ReactNode, useState } from "react";
+import { useMemo, ReactNode, useState, useEffect } from "react";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { SearchX } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SEARCH_FIELDS_DESCRIPTION } from "@/types/searching-entities";
 import { ENTITY_DATA } from "@/config/entities";
 
-export type GroupingType = "all" | "date" | "week";
+export type GroupingType = "all" | "date" | "week" | "month";
 
 export interface ColumnDef<T> {
     header: string;
@@ -142,9 +142,16 @@ export function MasterTable<T extends Record<string, any>>({
     renderMobileGroupHeader,
     showGroupToggle = true,
 }: MasterTableProps<T>) {
-    const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy);
+    const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy || "all");
     const { search, onSearchChange } = useTablesController();
     const pathname = usePathname();
+
+    // Sync state with prop if controlled
+    useEffect(() => {
+        if (initialGroupBy) {
+            setGroupBy(initialGroupBy);
+        }
+    }, [initialGroupBy]);
 
     // Determine current entity for search hints
     const entity = ENTITY_DATA.find(e => pathname.includes(e.link));
@@ -220,6 +227,9 @@ export function MasterTable<T extends Record<string, any>>({
                     </button>
                     <button onClick={() => setGroupBy("week")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                         Week
+                    </button>
+                    <button onClick={() => setGroupBy("month")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "month" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        Month
                     </button>
                 </div>
             )}

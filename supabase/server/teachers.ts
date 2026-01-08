@@ -102,6 +102,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                 lesson (
                     id,
                     status,
+                    created_at,
                     booking!inner(
                         id,
                         leader_student_name,
@@ -207,10 +208,12 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                 username: t.username,
                 firstName: t.first_name,
                 lastName: t.last_name,
+                passport: t.passport,
                 country: t.country,
                 phone: t.phone,
                 languages: t.languages,
                 active: t.active,
+                createdAt: t.created_at,
                 lessons,
                 equipments,
                 activityStats,

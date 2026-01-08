@@ -46,6 +46,7 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
                 packageType: pkg.package_type,
                 isPublic: pkg.is_public,
                 active: pkg.active,
+                createdAt: pkg.created_at,
                 usageStats: {
                     bookingCount,
                     requestCount,

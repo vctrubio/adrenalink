@@ -101,6 +101,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                 size: e.size ? parseFloat(e.size) : null,
                 category: e.category,
                 status: e.status || "rental",
+                createdAt: e.created_at,
                 assignedTeachers,
                 repairStats: {
                     count: repairCount,

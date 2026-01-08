@@ -5,7 +5,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { getFullDuration } from "@/getters/duration-getter";
+import { getHMDuration } from "@/getters/duration-getter";
 import { LESSON_STATUS_CONFIG } from "@/types/status";
 
 interface TeacherLessonStatsBadgeProps {
@@ -29,7 +29,7 @@ export function TeacherLessonStatsBadge({ teacherId, teacherUsername, eventCount
     const config = LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] || { color: "#22c55e", label: status };
     const teacherColor = config.color;
     const safeDuration = durationMinutes || 0;
-    const durationStr = getFullDuration(safeDuration);
+    const durationStr = getHMDuration(safeDuration);
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();

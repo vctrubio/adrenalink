@@ -10,6 +10,8 @@ import { HomeGrouped } from "./HomeGrouped";
 import { HomeTable } from "./HomeTable";
 import { HomeActivity } from "./HomeActivity";
 import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./getters";
+import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
+import { TablesSearchHeader } from "@/src/app/(admin)/(tables)/TablesSearchHeader";
 
 export type ViewMode = "grouped" | "table" | "calendar";
 
@@ -90,27 +92,32 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
     const allTransactionEvents = useMemo(() => getAllTransactionEvents(classboardData, credentials.currency), [classboardData, credentials.currency]);
 
     return (
-        <div className="space-y-10">
-            <HomeHeader school={credentials} globalTotals={globalTotals} />
+        <TablesProvider>
+            <div className="space-y-10">
+                <HomeHeader school={credentials} globalTotals={globalTotals} />
 
-            <div className="flex items-end justify-between border-b border-border pb-6">
-                <HomeViewHeader {...VIEW_CONFIG[viewMode]} />
-                <HomeViewToggle mode={viewMode} setMode={setViewMode} />
-            </div>
+                <div className="flex items-end justify-between border-b border-border pb-6">
+                    <HomeViewHeader {...VIEW_CONFIG[viewMode]} />
+                    <HomeViewToggle mode={viewMode} setMode={setViewMode} />
+                </div>
 
-            <div className="space-y-6">
-                {viewMode === "grouped" && (
-                    <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />
-                )}
-                
-                {viewMode === "table" && (
-                    <HomeTable events={allTransactionEvents} />
-                )}
-                
-                {viewMode === "calendar" && (
-                    <HomeActivity events={allTransactionEvents} />
-                )}
+                <div className="space-y-6">
+                    {viewMode === "grouped" && (
+                        <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />
+                    )}
+                    
+                    {viewMode === "table" && (
+                        <div className="space-y-4">
+                            <TablesSearchHeader entityId="booking" />
+                            <HomeTable events={allTransactionEvents} />
+                        </div>
+                    )}
+                    
+                    {viewMode === "calendar" && (
+                        <HomeActivity events={allTransactionEvents} />
+                    )}
+                </div>
             </div>
-        </div>
+        </TablesProvider>
     );
 }

@@ -15,6 +15,9 @@ import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import ReactCountryFlag from "react-country-flag";
 import Link from "next/link";
 
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+
 import { filterBookings } from "@/types/searching-entities";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 
@@ -28,11 +31,112 @@ const HEADER_CLASSES = {
 } as const;
 
 export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
-    const { search } = useTablesController();
+    const { search, status, group } = useTablesController();
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
-    // Filter bookings
-    const filteredBookings = filterBookings(bookings, search);
+    // Filter bookings by search AND status
+    const filteredBookings = filterBookings(bookings, search).filter(booking => {
+        if (status === "All") return true;
+        if (status === "Active") return booking.booking.status === "active";
+        if (status === "Inactive") return booking.booking.status !== "active";
+        return true;
+    });
+
+    // Map controller group to MasterTable grouping
+    const masterTableGroupBy: GroupingType = 
+        group === "Weekly" ? "week" : 
+        group === "Monthly" ? "month" :
+        "all"; 
+
+    const getGroupKey = (row: BookingTableData, groupBy: GroupingType) => {
+        if (groupBy === "date") {
+            return row.booking.dateStart; 
+        } else if (groupBy === "week") {
+            const date = new Date(row.booking.dateStart);
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            return `${date.getFullYear()}-W${weekNum}`;
+        } else if (groupBy === "month") {
+            const date = new Date(row.booking.dateStart);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+        }
+        return "";
+    };
+
+    const calculateStats = (groupRows: BookingTableData[]): GroupStats => {
+        return groupRows.reduce(
+            (acc, curr) => {
+                const bookingEvents = curr.stats.events.count;
+                const bookingDuration = curr.stats.events.duration * 60; // back to minutes for accumulation
+
+                const studentPayments = curr.stats.payments.student;
+                const teacherPayments = curr.stats.payments.teacher;
+                const teacherCommissions = curr.stats.commissions;
+                const revenue = curr.stats.events.revenue;
+                const balance = curr.stats.balance;
+
+                const newStats = {
+                    eventCount: acc.eventCount + 1,
+                    studentCount: acc.studentCount + curr.package.capacityStudents,
+                    totalDuration: acc.totalDuration + bookingDuration,
+                    totalEventRevenue: (acc.totalEventRevenue || 0) + revenue,
+                    totalStudentPayments: acc.totalStudentPayments + studentPayments,
+                    totalTeacherPayments: acc.totalTeacherPayments + teacherPayments,
+                    totalTeacherCommissions: acc.totalTeacherCommissions + teacherCommissions,
+                    totalProfit: acc.totalProfit + balance,
+                    completedCount: acc.completedCount + bookingEvents,
+                    categoryStats: { ...acc.categoryStats }
+                };
+
+                // Aggregate category stats
+                const cat = curr.package.categoryEquipment;
+                if (!newStats.categoryStats[cat]) {
+                    newStats.categoryStats[cat] = { count: 0 };
+                }
+                newStats.categoryStats[cat].count += bookingEvents;
+
+                return newStats;
+            },
+            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalProfit: 0, categoryStats: {} as Record<string, { count: number }> },
+        );
+    };
+
+    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+        <>
+            <StatItemUI type="bookings" value={stats.eventCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="events" value={stats.completedCount} hideLabel={hideLabel} iconColor={false} />
+            
+            {/* Category Breakdowns */}
+            {!hideLabel && Object.entries(stats.categoryStats as Record<string, { count: number }>).map(([catId, stat]) => {
+                const config = EQUIPMENT_CATEGORIES.find(c => c.id === catId);
+                const Icon = config?.icon || Calendar; 
+                
+                return (
+                    <div key={catId} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity" title={`${config?.label || catId} Events`}>
+                        <span className="text-muted-foreground"><Icon size={12} /></span>
+                        <span className="tabular-nums text-xs font-bold text-foreground">{stat.count}</span>
+                    </div>
+                );
+            })}
+
+            <StatItemUI type="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="revenue" value={stats.totalEventRevenue.toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+        </>
+    );
+
+    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} />
+        </TableGroupHeader>
+    );
+
+    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} hideLabel />
+        </TableMobileGroupHeader>
+    );
 
     const desktopColumns: ColumnDef<BookingTableData>[] = [
         {
@@ -48,7 +152,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                     <div className="flex items-center gap-2">
                         <Link 
                             href={`/bookings/${data.booking.id}`}
-                            className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] hover:text-blue-600 transition-colors"
+                            className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] hover:text-blue-600 transition-colors font-bold"
                         >
                             {formattedDate}
                         </Link>
@@ -107,9 +211,9 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex items-center gap-4">
-                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
+                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
+                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
                     </div>
                 );
             },
@@ -144,11 +248,11 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                         <div className="flex items-center gap-2">
                             <Link 
                                 href={`/bookings/${data.booking.id}`} 
-                                className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]"
+                                className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-bold"
                             >
                                 {formattedDate}
                             </Link>
-                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded font-black text-[8px] whitespace-nowrap uppercase">
+                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-black text-[8px] whitespace-nowrap uppercase">
                                 {diffDays === 0 ? "Single" : `+${diffDays}D`}
                             </span>
                         </div>
@@ -179,112 +283,26 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex flex-col gap-1 scale-90 origin-right items-end">
-                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI type="payments" value={data.stats.events.revenue.toFixed(0)} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
+                        <StatItemUI type="commission" value={data.stats.commissions.toFixed(0)} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
+                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance).toFixed(0)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
                     </div>
                 );
             },
         },
     ];
 
-    const getGroupKey = (row: BookingTableData, groupBy: GroupingType) => {
-        if (groupBy === "date") {
-            return row.booking.dateStart; // Group by start date
-        } else if (groupBy === "week") {
-            const date = new Date(row.booking.dateStart);
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-            return `${date.getFullYear()}-W${weekNum}`;
-        }
-        return "";
-    };
-
-    const calculateStats = (groupRows: BookingTableData[]): GroupStats => {
-        return groupRows.reduce(
-            (acc, curr) => {
-                const bookingEvents = curr.stats.events.count;
-                const bookingDuration = curr.stats.events.duration * 60; // back to minutes for accumulation
-
-                const studentPayments = curr.stats.payments.student;
-                const teacherPayments = curr.stats.payments.teacher;
-                const teacherCommissions = curr.stats.commissions;
-                const revenue = curr.stats.events.revenue;
-                const balance = curr.stats.balance;
-
-                return {
-                    eventCount: acc.eventCount + 1,
-                    studentCount: acc.studentCount + curr.package.capacityStudents,
-                    totalDuration: acc.totalDuration + bookingDuration,
-                    totalEventRevenue: (acc.totalEventRevenue || 0) + revenue,
-                    totalStudentPayments: acc.totalStudentPayments + studentPayments,
-                    totalTeacherPayments: acc.totalTeacherPayments + teacherPayments,
-                    totalTeacherCommissions: acc.totalTeacherCommissions + teacherCommissions,
-                    totalProfit: acc.totalProfit + balance,
-                    completedCount: acc.completedCount + bookingEvents,
-                };
-            },
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalProfit: 0 },
-        );
-    };
-
-    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
-        <>
-            <StatItemUI type="bookings" value={stats.eventCount} hideLabel={hideLabel} />
-            <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} />
-            <StatItemUI type="events" value={stats.completedCount} hideLabel={hideLabel} />
-            <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} />
-
-            <StatItemUI type="revenue" value={stats.totalEventRevenue.toFixed(0)} hideLabel={hideLabel} labelOverride="Revenue" />
-            <StatItemUI type="commission" value={stats.totalTeacherCommissions.toFixed(0)} hideLabel={hideLabel} />
-            <StatItemUI type="profit" value={stats.totalProfit.toFixed(0)} hideLabel={hideLabel} variant="profit" labelOverride="Profit" />
-        </>
+    return (
+        <MasterTable 
+            rows={filteredBookings} 
+            columns={desktopColumns} 
+            mobileColumns={mobileColumns} 
+            getGroupKey={getGroupKey} 
+            calculateStats={calculateStats} 
+            renderGroupHeader={renderGroupHeader} 
+            renderMobileGroupHeader={renderMobileGroupHeader} 
+            groupBy={masterTableGroupBy}
+            showGroupToggle={false} 
+        />
     );
-
-    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => {
-        const displayTitle = groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" }) : groupBy === "week" ? `Week ${title.split("-W")[1]} of ${title.split("-W")[0]}` : title;
-
-        return (
-            <tr key={`header-${title}`} className="bg-gradient-to-r from-primary/5 via-primary/[0.02] to-transparent border-y border-primary/10">
-                <td colSpan={6} className="px-4 py-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                                <Calendar size={14} strokeWidth={2.5} />
-                            </div>
-                            <span className="text-sm font-black text-foreground uppercase tracking-tight">{displayTitle}</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                            <GroupHeaderStats stats={stats} />
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        );
-    };
-
-    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => {
-        const displayTitle = groupBy === "date" ? new Date(title).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : groupBy === "week" ? `Week ${title.split("-W")[1]}` : title;
-
-        return (
-            <tr key={`mobile-header-${title}`} className="bg-primary/[0.03]">
-                <td colSpan={3} className="px-3 py-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1 rounded bg-primary/10 text-primary">
-                                <Calendar size={12} strokeWidth={2.5} />
-                            </div>
-                            <span className="text-xs font-black text-foreground">{displayTitle}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <GroupHeaderStats stats={stats} hideLabel />
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        );
-    };
-
-    return <MasterTable rows={filteredBookings} columns={desktopColumns} mobileColumns={mobileColumns} getGroupKey={getGroupKey} calculateStats={calculateStats} renderGroupHeader={renderGroupHeader} renderMobileGroupHeader={renderMobileGroupHeader} showGroupToggle={true} />;
 }

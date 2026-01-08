@@ -1,16 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
+import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupingType, type GroupStats } from "../MasterTable";
 import { StudentStatusBadge } from "@/src/components/ui/badge";
 import { SchoolStudentStatus } from "@/types/status";
 import type { StudentTableData } from "@/config/tables";
 import ReactCountryFlag from "react-country-flag";
 import { StudentBookingActivityCard } from "./StudentBookingActivityCard";
-import { filterBySearch } from "@/types/searching-entities";
+import { filterStudents } from "@/types/searching-entities";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { COUNTRIES } from "@/config/countries";
 import { ENTITY_DATA } from "@/config/entities";
+
+import { StatItemUI } from "@/backend/data/StatsData";
+import { Calendar } from "lucide-react";
+
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+
+import { getHMDuration } from "@/getters/duration-getter";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -21,10 +28,73 @@ const HEADER_CLASSES = {
 } as const;
 
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
-    const { search } = useTablesController();
+    const { search, status, group } = useTablesController();
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
 
     // Filter students
-    const filteredStudents = filterBySearch(students, search, (s) => `${s.firstName} ${s.lastName} ${s.id}`);
+    const filteredStudents = filterStudents(students, search).filter((student) => {
+        if (status === "All") return true;
+        if (status === "Active") return student.schoolStudentStatus === "active";
+        if (status === "Inactive") return student.schoolStudentStatus !== "active";
+        return true;
+    });
+
+    // Map controller group to MasterTable grouping
+    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
+
+    const getGroupKey = (row: StudentTableData, groupBy: GroupingType) => {
+        if (!row.createdAt) return "";
+
+        if (groupBy === "date") {
+            return row.createdAt.split("T")[0];
+        } else if (groupBy === "week") {
+            const date = new Date(row.createdAt);
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            return `${date.getFullYear()}-W${weekNum}`;
+        } else if (groupBy === "month") {
+            const date = new Date(row.createdAt);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+        }
+        return "";
+    };
+
+    const calculateStats = (groupRows: StudentTableData[]): GroupStats => {
+        return groupRows.reduce(
+            (acc, curr) => ({
+                studentCount: acc.studentCount + 1,
+                bookingCount: acc.bookingCount + curr.stats.totalBookings,
+                eventCount: acc.eventCount + curr.stats.totalEvents,
+                totalDuration: acc.totalDuration + curr.stats.totalDurationMinutes,
+                totalRevenue: acc.totalRevenue + curr.stats.totalRevenue,
+                totalPayments: acc.totalPayments + curr.stats.totalPayments,
+            }),
+            { studentCount: 0, bookingCount: 0, eventCount: 0, totalDuration: 0, totalRevenue: 0, totalPayments: 0 },
+        );
+    };
+
+    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+        <>
+            <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="bookings" value={stats.bookingCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="events" value={stats.eventCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="duration" value={getHMDuration(stats.totalDuration)} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="studentPayments" value={stats.totalPayments.toFixed(0)} labelOverride="Paid" hideLabel={hideLabel} variant="primary" iconColor={false} />
+        </>
+    );
+
+    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} />
+        </TableGroupHeader>
+    );
+
+    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} hideLabel />
+        </TableMobileGroupHeader>
+    );
 
     const desktopColumns: ColumnDef<StudentTableData>[] = [
         {
@@ -38,7 +108,7 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                             <span className="font-bold text-foreground text-sm normal-case group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
                                 {data.firstName} {data.lastName}
                             </span>
-                            {data.schoolStudentDescription && <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">{data.schoolStudentDescription}</p>}
+                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-muted-foreground/30"}`} title={isActive ? "Active" : "Inactive"} />
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-tight">
                             <div className="flex items-center" title={data.country}>
@@ -48,6 +118,7 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                             <span className="opacity-20 text-foreground">|</span>
                             <span className="tabular-nums">{data.id.slice(0, 8)}</span>
                         </div>
+                        {data.schoolStudentDescription && <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">{data.schoolStudentDescription}</p>}
                     </div>
                 );
             },
@@ -117,11 +188,22 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         },
     ];
 
-    return <MasterTable rows={filteredStudents} columns={desktopColumns} mobileColumns={mobileColumns} groupBy="all" showGroupToggle={false} />;
+    return (
+        <MasterTable
+            rows={filteredStudents}
+            columns={desktopColumns}
+            mobileColumns={mobileColumns}
+            groupBy={masterTableGroupBy}
+            getGroupKey={getGroupKey}
+            calculateStats={calculateStats}
+            renderGroupHeader={renderGroupHeader}
+            renderMobileGroupHeader={renderMobileGroupHeader}
+            showGroupToggle={false}
+        />
+    );
 }
 
 // Helper to attempt mapping country name to code (simple fallback)
-// Ideally this would use a robust library or the country code stored in DB if available
 function getCountryCode(countryName: string): string {
     const country = COUNTRIES.find((c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
     return country?.code || "US";

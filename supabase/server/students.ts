@@ -29,6 +29,7 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                     country,
                     phone,
                     languages,
+                    created_at,
                     booking_student(
                         booking!inner(
                             id,
@@ -131,6 +132,7 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                 languages: student.languages,
                 schoolStudentStatus: ss.active ? "active" : "inactive",
                 schoolStudentDescription: ss.description,
+                createdAt: student.created_at,
                 bookings,
             };
 

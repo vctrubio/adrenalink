@@ -9,9 +9,12 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
+import { Calendar } from "lucide-react";
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 import { filterPackages } from "@/types/searching-entities";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+import type { GroupingType, GroupStats } from "../MasterTable";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -21,11 +24,69 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
-    const { search } = useTablesController();
+    const { search, status, group } = useTablesController();
     const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
 
     // Filter packages
-    const filteredPackages = filterPackages(packages, search);
+    const filteredPackages = filterPackages(packages, search).filter(pkg => {
+        if (status === "All") return true;
+        if (status === "Active") return pkg.active;
+        if (status === "Inactive") return !pkg.active;
+        return true;
+    });
+
+    // Map controller group to MasterTable grouping
+    const masterTableGroupBy: GroupingType = 
+        group === "Weekly" ? "week" : 
+        group === "Monthly" ? "month" :
+        "all";
+
+    const getGroupKey = (row: PackageTableData, groupBy: GroupingType) => {
+        if (!row.createdAt) return "";
+        if (groupBy === "date") {
+            return row.createdAt.split("T")[0];
+        } else if (groupBy === "week") {
+            const date = new Date(row.createdAt);
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            return `${date.getFullYear()}-W${weekNum}`;
+        } else if (groupBy === "month") {
+            const date = new Date(row.createdAt);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+        }
+        return "";
+    };
+
+    const calculateStats = (groupRows: PackageTableData[]): GroupStats => {
+        return groupRows.reduce((acc, curr) => ({
+            packageCount: acc.packageCount + 1,
+            totalBookings: acc.totalBookings + curr.usageStats.bookingCount,
+            totalRequests: acc.totalRequests + curr.usageStats.requestCount,
+            totalRevenue: acc.totalRevenue + curr.usageStats.revenue,
+        }), { packageCount: 0, totalBookings: 0, totalRequests: 0, totalRevenue: 0 });
+    };
+
+    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+        <>
+            <StatItemUI type="package" value={stats.packageCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="bookings" value={stats.totalBookings} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="requests" value={stats.totalRequests} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="revenue" value={stats.totalRevenue.toFixed(0)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+        </>
+    );
+
+    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} />
+        </TableGroupHeader>
+    );
+
+    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} hideLabel />
+        </TableMobileGroupHeader>
+    );
 
     const desktopColumns: ColumnDef<PackageTableData>[] = [
         {
@@ -65,18 +126,21 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                         type="bookings" 
                         value={data.usageStats.bookingCount} 
                         iconColor={true} 
+                        hideLabel={true}
                         desc="Total confirmed bookings"
                     />
                     <StatItemUI 
                         type="requests" 
                         value={data.usageStats.requestCount} 
                         iconColor={true} 
+                        hideLabel={true}
                         desc="Pending package requests"
                     />
                     <StatItemUI 
                         type="revenue" 
                         value={data.usageStats.revenue.toFixed(0)} 
                         iconColor={true} 
+                        hideLabel={true}
                         desc="Revenue from confirmed bookings"
                     />
                 </div>
@@ -126,9 +190,9 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => (
                 <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
-                    <StatItemUI type="bookings" value={data.usageStats.bookingCount} iconColor={true} />
-                    <StatItemUI type="requests" value={data.usageStats.requestCount} iconColor={true} />
-                    <StatItemUI type="revenue" value={data.usageStats.revenue.toFixed(0)} iconColor={true} />
+                    <StatItemUI type="bookings" value={data.usageStats.bookingCount} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="requests" value={data.usageStats.requestCount} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="revenue" value={data.usageStats.revenue.toFixed(0)} iconColor={true} hideLabel={true} />
                 </div>
             ),
         },
@@ -152,7 +216,11 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             rows={filteredPackages}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
-            groupBy="all"
+            groupBy={masterTableGroupBy}
+            getGroupKey={getGroupKey}
+            calculateStats={calculateStats}
+            renderGroupHeader={renderGroupHeader}
+            renderMobileGroupHeader={renderMobileGroupHeader}
             showGroupToggle={false}
         />
     );

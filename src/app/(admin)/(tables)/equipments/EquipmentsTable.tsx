@@ -15,9 +15,13 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { Activity } from "lucide-react";
 
 import { StatItemUI } from "@/backend/data/StatsData";
+import { Calendar } from "lucide-react";
+import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 
 import { filterEquipment } from "@/types/searching-entities";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
+
+import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 const HEADER_CLASSES = {
     purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
@@ -29,21 +33,80 @@ const HEADER_CLASSES = {
 } as const;
 
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
-    const { search } = useTablesController();
-    const equipmentEntity = ENTITY_DATA.find(e => e.id === "equipment")!;
+    const { search, status, group } = useTablesController();
+    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
     // Filter equipment
-    const filteredEquipment = filterEquipment(equipments, search);
+    const filteredEquipment = filterEquipment(equipments, search).filter((eq) => {
+        if (status === "All") return true;
+        const isActive = eq.status === "public" || eq.status === "rental";
+        if (status === "Active") return isActive;
+        if (status === "Inactive") return !isActive;
+        return true;
+    });
+
+    // Map controller group to MasterTable grouping
+    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
+
+    const getGroupKey = (row: EquipmentTableData, groupBy: GroupingType) => {
+        if (!row.createdAt) return "";
+        if (groupBy === "date") {
+            return row.createdAt.split("T")[0];
+        } else if (groupBy === "week") {
+            const date = new Date(row.createdAt);
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            return `${date.getFullYear()}-W${weekNum}`;
+        } else if (groupBy === "month") {
+            const date = new Date(row.createdAt);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+        }
+        return "";
+    };
+
+    const calculateStats = (groupRows: EquipmentTableData[]): GroupStats => {
+        return groupRows.reduce(
+            (acc, curr) => ({
+                equipmentCount: acc.equipmentCount + 1,
+                totalRentals: acc.totalRentals + curr.rentalStats.count,
+                totalRepairs: acc.totalRepairs + curr.repairStats.count,
+                totalEvents: acc.totalEvents + curr.activityStats.eventCount,
+            }),
+            { equipmentCount: 0, totalRentals: 0, totalRepairs: 0, totalEvents: 0 },
+        );
+    };
+
+    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+        <>
+            <StatItemUI type="equipment" value={stats.equipmentCount} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="events" value={stats.totalEvents} hideLabel={hideLabel} labelOverride="Lessons" iconColor={false} />
+            <StatItemUI type="rentals" value={stats.totalRentals} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI type="repairs" value={stats.totalRepairs} hideLabel={hideLabel} iconColor={false} />
+        </>
+    );
+
+    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} />
+        </TableGroupHeader>
+    );
+
+    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+        <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
+            <GroupHeaderStats stats={stats} hideLabel />
+        </TableMobileGroupHeader>
+    );
 
     const desktopColumns: ColumnDef<EquipmentTableData>[] = [
         {
             header: "Equipment",
             headerClassName: HEADER_CLASSES.purple,
             render: (data) => {
-                const config = EQUIPMENT_CATEGORIES.find(c => c.id === data.category);
+                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === data.category);
                 const Icon = config?.icon || Activity;
                 const color = config?.color || "#a855f7";
-                
+
                 return (
                     <div className="flex flex-col gap-1 items-start">
                         <div className="flex items-center gap-2">
@@ -51,13 +114,11 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                                 <Icon size={16} />
                             </div>
                             <HoverToEntity entity={equipmentEntity} id={data.id}>
-                                <span className="font-bold text-foreground">{data.brand} {data.model}</span>
-                            </HoverToEntity>
-                            {data.size && (
-                                <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
-                                    {data.size}
+                                <span className="font-bold text-foreground">
+                                    {data.brand} {data.model}
                                 </span>
-                            )}
+                            </HoverToEntity>
+                            {data.size && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">{data.size}</span>}
                         </div>
                         <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-6">
                             SKU: {data.sku} {data.color && `• ${data.color}`}
@@ -71,30 +132,10 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
                 <div className="flex items-center gap-4 text-xs font-medium">
-                    <StatItemUI 
-                        type="events" 
-                        value={data.activityStats.eventCount} 
-                        iconColor={true} 
-                        desc={`Total lessons using ${data.brand} ${data.model}`}
-                    />
-                    <StatItemUI 
-                        type="duration" 
-                        value={data.activityStats.totalDurationMinutes} 
-                        iconColor={true} 
-                        desc={`Total operating hours for this gear`}
-                    />
-                    <StatItemUI 
-                        type="rentals" 
-                        value={data.rentalStats.count} 
-                        iconColor={true} 
-                        desc={`Total student rentals`}
-                    />
-                    <StatItemUI 
-                        type="repairs" 
-                        value={data.repairStats.count} 
-                        iconColor={true} 
-                        desc={`Total repair logs`}
-                    />
+                    <StatItemUI type="events" value={data.activityStats.eventCount} iconColor={true} hideLabel={true} desc={`Total lessons using ${data.brand} ${data.model}`} />
+                    <StatItemUI type="duration" value={data.activityStats.totalDurationMinutes} iconColor={true} hideLabel={true} desc={"Total operating hours for this gear"} />
+                    <StatItemUI type="rentals" value={data.rentalStats.count} iconColor={true} hideLabel={true} desc={"Total student rentals"} />
+                    <StatItemUI type="repairs" value={data.repairStats.count} iconColor={true} hideLabel={true} desc={"Total repair logs"} />
                 </div>
             ),
         },
@@ -102,27 +143,10 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             header: "Teachers",
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
-                <div className="flex flex-col gap-1.5">
-                    {data.assignedTeachers.map(teacher => (
-                        <div key={teacher.id} className="flex items-center gap-2 text-xs font-medium">
-                            <div className="flex items-center gap-1.5">
-                                <HeadsetIcon size={14} className="text-emerald-600/60" />
-                                <span className="text-foreground font-bold">{teacher.username}</span>
-                            </div>
-                            <div className="flex items-center gap-3 ml-2 border-l border-border/50 pl-2">
-                                <StatItemUI 
-                                    type="events" 
-                                    value={teacher.eventCount} 
-                                    iconColor={true} 
-                                    desc={`Lessons by ${teacher.username}`}
-                                />
-                                <StatItemUI 
-                                    type="duration" 
-                                    value={teacher.durationMinutes} 
-                                    iconColor={true} 
-                                    desc={`Duration by ${teacher.username}`}
-                                />
-                            </div>
+                <div className="flex flex-row flex-wrap gap-1.5 w-full">
+                    {data.assignedTeachers.map((teacher) => (
+                        <div key={teacher.id} className="scale-90 origin-left">
+                            <TeacherLessonStatsBadge teacherId={teacher.id} teacherUsername={teacher.username} eventCount={teacher.eventCount} durationMinutes={teacher.durationMinutes} />
                         </div>
                     ))}
                     {data.assignedTeachers.length === 0 && <span className="text-xs text-muted-foreground italic">-</span>}
@@ -145,23 +169,21 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             label: "Equipment",
             headerClassName: HEADER_CLASSES.purple,
             render: (data) => {
-                const config = EQUIPMENT_CATEGORIES.find(c => c.id === data.category);
+                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === data.category);
                 const Icon = config?.icon || Activity;
                 const color = config?.color || "#a855f7";
-                
+
                 return (
                     <div className="flex items-center gap-2">
                         <div style={{ color }}>
                             <Icon size={14} />
                         </div>
                         <HoverToEntity entity={equipmentEntity} id={data.id}>
-                            <div className="font-bold text-sm leading-tight">{data.brand} {data.model}</div>
+                            <div className="font-bold text-sm leading-tight">
+                                {data.brand} {data.model}
+                            </div>
                         </HoverToEntity>
-                        {data.size && (
-                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
-                                {data.size}
-                            </span>
-                        )}
+                        {data.size && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">{data.size}</span>}
                     </div>
                 );
             },
@@ -171,10 +193,10 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
                 <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
-                    <StatItemUI type="events" value={data.activityStats.eventCount} iconColor={true} />
-                    <StatItemUI type="duration" value={data.activityStats.totalDurationMinutes} iconColor={true} />
-                    <StatItemUI type="rentals" value={data.rentalStats.count} iconColor={true} />
-                    <StatItemUI type="repairs" value={data.repairStats.count} iconColor={true} />
+                    <StatItemUI type="events" value={data.activityStats.eventCount} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="duration" value={data.activityStats.totalDurationMinutes} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="rentals" value={data.rentalStats.count} iconColor={true} hideLabel={true} />
+                    <StatItemUI type="repairs" value={data.repairStats.count} iconColor={true} hideLabel={true} />
                 </div>
             ),
         },
@@ -190,7 +212,11 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             rows={filteredEquipment}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
-            groupBy="all"
+            groupBy={masterTableGroupBy}
+            getGroupKey={getGroupKey}
+            calculateStats={calculateStats}
+            renderGroupHeader={renderGroupHeader}
+            renderMobileGroupHeader={renderMobileGroupHeader}
             showGroupToggle={false}
         />
     );
