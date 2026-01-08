@@ -19,7 +19,7 @@ export default async function BookingsMasterTablePage() {
         { type: "events", value: stats_data.events.count, label: "Events", desc: "Total amount of events" },
         { 
             type: stats_data.balance >= 0 ? "profit" : "loss", 
-            value: Math.abs(stats_data.balance).toFixed(0), 
+            value: Math.abs(stats_data.balance), 
             label: stats_data.balance >= 0 ? "Profit" : "Deficit",
             desc: stats_data.balance >= 0 ? "Operating profit" : "Operating deficit"
         },

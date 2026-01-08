@@ -114,7 +114,7 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
             render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{data.financials.studentRevenue.toFixed(0)}</span>,
         },
         {
-            header: "Net",
+            header: "Profit",
             headerClassName: HEADER_CLASSES.zincRightBold,
             render: (data) => {
                 const profit = data.financials.profit;
@@ -143,7 +143,49 @@ export function TransactionEventsTable({ events = [] }: { events: TransactionEve
     ];
 
     const mobileColumns: MobileColumnDef<TransactionEventData>[] = [
-        // ... (previous mobile columns)
+        {
+            label: "Event",
+            render: (data) => {
+                const timeFormat = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-muted-foreground/60">{new Date(data.event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}</span>
+                            <span className="text-sm font-black text-foreground">{timeFormat.format(new Date(data.event.date))}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">+{(data.event.duration / 60).toFixed(1)}h</span>
+                    </div>
+                );
+            },
+        },
+        {
+            label: "Teacher",
+            render: (data) => (
+                <TeacherUsernameCommissionBadge
+                    teacherIcon={HeadsetIcon}
+                    teacherUsername={data.teacher.username}
+                    teacherColor="#22c55e"
+                    commissionValue={data.financials.commissionValue.toString()}
+                    commissionType={data.financials.commissionType}
+                    currency={data.financials.currency}
+                    showCurrency={false}
+                />
+            ),
+        },
+        {
+            label: "Package",
+            render: (data) => (
+                <div className="inline-flex scale-90 origin-center">
+                    <EquipmentStudentPackagePriceBadge
+                        categoryEquipment={data.packageData.categoryEquipment}
+                        equipmentCapacity={data.packageData.capacityEquipment}
+                        studentCapacity={data.packageData.capacityStudents}
+                        packageDurationHours={data.packageData.durationMinutes / 60}
+                        pricePerHour={data.packageData.pricePerStudent / (data.packageData.durationMinutes / 60)}
+                    />
+                </div>
+            ),
+        },
         {
             label: "Profit",
             render: (data) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import AdminIcon from "@/public/appSvgs/AdminIcon";
 
@@ -51,7 +52,9 @@ export function SchoolAdranlinkConnectionHeader({
             {/* 1. Branding Group */}
             <div className="flex items-start gap-5">
                 <motion.div variants={itemVariants} className="mt-1 shrink-0">
-                    <Image src="/ADR.webp" alt="Adrenalink" width={48} height={48} priority />
+                    <Link href="/home">
+                        <Image src="/ADR.webp" alt="Adrenalink" width={48} height={48} priority className="hover:opacity-80 transition-opacity dark:invert" />
+                    </Link>
                 </motion.div>
                 <div className="flex flex-col gap-0.5">
                     <motion.h1 variants={itemVariants} className="text-3xl md:text-4xl font-black tracking-tighter text-primary uppercase leading-none">

@@ -6,6 +6,9 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
 import { TeacherRightColumn } from "./TeacherRightColumn";
 
+import { TableLayout } from "../../TableLayout";
+import type { TableStat } from "../../TablesHeaderStats";
+
 export default async function TeacherDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const result = await getTeacherId(id);
@@ -16,20 +19,36 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
 
     const teacher: TeacherData = result.data;
 
-    const stats = [
-        getStat("teacher", `${teacher.schema.first_name} ${teacher.schema.last_name}`, teacher.schema.first_name),
-        getStat("lessons", TeacherTableGetters.getLessonCount(teacher)),
-        getStat("events", TeacherTableGetters.getEventCount(teacher)),
-        getStat("duration", TeacherTableGetters.getTotalDurationMinutes(teacher)),
-        getStat("commission", TeacherTableGetters.getCommissionEarned(teacher)),
-        getStat("profit", TeacherTableGetters.getProfit(teacher)),
-    ].filter(Boolean) as any[];
+    const stats: TableStat[] = [
+        { 
+            type: "teachers", 
+            value: `${teacher.schema.first_name} ${teacher.schema.last_name}`, 
+            desc: "Instructor Profile" 
+        },
+        { 
+            type: "lessons", 
+            value: TeacherTableGetters.getLessonCount(teacher), 
+            desc: "Total lessons taught" 
+        },
+        { 
+            type: "duration", 
+            value: TeacherTableGetters.getTotalDurationMinutes(teacher), 
+            desc: "Total instruction time" 
+        },
+        { 
+            type: "commission", 
+            value: TeacherTableGetters.getCommissionEarned(teacher), 
+            desc: "Total earned commissions" 
+        },
+    ];
 
     return (
-        <EntityIdLayout
-            stats={stats}
-            leftColumn={<TeacherLeftColumn teacher={teacher} />}
-            rightColumn={<TeacherRightColumn teacher={teacher} />}
-        />
+        <TableLayout stats={stats} showSearch={false}>
+            <EntityIdLayout
+                stats={stats}
+                leftColumn={<TeacherLeftColumn teacher={teacher} />}
+                rightColumn={<TeacherRightColumn teacher={teacher} />}
+            />
+        </TableLayout>
     );
 }

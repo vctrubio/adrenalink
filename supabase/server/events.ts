@@ -14,6 +14,8 @@ import { getServerConnection } from "@/supabase/connection";
 import type { EventStatus } from "@/types/status";
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import type { TransactionEventData } from "@/types/transaction-event";
+import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -62,9 +64,9 @@ export async function updateEventIdStatus(eventId: string, newStatus: EventStatu
 
 /**
  * Fetches a complete event transaction with all nested relations
- * Used for the /transaction page to show full details
+ * Returns formatted TransactionEventData for table and page consumption
  */
-export async function getEventTransaction(eventId: string) {
+export async function getEventTransaction(eventId: string): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
     try {
         const supabase = getServerConnection();
         const schoolHeader = await getSchoolHeader();
@@ -95,7 +97,8 @@ export async function getEventTransaction(eventId: string) {
                         school!inner(
                             id,
                             name,
-                            username
+                            username,
+                            currency
                         )
                     ),
                     teacher_commission!inner(
@@ -108,6 +111,7 @@ export async function getEventTransaction(eventId: string) {
                         id,
                         date_start,
                         date_end,
+                        leader_student_name,
                         status,
                         school_package!inner(
                             id,
@@ -150,23 +154,73 @@ export async function getEventTransaction(eventId: string) {
             .eq("id", eventId)
             .single();
 
-        if (error) {
-            console.error("[EVENT] Error fetching event transaction:", JSON.stringify(error, null, 2));
+        if (error || !data) {
+            console.error("[EVENT] Error fetching event transaction:", error);
             return { success: false, error: "Event not found" };
         }
 
-        if (!data) {
-            return { success: false, error: "Event not found" };
-        }
+        const lesson = data.lesson as any;
+        const booking = lesson.booking;
+        const pkg = booking.school_package;
+        const teacher = lesson.teacher;
+        const commission = lesson.teacher_commission;
+        const students = booking.booking_student.map((bs: any) => bs.student);
+        const equipments = data.equipment_event?.map((ee: any) => ee.equipment) || [];
 
-        // Ensure clean serialization
-        const cleanData = JSON.parse(JSON.stringify(data));
+        // Financial Calculations
+        const studentCount = students.length;
+        const studentNames = students.map((s: any) => `${s.first_name} ${s.last_name}`);
+        const commissionType = (commission.commission_type as "fixed" | "percentage") || "fixed";
+        const commissionValue = parseFloat(commission.cph || "0");
+        const currency = teacher.school?.currency || "YEN";
 
-        // Convert UTC to school timezone
-        const convertedDate = convertUTCToSchoolTimezone(new Date(cleanData.date), schoolHeader.zone);
-        cleanData.date = convertedDate.toISOString();
+        const studentRevenue = pkg ? calculateLessonRevenue(pkg.price_per_student, studentCount, data.duration, pkg.duration_minutes) : 0;
+        const commCalc = calculateCommission(data.duration, { type: commissionType, cph: commissionValue }, studentRevenue, pkg?.duration_minutes || 60);
+        const teacherEarnings = commCalc.earned;
+        const profit = studentRevenue - teacherEarnings;
 
-        return { success: true, data: cleanData };
+        // Timezone conversion
+        const convertedDate = convertUTCToSchoolTimezone(new Date(data.date), schoolHeader.zone);
+
+        const transactionData: TransactionEventData = {
+            event: {
+                id: data.id,
+                date: convertedDate.toISOString(),
+                duration: data.duration,
+                location: data.location,
+                status: data.status,
+            },
+            teacher: {
+                username: teacher.username,
+            },
+            leaderStudentName: booking.leader_student_name || "Unknown",
+            studentCount,
+            studentNames,
+            packageData: {
+                description: pkg?.description || "Unknown",
+                pricePerStudent: pkg?.price_per_student || 0,
+                durationMinutes: pkg?.duration_minutes || 60,
+                categoryEquipment: pkg?.category_equipment || "",
+                capacityEquipment: pkg?.capacity_equipment || 0,
+                capacityStudents: pkg?.capacity_students || 0,
+            },
+            financials: {
+                teacherEarnings,
+                studentRevenue,
+                profit,
+                currency,
+                commissionType,
+                commissionValue,
+            },
+            equipments: equipments.map((e: any) => ({
+                id: e.id,
+                brand: e.brand,
+                model: e.model,
+                size: e.size ? parseFloat(e.size) : null,
+            })),
+        };
+
+        return { success: true, data: transactionData };
     } catch (error) {
         console.error("[EVENT] Error fetching event transaction:", error);
         return { success: false, error: "Failed to fetch data" };

@@ -6,6 +6,9 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { StudentLeftColumn } from "./StudentLeftColumn";
 import { StudentRightColumn } from "./StudentRightColumn";
 
+import { TableLayout } from "../../TableLayout";
+import type { TableStat } from "../../TablesHeaderStats";
+
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const result = await getStudentId(id);
@@ -16,20 +19,38 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
     const student: StudentData = result.data;
 
-    const stats = [
-        getStat("student", `${student.schema.first_name} ${student.schema.last_name}`, student.schema.first_name),
-        getStat("bookings", StudentTableGetters.getBookingCount(student)),
-        getStat("events", StudentTableGetters.getEventCount(student)),
-        getStat("duration", StudentTableGetters.getTotalDurationMinutes(student)),
-        getStat("studentPayments", StudentTableGetters.getTotalPaid(student)),
-        getStat("profit", StudentTableGetters.getProfit(student)),
-    ].filter(Boolean) as any[];
+    const stats: TableStat[] = [
+        { 
+            type: "students", 
+            value: `${student.schema.first_name} ${student.schema.last_name}`, 
+            desc: "Student Profile" 
+        },
+        { 
+            type: "events", 
+            value: StudentTableGetters.getEventCount(student), 
+            label: "Events", 
+            desc: "Total events attended" 
+        },
+        { 
+            type: "duration", 
+            value: StudentTableGetters.getTotalDurationMinutes(student), 
+            desc: "Total time spent in lessons" 
+        },
+        { 
+            type: "studentPayments", 
+            value: StudentTableGetters.getTotalPaid(student), 
+            label: "Payments", 
+            desc: "Total payments made"
+        }
+    ];
 
     return (
-        <EntityIdLayout
-            stats={stats}
-            leftColumn={<StudentLeftColumn student={student} />}
-            rightColumn={<StudentRightColumn student={student} />}
-        />
+        <TableLayout stats={stats} showSearch={false}>
+            <EntityIdLayout
+                stats={stats}
+                leftColumn={<StudentLeftColumn student={student} />}
+                rightColumn={<StudentRightColumn student={student} />}
+            />
+        </TableLayout>
     );
 }

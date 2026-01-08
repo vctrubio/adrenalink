@@ -194,7 +194,7 @@ export const STAT_CONFIGS: Record<StatType, StatConfig> = {
         icon: <TrendingUp size={20} />,
         color: "rgb(251, 146, 60)",
         formatter: (value) => getCompactNumber(value),
-        label: "Net",
+        label: "Profit",
     },
     studentPayments: {
         icon: CreditIcon,

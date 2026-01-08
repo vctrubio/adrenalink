@@ -83,6 +83,30 @@ export const BookingTableGetters = {
         return pricePerHourPerStudent * durationHours * studentCount;
     },
 
+    getCommissions: (booking: BookingData): number => {
+        return booking.relations.lessons.reduce((sum, l) => {
+            const usedMinutes = l.events?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
+            const durationHours = usedMinutes / 60;
+            const cph = parseFloat(l.teacher_commission?.cph || "0");
+            const type = l.teacher_commission?.commission_type || "fixed";
+
+            if (type === "fixed") return sum + (cph * durationHours);
+            
+            // Percentage based on lesson revenue
+            const pkg = booking.relations.school_package;
+            if (!pkg) return sum;
+            const studentCount = booking.relations.students.length || 1;
+            const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? (pkg.price_per_student / (pkg.duration_minutes / 60)) : 0;
+            const lessonRevenue = pricePerHourPerStudent * durationHours * studentCount;
+            
+            return sum + (lessonRevenue * (cph / 100));
+        }, 0);
+    },
+
+    getBalance: (booking: BookingData): number => {
+        return BookingTableGetters.getRevenue(booking) - BookingTableGetters.getCommissions(booking);
+    },
+
     getPaidAmount: (booking: BookingData): number => {
         return booking.relations.student_booking_payment.reduce((sum, p) => sum + (p.amount || 0), 0);
     },

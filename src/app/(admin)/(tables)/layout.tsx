@@ -2,7 +2,6 @@
 
 import { ReactNode, createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import type { TableStat } from "./TablesHeaderStats";
-import { TableLayout } from "./TableLayout";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 
 interface TablesController {
@@ -83,12 +82,7 @@ export function TablesProvider({ children }: { children: ReactNode }) {
 export default function TablesLayout({ children }: { children: ReactNode }) {
     return (
         <TablesProvider>
-            <TablesLayoutContent>{children}</TablesLayoutContent>
+            {children}
         </TablesProvider>
     );
-}
-
-function TablesLayoutContent({ children }: { children: ReactNode }) {
-    const { stats } = useTablesController();
-    return <TableLayout stats={stats}>{children}</TableLayout>;
 }

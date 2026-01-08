@@ -11,9 +11,10 @@ import type { TableStat } from "./TablesHeaderStats";
 interface TableLayoutProps {
     children: ReactNode;
     stats: TableStat[];
+    showSearch?: boolean;
 }
 
-export function TableLayout({ children, stats }: TableLayoutProps) {
+export function TableLayout({ children, stats, showSearch = true }: TableLayoutProps) {
     const controller = useTablesController();
     const pathname = usePathname();
 
@@ -38,7 +39,7 @@ export function TableLayout({ children, stats }: TableLayoutProps) {
             </div>
             
             <div className="space-y-6">
-                <TablesSearchHeader />
+                {showSearch && <TablesSearchHeader />}
                 {children}
             </div>
         </div>

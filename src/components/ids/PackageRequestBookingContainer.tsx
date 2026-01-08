@@ -324,7 +324,7 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                                         {formatCurrency(totalNet)} {currency}
                                     </span>
                                 </div>
-                                <div className="text-muted-foreground">net</div>
+                                <div className="text-muted-foreground">profit</div>
                             </div>
                         </div>
                     )}

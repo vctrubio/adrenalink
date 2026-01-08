@@ -12,8 +12,8 @@ export default async function TeachersMasterTablePage() {
         { type: "teachers", value: stats_data.teacherCount, desc: "Total registered teachers" },
         { type: "lessons", value: stats_data.totalLessons, desc: "Total lessons assigned" },
         { type: "duration", value: stats_data.totalDurationMinutes, desc: "Total instruction hours" },
-        { type: "commission", value: stats_data.totalCommissions.toFixed(0), desc: "Total earned commissions" },
-        // { type: "teacherPayments", value: stats_data.totalPayments.toFixed(0), label: "Paid", desc: "Total payments processed" }
+        { type: "commission", value: stats_data.totalCommissions, desc: "Total earned commissions" },
+        // { type: "teacherPayments", value: stats_data.totalPayments, label: "Paid", desc: "Total payments processed" }
     ];
 
     return (

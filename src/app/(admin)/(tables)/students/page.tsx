@@ -12,7 +12,7 @@ export default async function StudentsMasterTablePage() {
         { type: "students", value: stats_data.studentCount, desc: "Total registered students" },
         { type: "events", value: stats_data.totalEvents, label: "Events", desc: "Total events attended" },
         { type: "duration", value: stats_data.totalDurationMinutes, desc: "Total time spent in lessons" },
-        { type: "studentPayments", value: stats_data.totalPayments.toFixed(0), label: "Payments", desc: "Total payments from bookings" }
+        { type: "studentPayments", value: stats_data.totalPayments, label: "Payments", desc: "Total payments from bookings" }
     ];
 
     return (

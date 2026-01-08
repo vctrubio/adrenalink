@@ -2,11 +2,11 @@ import { getEventTransaction } from "@/supabase/server/events";
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
-import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
 import { TransactionEventsTable } from "../(admin)/(tables)/TransactionEventsTable";
 import { getHMDuration } from "@/getters/duration-getter";
+import { TablesProvider } from "../(admin)/(tables)/layout";
 
 // Icons
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -48,44 +48,16 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
         );
     }
 
-    const eventData = result.data;
-    const lesson = eventData.lesson;
-    const booking = lesson.booking;
-    // Updated: booking has school_package directly
-    const pkg = booking.school_package;
-    const teacher = lesson.teacher;
-    // Updated: snake_case for booking_student and first_name/last_name
-    const students = booking.booking_student.map((bs: any) => bs.student);
-    // Updated: snake_case for equipment_event
-    const equipments = eventData.equipment_event?.map((ee: any) => ee.equipment) || [];
+    const transaction = result.data;
+    const { event, teacher, studentNames, packageData, financials, equipments = [] } = transaction;
 
-    // --- Calculations ---
-    const studentCount = students.length;
-    let teacherPricePerHour = 0;
-    let commissionValue = 0;
-    let commissionType: "fixed" | "percentage" = "fixed";
-    const commission = lesson.teacher_commission; // snake_case name from query
-
-    if (pkg && commission) {
-        commissionType = commission.commission_type;
-        commissionValue = parseFloat(commission.cph || "0");
-
-        const lessonRevenue = calculateLessonRevenue(pkg.price_per_student, studentCount, eventData.duration, pkg.duration_minutes);
-        const commCalc = calculateCommission(eventData.duration, { type: commissionType, cph: commissionValue }, lessonRevenue, pkg.duration_minutes);
-        teacherPricePerHour = commCalc.earned / (eventData.duration / 60);
-    }
-
-    const studentNames = students.map((s: any) => `${s.first_name} ${s.last_name}`);
-    const teacherName = teacher ? `${teacher.first_name} ${teacher.last_name}` : "Unknown";
-    const studentPricePerHour = pkg ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
-
-    const studentRevenue = pkg ? calculateLessonRevenue(pkg.price_per_student, studentCount, eventData.duration, pkg.duration_minutes) : 0;
-
-    const teacherEarnings = teacherPricePerHour * (eventData.duration / 60);
-    const profit = studentRevenue - teacherEarnings;
+    // Derived values for perspective cards
+    const teacherPricePerHour = financials.teacherEarnings / (event.duration / 60);
+    const studentPricePerHour = packageData.pricePerStudent / (packageData.durationMinutes / 60);
 
     return (
-        <div className="min-h-screen bg-background p-4 sm:p-8 space-y-10 pb-40">
+        <TablesProvider>
+            <div className="min-h-screen bg-background p-4 sm:p-8 space-y-10 pb-40">
             <header className="max-w-7xl mx-auto pb-10">
                 <div className="space-y-8 w-full">
                     <SchoolAdranlinkConnectionHeader
@@ -109,55 +81,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
 
             {/* Transaction Record */}
             <section className="max-w-7xl mx-auto space-y-4">
-                <h2 className="text-xl font-bold tracking-tight uppercase tracking-tighter">Transaction Record</h2>
-                <TransactionEventsTable
-                    events={[
-                        {
-                            event: {
-                                id: eventId,
-                                date: eventData.date,
-                                duration: eventData.duration,
-                                location: eventData.location,
-                                status: eventData.status,
-                            },
-                            teacher: {
-                                username: teacher?.username || "unknown",
-                            },
-                            leaderStudentName: students[0] ? `${students[0].first_name} ${students[0].last_name}` : "Unknown",
-                            studentCount: studentCount,
-                            studentNames: studentNames,
-                            packageData: {
-                                description: pkg?.description || "Unknown",
-                                pricePerStudent: pkg?.price_per_student || 0,
-                                durationMinutes: pkg?.duration_minutes || 60,
-                                categoryEquipment: pkg?.category_equipment || "",
-                                capacityEquipment: pkg?.capacity_equipment || 0,
-                                capacityStudents: pkg?.capacity_students || 0,
-                            },
-                            financials: {
-                                teacherEarnings: teacherEarnings,
-                                studentRevenue: studentRevenue,
-                                profit: profit,
-                                currency: currency,
-                                commissionType: commissionType,
-                                commissionValue: commissionValue,
-                            },
-                            equipments: equipments.map((e: any) => ({
-                                id: e.id,
-                                brand: e.brand,
-                                model: e.model,
-                                size: e.size ? parseFloat(e.size) : null,
-                            })),
-                        },
-                    ]}
-                />
+                <h2 className="text-xl font-bold tracking-tight uppercase">Transaction Record</h2>
+                <TransactionEventsTable events={[transaction]} />
             </section>
 
             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 relative">
-                <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-10 pointer-events-none">
-                    {/* <div className="w-[300px] h-[300px] border-2 border-dashed border-primary rounded-full animate-[spin_30s_linear_infinite]" /> */}
-                </div>
-
                 {/* Instructor Perspective */}
                 <PerspectiveSection
                     title="The Instructor"
@@ -166,47 +94,44 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                     bgColor="bg-emerald-500/10"
                     iconColor="text-emerald-500"
                     viewingAs={{
-                        label: `${teacher?.first_name} ${teacher?.last_name}`,
-                        link: `/teachers/${teacher?.id}`,
+                        label: teacher.username,
+                        link: `/teachers/${teacher.username}`,
                     }}
                 >
                     <EventTeacherCard
                         students={studentNames}
-                        location={eventData.location || "TBD"}
-                        date={new Date(eventData.date).toISOString()}
-                        duration={eventData.duration}
-                        capacity={pkg?.capacity_students || 0}
-                        packageDescription={pkg?.description || "No description"}
+                        location={event.location || "TBD"}
+                        date={event.date}
+                        duration={event.duration}
+                        capacity={packageData.capacityStudents}
+                        packageDescription={packageData.description}
                         pricePerHour={teacherPricePerHour}
-                        status={eventData.status}
-                        categoryEquipment={pkg?.category_equipment}
-                        capacityEquipment={pkg?.capacity_equipment}
-                        commissionType={commissionType}
-                        commissionValue={commissionValue}
+                        status={event.status}
+                        categoryEquipment={packageData.categoryEquipment}
+                        capacityEquipment={packageData.capacityEquipment}
+                        commissionType={financials.commissionType}
+                        commissionValue={financials.commissionValue}
                     />
                 </PerspectiveSection>
 
                 {/* Student Perspective */}
                 <PerspectiveSection title="The Student" subtitle="Track booking progress and payments" icon={HelmetIcon} bgColor="bg-yellow-500/10" iconColor="text-yellow-500">
                     <div className="space-y-6">
-                        {students.map((student: any) => (
-                            <div key={student.id} className="space-y-2">
+                        {studentNames.map((name, idx) => (
+                            <div key={idx} className="space-y-2">
                                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                                    Viewing as:{" "}
-                                    <a href={`/students/${student.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">
-                                        {student.first_name}
-                                    </a>
+                                    Viewing as: <span className="text-foreground">{name}</span>
                                 </p>
                                 <EventStudentCard
-                                    teacherName={teacherName}
-                                    location={eventData.location || "TBD"}
-                                    date={new Date(eventData.date).toISOString()}
-                                    duration={eventData.duration}
-                                    categoryEquipment={pkg?.category_equipment}
-                                    capacityEquipment={pkg?.capacity_equipment}
-                                    packageDescription={pkg?.description}
+                                    teacherName={teacher.username}
+                                    location={event.location || "TBD"}
+                                    date={event.date}
+                                    duration={event.duration}
+                                    categoryEquipment={packageData.categoryEquipment}
+                                    capacityEquipment={packageData.capacityEquipment}
+                                    packageDescription={packageData.description}
                                     pricePerHour={studentPricePerHour}
-                                    status={eventData.status}
+                                    status={event.status}
                                 />
                             </div>
                         ))}
@@ -225,28 +150,16 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <ResumeCard
-                        title="Booking"
-                        icon={BookingIcon}
-                        color="#3b82f6"
-                        data={[
-                            { label: "Start Date", value: booking.date_start },
-                            { label: "End Date", value: booking.date_end },
-                            { label: "Status", value: "active", isStatusBadge: true }, // Booking status not in new query, assuming active or adding it back? Query says date_start, date_end. It doesn't select status for booking! I should check the query.
-                        ]}
-                    />
-
-                    <ResumeCard
                         title="Package"
                         icon={PackageIcon}
                         color="#fb923c"
                         data={[
-                            { label: "Description", value: pkg.description },
-                            { label: "Type", value: pkg.package_type, isCapitalize: true },
-                            { label: "Duration", value: getHMDuration(pkg.duration_minutes) },
-                            { label: "Price", value: `${pkg.price_per_student} ${currency}` },
+                            { label: "Description", value: packageData.description },
+                            { label: "Duration", value: getHMDuration(packageData.durationMinutes) },
+                            { label: "Price", value: `${packageData.pricePerStudent} ${currency}` },
                             { label: "PPH", value: `${studentPricePerHour.toFixed(2)} ${currency}/h` },
-                            { label: "Student Cap", value: pkg.capacity_students },
-                            { label: "Equip. Cap", value: pkg.capacity_equipment },
+                            { label: "Student Cap", value: packageData.capacityStudents },
+                            { label: "Equip. Cap", value: packageData.capacityEquipment },
                         ]}
                     />
 
@@ -255,11 +168,10 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         icon={HeadsetIcon}
                         color="#22c55e"
                         data={[
-                            { label: "Teacher", value: teacherName },
-                            { label: "Comm. Type", value: commission.commission_type, isCapitalize: true },
-                            { label: "Comm. Value", value: commission.commission_type === "fixed" ? `${commission.cph} ${currency}/h` : `${commission.cph}%` },
-                            { label: "Teacher Earning", value: `${teacherEarnings.toFixed(2)} ${currency}` },
-                            { label: "Lesson Status", value: lesson.status, isStatusBadge: true },
+                            { label: "Teacher", value: teacher.username },
+                            { label: "Comm. Type", value: financials.commissionType, isCapitalize: true },
+                            { label: "Comm. Value", value: financials.commissionType === "fixed" ? `${financials.commissionValue} ${currency}/h` : `${financials.commissionValue}%` },
+                            { label: "Teacher Earning", value: `${financials.teacherEarnings.toFixed(2)} ${currency}` },
                         ]}
                     />
 
@@ -268,11 +180,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         icon={FlagIcon}
                         color="#06b6d4"
                         data={[
-                            { label: "Date", value: new Date(eventData.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
-                            { label: "Time", value: new Date(eventData.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }) },
-                            { label: "Actual Dur.", value: getHMDuration(eventData.duration) },
-                            { label: "Location", value: eventData.location || "TBD" },
-                            { label: "Event Status", value: eventData.status, isStatusBadge: true },
+                            { label: "Date", value: new Date(event.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
+                            { label: "Time", value: new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }) },
+                            { label: "Actual Dur.", value: getHMDuration(event.duration) },
+                            { label: "Location", value: event.location || "TBD" },
+                            { label: "Event Status", value: event.status, isStatusBadge: true },
                         ]}
                     />
 
@@ -280,31 +192,31 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         title="Students"
                         icon={HelmetIcon}
                         color="#eab308"
-                        data={students.map((s: any) => ({
+                        data={studentNames.map((name) => ({
                             label: "Involved",
-                            value: `${s.first_name} ${s.last_name}`,
+                            value: name,
                         }))}
                     />
 
-                    <ResumeCard
-                        title="Equipment"
-                        icon={EquipmentIcon}
-                        color="#a855f7"
-                        data={
-                            equipments.length > 0
-                                ? equipments.map((e: any) => ({
-                                    label: e.category,
-                                    value: `${e.model} (${e.sku})`,
-                                    isCapitalize: true,
-                                }))
-                                : [{ label: "Equipment", value: "No active gear linked" }]
-                        }
-                    />
-                </div>
+                                            <ResumeCard
+                                                title="Equipment"
+                                                icon={EquipmentIcon}
+                                                color="#a855f7"
+                                                data={
+                                                    equipments.length > 0
+                                                        ? equipments.map((e: any) => ({
+                                                            label: "Equipment",
+                                                            value: `${e.brand} ${e.model}`,
+                                                            isCapitalize: true,
+                                                        }))
+                                                        : [{ label: "Equipment", value: "No active equipment linked" }]
+                                                }
+                                            />                </div>
             </section>
 
             <ChangeTheWindFooter showFooter={true} isStarting={false} getStartedUrl="/home" registerUrl="/" />
         </div>
+    </TablesProvider>
     );
 }
 

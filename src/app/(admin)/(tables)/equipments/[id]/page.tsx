@@ -6,6 +6,9 @@ import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { EquipmentLeftColumn } from "./EquipmentLeftColumn";
 import { EquipmentRightColumn } from "./EquipmentRightColumn";
 
+import { TableLayout } from "../../TableLayout";
+import type { TableStat } from "../../TablesHeaderStats";
+
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const result = await getEquipmentId(id);
@@ -16,19 +19,37 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
 
     const equipment: EquipmentData = result.data;
 
-    const stats = [
-        getStat("equipment", `${equipment.schema.brand} ${equipment.schema.model}`, `${equipment.schema.brand} ${equipment.schema.model}`),
-        getStat("events", EquipmentTableGetters.getEventCount(equipment)),
-        getStat("rentals", EquipmentTableGetters.getRentalCount(equipment)),
-        getStat("repairs", EquipmentTableGetters.getRepairCount(equipment)),
-        getStat("revenue", EquipmentTableGetters.getRevenue(equipment)),
-    ].filter(Boolean) as any[];
+    const stats: TableStat[] = [
+        { 
+            type: "equipment", 
+            value: `${equipment.schema.brand} ${equipment.schema.model}`, 
+            desc: "Equipment Profile" 
+        },
+        { 
+            type: "events", 
+            value: EquipmentTableGetters.getEventCount(equipment), 
+            label: "Activity", 
+            desc: "Lessons using this gear" 
+        },
+        { 
+            type: "rentals", 
+            value: EquipmentTableGetters.getRentalCount(equipment), 
+            desc: "Direct student rentals" 
+        },
+        { 
+            type: "repairs", 
+            value: EquipmentTableGetters.getRepairCount(equipment), 
+            desc: "Total maintenance logs" 
+        },
+    ];
 
     return (
-        <EntityIdLayout
-            stats={stats}
-            leftColumn={<EquipmentLeftColumn equipment={equipment} />}
-            rightColumn={<EquipmentRightColumn equipment={equipment} />}
-        />
+        <TableLayout stats={stats} showSearch={false}>
+            <EntityIdLayout
+                stats={stats}
+                leftColumn={<EquipmentLeftColumn equipment={equipment} />}
+                rightColumn={<EquipmentRightColumn equipment={equipment} />}
+            />
+        </TableLayout>
     );
 }
