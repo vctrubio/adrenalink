@@ -1,7 +1,7 @@
 import ClassboardIcon from "@/public/appSvgs/ClassboardIcon.jsx";
 import TableIcon from "@/public/appSvgs/TableIcon.jsx";
 import SendIcon from "@/public/appSvgs/SendIcon.jsx";
-import CompassIcon from "@/public/appSvgs/CompassIcon.jsx";
+import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
 import { Users } from "lucide-react";
 
 export const FACEBOOK_NAV_ROUTES = [
@@ -9,7 +9,7 @@ export const FACEBOOK_NAV_ROUTES = [
         id: "info",
         label: "Home",
         href: "/home",
-        icon: CompassIcon,
+        icon: SchoolIcon,
     },
     {
         id: "classboard",
