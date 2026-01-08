@@ -57,7 +57,7 @@ export default function RegisterPage() {
             teachers={transformedTeachers}
             referrals={data.referrals}
             teacherStats={teacherStatsMap}
-            studentStats={data.studentBookingStats}
+            studentStats={data.studentBookingStats || {}}
         />
     );
 }
