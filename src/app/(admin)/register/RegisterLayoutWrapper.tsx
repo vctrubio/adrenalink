@@ -4,8 +4,9 @@ import { useState, useMemo, useEffect, ReactNode, memo } from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 import { masterBookingAdd } from "@/supabase/server/register";
+import { updateStudentTeacherStatsAfterBooking } from "@/supabase/server/register";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
-import { useRegisterData, useBookingForm, useRegisterActions, useFormRegistration, useShouldOpenSections } from "./RegisterContext";
+import { useRegisterData, useBookingForm, useRegisterActions, useFormRegistration, useShouldOpenSections, useUpdateDataStats } from "./RegisterContext";
 import RegisterController from "./RegisterController";
 
 type ActiveForm = "booking" | "student" | "teacher" | "package";
@@ -22,6 +23,7 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
     const { addToQueue } = useRegisterActions();
     const { registerSubmitHandler, setFormValidity, submitHandler: registeredSubmitHandler, isFormValid: formIsValid } = useFormRegistration();
     const { setShouldOpenAllSections } = useShouldOpenSections();
+    const updateDataStats = useUpdateDataStats();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +88,14 @@ function RegisterLayoutWrapper({ children, school }: RegisterLayoutWrapperProps)
                 setLoading(false);
                 return;
             }
+
+            // Update stats locally (booking count +1 for students)
+            const updatedData = updateStudentTeacherStatsAfterBooking(
+                data,
+                bookingFormState.form.selectedStudentIds,
+                bookingFormState.form.selectedTeacher?.id
+            );
+            updateDataStats(updatedData);
 
             // Add to queue
             addToQueue("bookings", {

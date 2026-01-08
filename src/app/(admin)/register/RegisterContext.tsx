@@ -37,6 +37,7 @@ interface RegisterContextValue {
     data: RegisterTables;
     refreshData: () => Promise<void>;
     isRefreshing: boolean;
+    updateDataStats: (updates: Partial<RegisterTables>) => void;
 
     // Queue - for recently added items
     queues: EntityQueues;
@@ -144,6 +145,13 @@ export function RegisterProvider({
         }
     }, [refreshAction]);
 
+    const updateDataStats = useCallback((updates: Partial<RegisterTables>) => {
+        setData(prev => ({
+            ...prev,
+            ...updates,
+        }));
+    }, []);
+
     // Queue management
     const addToQueue = useCallback((type: keyof EntityQueues, item: QueueItem) => {
         setQueues(prev => ({
@@ -171,6 +179,7 @@ export function RegisterProvider({
         data,
         refreshData,
         isRefreshing,
+        updateDataStats,
         queues,
         addToQueue,
         removeFromQueue,
@@ -280,4 +289,10 @@ export function useShouldOpenSections() {
         shouldOpenAllSections: context.shouldOpenAllSections,
         setShouldOpenAllSections: context.setShouldOpenAllSections,
     };
+}
+
+export function useUpdateDataStats() {
+    const context = useContext(RegisterContext);
+    if (!context) throw new Error("useUpdateDataStats must be used within RegisterProvider");
+    return context.updateDataStats;
 }
