@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
-import { createCommission, deleteCommission } from "@/actions/commissions-action";
+import { createCommission, deleteCommission } from "@/supabase/server/commissions";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
