@@ -6,7 +6,7 @@ import { Card } from "@/src/components/ui/card";
 import { CardList } from "@/src/components/ui/card/card-list";
 
 interface LeftColumnCardProps {
-  name: string;
+  name: string | ReactNode;
   status: ReactNode;
   avatar: ReactNode;
   fields: { label: string; value: string | ReactNode }[];
@@ -25,12 +25,12 @@ export function LeftColumnCard({ name, status, avatar, fields, accentColor, isEd
       onClick={() => setIsOpen(!isOpen)}
       className="w-full text-left outline-none cursor-pointer group/card"
     >
-      <Card accentColor={accentColor}>
-        <div className="flex items-start justify-between gap-4">
+      <Card accentColor={accentColor} className="w-full">
+        <div className="flex items-start justify-between gap-4 transition-colors group-hover/card:bg-muted/30 -m-4 p-4">
           <div className="flex items-center gap-6 flex-1">
             {avatar}
             <div className="flex-1">
-              <h3 className="text-3xl font-bold text-foreground transition-colors group-hover/card:text-primary/80">{name}</h3>
+              <h3 className="text-3xl font-bold text-foreground">{name}</h3>
               <div 
                 className="text-xs uppercase tracking-wider text-muted-foreground"
                 onClick={(e) => e.stopPropagation()} // Prevent expansion when clicking status label buttons
@@ -82,10 +82,9 @@ export function LeftColumnCard({ name, status, avatar, fields, accentColor, isEd
             />
           </div>
         </div>
-        <div className="h-1 w-full rounded-full my-4" style={{ backgroundColor: accentColor }} />
-
         {isOpen && (
           <div className="px-2">
+            <div className="h-[1px] w-full mt-4 mb-4 opacity-20" style={{ backgroundColor: accentColor }} />
             <CardList fields={fields} />
           </div>
         )}
