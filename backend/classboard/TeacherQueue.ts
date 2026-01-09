@@ -262,9 +262,11 @@ export class TeacherQueue {
 
     /**
      * Sync queue with a new list of events, preserving object identity where possible
+     * Returns a list of IDs that were confirmed (additions confirmed or deletions confirmed)
      */
-    syncEvents(newEventsData: EventNode[], mutatingIds: Set<string> = new Set()): void {
+    syncEvents(newEventsData: EventNode[], mutatingIds: Set<string> = new Set()): string[] {
         console.log(`[Queue:${this.teacher.username}] 🔄 Syncing ${newEventsData.length} events from server...`);
+        const confirmedIds: string[] = [];
         
         // 1. Update the 'Server Truth' map, preserving object references
         const updatedServerMap = new Map<string, EventNode>();
@@ -305,19 +307,22 @@ export class TeacherQueue {
             if (!this.serverEvents.has(id)) {
                 console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed deletion of ${id}`);
                 this.optimisticDeletions.delete(id);
+                confirmedIds.push(id);
             }
         });
 
         // 3. Self-heal additions: If server now has the event, remove from local additions
         this.optimisticAdditions.forEach((event, id) => {
             const optTime = event.eventData.date.substring(0, 16);
-            const isConfirmed = Array.from(this.serverEvents.values()).some(e => 
+            const isConfirmed = Array.from(this.serverEvents.values()).find(e => 
                 e.id === id || (e.lessonId === event.lessonId && e.eventData.date.substring(0, 16) === optTime)
             );
             
             if (isConfirmed) {
                 console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed event: ${id}`);
                 this.optimisticAdditions.delete(id); 
+                confirmedIds.push(id); // Newly added event confirmed
+                confirmedIds.push(isConfirmed.id); // Add the real server ID too
             }
         });
 
@@ -325,6 +330,8 @@ export class TeacherQueue {
         this.refreshQueueStructure();
         this.version++;
         console.log(`[Queue:${this.teacher.username}] ✨ Sync complete. Board Size: ${this.getAllEvents({includeDeleted: true}).length}`);
+        
+        return confirmedIds;
     }
 
     /**

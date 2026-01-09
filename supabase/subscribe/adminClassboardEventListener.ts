@@ -29,15 +29,25 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
             try {
                 const supabase = createClient();
 
-                const handleEventChange = (payload: any) => {
-                    console.log("[EVENT-LISTENER] 📢 Event detected:", {
+                const handleTableChange = (payload: any) => {
+                    console.log("[EVENT-LISTENER] 📢 Table change detected:", {
                         event: payload.eventType,
                         table: payload.table,
                         new: payload.new,
                         old: payload.old,
                     });
 
-                    // Extract lessonId from the event payload
+                    // 1. Direct Case: Lesson table has booking_id directly
+                    if (payload.table === "lesson") {
+                        const bookingId = payload.new?.booking_id || payload.old?.booking_id;
+                        if (bookingId) {
+                            console.log(`[EVENT-LISTENER] ✅ Lesson changed, refetching booking: ${bookingId}`);
+                            fetchAndNotify(bookingId);
+                            return;
+                        }
+                    }
+
+                    // 2. Event Case: Needs to resolve booking_id via lesson_id or local cache
                     const lessonId = payload.new?.lesson_id || payload.old?.lesson_id;
                     const eventId = payload.new?.id || payload.old?.id;
 
@@ -93,7 +103,8 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                 };
 
                 const eventChannel = supabase
-                    .channel(`classboard_event_changes_only_${schoolId}`)
+                    .channel(`classboard_booking_activity_${schoolId}`)
+                    // --- EVENT Table ---
                     .on(
                         "postgres_changes",
                         {
@@ -103,8 +114,8 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                             filter: `school_id=eq.${schoolId}`,
                         },
                         (payload) => {
-                            console.log("[EVENT-LISTENER] 📥 INSERT event received");
-                            handleEventChange(payload);
+                            console.log("[EVENT-LISTENER] 📥 EVENT Insert");
+                            handleTableChange(payload);
                         },
                     )
                     .on(
@@ -116,14 +127,8 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                             filter: `school_id=eq.${schoolId}`,
                         },
                         (payload) => {
-                            console.log("[EVENT-LISTENER] ✏️ UPDATE event received", {
-                                eventId: payload.new?.id,
-                                oldDate: payload.old?.date,
-                                newDate: payload.new?.date,
-                                oldDuration: payload.old?.duration,
-                                newDuration: payload.new?.duration,
-                            });
-                            handleEventChange(payload);
+                            console.log("[EVENT-LISTENER] ✏️ EVENT Update");
+                            handleTableChange(payload);
                         },
                     )
                     .on(
@@ -134,8 +139,47 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                             table: "event",
                         },
                         (payload) => {
-                            console.log("[EVENT-LISTENER] 🗑️ DELETE event received", payload);
-                            handleEventChange(payload);
+                            console.log("[EVENT-LISTENER] 🗑️ EVENT Delete");
+                            handleTableChange(payload);
+                        },
+                    )
+                    // --- LESSON Table ---
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "INSERT",
+                            schema: "public",
+                            table: "lesson",
+                            filter: `school_id=eq.${schoolId}`,
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] 📚 LESSON Insert");
+                            handleTableChange(payload);
+                        },
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "UPDATE",
+                            schema: "public",
+                            table: "lesson",
+                            filter: `school_id=eq.${schoolId}`,
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] 📚 LESSON Update");
+                            handleTableChange(payload);
+                        },
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "DELETE",
+                            schema: "public",
+                            table: "lesson",
+                        },
+                        (payload) => {
+                            console.log("[EVENT-LISTENER] 📚 LESSON Delete");
+                            handleTableChange(payload);
                         },
                     )
                     .subscribe((status, err) => {

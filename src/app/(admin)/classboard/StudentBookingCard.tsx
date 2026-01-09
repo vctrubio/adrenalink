@@ -149,7 +149,7 @@ const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, dra
                       console.log("Button clicked, lessons count:", lessons.length);
                       onAssignTeacher();
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground hover:bg-muted/70 rounded-lg transition-colors border border-border/30"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors"
                 >
                     <Plus size={14} />
                     Assign Teacher

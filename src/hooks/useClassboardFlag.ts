@@ -239,7 +239,15 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             serverEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
             
             // Mutation Guard happens inside syncEvents
-            queue.syncEvents(serverEvents, mutatingIds);
+            // It returns IDs that were confirmed (deleted or added)
+            const confirmedIds = queue.syncEvents(serverEvents, mutatingIds);
+            
+            // Clear spinners for confirmed IDs
+            confirmedIds.forEach(id => {
+                if (globalFlag.isEventMutating(id)) {
+                    globalFlag.clearEventMutation(id);
+                }
+            });
         });
 
         // D. Update Global Authority
@@ -454,7 +462,15 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                         return;
                     }
                 }
-                setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
+                
+                // Watchdog: Clear spinner after 5 seconds if realtime sync didn't catch it
+                setTimeout(() => {
+                    if (globalFlag.isEventMutating(eventId)) {
+                        console.warn(`[Watchdog] Deletion spinner timed out for ${eventId}`);
+                        globalFlag.clearEventMutation(eventId);
+                        // No toast error here because the deletion likely worked but sync is slow
+                    }
+                }, 5000);
             } catch (error) {
                 console.error("❌ Error during deletion:", error);
                 toast.error("Failed to update board");
