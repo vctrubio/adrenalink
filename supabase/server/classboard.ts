@@ -250,7 +250,7 @@ export async function createClassboardEvent(
 
     console.log("✅ [Event Created]", {
       schoolTime: timeStr,
-      utcTime: utcTimeStr,
+      utcTime: utcDate.toISOString(),
       timezone: schoolZone,
     });
 

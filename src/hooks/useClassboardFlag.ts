@@ -148,7 +148,7 @@ interface UseClassboardFlagProps {
 }
 
 export function useClassboardFlag({ initialClassboardModel, serverError }: UseClassboardFlagProps) {
-    const { teachers: allSchoolTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
+    const { teachers: activeTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -224,8 +224,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     // Build teacher queues from bookings
     const teacherQueues = useMemo(() => {
         const queues = new Map<string, TeacherQueueClass>();
-        const activeTeachers = allSchoolTeachers.filter((teacher) => teacher.schema.active);
-
+        
         prevTeachersRef.current = activeTeachers;
         prevBookingsRef.current = bookingsForSelectedDate;
 
@@ -255,7 +254,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         });
 
         return activeTeachers.map((teacher) => queues.get(teacher.schema.id)).filter((queue): queue is TeacherQueueClass => queue !== undefined);
-    }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
+    }, [activeTeachers, bookingsForSelectedDate, selectedDate]);
 
     // Update refs with latest values (for preventing stale closures in callbacks)
     useEffect(() => {
