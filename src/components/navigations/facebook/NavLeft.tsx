@@ -18,7 +18,7 @@ export const NavLeft = () => {
     const pathname = usePathname();
     const [isNavModalOpen, setIsNavModalOpen] = useState(false);
     const credentials = useSchoolCredentials();
-    const logoUrl = credentials?.logo || null;
+    const logoUrl = credentials?.logoUrl || ""; // Fallback to empty string but safeguard below
     const schoolUsername = credentials?.username || null;
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
@@ -36,6 +36,11 @@ export const NavLeft = () => {
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
+
+    // Safety check for Image src
+    if (!logoUrl) {
+        return null; // Or some skeleton/placeholder logic, but avoiding the crash
+    }
 
     return (
         <>

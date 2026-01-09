@@ -27,6 +27,37 @@ export class TeacherQueue {
     }
 
     /**
+     * Remove an event from the queue by ID
+     * Used for cleaning up optimistic events that failed to persist
+     */
+    removeEvent(eventId: string): void {
+        if (!this.head) return;
+
+        // If head is the target
+        if (this.head.id === eventId) {
+            this.head = this.head.next;
+            if (this.head) {
+                this.head.prev = null;
+            }
+            return;
+        }
+
+        // Traverse to find the event
+        let current = this.head;
+        while (current.next) {
+            if (current.next.id === eventId) {
+                const nodeToRemove = current.next;
+                current.next = nodeToRemove.next;
+                if (current.next) {
+                    current.next.prev = current;
+                }
+                return;
+            }
+            current = current.next;
+        }
+    }
+
+    /**
      * Construct event in queue - inserts event in chronological order
      * Called when building queue from existing database events
      */

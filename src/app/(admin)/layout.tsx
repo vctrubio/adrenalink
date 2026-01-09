@@ -1,4 +1,5 @@
 import { type ReactNode, cache } from "react";
+import { redirect } from "next/navigation";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import FacebookNav from "@/src/components/navigations/FacebookNav";
@@ -13,6 +14,10 @@ const getSchoolCredentials = cache(getSchoolCredentialsFromSupabase);
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const credentials = await getSchoolCredentials();
+
+    if (!credentials) {
+        redirect("/no-credentials");
+    }
 
     return (
         <SchoolCredentialsProvider credentials={credentials}>

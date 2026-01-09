@@ -11,36 +11,20 @@ export interface SchoolCredentialsProviderProps {
     children: ReactNode;
 }
 
-export function SchoolCredentialsProvider({
-    credentials,
-    children,
-}: SchoolCredentialsProviderProps) {
-    const router = useRouter();
-
-
-    // If no credentials, redirect to no-credentials page
-    // if (!credentials) {
-    //     router.push("/no-credentials");
-    //     return null;
-    // }
-
+export function SchoolCredentialsProvider({ credentials, children }: SchoolCredentialsProviderProps) {
     if (!credentials) {
+        // This should not happen if the layout handles redirection, but safe to return null or fallback
         console.log("ERROR: SchoolCredentialsProvider missing credentials");
+        return null;
     }
 
-    return (
-        <SchoolCredentialsContext.Provider value={{ credentials }}>
-            {children}
-        </SchoolCredentialsContext.Provider>
-    );
+    return <SchoolCredentialsContext.Provider value={{ credentials }}>{children}</SchoolCredentialsContext.Provider>;
 }
 
 export function useSchoolCredentials(): SchoolCredentials {
     const context = useContext(SchoolCredentialsContext);
     if (context === undefined) {
-        throw new Error(
-            "useSchoolCredentials must be used within a SchoolCredentialsProvider with valid credentials"
-        );
+        throw new Error("useSchoolCredentials must be used within a SchoolCredentialsProvider with valid credentials");
     }
     return context.credentials;
 }

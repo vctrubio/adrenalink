@@ -38,11 +38,12 @@ export async function proxy(request: NextRequest) {
 
         // Validate school exists (username is indexed via UNIQUE constraint)
         let schoolId: string | null = null;
+        let timezone: string | null = null;
         try {
             const supabase = getServerConnection();
             const { data } = await supabase
                 .from("school")
-                .select("id")
+                .select("id, timezone")
                 .eq("username", subdomainInfo.subdomain)
                 .single();
             
@@ -62,6 +63,7 @@ export async function proxy(request: NextRequest) {
                 return NextResponse.redirect(discoverUrl);
             }
             schoolId = data.id;
+            timezone = data.timezone;
         } catch (error) {
             printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
             // Redirect to www domain /discover
@@ -82,8 +84,11 @@ export async function proxy(request: NextRequest) {
         const response = NextResponse.next();
         response.headers.set("x-school-username", subdomainInfo.subdomain);
         response.headers.set("x-school-id", schoolId!);
+        if (timezone) {
+            response.headers.set("x-school-timezone", timezone);
+        }
         
-        printf("DEV:DEBUG 📝 SET HEADERS:", { username: subdomainInfo.subdomain, id: schoolId });
+        printf("DEV:DEBUG 📝 SET HEADERS:", { username: subdomainInfo.subdomain, id: schoolId, zone: timezone });
 
         // Only rewrite the main page request to subdomain portal
         if (request.nextUrl.pathname === "/") {
@@ -94,6 +99,9 @@ export async function proxy(request: NextRequest) {
             const rewriteResponse = NextResponse.rewrite(url);
             rewriteResponse.headers.set("x-school-username", subdomainInfo.subdomain);
             rewriteResponse.headers.set("x-school-id", schoolId!);
+            if (timezone) {
+                rewriteResponse.headers.set("x-school-timezone", timezone);
+            }
             return rewriteResponse;
         }
 

@@ -2,7 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
-import { convertUTCToSchoolTimezone, convertSchoolTimeToUTC } from "@/getters/timezone-getter";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -205,6 +205,12 @@ export async function createClassboardEvent(
     const schoolId = headersList.get("x-school-id");
     const schoolZone = headersList.get("x-school-timezone");
 
+    console.log("🔍 [createClassboardEvent] Headers Check:", {
+        schoolId,
+        schoolZone,
+        allHeaders: Object.fromEntries(headersList.entries())
+    });
+
     if (!schoolId || !schoolZone) {
       return { success: false, error: "School context not found or timezone not configured" };
     }
@@ -219,9 +225,8 @@ export async function createClassboardEvent(
     const dateStr = `${year}-${month}-${day}`;
     const timeStr = `${hours}:${minutes}:00`;
 
-    // Calculate UTC time from school local time using robust getter
-    // This handles DST and offset calculation correctly for the specific date
-    const utcDate = convertSchoolTimeToUTC(`${dateStr}T${timeStr}`, schoolZone);
+    // Store exactly as provided, treating it as Absolute Truth (UTC)
+    const utcDate = new Date(`${dateStr}T${timeStr}Z`);
 
     // Store as UTC in database
     const supabase = getServerConnection();
@@ -230,7 +235,7 @@ export async function createClassboardEvent(
       .insert({
         lesson_id: lessonId,
         school_id: schoolId,
-        date: utcDate, // DB expects Date object or ISO string (which Date satisfies)
+        date: utcDate, 
         duration,
         location,
         status: "planned",
@@ -244,8 +249,8 @@ export async function createClassboardEvent(
     }
 
     console.log("✅ [Event Created]", {
-      schoolTime: `${dateStr}T${timeStr}`,
-      utcTime: utcDate.toISOString(),
+      schoolTime: timeStr,
+      utcTime: utcTimeStr,
       timezone: schoolZone,
     });
 

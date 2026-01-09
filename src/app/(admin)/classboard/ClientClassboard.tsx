@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
 import ClassboardContentBoard from "./ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
@@ -14,6 +15,7 @@ import ClassboardFooter from "./ClassboardFooter";
 
 export default function ClientClassboard() {
     const { mounted, error, schoolUsername } = useClassboardContext();
+    const credentials = useSchoolCredentials();
 
     if (!mounted) {
         return <ClassboardSkeleton />;
@@ -21,6 +23,10 @@ export default function ClientClassboard() {
 
     if (error) {
         return <ClassboardSkeleton error={true} errorMessage={error} schoolUsername={schoolUsername} />;
+    }
+
+    if (!credentials?.timezone) {
+        return <ClassboardSkeleton error={true} errorMessage={`No TimeZone Configuration found for ${credentials?.name || "School"}. Please refresh or update school settings.`} schoolUsername={schoolUsername} />;
     }
 
     return (

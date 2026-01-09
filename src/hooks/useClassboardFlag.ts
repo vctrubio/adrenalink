@@ -72,9 +72,7 @@ export interface OptimisticEvent {
     location: string;
 }
 
-export type OptimisticOperation = 
-    | { type: "add"; event: OptimisticEvent }
-    | { type: "delete"; eventId: string };
+export type OptimisticOperation = { type: "add"; event: OptimisticEvent } | { type: "delete"; eventId: string };
 
 interface EventMutationState {
     eventId: string;
@@ -84,11 +82,7 @@ interface EventMutationState {
 
 // ============ HELPER FUNCTIONS ============
 
-function createEventNode(
-    event: { id: string; date: string; duration: number; location?: string; status: string }, 
-    lesson: { id: string; commission: { type: string; cph: string } }, 
-    booking: ClassboardData
-): EventNode {
+function createEventNode(event: { id: string; date: string; duration: number; location?: string; status: string }, lesson: { id: string; commission: { type: string; cph: string } }, booking: ClassboardData): EventNode {
     return {
         id: event.id,
         lessonId: lesson.id,
@@ -151,10 +145,9 @@ export function optimisticEventToNode(event: OptimisticEvent): EventNode {
 interface UseClassboardFlagProps {
     initialClassboardModel: ClassboardModel | null;
     serverError?: string | null;
-    schoolUsername?: string | null;
 }
 
-export function useClassboardFlag({ initialClassboardModel, serverError, schoolUsername }: UseClassboardFlagProps) {
+export function useClassboardFlag({ initialClassboardModel, serverError }: UseClassboardFlagProps) {
     const { teachers: allSchoolTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
     const renderCount = useRef(0);
     renderCount.current++;
@@ -166,10 +159,10 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
     const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
     const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
-    
+
     // Unified optimistic state
     const [optimisticOperations, setOptimisticOperations] = useState<Map<string, OptimisticOperation>>(new Map());
-    
+
     const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
 
@@ -209,12 +202,12 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
 
             const elapsed = Date.now() - loadingStartTimeRef.current;
             if (elapsed > 4000) {
-                console.warn(`⏳ [useClassboardFlag] Still waiting for mount (${Math.round(elapsed/1000)}s). Diagnostics:`, {
+                console.warn(`⏳ [useClassboardFlag] Still waiting for mount (${Math.round(elapsed / 1000)}s). Diagnostics:`, {
                     clientReady,
                     teachersLoading,
                     minDelayPassed,
                     hasError: !!teachersError,
-                    mounted
+                    mounted,
                 });
             }
         }, 2500);
@@ -224,9 +217,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
 
     // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
-        const filtered = classboardModel.filter((booking) =>
-            isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd)
-        );
+        const filtered = classboardModel.filter((booking) => isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd));
         return filtered;
     }, [classboardModel, selectedDate]);
 
@@ -254,11 +245,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                 const queue = queues.get(teacherId);
                 if (!queue) return;
 
-                const sortedEvents = (lesson.events || [])
-                    .filter((event) => event.date.split('T')[0] === selectedDate)
-                    .sort(
-                        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-                    );
+                const sortedEvents = (lesson.events || []).filter((event) => event.date.split("T")[0] === selectedDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
                 sortedEvents.forEach((event) => {
                     const eventNode = createEventNode(event, lesson, booking);
@@ -267,9 +254,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
             });
         });
 
-        return activeTeachers
-            .map((teacher) => queues.get(teacher.schema.id))
-            .filter((queue): queue is TeacherQueueClass => queue !== undefined);
+        return activeTeachers.map((teacher) => queues.get(teacher.schema.id)).filter((queue): queue is TeacherQueueClass => queue !== undefined);
     }, [allSchoolTeachers, bookingsForSelectedDate, selectedDate]);
 
     // Update refs with latest values (for preventing stale closures in callbacks)
@@ -360,7 +345,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
             globalFlag.onDateChange();
             setSelectedDateState(date);
         },
-        [globalFlag]
+        [globalFlag],
     );
 
     // Wrapper for setController that updates GlobalFlag (source of truth)
@@ -369,7 +354,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
             globalFlag.updateController(newController);
             setControllerState(newController);
         },
-        [globalFlag]
+        [globalFlag],
     );
 
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -392,106 +377,118 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
         });
     }, []);
 
-    const getEventCardStatus = useCallback((eventId: string): EventCardStatus | undefined => {
-        if (eventId.startsWith("temp-")) return "posting";
-        const op = optimisticOperations.get(eventId);
-        if (op?.type === "delete") return "deleting";
-        const mutation = eventMutations.get(eventId);
-        if (mutation) return mutation.status;
-        for (const [, mut] of eventMutations) {
-            if (mut.cascadeIds?.includes(eventId)) return "updating";
-        }
-        return undefined;
-    }, [eventMutations, optimisticOperations]);
+    const getEventCardStatus = useCallback(
+        (eventId: string): EventCardStatus | undefined => {
+            if (eventId.startsWith("temp-")) return "posting";
+            const op = optimisticOperations.get(eventId);
+            if (op?.type === "delete") return "deleting";
+            const mutation = eventMutations.get(eventId);
+            if (mutation) return mutation.status;
+            for (const [, mut] of eventMutations) {
+                if (mut.cascadeIds?.includes(eventId)) return "updating";
+            }
+            return undefined;
+        },
+        [eventMutations, optimisticOperations],
+    );
 
     // ============ EVENT ACTIONS ============
 
-    const addLessonEvent = useCallback(
-        async (bookingData: ClassboardData, lessonId: string) => {
-            const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const addLessonEvent = useCallback(async (bookingData: ClassboardData, lessonId: string) => {
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-            try {
-                const lesson = bookingData.lessons.find((l) => l.id === lessonId);
-                if (!lesson?.teacher) {
-                    toast.error("Teacher not found for this lesson");
-                    return;
-                }
-
-                const queue = teacherQueuesRef.current.find((q) => q.teacher.id === lesson.teacher.id);
-                if (!queue) {
-                    toast.error(`${lesson.teacher.username} is not on board today`);
-                    return;
-                }
-
-                // Get all real events for this teacher from all bookings today
-                const capacityStudents = bookingData.schoolPackage.capacityStudents;
-                const controller = controllerRef.current;
-                const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
-
-                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
-
-                if (!slotTime) {
-                    toast.error("Lesson past midnight!");
-                    return;
-                }
-
-                const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
-
-                const optimisticEvent: OptimisticEvent = {
-                    id: tempId,
-                    lessonId,
-                    teacherId: lesson.teacher.id,
-                    bookingId: bookingData.booking.id,
-                    bookingLeaderName: bookingData.booking.leaderStudentName || "Unknown",
-                    bookingStudents: bookingData.bookingStudents.map((bs) => ({
-                        id: bs.student.id,
-                        firstName: bs.student.firstName,
-                        lastName: bs.student.lastName,
-                        passport: bs.student.passport || "",
-                        country: bs.student.country || "",
-                        phone: bs.student.phone || "",
-                    })),
-                    capacityStudents,
-                    pricePerStudent: bookingData.schoolPackage.pricePerStudent,
-                    packageDuration: bookingData.schoolPackage.durationMinutes,
-                    categoryEquipment: bookingData.schoolPackage.categoryEquipment,
-                    capacityEquipment: bookingData.schoolPackage.capacityEquipment,
-                    commission: {
-                        type: lesson.commission.type as "fixed" | "percentage",
-                        cph: parseFloat(lesson.commission.cph),
-                    },
-                    date: eventDate,
-                    duration,
-                    location: controller.location,
-                };
-
-                // Add to queue immediately so next event sees it
-                const optimisticNode = optimisticEventToNode(optimisticEvent);
-                queue.constructEvents(optimisticNode);
-
-                // Add optimistically to state for UI tracking
-                setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
-
-                // Then confirm with server in background
-                const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
-
-                if (!result.success) {
-                    // Revert on failure
-                    setOptimisticOperations((prev) => {
-                        const updated = new Map(prev);
-                        updated.delete(tempId);
-                        return updated;
-                    });
-                    toast.error("Failed to create event");
-                    return;
-                }
-            } catch (error) {
-                console.error("❌ Error adding event:", error);
-                toast.error("Error creating event");
+        try {
+            const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+            if (!lesson?.teacher) {
+                toast.error("Teacher not found for this lesson");
+                return;
             }
-        },
-        []
-    );
+
+            const queue = teacherQueuesRef.current.find((q) => q.teacher.id === lesson.teacher.id);
+            if (!queue) {
+                toast.error(`${lesson.teacher.username} is not on board today`);
+                return;
+            }
+
+            // Get all real events for this teacher from all bookings today
+            const capacityStudents = bookingData.schoolPackage.capacityStudents;
+            const controller = controllerRef.current;
+            const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
+
+            const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
+
+            if (!slotTime) {
+                toast.error("Lesson past midnight!");
+                return;
+            }
+
+            const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
+
+            const optimisticEvent: OptimisticEvent = {
+                id: tempId,
+                lessonId,
+                teacherId: lesson.teacher.id,
+                bookingId: bookingData.booking.id,
+                bookingLeaderName: bookingData.booking.leaderStudentName || "Unknown",
+                bookingStudents: bookingData.bookingStudents.map((bs) => ({
+                    id: bs.student.id,
+                    firstName: bs.student.firstName,
+                    lastName: bs.student.lastName,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                })),
+                capacityStudents,
+                pricePerStudent: bookingData.schoolPackage.pricePerStudent,
+                packageDuration: bookingData.schoolPackage.durationMinutes,
+                categoryEquipment: bookingData.schoolPackage.categoryEquipment,
+                capacityEquipment: bookingData.schoolPackage.capacityEquipment,
+                commission: {
+                    type: lesson.commission.type as "fixed" | "percentage",
+                    cph: parseFloat(lesson.commission.cph),
+                },
+                date: eventDate,
+                duration,
+                location: controller.location,
+            };
+
+            // Add to queue immediately so next event sees it
+            const optimisticNode = optimisticEventToNode(optimisticEvent);
+            queue.constructEvents(optimisticNode);
+
+            // Add optimistically to state for UI tracking
+            setOptimisticOperations((prev) => new Map(prev).set(tempId, { type: "add", event: optimisticEvent }));
+
+            // Then confirm with server in background
+            const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
+
+            if (!result.success) {
+                // Revert on failure
+                queue.removeEvent(tempId);
+                setOptimisticOperations((prev) => {
+                    const updated = new Map(prev);
+                    updated.delete(tempId);
+                    return updated;
+                });
+                toast.error(result.error || "Failed to create event");
+                return;
+            }
+        } catch (error) {
+            console.error("❌ Error adding event:", error);
+            // Revert on failure
+            const queue = teacherQueuesRef.current.find((q) => q.teacher.id === bookingData.lessons.find((l) => l.id === lessonId)?.teacher?.id);
+            if (queue) {
+                queue.removeEvent(tempId);
+            }
+            
+            setOptimisticOperations((prev) => {
+                const updated = new Map(prev);
+                updated.delete(tempId);
+                return updated;
+            });
+            toast.error("Error creating event");
+        }
+    }, []);
 
     const deleteEvent = useCallback(
         async (eventId: string, cascade: boolean, queueController?: any) => {
@@ -511,7 +508,11 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                 if (cascade && queueController) {
                     const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
                     if (updates.length > 0) {
-                        setEventMutation(eventId, "deleting", updates.map((u: any) => u.id));
+                        setEventMutation(
+                            eventId,
+                            "deleting",
+                            updates.map((u: any) => u.id),
+                        );
                     }
                     await deleteClassboardEvent(deletedId);
                     if (updates.length > 0) await bulkUpdateClassboardEvents(updates, []);
@@ -537,7 +538,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
                 });
             }
         },
-        [setEventMutation, clearEventMutation]
+        [setEventMutation, clearEventMutation],
     );
 
     const clearOptimisticOperations = useCallback(() => {
@@ -553,7 +554,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
         if (storedController) {
             try {
                 setControllerState(JSON.parse(storedController));
-            } catch (e) {}
+            } catch (e) { }
         }
         setClientReady(true);
     }, []);
@@ -568,61 +569,59 @@ export function useClassboardFlag({ initialClassboardModel, serverError, schoolU
         localStorage.setItem(STORAGE_KEY_CONTROLLER, JSON.stringify(controller));
     }, [controller, mounted]);
 
-    const setClassboardModelWrapper = useCallback(
-        (modelOrUpdater: ClassboardModel | ((prev: ClassboardModel) => ClassboardModel)) => {
-            if (typeof modelOrUpdater === "function") setClassboardModel((prev) => modelOrUpdater(prev));
-            else setClassboardModel(modelOrUpdater);
-        },
-        []
-    );
+    const setClassboardModelWrapper = useCallback((modelOrUpdater: ClassboardModel | ((prev: ClassboardModel) => ClassboardModel)) => {
+        if (typeof modelOrUpdater === "function") setClassboardModel((prev) => modelOrUpdater(prev));
+        else setClassboardModel(modelOrUpdater);
+    }, []);
 
-    const contextValue = useMemo(() => ({
-        classboardModel,
-        bookingsForSelectedDate,
-        teacherQueues,
-        mounted,
-        error: serverError || teachersError,
-        schoolUsername: schoolUsername || null,
-        selectedDate,
-        setSelectedDate,
-        controller,
-        setController,
-        gapMinutes,
-        draggedBooking,
-        setDraggedBooking,
-        addLessonEvent,
-        deleteEvent,
-        optimisticOperations,
-        setOptimisticOperations,
-        clearOptimisticOperations,
-        getEventCardStatus,
-        globalFlag,
-        setClassboardModel: setClassboardModelWrapper,
-    }), [
-        classboardModel,
-        bookingsForSelectedDate,
-        teacherQueues,
-        mounted,
-        serverError,
-        teachersError,
-        schoolUsername,
-        selectedDate,
-        setSelectedDate,
-        controller,
-        setController,
-        gapMinutes,
-        draggedBooking,
-        setDraggedBooking,
-        addLessonEvent,
-        deleteEvent,
-        optimisticOperations,
-        setOptimisticOperations,
-        clearOptimisticOperations,
-        getEventCardStatus,
-        globalFlag,
-        setClassboardModelWrapper,
-        flagTick
-    ]);
+    const contextValue = useMemo(
+        () => ({
+            classboardModel,
+            bookingsForSelectedDate,
+            teacherQueues,
+            mounted,
+            error: serverError || teachersError,
+            selectedDate,
+            setSelectedDate,
+            controller,
+            setController,
+            gapMinutes,
+            draggedBooking,
+            setDraggedBooking,
+            addLessonEvent,
+            deleteEvent,
+            optimisticOperations,
+            setOptimisticOperations,
+            clearOptimisticOperations,
+            getEventCardStatus,
+            globalFlag,
+            setClassboardModel: setClassboardModelWrapper,
+        }),
+        [
+            classboardModel,
+            bookingsForSelectedDate,
+            teacherQueues,
+            mounted,
+            serverError,
+            teachersError,
+            selectedDate,
+            setSelectedDate,
+            controller,
+            setController,
+            gapMinutes,
+            draggedBooking,
+            setDraggedBooking,
+            addLessonEvent,
+            deleteEvent,
+            optimisticOperations,
+            setOptimisticOperations,
+            clearOptimisticOperations,
+            getEventCardStatus,
+            globalFlag,
+            setClassboardModelWrapper,
+            flagTick,
+        ],
+    );
 
     return contextValue;
 }

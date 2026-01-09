@@ -27,13 +27,13 @@
  */
 export interface SchoolCredentials {
     id: string;
-    logoUrl: string | null;
-    bannerUrl: string | null;
+    logoUrl: string;
+    bannerUrl: string;
     currency: string;
     name: string;
     username: string;
     status: string;
     ownerId: string;
     country: string;
-    timezone: string | null;
+    timezone: string;
 }
