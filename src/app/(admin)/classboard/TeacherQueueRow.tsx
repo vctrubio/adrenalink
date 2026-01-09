@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useRef } from "react";
+import { useMemo, useCallback, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
@@ -47,6 +47,13 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     // Use queue from QueueController if in adjustment mode (it has the preserved mutations)
     const activeQueue = queueController.getQueue();
 
+    useEffect(() => {
+        const events = activeQueue.getAllEvents();
+        console.log(`📊 [TeacherQueueRow] Queue Update for ${queue.teacher.username}:`, 
+            events.map(e => ({ id: e.id, time: e.eventData.date.split('T')[1], status: e.eventData.status }))
+        );
+    }, [activeQueue, queue.teacher.username]);
+
     const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
 
     // Memoize the entire event list computation
@@ -56,9 +63,8 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
             allOps.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId)
         );
 
-        // Filter real events to exclude confirmed deletions (if needed, but user wants to see "Deleting" state)
-        // We keep all events to allow EventCard to show spinning status
-        const realEvents = activeQueue.getAllEvents();
+        // Filter real events to exclude optimistic deletions immediately (per user request)
+        const realEvents = activeQueue.getAllEvents().filter(e => !relevantDeletions.has(e.id));
 
         // Get optimistic "add" operations for this teacher
         const teacherOptimisticEvents = allOps

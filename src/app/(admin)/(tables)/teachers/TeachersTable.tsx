@@ -16,6 +16,7 @@ import { Calendar } from "lucide-react";
 
 import { filterTeachers } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
+import { useTeacherSortOrder } from "@/src/hooks/useTeacherSortOrder";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 const HEADER_CLASSES = {
@@ -29,12 +30,29 @@ const HEADER_CLASSES = {
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
+    // const savedSortOrder = useTeacherSortOrder();
 
-    // Only show active teachers
-    const activeTeachers = teachers.filter(t => t.active);
+    // // Sort teachers according to saved order
+    // const sortedTeachers = useMemo(() => {
+    //     if (savedSortOrder.length === 0) return teachers;
+        
+    //     return [...teachers].sort((a, b) => {
+    //         const aIndex = savedSortOrder.indexOf(a.id);
+    //         const bIndex = savedSortOrder.indexOf(b.id);
+            
+    //         // If both are in the order, sort by order
+    //         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+    //         // If only a is in the order, it comes first
+    //         if (aIndex !== -1) return -1;
+    //         // If only b is in the order, it comes first
+    //         if (bIndex !== -1) return 1;
+    //         // If neither is in the order, maintain original order
+    //         return 0;
+    //     });
+    // }, [teachers, savedSortOrder]);
 
     const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
-        data: activeTeachers,
+        data: teachers,
         filterSearch: filterTeachers,
         filterStatus: (teacher, status) => {
             if (status === "Active") return teacher.active;

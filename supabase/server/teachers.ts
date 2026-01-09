@@ -2,6 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
 
@@ -16,12 +17,12 @@ export interface TeacherProvider {
         phone: string;
         languages: string[];
         active: boolean;
-        commissions: Array<{
+        commissions: {
             id: string;
             commissionType: string;
             cph: string;
             description: string | null;
-        }>;
+        }[];
     };
     lessonStats: {
         totalLessons: number;

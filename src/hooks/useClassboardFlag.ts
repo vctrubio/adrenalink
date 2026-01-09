@@ -18,7 +18,7 @@ import { GlobalFlag } from "@/backend/classboard/GlobalFlag";
 import { getTodayDateString, isDateInRange } from "@/getters/date-getter";
 import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CAP_THREE } from "@/getters/duration-getter";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { createClassboardEvent, deleteClassboardEvent, bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
+import { createClassboardEvent, deleteClassboardEvent, bulkUpdateClassboardEvents, updateEventStatus } from "@/supabase/server/classboard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
@@ -540,6 +540,29 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         [setEventMutation, clearEventMutation],
     );
 
+    const updateEventStatusAction = useCallback(
+        async (eventId: string, status: string) => {
+            setEventMutation(eventId, "updating");
+            try {
+                const result = await updateEventStatus(eventId, status);
+                if (!result.success) {
+                    toast.error("Failed to update status");
+                }
+                // We keep the mutation state until the listener clears it via refresh
+                // OR we can clear it now if we trust the listener will come soon.
+                // For "blinking" effect, keeping it until listener is better.
+                // But if listener is slow, it might be stuck.
+                // Let's clear it on success for now, but UI can animate "updating" state.
+                clearEventMutation(eventId);
+            } catch (error) {
+                console.error("Error updating status:", error);
+                toast.error("Error updating status");
+                clearEventMutation(eventId);
+            }
+        },
+        [setEventMutation, clearEventMutation]
+    );
+
     const clearOptimisticOperations = useCallback(() => {
         setOptimisticOperations(new Map());
     }, []);
@@ -589,6 +612,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             setDraggedBooking,
             addLessonEvent,
             deleteEvent,
+            updateEventStatus: updateEventStatusAction,
             optimisticOperations,
             setOptimisticOperations,
             clearOptimisticOperations,

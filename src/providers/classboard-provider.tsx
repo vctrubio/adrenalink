@@ -51,6 +51,7 @@ interface ClassboardContextType {
     // Event actions
     addLessonEvent: (bookingData: ClassboardData, lessonId: string) => Promise<void>;
     deleteEvent: (eventId: string, cascade: boolean, queueController?: QueueController) => Promise<void>;
+    updateEventStatus: (eventId: string, status: string) => Promise<void>;
 
     // Optimistic updates (Unified)
     optimisticOperations: Map<string, OptimisticOperation>;

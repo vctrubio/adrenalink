@@ -8,12 +8,13 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
     onEventDetected: (data: ClassboardModel) => void;
+    getBookingIdForEvent?: (eventId: string) => string | undefined;
 }
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 3000;
 
-export function useAdminClassboardEventListener({ onEventDetected }: AdminClassboardEventListenerOptions) {
+export function useAdminClassboardEventListener({ onEventDetected, getBookingIdForEvent }: AdminClassboardEventListenerOptions) {
     const credentials = useSchoolCredentials();
     const schoolId = credentials?.id || "";
     const retryCountRef = useRef(0);
@@ -38,9 +39,20 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
 
                     // Extract lessonId from the event payload
                     const lessonId = payload.new?.lesson_id || payload.old?.lesson_id;
+                    const eventId = payload.new?.id || payload.old?.id;
 
                     if (!lessonId) {
-                        console.warn("[EVENT-LISTENER] ⚠️ Could not extract lesson_id from event payload");
+                        // Fallback: Try to find booking_id from local cache if provided
+                        if (eventId && getBookingIdForEvent) {
+                            const cachedBookingId = getBookingIdForEvent(eventId);
+                            if (cachedBookingId) {
+                                console.log(`[EVENT-LISTENER] ✅ Resolved booking_id ${cachedBookingId} from local cache for event ${eventId}`);
+                                fetchAndNotify(cachedBookingId);
+                                return;
+                            }
+                        }
+                        
+                        console.warn("[EVENT-LISTENER] ⚠️ Could not extract lesson_id from event payload and local lookup failed");
                         return;
                     }
 
@@ -60,22 +72,24 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
                     };
 
                     resolveBookingId().then((bookingId) => {
-                        if (!bookingId) return;
-
-                        // Only fetch the affected booking instead of all bookings
-                        getSQLClassboardDataForBooking(bookingId)
-                            .then((result) => {
-                                if ("success" in result && result.success && result.data && result.data.length > 0) {
-                                    console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
-                                    onEventDetected(result.data);
-                                } else if ("error" in result) {
-                                    console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
-                                }
-                            })
-                            .catch((err) => {
-                                console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
-                            });
+                        if (bookingId) fetchAndNotify(bookingId);
                     });
+                };
+
+                const fetchAndNotify = (bookingId: string) => {
+                    // Only fetch the affected booking instead of all bookings
+                    getSQLClassboardDataForBooking(bookingId)
+                        .then((result) => {
+                            if ("success" in result && result.success && result.data && result.data.length > 0) {
+                                console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
+                                onEventDetected(result.data);
+                            } else if ("error" in result) {
+                                console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
+                            }
+                        })
+                        .catch((err) => {
+                            console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
+                        });
                 };
 
                 const eventChannel = supabase
@@ -165,5 +179,5 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
         };
 
         return setupSubscription();
-    }, [schoolId, onEventDetected]);
+    }, [schoolId, onEventDetected, getBookingIdForEvent]);
 }

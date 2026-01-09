@@ -10,7 +10,6 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
@@ -27,24 +26,9 @@ const TEACHER_COLOR = "#16a34a";
 // Muted amber - softer than student entity color
 const STUDENT_COLOR = "#ca8a04";
 
-// Sub-component for smooth value transitions (fade + slide)
-function ValueTransition({ value, formatter }: { value: any, formatter?: (val: any) => string }) {
-    const displayValue = formatter ? formatter(value) : value;
-    
-    return (
-        <AnimatePresence mode="wait">
-            <motion.span
-                key={displayValue}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="inline-block"
-            >
-                {displayValue}
-            </motion.span>
-        </AnimatePresence>
-    );
+// Sub-component for smooth value transitions (fade + slide) removed for static view
+function ValueTransition({ value, formatter }: { value: any; formatter?: (val: any) => string }) {
+    return formatter ? formatter(value) : value;
 }
 
 // Aggregated equipment counts from events
@@ -64,16 +48,10 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBulkAction }: {
-    progress: EventProgress,
-    queue?: TeacherQueue,
-    controller?: ControllerSettings,
-    globalFlag: any,
-    onBulkAction?: (ids: string[], action: "delete" | "update") => void,
-}) {
+function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBulkAction }: { progress: EventProgress; queue?: TeacherQueue; controller?: ControllerSettings; globalFlag: any; onBulkAction?: (ids: string[], action: "delete" | "update") => void }) {
     const { completed, planned, tbc, uncompleted, total, eventIds = [] } = progress;
     const totalEvents = eventIds.length;
-    const completedEvents = queue ? queue.getAllEvents().filter(e => e.eventData.status === "completed").length : 0;
+    const completedEvents = queue ? queue.getAllEvents().filter((e) => e.eventData.status === "completed").length : 0;
 
     // Dropdown Logic
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -114,11 +92,11 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
         try {
             // Use the existing QueueController from globalFlag if available
             const qc = globalFlag.getQueueController(queue.teacher.id);
-            
+
             if (qc) {
                 console.log(`🔧 [TeacherClassCard] Optimising queue locally for ${queue.teacher.username}`);
                 qc.optimiseQueue();
-                
+
                 if (!qc.isLocked()) {
                     controller.locked = true;
                     globalFlag.triggerRefresh();
@@ -133,7 +111,7 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
                     toast.success("Already optimised");
                 }
             }
-            
+
             setIsDropdownOpen(false);
         } catch (error) {
             console.error("Queue optimisation failed", error);
@@ -166,16 +144,20 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
                 handleDeleteAll();
             },
         },
-        ...(queue && controller && !isOptimised ? [{
-            id: "optimise-queue",
-            label: isLoading ? "Optimising..." : "Optimise queue",
-            icon: CheckCircle2,
-            color: "#2563eb",
-            onClick: (e) => {
-                e?.stopPropagation();
-                handleOptimiseQueue();
-            },
-        }] : [])
+        ...(queue && controller && !isOptimised
+            ? [
+                {
+                    id: "optimise-queue",
+                    label: isLoading ? "Optimising..." : "Optimise queue",
+                    icon: CheckCircle2,
+                    color: "#2563eb",
+                    onClick: (e) => {
+                        e?.stopPropagation();
+                        handleOptimiseQueue();
+                    },
+                },
+            ]
+            : []),
     ];
 
     const counts = { completed, planned, tbc, uncompleted };
@@ -185,9 +167,9 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
             <div className="flex-1 rounded-full overflow-hidden">
                 <ClassboardProgressBar durationMinutes={total} counts={counts} />
             </div>
-             
-             {/* Clickable Progress Label acting as Dropdown Trigger */}
-             <div 
+
+            {/* Clickable Progress Label acting as Dropdown Trigger */}
+            <div
                 ref={dropdownTriggerRef}
                 className={`text-[9px] font-bold whitespace-nowrap tracking-tighter cursor-pointer select-none transition-colors rounded px-1 -mr-1
                     ${isDropdownOpen ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
@@ -195,14 +177,14 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
                     e.stopPropagation();
                     setIsDropdownOpen(!isDropdownOpen);
                 }}
-             >
-                 {completedEvents}/{totalEvents} COMPLETED
-             </div>
+            >
+                {completedEvents}/{totalEvents} COMPLETED
+            </div>
 
-             {/* Custom Backdrop to stop propagation on close-click */}
+            {/* Custom Backdrop to stop propagation on close-click */}
             {isDropdownOpen && (
-                <div 
-                    className="fixed inset-0 z-[9997]" 
+                <div
+                    className="fixed inset-0 z-[9997]"
                     onClick={(e) => {
                         e.stopPropagation();
                         setIsDropdownOpen(false);
@@ -210,28 +192,20 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
                 />
             )}
 
-            <Dropdown
-                isOpen={isDropdownOpen}
-                onClose={() => setIsDropdownOpen(false)}
-                items={dropdownItems}
-                align="right"
-                triggerRef={dropdownTriggerRef}
-            />
+            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" triggerRef={dropdownTriggerRef} />
         </div>
     );
 }
 
 // Equipment and Students sub-component - for a single event
-function EventEquipmentStudent({ event }: {
-    event: any
-}) {
+function EventEquipmentStudent({ event }: { event: any }) {
     const categoryEquipment = event.categoryEquipment;
     const capacityEquipment = event.capacityEquipment || 1;
     const studentCount = event.bookingStudents?.length || 0;
 
     return (
         <div className="flex items-center gap-1.5 shrink-0">
-            {categoryEquipment && (
+            {categoryEquipment &&
                 (() => {
                     const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryEquipment);
                     if (!config) return null;
@@ -242,8 +216,7 @@ function EventEquipmentStudent({ event }: {
                             {capacityEquipment > 1 && <span className="text-sm font-semibold">{capacityEquipment}</span>}
                         </div>
                     );
-                })()
-            )}
+                })()}
 
             {studentCount > 0 && (
                 <div className="flex items-center gap-0.5" style={{ color: STUDENT_COLOR }}>
@@ -256,10 +229,7 @@ function EventEquipmentStudent({ event }: {
 }
 
 // Stats row sub-component
-function TeacherStatsRow({ equipmentCounts, stats }: {
-    equipmentCounts: EquipmentCount[],
-    stats: TeacherStats
-}) {
+function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: EquipmentCount[]; stats: TeacherStats }) {
     const hasEquipment = equipmentCounts && equipmentCounts.length > 0;
     const hasDuration = stats.totalHours && stats.totalHours > 0;
     const hasCommission = stats.totalRevenue?.commission && stats.totalRevenue.commission > 0;
@@ -269,56 +239,34 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
     return (
         <AnimatePresence>
             {!hasAnyStats ? (
-                <motion.div
-                    key="no-activity"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    exit={{ opacity: 0 }}
-                    className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic"
-                >
+                <motion.div key="no-activity" initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic">
                     No activity yet
                 </motion.div>
             ) : (
-                <motion.div
-                    key="stats-row"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="flex flex-wrap items-center gap-x-4 gap-y-3"
-                >
-                    {/* Equipment Categories */}
-                    <div className="flex items-center gap-3 flex-wrap">
+                <motion.div key="stats-row" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="flex items-center justify-between w-full gap-2 px-1">
+                    {/* Left: Equipment Categories */}
+                    <div className="flex items-center gap-3">
                         {equipmentCounts.map(({ categoryId, count }) => {
                             const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
                             if (!config) return null;
                             const CategoryIcon = config.icon;
                             return (
-                                <div key={categoryId} className="flex items-center gap-1.5">
+                                <div key={categoryId} className="flex items-center gap-1">
                                     <div style={{ color: config.color }}>
                                         <CategoryIcon size={16} />
                                     </div>
-                                    {count > 1 && (
-                                        <span className="text-sm font-bold text-foreground">
-                                            <ValueTransition value={count} />
-                                        </span>
-                                    )}
+                                    <span className="text-sm font-bold text-foreground">
+                                        <ValueTransition value={count} />
+                                    </span>
                                 </div>
                             );
                         })}
                     </div>
 
-                    {/* Adaptive Divider: Vertical on desktop, Horizontal line on wrap */}
-                    {hasEquipment && (hasDuration || hasCommission || hasProfit) && (
-                        <>
-                            <div className="h-4 w-px bg-border/60 hidden sm:block" />
-                            <div className="h-px w-full bg-border/10 sm:hidden" />
-                        </>
-                    )}
-
-                    {/* Main Money Stats (Duration & Commission) */}
-                    <div className="flex items-center gap-4 flex-wrap">
+                    {/* Right: Main Money Stats (Duration, Commission, Profit) */}
+                    <div className="flex items-center gap-4">
                         {hasDuration && (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1">
                                 <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
                                 <span className="text-sm font-bold text-foreground">
                                     <ValueTransition value={stats.totalHours * 60} formatter={getHMDuration} />
@@ -327,24 +275,23 @@ function TeacherStatsRow({ equipmentCounts, stats }: {
                         )}
 
                         {hasCommission && (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1">
                                 <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
                                 <span className="text-sm font-bold text-foreground">
                                     <ValueTransition value={stats.totalRevenue.commission} formatter={getCompactNumber} />
                                 </span>
                             </div>
                         )}
-                    </div>
 
-                    {/* Revenue - wraps below or stays on right */}
-                    {hasProfit && (
-                        <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                            <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
-                            <span className="text-sm font-bold text-foreground">
-                                <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
-                            </span>
-                        </div>
-                    )}
+                        {hasProfit && (
+                            <div className="flex items-center gap-1">
+                                <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
+                                <span className="text-sm font-bold text-foreground">
+                                    <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </motion.div>
             )}
         </AnimatePresence>
@@ -365,19 +312,7 @@ export interface TeacherClassCardProps {
     onBulkAction?: (ids: string[], action: "delete" | "update") => void;
 }
 
-export default function TeacherClassCard({
-    queue,
-    onClick,
-    viewMode,
-    onToggleAdjustment,
-    onSubmit,
-    onReset,
-    onCancel,
-    hasChanges = false,
-    changedCount = 0,
-    isSubmitting = false,
-    onBulkAction
-}: TeacherClassCardProps) {
+export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdjustment, onSubmit, onReset, onCancel, hasChanges = false, changedCount = 0, isSubmitting = false, onBulkAction }: TeacherClassCardProps) {
     const { controller, optimisticOperations, selectedDate, globalFlag } = useClassboardContext();
 
     const isAdjustmentMode = viewMode === "adjustment";
@@ -387,62 +322,20 @@ export default function TeacherClassCard({
     const teacherName = queue.teacher.username;
     const earliestTime = queue.getEarliestTime();
 
-    // Stats calculated in real-time including optimistic operations
+    // Stats calculated from real events only (avoid flicker)
     const stats = useMemo(() => {
-        const ops = Array.from(optimisticOperations.values());
-        
-        const additions = ops.filter((op): op is { type: "add"; event: any } => 
-            op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate)
-        );
-
-        const deletions = new Set(
-            ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map(op => op.eventId)
-        );
-
-        if (additions.length === 0 && deletions.size === 0) return queue.getStats();
-
-        // Merge logic
-        const tempQ = new TeacherQueue(queue.teacher);
-        queue.getAllEvents().forEach(e => {
-            if (!deletions.has(e.id)) {
-                // Nullify pointers when cloning to prevent circular references
-                tempQ.constructEvents({ ...e, next: null, prev: null });
-            }
-        });
-        additions.forEach(op => {
-            const node = optimisticEventToNode(op.event);
-            tempQ.constructEvents({ ...node, next: null, prev: null });
-        });
-        
-        return tempQ.getStats();
-    }, [queue, optimisticOperations, selectedDate]);
+        return queue.getStats();
+    }, [queue]);
 
     const equipmentCounts = useMemo(() => {
         const events = queue.getAllEvents();
-        const ops = Array.from(optimisticOperations.values());
-        const deletions = new Set(
-            ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map(op => op.eventId)
-        );
-        const additions = ops.filter((op): op is { type: "add"; event: any } => 
-            op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate)
-        );
-
         const counts = new Map<string, number>();
 
-        // Process real events
+        // Process confirmed events only (avoid flicker)
         events.forEach((event) => {
-            if (event.categoryEquipment && !deletions.has(event.id)) {
+            if (event.categoryEquipment) {
                 const current = counts.get(event.categoryEquipment) || 0;
-                counts.set(event.categoryEquipment, current + (event.capacityEquipment || 1));
-            }
-        });
-
-        // Process optimistic additions
-        additions.forEach((op) => {
-            const cat = op.event.categoryEquipment;
-            if (cat) {
-                const current = counts.get(cat) || 0;
-                counts.set(cat, current + (op.event.capacityEquipment || 1));
+                counts.set(event.categoryEquipment, current + 1); // Count events, not capacity
             }
         });
 
@@ -450,7 +343,7 @@ export default function TeacherClassCard({
             categoryId,
             count,
         }));
-    }, [queue, optimisticOperations, selectedDate]);
+    }, [queue]);
 
     const eventProgress = useMemo(() => {
         const events = queue.getAllEvents();
@@ -493,112 +386,110 @@ export default function TeacherClassCard({
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
     // Handle header click - toggle collapse or show error if in adjustment mode
-    const handleHeaderClick = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isAdjustmentMode) {
-            // Can't collapse while in adjustment mode
-            console.log("Can't exit because in adjustment mode");
-            setShowDangerBorder(true);
-            setTimeout(() => setShowDangerBorder(false), 1000);
-        } else {
-            // Toggle collapse/expand
-            onClick?.();
-        }
-    }, [isAdjustmentMode, onClick]);
+    const handleHeaderClick = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (isAdjustmentMode) {
+                // Can't collapse while in adjustment mode
+                console.log("Can't exit because in adjustment mode");
+                setShowDangerBorder(true);
+                setTimeout(() => setShowDangerBorder(false), 1000);
+            } else {
+                // Toggle collapse/expand
+                onClick?.();
+            }
+        },
+        [isAdjustmentMode, onClick],
+    );
 
     // Handle icon click - in collapsed view: enter adjustment mode + expand. In expanded view: toggle adjustment mode
-    const handleIconClick = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isExpanded) {
-            // Expanded view: toggle adjustment mode
-            onToggleAdjustment?.(!isAdjustmentMode);
-        } else {
-            // Collapsed view: enter adjustment mode and expand
-            onClick?.();
-            onToggleAdjustment?.(true);
-        }
-    }, [isExpanded, isAdjustmentMode, onClick, onToggleAdjustment]);
+    const handleIconClick = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (isExpanded) {
+                // Expanded view: toggle adjustment mode
+                onToggleAdjustment?.(!isAdjustmentMode);
+            } else {
+                // Collapsed view: enter adjustment mode and expand
+                onClick?.();
+                onToggleAdjustment?.(true);
+            }
+        },
+        [isExpanded, isAdjustmentMode, onClick, onToggleAdjustment],
+    );
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
     const todayEvents = useMemo(() => queue.getAllEvents(), [queue]);
 
     // Collapsed view - single line
-    const progressBarCounts = useMemo(() => ({
-        completed: eventProgress.completed,
-        planned: eventProgress.planned,
-        tbc: eventProgress.tbc,
-        uncompleted: eventProgress.uncompleted
-    }), [eventProgress]);
+    const progressBarCounts = useMemo(
+        () => ({
+            completed: eventProgress.completed,
+            planned: eventProgress.planned,
+            tbc: eventProgress.tbc,
+            uncompleted: eventProgress.uncompleted,
+        }),
+        [eventProgress],
+    );
 
     if (!isExpanded) {
         return (
-            <div
-                className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200"
-            >
+            <div className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200">
                 {<ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
 
-                <div
-                    onClick={handleHeaderClick}
-                    className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1"
-                >
-                {/* Icon - Enter adjustment mode and expand if collapsed */}
-                <button
-                    onClick={handleIconClick}
-                    className="flex-shrink-0 transition-opacity hover:opacity-80"
-                    style={{ color: TEACHER_COLOR }}
-                >
-                    <HeadsetIcon size={28} />
-                </button>
+                <div onClick={handleHeaderClick} className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1">
+                    {/* Icon - Enter adjustment mode and expand if collapsed */}
+                    <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80" style={{ color: TEACHER_COLOR }}>
+                        <HeadsetIcon size={28} />
+                    </button>
 
-                {/* Username */}
-                <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">{teacherName}</span>
+                    {/* Username */}
+                    <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">{teacherName}</span>
 
-                {/* Time */}
-                {earliestTime && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground font-mono shrink-0">
-                        <FlagIcon size={14} />
-                        {earliestTime}
-                    </div>
-                )}
-
-                {/* Duration */}
-                {stats.totalHours && stats.totalHours > 0 && (
-                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
-                        <DurationIcon size={18} className="text-muted-foreground/70" />
-                        {getHMDuration(stats.totalHours * 60)}
-                    </div>
-                )}
-
-                {/* Commission */}
-                {stats.totalRevenue?.commission && stats.totalRevenue.commission > 0 && (
-                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
-                        <HandshakeIcon size={18} className="text-muted-foreground/70" />
-                        {getCompactNumber(stats.totalRevenue.commission)}
-                    </div>
-                )}
-
-                {/* Revenue */}
-                {stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0 && (
-                    <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
-                        <TrendingUpDown size={18} className="text-muted-foreground/70" />
-                        {getCompactNumber(stats.totalRevenue.revenue)}
-                    </div>
-                )}
-
-                {/* Spacer */}
-                <div className="flex-1" />
-
-                {/* Events Equipment and Students */}
-                <div className="flex items-center gap-3 shrink-0">
-                    {todayEvents.map((event, index) => (
-                        <div key={event.id} className="flex items-center gap-3 shrink-0">
-                            <EventEquipmentStudent event={event} />
-                            {index < todayEvents.length - 1 && (
-                                <div className="h-4 w-px bg-border/30" />
-                            )}
+                    {/* Time */}
+                    {earliestTime && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground font-mono shrink-0">
+                            <FlagIcon size={14} />
+                            {earliestTime}
                         </div>
-                    ))}
-                </div>
+                    )}
+
+                    {/* Duration */}
+                    {stats.totalHours && stats.totalHours > 0 && (
+                        <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                            <DurationIcon size={18} className="text-muted-foreground/70" />
+                            {getHMDuration(stats.totalHours * 60)}
+                        </div>
+                    )}
+
+                    {/* Commission */}
+                    {stats.totalRevenue?.commission && stats.totalRevenue.commission > 0 && (
+                        <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                            <HandshakeIcon size={18} className="text-muted-foreground/70" />
+                            {getCompactNumber(stats.totalRevenue.commission)}
+                        </div>
+                    )}
+
+                    {/* Revenue */}
+                    {stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0 && (
+                        <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
+                            <TrendingUpDown size={18} className="text-muted-foreground/70" />
+                            {getCompactNumber(stats.totalRevenue.revenue)}
+                        </div>
+                    )}
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* Events Equipment and Students */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        {todayEvents.map((event, index) => (
+                            <div key={event.id} className="flex items-center gap-3 shrink-0">
+                                <EventEquipmentStudent event={event} />
+                                {index < todayEvents.length - 1 && <div className="h-4 w-px bg-border/30" />}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -606,20 +497,11 @@ export default function TeacherClassCard({
 
     // Expanded view
     return (
-        <div 
-            onClick={onClick}
-            className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer"
-        >
+        <div onClick={onClick} className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer">
             {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse */}
-            <div
-                onClick={handleHeaderClick}
-                className="flex items-center gap-4 px-6 py-5 cursor-pointer"
-            >
+            <div onClick={handleHeaderClick} className="flex items-center gap-4 px-6 py-5 cursor-pointer">
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
-                <button
-                    onClick={handleIconClick}
-                    className="flex-shrink-0 transition-opacity hover:opacity-80"
-                >
+                <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80">
                     <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: TEACHER_COLOR }}>
                         <HeadsetIcon size={24} />
                     </div>
@@ -637,24 +519,18 @@ export default function TeacherClassCard({
                         )}
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
-                        <TeacherEventProgressBar
-                            progress={eventProgress}
-                            queue={queue}
-                            controller={controller}
-                            globalFlag={globalFlag}
-                            onBulkAction={onBulkAction}
-                        />
+                        <TeacherEventProgressBar progress={eventProgress} queue={queue} controller={controller} globalFlag={globalFlag} onBulkAction={onBulkAction} />
                     </div>
                 </div>
             </div>
 
             {/* Footer - Stats (enter mode) or Controls */}
-            <div className="px-4 pb-4">
+            <div className="px-2 pb-2">
                 {isAdjustmentMode ? (
                     <SubmitCancelReset
                         onSubmit={onSubmit || (() => onToggleAdjustment?.(false))}
                         onCancel={onCancel || (() => onToggleAdjustment?.(false))}
-                        onReset={onReset || (() => {})}
+                        onReset={onReset || (() => { })}
                         hasChanges={hasChanges}
                         isSubmitting={isSubmitting}
                         submitLabel="Save"
@@ -666,11 +542,7 @@ export default function TeacherClassCard({
                             e.stopPropagation();
                             onToggleAdjustment?.(true);
                         }}
-                        className={`w-full rounded-xl p-3 transition-all duration-200 ${
-                            showDangerBorder
-                                ? "border-2 border-red-500 bg-red-500/10"
-                                : "border border-border/50 bg-muted/50 hover:bg-muted"
-                        }`}
+                        className={`w-full rounded-xl p-3 transition-all duration-200 ${showDangerBorder ? "border-2 border-red-500 bg-red-500/10" : "border border-border/50 bg-muted/50 hover:bg-muted"}`}
                     >
                         <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
                     </button>

@@ -12,6 +12,7 @@ interface EventStatusLabelProps {
     onStatusChange: (newStatus: EventStatus) => void;
     onDelete: (cascade: boolean) => void;
     isDeleting?: boolean;
+    isUpdating?: boolean;
     canShiftQueue?: boolean;
     icon?: React.ComponentType<{ size?: number }>;
     capacity?: number;
@@ -23,6 +24,7 @@ export function EventStatusLabel({
     onStatusChange,
     onDelete,
     isDeleting = false,
+    isUpdating = false,
     canShiftQueue = false,
     icon: Icon,
     capacity = 0,
@@ -71,10 +73,12 @@ export function EventStatusLabel({
             <button
                 ref={dropdownTriggerRef}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"
+                className={`w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative`}
                 style={{ color: statusConfig.color }}
             >
-                {Icon ? <Icon size={24} /> : <div className="w-4 h-4 rounded-full" style={{ backgroundColor: statusConfig.color }} />}
+                <div className={isUpdating ? "animate-pulse" : ""}>
+                    {Icon ? <Icon size={24} /> : <div className="w-4 h-4 rounded-full" style={{ backgroundColor: statusConfig.color }} />}
+                </div>
                 
                 {/* Capacity Badge */}
                 {capacity > 1 && (

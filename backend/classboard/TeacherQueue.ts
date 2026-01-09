@@ -263,8 +263,15 @@ export class TeacherQueue {
             (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b)
         );
 
+        console.log(`🔍 [TeacherQueue] Finding slot for ${submitTime} (${duration}m + ${gapMinutes}m gap). Events: ${allEvents.length}`);
+
         // Try submitTime if no conflicts and before midnight
-        if (!this.doesTimeConflict(submitTime, duration, gapMinutes, allEvents) && this.startsBeforeMidnight(submitTime)) {
+        const hasConflict = this.doesTimeConflict(submitTime, duration, gapMinutes, allEvents);
+        const isBeforeMidnight = this.startsBeforeMidnight(submitTime);
+
+        console.log(`   👉 Checking ${submitTime}: Conflict=${hasConflict}, BeforeMidnight=${isBeforeMidnight}`);
+
+        if (!hasConflict && isBeforeMidnight) {
             return submitTime;
         }
 
@@ -277,6 +284,8 @@ export class TeacherQueue {
         const lastEvent = allEvents[allEvents.length - 1];
         const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
         const nextSlotTime = minutesToTime(lastEventEndMinutes + gapMinutes);
+
+        console.log(`   👉 Checking Next Slot ${nextSlotTime} (after last event at ${minutesToTime(this.getStartTimeMinutes(lastEvent))} + ${lastEvent.eventData.duration}m)`);
 
         if (this.startsBeforeMidnight(nextSlotTime)) {
             return nextSlotTime;

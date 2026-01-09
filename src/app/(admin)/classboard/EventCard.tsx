@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
 import type { EventNode } from "@/backend/classboard/TeacherQueue";
 import type { QueueController } from "@/backend/classboard/QueueController";
-import { updateEventStatus } from "@/supabase/server/classboard";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTime";
@@ -31,18 +30,18 @@ interface EventCardProps {
  */
 export default function EventCard({ event, queueController, gapMinutes: gapMinutesProp, showLocation = true, cardStatus }: EventCardProps) {
     const contextValue = useClassboardContext();
-    const { deleteEvent } = contextValue;
+    const { deleteEvent, updateEventStatus } = contextValue;
 
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-    
+
     // We use context cardStatus for deleting state, but keep local fallback if needed
     const isDeleting = cardStatus === "deleting";
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
     // Get gapMinutes from GlobalFlag (source of truth) or use prop override or default
-    const gapMinutes = gapMinutesProp ?? (contextValue?.globalFlag?.getController()?.gapMinutes ?? 0);
+    const gapMinutes = gapMinutesProp ?? contextValue?.globalFlag?.getController()?.gapMinutes ?? 0;
 
     // Sync local state with prop when event updates from subscription
     useEffect(() => {
@@ -74,12 +73,13 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
 
     // Derive posting state from temp- prefix
     const isPosting = eventId.startsWith("temp-");
-    const isLoading = isPosting || cardStatus === "updating" || isDeleting || cardStatus === "deleting";
+    const isUpdating = cardStatus === "updating";
+    const isLoading = isPosting || isUpdating || isDeleting || cardStatus === "deleting";
     const isError = cardStatus === "error";
 
     // Status Icon - shows different states
     const StatusIcon = ({ size = 24 }: { size?: number }) => {
-        if (isPosting || cardStatus === "updating") {
+        if (isPosting) {
             return (
                 <motion.div
                     initial={{ rotate: -45 }}
@@ -145,24 +145,18 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
             // Optimistic update
             setCurrentStatus(newStatus);
 
-            // Server update
-            const result = await updateEventStatus(eventId, newStatus);
-
-            if (!result.success) {
-                console.error("❌ [EventCard] Status update failed:", result.error);
-                // Revert on failure
-                setCurrentStatus(currentStatus);
-            }
+            // Server update via context (handles mutation state)
+            await updateEventStatus(eventId, newStatus);
         } catch (error) {
             console.error("❌ [EventCard] Error updating status:", error);
-            setCurrentStatus(currentStatus);
+            setCurrentStatus(currentStatus); // Revert on error
         }
     };
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
         console.log(`🗑️ [EventCard] Deleting ${eventId} | Cascade: ${cascade}`);
-        
+
         try {
             await deleteEvent(eventId, cascade, queueController);
         } catch (error) {
@@ -178,60 +172,52 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     }));
 
     return (
-        <div className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}>
+        <div
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
+        >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
                 {previousEvent && gapMinutes !== undefined && (
-                    <EventGapDetection
-                        currentEvent={event}
-                        previousEvent={previousEvent}
-                        requiredGapMinutes={gapMinutes}
-                        updateMode="updateNow"
-                        wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
-                        className="w-auto shadow-sm"
-                    />
+                    <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={gapMinutes} updateMode="updateNow" wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20" className="w-auto shadow-sm" />
                 )}
 
                 {/* Left Side: Time and Duration */}
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
                 {/* Right Side: Status Label with StatusIcon */}
-                <EventStatusLabel
-                    status={currentStatus}
-                    onStatusChange={handleStatusClick}
-                    onDelete={handleDelete}
-                    isDeleting={isDeleting}
-                    canShiftQueue={hasNextEvent}
-                    icon={StatusIcon}
-                    capacity={capacityEquipment}
-                />
+                <EventStatusLabel status={currentStatus} onStatusChange={handleStatusClick} onDelete={handleDelete} isDeleting={isDeleting} isUpdating={isUpdating} canShiftQueue={hasNextEvent} icon={StatusIcon} capacity={capacityEquipment} />
             </div>
 
             {/* Footer / Student Toggle Trigger */}
-            <div className="px-4 pb-4">
+            <div className="px-2 pb-2">
                 <button
                     ref={studentTriggerRef}
                     onClick={() => hasMultipleStudents && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                    className={`w-full flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"}`}
+                    className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"}`}
                 >
-                    {/* Leader Student */}
-                    <div className="flex items-center gap-2">
-                        <div style={{ color: studentColor }}>
+                    {/* Left side: Student(s) */}
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div style={{ color: studentColor }} className="shrink-0">
                             <HelmetIcon size={20} />
                         </div>
-                        <span className="text-sm font-semibold text-foreground truncate max-w-[150px]">{leaderStudentName}</span>
-                        {hasMultipleStudents && <span className="text-xs text-muted-foreground font-medium">+{students.length - 1}</span>}
+                        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                            <div className="overflow-x-auto custom-scrollbar-hide whitespace-nowrap scroll-smooth">
+                                <span className="text-sm font-semibold text-foreground">{leaderStudentName}</span>
+                            </div>
+                            {hasMultipleStudents && (
+                                <span className="text-[10px] bg-foreground/5 px-1.5 py-0.5 rounded-md text-muted-foreground font-black shrink-0">
+                                    +{students.length - 1}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
+                    {/* Right side: Location */}
                     {showLocation && location && (
-                        <>
-                            <div className="h-4 w-px bg-border/60" />
-                            {/* Location */}
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <MapPin size={16} className="text-foreground/60" />
-                                <span className="text-sm font-medium truncate max-w-[100px]">{location}</span>
-                            </div>
-                        </>
+                        <div className="flex items-center gap-2 text-muted-foreground shrink-0 pl-2 border-l border-border/40">
+                            <MapPin size={14} className="text-foreground/40" />
+                            <span className="text-[11px] font-bold truncate max-w-[80px] uppercase tracking-tight">{location}</span>
+                        </div>
                     )}
                 </button>
 

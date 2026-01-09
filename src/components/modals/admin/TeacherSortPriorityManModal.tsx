@@ -48,40 +48,36 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     const [filterMode, setFilterMode] = useState<"active" | "all">("all");
 
     // Initialize items based on order from hook
-    const initializeItems = useCallback(() => {
-        if (allTeachers.length > 0) {
-            let sorted = [...allTeachers];
-            if (savedOrder.length > 0) {
-                sorted = sorted.sort((a, b) => {
-                    const aIndex = savedOrder.indexOf(a.schema.id);
-                    const bIndex = savedOrder.indexOf(b.schema.id);
-                    if (aIndex === -1) return 1;
-                    if (bIndex === -1) return -1;
-                    return aIndex - bIndex;
-                });
-            }
-
-            const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
-                id: teacher.schema.id,
-                title: teacher.schema.username,
-                subtitle: "",
-                icon: <HeadsetIcon size={20} />,
-                isActive: teacher.schema.active,
-                color: teacherEntity?.color || "#fff",
-                teacher,
-            }));
-
-            setItems(popUpItems);
-            setHasChanges(false);
-            setStatusChanges(new Map());
-        }
-    }, [allTeachers, savedOrder, teacherEntity]);
-
     useEffect(() => {
-        if (isOpen) {
-            initializeItems();
+        if (!isOpen || allTeachers.length === 0) return;
+
+        let sorted = [...allTeachers];
+        if (savedOrder.length > 0) {
+            sorted = sorted.sort((a, b) => {
+                const aIndex = savedOrder.indexOf(a.schema.id);
+                const bIndex = savedOrder.indexOf(b.schema.id);
+                if (aIndex === -1) return 1;
+                if (bIndex === -1) return -1;
+                return aIndex - bIndex;
+            });
         }
-    }, [isOpen, initializeItems]);
+
+        const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
+            id: teacher.schema.id,
+            title: teacher.schema.username,
+            subtitle: "",
+            icon: <HeadsetIcon size={20} />,
+            isActive: teacher.schema.active,
+            color: teacherEntity?.color || "#fff",
+            teacher,
+        }));
+
+        // Batch all state updates into a single render
+        setItems(popUpItems);
+        setHasChanges(false);
+        setStatusChanges(new Map());
+        setFilterMode("all");
+    }, [isOpen, allTeachers, savedOrder, teacherEntity]);
 
     const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
         const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
@@ -127,13 +123,16 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     }, [items, statusChanges, onClose, refetch]);
 
     const handleReset = useCallback(() => {
-        initializeItems();
-    }, [initializeItems]);
+        setHasChanges(false);
+        setStatusChanges(new Map());
+        setFilterMode("all");
+    }, []);
 
     const handleCancel = useCallback(() => {
-        initializeItems();
+        setHasChanges(false);
+        setStatusChanges(new Map());
         onClose();
-    }, [initializeItems, onClose]);
+    }, [onClose]);
 
     const displayItems = useMemo(() => {
         if (filterMode === "all") return items;

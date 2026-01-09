@@ -16,8 +16,7 @@ interface ClassboardRealtimeSyncProps {
  * Optimized to only update affected bookings instead of rebuilding everything
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
-    const { setClassboardModel, optimisticOperations, setOptimisticOperations, classboardModel } = useClassboardContext();
-    const renderCount = useRef(0);
+    const { setClassboardModel, setOptimisticOperations, classboardModel } = useClassboardContext();
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
 
@@ -132,7 +131,22 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         }
     }, [setClassboardModel]);
 
-    useAdminClassboardEventListener({ onEventDetected: handleEventDetected });
+    const getBookingIdForEvent = useCallback((eventId: string) => {
+        // Search current model for this event ID
+        for (const bookingData of modelRef.current) {
+            for (const lesson of bookingData.lessons) {
+                if (lesson.events?.some(e => e.id === eventId)) {
+                    return bookingData.booking.id;
+                }
+            }
+        }
+        return undefined;
+    }, []);
+
+    useAdminClassboardEventListener({ 
+        onEventDetected: handleEventDetected,
+        getBookingIdForEvent 
+    });
     useAdminClassboardBookingListener({ onNewBooking: handleNewBookingDetected });
 
     return <>{children}</>;
