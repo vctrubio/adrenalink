@@ -477,46 +477,55 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                     return;
                 }
     
-                // Find teacher for this event
-                let teacherId = "";
-                for (const queue of teacherQueues) {
-                    if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                        teacherId = queue.teacher.id;
-                        break;
+            // Find teacher for this event
+            let teacherId = "";
+            for (const queue of teacherQueues) {
+                if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
+                    teacherId = queue.teacher.id;
+                    break;
+                }
+            }
+
+            // 1. Show Spinner (Mutation State)
+            setEventMutation(eventId, "deleting");
+            globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
+            
+            // 2. We DO NOT call markEventAsDeleted here anymore.
+            // We want the node to stay in the queue so the EventCard stays mounted and spins.
+            // It will be removed naturally when the realtime sync confirms the deletion.
+
+            try {
+                if (cascade && queueController) {
+                    const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
+                    // For cascade, we can show spinners on the shifted events too
+                    if (updates.length > 0) {
+                        updates.forEach(u => globalFlag.notifyEventMutation(u.id, "updating", teacherId));
+                    }
+                    
+                    await deleteClassboardEvent(deletedId);
+                    if (updates.length > 0) {
+                        await bulkUpdateClassboardEvents(updates, []);
+                        // Cleanup shifted spinners
+                        updates.forEach(u => globalFlag.clearEventMutation(u.id));
+                    }
+                } else {
+                    const result = await deleteClassboardEvent(eventId);
+                    if (!result.success) {
+                        clearEventMutation(eventId);
+                        globalFlag.clearEventMutation(eventId);
+                        toast.error("Failed to delete event");
+                        return;
                     }
                 }
-    
-                setEventMutation(eventId, "deleting");
-                globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
-                if (teacherId) globalFlag.markEventAsDeleted(teacherId, eventId);
-    
-                try {
-                    if (cascade && queueController) {
-                        const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
-                        if (updates.length > 0) {
-                            setEventMutation(
-                                eventId,
-                                "deleting",
-                                updates.map((u: any) => u.id),
-                            );
-                        }
-                        await deleteClassboardEvent(deletedId);
-                        if (updates.length > 0) await bulkUpdateClassboardEvents(updates, []);
-                    } else {
-                        const result = await deleteClassboardEvent(eventId);
-                        if (!result.success) {
-                            clearEventMutation(eventId);
-                            globalFlag.clearEventMutation(eventId);
-                            if (teacherId) globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                            return;
-                        }
-                    }
-                    // Wait for realtime sync to clean up properly
-                } catch (error) {
-                    clearEventMutation(eventId);
-                    globalFlag.clearEventMutation(eventId);
-                    if (teacherId) globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                }
+                
+                // Spinner will be cleared by realtime sync when node is removed,
+                // but we add a fallback cleanup just in case.
+                setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
+            } catch (error) {
+                console.error("❌ Error during deletion:", error);
+                clearEventMutation(eventId);
+                globalFlag.clearEventMutation(eventId);
+            }
             },
             [setEventMutation, clearEventMutation, teacherQueues, globalFlag],
         );

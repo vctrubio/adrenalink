@@ -58,7 +58,7 @@ export default function TeacherClassDaily() {
     }, [teacherQueues, filter, selectedDate]);
 
     return (
-        <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>
+        <div className="flex flex-col h-full bg-card">
             {/* Header: Global Toggles & Filter */}
             <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
                 <div style={{ color: TEACHER_COLOR }}>

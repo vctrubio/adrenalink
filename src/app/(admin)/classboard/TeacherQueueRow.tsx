@@ -181,27 +181,29 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         <motion.div 
             layout
             animate={{
-                opacity: isDraggingSomething && !isEligible ? 0.3 : 1,
-                scale: isDraggingSomething && isEligible ? 1.01 : 1,
-                backgroundColor: isDraggingSomething && isEligible ? "rgba(6, 182, 212, 0.05)" : "transparent"
+                opacity: isDraggingSomething && !isEligible ? 0.2 : 1,
             }}
             transition={{ duration: 0.2 }}
-            className={`w-full overflow-hidden transition-all duration-300 flex flex-row items-stretch group/row rounded-xl relative ${isDraggingSomething && isEligible ? "ring-2 ring-cyan-500/20 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]" : ""} ${isDraggingSomething && !isEligible ? "grayscale-[0.5] pointer-events-none" : ""}`} 
+            className={`w-full overflow-hidden transition-all duration-300 flex flex-row items-stretch group/row rounded-xl relative ${isDraggingSomething && !isEligible ? "grayscale opacity-20 pointer-events-none" : ""}`} 
             onDragOver={handleDragOver} 
             onDrop={handleDrop}
         >
-            {/* Visual Drop Zone Indicator */}
+            {/* Visual Drop Zone Indicator - Sophisticated Overlay */}
             <AnimatePresence>
                 {isDraggingSomething && isEligible && (
                     <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 pointer-events-none border-2 border-dashed border-cyan-500/30 rounded-xl z-50 flex items-center justify-center"
+                        initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                        animate={{ opacity: 1, backdropFilter: "blur(2px)" }}
+                        exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                        className="absolute inset-0 pointer-events-none border-2 border-dashed border-cyan-500/40 rounded-xl z-50 flex items-center justify-center bg-cyan-500/5"
                     >
-                        <div className="bg-cyan-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest shadow-lg">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-cyan-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl ring-4 ring-cyan-500/20"
+                        >
                             Ready for Lesson
-                        </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

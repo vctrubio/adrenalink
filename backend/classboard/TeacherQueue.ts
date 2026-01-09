@@ -388,6 +388,10 @@ export class TeacherQueue {
         const events: EventNode[] = [];
         let current = this.head;
         while (current) {
+            // Keep the event if:
+            // 1. We are requesting raw nodes
+            // 2. We explicitly want to include deleted ones
+            // 3. It's NOT in our local optimistic deletions set
             if (options.raw || options.includeDeleted || !this.optimisticDeletions.has(current.id)) {
                 events.push(current);
             }
