@@ -12,8 +12,7 @@ import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { ENTITY_DATA } from "@/config/entities";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { assignTeacherCommissionToLesson } from "@/supabase/server/lessons";
+import { createLessonWithCommission } from "@/supabase/server/lessons";
 import type { ClassboardData, ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 
 interface AssignTeacherToLessonModalProps {
@@ -36,15 +35,9 @@ export function AssignTeacherToLessonModal({
 
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const [selectedCommissionId, setSelectedCommissionId] = useState<string | null>(null);
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [isAssigning, setIsAssigning] = useState(false);
 
-  const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
   const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
-
-  // Get the selected lesson
-  const lesson = selectedLessonId ? bookingData.lessons.find((l) => l.id === selectedLessonId) : null;
-  console.log("AssignTeacherToLessonModal lesson found:", lesson ? "YES" : "NO", "for lessonId:", selectedLessonId);
 
   // Build title with leader name and student count if > 1
   const studentCount = bookingData.bookingStudents.length;
@@ -77,7 +70,6 @@ export function AssignTeacherToLessonModal({
   const canAssign =
     selectedTeacherId &&
     selectedCommissionId &&
-    selectedLessonId &&
     !comboAlreadyExists &&
     !isAssigning;
 
@@ -91,12 +83,12 @@ export function AssignTeacherToLessonModal({
   );
 
   const handleAssign = useCallback(async () => {
-    if (!selectedTeacherId || !selectedCommissionId || !selectedLessonId) return;
+    if (!selectedTeacherId || !selectedCommissionId) return;
 
     setIsAssigning(true);
     try {
-      const result = await assignTeacherCommissionToLesson(
-        selectedLessonId,
+      const result = await createLessonWithCommission(
+        bookingData.booking.id,
         selectedTeacherId,
         selectedCommissionId
       );
@@ -105,20 +97,19 @@ export function AssignTeacherToLessonModal({
         onAssigned(result.data);
         onClose();
       } else {
-        console.error("Failed to assign teacher:", result.error);
+        console.error("Failed to create lesson:", result.error);
       }
     } catch (error) {
-      console.error("Error assigning teacher:", error);
+      console.error("Error creating lesson:", error);
     } finally {
       setIsAssigning(false);
     }
-  }, [selectedTeacherId, selectedCommissionId, selectedLessonId, onAssigned, onClose]);
+  }, [selectedTeacherId, selectedCommissionId, bookingData.booking.id, onAssigned, onClose]);
 
   const handleClose = useCallback(() => {
     console.log("handleClose called in AssignTeacherToLessonModal");
     setSelectedTeacherId(null);
     setSelectedCommissionId(null);
-    setSelectedLessonId(null);
     onClose();
   }, [onClose]);
 
@@ -133,46 +124,6 @@ export function AssignTeacherToLessonModal({
     >
       <div className="flex flex-col gap-4">
 
-        {/* Lesson Selection */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <HeadsetIcon size={16} style={{ color: "#22c55e" }} />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-tight">
-              Create Lesson Plan
-            </span>
-          </div>
-          <div className="space-y-2 max-h-[200px] overflow-y-auto">
-            {bookingData.lessons.map((les) => (
-              <motion.button
-                key={les.id}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => setSelectedLessonId(les.id)}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all
-                  ${
-                    selectedLessonId === les.id
-                      ? "bg-primary/10 border-primary/30 dark:bg-secondary/10 dark:border-secondary/30"
-                      : "bg-muted/30 border-border/50 hover:border-primary/30 hover:bg-muted/50 dark:hover:border-secondary/30"
-                  }
-                `}
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <span className="font-medium text-sm">Lesson {bookingData.lessons.indexOf(les) + 1}</span>
-                </div>
-
-                {selectedLessonId === les.id && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex-shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-primary dark:bg-secondary flex items-center justify-center">
-                      <Check size={14} className="text-primary-foreground dark:text-secondary-foreground" />
-                    </div>
-                  </motion.div>
-                )}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
         {/* Teacher List */}
         <div>
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -182,7 +133,7 @@ export function AssignTeacherToLessonModal({
               </div>
             ) : (
               teachers.map((teacher) => (
-                <motion.button
+                <motion.div
                   key={teacher.schema.id}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -194,8 +145,8 @@ export function AssignTeacherToLessonModal({
                     w-full flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all
                     ${
                       selectedTeacherId === teacher.schema.id
-                        ? "bg-primary/10 border-primary/30"
-                        : "bg-muted/30 border-border/50 hover:border-primary/30 hover:bg-muted/50"
+                        ? "bg-primary/10 border-primary/30 dark:bg-secondary/10 dark:border-secondary/30"
+                        : "bg-muted/30 border-border/50 hover:border-primary/30 hover:bg-muted/50 dark:hover:border-secondary/30"
                     }
                   `}
                 >
@@ -211,12 +162,12 @@ export function AssignTeacherToLessonModal({
 
                   {selectedTeacherId === teacher.schema.id && (
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex-shrink-0">
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <Check size={14} className="text-primary-foreground" />
+                      <div className="w-5 h-5 rounded-full bg-primary dark:bg-secondary flex items-center justify-center">
+                        <Check size={14} className="text-primary-foreground dark:text-secondary-foreground" />
                       </div>
                     </motion.div>
                   )}
-                </motion.button>
+                </motion.div>
               ))
             )}
           </div>
@@ -245,12 +196,11 @@ export function AssignTeacherToLessonModal({
                       );
 
                       return (
-                        <motion.button
+                        <motion.div
                           key={commission.id}
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
-                          onClick={() => setSelectedCommissionId(commission.id)}
-                          disabled={comboExists}
+                          onClick={() => !comboExists && setSelectedCommissionId(commission.id)}
                           className={`
                             w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all
                             ${
@@ -284,7 +234,7 @@ export function AssignTeacherToLessonModal({
                               </div>
                             </motion.div>
                           )}
-                        </motion.button>
+                        </motion.div>
                       );
                     })}
                   </div>
