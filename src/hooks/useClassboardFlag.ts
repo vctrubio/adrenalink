@@ -20,7 +20,6 @@ import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CA
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { createClassboardEvent, deleteClassboardEvent, bulkUpdateClassboardEvents, updateEventStatus } from "@/supabase/server/classboard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import type { TeacherProvider } from "@/supabase/server/teachers";
 
 // ============ CONSTANTS ============
 
@@ -150,198 +149,125 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     const renderCount = useRef(0);
     renderCount.current++;
 
-    // Core state
-    const [clientReady, setClientReady] = useState(false);
-    const [minDelayPassed, setMinDelayPassed] = useState(false);
-    const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel || []);
-    const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
-    const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
-    const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
-
-    const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
+    // --- 1. CORE AUTHORITY (Stable across renders) ---
+    const stableQueuesRef = useRef<Map<string, TeacherQueueClass>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
-
-    // Create GlobalFlag instance early and keep it stable
+    
     const globalFlagRef = useRef<GlobalFlag | null>(null);
     if (!globalFlagRef.current) {
-        // Initialize with empty queues, will be synced via useEffect
         globalFlagRef.current = new GlobalFlag([], () => {
             setFlagTick((t) => t + 1);
         });
     }
     const globalFlag = globalFlagRef.current;
 
+    // --- 2. BASE STATE ---
+    const [clientReady, setClientReady] = useState(false);
+    const [minDelayPassed, setMinDelayPassed] = useState(false);
+    const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel || []);
+    const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
+    const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
+    const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
+    const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
+
+    // --- 3. REFS FOR CALLBACKS ---
+    const selectedDateRef = useRef(selectedDate);
+    const controllerRef = useRef(controller);
+    
+    useEffect(() => { selectedDateRef.current = selectedDate; }, [selectedDate]);
+    useEffect(() => { controllerRef.current = controller; }, [controller]);
+
     // Derived mounted state
     const mounted = (clientReady && !teachersLoading && minDelayPassed) || !!teachersError;
 
-    // Track previous values for dependency logging
-    const lastSyncedControllerRef = useRef<string>("");
-
-    // Refs for capturing latest values (prevents stale closures in callbacks)
-    const selectedDateRef = useRef<string>(getTodayDateString());
-    const teacherQueuesRef = useRef<TeacherQueueClass[]>([]);
-    const controllerRef = useRef<ControllerSettings>(DEFAULT_CONTROLLER);
-
-    // Min delay effect for branding - run only once
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setMinDelayPassed(true);
-        }, 3500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    // Long loading logger - stabilized to prevent resets during render loops
-    const loadingStartTimeRef = useRef(Date.now());
-    useEffect(() => {
-        if (mounted) return;
-
-        const interval = setInterval(() => {
-            if (mounted) {
-                clearInterval(interval);
-                return;
-            }
-
-            const elapsed = Date.now() - loadingStartTimeRef.current;
-            if (elapsed > 4000) {
-                console.warn(`⏳ [useClassboardFlag] Still waiting for mount (${Math.round(elapsed / 1000)}s). Diagnostics:`, {
-                    clientReady,
-                    teachersLoading,
-                    minDelayPassed,
-                    hasError: !!teachersError,
-                    mounted,
-                });
-            }
-        }, 2500);
-
-        return () => clearInterval(interval);
-    }, [mounted, clientReady, teachersLoading, minDelayPassed, !!teachersError]);
-
     // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
-        const filtered = classboardModel.filter((booking) => isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd));
-        return filtered;
+        return classboardModel.filter((booking) => isDateInRange(selectedDate, booking.booking.dateStart, booking.booking.dateEnd));
     }, [classboardModel, selectedDate]);
 
-    // Build teacher queues from bookings (Sync Pattern)
-    // We use a Ref to keep queue instances stable across renders
-    const stableQueuesRef = useRef<Map<string, TeacherQueueClass>>(new Map());
-    
-    // We maintain a state version to force re-renders when queues update internally
-    const [queuesVersion, setQueuesVersion] = useState(0);
+    // --- 4. THE SYNC ENGINE (Patches stable objects) ---
+    useEffect(() => {
+        if (!activeTeachers.length || !clientReady) return;
 
-    const teacherQueues = useMemo(() => {
-        // This useMemo now acts as the "Sync Engine"
-        // It runs whenever dependencies change, but it updates EXISTING queues instead of creating new ones
-        
+        console.log(`⚙️ [SyncEngine] Patching board for ${selectedDate}...`);
         const queuesMap = stableQueuesRef.current;
-        const currentQueues: TeacherQueueClass[] = [];
-        
-        // 1. Ensure we have a queue for every active teacher
+        const mutatingIds = globalFlag.getMutatingEventIds();
+
+        // A. Ensure teachers exist
         activeTeachers.forEach((teacher) => {
-            let queue = queuesMap.get(teacher.schema.id);
-            if (!queue) {
-                queue = new TeacherQueueClass({
+            if (!queuesMap.has(teacher.schema.id)) {
+                queuesMap.set(teacher.schema.id, new TeacherQueueClass({
                     id: teacher.schema.id,
                     username: teacher.schema.username,
-                });
-                queuesMap.set(teacher.schema.id, queue);
+                }));
             }
-            currentQueues.push(queue);
         });
 
-        // 2. Sync events for each queue
-        // We group events by teacher first for efficiency
+        // B. Group events for current date
         const eventsByTeacher = new Map<string, EventNode[]>();
-        
         bookingsForSelectedDate.forEach((booking) => {
             booking.lessons.forEach((lesson) => {
                 const teacherId = lesson.teacher?.id;
                 if (!teacherId || !queuesMap.has(teacherId)) return;
 
-                const sortedEvents = (lesson.events || [])
-                    .filter((event) => event.date.split("T")[0] === selectedDate)
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-                sortedEvents.forEach((event) => {
-                    const eventNode = createEventNode(event, lesson, booking);
-                    
-                    if (!eventsByTeacher.has(teacherId)) {
-                        eventsByTeacher.set(teacherId, []);
-                    }
-                    eventsByTeacher.get(teacherId)!.push(eventNode);
-                });
+                const dayEvents = (lesson.events || [])
+                    .filter((e) => e.date.startsWith(selectedDate))
+                    .map((e) => createEventNode(e, lesson, booking));
+                
+                if (dayEvents.length > 0) {
+                    const list = eventsByTeacher.get(teacherId) || [];
+                    eventsByTeacher.set(teacherId, [...list, ...dayEvents]);
+                }
             });
         });
 
-        // 3. Apply sync to each queue
-        // Important: Sort events chronologically before syncing to ensure linked list order
-        // We also pass the mutating event IDs to implement the 'Mutation Guard'
-        const mutatingIds = globalFlagRef.current?.getMutatingEventIds() || new Set<string>();
-
-        currentQueues.forEach(queue => {
-            const teacherEvents = eventsByTeacher.get(queue.teacher.id) || [];
+        // C. Surgical Sync
+        queuesMap.forEach((queue, teacherId) => {
+            const serverEvents = eventsByTeacher.get(teacherId) || [];
+            serverEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
             
-            // Sort by date to ensure correct linked list order
-            teacherEvents.sort((a, b) => 
-                new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime()
-            );
-
-            // Sync! This updates existing nodes in-place or adds new ones
-            queue.syncEvents(teacherEvents, mutatingIds);
+            // Mutation Guard happens inside syncEvents
+            queue.syncEvents(serverEvents, mutatingIds);
         });
 
-        return currentQueues;
-    }, [activeTeachers, bookingsForSelectedDate, selectedDate]);
+        // D. Update Global Authority
+        const currentQueues = activeTeachers
+            .map(t => queuesMap.get(t.schema.id))
+            .filter((q): q is TeacherQueueClass => !!q);
+            
+        globalFlag.updateTeacherQueues(currentQueues);
+        
+    }, [activeTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
 
-    // Update refs with latest values (for preventing stale closures in callbacks)
+    // Derived reactive array for the UI
+    const [queuesVersion, setQueuesVersion] = useState(0); // For forcing stats refresh
+    const teacherQueues = useMemo(() => {
+        return activeTeachers
+            .map(t => stableQueuesRef.current.get(t.schema.id))
+            .filter((q): q is TeacherQueueClass => !!q);
+    }, [activeTeachers, flagTick]);
+
+    // --- 5. EFFECTS ---
+
     useEffect(() => {
-        selectedDateRef.current = selectedDate;
-    }, [selectedDate]);
+        const timer = setTimeout(() => setMinDelayPassed(true), 3500);
+        return () => clearTimeout(timer);
+    }, []);
 
-    useEffect(() => {
-        teacherQueuesRef.current = teacherQueues;
-    }, [teacherQueues]);
-
-    useEffect(() => {
-        controllerRef.current = controller;
-    }, [controller]);
-
-    // Update GlobalFlag when teacherQueues changes (Sync Pattern)
-    useEffect(() => {
-        if (!globalFlag) return;
-        // Since teacherQueues are now stable objects (synced in-place), 
-        // we just need to notify GlobalFlag to refresh the view.
-        globalFlag.updateTeacherQueues(teacherQueues);
-    }, [teacherQueues, globalFlag]);
-
-    // Sync controller with GlobalFlag on mount/change
     useEffect(() => {
         if (!clientReady) return;
-
-        const controllerString = JSON.stringify(controller);
-        if (lastSyncedControllerRef.current === controllerString) return;
-
         globalFlag.updateController(controller);
-        lastSyncedControllerRef.current = controllerString;
     }, [clientReady, globalFlag, controller]);
 
-    // Wrapper for setSelectedDate that notifies GlobalFlag
-    const setSelectedDate = useCallback(
-        (date: string) => {
-            globalFlag.onDateChange();
-            setSelectedDateState(date);
-        },
-        [globalFlag],
-    );
+    const setSelectedDate = useCallback((date: string) => {
+        globalFlag.onDateChange(); // Clears internal optimistic state
+        setSelectedDateState(date);
+    }, [globalFlag]);
 
-    // Wrapper for setController that updates GlobalFlag (source of truth)
-    const setController = useCallback(
-        (newController: ControllerSettings) => {
-            globalFlag.updateController(newController);
-            setControllerState(newController);
-        },
-        [globalFlag],
-    );
+    const setController = useCallback((newController: ControllerSettings) => {
+        globalFlag.updateController(newController);
+        setControllerState(newController);
+    }, [globalFlag]);
 
     const gapMinutes = globalFlag.getController().gapMinutes;
 
@@ -367,14 +293,12 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         (eventId: string): EventCardStatus | undefined => {
             if (eventId.startsWith("temp-")) return "posting";
             
-            // Check GlobalFlag mutations first
             const mutation = globalFlag.getEventMutation(eventId);
             if (mutation) {
                 if (mutation.type === "deleting") return "deleting";
                 if (mutation.type === "updating") return "updating";
             }
 
-            // Fallback to local mutation state
             const localMut = eventMutations.get(eventId);
             if (localMut) return localMut.status;
             
@@ -386,210 +310,186 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         [eventMutations, globalFlag, flagTick],
     );
 
-        // ============ EVENT ACTIONS ============
+    // ============ EVENT ACTIONS ============
     
-        const addLessonEvent = useCallback(async (bookingData: ClassboardData, lessonId: string) => {
-            const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-            try {
-                const lesson = bookingData.lessons.find((l) => l.id === lessonId);
-                if (!lesson?.teacher) {
-                    toast.error("Teacher not found for this lesson");
-                    return;
-                }
-    
-                const queue = stableQueuesRef.current.get(lesson.teacher.id);
-                if (!queue) {
-                    toast.error(`${lesson.teacher.username} is not on board today`);
-                    return;
-                }
-    
-                const capacityStudents = bookingData.schoolPackage.capacityStudents;
-                const controller = controllerRef.current;
-                const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
-    
-                const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
-    
-                if (!slotTime) {
-                    toast.error("Lesson past midnight!");
-                    return;
-                }
-    
-                const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
-    
-                const optimisticEvent: OptimisticEvent = {
-                    id: tempId,
-                    lessonId,
-                    teacherId: lesson.teacher.id,
-                    bookingId: bookingData.booking.id,
-                    bookingLeaderName: bookingData.booking.leaderStudentName || "Unknown",
-                    bookingStudents: bookingData.bookingStudents.map((bs) => ({
-                        id: bs.student.id,
-                        firstName: bs.student.firstName,
-                        lastName: bs.student.lastName,
-                        passport: bs.student.passport || "",
-                        country: bs.student.country || "",
-                        phone: bs.student.phone || "",
-                    })),
-                    capacityStudents,
-                    pricePerStudent: bookingData.schoolPackage.pricePerStudent,
-                    packageDuration: bookingData.schoolPackage.durationMinutes,
-                    categoryEquipment: bookingData.schoolPackage.categoryEquipment,
-                    capacityEquipment: bookingData.schoolPackage.capacityEquipment,
-                    commission: {
-                        type: lesson.commission.type as "fixed" | "percentage",
-                        cph: parseFloat(lesson.commission.cph),
-                    },
-                    date: eventDate,
-                    duration,
-                    location: controller.location,
-                };
-    
-                // Delegate to GlobalFlag
-                const optimisticNode = optimisticEventToNode(optimisticEvent);
-                globalFlag.addOptimisticEvent(lesson.teacher.id, optimisticNode);
-    
-                // Then confirm with server in background
-                const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
-    
-                if (!result.success) {
-                    // Revert via GlobalFlag
-                    globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
-                    toast.error(result.error || "Failed to create event");
-                    return;
-                }
-            } catch (error) {
-                console.error("❌ Error adding event:", error);
-                const lesson = bookingData.lessons.find((l) => l.id === lessonId);
-                if (lesson?.teacher) {
-                    globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
-                }
-                toast.error("Error creating event");
+    const addLessonEvent = useCallback(async (bookingData: ClassboardData, lessonId: string) => {
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        try {
+            const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+            if (!lesson?.teacher) {
+                toast.error("Teacher not found for this lesson");
+                return;
             }
-        }, [globalFlag]);
-    
-                const deleteEvent = useCallback(
-                    async (eventId: string, cascade: boolean, queueController?: any) => {
-                        if (eventId.startsWith("temp-")) {
-                            // Find teacher for this temp event to remove it
-                            for (const queue of teacherQueues) {
-                                if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                                    globalFlag.removeOptimisticEvent(queue.teacher.id, eventId);
-                                    break;
-                                }
-                            }
-                            return;
-                        }
-            
-                        // Find teacher and queue for this event
-                        let teacherId = "";
-                        let queue: TeacherQueueClass | null = null;
-                        for (const q of teacherQueues) {
-                            if (q.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                                teacherId = q.teacher.id;
-                                queue = q;
-                                break;
-                            }
-                        }
-        
-                                        if (!queue) return;
-                            
-                                        // 1. Show Spinner & Mark as logically deleted (keeps it in list for spinner)
-                                        setEventMutation(eventId, "deleting");
-                                        globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
-                                        // markAsDeleted is safe now because refreshQueueStructure keeps the node in the list
-                                        globalFlag.markEventAsDeleted(teacherId, eventId);
-                        
-                                        let updates: { id: string; date: string; duration: number }[] = [];            
-                                    try {
-                                        if (cascade && queueController) {
-                                            const { deletedId, updates: shiftUpdates } = queueController.cascadeDeleteAndOptimise(eventId);
-                                            
-                                                                if (shiftUpdates.length > 0) {
-                                                                    shiftUpdates.forEach(u => {
-                                                                        // 1. Mark as updating in GlobalFlag (for ADR spinner)
-                                                                        globalFlag.notifyEventMutation(u.id, "updating", teacherId);
-                                                                        
-                                                                        // 2. Apply start-time shift in memory (for blue indicator)
-                                                                        // We use a direct node update to prevent triggering re-sorts until we're done
-                                                                        const node = queue!.getAllEvents({ includeDeleted: true }).find(e => e.id === u.id);
-                                                                        if (node) {
-                                                                            node.eventData.date = u.date;
-                                                                        }
-                                                                    });
-                                                                    
-                                                                    // 3. One final re-sort and linked-list rebuild to solidify the new order
-                                                                    const allNodes = queue!.getAllEvents({ includeDeleted: true });
-                                                                    queue!.rebuildQueue(allNodes);
-                                                                }                                            
-                                            await deleteClassboardEvent(deletedId);
-                                            if (shiftUpdates.length > 0) {
-                                                await bulkUpdateClassboardEvents(shiftUpdates, []);
-                                                shiftUpdates.forEach(u => globalFlag.clearEventMutation(u.id));
-                                            }
-                                        } else {
-                                            const result = await deleteClassboardEvent(eventId);
-                                            if (!result.success) {
-                                                clearEventMutation(eventId);
-                                                globalFlag.clearEventMutation(eventId);
-                                                globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                                                toast.error("Failed to delete event");
-                                                return;
-                                            }
-                                        }
-                                        
-                                        // Spinner cleanup fallback
-                                        setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
-                                    } catch (error) {                            console.error("❌ Error during deletion:", error);
-                            toast.error("Failed to update board");
-                            
-                            // Revert on failure
-                            globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                            clearEventMutation(eventId);
-                            globalFlag.clearEventMutation(eventId);
-                            updates.forEach(u => globalFlag.clearEventMutation(u.id));
-                        }
-                    },
-                    [setEventMutation, clearEventMutation, teacherQueues, globalFlag, gapMinutes],
-                );    
-        const updateEventStatusAction = useCallback(
-            async (eventId: string, status: string) => {
-                // Find teacher for this event
-                let teacherId = "";
-                let teacherQueue: TeacherQueueClass | null = null;
-                for (const queue of teacherQueues) {
-                    if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                        teacherId = queue.teacher.id;
-                        teacherQueue = queue;
-                        break;
+
+            const queue = stableQueuesRef.current.get(lesson.teacher.id);
+            if (!queue) {
+                toast.error(`${lesson.teacher.username} is not on board today`);
+                return;
+            }
+
+            const capacityStudents = bookingData.schoolPackage.capacityStudents;
+            const controller = controllerRef.current;
+            const duration = capacityStudents === 1 ? controller.durationCapOne : capacityStudents === 2 ? controller.durationCapTwo : controller.durationCapThree;
+
+            const slotTime = queue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
+
+            if (!slotTime) {
+                toast.error("Lesson past midnight!");
+                return;
+            }
+
+            const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
+
+            const optimisticEvent: OptimisticEvent = {
+                id: tempId,
+                lessonId,
+                teacherId: lesson.teacher.id,
+                bookingId: bookingData.booking.id,
+                bookingLeaderName: bookingData.booking.leaderStudentName || "Unknown",
+                bookingStudents: bookingData.bookingStudents.map((bs) => ({
+                    id: bs.student.id,
+                    firstName: bs.student.firstName,
+                    lastName: bs.student.lastName,
+                    passport: bs.student.passport || "",
+                    country: bs.student.country || "",
+                    phone: bs.student.phone || "",
+                })),
+                capacityStudents,
+                pricePerStudent: bookingData.schoolPackage.pricePerStudent,
+                packageDuration: bookingData.schoolPackage.durationMinutes,
+                categoryEquipment: bookingData.schoolPackage.categoryEquipment,
+                capacityEquipment: bookingData.schoolPackage.capacityEquipment,
+                commission: {
+                    type: lesson.commission.type as "fixed" | "percentage",
+                    cph: parseFloat(lesson.commission.cph),
+                },
+                date: eventDate,
+                duration,
+                location: controller.location,
+            };
+
+            const optimisticNode = optimisticEventToNode(optimisticEvent);
+            globalFlag.addOptimisticEvent(lesson.teacher.id, optimisticNode);
+
+            const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
+
+            if (!result.success) {
+                globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
+                toast.error(result.error || "Failed to create event");
+                return;
+            }
+        } catch (error) {
+            console.error("❌ Error adding event:", error);
+            const lesson = bookingData.lessons.find((l) => l.id === lessonId);
+            if (lesson?.teacher) {
+                globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
+            }
+            toast.error("Error creating event");
+        }
+    }, [globalFlag]);
+
+    const deleteEvent = useCallback(
+        async (eventId: string, cascade: boolean, queueController?: any) => {
+            if (eventId.startsWith("temp-")) {
+                const q = Array.from(stableQueuesRef.current.values()).find(q => q.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId));
+                if (q) globalFlag.removeOptimisticEvent(q.teacher.id, eventId);
+                return;
+            }
+
+            const currentQueues = Array.from(stableQueuesRef.current.values());
+            let teacherId = "";
+            let queue: TeacherQueueClass | null = null;
+            for (const q of currentQueues) {
+                if (q.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
+                    teacherId = q.teacher.id;
+                    queue = q;
+                    break;
+                }
+            }
+
+            if (!queue) return;
+
+            setEventMutation(eventId, "deleting");
+            globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
+            globalFlag.markEventAsDeleted(teacherId, eventId);
+
+            let shiftUpdates: { id: string; date: string; duration: number }[] = [];            
+            try {
+                if (cascade && queueController) {
+                    const cascadeResult = queueController.cascadeDeleteAndOptimise(eventId);
+                    shiftUpdates = cascadeResult.updates;
+                    
+                    if (shiftUpdates.length > 0) {
+                        shiftUpdates.forEach(u => {
+                            globalFlag.notifyEventMutation(u.id, "updating", teacherId);
+                            const node = queue!.getAllEvents({ includeDeleted: true }).find(e => e.id === u.id);
+                            if (node) node.eventData.date = u.date;
+                        });
+                        queue!.rebuildQueue(queue!.getAllEvents({ includeDeleted: true }));
+                    }                                            
+                    await deleteClassboardEvent(eventId);
+                    if (shiftUpdates.length > 0) {
+                        await bulkUpdateClassboardEvents(shiftUpdates, []);
+                        shiftUpdates.forEach(u => globalFlag.clearEventMutation(u.id));
                     }
-                }
-
-                setEventMutation(eventId, "updating");
-                globalFlag.notifyEventMutation(eventId, "updating", teacherId);
-                
-                // Optimistic in-place update
-                if (teacherQueue) {
-                    teacherQueue.updateEventStatus(eventId, status as any);
-                }
-
-                try {
-                    const result = await updateEventStatus(eventId, status);
+                } else {
+                    const result = await deleteClassboardEvent(eventId);
                     if (!result.success) {
-                        toast.error("Failed to update status");
-                        // Revert on failure (realtime sync will handle correct state anyway)
+                        clearEventMutation(eventId);
+                        globalFlag.clearEventMutation(eventId);
+                        globalFlag.unmarkEventAsDeleted(teacherId, eventId);
+                        toast.error("Failed to delete event");
+                        return;
                     }
-                    clearEventMutation(eventId);
-                    globalFlag.clearEventMutation(eventId);
-                } catch (error) {
-                    console.error("Error updating status:", error);
-                    toast.error("Error updating status");
-                    clearEventMutation(eventId);
-                    globalFlag.clearEventMutation(eventId);
                 }
-            },
-            [setEventMutation, clearEventMutation, teacherQueues, globalFlag]
-        );
+                setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
+            } catch (error) {
+                console.error("❌ Error during deletion:", error);
+                toast.error("Failed to update board");
+                globalFlag.unmarkEventAsDeleted(teacherId, eventId);
+                clearEventMutation(eventId);
+                globalFlag.clearEventMutation(eventId);
+                shiftUpdates.forEach(u => globalFlag.clearEventMutation(u.id));
+            }
+        },
+        [setEventMutation, clearEventMutation, globalFlag, gapMinutes],
+    );    
+
+    const updateEventStatusAction = useCallback(
+        async (eventId: string, status: string) => {
+            const currentQueues = Array.from(stableQueuesRef.current.values());
+            let teacherId = "";
+            let teacherQueue: TeacherQueueClass | null = null;
+            for (const q of currentQueues) {
+                if (q.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
+                    teacherId = q.teacher.id;
+                    teacherQueue = q;
+                    break;
+                }
+            }
+
+            setEventMutation(eventId, "updating");
+            globalFlag.notifyEventMutation(eventId, "updating", teacherId);
+            
+            if (teacherQueue) {
+                teacherQueue.updateEventStatus(eventId, status as any);
+            }
+
+            try {
+                const result = await updateEventStatus(eventId, status);
+                if (!result.success) toast.error("Failed to update status");
+                clearEventMutation(eventId);
+                globalFlag.clearEventMutation(eventId);
+            } catch (error) {
+                console.error("Error updating status:", error);
+                toast.error("Error updating status");
+                clearEventMutation(eventId);
+                globalFlag.clearEventMutation(eventId);
+            }
+        },
+        [setEventMutation, clearEventMutation, globalFlag]
+    );
 
     // ============ PERSISTENCE ============
 
@@ -598,9 +498,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         if (storedDate) setSelectedDateState(storedDate);
         const storedController = localStorage.getItem(STORAGE_KEY_CONTROLLER);
         if (storedController) {
-            try {
-                setControllerState(JSON.parse(storedController));
-            } catch (e) { }
+            try { setControllerState(JSON.parse(storedController)); } catch (e) { }
         }
         setClientReady(true);
     }, []);

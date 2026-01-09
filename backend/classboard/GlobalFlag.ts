@@ -28,6 +28,7 @@ interface EventMutation {
     eventId: string;
     type: EventMutationType;
     teacherId?: string;
+    cascadeIds?: string[]; // IDs of other events affected by this action
 }
 
 const CONTROLLER_STORAGE_KEY = "classboard-controller-settings";
@@ -221,10 +222,7 @@ export class GlobalFlag {
             this.exitAdjustmentMode(true); // Discard changes
         }
 
-        // Clear internal state of all persistent queues
-        this.teacherQueues.forEach(q => q.clearOptimisticState());
-
-        // Clear all mutations (spinners)
+        // Clear all mutations
         this.eventMutations.clear();
     }
 

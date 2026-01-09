@@ -283,3 +283,102 @@ export async function deleteLesson(
     return { success: false, error: "Failed to delete lesson" };
   }
 }
+
+/**
+ * Assign teacher and commission to an existing lesson
+ * Returns the updated lesson with full relations (teacher, commission, events)
+ */
+export async function assignTeacherCommissionToLesson(
+  lessonId: string,
+  teacherId: string,
+  commissionId: string,
+): Promise<ApiActionResponseModel<any>> {
+  try {
+    const headersList = await headers();
+    const schoolId = headersList.get("x-school-id");
+
+    if (!schoolId) {
+      return { success: false, error: "School ID not found in headers" };
+    }
+
+    const supabase = getServerConnection();
+
+    // Check if this teacher+commission combo already exists in this lesson's booking
+    // Get the lesson first to find its booking
+    const { data: lesson, error: lessonError } = await supabase
+      .from("lesson")
+      .select("booking_id")
+      .eq("id", lessonId)
+      .single();
+
+    if (lessonError || !lesson) {
+      return { success: false, error: "Lesson not found" };
+    }
+
+    // Check for duplicate combo in same booking
+    const { data: duplicateCheck, error: duplicateError } = await supabase
+      .from("lesson")
+      .select("id")
+      .eq("booking_id", lesson.booking_id)
+      .eq("teacher_id", teacherId)
+      .eq("commission_id", commissionId)
+      .neq("id", lessonId)
+      .single();
+
+    if (duplicateCheck && !duplicateError) {
+      return { success: false, error: "This teacher+commission is already assigned to this booking" };
+    }
+
+    // Update the lesson
+    const { data: updatedLesson, error: updateError } = await supabase
+      .from("lesson")
+      .update({
+        teacher_id: teacherId,
+        commission_id: commissionId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", lessonId)
+      .select(`
+        *,
+        teacher:teacher_id (
+          id,
+          username,
+          first_name,
+          last_name,
+          passport,
+          country,
+          phone,
+          languages,
+          active
+        ),
+        commission:commission_id (
+          id,
+          commission_type,
+          cph,
+          description
+        ),
+        event (
+          id,
+          date,
+          duration,
+          status,
+          created_at
+        )
+      `)
+      .single();
+
+    if (updateError || !updatedLesson) {
+      console.error("Error assigning teacher to lesson:", updateError);
+      return { success: false, error: "Failed to assign teacher" };
+    }
+
+    revalidatePath("/classboard");
+    revalidatePath(`/bookings/${lesson.booking_id}`);
+    revalidatePath(`/teachers/${teacherId}`);
+
+    return { success: true, data: updatedLesson };
+  } catch (error) {
+    console.error("Error in assignTeacherCommissionToLesson:", error);
+    return { success: false, error: "Failed to assign teacher" };
+  }
+}

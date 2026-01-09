@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { MoreVertical, Receipt, Loader2 } from "lucide-react";
+import { MoreVertical, Receipt, Plus, Loader2 } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
@@ -12,6 +12,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
+import { AssignTeacherToLessonModal } from "@/src/components/modals/classboard/AssignTeacherToLessonModal";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import { getEventStatusCounts, sortEventsByStatus } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";
@@ -124,32 +125,52 @@ const BookingSummaryBadges = ({ schoolPackage, lessons, studentCount, students }
 
 interface InstructorListProps {
     lessons: ClassboardLesson[];
+    bookingData: ClassboardData;
     onAddEvent: (lessonId: string) => void;
     loadingLessonId: string | null;
     draggableLessonIds?: Set<string>; // Only lessons with teachers
+    onAssignTeacher: (lessonId: string) => void;
 }
 
-const InstructorList = ({ lessons, onAddEvent, loadingLessonId, draggableLessonIds }: InstructorListProps) => {
-    const visibleLessons = lessons.filter((lesson) => !draggableLessonIds || draggableLessonIds.has(lesson.id));
+const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, draggableLessonIds, onAssignTeacher }: InstructorListProps) => {
+    const teacherColor = "#22c55e";
 
-    // console.log("🎓 [InstructorList] All lessons:", lessons.length, "Draggable IDs:", draggableLessonIds?.size || 0, "Visible:", visibleLessons.length);
-    // console.log("   - All lesson IDs:", lessons.map((l) => l.id));
-    // console.log("   - Draggable lesson IDs:", Array.from(draggableLessonIds || []));
+    // Filter to only show lessons that have teachers
+    const lessonsWithTeachers = lessons.filter((lesson) => !draggableLessonIds || draggableLessonIds.has(lesson.id));
+    // Filter to show lessons without teachers
+    const lessonsWithoutTeachers = lessons.filter((lesson) => !lesson.teacher?.id);
 
     return (
         <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
+                <button
+                    onClick={() => lessons[0] && onAssignTeacher(lessons[0].id)}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground hover:bg-muted/70 rounded-lg transition-colors border border-border/30"
+                >
+                    <Plus size={14} />
+                    Assign Teacher
+                </button>
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {visibleLessons.map((lesson) => {
+                {lessonsWithTeachers.map((lesson) => {
                     const isLoading = loadingLessonId === lesson.id;
                     const events = sortEventsByStatus(lesson.events || []);
                     const totalMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
                     const eventCount = events.length;
 
-                    return <TeacherLessonStatsBadge key={lesson.id} teacherId={lesson.teacher.id} teacherUsername={lesson.teacher.username} eventCount={eventCount} durationMinutes={totalMinutes} isLoading={isLoading} onClick={() => onAddEvent(lesson.id)} />;
+                    return (
+                        <TeacherLessonStatsBadge
+                            key={lesson.id}
+                            teacherId={lesson.teacher.id}
+                            teacherUsername={lesson.teacher.username}
+                            eventCount={eventCount}
+                            durationMinutes={totalMinutes}
+                            isLoading={isLoading}
+                            onClick={() => onAddEvent(lesson.id)}
+                        />
+                    );
                 })}
             </div>
         </div>
@@ -181,13 +202,18 @@ interface StudentBookingCardProps {
 }
 
 export default function StudentBookingCard({ bookingData }: StudentBookingCardProps) {
-    const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate } = useClassboardContext();
+    const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate, globalFlag } = useClassboardContext();
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
+    const [isAssignTeacherModalOpen, setIsAssignTeacherModalOpen] = useState(false);
+    const [selectedLessonIdForAssignment, setSelectedLessonIdForAssignment] = useState<string | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const bookingId = bookingData.booking.id;
     const isDragging = draggedBooking?.bookingId === bookingId;
+    
+    // Check if this booking is currently being added to the board
+    const isConfirming = globalFlag.hasOptimisticEventsForBooking(bookingId);
 
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const packageInfo = getPackageInfo(schoolPackage, lessons);
@@ -211,6 +237,10 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     }, [loadingLessonId]);
 
     const handleDragStart = (e: React.DragEvent) => {
+        if (isConfirming) {
+            e.preventDefault();
+            return;
+        }
         const target = e.target as HTMLElement;
         if (target.closest("button") || target.closest("[role=\"button\"]")) {
             e.preventDefault();
@@ -248,30 +278,63 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
         await addLessonEvent(bookingData, lessonId);
     };
 
+    const handleOpenAssignTeacherModal = useCallback((lessonId: string) => {
+        setSelectedLessonIdForAssignment(lessonId);
+        setIsAssignTeacherModalOpen(true);
+    }, []);
+
+    const handleAssignTeacherSuccess = useCallback((updatedLesson: ClassboardLesson) => {
+        // Close modal
+        setIsAssignTeacherModalOpen(false);
+        setSelectedLessonIdForAssignment(null);
+        toast.success(`Teacher assigned to lesson`);
+    }, []);
+
     return (
-        <motion.div
-            draggable
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            animate={{
-                opacity: loadingLessonId ? 0.3 : isDragging ? 0.5 : 1,
-            }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="group relative w-[355px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md"
-        >
-            <BookingProgressBar counts={eventCounts} durationMinutes={packageInfo.durationMinutes} />
+        <>
+            <motion.div
+                draggable={!isConfirming}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                animate={{
+                    opacity: (loadingLessonId || isConfirming) ? 0.4 : isDragging ? 0.5 : 1,
+                    scale: isConfirming ? 0.98 : 1
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className={`group relative w-[355px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md ${isConfirming ? "cursor-wait border-cyan-500/30 shadow-cyan-500/5" : ""}`}
+            >
+                {isConfirming && (
+                    <div className="absolute inset-0 z-50 bg-background/40 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
+                        <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-6 h-6 text-cyan-500 animate-spin" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600">Confirming...</span>
+                        </div>
+                    </div>
+                )}
+                <BookingProgressBar counts={eventCounts} durationMinutes={packageInfo.durationMinutes} />
 
-            <div className="p-4 space-y-4">
-                <CardHeader bookingId={booking.id} dateStart={booking.dateStart} dateEnd={booking.dateEnd} selectedDate={selectedDate} leaderName={booking.leaderStudentName} students={students} onExpand={() => setIsExpanded(!isExpanded)} />
+                <div className="p-4 space-y-4">
+                    <CardHeader bookingId={booking.id} dateStart={booking.dateStart} dateEnd={booking.dateEnd} selectedDate={selectedDate} leaderName={booking.leaderStudentName} students={students} onExpand={() => setIsExpanded(!isExpanded)} />
 
-                <div className="space-y-3">
-                    <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} />
+                    <div className="space-y-3">
+                        <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} />
+                    </div>
+
+                    <InstructorList lessons={lessons} bookingData={bookingData} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={draggableLessonIds} onAssignTeacher={handleOpenAssignTeacherModal} />
                 </div>
 
-                <InstructorList lessons={lessons} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={draggableLessonIds} />
-            </div>
+                <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
+            </motion.div>
 
-            <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
-        </motion.div>
+            {selectedLessonIdForAssignment && (
+                <AssignTeacherToLessonModal
+                    isOpen={isAssignTeacherModalOpen}
+                    onClose={() => setIsAssignTeacherModalOpen(false)}
+                    lessonId={selectedLessonIdForAssignment}
+                    bookingData={bookingData}
+                    onAssigned={handleAssignTeacherSuccess}
+                />
+            )}
+        </>
     );
 }
