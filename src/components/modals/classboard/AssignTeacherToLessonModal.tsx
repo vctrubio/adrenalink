@@ -29,7 +29,7 @@ export function AssignTeacherToLessonModal({
   onAssigned,
 }: AssignTeacherToLessonModalProps) {
   console.log("AssignTeacherToLessonModal rendered with isOpen:", isOpen);
-  const { teachers } = useSchoolTeachers();
+  const { teachers, refetch } = useSchoolTeachers();
   const credentials = useSchoolCredentials();
   const currency = credentials.currency || "YEN";
 
@@ -74,12 +74,13 @@ export function AssignTeacherToLessonModal({
     !isAssigning;
 
   const handleAddCommission = useCallback(
-    (newCommission: any) => {
+    async (newCommission: any) => {
       // When new commission is added, auto-select it
-      // The hook will refetch and the commission will appear in selectedTeacherCommissions
       setSelectedCommissionId(newCommission.id);
+      // Refetch teacher data to get the new commission in the list
+      await refetch();
     },
-    []
+    [refetch]
   );
 
   const handleAssign = useCallback(async () => {

@@ -100,10 +100,8 @@ export async function createLessonWithCommission(
       return { success: false, error: "Failed to create lesson" };
     }
 
-    revalidatePath("/lessons");
-    revalidatePath("/classboard");
     revalidatePath(`/bookings/${bookingId}`);
-    revalidatePath(`/teachers/${teacherId}`);
+    revalidatePath("/teachers");
 
     return { success: true, data };
   } catch (error) {

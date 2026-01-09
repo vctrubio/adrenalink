@@ -181,9 +181,16 @@ export function AddCommissionDropdown({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !formData.cph}
-                className="flex-1 px-4 py-2 text-foreground hover:bg-muted/50 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/90 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubmitting ? "Adding..." : "Add"}
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground dark:border-secondary-foreground dark:border-t-transparent border-t-transparent rounded-full animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add"
+                )}
               </button>
             </div>
           </motion.div>
