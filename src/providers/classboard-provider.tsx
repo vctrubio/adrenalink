@@ -15,7 +15,6 @@ import {
     optimisticEventToNode,
     type OptimisticEvent,
     type EventCardStatus,
-    type OptimisticOperation,
 } from "@/src/hooks/useClassboardFlag";
 import type { ClassboardModel, ClassboardData } from "@/backend/classboard/ClassboardModel";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/classboard/TeacherQueue";
@@ -25,7 +24,7 @@ import type { QueueController } from "@/backend/classboard/QueueController";
 
 // Re-export for backwards compatibility
 export { optimisticEventToNode };
-export type { OptimisticEvent, EventCardStatus, OptimisticOperation };
+export type { OptimisticEvent, EventCardStatus };
 
 interface ClassboardContextType {
     // Data
@@ -53,10 +52,7 @@ interface ClassboardContextType {
     deleteEvent: (eventId: string, cascade: boolean, queueController?: QueueController) => Promise<void>;
     updateEventStatus: (eventId: string, status: string) => Promise<void>;
 
-    // Optimistic updates (Unified)
-    optimisticOperations: Map<string, OptimisticOperation>;
-    setOptimisticOperations: (ops: Map<string, OptimisticOperation> | ((prev: Map<string, OptimisticOperation>) => Map<string, OptimisticOperation>)) => void;
-    clearOptimisticOperations: () => void;
+    // UI Status
     getEventCardStatus: (eventId: string) => EventCardStatus | undefined;
 
     // Global flag

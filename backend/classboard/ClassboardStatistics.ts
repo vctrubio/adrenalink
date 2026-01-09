@@ -9,7 +9,7 @@
  * - revenue: total school revenue
  */
 
-import type { TeacherQueue } from "@/src/app/(admin)/(classboard)/TeacherQueue";
+import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 export interface RevenueStats {

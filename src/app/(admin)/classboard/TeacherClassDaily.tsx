@@ -13,7 +13,7 @@ const TEACHER_COLOR = "#16a34a";
 
 type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag, optimisticOperations, selectedDate } = useClassboardContext();
+    const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -39,17 +39,9 @@ export default function TeacherClassDaily() {
         const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
-            const ops = Array.from(optimisticOperations.values());
-            const relevantDeletions = new Set(ops.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId));
-
-            // Check real events, filtering out optimistic deletions
-            const events = queue.getAllEvents().filter((e) => !relevantDeletions.has(e.id));
-            const hasRealEvents = events.length > 0;
-
-            // Check if teacher has any optimistic events for this date
-            const hasOptimisticEvents = ops.some((op) => op.type === "add" && op.event.teacherId === queue.teacher.id && op.event.date.startsWith(selectedDate));
-
-            if (hasRealEvents || hasOptimisticEvents) {
+            // TeacherQueue now handles its own active/optimistic events
+            const events = queue.getAllEvents();
+            if (events.length > 0) {
                 activeQueues.push(queue);
             }
         });
@@ -63,7 +55,7 @@ export default function TeacherClassDaily() {
             filteredQueues: filter === "active" ? activeQueues : allQueues,
             counts,
         };
-    }, [teacherQueues, filter, optimisticOperations, selectedDate]);
+    }, [teacherQueues, filter, selectedDate]);
 
     return (
         <div className={`flex flex-col h-full transition-colors ${draggedBooking ? "bg-green-500/10" : ""}`}>
@@ -81,17 +73,11 @@ export default function TeacherClassDaily() {
             {/* Teacher List Content */}
 
             <div className="overflow-auto flex-1 min-h-0">
-
                 <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
-
                     <div className="flex flex-col divide-y-2 divide-background">
-
                         <AnimatePresence mode="popLayout" initial={false}>
-
                             {filteredQueues.length > 0 &&
-
                                 filteredQueues.map((queue) => {
-
                                     const isCollapsed = collapsedTeachers.has(queue.teacher.id);
 
                                     const queueController = globalFlag.getQueueController(queue.teacher.id);
@@ -100,60 +86,27 @@ export default function TeacherClassDaily() {
 
                                     const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
 
-
-
                                     return (
-
                                         <motion.div
-
                                             layout="position"
-
                                             key={queue.teacher.id}
-
                                             initial={{ opacity: 0, y: 10 }}
-
                                             animate={{ opacity: 1, y: 0 }}
-
                                             exit={{ opacity: 0, y: -10 }}
-
                                             transition={{
-
                                                 duration: 0.6,
 
-                                                ease: [0.22, 1, 0.36, 1]
-
+                                                ease: [0.22, 1, 0.36, 1],
                                             }}
-
                                             className="py-2 transition-colors"
-
                                         >
-
-                                            <TeacherQueueRow
-
-                                                queue={queue}
-
-                                                viewMode={viewMode}
-
-                                                isCollapsed={isCollapsed}
-
-                                                onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
-
-                                            />
-
+                                            <TeacherQueueRow queue={queue} viewMode={viewMode} isCollapsed={isCollapsed} onToggleCollapse={() => toggleCollapsed(queue.teacher.id)} />
                                         </motion.div>
-
                                     );
-
-                                })
-
-                            }
-
+                                })}
                         </AnimatePresence>
-
                     </div>
-
                 </div>
-
             </div>
         </div>
     );

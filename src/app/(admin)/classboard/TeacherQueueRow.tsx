@@ -26,7 +26,7 @@ interface TeacherQueueRowProps {
  * Reads state from GlobalFlag (single source of truth)
  */
 export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, optimisticOperations, getEventCardStatus, selectedDate } = useClassboardContext();
+    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, getEventCardStatus, selectedDate } = useClassboardContext();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -58,42 +58,14 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     // Memoize the entire event list computation
     const eventsWithOptimistic = useMemo(() => {
-        const allOps = Array.from(optimisticOperations.values());
-        const relevantDeletions = new Set(
-            allOps.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId)
-        );
-
-        // Get all real events (don't filter deletions yet, let the card show loading state)
-        const realEvents = activeQueue.getAllEvents();
-
-        // Get optimistic "add" operations for this teacher
-        const teacherOptimisticEvents = allOps
-            .filter((op): op is { type: "add"; event: any } => op.type === "add" && op.event.teacherId === activeQueue.teacher.id)
-            .map((op) => ({
-                node: optimisticEventToNode(op.event),
-            }));
-
-        // Convert real events
-        const realEventsWithStatus = realEvents.map((event) => ({
-            node: event,
-        }));
-
-        // Deduplicate: exclude optimistic events that are already in realEvents
-        const realEventIds = new Set(realEvents.map((e) => e.id));
-        const deduplicatedOptimistic = teacherOptimisticEvents.filter((opt) => !realEventIds.has(opt.node.id));
-
-        // Merge and sort by status priority, then by date
-        const merged = [...realEventsWithStatus, ...deduplicatedOptimistic];
-        const sortedByStatus = sortEventsByStatus(merged.map((e) => e.node));
-
-        // Reconstruct linked list AFTER sorting to maintain correct prev/next references
-        sortedByStatus.forEach((event, index) => {
-            event.prev = index > 0 ? sortedByStatus[index - 1] : null;
-            event.next = index < sortedByStatus.length - 1 ? sortedByStatus[index + 1] : null;
-        });
-
-        return sortedByStatus.map(node => ({ node }));
-    }, [activeQueue, optimisticOperations, selectedDate]);
+        // TeacherQueue now manages its own optimistic state internally
+        // includeDeleted: true allows us to show the "deleting" spinner before it disappears
+        const events = activeQueue.getAllEvents({ includeDeleted: true });
+        
+        console.log(`  🎫 [TeacherQueueRow] Rendering ${events.length} events for ${queue.teacher.username} (v${activeQueue.version})`);
+        
+        return events.map(node => ({ node }));
+    }, [activeQueue, selectedDate, activeQueue.version]);
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
@@ -185,21 +157,16 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         toast.success(newLocked ? "Cascade mode enabled" : "Time-respect mode enabled");
     }, [queueController, controller, globalFlag]);
 
-    const { setOptimisticOperations } = useClassboardContext();
-
     const handleBulkAction = useCallback(
         (ids: string[], action: "delete" | "update") => {
             if (action === "delete") {
-                setOptimisticOperations((prev) => {
-                    const updated = new Map(prev);
-                    ids.forEach((id) => {
-                        updated.set(id, { type: "delete", eventId: id });
-                    });
-                    return updated;
+                ids.forEach((id) => {
+                    globalFlag.notifyEventMutation(id, "deleting", queue.teacher.id);
+                    globalFlag.markEventAsDeleted(queue.teacher.id, id);
                 });
             }
         },
-        [setOptimisticOperations],
+        [globalFlag, queue.teacher.id],
     );
 
     return (

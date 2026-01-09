@@ -68,6 +68,9 @@ export class QueueController {
             eventData: { ...e.eventData },
         }));
 
+        // Clear any local deletions made during this session
+        this.queue.clearDeletions();
+        
         this.queue.rebuildQueue(restoredEvents);
         this.onRefresh();
     }
@@ -299,6 +302,9 @@ export class QueueController {
         }
 
         console.log(`🗑️ [QueueController.removeEventLocally] Removing ${eventId} locally (will be deleted on submit)`);
+
+        // Also mark as deleted in the TeacherQueue so syncEvents doesn't bring it back
+        this.queue.markAsDeleted(eventId);
 
         const updatedEvents = events.filter(e => e.id !== eventId);
         this.queue.rebuildQueue(updatedEvents);

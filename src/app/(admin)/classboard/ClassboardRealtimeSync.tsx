@@ -16,7 +16,7 @@ interface ClassboardRealtimeSyncProps {
  * Optimized to only update affected bookings instead of rebuilding everything
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
-    const { setClassboardModel, setOptimisticOperations, classboardModel } = useClassboardContext();
+    const { setClassboardModel, classboardModel } = useClassboardContext();
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
 
@@ -50,16 +50,6 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
     const handleEventDetected = useCallback((newData: ClassboardModel) => {
         console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
-        // Identify which lessons now have real events
-        const lessonsWithRealEvents = new Set<string>();
-        newData.forEach((booking) => {
-            booking.lessons.forEach((lesson) => {
-                if ((lesson.events || []).length > 0) {
-                    lessonsWithRealEvents.add(lesson.id);
-                }
-            });
-        });
-
         // 1. Calculate the new model state based on current ref
         const prevModel = modelRef.current;
         const updatedModel = [...prevModel];
@@ -76,46 +66,7 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         // 2. Update the model state
         setClassboardModel(updatedModel);
 
-        // 3. Clean up optimistic operations (both add and delete)
-        setOptimisticOperations((prev) => {
-            if (prev.size === 0) return prev;
-            
-            const updated = new Map(prev);
-            let clearedCount = 0;
-
-            // Check for additions cleanup
-            updated.forEach((op, key) => {
-                if (op.type === "add") {
-                    if (lessonsWithRealEvents.has(op.event.lessonId)) {
-                        updated.delete(key);
-                        clearedCount++;
-                    }
-                }
-            });
-
-            // Check for deletions cleanup
-            // Collect all current event IDs from the updated model
-            const allEventIds = new Set<string>();
-            updatedModel.forEach(b => b.lessons.forEach(l => (l.events || []).forEach(e => allEventIds.add(e.id))));
-
-            updated.forEach((op, key) => {
-                if (op.type === "delete") {
-                    // If the event ID is NOT in the updated model, the deletion is confirmed
-                    if (!allEventIds.has(op.eventId)) {
-                        updated.delete(key);
-                        clearedCount++;
-                    }
-                }
-            });
-
-            if (clearedCount > 0) {
-                console.log(`  🧹 Cleared ${clearedCount} optimistic operation(s)`);
-            }
-            
-            return updated.size !== prev.size ? updated : prev;
-        });
-
-    }, [setClassboardModel, setOptimisticOperations]);
+    }, [setClassboardModel]);
 
     const handleNewBookingDetected = useCallback(async (bookingId: string) => {
         console.log(`🔔 [ClassboardRealtimeSync] New booking detected: ${bookingId}`);

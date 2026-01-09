@@ -140,6 +140,54 @@ export class GlobalFlag {
         this.triggerRefresh();
     }
 
+    // ============ OPTIMISTIC EVENT MANAGEMENT ============
+
+    addOptimisticEvent(teacherId: string, event: any): void {
+        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        if (queue) {
+            queue.addOptimisticEvent(event);
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    removeOptimisticEvent(teacherId: string, eventId: string): void {
+        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        if (queue) {
+            queue.removeOptimisticEvent(eventId);
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    markEventAsDeleted(teacherId: string, eventId: string): void {
+        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        if (queue) {
+            queue.markAsDeleted(eventId);
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    unmarkEventAsDeleted(teacherId: string, eventId: string): void {
+        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        if (queue) {
+            queue.unmarkAsDeleted(eventId);
+            this.refreshKey++;
+            this.triggerRefresh();
+        }
+    }
+
+    /**
+     * Check if a booking has any optimistic events (additions)
+     */
+    hasOptimisticEventsForBooking(bookingId: string): boolean {
+        for (const queue of this.teacherQueues) {
+            if (queue.hasOptimisticForBooking(bookingId)) return true;
+        }
+        return false;
+    }
+
     // ============ EVENT MUTATIONS (Spinner State) ============
 
     notifyEventMutation(eventId: string, type: EventMutationType, teacherId?: string): void {
@@ -239,14 +287,6 @@ export class GlobalFlag {
     }
 
     updateTeacherQueues(queues: TeacherQueue[]): void {
-        // Check if anything actually changed to prevent refresh loops
-        const sameLength = this.teacherQueues.length === queues.length;
-        const sameReferences = sameLength && this.teacherQueues.every((q, i) => q === queues[i]);
-
-        if (sameReferences) {
-            return;
-        }
-
         console.log(`🔄 [GlobalFlag] Updating teacher queues (${this.teacherQueues.length} -> ${queues.length})`);
 
         // Preserve queues that are being edited

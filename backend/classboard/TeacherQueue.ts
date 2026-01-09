@@ -21,9 +21,125 @@ export { type EventNode, type ControllerSettings } from "@/types/classboard-teac
 export class TeacherQueue {
     private head: EventNode | null = null;
     public teacher: TeacherInfo;
+    public version: number = 0;
+    
+    // Internal optimistic state
+    private optimisticAdditions = new Map<string, EventNode>();
+    private optimisticDeletions = new Set<string>();
 
     constructor(teacher: TeacherInfo) {
         this.teacher = teacher;
+    }
+
+    /**
+     * Add an optimistic event to the queue
+     */
+    addOptimisticEvent(event: EventNode): void {
+        console.log(`[Queue:${this.teacher.username}] ➕ Adding optimistic event: ${event.id} at ${event.eventData.date}`);
+        this.optimisticAdditions.set(event.id, event);
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Remove an optimistic event (e.g. after confirmation or failure)
+     */
+    removeOptimisticEvent(eventId: string): void {
+        console.log(`[Queue:${this.teacher.username}] ➖ Removing optimistic event: ${eventId}`);
+        this.optimisticAdditions.delete(eventId);
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Mark an event as optimistically deleted
+     */
+    markAsDeleted(eventId: string): void {
+        console.log(`[Queue:${this.teacher.username}] 🗑️ Marking event as deleted: ${eventId}`);
+        this.optimisticDeletions.add(eventId);
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Unmark an event deletion (e.g. if delete failed)
+     */
+    unmarkAsDeleted(eventId: string): void {
+        console.log(`[Queue:${this.teacher.username}] ♻️ Unmarking deletion: ${eventId}`);
+        this.optimisticDeletions.delete(eventId);
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Clear all deletion markers
+     */
+    clearDeletions(): void {
+        console.log(`[Queue:${this.teacher.username}] ♻️ Clearing all deletion markers`);
+        this.optimisticDeletions.clear();
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Clear all optimistic state (e.g. on full reset)
+     */
+    clearOptimisticState(): void {
+        console.log(`[Queue:${this.teacher.username}] 🧹 Clearing all optimistic state`);
+        this.optimisticAdditions.clear();
+        this.optimisticDeletions.clear();
+        this.version++;
+        this.refreshQueueStructure();
+    }
+
+    /**
+     * Check if this queue has any optimistic additions for a specific booking
+     */
+    hasOptimisticForBooking(bookingId: string): boolean {
+        for (const event of this.optimisticAdditions.values()) {
+            if (event.bookingId === bookingId) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Helper to re-integrate optimistic state into the linked list
+     * Should be called whenever real data changes or optimistic state changes
+     */
+    private refreshQueueStructure(): void {
+        // We can't easily "inject" into the current linked list without potentially duplicating
+        // or messing up order if we don't know the full set of "Real" events.
+        // However, syncEvents handles the full rebuild from "Real" events.
+        // If we want to support ad-hoc updates, we might need to store "realEvents" separately.
+        
+        // For now, let's assume this is called after a sync, or we trigger a re-sync if we have the source data.
+        // Actually, since we don't store the raw "server events" separately, 
+        // we must rely on the fact that `head` contains the current state.
+        
+        // STRATEGY: 
+        // 1. Extract all "Real" events (filter out known optimistic ones from the current list).
+        // 2. Filter out "Deleted" ones.
+        // 3. Add "Optimistic" ones.
+        // 4. Sort and Link.
+
+        const currentNodes = this.getAllEvents(true); // Get raw nodes including current optimistic ones
+        
+        // 1. Identify Real Events: Those NOT in optimisticAdditions
+        const realEvents = currentNodes.filter(node => !this.optimisticAdditions.has(node.id));
+        
+        // 2. Filter Deletions
+        const activeRealEvents = realEvents.filter(node => !this.optimisticDeletions.has(node.id));
+        
+        // 3. Add Optimistic Additions
+        const allActiveEvents = [...activeRealEvents, ...Array.from(this.optimisticAdditions.values())];
+
+        // 4. Sort
+        allActiveEvents.sort((a, b) => 
+            new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime()
+        );
+
+        // 5. Rebuild Links
+        this.rebuildQueue(allActiveEvents);
     }
 
     /**
@@ -54,6 +170,43 @@ export class TeacherQueue {
                 return;
             }
             current = current.next;
+        }
+    }
+
+    /**
+     * Update an existing event in the queue
+     * If time changes, it will re-sort the queue locally for this event
+     */
+    updateEvent(eventId: string, updates: Partial<EventNode["eventData"]>): void {
+        let current = this.head;
+        let foundNode: EventNode | null = null;
+
+        while (current) {
+            if (current.id === eventId) {
+                foundNode = current;
+                break;
+            }
+            current = current.next;
+        }
+
+        if (!foundNode) return;
+
+        // Check if timing changed
+        const oldDate = foundNode.eventData.date;
+        const newDate = updates.date || oldDate;
+        // const oldDuration = foundNode.eventData.duration;
+        // const newDuration = updates.duration || oldDuration;
+
+        // Merge updates
+        foundNode.eventData = { ...foundNode.eventData, ...updates };
+
+        // If date changed, we might need to re-position
+        // For safety, if start time changes, we re-insert.
+        if (oldDate !== newDate) {
+            // Remove from current position
+            this.removeEvent(eventId);
+            // Re-insert sorted
+            this.constructEvents(foundNode);
         }
     }
 
@@ -120,16 +273,139 @@ export class TeacherQueue {
             }
             prev = event;
         });
+        
+        this.version++;
     }
 
-    getAllEvents(): EventNode[] {
+    /**
+     * Sync queue with a new list of events, preserving object identity where possible
+     * This prevents React re-renders of EventCards when only properties change
+     */
+    syncEvents(newEventsData: EventNode[]): void {
+        console.log(`[Queue:${this.teacher.username}] 🔄 Syncing ${newEventsData.length} events from server...`);
+        const currentEventsMap = new Map<string, EventNode>();
+        let current = this.head;
+        while (current) {
+            currentEventsMap.set(current.id, current);
+            current = current.next;
+        }
+
+        // Filter out events that are optimistically deleted
+        const activeEventsData = newEventsData.filter(e => !this.optimisticDeletions.has(e.id));
+
+        // Self-heal: If an ID is in optimisticDeletions but NO LONGER in newEventsData, 
+        // it means the server confirmed the deletion. We can clear the flag.
+        this.optimisticDeletions.forEach(id => {
+            const stillInServerData = newEventsData.some(e => e.id === id);
+            if (!stillInServerData) {
+                console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed deletion of ${id}. Clearing flag.`);
+                this.optimisticDeletions.delete(id);
+            }
+        });
+
+        // Merge in optimistic additions that aren't yet in the server data
+        this.optimisticAdditions.forEach((event, id) => {
+            // SELF-HEALING: Check if this optimistic event has been confirmed by the server.
+            // We match by ID (for existing events) or by Lesson + Time (for new events).
+            // Resilient comparison: compare only up to minutes (ignore seconds/ms/Z)
+            const optTime = event.eventData.date.substring(0, 16);
+            
+            const isConfirmed = newEventsData.some(e => {
+                const serverTime = e.eventData.date.substring(0, 16);
+                const match = e.id === id || (e.lessonId === event.lessonId && serverTime === optTime);
+                if (match && e.id !== id) {
+                    console.log(`[Queue:${this.teacher.username}] 🎯 Match found for ${id} -> Server ID ${e.id} (${serverTime})`);
+                }
+                return match;
+            });
+            
+            if (isConfirmed) {
+                console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed event: ${id}. Clearing optimistic entry.`);
+                this.optimisticAdditions.delete(id); 
+            } else {
+                // Not confirmed yet, keep it in the list
+                activeEventsData.push(event);
+            }
+        });
+
+        // Sort everything
+        activeEventsData.sort((a, b) => 
+            new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime()
+        );
+
+        let newHead: EventNode | null = null;
+        let prev: EventNode | null = null;
+        let updatedCount = 0;
+        let createdCount = 0;
+
+        activeEventsData.forEach((newData) => {
+            let node = currentEventsMap.get(newData.id);
+
+            // If we have an existing node, update it. If it's from optimisticAdditions, use that reference.
+            if (node) {
+                // Update existing node properties
+                node.lessonId = newData.lessonId;
+                node.bookingId = newData.bookingId;
+                node.bookingLeaderName = newData.bookingLeaderName;
+                node.bookingStudents = newData.bookingStudents;
+                node.capacityStudents = newData.capacityStudents;
+                node.pricePerStudent = newData.pricePerStudent;
+                node.packageDuration = newData.packageDuration;
+                node.categoryEquipment = newData.categoryEquipment;
+                node.capacityEquipment = newData.capacityEquipment;
+                node.commission = newData.commission;
+                node.eventData = newData.eventData; 
+                updatedCount++;
+            } else {
+                // Use the new node (could be from server or optimistic map)
+                node = newData;
+                createdCount++;
+            }
+
+            // Link it
+            node.prev = prev;
+            node.next = null;
+            
+            if (prev) {
+                prev.next = node;
+            } else {
+                newHead = node;
+            }
+            
+            prev = node;
+        });
+
+        this.head = newHead;
+        this.version++;
+        console.log(`[Queue:${this.teacher.username}] ✨ Sync complete. In-place updated: ${updatedCount}, New: ${createdCount}`);
+    }
+
+    /**
+     * Get all events in the queue
+     * @param options includeDeleted: show events marked for deletion (for UI spinners), raw: return raw head list
+     */
+    getAllEvents(options: { includeDeleted?: boolean; raw?: boolean } = {}): EventNode[] {
         const events: EventNode[] = [];
         let current = this.head;
         while (current) {
-            events.push(current);
+            if (options.raw || options.includeDeleted || !this.optimisticDeletions.has(current.id)) {
+                events.push(current);
+            }
             current = current.next;
         }
         return events;
+    }
+
+    /**
+     * Update event status in-place
+     */
+    updateEventStatus(eventId: string, status: EventNode["eventData"]["status"]): void {
+        console.log(`[Queue:${this.teacher.username}] 🏷️ Updating status for ${eventId} -> ${status}`);
+        const event = this.getAllEvents({ includeDeleted: true }).find(e => e.id === eventId);
+        if (event) {
+            event.eventData.status = status;
+            this.version++;
+        }
     }
 
     /**

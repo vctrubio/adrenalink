@@ -15,7 +15,7 @@ const STUDENT_COLOR = "#ca8a04";
 type StudentBookingFilter = "available" | "all";
 
 export default function StudentClassDaily() {
-    const { bookingsForSelectedDate: bookings, globalFlag, optimisticOperations, selectedDate } = useClassboardContext();
+    const { bookingsForSelectedDate: bookings, globalFlag, selectedDate } = useClassboardContext();
 
     const [filter, setFilter] = useState<StudentBookingFilter>("available");
 
@@ -31,12 +31,8 @@ export default function StudentClassDaily() {
             );
             if (hasRealEvents) return true;
 
-            // Check optimistic events for this booking
-            const bookingId = booking.booking.id;
-            const hasOptimisticEvent = Array.from(optimisticOperations.values()).some(
-                (op) => op.type === "add" && op.event.bookingId === bookingId && op.event.date.startsWith(selectedDate)
-            );
-            return hasOptimisticEvent;
+            // Check optimistic events via GlobalFlag (centralized source)
+            return globalFlag.hasOptimisticEventsForBooking(booking.booking.id);
         };
 
         const onboardBookings = bookings.filter(hasEvents);
@@ -57,7 +53,7 @@ export default function StudentClassDaily() {
         }
 
         return { filteredBookings: filteredData, counts };
-    }, [bookings, filter, optimisticOperations, selectedDate]);
+    }, [bookings, filter, globalFlag, selectedDate]);
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -93,9 +89,7 @@ export default function StudentClassDaily() {
                                         const hasRealEvents = lessons.some((lesson) => 
                                             (lesson.events || []).some(event => event.date.startsWith(selectedDate))
                                         );
-                                        const hasOptimisticEvent = Array.from(optimisticOperations.values()).some(
-                                            (op) => op.type === "add" && op.event.bookingId === bookingData.booking.id && op.event.date.startsWith(selectedDate)
-                                        );
+                                        const hasOptimisticEvent = globalFlag.hasOptimisticEventsForBooking(bookingData.booking.id);
                                         const hasEventToday = hasRealEvents || hasOptimisticEvent;
 
                                         // Determine which component to render

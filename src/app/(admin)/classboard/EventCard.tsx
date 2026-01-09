@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -24,6 +24,65 @@ interface EventCardProps {
     cardStatus?: EventCardStatus;
 }
 
+// Status Icon - shows different states
+const StatusIcon = ({ size = 24, isPosting, isDeleting, isError, EquipmentIcon }: { size?: number, isPosting?: boolean, isDeleting?: boolean, isError?: boolean, EquipmentIcon?: any }) => {
+    if (isPosting) {
+        return (
+            <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
+                className="flex items-center justify-center shrink-0"
+            >
+                <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
+            </motion.div>
+        );
+    }
+
+    if (isDeleting) {
+        return (
+            <motion.div
+                animate={{ rotate: [0, -360] }}
+                transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
+                className="flex items-center justify-center shrink-0"
+            >
+                <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
+            </motion.div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: [0.8, 1.1, 0.8] }}
+                transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="flex items-center justify-center shrink-0"
+            >
+                <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-40 ring-2 ring-red-500" />
+            </motion.div>
+        );
+    }
+
+    // Default: show equipment icon
+    if (EquipmentIcon) {
+        return <EquipmentIcon size={size} />;
+    }
+
+    return null;
+};
+
 /**
  * EventCard - Renders a single event card
  * Reads gapMinutes from GlobalFlag (source of truth)
@@ -34,9 +93,6 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
 
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventData.status as EventStatus);
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-
-    // We use context cardStatus for deleting state, but keep local fallback if needed
-    const isDeleting = cardStatus === "deleting";
 
     const studentTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -74,73 +130,23 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     // Derive posting state from temp- prefix
     const isPosting = eventId.startsWith("temp-");
     const isUpdating = cardStatus === "updating";
-    const isLoading = isPosting || isUpdating || isDeleting || cardStatus === "deleting";
+    const isDeleting = cardStatus === "deleting";
     const isError = cardStatus === "error";
+    const isLoading = isPosting || isUpdating || isDeleting;
 
-    // Status Icon - shows different states
-    const StatusIcon = ({ size = 24 }: { size?: number }) => {
-        if (isPosting) {
-            return (
-                <motion.div
-                    initial={{ rotate: -45 }}
-                    animate={{ rotate: -45 + 360 }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "linear",
-                    }}
-                    className="flex items-center justify-center shrink-0"
-                >
-                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover" />
-                </motion.div>
-            );
-        }
-
-        if (isDeleting || cardStatus === "deleting") {
-            return (
-                <motion.div
-                    initial={{ rotate: -45 }}
-                    animate={{ rotate: -45 - 360 }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "linear",
-                    }}
-                    className="flex items-center justify-center shrink-0"
-                >
-                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-60" />
-                </motion.div>
-            );
-        }
-
-        if (cardStatus === "error") {
-            return (
-                <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: [0.8, 1.1, 0.8] }}
-                    transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
-                    className="flex items-center justify-center shrink-0"
-                >
-                    <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-40 ring-2 ring-red-500" />
-                </motion.div>
-            );
-        }
-
-        // Default: show equipment icon
-        if (EquipmentIcon) {
-            return <EquipmentIcon size={size} />;
-        }
-
-        return null;
-    };
+    const IconWrapper = useCallback((props: { size?: number }) => (
+        <StatusIcon 
+            {...props} 
+            isPosting={isPosting} 
+            isDeleting={isDeleting} 
+            isError={isError} 
+            EquipmentIcon={EquipmentIcon} 
+        />
+    ), [isPosting, isDeleting, isError, EquipmentIcon]);
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
-        if (newStatus === currentStatus || cardStatus === "updating") return;
+        if (newStatus === currentStatus || isUpdating) return;
         try {
             // Optimistic update
             setCurrentStatus(newStatus);
@@ -173,7 +179,7 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
 
     return (
         <div
-            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isDeleting ? "opacity-60" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
@@ -185,7 +191,16 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
                 <EventStartDurationTime date={event.eventData.date} duration={duration} />
 
                 {/* Right Side: Status Label with StatusIcon */}
-                <EventStatusLabel status={currentStatus} onStatusChange={handleStatusClick} onDelete={handleDelete} isDeleting={isDeleting} isUpdating={isUpdating} canShiftQueue={hasNextEvent} icon={StatusIcon} capacity={capacityEquipment} />
+                <EventStatusLabel
+                    status={currentStatus}
+                    onStatusChange={handleStatusClick}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                    isUpdating={isUpdating}
+                    canShiftQueue={hasNextEvent}
+                    icon={IconWrapper}
+                    capacity={capacityEquipment}
+                />
             </div>
 
             {/* Footer / Student Toggle Trigger */}

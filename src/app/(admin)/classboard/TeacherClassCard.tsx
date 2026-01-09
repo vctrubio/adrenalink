@@ -236,65 +236,65 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
     const hasProfit = stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0;
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
+    if (!hasAnyStats) {
+        return (
+            <div className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic opacity-50">
+                No activity yet
+            </div>
+        );
+    }
+
     return (
-        <AnimatePresence>
-            {!hasAnyStats ? (
-                <motion.div key="no-activity" initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic">
-                    No activity yet
-                </motion.div>
-            ) : (
-                <motion.div key="stats-row" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="flex items-center justify-between w-full gap-2 px-1">
-                    {/* Left: Equipment Categories */}
-                    <div className="flex items-center gap-3">
-                        {equipmentCounts.map(({ categoryId, count }) => {
-                            const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-                            if (!config) return null;
-                            const CategoryIcon = config.icon;
-                            return (
-                                <div key={categoryId} className="flex items-center gap-1">
-                                    <div style={{ color: config.color }}>
-                                        <CategoryIcon size={16} />
-                                    </div>
-                                    <span className="text-sm font-bold text-foreground">
-                                        <ValueTransition value={count} />
-                                    </span>
-                                </div>
-                            );
-                        })}
+        <div className="flex items-center justify-between w-full gap-2 px-1">
+            {/* Left: Equipment Categories */}
+            <div className="flex items-center gap-3">
+                {equipmentCounts.map(({ categoryId, count }) => {
+                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
+                    if (!config) return null;
+                    const CategoryIcon = config.icon;
+                    return (
+                        <div key={categoryId} className="flex items-center gap-1">
+                            <div style={{ color: config.color }}>
+                                <CategoryIcon size={16} />
+                            </div>
+                            <span className="text-sm font-bold text-foreground">
+                                <ValueTransition value={count} />
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Right: Main Money Stats (Duration, Commission, Profit) */}
+            <div className="flex items-center gap-4">
+                {hasDuration && (
+                    <div className="flex items-center gap-1">
+                        <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-bold text-foreground">
+                            <ValueTransition value={stats.totalHours * 60} formatter={getHMDuration} />
+                        </span>
                     </div>
+                )}
 
-                    {/* Right: Main Money Stats (Duration, Commission, Profit) */}
-                    <div className="flex items-center gap-4">
-                        {hasDuration && (
-                            <div className="flex items-center gap-1">
-                                <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                                <span className="text-sm font-bold text-foreground">
-                                    <ValueTransition value={stats.totalHours * 60} formatter={getHMDuration} />
-                                </span>
-                            </div>
-                        )}
-
-                        {hasCommission && (
-                            <div className="flex items-center gap-1">
-                                <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                                <span className="text-sm font-bold text-foreground">
-                                    <ValueTransition value={stats.totalRevenue.commission} formatter={getCompactNumber} />
-                                </span>
-                            </div>
-                        )}
-
-                        {hasProfit && (
-                            <div className="flex items-center gap-1">
-                                <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
-                                <span className="text-sm font-bold text-foreground">
-                                    <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
-                                </span>
-                            </div>
-                        )}
+                {hasCommission && (
+                    <div className="flex items-center gap-1">
+                        <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-bold text-foreground">
+                            <ValueTransition value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                        </span>
                     </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                )}
+
+                {hasProfit && (
+                    <div className="flex items-center gap-1">
+                        <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-bold text-foreground">
+                            <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                        </span>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
 
@@ -313,7 +313,7 @@ export interface TeacherClassCardProps {
 }
 
 export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdjustment, onSubmit, onReset, onCancel, hasChanges = false, changedCount = 0, isSubmitting = false, onBulkAction }: TeacherClassCardProps) {
-    const { controller, optimisticOperations, selectedDate, globalFlag } = useClassboardContext();
+    const { controller, selectedDate, globalFlag } = useClassboardContext();
 
     const isAdjustmentMode = viewMode === "adjustment";
     const isExpanded = viewMode !== "collapsed";
