@@ -21,15 +21,12 @@ import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents, bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 
+import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
+
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
 // Muted amber - softer than student entity color
 const STUDENT_COLOR = "#ca8a04";
-
-// Sub-component for smooth value transitions (fade + slide) removed for static view
-function ValueTransition({ value, formatter }: { value: any; formatter?: (val: any) => string }) {
-    return formatter ? formatter(value) : value;
-}
 
 // Aggregated equipment counts from events
 export interface EquipmentCount {
@@ -248,21 +245,30 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
         <div className="flex items-center justify-between w-full gap-2 px-1">
             {/* Left: Equipment Categories */}
             <div className="flex items-center gap-3">
-                {equipmentCounts.map(({ categoryId, count }) => {
-                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-                    if (!config) return null;
-                    const CategoryIcon = config.icon;
-                    return (
-                        <div key={categoryId} className="flex items-center gap-1">
-                            <div style={{ color: config.color }}>
-                                <CategoryIcon size={16} />
-                            </div>
-                            <span className="text-sm font-bold text-foreground">
-                                <ValueTransition value={count} />
-                            </span>
-                        </div>
-                    );
-                })}
+                <AnimatePresence mode="popLayout">
+                    {equipmentCounts.map(({ categoryId, count }) => {
+                        const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
+                        if (!config) return null;
+                        const CategoryIcon = config.icon;
+                        return (
+                            <motion.div 
+                                key={categoryId} 
+                                layout
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="flex items-center gap-1"
+                            >
+                                <div style={{ color: config.color }}>
+                                    <CategoryIcon size={16} />
+                                </div>
+                                <span className="text-sm font-bold text-foreground">
+                                    <AnimatedCounter value={count} />
+                                </span>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </div>
 
             {/* Right: Main Money Stats (Duration, Commission, Profit) */}
@@ -271,7 +277,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
                     <div className="flex items-center gap-1">
                         <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
                         <span className="text-sm font-bold text-foreground">
-                            <ValueTransition value={stats.totalHours * 60} formatter={getHMDuration} />
+                            <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
                         </span>
                     </div>
                 )}
@@ -280,7 +286,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
                     <div className="flex items-center gap-1">
                         <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
                         <span className="text-sm font-bold text-foreground">
-                            <ValueTransition value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                            <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
                         </span>
                     </div>
                 )}
@@ -289,7 +295,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
                     <div className="flex items-center gap-1">
                         <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
                         <span className="text-sm font-bold text-foreground">
-                            <ValueTransition value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                            <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
                         </span>
                     </div>
                 )}
@@ -325,7 +331,7 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
     // Stats calculated from real events only (avoid flicker)
     const stats = useMemo(() => {
         return queue.getStats();
-    }, [queue]);
+    }, [queue, queue.version]);
 
     const equipmentCounts = useMemo(() => {
         const events = queue.getAllEvents();
@@ -343,7 +349,7 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
             categoryId,
             count,
         }));
-    }, [queue]);
+    }, [queue, queue.version]);
 
     const eventProgress = useMemo(() => {
         const events = queue.getAllEvents();
@@ -378,10 +384,10 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
             total,
             eventIds,
         };
-    }, [queue]);
+    }, [queue, queue.version]);
 
-    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue]);
-    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue]);
+    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue, queue.version]);
+    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue, queue.version]);
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
@@ -419,7 +425,7 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
     );
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
-    const todayEvents = useMemo(() => queue.getAllEvents(), [queue]);
+    const todayEvents = useMemo(() => queue.getAllEvents(), [queue, queue.version]);
 
     // Collapsed view - single line
     const progressBarCounts = useMemo(
@@ -458,7 +464,9 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                     {stats.totalHours && stats.totalHours > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <DurationIcon size={18} className="text-muted-foreground/70" />
-                            {getHMDuration(stats.totalHours * 60)}
+                            <span className="font-bold">
+                                <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
+                            </span>
                         </div>
                     )}
 
@@ -466,7 +474,9 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                     {stats.totalRevenue?.commission && stats.totalRevenue.commission > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <HandshakeIcon size={18} className="text-muted-foreground/70" />
-                            {getCompactNumber(stats.totalRevenue.commission)}
+                            <span className="font-bold">
+                                <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                            </span>
                         </div>
                     )}
 
@@ -474,7 +484,9 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                     {stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <TrendingUpDown size={18} className="text-muted-foreground/70" />
-                            {getCompactNumber(stats.totalRevenue.revenue)}
+                            <span className="font-bold">
+                                <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                            </span>
                         </div>
                     )}
 
