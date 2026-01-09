@@ -63,8 +63,8 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
             allOps.filter((op): op is { type: "delete"; eventId: string } => op.type === "delete").map((op) => op.eventId)
         );
 
-        // Filter real events to exclude optimistic deletions immediately (per user request)
-        const realEvents = activeQueue.getAllEvents().filter(e => !relevantDeletions.has(e.id));
+        // Get all real events (don't filter deletions yet, let the card show loading state)
+        const realEvents = activeQueue.getAllEvents();
 
         // Get optimistic "add" operations for this teacher
         const teacherOptimisticEvents = allOps
