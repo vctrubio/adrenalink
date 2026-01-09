@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { getClientConnection as createClient } from "@/supabase/connection";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard-old-schema";
+import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
@@ -36,27 +36,46 @@ export function useAdminClassboardEventListener({ onEventDetected }: AdminClassb
                         old: payload.old,
                     });
 
-                    // Extract bookingId from the event payload
-                    const bookingId = payload.new?.booking_id || payload.old?.booking_id;
+                    // Extract lessonId from the event payload
+                    const lessonId = payload.new?.lesson_id || payload.old?.lesson_id;
 
-                    if (!bookingId) {
-                        console.warn("[EVENT-LISTENER] ⚠️ Could not extract booking_id from event payload");
+                    if (!lessonId) {
+                        console.warn("[EVENT-LISTENER] ⚠️ Could not extract lesson_id from event payload");
                         return;
                     }
 
-                    // Only fetch the affected booking instead of all bookings
-                    getSQLClassboardDataForBooking(bookingId)
-                        .then((result) => {
-                            if ("success" in result && result.success && result.data && result.data.length > 0) {
-                                console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
-                                onEventDetected(result.data);
-                            } else if ("error" in result) {
-                                console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
-                            }
-                        })
-                        .catch((err) => {
-                            console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
-                        });
+                    // Resolve booking_id from lesson_id
+                    const resolveBookingId = async () => {
+                        const { data, error } = await supabase
+                            .from("lesson")
+                            .select("booking_id")
+                            .eq("id", lessonId)
+                            .single();
+                        
+                        if (error || !data) {
+                            console.error("[EVENT-LISTENER] ❌ Failed to resolve booking_id from lesson:", error);
+                            return null;
+                        }
+                        return data.booking_id;
+                    };
+
+                    resolveBookingId().then((bookingId) => {
+                        if (!bookingId) return;
+
+                        // Only fetch the affected booking instead of all bookings
+                        getSQLClassboardDataForBooking(bookingId)
+                            .then((result) => {
+                                if ("success" in result && result.success && result.data && result.data.length > 0) {
+                                    console.log("[EVENT-LISTENER] ✅ Refetch successful, updating UI");
+                                    onEventDetected(result.data);
+                                } else if ("error" in result) {
+                                    console.error("[EVENT-LISTENER] ❌ Refetch failed:", result.error);
+                                }
+                            })
+                            .catch((err) => {
+                                console.error("[EVENT-LISTENER] ❌ Exception during refetch:", err);
+                            });
+                    });
                 };
 
                 const eventChannel = supabase

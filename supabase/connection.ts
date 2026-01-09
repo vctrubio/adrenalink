@@ -12,10 +12,15 @@ export function getServerConnection(): SupabaseClient {
     return createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
+let clientInstance: SupabaseClient | null = null;
+
 /**
  * Get Supabase client for client-side operations
  * (Client components, browser context)
  */
 export function getClientConnection(): SupabaseClient {
-    return createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (!clientInstance) {
+        clientInstance = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return clientInstance;
 }

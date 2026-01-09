@@ -1,4 +1,5 @@
 import BookingIcon from "@/public/appSvgs/BookingIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/types/status";
 
@@ -6,14 +7,16 @@ interface StudentStatusBadgeProps {
   bookingCount: number;
   totalEventDuration: number;
   allBookingsCompleted?: boolean;
+  eventCount?: number;
 }
 
 export function StudentStatusBadge({
   bookingCount,
   totalEventDuration,
   allBookingsCompleted = true,
+  eventCount,
 }: StudentStatusBadgeProps) {
-  console.log("[StudentStatusBadge]", { bookingCount, totalEventDuration, allBookingsCompleted });
+  console.log("[StudentStatusBadge]", { bookingCount, totalEventDuration, allBookingsCompleted, eventCount });
   // Show "New" if no bookings
   if (bookingCount === 0) {
     return (
@@ -29,34 +32,23 @@ export function StudentStatusBadge({
   }
 
   const eventDurationHours = Math.round(totalEventDuration / 60);
+  const bgColor = allBookingsCompleted ? BADGE_STATUS_GREEN : BADGE_ACTION_CYAN;
 
-  // Show bookings + duration with green background if all completed
-  if (allBookingsCompleted) {
-    return (
-      <div
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
-        style={{
-          backgroundColor: `${BADGE_STATUS_GREEN}${BADGE_BG_OPACITY_DARK}`,
-        }}
-      >
-        <BookingIcon size={14} />
-        <span>{bookingCount}</span>
-        <DurationIcon size={14} />
-        <span>{eventDurationHours}h</span>
-      </div>
-    );
-  }
-
-  // Show bookings + duration with blue background if not all completed
   return (
     <div
       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-foreground"
       style={{
-        backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_DARK}`,
+        backgroundColor: `${bgColor}${BADGE_BG_OPACITY_DARK}`,
       }}
     >
       <BookingIcon size={14} />
       <span>{bookingCount}</span>
+      {eventCount !== undefined && (
+        <>
+          <FlagIcon size={14} />
+          <span>{eventCount}</span>
+        </>
+      )}
       <DurationIcon size={14} />
       <span>{eventDurationHours}h</span>
     </div>

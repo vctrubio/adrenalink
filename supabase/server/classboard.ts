@@ -1,117 +1,185 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
-import type { ApiActionResponseModel } from "@/types/actions";
+import { getSchoolHeader } from "@/types/headers";
+import { convertUTCToSchoolTimezone, convertSchoolTimeToUTC } from "@/getters/timezone-getter";
+import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
+import type { ApiActionResponseModel } from "@/types/actions";
+import { headers } from "next/headers";
 
 /**
- * Fetch classboard data with booking, lesson, and event information
- * New schema: bookings have direct school_package reference
+ * Shared query builder for booking relations
+ * Updated for NEW SCHEMA: direct link from booking to school_package
+ */
+function buildBookingQuery() {
+    return `
+        id,
+        date_start,
+        date_end,
+        school_id,
+        leader_student_name,
+        school_package_id,
+        school_package!inner(
+            id,
+            duration_minutes,
+            description,
+            price_per_student,
+            capacity_students,
+            capacity_equipment,
+            category_equipment
+        ),
+        booking_student(
+            student_id,
+            student(
+                id,
+                first_name,
+                last_name,
+                passport,
+                country,
+                phone,
+                languages
+            )
+        ),
+        lesson(
+            id,
+            teacher_id,
+            status,
+            teacher(
+                id,
+                first_name,
+                last_name,
+                username
+            ),
+            teacher_commission(
+                id,
+                cph,
+                commission_type,
+                description
+            ),
+            event(
+                id,
+                lesson_id,
+                date,
+                duration,
+                location,
+                status,
+                equipment_event(
+                    equipment(
+                        id,
+                        brand,
+                        model,
+                        size
+                    )
+                )
+            )
+        )
+    `;
+}
+
+/**
+ * Fetches all classboard bookings for a school
+ * Used for initial page load to populate the entire classboard
  */
 export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
-  try {
-    const headersList = await headers();
-    const schoolId = headersList.get("x-school-id");
+    try {
+        const schoolHeader = await getSchoolHeader();
 
-    if (!schoolId) {
-      return { success: false, error: "School ID not found in headers" };
+        if (!schoolHeader) {
+            return {
+                success: false,
+                error: "School context could not be determined from header.",
+            };
+        }
+
+        const supabase = getServerConnection();
+
+        // Fetch all bookings with full nested relations
+        const { data: bookingsResult, error } = await supabase
+            .from("booking")
+            .select(buildBookingQuery())
+            .eq("school_id", schoolHeader.id)
+            .order("date_start", { ascending: false });
+
+        if (error) {
+            console.error("[CLASSBOARD] Error fetching bookings:", error);
+            return { success: false, error: "Failed to fetch classboard data" };
+        }
+
+        const classboardData = createClassboardModel(bookingsResult || []);
+
+        // Convert all event times from UTC to school's local timezone for display
+        classboardData.forEach((bookingData) => {
+            bookingData.lessons?.forEach((lessonData) => {
+                lessonData.events?.forEach((evt) => {
+                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
+                    evt.date = convertedDate.toISOString();
+                });
+            });
+        });
+
+        return { success: true, data: classboardData };
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to fetch classboard data: ${error instanceof Error ? error.message : String(error)}`,
+        };
     }
+}
 
-    const supabase = getServerConnection();
+/**
+ * Fetches a single booking with all its relations
+ * Used for realtime sync updates
+ */
+export async function getSQLClassboardDataForBooking(bookingId: string): Promise<ApiActionResponseModel<ClassboardModel>> {
+    try {
+        const schoolHeader = await getSchoolHeader();
 
-    // Fetch bookings with their students, packages, and lessons
-    const { data: bookings, error: bookingError } = await supabase
-      .from("booking")
-      .select(`
-        *,
-        booking_student (
-          student:student_id (
-            id,
-            first_name,
-            last_name
-          )
-        ),
-        school_package:school_package_id (
-          id,
-          duration_minutes,
-          description,
-          category_equipment
-        ),
-        lesson (
-          id,
-          teacher:teacher_id (
-            id,
-            username,
-            first_name,
-            last_name
-          ),
-          commission:commission_id (
-            id,
-            commission_type,
-            cph
-          ),
-          event (
-            id,
-            date,
-            duration,
-            location,
-            status
-          )
-        )
-      `)
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
+        if (!schoolHeader) {
+            return {
+                success: false,
+                error: "School context could not be determined from header.",
+            };
+        }
 
-    if (bookingError) {
-      console.error("Error fetching classboard data:", bookingError);
-      return { success: false, error: "Failed to fetch classboard data" };
+        const supabase = getServerConnection();
+
+        // Fetch single booking with full nested relations
+        const { data: bookingData, error } = await supabase
+            .from("booking")
+            .select(buildBookingQuery())
+            .eq("id", bookingId)
+            .single();
+
+        if (error) {
+            console.error("[CLASSBOARD] Error fetching booking:", error);
+            return { success: false, error: "Failed to fetch booking data" };
+        }
+
+        if (!bookingData) {
+            return { success: true, data: [] };
+        }
+
+        // createClassboardModel expects an array
+        const classboardData = createClassboardModel([bookingData]);
+
+        // Convert all event times from UTC to school's local timezone for display
+        classboardData.forEach((bd) => {
+            bd.lessons?.forEach((lessonData) => {
+                lessonData.events?.forEach((evt) => {
+                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
+                    evt.date = convertedDate.toISOString();
+                });
+            });
+        });
+
+        return { success: true, data: classboardData };
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to fetch booking data: ${error instanceof Error ? error.message : String(error)}`,
+        };
     }
-
-    // Transform to ClassboardModel format
-    const classboardData: ClassboardModel = {
-      bookings: (bookings || []).map((booking: any) => ({
-        id: booking.id,
-        students: (booking.booking_student || []).map((bs: any) => ({
-          id: bs.student.id,
-          firstName: bs.student.first_name,
-          lastName: bs.student.last_name,
-        })),
-        package: booking.school_package ? {
-          id: booking.school_package.id,
-          durationMinutes: booking.school_package.duration_minutes,
-          description: booking.school_package.description,
-          categoryEquipment: booking.school_package.category_equipment,
-        } : null,
-        lessons: (booking.lesson || []).map((lesson: any) => ({
-          id: lesson.id,
-          teacher: lesson.teacher ? {
-            id: lesson.teacher.id,
-            username: lesson.teacher.username,
-            firstName: lesson.teacher.first_name,
-            lastName: lesson.teacher.last_name,
-          } : null,
-          commission: lesson.commission ? {
-            id: lesson.commission.id,
-            type: lesson.commission.commission_type,
-            value: lesson.commission.cph,
-          } : null,
-          events: (lesson.event || []).map((event: any) => ({
-            id: event.id,
-            date: event.date,
-            duration: event.duration,
-            location: event.location,
-            status: event.status,
-          })),
-        })),
-      })),
-    };
-
-    return { success: true, data: classboardData };
-  } catch (error) {
-    console.error("Error in getSQLClassboardData:", error);
-    return { success: false, error: "Failed to fetch classboard data" };
-  }
 }
 
 /**
@@ -151,29 +219,9 @@ export async function createClassboardEvent(
     const dateStr = `${year}-${month}-${day}`;
     const timeStr = `${hours}:${minutes}:00`;
 
-    // Calculate UTC time from school local time
-    const midnightUtc = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0));
-
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: schoolZone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    const displayedTime = formatter.format(midnightUtc);
-    const [displayHours, displayMinutes] = displayedTime.split(":").map(Number);
-
-    // Calculate offset: how many minutes ahead is the school's midnight vs UTC midnight
-    const offsetTotalMinutes = displayHours * 60 + displayMinutes;
-
-    // Convert school time to UTC by subtracting the offset
-    const schoolTotalMinutes = parseInt(hours) * 60 + parseInt(minutes);
-    const utcTotalMinutes = schoolTotalMinutes - offsetTotalMinutes;
-
-    const utcHours = Math.floor(utcTotalMinutes / 60) % 24;
-    const utcMins = utcTotalMinutes % 60;
-    const utcTimeStr = `${String(utcHours).padStart(2, "0")}:${String(utcMins).padStart(2, "0")}:00`;
+    // Calculate UTC time from school local time using robust getter
+    // This handles DST and offset calculation correctly for the specific date
+    const utcDate = convertSchoolTimeToUTC(`${dateStr}T${timeStr}`, schoolZone);
 
     // Store as UTC in database
     const supabase = getServerConnection();
@@ -182,7 +230,7 @@ export async function createClassboardEvent(
       .insert({
         lesson_id: lessonId,
         school_id: schoolId,
-        date: new Date(`${dateStr}T${utcTimeStr}Z`),
+        date: utcDate, // DB expects Date object or ISO string (which Date satisfies)
         duration,
         location,
         status: "planned",
@@ -191,12 +239,13 @@ export async function createClassboardEvent(
       .single();
 
     if (error || !result) {
-      return { success: false, error: "Failed to create event" };
+      console.error("❌ [classboard] DB Insert failed:", error);
+      return { success: false, error: `Failed to create event: ${error?.message || "Unknown error"}` };
     }
 
     console.log("✅ [Event Created]", {
-      schoolTime: timeStr,
-      utcTime: utcTimeStr,
+      schoolTime: `${dateStr}T${timeStr}`,
+      utcTime: utcDate.toISOString(),
       timezone: schoolZone,
     });
 

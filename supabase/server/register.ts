@@ -2,6 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getStudentBookingStatus } from "@/supabase/rpc/student_booking_status";
 
@@ -355,7 +356,14 @@ export async function masterBookingAdd(
       }
 
       createdLesson = lesson;
+
+      // Revalidate teacher path only if lesson was created
+      revalidatePath("/teachers");
     }
+
+    // Revalidate student and package paths
+    revalidatePath("/students");
+    revalidatePath("/packages");
 
     return {
       success: true,

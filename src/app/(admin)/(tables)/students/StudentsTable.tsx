@@ -119,7 +119,12 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
                 <div className="flex justify-center">
-                    <StudentStatusBadge bookingCount={data.stats.totalBookings} durationHours={data.stats.totalDurationMinutes / 60} allBookingsCompleted={true} />
+                    <StudentStatusBadge
+                        bookingCount={data.stats.totalBookings}
+                        totalEventDuration={data.stats.totalDurationMinutes}
+                        allBookingsCompleted={data.stats.allBookingsCompleted}
+                        eventCount={data.stats.totalEvents}
+                    />
                 </div>
             ),
         },
@@ -161,7 +166,12 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
                 <div className="scale-90 origin-right">
-                    <StudentStatusBadge bookingCount={data.stats.totalBookings} durationHours={data.stats.totalDurationMinutes / 60} allBookingsCompleted={true} />
+                    <StudentStatusBadge
+                        bookingCount={data.stats.totalBookings}
+                        totalEventDuration={data.stats.totalDurationMinutes}
+                        allBookingsCompleted={data.stats.allBookingsCompleted}
+                        eventCount={data.stats.totalEvents}
+                    />
                 </div>
             ),
         },

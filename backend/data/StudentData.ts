@@ -3,8 +3,8 @@ import type { StudentWithBookingsAndPayments, StudentTableStats } from "@/config
 /**
  * Calculate stats for a single student record
  */
-export function calculateStudentStats(student: StudentWithBookingsAndPayments): StudentTableStats {
-    return student.bookings.reduce((acc, b) => ({
+export function calculateStudentStats(student: StudentWithBookingsAndPayments): StudentTableStats & { allBookingsCompleted: boolean } {
+    const stats = student.bookings.reduce((acc, b) => ({
         totalBookings: acc.totalBookings + 1,
         totalEvents: acc.totalEvents + b.stats.events.count,
         totalDurationMinutes: acc.totalDurationMinutes + (b.stats.events.duration * 60),
@@ -17,4 +17,12 @@ export function calculateStudentStats(student: StudentWithBookingsAndPayments): 
         totalRevenue: 0,
         totalPayments: 0,
     });
+
+    // Check if there are any active bookings
+    const hasActiveBooking = student.bookings.some(b => b.status === "active");
+
+    return {
+        ...stats,
+        allBookingsCompleted: !hasActiveBooking,
+    };
 }

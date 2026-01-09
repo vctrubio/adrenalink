@@ -3,7 +3,7 @@
 import { ReactNode, useCallback, useRef, useEffect } from "react";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
-import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard-old-schema";
+import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import toast from "react-hot-toast";
 
