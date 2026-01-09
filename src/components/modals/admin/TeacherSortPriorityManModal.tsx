@@ -246,7 +246,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                     <motion.div
                                                         className={`
                                                             flex items-center justify-between px-4 py-3 gap-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing group relative overflow-hidden transition-all
-                                                            ${isFocused ? "bg-primary/10 border-primary/20 shadow-sm" : "bg-muted/5 border-transparent hover:border-border/30"}
+                                                            ${isFocused ? "border-border/30 shadow-sm" : "bg-muted/5 border-transparent hover:border-border/30"}
                                                         `}
                                                         onClick={() => setFocusedIndex(index)}
                                                         onMouseEnter={() => setHoveredIndex(index)}
@@ -255,7 +255,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                         {isFocused && (
                                                             <motion.div
                                                                 layoutId="active-indicator"
-                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
+                                                                className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary dark:bg-secondary"
                                                                 style={{ backgroundColor: item.color }}
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}

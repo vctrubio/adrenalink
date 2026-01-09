@@ -184,7 +184,7 @@ export function WizardTable<T>({
                                                 onClick={() => handleRowClick(item)}
                                                 onMouseEnter={() => setHoveredId(uniqueKey)}
                                                 onMouseLeave={() => setHoveredId(null)}
-                                                className={`grid px-4 py-3 transition-all relative group rounded-xl border ${isSelected ? "popup-row-focused" : "popup-row"} ${entityId || onRowClick ? "cursor-pointer" : ""}`}
+                                                className={`grid px-4 py-3 transition-all relative group rounded-xl border popup-row ${entityId || onRowClick ? "cursor-pointer" : ""}`}
                                                 style={{
                                                     gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
                                                 }}

@@ -177,13 +177,13 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
             width: "40px",
             align: "center",
             cell: (entity) => (
-                <ToggleAdranalinkIcon 
+                <ToggleAdranalinkIcon
                     isOpen={false}
                     onClick={(e) => {
                         e?.stopPropagation();
                         setExpandedEntityId(entity.id);
                     }}
-                    color={entity.color}
+                    className="text-primary dark:text-secondary"
                 />
             ),
         },
@@ -212,16 +212,16 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                 <div className="mb-6 flex flex-col items-center">
                                     <AnimatePresence mode="wait">
                                         {!expandedEntityId ? (
-                                            <motion.div key="header-main" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="flex flex-col items-center">
-                                                <div className="flex items-center gap-4 mb-1">
-                                                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }} className="shrink-0">
-                                                        <Image src="/ADR.webp" alt="Adrenalink" width={32} height={32} className="dark:invert drop-shadow-[0_0_8px_rgba(var(--primary),0.3)]" />
-                                                    </motion.div>
-                                                    <motion.h2 initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }} className="text-3xl font-black tracking-tighter text-foreground uppercase leading-none">
+                                            <motion.div key="header-main" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="flex items-center gap-4">
+                                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }} className="shrink-0 dark:invert">
+                                                    <Image src="/ADR.webp" alt="Adrenalink" width={64} height={64} className="drop-shadow-[0_0_8px_rgba(var(--primary),0.3)]" />
+                                                </motion.div>
+                                                <div className="flex flex-col">
+                                                    <motion.h2 initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }} className="text-3xl font-black tracking-tighter text-foreground leading-none">
                                                         Adrenalink
                                                     </motion.h2>
+                                                    <p className="text-muted-foreground/60 text-sm font-bold uppercase tracking-widest">Navigate your way</p>
                                                 </div>
-                                                <p className="text-muted-foreground/60 text-sm font-bold uppercase tracking-widest">Navigate your way</p>
                                             </motion.div>
                                         ) : (
                                             <motion.div
@@ -230,16 +230,13 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
                                                 transition={{ duration: 0.2 }}
-                                                className="flex flex-col items-center cursor-pointer group"
+                                                className="flex flex-col items-center cursor-pointer group gap-2"
                                                 onClick={() => setExpandedEntityId(null)}
                                             >
-                                                <div className="flex items-center gap-3 mb-1 text-muted-foreground group-hover:text-foreground transition-colors">
-                                                    <motion.div initial={{ rotate: 0 }} animate={{ rotate: -90 }} transition={{ duration: 0.4, ease: "backOut" }}>
-                                                        <Image src="/ADR.webp" alt="Adrenalink" width={24} height={24} className="dark:invert opacity-60 group-hover:opacity-100 transition-opacity" />
-                                                    </motion.div>
-                                                    <span className="text-xl font-black tracking-tighter uppercase">Adrenalink</span>
-                                                </div>
-                                                <h2 className="text-4xl font-black tracking-tight text-foreground mb-1">{expandedEntityName}</h2>
+                                                <motion.div initial={{ rotate: 0 }} animate={{ rotate: -90 }} transition={{ duration: 0.4, ease: "backOut" }} className="dark:invert opacity-60 group-hover:opacity-100 transition-opacity">
+                                                    <Image src="/ADR.webp" alt="Adrenalink" width={40} height={40} />
+                                                </motion.div>
+                                                <h2 className="text-4xl font-black tracking-tight text-foreground">{expandedEntityName}</h2>
                                                 <p className="text-muted-foreground/60 text-sm font-bold uppercase tracking-widest">Select an item</p>
                                             </motion.div>
                                         )}
@@ -299,7 +296,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                         renderItem={(item, isSelected) => (
                                                             <div className="flex items-center justify-between px-4 py-3 gap-4">
                                                                 <div className="flex flex-col">
-                                                                    <span className={`font-bold transition-colors ${isSelected ? "text-primary" : "text-foreground"}`}>{item.title}</span>
+                                                                    <span className={`font-bold transition-colors ${isSelected ? "text-primary dark:text-secondary" : "text-foreground"}`}>{item.title}</span>
                                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{item.subtitle}</span>
                                                                 </div>
                                                                 <div className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-black tracking-widest ${item.isActive ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-muted/30 text-muted-foreground"}`}>
