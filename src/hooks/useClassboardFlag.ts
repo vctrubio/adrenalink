@@ -161,6 +161,16 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
     const [flagTick, setFlagTick] = useState(0);
 
+    // Create GlobalFlag instance early and keep it stable
+    const globalFlagRef = useRef<GlobalFlag | null>(null);
+    if (!globalFlagRef.current) {
+        // Initialize with empty queues, will be synced via useEffect
+        globalFlagRef.current = new GlobalFlag([], () => {
+            setFlagTick((t) => t + 1);
+        });
+    }
+    const globalFlag = globalFlagRef.current;
+
     // Derived mounted state
     const mounted = (clientReady && !teachersLoading && minDelayPassed) || !!teachersError;
 
@@ -265,6 +275,9 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
 
         // 3. Apply sync to each queue
         // Important: Sort events chronologically before syncing to ensure linked list order
+        // We also pass the mutating event IDs to implement the 'Mutation Guard'
+        const mutatingIds = globalFlagRef.current?.getMutatingEventIds() || new Set<string>();
+
         currentQueues.forEach(queue => {
             const teacherEvents = eventsByTeacher.get(queue.teacher.id) || [];
             
@@ -274,7 +287,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             );
 
             // Sync! This updates existing nodes in-place or adds new ones
-            queue.syncEvents(teacherEvents);
+            queue.syncEvents(teacherEvents, mutatingIds);
         });
 
         return currentQueues;
@@ -292,15 +305,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     useEffect(() => {
         controllerRef.current = controller;
     }, [controller]);
-
-    // Create GlobalFlag instance once and keep it stable (don't recreate on teacherQueues change)
-    const globalFlagRef = useRef<GlobalFlag | null>(null);
-    if (!globalFlagRef.current) {
-        globalFlagRef.current = new GlobalFlag(teacherQueues, () => {
-            setFlagTick((t) => t + 1);
-        });
-    }
-    const globalFlag = globalFlagRef.current;
 
     // Update GlobalFlag when teacherQueues changes (Sync Pattern)
     useEffect(() => {
@@ -464,72 +468,90 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             }
         }, [globalFlag]);
     
-        const deleteEvent = useCallback(
-            async (eventId: string, cascade: boolean, queueController?: any) => {
-                if (eventId.startsWith("temp-")) {
-                    // Find teacher for this temp event to remove it
-                    for (const queue of teacherQueues) {
-                        if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                            globalFlag.removeOptimisticEvent(queue.teacher.id, eventId);
-                            break;
+                const deleteEvent = useCallback(
+                    async (eventId: string, cascade: boolean, queueController?: any) => {
+                        if (eventId.startsWith("temp-")) {
+                            // Find teacher for this temp event to remove it
+                            for (const queue of teacherQueues) {
+                                if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
+                                    globalFlag.removeOptimisticEvent(queue.teacher.id, eventId);
+                                    break;
+                                }
+                            }
+                            return;
                         }
-                    }
-                    return;
-                }
-    
-            // Find teacher for this event
-            let teacherId = "";
-            for (const queue of teacherQueues) {
-                if (queue.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
-                    teacherId = queue.teacher.id;
-                    break;
-                }
-            }
-
-            // 1. Show Spinner (Mutation State)
-            setEventMutation(eventId, "deleting");
-            globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
             
-            // 2. We DO NOT call markEventAsDeleted here anymore.
-            // We want the node to stay in the queue so the EventCard stays mounted and spins.
-            // It will be removed naturally when the realtime sync confirms the deletion.
-
-            try {
-                if (cascade && queueController) {
-                    const { deletedId, updates } = queueController.cascadeDeleteAndOptimise(eventId);
-                    // For cascade, we can show spinners on the shifted events too
-                    if (updates.length > 0) {
-                        updates.forEach(u => globalFlag.notifyEventMutation(u.id, "updating", teacherId));
-                    }
-                    
-                    await deleteClassboardEvent(deletedId);
-                    if (updates.length > 0) {
-                        await bulkUpdateClassboardEvents(updates, []);
-                        // Cleanup shifted spinners
-                        updates.forEach(u => globalFlag.clearEventMutation(u.id));
-                    }
-                } else {
-                    const result = await deleteClassboardEvent(eventId);
-                    if (!result.success) {
-                        clearEventMutation(eventId);
-                        globalFlag.clearEventMutation(eventId);
-                        toast.error("Failed to delete event");
-                        return;
-                    }
-                }
-                
-                // Spinner will be cleared by realtime sync when node is removed,
-                // but we add a fallback cleanup just in case.
-                setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
-            } catch (error) {
-                console.error("❌ Error during deletion:", error);
-                clearEventMutation(eventId);
-                globalFlag.clearEventMutation(eventId);
-            }
-            },
-            [setEventMutation, clearEventMutation, teacherQueues, globalFlag],
-        );
-    
+                        // Find teacher and queue for this event
+                        let teacherId = "";
+                        let queue: TeacherQueueClass | null = null;
+                        for (const q of teacherQueues) {
+                            if (q.getAllEvents({ includeDeleted: true }).some(e => e.id === eventId)) {
+                                teacherId = q.teacher.id;
+                                queue = q;
+                                break;
+                            }
+                        }
+        
+                                        if (!queue) return;
+                            
+                                        // 1. Show Spinner & Mark as logically deleted (keeps it in list for spinner)
+                                        setEventMutation(eventId, "deleting");
+                                        globalFlag.notifyEventMutation(eventId, "deleting", teacherId);
+                                        // markAsDeleted is safe now because refreshQueueStructure keeps the node in the list
+                                        globalFlag.markEventAsDeleted(teacherId, eventId);
+                        
+                                        let updates: { id: string; date: string; duration: number }[] = [];            
+                                    try {
+                                        if (cascade && queueController) {
+                                            const { deletedId, updates: shiftUpdates } = queueController.cascadeDeleteAndOptimise(eventId);
+                                            
+                                                                if (shiftUpdates.length > 0) {
+                                                                    shiftUpdates.forEach(u => {
+                                                                        // 1. Mark as updating in GlobalFlag (for ADR spinner)
+                                                                        globalFlag.notifyEventMutation(u.id, "updating", teacherId);
+                                                                        
+                                                                        // 2. Apply start-time shift in memory (for blue indicator)
+                                                                        // We use a direct node update to prevent triggering re-sorts until we're done
+                                                                        const node = queue!.getAllEvents({ includeDeleted: true }).find(e => e.id === u.id);
+                                                                        if (node) {
+                                                                            node.eventData.date = u.date;
+                                                                        }
+                                                                    });
+                                                                    
+                                                                    // 3. One final re-sort and linked-list rebuild to solidify the new order
+                                                                    const allNodes = queue!.getAllEvents({ includeDeleted: true });
+                                                                    queue!.rebuildQueue(allNodes);
+                                                                }                                            
+                                            await deleteClassboardEvent(deletedId);
+                                            if (shiftUpdates.length > 0) {
+                                                await bulkUpdateClassboardEvents(shiftUpdates, []);
+                                                shiftUpdates.forEach(u => globalFlag.clearEventMutation(u.id));
+                                            }
+                                        } else {
+                                            const result = await deleteClassboardEvent(eventId);
+                                            if (!result.success) {
+                                                clearEventMutation(eventId);
+                                                globalFlag.clearEventMutation(eventId);
+                                                globalFlag.unmarkEventAsDeleted(teacherId, eventId);
+                                                toast.error("Failed to delete event");
+                                                return;
+                                            }
+                                        }
+                                        
+                                        // Spinner cleanup fallback
+                                        setTimeout(() => globalFlag.clearEventMutation(eventId), 10000);
+                                    } catch (error) {                            console.error("❌ Error during deletion:", error);
+                            toast.error("Failed to update board");
+                            
+                            // Revert on failure
+                            globalFlag.unmarkEventAsDeleted(teacherId, eventId);
+                            clearEventMutation(eventId);
+                            globalFlag.clearEventMutation(eventId);
+                            updates.forEach(u => globalFlag.clearEventMutation(u.id));
+                        }
+                    },
+                    [setEventMutation, clearEventMutation, teacherQueues, globalFlag, gapMinutes],
+                );    
         const updateEventStatusAction = useCallback(
             async (eventId: string, status: string) => {
                 // Find teacher for this event

@@ -120,12 +120,23 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
 
-    // Use linked list for previous event
-    const previousEvent = event.prev;
+    // Check if we are awaiting a previous node's deletion
+    // We traverse back to find the first NON-deleting previous event for gap detection
+    const getEffectivePreviousEvent = (node: EventNode | null): EventNode | null => {
+        let current = node;
+        while (current) {
+            const status = contextValue.getEventCardStatus(current.id);
+            if (status !== "deleting") return current;
+            current = current.prev;
+        }
+        return null;
+    };
+
+    const effectivePreviousEvent = getEffectivePreviousEvent(event.prev);
+    const isWaitingForPrevious = event.prev && contextValue.getEventCardStatus(event.prev.id) === "deleting";
 
     // Check if there's a next event for cascade delete option
     const hasNextEvent = !!event.next;
-    const canShiftQueue = queueController?.canShiftQueue(eventId) ?? false;
 
     // Derive posting state from temp- prefix
     const isPosting = eventId.startsWith("temp-");
@@ -178,16 +189,25 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
 
     return (
         <div
-            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
-                {previousEvent && gapMinutes !== undefined && (
-                    <EventGapDetection currentEvent={event} previousEvent={previousEvent} requiredGapMinutes={gapMinutes} updateMode="updateNow" wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20" className="w-auto shadow-sm" />
+                {effectivePreviousEvent && gapMinutes !== undefined && !isDeleting && (
+                    <EventGapDetection 
+                        currentEvent={event} 
+                        previousEvent={effectivePreviousEvent} 
+                        requiredGapMinutes={gapMinutes} 
+                        updateMode="updateNow" 
+                        wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20" 
+                        className="w-auto shadow-sm" 
+                    />
                 )}
 
                 {/* Left Side: Time and Duration */}
-                <EventStartDurationTime date={event.eventData.date} duration={duration} />
+                <div className={`transition-all duration-500 ${isWaitingForPrevious ? "blur-[2px] opacity-50 scale-95 origin-left grayscale" : ""}`}>
+                    <EventStartDurationTime date={event.eventData.date} duration={duration} />
+                </div>
 
                 {/* Right Side: Status Label with StatusIcon */}
                 <EventStatusLabel

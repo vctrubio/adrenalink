@@ -322,30 +322,28 @@ export class QueueController {
     }
 
     /**
-     * Delete event and cascade/optimize remaining queue from deleted event's start time
-     * Returns deleted ID and updates for all events that need to be shifted
+     * Prepare a cascade deletion: calculates which events need to shift forward
+     * to fill the gap of the deleted event. 
+     * NOTE: Does not physically remove the node yet to allow UI spinners.
      */
     cascadeDeleteAndOptimise(eventId: string): { deletedId: string; updates: { id: string; date: string; duration: number }[] } {
-        const events = this.queue.getAllEvents();
+        const events = this.queue.getAllEvents({ includeDeleted: true });
         const eventToDelete = events.find(e => e.id === eventId);
         
         if (!eventToDelete) {
             return { deletedId: eventId, updates: [] };
         }
 
-        // Store the start time of the event being deleted
+        // Store the anchor time (start time of the event being deleted)
         const deletedStartTimeMinutes = getMinutesFromISO(eventToDelete.eventData.date);
-        
-        console.log(`🔧 [QueueController.cascadeDeleteAndOptimise] Deleting ${eventId} at ${minutesToTime(deletedStartTimeMinutes)}, cascading queue...`);
 
-        // Remove event from queue
-        const updatedEvents = events.filter(e => e.id !== eventId);
-        this.queue.rebuildQueue(updatedEvents);
+        // 1. Mark as logically deleted in the queue so it's ignored for math
+        this.queue.markAsDeleted(eventId);
 
-        // Optimize remaining queue from the deleted event's start time
+        // 2. Calculate the shift for remaining events STARTING FROM the anchor time
         const { updates } = this.queue.optimiseFromTime(deletedStartTimeMinutes, this.settings.gapMinutes);
 
-        console.log(`✅ [QueueController.cascadeDeleteAndOptimise] ${updates.length} events will be shifted`);
+        console.log(`🔧 [QueueController.cascadeDeleteAndOptimise] Deleting ${eventId} at ${minutesToTime(deletedStartTimeMinutes)}, shifting ${updates.length} events forward`);
 
         return { deletedId: eventId, updates };
     }

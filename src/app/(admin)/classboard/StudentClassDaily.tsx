@@ -22,21 +22,15 @@ export default function StudentClassDaily() {
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
 
     const { filteredBookings, counts } = useMemo(() => {
-        const hasEvents = (booking: ClassboardData): boolean => {
+        const hasRealEvents = (booking: ClassboardData): boolean => {
             const lessons = booking.lessons || [];
-
-            // Check real events for the selected date
-            const hasRealEvents = lessons.some((lesson) => 
+            return lessons.some((lesson) => 
                 (lesson.events || []).some(event => event.date.startsWith(selectedDate))
             );
-            if (hasRealEvents) return true;
-
-            // Check optimistic events via GlobalFlag (centralized source)
-            return globalFlag.hasOptimisticEventsForBooking(booking.booking.id);
         };
 
-        const onboardBookings = bookings.filter(hasEvents);
-        const availableBookings = bookings.filter((b) => !hasEvents(b));
+        const onboardBookings = bookings.filter(hasRealEvents);
+        const availableBookings = bookings.filter((b) => !hasRealEvents(b));
 
         const counts = {
             available: availableBookings.length,
@@ -48,12 +42,12 @@ export default function StudentClassDaily() {
             // Show all student booking cards
             filteredData = bookings;
         } else {
-            // Show available bookings, with onboard (hasEvents) sorted to bottom
+            // Show available bookings, with onboard sorted to bottom
             filteredData = [...availableBookings, ...onboardBookings];
         }
 
         return { filteredBookings: filteredData, counts };
-    }, [bookings, filter, globalFlag, selectedDate]);
+    }, [bookings, filter, selectedDate]);
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -89,11 +83,9 @@ export default function StudentClassDaily() {
                                         const hasRealEvents = lessons.some((lesson) => 
                                             (lesson.events || []).some(event => event.date.startsWith(selectedDate))
                                         );
-                                        const hasOptimisticEvent = globalFlag.hasOptimisticEventsForBooking(bookingData.booking.id);
-                                        const hasEventToday = hasRealEvents || hasOptimisticEvent;
-
-                                        // Determine which component to render
-                                        const Component = (filter === "all" || !hasEventToday) 
+                                        
+                                        // Determine which component to render - ONLY use Onboard card if REAL events exist
+                                        const Component = (filter === "all" || !hasRealEvents) 
                                             ? StudentBookingCard 
                                             : BookingOnboardCard;
 
@@ -106,7 +98,7 @@ export default function StudentClassDaily() {
                                                 exit={{ opacity: 0, y: -10 }}
                                                 transition={{
                                                     duration: 0.3,
-                                                    ease: [0.23, 1, 0.32, 1] // Custom quintic ease for a smooth, professional feel
+                                                    ease: [0.23, 1, 0.32, 1] 
                                                 }}
                                                 className="flex-shrink-0"
                                             >

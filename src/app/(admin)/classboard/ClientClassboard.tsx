@@ -45,8 +45,8 @@ function ClassboardContent() {
 
     const stats = useMemo(() => {
         // TeacherQueues now manage their own internal optimistic state
-        // We can just pass them directly to the statistics calculator
-        const statistics = new ClassboardStatistics(teacherQueues);
+        // We include deleted events so the header stats stay stable during deletion
+        const statistics = new ClassboardStatistics(teacherQueues, undefined, undefined, true);
         return statistics.getDailyLessonStats();
     }, [teacherQueues, selectedDate]);
 

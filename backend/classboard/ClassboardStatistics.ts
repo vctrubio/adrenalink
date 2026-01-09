@@ -78,7 +78,7 @@ export class ClassboardStatistics {
         if (this.teacherQueues) {
             // Calculate stats from TeacherQueue[] events
             const activeTeacherStats = this.teacherQueues
-                .map(queue => queue.getStats())
+                .map(queue => queue.getStats({ includeDeleted: this.countAllEvents }))
                 .filter(stats => stats.eventCount > 0);
 
             const teacherCount = activeTeacherStats.length;

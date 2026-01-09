@@ -51,6 +51,7 @@ export default function EventGapDetection({
         try {
             if (updateMode === "updateNow") {
                 // Database update mode - calculate and save directly
+                // IMPORTANT: previousEvent end time is the source of truth for the next available slot
                 const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
                 const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;
                 const correctStartMinutes = previousEndMinutes + requiredGapMinutes;
@@ -58,12 +59,11 @@ export default function EventGapDetection({
                 const datePart = getDatePartFromISO(currentEvent.eventData.date);
                 const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
 
+                console.log(`🔧 [EventGapDetection] Adjusting gap: ${minutesToTime(correctStartMinutes)} (v${previousEvent.id})`);
                 await updateEventStartTime(currentEvent.id, newDate);
-                console.log("✅ [EventGapDetection] Gap adjusted successfully");
             } else {
                 // Update on save mode - let parent QueueController handle it
                 onGapAdjust?.();
-                console.log("✅ [EventGapDetection] Gap adjust callback triggered");
             }
         } catch (error) {
             console.error("❌ [EventGapDetection] Error updating event:", error);

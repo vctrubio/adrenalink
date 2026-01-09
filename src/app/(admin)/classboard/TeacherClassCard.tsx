@@ -330,11 +330,13 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
 
     // Stats calculated from real events only (avoid flicker)
     const stats = useMemo(() => {
-        return queue.getStats();
+        // Include deleted events in stats so the placeholders don't flash during deletion
+        return queue.getStats({ includeDeleted: true });
     }, [queue, queue.version]);
 
     const equipmentCounts = useMemo(() => {
-        const events = queue.getAllEvents();
+        // Include deleted events so icons stay visible while spinning
+        const events = queue.getAllEvents({ includeDeleted: true });
         const counts = new Map<string, number>();
 
         // Process confirmed events only (avoid flicker)
@@ -352,7 +354,8 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
     }, [queue, queue.version]);
 
     const eventProgress = useMemo(() => {
-        const events = queue.getAllEvents();
+        // Progress bar should also show the deleting state
+        const events = queue.getAllEvents({ includeDeleted: true });
         let completed = 0;
         let planned = 0;
         let tbc = 0;
@@ -386,8 +389,8 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
         };
     }, [queue, queue.version]);
 
-    const completedCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status === "completed").length, [queue, queue.version]);
-    const pendingCount = useMemo(() => queue.getAllEvents().filter((e) => e.eventData.status !== "completed").length, [queue, queue.version]);
+    const completedCount = useMemo(() => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status === "completed").length, [queue, queue.version]);
+    const pendingCount = useMemo(() => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status !== "completed").length, [queue, queue.version]);
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
@@ -425,7 +428,7 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
     );
 
     // Get events from queue for equipment display (already filtered by date in ClientClassboard)
-    const todayEvents = useMemo(() => queue.getAllEvents(), [queue, queue.version]);
+    const todayEvents = useMemo(() => queue.getAllEvents({ includeDeleted: true }), [queue, queue.version]);
 
     // Collapsed view - single line
     const progressBarCounts = useMemo(
