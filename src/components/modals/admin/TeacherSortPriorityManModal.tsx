@@ -18,6 +18,7 @@ import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
+import toast from "react-hot-toast";
 import React from "react";
 
 interface TeacherSortPriorityManModalProps {
@@ -36,7 +37,7 @@ interface TeacherSortItem {
 }
 
 export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPriorityManModalProps) {
-    const { allTeachers, refetch } = useSchoolTeachers();
+    const { allTeachers, setTeacherActive } = useSchoolTeachers();
     const savedOrder = useTeacherSortOrder();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const router = useRouter();
@@ -47,22 +48,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [filterMode, setFilterMode] = useState<"active" | "all">("all");
 
-    // Initialize items based on order from hook
+    // Initialize items when modal opens or teachers change
     useEffect(() => {
         if (!isOpen || allTeachers.length === 0) return;
 
-        let sorted = [...allTeachers];
-        if (savedOrder.length > 0) {
-            sorted = sorted.sort((a, b) => {
-                const aIndex = savedOrder.indexOf(a.schema.id);
-                const bIndex = savedOrder.indexOf(b.schema.id);
-                if (aIndex === -1) return 1;
-                if (bIndex === -1) return -1;
-                return aIndex - bIndex;
-            });
-        }
-
-        const popUpItems: TeacherSortItem[] = sorted.map((teacher) => ({
+        const popUpItems: TeacherSortItem[] = allTeachers.map((teacher) => ({
             id: teacher.schema.id,
             title: teacher.schema.username,
             subtitle: "",
@@ -72,12 +62,11 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             teacher,
         }));
 
-        // Batch all state updates into a single render
         setItems(popUpItems);
         setHasChanges(false);
         setStatusChanges(new Map());
         setFilterMode("all");
-    }, [isOpen, allTeachers, savedOrder, teacherEntity]);
+    }, [isOpen, allTeachers, teacherEntity]);
 
     const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
         const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
@@ -105,12 +94,19 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
     const handleSubmit = useCallback(async () => {
         try {
             if (statusChanges.size > 0) {
+                // Update Supabase and local context for each change
                 for (const [teacherId, active] of statusChanges.entries()) {
-                    await updateTeacherActive(teacherId, active);
+                    // Fire and forget server update
+                    updateTeacherActive(teacherId, active).catch(err => {
+                        console.error(`Failed to update status for ${teacherId}:`, err);
+                    });
+                    
+                    // Update local context immediately (Silent Update)
+                    setTeacherActive(teacherId, active);
                 }
-                await refetch();
             }
 
+            // Update Sort Order - this will trigger listeners in useTeacherSortOrder
             const ids = items.map((item) => item.id);
             updateTeacherSortOrder(ids);
 
@@ -120,7 +116,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         } catch (error) {
             console.error("Error submitting changes:", error);
         }
-    }, [items, statusChanges, onClose, refetch]);
+    }, [items, statusChanges, onClose, setTeacherActive]);
 
     const handleReset = useCallback(() => {
         setHasChanges(false);

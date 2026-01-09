@@ -10,6 +10,7 @@ interface SchoolTeachersContextType {
     loading: boolean;
     error: string | null;
     refetch: () => Promise<void>;
+    setTeacherActive: (teacherId: string, active: boolean) => void;
 }
 
 export const SchoolTeachersContext = createContext<SchoolTeachersContextType | undefined>(undefined);
@@ -27,6 +28,26 @@ export function SchoolTeachersProvider({ children, initialData }: SchoolTeachers
     const [allTeachers, setAllTeachers] = useState<TeacherProvider[]>(initialData?.allTeachers || []);
     const [loading, setLoading] = useState(!initialData);
     const [error, setError] = useState<string | null>(null);
+
+    const setTeacherActive = (teacherId: string, active: boolean) => {
+        setAllTeachers((prev) => 
+            prev.map(t => t.schema.id === teacherId ? { ...t, schema: { ...t.schema, active } } : t)
+        );
+        
+        setTeachers((prev) => {
+            // If turning on, we might need to find it in allTeachers
+            if (active) {
+                const alreadyActive = prev.some(t => t.schema.id === teacherId);
+                if (alreadyActive) return prev;
+                
+                const teacher = allTeachers.find(t => t.schema.id === teacherId);
+                if (teacher) return [...prev, { ...teacher, schema: { ...teacher.schema, active: true } }];
+                return prev;
+            } 
+            // If turning off, just filter it out
+            return prev.filter(t => t.schema.id !== teacherId);
+        });
+    };
 
     const fetchTeachers = async () => {
         setLoading(true);
@@ -65,6 +86,7 @@ export function SchoolTeachersProvider({ children, initialData }: SchoolTeachers
             loading,
             error,
             refetch: fetchTeachers,
+            setTeacherActive,
         }),
         [teachers, allTeachers, loading, error],
     );

@@ -145,7 +145,7 @@ interface UseClassboardFlagProps {
 }
 
 export function useClassboardFlag({ initialClassboardModel, serverError }: UseClassboardFlagProps) {
-    const { teachers: activeTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
+    const { allTeachers, loading: teachersLoading, error: teachersError } = useSchoolTeachers();
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -178,7 +178,15 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     useEffect(() => { controllerRef.current = controller; }, [controller]);
 
     // Derived mounted state
-    const mounted = (clientReady && !teachersLoading && minDelayPassed) || !!teachersError;
+    // STICKY MOUNT: Once loaded, stay loaded to prevent skeletons during background refetches
+    const hasLoadedOnce = useRef(false);
+    useEffect(() => {
+        if (!teachersLoading && clientReady && minDelayPassed) {
+            hasLoadedOnce.current = true;
+        }
+    }, [teachersLoading, clientReady, minDelayPassed]);
+
+    const mounted = (clientReady && (!teachersLoading || hasLoadedOnce.current) && minDelayPassed) || !!teachersError;
 
     // Filter bookings by selected date
     const bookingsForSelectedDate = useMemo(() => {
@@ -187,20 +195,24 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
 
     // --- 4. THE SYNC ENGINE (Patches stable objects) ---
     useEffect(() => {
-        if (!activeTeachers.length || !clientReady) return;
+        if (!allTeachers.length || !clientReady) return;
 
         console.log(`⚙️ [SyncEngine] Patching board for ${selectedDate}...`);
         const queuesMap = stableQueuesRef.current;
         const mutatingIds = globalFlag.getMutatingEventIds();
 
-        // A. Ensure teachers exist
-        activeTeachers.forEach((teacher) => {
-            if (!queuesMap.has(teacher.schema.id)) {
-                queuesMap.set(teacher.schema.id, new TeacherQueueClass({
+        // A. Ensure ALL teachers exist in registry and sync their active status
+        allTeachers.forEach((teacher) => {
+            let queue = queuesMap.get(teacher.schema.id);
+            if (!queue) {
+                queue = new TeacherQueueClass({
                     id: teacher.schema.id,
                     username: teacher.schema.username,
-                }));
+                });
+                queuesMap.set(teacher.schema.id, queue);
             }
+            // Update the persistent instance with current active status from provider
+            queue.isActive = teacher.schema.active;
         });
 
         // B. Group events for current date
@@ -231,21 +243,20 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         });
 
         // D. Update Global Authority
-        const currentQueues = activeTeachers
+        const currentQueues = allTeachers
             .map(t => queuesMap.get(t.schema.id))
             .filter((q): q is TeacherQueueClass => !!q);
             
         globalFlag.updateTeacherQueues(currentQueues);
         
-    }, [activeTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
+    }, [allTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
 
     // Derived reactive array for the UI
-    const [queuesVersion, setQueuesVersion] = useState(0); // For forcing stats refresh
     const teacherQueues = useMemo(() => {
-        return activeTeachers
+        return allTeachers
             .map(t => stableQueuesRef.current.get(t.schema.id))
             .filter((q): q is TeacherQueueClass => !!q);
-    }, [activeTeachers, flagTick]);
+    }, [allTeachers, flagTick]);
 
     // --- 5. EFFECTS ---
 
@@ -558,7 +569,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             getEventCardStatus,
             globalFlag,
             setClassboardModelWrapper,
-            queuesVersion,
             flagTick,
         ],
     );

@@ -33,15 +33,19 @@ export default function TeacherClassDaily() {
         });
     };
 
-    // Filter teachers based on whether they have events
+    // Filter teachers based on their registry status and current activity
     const { filteredQueues, counts } = useMemo(() => {
+        // TeacherQueue objects are now persistent for ALL teachers
         const activeQueues: TeacherQueue[] = [];
         const allQueues: TeacherQueue[] = teacherQueues;
 
         teacherQueues.forEach((queue) => {
-            // TeacherQueue now handles its own active/optimistic events
-            const events = queue.getAllEvents();
-            if (events.length > 0) {
+            const hasEvents = queue.getAllEvents().length > 0;
+            
+            // Criteria for 'Active' view:
+            // 1. Teacher is marked as active in the system
+            // 2. OR Teacher has events today (crucial for stats/planning)
+            if (queue.isActive || hasEvents) {
                 activeQueues.push(queue);
             }
         });

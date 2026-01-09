@@ -47,5 +47,6 @@ export function useSchoolTeachers() {
         loading: context.loading,
         error: context.error,
         refetch: context.refetch,
+        setTeacherActive: context.setTeacherActive,
     };
 }

@@ -129,7 +129,7 @@ interface InstructorListProps {
     onAddEvent: (lessonId: string) => void;
     loadingLessonId: string | null;
     draggableLessonIds?: Set<string>; // Only lessons with teachers
-    onAssignTeacher: (lessonId: string) => void;
+    onAssignTeacher: () => void;
 }
 
 const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, draggableLessonIds, onAssignTeacher }: InstructorListProps) => {
@@ -145,7 +145,10 @@ const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, dra
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
                 <button
-                    onClick={() => lessons[0] && onAssignTeacher(lessons[0].id)}
+                    onClick={() => {
+                      console.log("Button clicked, lessons count:", lessons.length);
+                      onAssignTeacher();
+                    }}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground hover:bg-muted/70 rounded-lg transition-colors border border-border/30"
                 >
                     <Plus size={14} />
@@ -206,7 +209,6 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
     const [isAssignTeacherModalOpen, setIsAssignTeacherModalOpen] = useState(false);
-    const [selectedLessonIdForAssignment, setSelectedLessonIdForAssignment] = useState<string | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const bookingId = bookingData.booking.id;
@@ -222,6 +224,10 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
     const students = bookingStudents.map((bs) => bs.student);
     const draggableLessonIds = new Set(lessons.filter((l) => l.teacher?.id).map((l) => l.id));
+
+    useEffect(() => {
+        console.log("isAssignTeacherModalOpen changed to:", isAssignTeacherModalOpen);
+    }, [isAssignTeacherModalOpen]);
 
     useEffect(() => {
         if (loadingLessonId) {
@@ -278,8 +284,8 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
         await addLessonEvent(bookingData, lessonId);
     };
 
-    const handleOpenAssignTeacherModal = useCallback((lessonId: string) => {
-        setSelectedLessonIdForAssignment(lessonId);
+    const handleOpenAssignTeacherModal = useCallback(() => {
+        console.log("handleOpenAssignTeacherModal called");
         setIsAssignTeacherModalOpen(true);
     }, []);
 
@@ -326,14 +332,16 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                 <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
             </motion.div>
 
-            {selectedLessonIdForAssignment && (
-                <AssignTeacherToLessonModal
-                    isOpen={isAssignTeacherModalOpen}
-                    onClose={() => setIsAssignTeacherModalOpen(false)}
-                    lessonId={selectedLessonIdForAssignment}
-                    bookingData={bookingData}
-                    onAssigned={handleAssignTeacherSuccess}
-                />
+            {isAssignTeacherModalOpen && (
+                <>
+                  {console.log("Rendering modal with state:", { isOpen: isAssignTeacherModalOpen })}
+                  <AssignTeacherToLessonModal
+                      isOpen={isAssignTeacherModalOpen}
+                      onClose={() => setIsAssignTeacherModalOpen(false)}
+                      bookingData={bookingData}
+                      onAssigned={handleAssignTeacherSuccess}
+                  />
+                </>
             )}
         </>
     );

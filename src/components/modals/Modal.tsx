@@ -101,7 +101,7 @@ export default function Modal({
                                             )}
                                         </div>
                                         {subtitle && (
-                                            <p className="popup-header-subtitle">{subtitle}</p>
+                                            <div className="popup-header-subtitle">{subtitle}</div>
                                         )}
                                     </div>
                                 )}

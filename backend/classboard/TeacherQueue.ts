@@ -22,6 +22,7 @@ export class TeacherQueue {
     private head: EventNode | null = null;
     public teacher: TeacherInfo;
     public version: number = 0;
+    public isActive: boolean = true;
     
     // THE GROUND TRUTH: Last known state from the server
     private serverEvents = new Map<string, EventNode>();

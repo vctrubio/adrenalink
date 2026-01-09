@@ -249,7 +249,7 @@ export function RegisterProvider({
                 bookingForm.selectedStudentIds,
                 bookingForm.dateRange.startDate,
                 bookingForm.dateRange.endDate,
-                bookingForm.selectedTeacher?.id,
+                bookingForm.selectedTeacher?.schema.id,
                 bookingForm.selectedCommission?.id,
                 bookingForm.selectedReferral?.id,
                 leaderStudentName

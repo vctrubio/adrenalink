@@ -61,7 +61,8 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         );
     }, [activeQueue, queue.teacher.username]);
 
-    const isEligible = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
+    // Eligibility check: Lesson must match AND teacher must be ACTIVE in registry
+    const isEligible = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) && activeQueue.isActive;
     const isDraggingSomething = !!draggedBooking;
 
     // Calculate next available slot for overlay display

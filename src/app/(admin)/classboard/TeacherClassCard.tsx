@@ -443,17 +443,22 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
 
     if (!isExpanded) {
         return (
-            <div className="group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200">
+            <div className={`group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 ${!queue.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}>
                 {<ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
 
                 <div onClick={handleHeaderClick} className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1">
                     {/* Icon - Enter adjustment mode and expand if collapsed */}
-                    <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80" style={{ color: TEACHER_COLOR }}>
+                    <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80" style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}>
                         <HeadsetIcon size={28} />
                     </button>
 
                     {/* Username */}
-                    <span className="text-xl font-bold text-foreground truncate min-w-0 flex-shrink-0">{teacherName}</span>
+                    <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
+                        <span className="text-xl font-bold text-foreground truncate">{teacherName}</span>
+                        {!queue.isActive && (
+                            <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">Inactive</span>
+                        )}
+                    </div>
 
                     {/* Time */}
                     {earliestTime && (
@@ -512,12 +517,15 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
 
     // Expanded view
     return (
-        <div onClick={onClick} className="group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-pointer">
+        <div 
+            onClick={onClick} 
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 hover:shadow-lg cursor-pointer ${!queue.isActive ? "opacity-75 grayscale-[0.3]" : ""}`}
+        >
             {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse */}
             <div onClick={handleHeaderClick} className="flex items-center gap-4 px-6 py-5 cursor-pointer">
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
                 <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80">
-                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: TEACHER_COLOR }}>
+                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}>
                         <HeadsetIcon size={24} />
                     </div>
                 </button>
@@ -525,7 +533,12 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                 {/* Right Side: Name, Progress, and Time - Toggle adjustment mode on click */}
                 <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                        <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">{teacherName}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">{teacherName}</span>
+                            {!queue.isActive && (
+                                <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">Inactive</span>
+                            )}
+                        </div>
                         {earliestTime && (
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold shrink-0">
                                 <FlagIcon size={12} className="shrink-0" />
