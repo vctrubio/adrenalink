@@ -1,14 +1,17 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
+import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
+import { AddCommissionDropdown } from "@/src/components/ui/AddCommissionDropdown";
 import { useState, useMemo, memo, useEffect } from "react";
-import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
 import { useTableSort } from "@/hooks/useTableSort";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 import { filterBySearch } from "@/types/searching-entities";
+import { motion, AnimatePresence } from "framer-motion";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface TeacherStats {
@@ -24,14 +27,18 @@ interface TeacherTableProps {
     onSelectCommission: (commission: any | null) => void;
     onSectionClose?: () => void;
     teacherStatsMap?: Record<string, TeacherStats>;
+    onCommissionAdded?: () => void;
 }
 
 type SortColumn = "firstName" | "lastName" | "languages" | "status" | null;
 
-function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectTeacher, onSelectCommission, onSectionClose, teacherStatsMap = {} }: TeacherTableProps) {
+function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectTeacher, onSelectCommission, onSectionClose, teacherStatsMap = {}, onCommissionAdded }: TeacherTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
+    const [localCommissions, setLocalCommissions] = useState<any[]>(selectedTeacher?.schema.commissions || []);
+    const credentials = useSchoolCredentials();
+    const currency = credentials.currency || "YEN";
     const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
 
@@ -107,17 +114,33 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
         }
     };
 
+    // Sync local commissions when teacher selection changes (fresh data from provider)
+    useEffect(() => {
+        if (selectedTeacher) {
+            setLocalCommissions(selectedTeacher.schema.commissions);
+        }
+    }, [selectedTeacher]);
+
+    // Handle new commission: show optimistically, then refetch provider data
+    const handleCommissionCreated = (newCommission: any) => {
+        const formattedCommission = {
+            id: newCommission.id,
+            commissionType: newCommission.commission_type,
+            cph: newCommission.cph,
+            description: newCommission.description,
+        };
+        setLocalCommissions([...localCommissions, formattedCommission]);
+        onSelectCommission(formattedCommission);
+        // Refetch teacher data from provider to keep parent component in sync
+        if (onCommissionAdded) {
+            onCommissionAdded();
+        }
+    };
+
     return (
         <div className="space-y-3">
             <div className="flex gap-2 items-center">
-                <SearchInput
-                    placeholder="Search by username..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    variant="background"
-                    entityColor={teacherEntity?.color}
-                    className="flex-1"
-                />
+                <SearchInput placeholder="Search by username..." value={search} onChange={(e) => setSearch(e.target.value)} variant="background" entityColor={teacherEntity?.color} className="flex-1" />
                 {teacherEntity && <FilterDropdown label="Status" value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(v) => setStatusFilter(v as StatusFilterType)} entityColor={teacherEntity.color} />}
             </div>
 
@@ -126,11 +149,9 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                 <div className="p-3 rounded-lg bg-muted">
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="font-semibold text-foreground">
-                                {selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}
-                            </div>
+                            <div className="font-semibold text-foreground">{selectedTeacher.schema.username}</div>
                             <div className="text-sm text-muted-foreground">
-                                @{selectedTeacher.schema.username} • €{selectedCommission.cph}/h ({selectedCommission.commissionType}){selectedCommission.description && ` - ${selectedCommission.description}`}
+                                {currency}{selectedCommission.cph}/h ({selectedCommission.commissionType}){selectedCommission.description && ` - ${selectedCommission.description}`}
                             </div>
                         </div>
                         <button
@@ -147,122 +168,77 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                 </div>
             )}
 
-            {selectedTeacher ? (
-                <div className="grid grid-cols-2 gap-4">
-                    {/* Left side: Selected teacher only */}
-                    <div>
-                        <Table>
-                            <TableHeader>
-                                <tr>
-                                    <TableHead>Teacher</TableHead>
-                                </tr>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow onClick={() => handleTeacherClick(selectedTeacher)} isSelected={true} selectedColor={teacherEntity?.color}>
-                                    <TableCell className="font-medium">
-                                        <div>
-                                            <div className="text-foreground">
-                                                {selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {teacherEntity && (
-                                                    <HoverToEntity entity={teacherEntity} id={selectedTeacher.schema.id}>
-                                                        @{selectedTeacher.schema.username}
-                                                    </HoverToEntity>
-                                                )}
-                                                {!teacherEntity && `@${selectedTeacher.schema.username}`}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
+            <Table>
+                <TableHeader>
+                    <tr>
+                        <TableHead sortable sortActive={sortColumn === "firstName" || sortColumn === "lastName"} sortDirection={sortDirection} onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}>
+                            Name
+                        </TableHead>
+                        <TableHead sortable sortActive={sortColumn === "languages"} sortDirection={sortDirection} onSort={() => handleSort("languages")}>
+                            Languages
+                        </TableHead>
+                        <TableHead sortable sortActive={sortColumn === "status"} sortDirection={sortDirection} onSort={() => handleSort("status")}>
+                            Status
+                        </TableHead>
+                    </tr>
+                </TableHeader>
+                <TableBody>
+                    {filteredTeachers.flatMap((teacher) => {
+                        const stats = teacherStatsMap[teacher.schema.id] || { totalLessons: 0, completedLessons: 0 };
+                        const isSelected = selectedTeacher?.schema.id === teacher.schema.id;
+                        return [
+                            <TableRow key={teacher.schema.id} onClick={() => handleTeacherClick(teacher)} isSelected={isSelected} selectedColor={teacherEntity?.color}>
+                                <TableCell className="font-medium text-foreground ">
+                                    {teacherEntity && (
+                                        <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
+                                            {teacher.schema.username}
+                                        </HoverToEntity>
+                                    )}
+                                    {!teacherEntity && teacher.schema.username}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">{teacher.schema.languages.join(", ")}</TableCell>
+                                <TableCell>
+                                    <TeacherActiveLesson totalLessons={stats.totalLessons} completedLessons={stats.completedLessons} />
+                                </TableCell>
+                            </TableRow>,
+                            isSelected && (
+                                <motion.tr key={`${teacher.schema.id}-dropdown`} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+                                    <td colSpan={3} className="p-4 bg-muted/20">
+                                        <div className="space-y-4">
+                                            {/* Commissions List */}
+                                            {localCommissions.length > 0 && (
+                                                <div>
+                                                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase">Commissions</div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {localCommissions.map((commission) => (
+                                                            <CommissionTypeValue
+                                                                key={commission.id}
+                                                                value={commission.cph}
+                                                                type={commission.commissionType as "fixed" | "percentage"}
+                                                                description={commission.description}
+                                                                isSelected={selectedCommission?.id === commission.id}
+                                                                onClick={() => handleCommissionSelect(commission)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
-                    {/* Right side: Commissions table */}
-                    <div>
-                        <Table>
-                            <TableHeader>
-                                <tr>
-                                    <TableHead>
-                                        <div className="text-green-600 dark:text-green-400">
-                                            <HandshakeIcon size={18} />
+                                            {/* Add Commission Dropdown */}
+                                            <AddCommissionDropdown
+                                                teacherId={selectedTeacher.schema.id}
+                                                currency={currency}
+                                                color={commissionEntity?.color || "#10b981"}
+                                                onAdd={handleCommissionCreated}
+                                            />
                                         </div>
-                                    </TableHead>
-                                    <TableHead>Description</TableHead>
-                                </tr>
-                            </TableHeader>
-                            <TableBody>
-                                {selectedTeacher.schema.commissions.length > 0 ? (
-                                    selectedTeacher.schema.commissions.map((commission) => {
-                                        const isCommissionSelected = selectedCommission?.id === commission.id;
-                                        const getCommissionDisplay = (commission: Commission) => {
-                                            return commission.commissionType === "fixed" ? `${commission.cph} €/h` : `${commission.cph} %/h`;
-                                        };
-
-                                        return (
-                                            <TableRow key={commission.id} onClick={() => handleCommissionSelect(commission)} isSelected={isCommissionSelected} selectedColor={commissionEntity?.color}>
-                                                <TableCell className="font-medium font-mono">{getCommissionDisplay(commission)}</TableCell>
-                                                <TableCell className="text-muted-foreground">{commission.description || "-"}</TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan={2} className="p-6 text-center text-sm text-muted-foreground">
-                                            No commissions available
-                                        </td>
-                                    </tr>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-            ) : (
-                <Table>
-                    <TableHeader>
-                        <tr>
-                            <TableHead sortable sortActive={sortColumn === "firstName" || sortColumn === "lastName"} sortDirection={sortDirection} onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}>
-                                Name
-                            </TableHead>
-                            <TableHead sortable sortActive={sortColumn === "languages"} sortDirection={sortDirection} onSort={() => handleSort("languages")}>
-                                Languages
-                            </TableHead>
-                            <TableHead sortable sortActive={sortColumn === "status"} sortDirection={sortDirection} onSort={() => handleSort("status")}>
-                                Status
-                            </TableHead>
-                        </tr>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredTeachers.map((teacher) => {
-                            const stats = teacherStatsMap[teacher.schema.id] || { totalLessons: 0, completedLessons: 0 };
-                            return (
-                                <TableRow key={teacher.schema.id} onClick={() => handleTeacherClick(teacher)} selectedColor={teacherEntity?.color}>
-                                    <TableCell className="font-medium text-foreground">
-                                        <div>
-                                            <div>
-                                                {teacher.schema.first_name} {teacher.schema.last_name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {teacherEntity && (
-                                                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
-                                                        {teacher.schema.username}
-                                                    </HoverToEntity>
-                                                )}
-                                                {!teacherEntity && teacher.schema.username}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">{teacher.schema.languages.join(", ")}</TableCell>
-                                    <TableCell>
-                                        <TeacherActiveLesson totalLessons={stats.totalLessons} completedLessons={stats.completedLessons} />
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            )}
+                                    </td>
+                                </motion.tr>
+                            ),
+                        ].filter(Boolean);
+                    })}
+                </TableBody>
+            </Table>
         </div>
     );
 }

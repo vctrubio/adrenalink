@@ -192,10 +192,12 @@ export class GlobalFlag {
 
     notifyEventMutation(eventId: string, type: EventMutationType, teacherId?: string): void {
         this.eventMutations.set(eventId, { eventId, type, teacherId });
+        this.triggerRefresh();
     }
 
     clearEventMutation(eventId: string): void {
         this.eventMutations.delete(eventId);
+        this.triggerRefresh();
     }
 
     isEventMutating(eventId: string): boolean {

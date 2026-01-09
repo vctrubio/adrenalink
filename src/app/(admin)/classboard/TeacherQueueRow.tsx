@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import EventCard from "./EventCard";
 import EventModCard from "./EventModCard";
@@ -39,13 +40,18 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     // Get QueueController from GlobalFlag (if in adjustment mode)
     let queueController = isAdjustmentMode ? globalFlag.getQueueController(queue.teacher.id) : null;
 
-    // In view mode, create temporary QueueController for cascade delete operations
+    // In view mode, memoize a temporary QueueController for cascade delete operations
+    const tempController = useMemo(() => {
+        if (isAdjustmentMode) return null;
+        return new QueueController(queue, controller, () => { });
+    }, [queue, controller, isAdjustmentMode]);
+
     if (!queueController) {
-        queueController = new QueueController(queue, controller, () => { });
+        queueController = tempController;
     }
 
     // Use queue from QueueController if in adjustment mode (it has the preserved mutations)
-    const activeQueue = queueController.getQueue();
+    const activeQueue = queueController?.getQueue() || queue;
 
     useEffect(() => {
         const events = activeQueue.getAllEvents();
@@ -54,18 +60,20 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
         );
     }, [activeQueue, queue.teacher.username]);
 
-    const canReceiveBooking = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
+    const isEligible = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
+    const isDraggingSomething = !!draggedBooking;
 
     // Memoize the entire event list computation
     const eventsWithOptimistic = useMemo(() => {
         // TeacherQueue now manages its own optimistic state internally
-        // includeDeleted: true allows us to show the "deleting" spinner before it disappears
-        const events = activeQueue.getAllEvents({ includeDeleted: true });
+        // In adjustment mode, we hide deleted events immediately. 
+        // In view mode, we show them with a spinner until the server confirms.
+        const events = activeQueue.getAllEvents({ includeDeleted: !isAdjustmentMode });
         
         console.log(`  🎫 [TeacherQueueRow] Rendering ${events.length} events for ${queue.teacher.username} (v${activeQueue.version})`);
         
         return events.map(node => ({ node }));
-    }, [activeQueue, selectedDate, activeQueue.version]);
+    }, [activeQueue, selectedDate, activeQueue.version, isAdjustmentMode]);
 
     // Calculate progress counts for collapsed view
     const progressCounts: EventStatusMinutes = useMemo(() => {
@@ -170,7 +178,34 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     );
 
     return (
-        <div className={`w-full bg-transparent overflow-hidden transition-all duration-200 flex flex-row items-stretch group/row rounded-xl ${canReceiveBooking ? "ring-2 ring-green-500/50 bg-green-500/5" : ""}`} onDragOver={handleDragOver} onDrop={handleDrop}>
+        <motion.div 
+            layout
+            animate={{
+                opacity: isDraggingSomething && !isEligible ? 0.3 : 1,
+                scale: isDraggingSomething && isEligible ? 1.01 : 1,
+                backgroundColor: isDraggingSomething && isEligible ? "rgba(6, 182, 212, 0.05)" : "transparent"
+            }}
+            transition={{ duration: 0.2 }}
+            className={`w-full overflow-hidden transition-all duration-300 flex flex-row items-stretch group/row rounded-xl relative ${isDraggingSomething && isEligible ? "ring-2 ring-cyan-500/20 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]" : ""} ${isDraggingSomething && !isEligible ? "grayscale-[0.5] pointer-events-none" : ""}`} 
+            onDragOver={handleDragOver} 
+            onDrop={handleDrop}
+        >
+            {/* Visual Drop Zone Indicator */}
+            <AnimatePresence>
+                {isDraggingSomething && isEligible && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 pointer-events-none border-2 border-dashed border-cyan-500/30 rounded-xl z-50 flex items-center justify-center"
+                    >
+                        <div className="bg-cyan-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest shadow-lg">
+                            Ready for Lesson
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Teacher Card */}
             <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
                 <TeacherClassCard
@@ -241,6 +276,6 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

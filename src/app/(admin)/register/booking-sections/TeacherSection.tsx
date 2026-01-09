@@ -6,11 +6,12 @@ import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
 import { MemoTeacherTable as TeacherTable } from "@/src/components/tables/TeacherTable";
-import { TeacherCommissionBadge } from "@/src/components/ui/badge";
+import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/supabase/server/register";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
+import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
@@ -49,6 +50,8 @@ export function TeacherSection({
     const { addToQueue, refreshData } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { setFormValidity } = useFormRegistration();
+    // Refetch teachers from hook to get updated commission data when new commission is added
+    const { refetch: refetchTeachers } = useSchoolTeachers();
 
     // Build stats map from teachers' lessonStats
     const teacherStatsMap = useMemo(() => {
@@ -94,12 +97,12 @@ export function TeacherSection({
     const title = selectedTeacher && selectedCommission
         ? (
             <div className="flex items-center gap-2">
-                <span>{selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}</span>
-                <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />
+                <span>{selectedTeacher.schema.username}</span>
+                <CommissionTypeValue value={selectedCommission.cph} type={selectedCommission.commissionType as "fixed" | "percentage"} />
             </div>
         )
         : selectedTeacher
-        ? `${selectedTeacher.schema.first_name} - Select Commission`
+        ? `${selectedTeacher.schema.username} - Select Commission`
         : "Teacher";
 
     const handleSubmit = useCallback(async () => {
@@ -187,6 +190,7 @@ export function TeacherSection({
                     onSelectCommission={onSelectCommission}
                     onSectionClose={onToggle}
                     teacherStatsMap={teacherStatsMap}
+                    onCommissionAdded={refetchTeachers}
                 />
             </Section>
 

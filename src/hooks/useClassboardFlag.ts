@@ -379,7 +379,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             }
             return undefined;
         },
-        [eventMutations, globalFlag],
+        [eventMutations, globalFlag, flagTick],
     );
 
         // ============ EVENT ACTIONS ============

@@ -5,7 +5,7 @@ import React from "react";
 import { Plus, Loader2, Settings } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
 import { LinkTeacherLessonToBookingModal } from "@/src/components/modals";
-import { createLesson } from "@/actions/lessons-action";
+import { createLesson } from "@/supabase/server/lessons";
 
 import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { useRouter } from "next/navigation";

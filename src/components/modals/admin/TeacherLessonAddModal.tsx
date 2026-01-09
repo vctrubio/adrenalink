@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import { Modal } from "@/src/components/modals";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { createLessonWithCommission } from "@/actions/lessons-action";
+import { createLessonWithCommission } from "@/supabase/server/lessons";
 import { ENTITY_DATA } from "@/config/entities";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";

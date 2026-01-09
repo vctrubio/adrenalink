@@ -19,7 +19,7 @@ import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from
 import type { SchoolPackageType } from "@/drizzle/schema";
 import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
-import { updateLesson } from "@/actions/lessons-action";
+import { updateLesson } from "@/supabase/server/lessons";
 
 const ICON_SIZE = 20;
 

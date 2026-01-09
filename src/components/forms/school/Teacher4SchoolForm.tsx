@@ -6,7 +6,10 @@ import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { LANGUAGES } from "@/supabase/db/enums";
-import TeacherCommissionForm from "../TeacherCommissionForm";
+import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
+import { AddCommissionDropdown } from "@/src/components/ui/AddCommissionDropdown";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { X } from "lucide-react";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
@@ -273,9 +276,13 @@ const LanguagesField = memo(function LanguagesField({
     );
 });
 
+
 // Main component - ONLY RENDERS
 export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false, onClose }: TeacherFormProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
+    const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
+    const credentials = useSchoolCredentials();
+    const currency = credentials.currency || "YEN";
 
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
@@ -378,12 +385,54 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
                 languagesError={getFieldError("languages")}
             />
 
-            {/* Commission - Separate Component */}
-            <TeacherCommissionForm
-                teacherId={formData.username || "new-teacher"}
-                commissions={formData.commissions}
-                onCommissionsChange={(commissions) => onFormDataChange((prevData) => ({ ...prevData, commissions }))}
-            />
+            {/* Commissions Section */}
+            <div className="border-t pt-6 mt-6 space-y-3">
+                {/* Existing Commissions */}
+                {formData.commissions.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {formData.commissions.map((commission) => (
+                            <div key={commission.id} className="relative group">
+                                <CommissionTypeValue
+                                    value={commission.commissionValue}
+                                    type={commission.commissionType as "fixed" | "percentage"}
+                                    description={commission.commissionDescription}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onFormDataChange((prevData) => ({
+                                            ...prevData,
+                                            commissions: prevData.commissions.filter((c) => c.id !== commission.id),
+                                        }));
+                                    }}
+                                    className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-destructive/20 hover:bg-destructive/30 rounded-full"
+                                >
+                                    <X size={12} className="text-destructive" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Add Commission Dropdown */}
+                <AddCommissionDropdown
+                    teacherId="new-teacher"
+                    currency={currency}
+                    color={commissionEntity?.color || "#10b981"}
+                    onAdd={(commission) => {
+                        const newCommission = {
+                            id: commission.id,
+                            commissionType: commission.commission_type,
+                            commissionValue: commission.cph,
+                            commissionDescription: commission.description,
+                        };
+                        onFormDataChange((prevData) => ({
+                            ...prevData,
+                            commissions: [...prevData.commissions, newCommission],
+                        }));
+                    }}
+                />
+            </div>
         </>
     );
 

@@ -161,7 +161,6 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
 
     const handleDelete = async (cascade: boolean) => {
         if (!eventId || isDeleting) return;
-        console.log(`🗑️ [EventCard] Deleting ${eventId} | Cascade: ${cascade}`);
 
         try {
             await deleteEvent(eventId, cascade, queueController);
