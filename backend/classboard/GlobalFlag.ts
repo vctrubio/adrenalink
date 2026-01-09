@@ -221,7 +221,10 @@ export class GlobalFlag {
             this.exitAdjustmentMode(true); // Discard changes
         }
 
-        // Clear all mutations
+        // Clear internal state of all persistent queues
+        this.teacherQueues.forEach(q => q.clearOptimisticState());
+
+        // Clear all mutations (spinners)
         this.eventMutations.clear();
     }
 
