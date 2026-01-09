@@ -300,7 +300,6 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     const handleAssignTeacherSuccess = useCallback((updatedLesson: ClassboardLesson) => {
         // Close modal
         setIsAssignTeacherModalOpen(false);
-        toast.success(`Lesson created with teacher`);
     }, []);
 
     return (

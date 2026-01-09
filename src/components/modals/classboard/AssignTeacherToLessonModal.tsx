@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { Modal } from "@/src/components/modals";
@@ -95,6 +96,7 @@ export function AssignTeacherToLessonModal({
       );
 
       if (result.success && result.data) {
+        toast.success(`${bookingData.booking.leaderStudentName} got ${selectedTeacher?.schema.username}`);
         onAssigned(result.data);
         onClose();
       } else {
