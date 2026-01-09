@@ -27,7 +27,8 @@ interface TeacherQueueRowProps {
  * Reads state from GlobalFlag (single source of truth)
  */
 export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { globalFlag, bookingsForSelectedDate, draggedBooking, addLessonEvent, getEventCardStatus, selectedDate } = useClassboardContext();
+    const contextValue = useClassboardContext();
+    const { globalFlag, bookingsForSelectedDate, draggedBooking, setDraggedBooking, addLessonEvent, getEventCardStatus, selectedDate } = contextValue;
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -62,6 +63,16 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     const isEligible = draggedBooking?.lessons.some((l) => l.teacherId === activeQueue.teacher.id) ?? false;
     const isDraggingSomething = !!draggedBooking;
+
+    // Calculate next available slot for overlay display
+    const nextSlotTime = useMemo(() => {
+        if (!isEligible || !draggedBooking) return null;
+        
+        const cap = draggedBooking.capacityStudents;
+        const duration = cap === 1 ? controller.durationCapOne : cap === 2 ? controller.durationCapTwo : controller.durationCapThree;
+        
+        return activeQueue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
+    }, [isEligible, draggedBooking, activeQueue, controller, activeQueue.version]);
 
     // Memoize the entire event list computation
     const eventsWithOptimistic = useMemo(() => {
@@ -111,7 +122,13 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
             return;
         }
 
-        await addLessonEvent(bookingData, lesson.id);
+        // Clear drag state immediately for better UX
+        const bookingToDrop = bookingData;
+        const lessonId = lesson.id;
+        const { setDraggedBooking } = contextValue; // Assuming it's available or we destructure it
+        setDraggedBooking(null);
+
+        await addLessonEvent(bookingToDrop, lessonId);
     };
 
     const handleSubmit = useCallback(async () => {
@@ -200,9 +217,10 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="bg-cyan-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl ring-4 ring-cyan-500/20"
+                            className="bg-cyan-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl ring-4 ring-cyan-500/20 flex items-center gap-2"
                         >
-                            Ready for Lesson
+                            <span>Start at</span>
+                            <span className="text-sm font-mono bg-white/20 px-1.5 py-0.5 rounded leading-none">{nextSlotTime || "--:--"}</span>
                         </motion.div>
                     </motion.div>
                 )}
