@@ -20,7 +20,7 @@ import { DEFAULT_DURATION_CAP_ONE, DEFAULT_DURATION_CAP_TWO, DEFAULT_DURATION_CA
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { createClassboardEvent, deleteClassboardEvent, bulkUpdateClassboardEvents } from "@/supabase/server/classboard";
 import type { DraggableBooking } from "@/types/classboard-teacher-queue";
-import type { TeacherModel } from "@/backend/models/TeacherModel";
+import type { TeacherProvider } from "@/supabase/server/teachers";
 
 // ============ CONSTANTS ============
 
@@ -170,7 +170,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     const mounted = (clientReady && !teachersLoading && minDelayPassed) || !!teachersError;
 
     // Track previous values for dependency logging
-    const prevTeachersRef = useRef<TeacherModel[]>([]);
+    const prevTeachersRef = useRef<TeacherProvider[]>([]);
     const prevBookingsRef = useRef<ClassboardData[]>([]);
     const lastSyncedControllerRef = useRef<string>("");
 
