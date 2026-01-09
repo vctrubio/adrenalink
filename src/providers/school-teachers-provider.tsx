@@ -16,12 +16,16 @@ export const SchoolTeachersContext = createContext<SchoolTeachersContextType | u
 
 interface SchoolTeachersProviderProps {
     children: ReactNode;
+    initialData?: {
+        teachers: TeacherProvider[];
+        allTeachers: TeacherProvider[];
+    } | null;
 }
 
-export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps) {
-    const [teachers, setTeachers] = useState<TeacherProvider[]>([]);
-    const [allTeachers, setAllTeachers] = useState<TeacherProvider[]>([]);
-    const [loading, setLoading] = useState(true);
+export function SchoolTeachersProvider({ children, initialData }: SchoolTeachersProviderProps) {
+    const [teachers, setTeachers] = useState<TeacherProvider[]>(initialData?.teachers || []);
+    const [allTeachers, setAllTeachers] = useState<TeacherProvider[]>(initialData?.allTeachers || []);
+    const [loading, setLoading] = useState(!initialData);
     const [error, setError] = useState<string | null>(null);
 
     const fetchTeachers = async () => {
@@ -49,8 +53,10 @@ export function SchoolTeachersProvider({ children }: SchoolTeachersProviderProps
     };
 
     useEffect(() => {
-        fetchTeachers();
-    }, []);
+        if (!initialData) {
+            fetchTeachers();
+        }
+    }, [initialData]);
 
     const contextValue = useMemo(
         () => ({

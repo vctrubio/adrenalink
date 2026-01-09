@@ -4,6 +4,7 @@ import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import FacebookNav from "@/src/components/navigations/FacebookNav";
 import { getSchoolCredentials as getSchoolCredentialsFromSupabase } from "@/supabase/server/admin";
+import { getSchoolTeacherProvider } from "@/supabase/server/teachers";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -11,17 +12,26 @@ interface AdminLayoutProps {
 
 // Use React's cache() to memoize across the request
 const getSchoolCredentials = cache(getSchoolCredentialsFromSupabase);
+const getTeachers = cache(getSchoolTeacherProvider);
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-    const credentials = await getSchoolCredentials();
+    const [credentials, teachersResult] = await Promise.all([
+        getSchoolCredentials(),
+        getTeachers()
+    ]);
 
     if (!credentials) {
         redirect("/no-credentials");
     }
 
+    const initialTeachersData = teachersResult.success && teachersResult.data ? {
+        allTeachers: teachersResult.data,
+        teachers: teachersResult.data.filter(t => t.schema.active)
+    } : null;
+
     return (
         <SchoolCredentialsProvider credentials={credentials}>
-            <SchoolTeachersProvider>
+            <SchoolTeachersProvider initialData={initialTeachersData}>
                 <div className="flex flex-col h-screen bg-background">
                     <FacebookNav />
                     <div className="">
