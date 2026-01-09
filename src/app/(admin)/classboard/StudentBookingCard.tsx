@@ -205,7 +205,7 @@ interface StudentBookingCardProps {
 }
 
 export default function StudentBookingCard({ bookingData }: StudentBookingCardProps) {
-    const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate, globalFlag } = useClassboardContext();
+    const { setDraggedBooking, draggedBooking, addLessonEvent, selectedDate, globalFlag, teacherQueues } = useClassboardContext();
     const [isExpanded, setIsExpanded] = useState(false);
     const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
     const [isAssignTeacherModalOpen, setIsAssignTeacherModalOpen] = useState(false);
@@ -280,6 +280,14 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     };
 
     const handleAddEvent = async (lessonId: string) => {
+        const lesson = lessons.find(l => l.id === lessonId);
+        if (lesson?.teacher) {
+            const queue = teacherQueues.find(q => q.teacher.id === lesson.teacher.id);
+            if (queue && !queue.isActive) {
+                toast.error(`${lesson.teacher.username} is not active`);
+                return;
+            }
+        }
         setLoadingLessonId(lessonId);
         await addLessonEvent(bookingData, lessonId);
     };
