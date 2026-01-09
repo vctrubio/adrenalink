@@ -2,7 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import { convertUTCToSchoolTimezone, convertSchoolTimeToUTC } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -225,8 +225,9 @@ export async function createClassboardEvent(
     const dateStr = `${year}-${month}-${day}`;
     const timeStr = `${hours}:${minutes}:00`;
 
-    // Store exactly as provided, treating it as Absolute Truth (UTC)
-    const utcDate = new Date(`${dateStr}T${timeStr}Z`);
+    // Calculate UTC time from school local time using robust getter
+    // This handles DST and offset calculation correctly for the specific date
+    const utcDate = convertSchoolTimeToUTC(`${dateStr}T${timeStr}`, schoolZone);
 
     // Store as UTC in database
     const supabase = getServerConnection();
