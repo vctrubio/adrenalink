@@ -18,11 +18,10 @@ interface BookingFormProps {
     students: any[];
     teachers: any[];
     referrals: any[];
-    teacherStats?: Record<string, { totalLessons: number; plannedLessons: number }>;
     studentStats?: Record<string, { bookingCount: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }>;
 }
 
-const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, teacherStats, studentStats }: BookingFormProps, ref) {
+const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps, ref) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
@@ -287,7 +286,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onAddCommission={handleAddCommission}
                 isExpanded={expandedSections.has("teacher-section")}
                 onToggle={() => toggleSection("teacher-section")}
-                teacherStatsMap={teacherStats}
                 onClose={() => closeSection("teacher-section")}
             />
 

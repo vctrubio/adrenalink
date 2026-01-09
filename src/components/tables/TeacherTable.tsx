@@ -1,5 +1,5 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/src/components/ui/table";
-import { TeacherStatusBadge } from "@/src/components/ui/badge";
+import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo, memo, useEffect } from "react";
@@ -9,34 +9,19 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";
 import { filterBySearch } from "@/types/searching-entities";
-
-interface Commission {
-    id: string;
-    commissionType: string;
-    cph: string;
-    description: string | null;
-}
-
-interface Teacher {
-    id: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    languages: string[];
-    commissions: Commission[];
-}
+import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface TeacherStats {
     totalLessons: number;
-    plannedLessons: number;
+    completedLessons: number;
 }
 
 interface TeacherTableProps {
-    teachers: Teacher[];
-    selectedTeacher: Teacher | null;
-    selectedCommission: Commission | null;
-    onSelectTeacher: (teacher: Teacher | null) => void;
-    onSelectCommission: (commission: Commission | null) => void;
+    teachers: TeacherProvider[];
+    selectedTeacher: TeacherProvider | null;
+    selectedCommission: any | null;
+    onSelectTeacher: (teacher: TeacherProvider | null) => void;
+    onSelectCommission: (commission: any | null) => void;
     onSectionClose?: () => void;
     teacherStatsMap?: Record<string, TeacherStats>;
 }
@@ -52,11 +37,11 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
 
     // Filter and sort teachers
     const filteredTeachers = useMemo(() => {
-        let filtered = filterBySearch(teachers, search, (teacher) => teacher.username);
+        let filtered = filterBySearch(teachers, search, (teacher) => teacher.schema.username);
 
         filtered = filtered.filter((teacher) => {
             // Status filter
-            const stats = teacherStatsMap[teacher.id];
+            const stats = teacherStatsMap[teacher.schema.id];
             if (statusFilter === "New") {
                 return !stats || stats.totalLessons === 0;
             } else if (statusFilter === "Ongoing") {
@@ -69,18 +54,18 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
         if (sortColumn) {
             filtered.sort((a, b) => {
                 let comparison = 0;
-                const statsA = teacherStatsMap[a.id];
-                const statsB = teacherStatsMap[b.id];
+                const statsA = teacherStatsMap[a.schema.id];
+                const statsB = teacherStatsMap[b.schema.id];
 
                 switch (sortColumn) {
                     case "firstName":
-                        comparison = a.firstName.localeCompare(b.firstName);
+                        comparison = a.schema.first_name.localeCompare(b.schema.first_name);
                         break;
                     case "lastName":
-                        comparison = a.lastName.localeCompare(b.lastName);
+                        comparison = a.schema.last_name.localeCompare(b.schema.last_name);
                         break;
                     case "languages":
-                        comparison = (a.languages[0] || "").localeCompare(b.languages[0] || "");
+                        comparison = (a.schema.languages[0] || "").localeCompare(b.schema.languages[0] || "");
                         break;
                     case "status":
                         const lessonsA = statsA?.totalLessons || 0;
@@ -103,8 +88,8 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
         return <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">No teachers available</div>;
     }
 
-    const handleTeacherClick = (teacher: Teacher) => {
-        if (selectedTeacher?.id === teacher.id) {
+    const handleTeacherClick = (teacher: TeacherProvider) => {
+        if (selectedTeacher?.schema.id === teacher.schema.id) {
             // Deselect if clicking same teacher
             onSelectTeacher(null);
             onSelectCommission(null);
@@ -142,10 +127,10 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                     <div className="flex items-center justify-between">
                         <div>
                             <div className="font-semibold text-foreground">
-                                {selectedTeacher.firstName} {selectedTeacher.lastName}
+                                {selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                                @{selectedTeacher.username} • €{selectedCommission.cph}/h ({selectedCommission.commissionType}){selectedCommission.description && ` - ${selectedCommission.description}`}
+                                @{selectedTeacher.schema.username} • €{selectedCommission.cph}/h ({selectedCommission.commissionType}){selectedCommission.description && ` - ${selectedCommission.description}`}
                             </div>
                         </div>
                         <button
@@ -177,15 +162,15 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                                     <TableCell className="font-medium">
                                         <div>
                                             <div className="text-foreground">
-                                                {selectedTeacher.firstName} {selectedTeacher.lastName}
+                                                {selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
                                                 {teacherEntity && (
-                                                    <HoverToEntity entity={teacherEntity} id={selectedTeacher.id}>
-                                                        @{selectedTeacher.username}
+                                                    <HoverToEntity entity={teacherEntity} id={selectedTeacher.schema.id}>
+                                                        @{selectedTeacher.schema.username}
                                                     </HoverToEntity>
                                                 )}
-                                                {!teacherEntity && `@${selectedTeacher.username}`}
+                                                {!teacherEntity && `@${selectedTeacher.schema.username}`}
                                             </div>
                                         </div>
                                     </TableCell>
@@ -208,8 +193,8 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                                 </tr>
                             </TableHeader>
                             <TableBody>
-                                {selectedTeacher.commissions.length > 0 ? (
-                                    selectedTeacher.commissions.map((commission) => {
+                                {selectedTeacher.schema.commissions.length > 0 ? (
+                                    selectedTeacher.schema.commissions.map((commission) => {
                                         const isCommissionSelected = selectedCommission?.id === commission.id;
                                         const getCommissionDisplay = (commission: Commission) => {
                                             return commission.commissionType === "fixed" ? `${commission.cph} €/h` : `${commission.cph} %/h`;
@@ -250,27 +235,27 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                     </TableHeader>
                     <TableBody>
                         {filteredTeachers.map((teacher) => {
-                            const stats = teacherStatsMap[teacher.id] || { totalLessons: 0, plannedLessons: 0 };
+                            const stats = teacherStatsMap[teacher.schema.id] || { totalLessons: 0, completedLessons: 0 };
                             return (
-                                <TableRow key={teacher.id} onClick={() => handleTeacherClick(teacher)} selectedColor={teacherEntity?.color}>
+                                <TableRow key={teacher.schema.id} onClick={() => handleTeacherClick(teacher)} selectedColor={teacherEntity?.color}>
                                     <TableCell className="font-medium text-foreground">
                                         <div>
                                             <div>
-                                                {teacher.firstName} {teacher.lastName}
+                                                {teacher.schema.first_name} {teacher.schema.last_name}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
                                                 {teacherEntity && (
-                                                    <HoverToEntity entity={teacherEntity} id={teacher.id}>
-                                                        {teacher.username}
+                                                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
+                                                        {teacher.schema.username}
                                                     </HoverToEntity>
                                                 )}
-                                                {!teacherEntity && teacher.username}
+                                                {!teacherEntity && teacher.schema.username}
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{teacher.languages.join(", ")}</TableCell>
+                                    <TableCell className="text-muted-foreground">{teacher.schema.languages.join(", ")}</TableCell>
                                     <TableCell>
-                                        <TeacherStatusBadge totalLessons={stats.totalLessons} plannedLessons={stats.plannedLessons} />
+                                        <TeacherActiveLesson totalLessons={stats.totalLessons} completedLessons={stats.completedLessons} />
                                     </TableCell>
                                 </TableRow>
                             );

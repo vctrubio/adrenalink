@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import { getRegisterTables, type RegisterTables } from "@/supabase/server/register";
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { RegisterProvider } from "./RegisterContext";
-import RegisterLayoutWrapper from "./RegisterLayoutWrapper";
 
 interface RegisterLayoutProps {
     children: ReactNode;
@@ -43,10 +42,8 @@ export default async function Layout({ children }: RegisterLayoutProps) {
     }
 
     return (
-        <RegisterProvider initialData={registerResult.data} refreshAction={refreshRegisterData}>
-            <RegisterLayoutWrapper school={credentialsResult}>
-                {children}
-            </RegisterLayoutWrapper>
+        <RegisterProvider initialData={registerResult.data} refreshAction={refreshRegisterData} school={credentialsResult}>
+            {children}
         </RegisterProvider>
     );
 }

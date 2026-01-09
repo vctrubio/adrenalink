@@ -12,6 +12,7 @@ import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/comp
 import { createAndLinkTeacher } from "@/supabase/server/register";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
+import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface Commission {
     id: string;
@@ -20,30 +21,15 @@ interface Commission {
     description: string | null;
 }
 
-interface Teacher {
-    id: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    languages: string[];
-    commissions: Commission[];
-}
-
-interface TeacherStats {
-    totalLessons: number;
-    plannedLessons: number;
-}
-
 interface TeacherSectionProps {
-    teachers: Teacher[];
-    selectedTeacher: Teacher | null;
+    teachers: TeacherProvider[];
+    selectedTeacher: TeacherProvider | null;
     selectedCommission: Commission | null;
-    onSelectTeacher: (teacher: Teacher | null) => void;
+    onSelectTeacher: (teacher: TeacherProvider | null) => void;
     onSelectCommission: (commission: Commission | null) => void;
     onAddCommission?: (teacherId: string, commission: Omit<Commission, "id">) => Promise<void>;
     isExpanded: boolean;
     onToggle: () => void;
-    teacherStatsMap?: Record<string, TeacherStats>;
     onClose?: () => void;
 }
 
@@ -55,7 +41,6 @@ export function TeacherSection({
     onSelectCommission,
     isExpanded,
     onToggle,
-    teacherStatsMap,
     onClose
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
@@ -64,6 +49,17 @@ export function TeacherSection({
     const { addToQueue, refreshData } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { setFormValidity } = useFormRegistration();
+
+    // Build stats map from teachers' lessonStats
+    const teacherStatsMap = useMemo(() => {
+        return teachers.reduce((acc, teacher) => {
+            acc[teacher.schema.id] = {
+                totalLessons: teacher.lessonStats.totalLessons,
+                completedLessons: teacher.lessonStats.completedLessons,
+            };
+            return acc;
+        }, {} as Record<string, { totalLessons: number; completedLessons: number }>);
+    }, [teachers]);
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -98,12 +94,12 @@ export function TeacherSection({
     const title = selectedTeacher && selectedCommission
         ? (
             <div className="flex items-center gap-2">
-                <span>{selectedTeacher.firstName} {selectedTeacher.lastName}</span>
+                <span>{selectedTeacher.schema.first_name} {selectedTeacher.schema.last_name}</span>
                 <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />
             </div>
         )
         : selectedTeacher
-        ? `${selectedTeacher.firstName} - Select Commission`
+        ? `${selectedTeacher.schema.first_name} - Select Commission`
         : "Teacher";
 
     const handleSubmit = useCallback(async () => {
@@ -129,22 +125,10 @@ export function TeacherSection({
                     })),
                 ),
             onSuccess: async (data) => {
-                const newTeacher = {
-                    id: data.teacher.id,
-                    firstName: data.teacher.first_name,
-                    lastName: data.teacher.last_name,
-                    username: data.teacher.username,
-                    languages: data.teacher.languages,
-                    commissions: data.teacher.teacher_commission || [],
-                };
-
                 await handlePostCreation({
                     pathname,
                     entityId: data.teacher.id,
                     closeDialog: () => setIsDialogOpen(false),
-                    onSelectId: () => {
-                        onSelectTeacher(newTeacher);
-                    },
                     onRefresh: refreshData,
                     onAddToQueue: () => {
                         addToQueue("teachers", {
@@ -174,7 +158,7 @@ export function TeacherSection({
             successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
         });
         setSubmitLoading(false);
-    }, [isFormValid, formData, addToQueue, onSelectTeacher, refreshData, pathname, router]);
+    }, [isFormValid, formData, addToQueue, refreshData, pathname, router]);
 
     return (
         <>

@@ -1,11 +1,15 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useState, useCallback, useEffect, useRef } from "react";
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { usePathname } from "next/navigation";
+import toast from "react-hot-toast";
 import type { RegisterTables } from "@/supabase/server";
 import type { StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
 import type { TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
 import type { PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
+import { masterBookingAdd } from "@/supabase/server/register";
+import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
+import RegisterController from "@/src/app/(admin)/register/RegisterController";
 
 interface QueueItem {
     id: string;
@@ -33,6 +37,9 @@ interface BookingFormState {
 }
 
 interface RegisterContextValue {
+    // School context
+    school: any;
+
     // Data
     data: RegisterTables;
     refreshData: () => Promise<void>;
@@ -82,15 +89,34 @@ const defaultBookingForm: BookingFormState = {
     leaderStudentId: "",
 };
 
+// Update stats after booking: increment bookingCount and set allBookingsCompleted to false
+const updateStatsAfterBooking = (currentData: RegisterTables, studentIds: string[]) => {
+    const updated = { ...currentData };
+
+    studentIds.forEach((studentId) => {
+        if (updated.studentBookingStats?.[studentId]) {
+            updated.studentBookingStats[studentId].bookingCount += 1;
+            updated.studentBookingStats[studentId].allBookingsCompleted = false;
+        }
+    });
+
+    return updated;
+};
+
+type ActiveForm = "booking" | "student" | "teacher" | "package";
+
 export function RegisterProvider({
     children,
     initialData,
-    refreshAction
+    refreshAction,
+    school
 }: {
     children: ReactNode;
     initialData: RegisterTables;
     refreshAction: () => Promise<RegisterTables>;
+    school: any;
 }) {
+    const pathname = usePathname();
     const [data, setData] = useState<RegisterTables>(initialData);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [queues, setQueues] = useState<EntityQueues>({
@@ -115,15 +141,19 @@ export function RegisterProvider({
     // Section state
     const [shouldOpenAllSections, setShouldOpenAllSections] = useState(false);
 
-    // Wrap setSubmitHandler to ensure stable reference if needed, 
-    // but React's setState is already stable. 
+    // Booking submission state
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Wrap setSubmitHandler to ensure stable reference if needed,
+    // but React's setState is already stable.
     // We expose it as registerSubmitHandler for semantic clarity.
     const registerSubmitHandler = useCallback((handler: () => Promise<void>) => {
         setSubmitHandlerState(() => handler);
     }, []);
 
-    const pathname = usePathname();
     const previousPathname = useRef(pathname);
+    const handleBookingSubmitRef = useRef<(() => Promise<void>) | null>(null);
 
     // Re-fetch on route transitions (not on page reload)
     useEffect(() => {
@@ -175,7 +205,108 @@ export function RegisterProvider({
         setBookingFormState(defaultBookingForm);
     }, []);
 
+    // Get selected students
+    const selectedStudents = data.students
+        .filter(s => bookingForm.selectedStudentIds.includes(s.student?.id))
+        .map(s => s.student);
+
+    // Determine active form based on pathname
+    const activeForm: ActiveForm = useMemo(() => {
+        if (pathname === "/register") return "booking";
+        if (pathname === "/register/student") return "student";
+        if (pathname === "/register/teacher") return "teacher";
+        if (pathname === "/register/package") return "package";
+        return "booking";
+    }, [pathname]);
+
+    // Determine if we can create booking
+    const canCreateBooking = useMemo(() => {
+        const f = bookingForm;
+        return !!(
+            f.selectedPackage &&
+            f.selectedStudentIds.length > 0 &&
+            f.selectedStudentIds.length === f.selectedPackage.capacityStudents &&
+            f.dateRange.startDate &&
+            f.dateRange.endDate &&
+            (!f.selectedTeacher || f.selectedCommission)
+        );
+    }, [bookingForm]);
+
+    const getLeaderStudentName = useCallback(() => {
+        const leaderStudent = selectedStudents.find(s => s.id === bookingForm.leaderStudentId);
+        return leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "";
+    }, [selectedStudents, bookingForm.leaderStudentId]);
+
+    // Handle booking submission
+    const handleBookingSubmit = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const leaderStudentName = getLeaderStudentName();
+            const result = await masterBookingAdd(
+                bookingForm.selectedPackage.id,
+                bookingForm.selectedStudentIds,
+                bookingForm.dateRange.startDate,
+                bookingForm.dateRange.endDate,
+                bookingForm.selectedTeacher?.id,
+                bookingForm.selectedCommission?.id,
+                bookingForm.selectedReferral?.id,
+                leaderStudentName
+            );
+
+            if (!result.success) {
+                const errorMessage = result.error || "Failed to create booking";
+                setError(errorMessage);
+                toast.error(errorMessage);
+                setLoading(false);
+                return;
+            }
+
+            // Update stats locally (booking count +1, mark as not all completed)
+            const updatedData = updateStatsAfterBooking(data, bookingForm.selectedStudentIds);
+            setData(updatedData);
+
+            // Add to queue
+            addToQueue("bookings", {
+                id: result.data.booking.id,
+                name: leaderStudentName,
+                timestamp: Date.now(),
+                type: "booking",
+            });
+
+            // Success toast
+            toast.success(`Booking created: ${leaderStudentName}`);
+
+            // Signal to open all sections
+            setShouldOpenAllSections(true);
+
+            // Reset form
+            resetBookingForm();
+            setLoading(false);
+        } catch (err) {
+            const errorMessage = "An unexpected error occurred";
+            setError(errorMessage);
+            toast.error(errorMessage);
+            setLoading(false);
+        }
+    }, [bookingForm, data, getLeaderStudentName, addToQueue]);
+
+    // Keep ref updated with latest handler
+    useEffect(() => {
+        handleBookingSubmitRef.current = handleBookingSubmit;
+    }, [handleBookingSubmit]);
+
+    // Register booking submission handler when on booking page
+    useEffect(() => {
+        if (activeForm === "booking") {
+            registerSubmitHandler(() => handleBookingSubmitRef.current());
+            setFormValidity(canCreateBooking);
+        }
+    }, [activeForm, canCreateBooking]);
+
     const value: RegisterContextValue = {
+        school,
         data,
         refreshData,
         isRefreshing,
@@ -204,7 +335,28 @@ export function RegisterProvider({
 
     return (
         <RegisterContext.Provider value={value}>
-            {children}
+            <RegisterFormLayout
+                controller={
+                    <RegisterController
+                        school={school}
+                        activeForm={activeForm}
+                        selectedPackage={bookingForm.selectedPackage}
+                        selectedStudents={selectedStudents}
+                        selectedReferral={bookingForm.selectedReferral}
+                        selectedTeacher={bookingForm.selectedTeacher}
+                        selectedCommission={bookingForm.selectedCommission}
+                        dateRange={bookingForm.dateRange}
+                        onReset={resetBookingForm}
+                        loading={loading}
+                        leaderStudentId={bookingForm.leaderStudentId}
+                        error={error}
+                        submitHandler={submitHandler}
+                        isFormValid={activeForm === "booking" ? canCreateBooking : isFormValid}
+                        referrals={data.referrals}
+                    />
+                }
+                form={children}
+            />
         </RegisterContext.Provider>
     );
 }
@@ -295,4 +447,10 @@ export function useUpdateDataStats() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useUpdateDataStats must be used within RegisterProvider");
     return context.updateDataStats;
+}
+
+export function useRegisterSchool() {
+    const context = useContext(RegisterContext);
+    if (!context) throw new Error("useRegisterSchool must be used within RegisterProvider");
+    return context.school;
 }
