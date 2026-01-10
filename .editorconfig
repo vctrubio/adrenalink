@@ -9,7 +9,7 @@ trim_trailing_whitespace = true
 [*.{js,jsx,ts,tsx,json,css}]
 indent_style = space
 indent_size = 4
-max_line_length = 269
+max_line_length = 135
 quote_type = double
 
 [*.md]
