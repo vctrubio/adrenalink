@@ -131,17 +131,19 @@ export function LandingHeroDescription() {
                         <span className="text-secondary tracking-widest">students</span> and{" "}
                         <span className="text-secondary tracking-widest">teachers</span>
                     </span>{" "}
-                    <span className="text-gray-400 italic">to</span> <span className={`tracking-wide ${KEY_WORDS}`}>synchronize lessons</span>.
+                    <span className="text-gray-400 italic">to</span>{" "}
+                    <span className={`tracking-wide ${KEY_WORDS}`}>synchronize lessons</span>.
                 </div>
                 <div className="text-xl text-gray-300 text-center">
-                    <span className={PUNCH_WORDS}>Facilitating</span> <span className={KEY_WORDS}>bookings</span>, <span className={KEY_WORDS}>payments</span>,{" "}
-                    <span className="text-gray-400 italic">and</span> <span className={KEY_WORDS}>communication</span>,
+                    <span className={PUNCH_WORDS}>Facilitating</span> <span className={KEY_WORDS}>bookings</span>,{" "}
+                    <span className={KEY_WORDS}>payments</span>, <span className="text-gray-400 italic">and</span>{" "}
+                    <span className={KEY_WORDS}>communication</span>,
                 </div>
                 <div className="text-xl text-gray-300 text-center">
                     <span className={PUNCH_WORDS}>Adrenalink</span> is{" "}
                     <span className="italic text-base">
-                        the <span className="text-gray-400">·</span> first <span className="text-gray-400">·</span> of <span className="text-gray-400">·</span> its{" "}
-                        <span className="text-gray-400">·</span> kind
+                        the <span className="text-gray-400">·</span> first <span className="text-gray-400">·</span> of{" "}
+                        <span className="text-gray-400">·</span> its <span className="text-gray-400">·</span> kind
                     </span>{" "}
                     <span className="font-bold text-white">built</span> to <span className={KEY_WORDS}>track equipment usage</span>,{" "}
                     <span className="text-gray-400">with</span> <span className={KEY_WORDS}>smart automation</span>.

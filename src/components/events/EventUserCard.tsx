@@ -14,10 +14,7 @@ import { EventStartDurationTime } from "@/src/components/ui/EventStartDurationTi
 
 import { LESSON_STATUS_CONFIG } from "@/types/status";
 
-
-
 interface EventUserCardProps {
-
     date: string;
 
     duration: number;
@@ -27,63 +24,38 @@ interface EventUserCardProps {
     footerLeftContent: ReactNode;
 
     children: ReactNode;
-
 }
 
-
-
 export function EventUserCard({ date, duration, status, footerLeftContent, children }: EventUserCardProps) {
-
     const [isOpen, setIsOpen] = useState(false);
 
     const credentials = useSchoolCredentials();
 
-
-
     const statusConfig = status ? LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] : null;
 
-
-
     return (
-
         <motion.div
-
             layout
-
             className="group relative w-full overflow-hidden rounded-3xl border-[1.5px] border-black bg-card shadow-sm transition-shadow duration-300 hover:shadow-xl"
-
         >
-
             {/* Header (Background stays light, text adapts) */}
 
             <div className="relative flex items-center justify-between px-6 py-6 overflow-hidden bg-white border-b border-neutral-100">
-
                 <div className="relative z-10 flex items-center gap-4">
-
                     <EventStartDurationTime date={date} duration={duration} className="text-zinc-900" />
 
                     {statusConfig && (
-
                         <span
-
                             className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-
                             style={{
-
                                 backgroundColor: `${statusConfig.color}20`,
 
                                 color: statusConfig.color,
-
                             }}
-
                         >
-
                             {statusConfig.label}
-
                         </span>
-
                     )}
-
                 </div>
 
                 {/* School Logo */}

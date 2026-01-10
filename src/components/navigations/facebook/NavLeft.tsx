@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { DropdownItem } from "@/src/components/ui/dropdown";
@@ -45,7 +44,7 @@ export const NavLeft = () => {
     return (
         <>
             <div className="flex items-center gap-1">
-                <Link href="/admin" className="flex items-center">
+                <Link href="/" className="flex items-center">
                     <Image
                         src={logoUrl}
                         alt={schoolUsername || "School Logo"}

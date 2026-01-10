@@ -45,6 +45,7 @@ status: "completed",
 - ```typescript
 
   ```
+
 - // 1. Define interface matching Supabase table
 - interface IBookingRow {
 - id: string
@@ -330,6 +331,7 @@ status: "completed",
 - ```typescript
 
   ```
+
 - import { supabase } from '@/supabase/seeding/client'
 - import { Lesson } from './Lesson'
 - import { Student } from './Student'
@@ -423,6 +425,7 @@ status: "completed",
 - ```typescript
 
   ```
+
 - const bookings = await supabase
 - .from('booking')
 - .select('\*')
@@ -432,11 +435,13 @@ status: "completed",
 - ```
 
   ```
+
 -
 - After (With Constructor):
 - ```typescript
 
   ```
+
 - const rawData = await supabase
 - .from('booking')
 - .select(`
@@ -468,6 +473,7 @@ status: "completed",
 - ```typescript
 
   ```
+
 - export async function getBookingWithAll(id: string): Promise<Booking> {
 - const { data, error } = await supabase
 -     .from('booking')

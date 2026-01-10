@@ -7,10 +7,12 @@ import { SPORTS_CONFIG } from "@/src/components/school/SportSelection";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { getHMDuration } from "@/getters/duration-getter";
 
 interface PackageCardProps {
     pkg: SchoolPackage;
     currencySymbol: string;
+    isSelected?: boolean;
 }
 
 interface SchoolPackageContainerProps {
@@ -22,18 +24,8 @@ interface SchoolPackageContainerProps {
  * Game-style Package Card for subdomain view
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
-export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
-    const {
-        id,
-        name,
-        description,
-        price_per_student,
-        duration_minutes,
-        package_type,
-        capacity_students,
-        capacity_equipment,
-        category_equipment,
-    } = pkg;
+export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProps) {
+    const { id, name, description, price_per_student, duration_minutes, package_type, capacity_students, category_equipment } = pkg;
     const [isHovered, setIsHovered] = useState(false);
     const router = useRouter();
 
@@ -42,9 +34,6 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
 
     // Determine type and color theme
     const isRental = package_type?.toLowerCase().includes("rental");
-    const typeBg = isRental ? "bg-red-50" : "bg-blue-50";
-    const typeText = isRental ? "text-red-600" : "text-blue-600";
-    const typeBorder = isRental ? "border-red-100" : "border-blue-100";
 
     // Calculate PPH if duration != 1hr (60 mins)
     const durationHours = duration_minutes / 60;
@@ -58,97 +47,102 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
         <motion.div
             layout
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -4, scale: 1.01 }}
+            animate={{
+                opacity: 1,
+                y: 0,
+                borderColor: isSelected ? "rgb(251, 146, 60)" : "rgb(228, 228, 231)",
+                borderWidth: isSelected ? "3px" : "1px",
+            }}
+            whileHover={{ y: -4 }}
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
             onClick={handleCardClick}
-            className="group relative w-full overflow-hidden rounded-[2rem] bg-white border border-zinc-200 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col select-none"
+            className={`group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col select-none border`}
         >
-            {/* 1. Header (Top Bun) - Title & Type Label */}
-            <div className="px-8 pt-8 pb-6 border-b border-dashed border-zinc-100 flex justify-between items-start gap-4">
-                <h4 className="text-2xl font-black uppercase italic tracking-tighter leading-none text-zinc-900 group-hover:text-black transition-colors">
-                    {description || name}
-                </h4>
-                {/* Type Badge */}
-                {package_type && (
-                    <span
-                        className={`
-                        shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
-                        ${isRental ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"}
-                    `}
-                    >
-                        {package_type}
-                    </span>
-                )}
+            {/* 1. Header: Logo + Type + Description */}
+            <div className="px-8 pt-8 pb-6 border-b border-zinc-100 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="relative w-10 h-10 transition-all duration-500"
+                            style={{
+                                filter: isHovered
+                                    ? "brightness(0) saturate(100%) hue-rotate(30deg) drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))"
+                                    : "brightness(0) opacity(0.3)",
+                            }}
+                        >
+                            <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
+                        </div>
+                        <span
+                            className={`
+                            text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 text-zinc-900
+                            ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
+                        `}
+                        >
+                            Book Now
+                        </span>
+                    </div>
+
+                    {package_type && (
+                        <span
+                            className={`
+                            shrink-0 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border
+                            ${isRental ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"}
+                        `}
+                        >
+                            <span className="font-black mr-2">{getHMDuration(duration_minutes)}</span>
+                            <span className="font-medium opacity-60">{package_type}</span>
+                        </span>
+                    )}
+                </div>
             </div>
 
-            {/* 2. Middle (Patty) - Sport Image & Capacity */}
-            <div className="px-8 py-8 flex items-center justify-between gap-6">
-                {/* Sport Image */}
+            {/* 2. Middle: Equipment vs Students */}
+            <div className="px-8 py-10 flex flex-col items-center justify-center gap-4 bg-zinc-50/30">
+                <div className="flex items-center gap-4">
+                    <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">
+                        {capacity_equipment} {category_equipment}
+                    </span>
+                    <span className="text-sm font-bold text-zinc-300 uppercase tracking-widest italic">vs</span>
+                    <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">
+                        {capacity_students} {capacity_students === 1 ? "Student" : "Students"}
+                    </span>
+                </div>
                 {sportConfig?.image && (
-                    <div className="relative w-20 h-20 flex-shrink-0">
+                    <div className="relative w-16 h-16 opacity-20 grayscale mt-2">
                         <Image src={sportConfig.image} alt={sportConfig.id} fill className="object-contain" />
                     </div>
                 )}
-
-                {/* Capacity Info */}
-                <div className="flex flex-col gap-3 flex-1">
-                    {capacity_students && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-zinc-500 uppercase">Students:</span>
-                            <span className="text-lg font-black text-zinc-900">{capacity_students}</span>
-                        </div>
-                    )}
-                    {capacity_equipment && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-zinc-500 uppercase">Equipment:</span>
-                            <span className="text-lg font-black text-zinc-900">{capacity_equipment}</span>
-                        </div>
-                    )}
-                </div>
             </div>
 
-            {/* 3. Footer (Bottom Bun) - Price Table & Action */}
-            <div className="px-6 py-6 mt-auto border-t border-dashed border-zinc-100 bg-zinc-50/50 rounded-b-[2rem]">
-                {/* Price Table */}
-                <div className="mb-4 grid grid-cols-2 gap-4 text-center">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Per Student</span>
-                        <span className="text-xl font-black text-zinc-900">
+            {/* 3. Footer: Prices & Description */}
+            <div className="px-8 py-8 mt-auto border-t border-zinc-100 bg-white rounded-b-[2.5rem] flex flex-col gap-6">
+                <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-zinc-900 group-hover:text-black transition-colors line-clamp-2">
+                    {description || name}
+                </h4>
+
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-black text-zinc-900 tracking-tighter">
                             {currencySymbol}
                             {price_per_student}
                         </span>
-                    </div>
-                    {pph && (
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Per Hour</span>
-                            <span className="text-xl font-black text-zinc-900">
-                                {currencySymbol}
-                                {pph}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Duration */}
-                <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider block text-center">
-                    {duration_minutes} minutes
-                </span>
-
-                {/* Action Button */}
-                <div className="flex items-center justify-between gap-4 mt-4">
-                    <div className="flex-1 min-w-0">
-                        {name && <p className="text-xs text-zinc-600 line-clamp-2 font-medium">{name}</p>}
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">per student</span>
                     </div>
 
-                    <div className="relative w-14 h-14 shrink-0 transition-transform duration-300 group-hover:scale-110">
-                        <Image
-                            src="/ADR.webp"
-                            alt="Go"
-                            fill
-                            className={`object-contain transition-all duration-500 ${isHovered ? "grayscale-0 opacity-100" : "grayscale opacity-30"}`}
-                        />
+                    <div className="flex items-center gap-2 text-zinc-400 font-bold text-xs uppercase tracking-tight">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-100 text-[10px]">
+                            {getHMDuration(duration_minutes)} session
+                        </span>
+                        {pph && (
+                            <>
+                                <span className="text-zinc-200">•</span>
+                                <span>
+                                    {currencySymbol}
+                                    {pph}/hour
+                                </span>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -157,7 +151,11 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
 }
 
 export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPackageContainerProps) {
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [isSelectedArray, setIsSelectedArray] = useState<string[]>([]);
+
+    const toggleCategory = (cat: string) => {
+        setIsSelectedArray((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+    };
 
     // Group packages by category (using snake_case from Supabase)
     const groupedPackages = useMemo(() => {
@@ -197,92 +195,67 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
     }
 
     return (
-        <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-6 md:gap-8 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden p-1 justify-evenly">
-            {categories.map((cat) => {
-                const categoryPackages = groupedPackages[cat];
-                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === cat);
-                const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
+        <div className="flex flex-col h-full gap-8">
+            {/* Category Selector Bar */}
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start px-2">
+                {categories.map((cat) => {
+                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === cat);
+                    const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
+                    const isSelected = isSelectedArray.includes(cat);
 
-                const isSelected = selectedCategory === cat;
-                const isDimmed = selectedCategory !== null && !isSelected;
-
-                return (
-                    <motion.div
-                        key={cat}
-                        layout
-                        initial={false}
-                        animate={{
-                            opacity: isDimmed ? 0.4 : 1,
-                            scale: isSelected ? 1.02 : isDimmed ? 0.98 : 1,
-                            filter: isDimmed ? "grayscale(100%)" : "grayscale(0%)",
-                        }}
-                        transition={{ duration: 0.3 }}
-                        onClick={() => setSelectedCategory(isSelected ? null : cat)}
-                        className={`
-                            flex-shrink-0 flex flex-col gap-4 w-full md:w-[380px] lg:w-[420px] max-h-full cursor-pointer transition-all
-                            ${isSelected ? "z-10" : "z-0"}
-                        `}
-                    >
-                        {/* Category Header */}
-                        <div
-                            className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-300 ${
-                                isSelected ? "bg-zinc-50 border-zinc-200 shadow-sm" : "bg-transparent border-transparent"
-                            }`}
+                    return (
+                        <button
+                            key={cat}
+                            onClick={() => toggleCategory(cat)}
+                            className={`
+                                flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all duration-300
+                                ${
+                                    isSelected
+                                        ? "bg-zinc-900 border-zinc-900 text-white shadow-xl scale-105"
+                                        : "bg-white border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-zinc-600"
+                                }
+                            `}
                         >
                             <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-colors duration-300 ${
-                                    isSelected ? "bg-white border-zinc-100" : "bg-zinc-50 border-zinc-100"
-                                }`}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-white/20" : "bg-zinc-50"}`}
                             >
                                 {sportConfig?.image ? (
                                     <Image
                                         src={sportConfig.image}
                                         alt={sportConfig.id}
-                                        width={24}
-                                        height={24}
-                                        className="object-contain"
+                                        width={20}
+                                        height={20}
+                                        className={`object-contain ${isSelected ? "brightness-0 invert" : ""}`}
                                     />
                                 ) : config?.icon ? (
-                                    <config.icon className="w-6 h-6" />
+                                    <config.icon className="w-5 h-5" />
                                 ) : null}
                             </div>
-                            <h3
-                                className={`text-xl font-black uppercase tracking-tight transition-colors duration-300 ${
-                                    isSelected ? "text-zinc-900" : "text-zinc-400"
-                                }`}
-                            >
-                                {config?.name || cat}
-                            </h3>
+                            <span className="text-lg font-black uppercase tracking-tight">{config?.name || cat}</span>
                             <span
-                                className={`ml-auto text-xs font-bold px-2 py-1 rounded-lg transition-colors duration-300 ${
-                                    isSelected ? "bg-zinc-200 text-zinc-900" : "bg-zinc-50 text-zinc-300"
-                                }`}
+                                className={`text-xs font-bold px-2 py-0.5 rounded-md ${isSelected ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-400"}`}
                             >
-                                {categoryPackages.length}
+                                {groupedPackages[cat].length}
                             </span>
-                        </div>
+                        </button>
+                    );
+                })}
+            </div>
 
-                        {/* Packages List */}
-                        <div
-                            className="
-                            flex 
-                            flex-row md:flex-col 
-                            gap-4 
-                            overflow-x-auto md:overflow-x-hidden md:overflow-y-auto 
-                            pb-4 md:pb-2 md:pr-2
-                            snap-x md:snap-none
-                            scrollbar-hide
-                        "
-                        >
-                            {categoryPackages.map((pkg) => (
-                                <div key={pkg.id} className="w-[300px] md:w-full flex-shrink-0 snap-center">
-                                    <PackageCard pkg={pkg} currencySymbol={currencySymbol} />
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                );
-            })}
+            {/* Scrollable Cards Area */}
+            <div className="flex-1 overflow-y-auto px-2 pb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {categories.map((cat) => {
+                        const isSelected = isSelectedArray.includes(cat);
+                        // If nothing is selected, show everything. If something is selected, show only selected categories.
+                        if (isSelectedArray.length > 0 && !isSelected) return null;
+
+                        return groupedPackages[cat].map((pkg) => (
+                            <PackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} isSelected={isSelected} />
+                        ));
+                    })}
+                </div>
+            </div>
         </div>
     );
 }
