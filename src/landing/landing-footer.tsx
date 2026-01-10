@@ -8,6 +8,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LandingHeroDescription } from "./landing-hero";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
+import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 
 export function DevAboutMeFooter() {
     const [isOpen, setIsOpen] = useState(false);
@@ -59,18 +62,27 @@ export function DevAboutMeFooter() {
                                         <div className="border-t border-white/10" />
                                         <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
                                             <div className="group cursor-pointer">
-                                                <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Lesson Management</p>
-                                                <p className="text-sm text-white/60 group-hover:text-white mt-1 transition-colors duration-500">3 way communication</p>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <FlagIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
+                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Lesson Management</p>
+                                                </div>
+                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">3 way communication</p>
                                             </div>
 
                                             <div className="group cursor-pointer">
-                                                <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Payment Tracking</p>
-                                                <p className="text-sm text-white/60 group-hover:text-white mt-1 transition-colors duration-500">To the minute.</p>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <CreditIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
+                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Payment Tracking</p>
+                                                </div>
+                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">To the minute.</p>
                                             </div>
 
                                             <div className="group cursor-pointer">
-                                                <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</p>
-                                                <p className="text-sm text-white/60 group-hover:text-white mt-1 transition-colors duration-500">Know when it's time to say goodbye</p>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <EquipmentIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
+                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</p>
+                                                </div>
+                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">Know when it's time to say goodbye</p>
                                             </div>
                                         </div>
                                     </motion.div>
