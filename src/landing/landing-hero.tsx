@@ -105,6 +105,10 @@ export function LandingHero() {
 
         let animationId: number;
         let time = 0;
+        const introStartTime = Date.now();
+        const INTRO_DURATION = 3000;
+        const PARTICLE_DELAY = 2000;
+        const PARTICLE_FADE_DURATION = 6000;
 
         const resizeCanvas = () => {
             wavesCanvas.width = window.innerWidth;
@@ -113,19 +117,32 @@ export function LandingHero() {
 
         const draw = () => {
             time += 0.005;
+            const elapsed = Date.now() - introStartTime;
+            
+            // Wave progress
+            const introProgress = Math.min(elapsed / INTRO_DURATION, 1);
+            const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+            const waveProgress = easeOutCubic(introProgress);
+
+            // Particle progress (starts after 10s)
+            const particleElapsed = Math.max(0, elapsed - PARTICLE_DELAY);
+            const particleProgress = Math.min(particleElapsed / PARTICLE_FADE_DURATION, 1);
+
             ctx.clearRect(0, 0, wavesCanvas.width, wavesCanvas.height);
 
+            const centerX = wavesCanvas.width / 2;
             const centerY = wavesCanvas.height / 2;
 
-            // Multiple wave layers with different frequencies
+            // Multiple wave layers with entrance scaling
             for (let layer = 0; layer < 3; layer++) {
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 - layer * 0.04})`;
+                ctx.strokeStyle = `rgba(59, 130, 246, ${(0.15 - layer * 0.04) * waveProgress})`;
                 ctx.lineWidth = 2;
 
                 for (let x = 0; x < wavesCanvas.width; x += 3) {
-                    const wave1 = Math.sin(x * 0.01 + time + layer) * 40;
-                    const wave2 = Math.sin(x * 0.005 + time * 0.5 + layer * 2) * 25;
+                    // Amplitude starts at 0 and grows with progress
+                    const wave1 = Math.sin(x * 0.01 + time + layer) * (40 * waveProgress);
+                    const wave2 = Math.sin(x * 0.005 + time * 0.5 + layer * 2) * (25 * waveProgress);
                     const y = centerY + wave1 + wave2;
 
                     if (x === 0) {
@@ -135,6 +152,21 @@ export function LandingHero() {
                     }
                 }
                 ctx.stroke();
+            }
+
+            // Floating particles appearing in after 10 seconds
+            if (particleProgress > 0) {
+                for (let i = 0; i < 40; i++) {
+                    const angle = (i / 40) * Math.PI * 2 + time * 0.5;
+                    const radius = (150 + Math.sin(time + i) * 50) * (0.8 + 0.2 * particleProgress);
+                    const x = centerX + Math.cos(angle) * radius * 1.5;
+                    const y = centerY + Math.sin(angle) * radius * 0.5;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(59, 130, 246, ${(0.4 + Math.sin(time + i) * 0.2) * particleProgress})`;
+                    ctx.fill();
+                }
             }
 
             animationId = requestAnimationFrame(draw);

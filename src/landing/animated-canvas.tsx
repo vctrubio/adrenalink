@@ -18,6 +18,9 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
 
         let animationId: number;
         let time = 0;
+        const introStartTime = Date.now();
+        const PARTICLE_DELAY = 2000;
+        const PARTICLE_FADE_DURATION = 6000;
 
         const resizeCanvas = () => {
             const parent = canvas.parentElement;
@@ -30,6 +33,12 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
 
         const draw = () => {
             time += 0.01;
+            const elapsed = Date.now() - introStartTime;
+            
+            // Particle/Pulse progress (starts after 10s)
+            const extraElapsed = Math.max(0, elapsed - PARTICLE_DELAY);
+            const extraProgress = Math.min(extraElapsed / PARTICLE_FADE_DURATION, 1);
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Create flowing wave patterns
@@ -57,31 +66,33 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
                 ctx.stroke();
             }
 
-            // Floating particles
-            for (let i = 0; i < 50; i++) {
-                const angle = (i / 50) * Math.PI * 2 + time;
-                const radius = 100 + Math.sin(time * 2 + i) * 50;
-                const x = centerX + Math.cos(angle) * radius;
-                const y = centerY + Math.sin(angle) * radius * 0.5;
+            // Floating particles appearing after 10s
+            if (extraProgress > 0) {
+                for (let i = 0; i < 50; i++) {
+                    const angle = (i / 50) * Math.PI * 2 + time;
+                    const radius = 100 + Math.sin(time * 2 + i) * 50;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius * 0.5;
 
-                ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(59, 130, 246, ${0.6 + Math.sin(time + i) * 0.4})`;
-                ctx.fill();
-            }
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(59, 130, 246, ${(0.6 + Math.sin(time + i) * 0.4) * extraProgress})`;
+                    ctx.fill();
+                }
 
-            // Pulsing circles
-            for (let i = 0; i < 5; i++) {
-                const pulse = Math.sin(time * 3 + i) * 0.5 + 0.5;
-                const size = 20 + pulse * 100;
-                const x = centerX + Math.cos(time + i) * 200;
-                const y = centerY + Math.sin(time + i) * 100;
+                // Pulsing circles appearing after 10s
+                for (let i = 0; i < 5; i++) {
+                    const pulse = Math.sin(time * 3 + i) * 0.5 + 0.5;
+                    const size = 20 + pulse * 100;
+                    const x = centerX + Math.cos(time + i) * 200;
+                    const y = centerY + Math.sin(time + i) * 100;
 
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(59, 130, 246, ${pulse * 0.1})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(59, 130, 246, ${pulse * 0.1 * extraProgress})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
             }
 
             animationId = requestAnimationFrame(draw);
