@@ -13,11 +13,11 @@ const KEY_WORDS = "text-xl text-white";
 
 function AdrImageSection() {
     return (
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 2.1, duration: 1.2 }} viewport={{ once: true, amount: 0.5 }} className="flex items-center justify-end gap-4 pt-6">
-            <motion.div initial={{ x: -400, rotate: 360 }} whileInView={{ x: 0, rotate: 0 }} transition={{ delay: 2.1, duration: 1.4, type: "spring", stiffness: 100, damping: 15 }} viewport={{ once: true, amount: 0.5 }}>
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 2.3, duration: 1.2 }} viewport={{ once: true, amount: 0.5 }} className="flex items-center justify-end gap-4 pt-6">
+            <motion.div initial={{ x: -400, rotate: 360 }} whileInView={{ x: 0, rotate: 0 }} transition={{ delay: 2.3, duration: 1.4, type: "spring", stiffness: 100, damping: 15 }} viewport={{ once: true, amount: 0.5 }}>
                 <Image src="/ADR.webp" alt="Adrenalink" width={120} height={120} className="filter brightness-0 saturate-100" style={{ filter: "brightness(0) saturate(100%) hue-rotate(30deg) drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))" }} />
             </motion.div>
-            <motion.div className="flex flex-col items-center gap-0" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 2.3, duration: 0.6 }} viewport={{ once: true, amount: 0.5 }} whileHover={{ scale: 1.05 }}>
+            <motion.div className="flex flex-col items-center gap-0" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 2.5, duration: 0.6 }} viewport={{ once: true, amount: 0.5 }} whileHover={{ scale: 1.05 }}>
                 <motion.div className="text-lg md:text-xl leading-none font-black" style={{ color: "rgb(251, 146, 60)", letterSpacing: "0.15em" }} animate={{ y: [0, -4, 0] }} transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}>
                     Gamified
                 </motion.div>
@@ -47,18 +47,21 @@ export function LandingHeroDescription() {
     return (
         <div className="max-w-3xl mx-auto mt-8 px-4 space-y-2">
             <div className="text-lg md:text-2xl font-semibold text-center leading-relaxed">
-                <motion.span initial={{ opacity: 1 }} animate={{ opacity: 1 }} className="text-secondary text-xl md:text-3xl tracking-tight">
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.8 }} className="text-secondary text-xl md:text-3xl tracking-tight">
                     Our technology
                 </motion.span>
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} className="text-gray-400 mx-1">
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.8 }} className="text-gray-400 mx-1">
                     <span className="italic">mints</span> the next generation of
                 </motion.span>
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.8 }} className={PUNCH_WORDS}>
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.8 }} className={PUNCH_WORDS}>
                     Adrenaline Sports Club
+                </motion.span>
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.8 }} className="text-gray-400">
+                    .
                 </motion.span>
             </div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3, duration: 0.8 }} className="space-y-2 flex flex-col-reverse md:flex-col">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 0.8 }} className="space-y-2 flex flex-col-reverse md:flex-col">
                 <div className="text-base md:text-lg text-gray-300 text-center">
                     <span className={PUNCH_WORDS}>We</span> <span className={PUNCH_WORDS}>empower</span>{" "}
                     <span className={HIGHLIGHT_SPAN_CLASSNAME}>

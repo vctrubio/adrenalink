@@ -39,12 +39,15 @@ const SchoolsClient = ({ schools }: { schools: SchoolWithAssets[] }) => {
 
     const filteredSchools = useMemo(() => {
         if (!selectedSport) return schools;
-        return schools.filter(school => {
+        return schools.filter((school) => {
             if (!school.equipment_categories || school.equipment_categories.trim() === "") {
                 console.warn(`⚠️ School "${school.name}" has no equipment_categories`);
                 return false;
             }
-            const categories = school.equipment_categories.split(",").map(c => c.trim()).filter(c => c);
+            const categories = school.equipment_categories
+                .split(",")
+                .map((c) => c.trim())
+                .filter((c) => c);
             return categories.includes(selectedSport);
         });
     }, [schools, selectedSport]);
@@ -58,49 +61,21 @@ const SchoolsClient = ({ schools }: { schools: SchoolWithAssets[] }) => {
                     {/* Header Container - Static branding inside, animated sub-content */}
                     <div className="mb-24">
                         <div className="flex flex-col gap-16">
-                            <SchoolHeaderContent 
-                                titleMain="The Schools."
-                                titleSub="The Network."
-                                descriptionMain="Home of Adrenaline Activities"
-                                descriptionSub="Find your Sport."
-                                isExiting={isExiting}
-                            />
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={isExiting ? { opacity: 0, y: -20, filter: "blur(10px)" } : { opacity: 1, y: 0, filter: "blur(0px)" }}
-                                transition={{ duration: 0.6, delay: 0.2 }}
-                                className="w-full max-w-2xl mx-auto"
-                            >
+                            <SchoolHeaderContent titleMain="The Schools." titleSub="The Network." descriptionMain="Home of Adrenaline Activities" descriptionSub="Find your next school." isExiting={isExiting} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={isExiting ? { opacity: 0, y: -20, filter: "blur(10px)" } : { opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.6, delay: 0.2 }} className="w-full max-w-2xl mx-auto">
                                 <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} />
                             </motion.div>
                         </div>
                     </div>
 
                     {/* Content with entrance and exit animation */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.92 }}
-                        animate={isExiting ? { opacity: 0, x: -100, filter: "blur(10px)" } : { opacity: 1, x: 0, filter: "blur(0px)", scale: 1 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                    >
+                    <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={isExiting ? { opacity: 0, x: -100, filter: "blur(10px)" } : { opacity: 1, x: 0, filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.8, ease: "easeOut" }}>
                         <div className="space-y-6">
                             <AnimatePresence mode="popLayout">
                                 {filteredSchools.length > 0 ? (
                                     filteredSchools.map((school, index) => (
-                                        <motion.div
-                                            key={school.username}
-                                            initial={{ opacity: 0, y: 80 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            transition={{ type: "spring", stiffness: 120, damping: 14 }}
-                                        >
-                                            <SchoolIdentificationRow 
-                                                school={school}
-                                                index={index}
-                                                hoveredIndex={hoveredIndex}
-                                                setHoveredIndex={setHoveredIndex}
-                                                hoveredSportId={hoveredSportId}
-                                                setHoveredSportId={setHoveredSportId}
-                                            />
+                                        <motion.div key={school.username} initial={{ opacity: 0, y: 80 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ type: "spring", stiffness: 120, damping: 14 }}>
+                                            <SchoolIdentificationRow school={school} index={index} hoveredIndex={hoveredIndex} setHoveredIndex={setHoveredIndex} hoveredSportId={hoveredSportId} setHoveredSportId={setHoveredSportId} />
                                         </motion.div>
                                     ))
                                 ) : (
@@ -117,13 +92,7 @@ const SchoolsClient = ({ schools }: { schools: SchoolWithAssets[] }) => {
                 </div>
             </div>
 
-            <ChangeTheWindFooter 
-                showFooter={showFooter}
-                isStarting={isStarting}
-                onGetStarted={() => setIsStarting(true)}
-                variant="secondary"
-                getStartedUrl="/pillars"
-            />
+            <ChangeTheWindFooter showFooter={showFooter} isStarting={isStarting} onGetStarted={() => setIsStarting(true)} variant="secondary" getStartedUrl="/pillars" />
         </section>
     );
 };
