@@ -74,7 +74,7 @@ export default function StudentCard({ student }: StudentCardProps) {
                         {student.relations?.schoolStudents?.map((schoolRelation: any) => (
                             <Link
                                 key={schoolRelation.school.id}
-                                href={`/schools/${schoolRelation.school.username}`}
+                                href={`/discover`}
                                 className="block p-3 bg-muted/50 rounded-md hover:bg-accent/50 transition-colors"
                                 onClick={(e) => e.stopPropagation()}
                             >

@@ -75,9 +75,9 @@ export default function NotFound() {
                     <Link href="/" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-center">
                         Go Home
                     </Link>
-                    <a href="https://adrenalink.tech/schools" className="px-8 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent/90 transition-colors text-center">
+                    <Link href="/discover" className="px-8 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent/90 transition-colors text-center">
                         Browse Schools
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

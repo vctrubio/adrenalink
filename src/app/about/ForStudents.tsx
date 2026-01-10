@@ -22,7 +22,7 @@ export function ForStudents() {
                     <div className="w-full md:w-1/3 max-w-sm mx-auto py-12 md:py-0">
                         <FeatureCard
                             title="Explore School"
-                            link="/schools"
+                            link="/discover"
                             icon={<LighthouseIcon />}
                         />
                     </div>

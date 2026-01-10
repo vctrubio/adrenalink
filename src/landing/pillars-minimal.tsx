@@ -71,7 +71,7 @@ const PillarsMinimal = () => {
                     isStarting={isStarting}
                     onGetStarted={() => setIsStarting(true)}
                     variant="primary"
-                    getStartedUrl="/schools"
+                    getStartedUrl="/discover"
                     extraActions={
                         isMoreButtonVisible && (
                             <>

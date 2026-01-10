@@ -18,7 +18,7 @@ export function ForTeachers() {
                     <div className="w-full max-w-sm">
                         <FeatureCard
                             title="Get to know more..."
-                            link="/schools"
+                            link="/discover"
                             icon={<AnimatedWindIcon />}
                         />
                     </div>
