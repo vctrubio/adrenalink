@@ -54,7 +54,7 @@ export function LandingHeroDescription() {
                     <span className="italic">mints</span> the next generation of
                 </motion.span>
                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.8 }} className={PUNCH_WORDS}>
-                    Adrenaline Sports Club
+                    Adrenaline Activity
                 </motion.span>
                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.8 }} className="text-gray-400">
                     .
@@ -63,14 +63,14 @@ export function LandingHeroDescription() {
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 0.8 }} className="space-y-2 flex flex-col-reverse md:flex-col">
                 <div className="text-base md:text-lg text-gray-300 text-center">
-                    <span className={PUNCH_WORDS}>We</span> <span className={PUNCH_WORDS}>empower</span>{" "}
+                    <span className={PUNCH_WORDS}>We</span> <span className={PUNCH_WORDS}>connect</span>{" "}
                     <span className={HIGHLIGHT_SPAN_CLASSNAME}>
                         <span className="text-secondary tracking-widest">schools</span> with <span className="text-secondary tracking-widest">students</span> and <span className="text-secondary tracking-widest">teachers</span>
                     </span>{" "}
-                    <span className="text-gray-400 italic">to</span> <span className={`tracking-wide ${KEY_WORDS}`}>synchronize lesson activities</span>.
+                    <span className="text-gray-400 italic">to</span> <span className={`tracking-wide ${KEY_WORDS}`}>synchronize lessons</span>.
                 </div>
                 <div className="text-base md:text-lg text-gray-300 text-center">
-                    <span className={PUNCH_WORDS}>Facilitating</span> <span className={KEY_WORDS}>bookings</span>, <span className={KEY_WORDS}>payments</span>, <span className="text-gray-400 italic">and</span> <span className={KEY_WORDS}>communication</span>.
+                    <span className={PUNCH_WORDS}>Facilitating</span> <span className={KEY_WORDS}>bookings</span>, <span className={KEY_WORDS}>payments</span>, <span className="text-gray-400 italic">and</span> <span className={KEY_WORDS}>communication</span>,
                 </div>
                 <div className="text-base md:text-lg text-gray-300 text-center">
                     <span className={PUNCH_WORDS}>Adrenalink</span> is{" "}
@@ -118,7 +118,7 @@ export function LandingHero() {
         const draw = () => {
             time += 0.005;
             const elapsed = Date.now() - introStartTime;
-            
+
             // Wave progress
             const introProgress = Math.min(elapsed / INTRO_DURATION, 1);
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
