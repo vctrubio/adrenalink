@@ -24,8 +24,7 @@ export function LandingDescription() {
 
     useEffect(() => {
         if (selectedRole && selectedSport) {
-            const targetPath = selectedRole === "admin" ? "/pillars" : "/schools";
-            router.push(targetPath);
+            router.push("/pillars");
         }
     }, [selectedRole, selectedSport, router]);
 
