@@ -154,10 +154,10 @@ export default function BookingOnboardCard({
                                     id: `header-${event.id}`,
                                     label: (
                                         <div className="flex items-center gap-3 leading-none">
-                                            <span className="font-bold">{event.teacher.username}</span>
+                                            <span className="font-bold text-[#16a34a]">{event.teacher.username}</span>
                                             <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                                                 <FlagIcon size={12} className="opacity-70" />
-                                                <span className="translate-y-[0.5px]">{event.date.split('T')[1].substring(0, 5)}</span>
+                                                <span className="translate-y-[0.5px]">{event.date.split('T')[1]?.substring(0, 5) || "--:--"}</span>
                                             </div>
                                             <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                                                 <DurationIcon size={12} className="opacity-70" />
@@ -185,18 +185,20 @@ export default function BookingOnboardCard({
                                 ...[...availableEquipment]
                                     .filter(eq => !assignedEquipments.some((ae: any) => ae.id === eq.id))
                                     .sort((a, b) => {
-                                        const aPreferred = a.teacher_equipment?.some((te: any) => te.teacher_id === event.teacher.id);
-                                        const bPreferred = b.teacher_equipment?.some((te: any) => te.teacher_id === event.teacher.id);
+                                        const teacherId = event.teacher.id;
+                                        const aPreferred = teacherId && a.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
+                                        const bPreferred = teacherId && b.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
                                         if (aPreferred && !bPreferred) return -1;
                                         if (!aPreferred && bPreferred) return 1;
                                         return 0;
                                     })
                                     .map(eq => {
-                                        const isPreferred = eq.teacher_equipment?.some((te: any) => te.teacher_id === event.teacher.id);
+                                        const teacherId = event.teacher.id;
+                                        const isPreferred = teacherId && eq.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
                                         return {
-                                            id: `available-${eq.id}`,
+                                            id: eq.id,
                                             label: (
-                                                <div className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50" : ""}`}>
+                                                <div className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50 pb-0.5" : ""}`}>
                                                     <span className="font-bold text-foreground/90">{eq.brand} {eq.model}{eq.size ? ` (${eq.size})` : ""}</span>
                                                 </div>
                                             ) as any,

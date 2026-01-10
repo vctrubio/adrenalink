@@ -12,6 +12,7 @@ export function useEquipment(category: string) {
         setIsLoading(true);
         const result = await getAvailableEquipment(category);
         if (result.success) {
+            console.log(`[useEquipment] 🔍 Fetched ${result.data?.length} items for ${category}:`, result.data?.[0]);
             setAvailableEquipment(result.data || []);
         } else {
             console.error("Failed to fetch equipment:", result.error);

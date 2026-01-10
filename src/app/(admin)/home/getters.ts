@@ -87,6 +87,7 @@ export function getAllTransactionEvents(classboardData: ClassboardModel, currenc
                         status: event.status,
                     },
                     teacher: {
+                        id: lesson.teacher.id,
                         username: lesson.teacher.username,
                     },
                     leaderStudentName,

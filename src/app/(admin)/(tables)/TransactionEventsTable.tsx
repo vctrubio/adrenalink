@@ -50,6 +50,15 @@ function EquipmentFulfillmentCell({
         }
     };
 
+    useEffect(() => {
+        if (isOpen && availableEquipment.length > 0) {
+            const firstEq = availableEquipment[0];
+            console.log(`[TransactionTable] 🔍 Checking preferred gear for ${data.teacher.username} (${data.teacher.id})`, {
+                gearRelations: firstEq.teacher_equipment?.map((te: any) => te.teacher_id)
+            });
+        }
+    }, [isOpen, availableEquipment, data.teacher]);
+
     if (data.equipments && data.equipments.length > 0) {
         return <BrandSizeCategoryList equipments={data.equipments as any} />;
     }
