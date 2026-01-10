@@ -61,28 +61,28 @@ export function DevAboutMeFooter() {
                                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="overflow-hidden">
                                         <div className="border-t border-white/10" />
                                         <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
-                                            <div className="group cursor-pointer">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <FlagIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
-                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Lesson Management</p>
+                                            <div className="group cursor-pointer flex items-start gap-3">
+                                                <FlagIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <div>
+                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Lesson Management</h3>
+                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">3 way communication</p>
                                                 </div>
-                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">3 way communication</p>
                                             </div>
 
-                                            <div className="group cursor-pointer">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <CreditIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
-                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Payment Tracking</p>
+                                            <div className="group cursor-pointer flex items-start gap-3">
+                                                <CreditIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <div>
+                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Payment Tracking</h3>
+                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">To the minute.</p>
                                                 </div>
-                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">To the minute.</p>
                                             </div>
 
-                                            <div className="group cursor-pointer">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <EquipmentIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
-                                                    <p className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</p>
+                                            <div className="group cursor-pointer flex items-start gap-3">
+                                                <EquipmentIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <div>
+                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</h3>
+                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">Know when it's time to say goodbye</p>
                                                 </div>
-                                                <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">Know when it's time to say goodbye</p>
                                             </div>
                                         </div>
                                     </motion.div>
