@@ -23,7 +23,21 @@ export interface ClassboardTeacher {
     username: string;
 }
 
-export type ClassboardEvent = Pick<EventType, "id" | "date" | "duration" | "location" | "status">;
+export interface ClassboardEvent {
+    id: string;
+    date: string;
+    duration: number;
+    location: string;
+    status: string;
+    equipments?: {
+        id: string;
+        brand: string;
+        model: string;
+        size: number | null;
+        sku?: string;
+        color?: string;
+    }[];
+}
 
 export interface ClassboardCommission {
     id: string;

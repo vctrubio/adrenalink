@@ -72,6 +72,8 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                         brand: ee.equipment.brand,
                         model: ee.equipment.model,
                         size: ee.equipment.size ? parseFloat(ee.equipment.size) : null,
+                        sku: ee.equipment.sku,
+                        color: ee.equipment.color,
                     })) || [],
                 })),
             })),

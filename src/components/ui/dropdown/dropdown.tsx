@@ -28,7 +28,7 @@ export default function Dropdown({
 }: DropdownProps) {
 	const [focusedIndex, setFocusedIndex] = useState(0);
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-	const [coords, setCoords] = useState({ top: 0, left: 0, right: 0, width: 0 });
+	const [coords, setCoords] = useState({ top: 0, bottom: 0, left: 0, right: 0, width: 0, spaceAbove: 0, spaceBelow: 0, placement: "down" as "up" | "down" });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -40,11 +40,21 @@ export default function Dropdown({
 		if (isOpen && triggerRef?.current) {
 			const updatePosition = () => {
 				const rect = triggerRef.current!.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                
+                // If space below is less than 300px and there's more space above, flip up
+                const placement = (spaceBelow < 300 && spaceAbove > spaceBelow) ? "up" : "down";
+
 				setCoords({
 					top: rect.bottom + 8,
+                    bottom: window.innerHeight - rect.top + 8,
 					left: rect.left,
 					right: window.innerWidth - rect.right,
 					width: rect.width,
+                    spaceAbove,
+                    spaceBelow,
+                    placement
 				});
 			};
 			
@@ -107,56 +117,63 @@ export default function Dropdown({
 	}, [isOpen, handleKeyDown]);
 
 	// Render Content
-	const renderContent = () => (
-		<motion.div
-			initial={{ opacity: 0, y: -8, scale: 0.95 }}
-			animate={{ opacity: 1, y: 0, scale: 1 }}
-			exit={{ opacity: 0, y: -8, scale: 0.95 }}
-			transition={{ duration: 0.15, ease: "easeOut" }}
-			className={`bg-card border border-border rounded-lg shadow-xl min-w-[200px] overflow-hidden ${className}`}
-			style={triggerRef ? {
-				position: "fixed",
-				top: coords.top,
-				...(align === "left" ? { left: coords.left } : {}),
-				...(align === "right" ? { right: coords.right } : {}),
-				...(align === "center" ? { left: coords.left + coords.width / 2, transform: "translateX(-50%)" } : {}),
-				zIndex: 9999,
-				maxHeight: "calc(100vh - 20px)",
-				overflowY: "auto",
-			} : {
-                // Fallback style for no triggerRef (mimic old absolute behavior but better)
-                position: "absolute",
-                top: "100%",
-                marginTop: "0.5rem",
-                ...(align === "left" ? { left: 0 } : {}),
-                ...(align === "right" ? { right: 0 } : {}),
-                ...(align === "center" ? { left: "50%", transform: "translateX(-50%)" } : {}),
-                zIndex: 50,
-            }}
-		>
-			<div className="py-1">
-				{items.map((item, index) => (
-					<div
-						key={item.id || index}
-						ref={(el) => (itemRefs.current[index] = el)}
-						onMouseEnter={() => setFocusedIndex(index)}
-					>
-						{renderItem ? (
-							renderItem(item, onClose)
-						) : (
-							<DropdownItemComponent
-								item={item}
-								onClose={onClose}
-								variant="dropdown"
-								isFocused={index === focusedIndex}
-							/>
-						)}
-						{index < items.length - 1 && <div className="my-1 h-px bg-muted/30 mx-3" />}
-					</div>
-				))}
-			</div>
-		</motion.div>
-	);
+	const renderContent = () => {
+        const isUp = coords.placement === "up";
+        const maxHeight = isUp 
+            ? `calc(${coords.spaceAbove}px - 20px)` // Use space above trigger
+            : `calc(${coords.spaceBelow}px - 20px)`; // Use space below trigger
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: isUp ? 8 : -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: isUp ? 8 : -8, scale: 0.95 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className={`bg-card border border-border rounded-lg shadow-xl min-w-[200px] overflow-hidden ${className}`}
+                style={triggerRef ? {
+                    position: "fixed",
+                    ...(isUp ? { bottom: coords.bottom } : { top: coords.top }),
+                    ...(align === "left" ? { left: coords.left } : {}),
+                    ...(align === "right" ? { right: coords.right } : {}),
+                    ...(align === "center" ? { left: coords.left + coords.width / 2, transform: "translateX(-50%)" } : {}),
+                    zIndex: 9999,
+                    maxHeight,
+                    overflowY: "auto",
+                } : {
+                    // Fallback style for no triggerRef (mimic old absolute behavior but better)
+                    position: "absolute",
+                    top: "100%",
+                    marginTop: "0.5rem",
+                    ...(align === "left" ? { left: 0 } : {}),
+                    ...(align === "right" ? { right: 0 } : {}),
+                    ...(align === "center" ? { left: "50%", transform: "translateX(-50%)" } : {}),
+                    zIndex: 50,
+                }}
+            >
+                <div className="py-1">
+                    {items.map((item, index) => (
+                        <div
+                            key={item.id || index}
+                            ref={(el) => (itemRefs.current[index] = el)}
+                            onMouseEnter={() => setFocusedIndex(index)}
+                        >
+                            {renderItem ? (
+                                renderItem(item, onClose)
+                            ) : (
+                                <DropdownItemComponent
+                                    item={item}
+                                    onClose={onClose}
+                                    variant="dropdown"
+                                    isFocused={index === focusedIndex}
+                                />
+                            )}
+                            {index < items.length - 1 && <div className="my-1 h-px bg-muted/30 mx-3" />}
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
+        );
+    };
 
     const backdrop = (
         <div className="fixed inset-0 z-[9998]" onClick={onClose} aria-hidden="true" />

@@ -69,7 +69,9 @@ function buildBookingQuery() {
                         id,
                         brand,
                         model,
-                        size
+                        size,
+                        sku,
+                        color
                     )
                 )
             )
@@ -687,11 +689,98 @@ export async function cascadeDeleteWithShift(
       success: true,
       data: { shiftedCount },
     };
-  } catch (error) {
-    console.error("❌ [classboard] Error cascading delete:", error);
-    return {
-      success: false,
-      error: `Failed to cascade delete: ${error instanceof Error ? error.message : String(error)}`,
-    };
+      } catch (error) {
+      console.error("❌ [classboard] Error cascading delete:", error);
+      return {
+        success: false,
+        error: `Failed to cascade delete: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
   }
-}
+  
+  /**
+   * Fetch available equipment for a category
+   */
+  export async function getAvailableEquipment(category: string): Promise<ApiActionResponseModel<any[]>> {
+    try {
+      const headersList = await headers();
+      const schoolId = headersList.get("x-school-id");
+  
+      if (!schoolId) {
+        return { success: false, error: "School context not found" };
+      }
+  
+              const supabase = getServerConnection();
+          
+              const { data, error } = await supabase
+                .from("equipment")
+                .select(`
+                  id, brand, model, size, color, status, sku,
+                  teacher_equipment(teacher_id)
+                `)
+                .eq("school_id", schoolId)
+                .eq("category", category)
+                .in("status", ["rental", "public"])
+                .order("brand", { ascending: true });      if (error) {
+        console.error("❌ [classboard] Error fetching equipment:", error);
+        return { success: false, error: "Failed to fetch equipment" };
+      }
+  
+      return { success: true, data: data || [] };
+    } catch (error) {
+      console.error("❌ [classboard] Unexpected error fetching equipment:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+  
+  /**
+   * Assign equipment to an event
+   */
+  export async function assignEquipmentToEvent(eventId: string, equipmentId: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
+    try {
+      console.log(`🔗 [classboard] Assigning equipment ${equipmentId} to event ${eventId}`);
+  
+      const supabase = getServerConnection();
+  
+      const { error } = await supabase
+        .from("equipment_event")
+        .insert({ event_id: eventId, equipment_id: equipmentId });
+  
+      if (error) {
+        console.error("❌ [classboard] Error assigning equipment:", error);
+        return { success: false, error: "Failed to assign equipment" };
+      }
+  
+      return { success: true, data: { success: true } };
+    } catch (error) {
+      console.error("❌ [classboard] Error in assignEquipmentToEvent:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+  
+  /**
+   * Unassign equipment from an event
+   */
+  export async function unassignEquipmentFromEvent(eventId: string, equipmentId: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
+    try {
+      console.log(`🔗 [classboard] Unassigning equipment ${equipmentId} from event ${eventId}`);
+  
+      const supabase = getServerConnection();
+  
+      const { error } = await supabase
+        .from("equipment_event")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("equipment_id", equipmentId);
+  
+      if (error) {
+        console.error("❌ [classboard] Error unassigning equipment:", error);
+        return { success: false, error: "Failed to unassign equipment" };
+      }
+  
+      return { success: true, data: { success: true } };
+    } catch (error) {
+      console.error("❌ [classboard] Error in unassignEquipmentFromEvent:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
