@@ -36,11 +36,11 @@ export function DevAboutMeFooter() {
 
                         <div className="bg-zinc-900">
                             <div className="px-6 py-4 flex items-center justify-between min-h-[84px]">
-                                <div className="text-white flex items-end gap-3">
-                                    <Image src="/ADR.webp" alt="Adrenalink Logo" width={42} height={42} className="brightness-0 invert mb-1" />
-                                    <div className="relative mb-1">
-                                        <p className="text-3xl leading-none font-black tracking-tighter ">Adrenalink</p>
-                                        <p className="absolute top-[24px] text-sm text-white/60 whitespace-nowrap font-normal tracking-normal">Connecting Students</p>
+                                <div className="text-white flex items-center gap-1">
+                                    <Image src="/ADR.webp" alt="Adrenalink Logo" width={48} height={48} className="brightness-0 invert" />
+                                    <div>
+                                        <p className="text-3xl leading-none font-black tracking-tighter pt-4">Adrenalink</p>
+                                        <p className="text-sm text-white/60 font-normal">Connecting Students</p>
                                     </div>
                                 </div>
 
@@ -62,7 +62,7 @@ export function DevAboutMeFooter() {
                                         <div className="border-t border-white/10" />
                                         <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
                                             <div className="group cursor-pointer flex items-start gap-3">
-                                                <FlagIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <FlagIcon size={48} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
                                                 <div>
                                                     <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Lesson Management</h3>
                                                     <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">3 way communication</p>
@@ -70,7 +70,7 @@ export function DevAboutMeFooter() {
                                             </div>
 
                                             <div className="group cursor-pointer flex items-start gap-3">
-                                                <CreditIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <CreditIcon size={48} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
                                                 <div>
                                                     <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Payment Tracking</h3>
                                                     <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">To the minute.</p>
@@ -78,7 +78,7 @@ export function DevAboutMeFooter() {
                                             </div>
 
                                             <div className="group cursor-pointer flex items-start gap-3">
-                                                <EquipmentIcon size={24} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0 mt-0.5" />
+                                                <EquipmentIcon size={48} className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0" />
                                                 <div>
                                                     <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">Equipment Handling</h3>
                                                     <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">Know when it's time to say goodbye</p>
