@@ -9,9 +9,7 @@ export function LandingPage() {
                 <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
                     <LandingHero />
                     <LandingDescription />
-                    <div id="footer" className="snap-start">
-                        <DevAboutMeFooter />
-                    </div>
+                    <DevAboutMeFooter />
                 </div>
             </main>
         </div>

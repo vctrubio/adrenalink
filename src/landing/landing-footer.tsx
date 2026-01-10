@@ -73,9 +73,6 @@ export function DevAboutMeFooter() {
                                                 <p className="text-sm text-white/60 group-hover:text-white mt-1 transition-colors duration-500">Know when it's time to say goodbye</p>
                                             </div>
                                         </div>
-                                        <div className="border-t border-white/10 pt-6 pb-6">
-                                            <LandingHeroDescription theme="light" />
-                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>

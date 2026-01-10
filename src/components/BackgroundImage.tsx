@@ -8,6 +8,8 @@ interface BackgroundImageProps {
   transform?: string;
 }
 
+const BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'%3E%3Crect fill='%231e1b4b' width='1200' height='800'/%3E%3C/svg%3E";
+
 export const BackgroundImage = ({
   src,
   position = "fixed",
@@ -18,29 +20,30 @@ export const BackgroundImage = ({
   const positionClass = position === "fixed" ? "fixed" : position === "absolute" ? "absolute" : "relative";
 
   return (
-    <>
+    <div
+      className={`inset-0 z-0 pointer-events-none ${positionClass}`}
+      style={transform ? { transform } : undefined}
+    >
       {/* Background Image */}
-      <div
-        className={`inset-0 z-0 pointer-events-none ${positionClass}`}
-        style={transform ? { transform } : undefined}
-      >
-        <Image
-          src={src}
-          alt="Background"
-          fill
-          priority={priority}
-          quality={85}
-          className="object-cover"
-        />
-      </div>
+      <Image
+        src={src}
+        alt="Background"
+        fill
+        priority={priority}
+        quality={75}
+        sizes="100vw"
+        placeholder="blur"
+        blurDataURL={BLUR_DATA_URL}
+        className="object-cover"
+      />
 
-      {/* Gradient Overlay */}
+      {/* Overlay using CSS pseudo-element */}
       {overlay && (
         <div
-          className={`inset-0 z-[1] pointer-events-none ${positionClass}`}
+          className="absolute inset-0 pointer-events-none"
           style={{ background: overlay }}
         />
       )}
-    </>
+    </div>
   );
 };
