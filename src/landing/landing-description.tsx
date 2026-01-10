@@ -42,8 +42,9 @@ export function LandingDescription() {
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
+                viewport={{ once: true, amount: 0.3 }}
                 className="relative z-10 h-full flex flex-col items-center justify-center px-4"
             >
                 <div className="w-full max-w-5xl space-y-12 text-center">
@@ -77,7 +78,7 @@ function PhotoCredit() {
 function JoinForcesHeading() {
     return (
         <div className="space-y-6 flex flex-col items-center">
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+            <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} viewport={{ once: true, amount: 0.5 }}>
                 <div
                     className="w-[240px] h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                     style={{

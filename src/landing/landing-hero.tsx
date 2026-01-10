@@ -1,10 +1,69 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import Image from "next/image";
 import { LandingPortals } from "./landing-portals";
 import { AnimatedCanvas } from "./animated-canvas";
 
 const BLUE_BG_GO = "bg-slate-950"; // Always use dark mode background
+const PUNCH_WORDS = "text-white font-bold";
+const HIGHLIGHT_SPAN_CLASSNAME = "border-b border-secondary/50 tracking-wider";
+const KEY_WORDS = "text-xl text-white";
+
+function AdrImageSection() {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 2.1, duration: 1.2 }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="flex items-center justify-end gap-4 pt-6"
+        >
+            <motion.div
+                initial={{ x: -400, rotate: 360 }}
+                whileInView={{ x: 0, rotate: 0 }}
+                transition={{ delay: 2.1, duration: 1.4, type: "spring", stiffness: 100, damping: 15 }}
+                viewport={{ once: true, amount: 0.5 }}
+            >
+                <Image
+                    src="/ADR.webp"
+                    alt="Adrenalink"
+                    width={120}
+                    height={120}
+                    className="filter brightness-0 saturate-100"
+                    style={{ filter: "brightness(0) saturate(100%) hue-rotate(30deg) drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))" }}
+                />
+            </motion.div>
+            <motion.div
+                className="flex flex-col items-center gap-0"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 2.3, duration: 0.6 }}
+                viewport={{ once: true, amount: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+            >
+                <motion.div
+                    className="text-lg md:text-xl leading-none font-black"
+                    style={{ color: "rgb(251, 146, 60)", letterSpacing: "0.15em" }}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}
+                >
+                    Gamified
+                </motion.div>
+                <div className="text-sm leading-none" style={{ color: "rgba(251, 146, 60, 0.5)", textShadow: "0 1px 2px rgba(0, 0, 0, 0.2)" }}>&</div>
+                <motion.div
+                    className="text-lg md:text-xl leading-none font-black"
+                    style={{ color: "rgb(251, 146, 60)", letterSpacing: "0.15em" }}
+                    animate={{ y: [0, 4, 0] }}
+                    transition={{ duration: 1.5, repeat: 2, ease: "easeInOut" }}
+                >
+                    Simplified
+                </motion.div>
+            </motion.div>
+        </motion.div>
+    );
+}
 
 function LandingHeroHeader() {
     return (
@@ -20,20 +79,56 @@ function LandingHeroHeader() {
 export function LandingHeroDescription() {
     return (
         <div className="max-w-3xl mx-auto mt-8 px-4 space-y-2">
-            <div className="text-base md:text-lg text-gray-300 text-center">
-                <span className="font-bold text-secondary">Our technology</span> mints the next community of <span className="font-bold">adrenalines.</span>
-            </div>
-            <div className="text-base md:text-lg text-gray-300 text-center">
-                We <span className="underline">connect students with schools</span> to fully automate their booking schedules.
-            </div>
-            <div className="text-base md:text-lg text-gray-300 text-center">
-                Tracking <span className="italic">teacher commissions</span>, <span className="italic">lesson planning</span>, and <span className="italic">equipment handling</span>..
-            </div>
-            <div className="text-base md:text-lg text-gray-300 text-center">
-                <span className="font-bold">Join us</span> in building a new home for outdoor activity.
+            <div className="text-lg md:text-2xl font-semibold text-center leading-relaxed">
+                <motion.span
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    className="text-secondary text-xl md:text-3xl tracking-tight"
+                >
+                    Our technology
+                </motion.span>
+                <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.8 }}
+                    className="text-gray-400 mx-1"
+                >
+                    <span className="italic">mints</span> the next generation of
+                </motion.span>
+                <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.8 }}
+                    className={PUNCH_WORDS}
+                >
+                    Adrenaline Sports Club
+                </motion.span>
             </div>
 
-            <div className="text-base md:text-lg text-[#fb923c] text-right  ">Gamified and Simplyfied</div>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.3, duration: 0.8 }}
+                className="space-y-2 flex flex-col-reverse md:flex-col"
+            >
+                <div className="text-base md:text-lg text-gray-300 text-center">
+                    <span className={PUNCH_WORDS}>We</span> <span className={PUNCH_WORDS}>empower</span> <span className={HIGHLIGHT_SPAN_CLASSNAME}><span className="text-secondary tracking-widest">schools</span> with <span className="text-secondary tracking-widest">students</span> and <span className="text-secondary tracking-widest">teachers</span></span> <span className="text-gray-400 italic">to</span> <span className={`tracking-wide ${KEY_WORDS}`}>synchronize lesson activities</span>.
+                </div>
+                <div className="text-base md:text-lg text-gray-300 text-center">
+                    <span className={PUNCH_WORDS}>Facilitating</span> <span className={KEY_WORDS}>bookings</span>, <span className={KEY_WORDS}>payments</span>, <span className="text-gray-400 italic">and</span> <span className={KEY_WORDS}>communication</span>.
+                </div>
+                <div className="text-base md:text-lg text-gray-300 text-center">
+                    <span className={PUNCH_WORDS}>Adrenalink</span> is <span className="italic">the <span className="text-gray-400">·</span> first <span className="text-gray-400">·</span> of <span className="text-gray-400">·</span> its <span className="text-gray-400">·</span> kind</span> <span className="font-bold text-white">built</span> to <span className={KEY_WORDS}>track equipment usage</span>, <span className="text-gray-400">with</span> <span className={KEY_WORDS}>smart automation</span>.
+                </div>
+            </motion.div>
+
+            <div className="md:hidden absolute top-4 right-4 z-20">
+                <AdrImageSection />
+            </div>
+
+            <div className="hidden md:block">
+                <AdrImageSection />
+            </div>
         </div>
     );
 }
