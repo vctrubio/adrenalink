@@ -12,7 +12,7 @@ interface LockMutationQueueProps {
 
 /**
  * LockMutationQueue - Consolidated single-row adjustment controls
- * 
+ *
  * Left: Optimisation ratio and status (clickable to optimize)
  * Right: Lock/Unlock toggle (enabled when optimised)
  */
@@ -39,11 +39,7 @@ export function LockMutationQueue({
                         : "bg-muted/50 border-blue-300 text-muted-foreground hover:bg-muted/60 active:scale-95 cursor-pointer shadow-sm"
                 }`}
             >
-                {isOptimised ? (
-                    <Check size={14} className="shrink-0" />
-                ) : (
-                    <Zap size={14} className="shrink-0 fill-current" />
-                )}
+                {isOptimised ? <Check size={14} className="shrink-0" /> : <Zap size={14} className="shrink-0 fill-current" />}
                 <span className="text-[10px] font-black uppercase tracking-wider">
                     {optimisationStats.adjusted}/{optimisationStats.total} Optimised
                 </span>
@@ -60,8 +56,8 @@ export function LockMutationQueue({
                     !isOptimised
                         ? "bg-muted/30 text-muted-foreground/30 border-transparent cursor-not-allowed"
                         : isLocked
-                            ? "bg-blue-600 text-white border-blue-700 shadow-md hover:bg-blue-700 active:scale-95 cursor-pointer"
-                            : "bg-muted/50 text-muted-foreground border-blue-300 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
+                          ? "bg-blue-600 text-white border-blue-700 shadow-md hover:bg-blue-700 active:scale-95 cursor-pointer"
+                          : "bg-muted/50 text-muted-foreground border-blue-300 hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer"
                 }`}
                 title={isLocked ? "Locked: Changes cascade" : "Unlocked: Respect times"}
             >

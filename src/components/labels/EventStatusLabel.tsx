@@ -46,25 +46,29 @@ export function EventStatusLabel({
                 setIsDropdownOpen(false);
             },
         })),
-        ...(canShiftQueue ? [{ 
-            id: "delete-cascade", 
-            label: isDeleting ? "Deleting..." : "Delete & Optimize", 
-            icon: Trash2, 
-            color: "#ef4444", 
-            onClick: () => {
-                onDelete(true);
-                setIsDropdownOpen(false);
-            } 
-        }] : []),
-        { 
-            id: "delete", 
-            label: isDeleting ? "Deleting..." : "Delete", 
-            icon: Trash2, 
-            color: "#ef4444", 
+        ...(canShiftQueue
+            ? [
+                  {
+                      id: "delete-cascade",
+                      label: isDeleting ? "Deleting..." : "Delete & Optimize",
+                      icon: Trash2,
+                      color: "#ef4444",
+                      onClick: () => {
+                          onDelete(true);
+                          setIsDropdownOpen(false);
+                      },
+                  },
+              ]
+            : []),
+        {
+            id: "delete",
+            label: isDeleting ? "Deleting..." : "Delete",
+            icon: Trash2,
+            color: "#ef4444",
             onClick: () => {
                 onDelete(false);
                 setIsDropdownOpen(false);
-            } 
+            },
         },
     ];
 
@@ -77,9 +81,13 @@ export function EventStatusLabel({
                 style={{ color: statusConfig.color }}
             >
                 <div className={isUpdating ? "animate-pulse" : ""}>
-                    {Icon ? <Icon size={24} /> : <div className="w-4 h-4 rounded-full" style={{ backgroundColor: statusConfig.color }} />}
+                    {Icon ? (
+                        <Icon size={24} />
+                    ) : (
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: statusConfig.color }} />
+                    )}
                 </div>
-                
+
                 {/* Capacity Badge */}
                 {capacity > 1 && (
                     <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white shadow-sm border border-border/50">

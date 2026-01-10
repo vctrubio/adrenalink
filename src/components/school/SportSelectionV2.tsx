@@ -14,9 +14,7 @@ interface SportSelectionV2Props {
 export function SportSelectionV2({ selectedSport, onSelectSport, counts }: SportSelectionV2Props) {
     const [hoveredSport, setHoveredSport] = useState<string | null>(null);
 
-    const visibleSports = counts 
-        ? SPORTS_CONFIG.filter(sport => (counts[sport.id] || 0) > 0)
-        : SPORTS_CONFIG;
+    const visibleSports = counts ? SPORTS_CONFIG.filter((sport) => (counts[sport.id] || 0) > 0) : SPORTS_CONFIG;
 
     if (visibleSports.length === 0) return null;
 
@@ -51,21 +49,19 @@ export function SportSelectionV2({ selectedSport, onSelectSport, counts }: Sport
                                 alt={sport.label}
                                 fill
                                 className={`object-contain transition-all duration-300 ${
-                                    isSelected 
-                                        ? "brightness-0 invert" 
-                                        : "brightness-0 opacity-40 group-hover:opacity-100"
+                                    isSelected ? "brightness-0 invert" : "brightness-0 opacity-40 group-hover:opacity-100"
                                 }`}
                             />
                         </div>
 
                         <div className="flex flex-col items-start">
-                            <span className="text-xs font-black uppercase tracking-widest leading-none mb-1">
-                                {sport.label}
-                            </span>
+                            <span className="text-xs font-black uppercase tracking-widest leading-none mb-1">{sport.label}</span>
                             {count > 0 && (
-                                <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                                    isSelected ? "text-zinc-400" : "text-zinc-300 group-hover:text-zinc-400"
-                                }`}>
+                                <span
+                                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                                        isSelected ? "text-zinc-400" : "text-zinc-300 group-hover:text-zinc-400"
+                                    }`}
+                                >
                                     {count} {count === 1 ? "Package" : "Packages"}
                                 </span>
                             )}

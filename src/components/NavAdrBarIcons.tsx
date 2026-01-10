@@ -101,7 +101,9 @@ function SettingsDropdown() {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-semibold text-foreground tracking-tight">Contact</span>
-                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Get Support</span>
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                                        Get Support
+                                    </span>
                                 </div>
                             </button>
 
@@ -116,7 +118,9 @@ function SettingsDropdown() {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-semibold text-foreground tracking-tight">Logout</span>
-                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">End Session</span>
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                                        End Session
+                                    </span>
                                 </div>
                             </button>
                         </motion.div>
@@ -187,17 +191,8 @@ interface LeftIconsProps {
 
 export function LeftIcons({ credentials }: LeftIconsProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-        >
-            {credentials && (
-                <SchoolIconButton
-                    logo={credentials.logo}
-                    username={credentials.username}
-                />
-            )}
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+            {credentials && <SchoolIconButton logo={credentials.logo} username={credentials.username} />}
         </motion.div>
     );
 }
@@ -229,10 +224,7 @@ export function RightIcons({ credentials }: RightIconsProps) {
                         transition={{ duration: 0.4, delay: 0.6 }}
                         className="relative z-10"
                     >
-                        <SchoolIconButton
-                            logo={credentials.logo}
-                            username={credentials.username}
-                        />
+                        <SchoolIconButton logo={credentials.logo} username={credentials.username} />
                     </motion.div>
                 )}
                 <motion.div

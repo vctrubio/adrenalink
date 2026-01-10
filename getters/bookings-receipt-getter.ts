@@ -71,9 +71,7 @@ export function formatBookingReceiptText(
     const today = new Date();
     const todayFormatted = formatBookingDate(today);
 
-    const studentsList = students
-        .map((s) => `${s.firstName} ${s.lastName}${s.passport ? ` (${s.passport})` : ""}`)
-        .join("\n");
+    const studentsList = students.map((s) => `${s.firstName} ${s.lastName}${s.passport ? ` (${s.passport})` : ""}`).join("\n");
 
     return `Booking Start Date: ${bookingStartDate}
 Booking End Date: ${bookingEndDate}
@@ -93,15 +91,19 @@ Student Capacity: (x${studentCapacity})
 ---
 
 Total Hours: ${totalHours.toFixed(1)}h
-Total Price to Pay: ${formatCurrency(totalRevenue)}${studentCapacity > 1 ? `
-Total Price per Student: ${formatCurrency(pricePerStudent)}` : ""}
+Total Price to Pay: ${formatCurrency(totalRevenue)}${
+        studentCapacity > 1
+            ? `
+Total Price per Student: ${formatCurrency(pricePerStudent)}`
+            : ""
+    }
 As of Date: ${todayFormatted}
 
 *** RECEIPT ***
 ${eventRows
-        .map((event, idx) => {
-            const eventDateTime = getEventReceiptDateTime(event.date, event.duration);
-            return `${idx + 1}. ${event.teacherName}, ${eventDateTime}, ${event.location} (${event.eventStatus})`;
-        })
-        .join("\n")}`;
+    .map((event, idx) => {
+        const eventDateTime = getEventReceiptDateTime(event.date, event.duration);
+        return `${idx + 1}. ${event.teacherName}, ${eventDateTime}, ${event.location} (${event.eventStatus})`;
+    })
+    .join("\n")}`;
 }

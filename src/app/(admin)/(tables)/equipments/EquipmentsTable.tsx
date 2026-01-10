@@ -34,7 +34,11 @@ const HEADER_CLASSES = {
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
-    const { filteredRows: filteredEquipment, masterTableGroupBy, getGroupKey } = useTableLogic({
+    const {
+        filteredRows: filteredEquipment,
+        masterTableGroupBy,
+        getGroupKey,
+    } = useTableLogic({
         data: equipments,
         filterSearch: filterEquipment,
         filterStatus: (eq, status) => {
@@ -43,7 +47,7 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             if (status === "Inactive") return !isActive;
             return true;
         },
-        dateField: "createdAt"
+        dateField: "createdAt",
     });
 
     const calculateStats = (groupRows: EquipmentTableData[]): GroupStats => {
@@ -99,7 +103,11 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                                     {data.brand} {data.model}
                                 </span>
                             </HoverToEntity>
-                            {data.size && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">{data.size}</span>}
+                            {data.size && (
+                                <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
+                                    {data.size}
+                                </span>
+                            )}
                         </div>
                         <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-6">
                             SKU: {data.sku} {data.color && `• ${data.color}`}
@@ -113,10 +121,34 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
                 <div className="flex items-center gap-4 text-xs font-medium">
-                    <StatItemUI type="events" value={data.activityStats.eventCount} iconColor={true} hideLabel={true} desc={`Total lessons using ${data.brand} ${data.model}`} />
-                    <StatItemUI type="duration" value={data.activityStats.totalDurationMinutes} iconColor={true} hideLabel={true} desc={"Total operating hours for this gear"} />
-                    <StatItemUI type="rentals" value={data.rentalStats.count} iconColor={true} hideLabel={true} desc={"Total student rentals"} />
-                    <StatItemUI type="repairs" value={data.repairStats.count} iconColor={true} hideLabel={true} desc={"Total repair logs"} />
+                    <StatItemUI
+                        type="events"
+                        value={data.activityStats.eventCount}
+                        iconColor={true}
+                        hideLabel={true}
+                        desc={`Total lessons using ${data.brand} ${data.model}`}
+                    />
+                    <StatItemUI
+                        type="duration"
+                        value={data.activityStats.totalDurationMinutes}
+                        iconColor={true}
+                        hideLabel={true}
+                        desc={"Total operating hours for this gear"}
+                    />
+                    <StatItemUI
+                        type="rentals"
+                        value={data.rentalStats.count}
+                        iconColor={true}
+                        hideLabel={true}
+                        desc={"Total student rentals"}
+                    />
+                    <StatItemUI
+                        type="repairs"
+                        value={data.repairStats.count}
+                        iconColor={true}
+                        hideLabel={true}
+                        desc={"Total repair logs"}
+                    />
                 </div>
             ),
         },
@@ -127,7 +159,12 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                 <div className="flex flex-row flex-wrap gap-1.5 w-full">
                     {data.assignedTeachers.map((teacher) => (
                         <div key={teacher.id} className="scale-90 origin-left">
-                            <TeacherLessonStatsBadge teacherId={teacher.id} teacherUsername={teacher.username} eventCount={teacher.eventCount} durationMinutes={teacher.durationMinutes} />
+                            <TeacherLessonStatsBadge
+                                teacherId={teacher.id}
+                                teacherUsername={teacher.username}
+                                eventCount={teacher.eventCount}
+                                durationMinutes={teacher.durationMinutes}
+                            />
                         </div>
                     ))}
                     {data.assignedTeachers.length === 0 && <span className="text-xs text-muted-foreground italic">-</span>}
@@ -164,7 +201,11 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
                                 {data.brand} {data.model}
                             </div>
                         </HoverToEntity>
-                        {data.size && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">{data.size}</span>}
+                        {data.size && (
+                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
+                                {data.size}
+                            </span>
+                        )}
                     </div>
                 );
             },

@@ -15,29 +15,26 @@ export function useTableLogic<T>({ data, filterSearch, filterStatus, dateField }
     // 1. Filter Data
     const filteredRows = useMemo(() => {
         let rows = filterSearch(data, search);
-        
+
         if (filterStatus && status !== "All") {
-            rows = rows.filter(item => filterStatus(item, status));
+            rows = rows.filter((item) => filterStatus(item, status));
         }
-        
+
         return rows;
     }, [data, search, status, filterSearch, filterStatus]);
 
     // 2. Map Grouping
-    const masterTableGroupBy: GroupingType = 
-        group === "Weekly" ? "week" : 
-        group === "Monthly" ? "month" :
-        "all";
+    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
 
     // 3. Generate Group Key
     const getGroupKey = (row: T, groupBy: GroupingType) => {
         if (groupBy === "all") return "";
 
-        const dateStr = typeof dateField === 'function' ? dateField(row) : (row[dateField as keyof T] as unknown as string);
+        const dateStr = typeof dateField === "function" ? dateField(row) : (row[dateField as keyof T] as unknown as string);
         if (!dateStr) return "";
 
         const date = new Date(dateStr);
-        
+
         if (groupBy === "date") {
             return date.toISOString().split("T")[0];
         } else if (groupBy === "week") {
@@ -54,6 +51,6 @@ export function useTableLogic<T>({ data, filterSearch, filterStatus, dateField }
     return {
         filteredRows,
         masterTableGroupBy,
-        getGroupKey
+        getGroupKey,
     };
 }

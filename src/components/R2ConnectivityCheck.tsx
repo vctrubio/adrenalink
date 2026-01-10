@@ -19,17 +19,18 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
     const checkR2Connectivity = async () => {
         setIsChecking(true);
         setError(null);
-        
+
         try {
             console.log("🔍 Checking R2 connectivity via upload endpoint...");
-            
+
             // Test connectivity by making a simple HEAD request to the upload endpoint
             const response = await fetch("/api/cloudflare/upload", {
                 method: "HEAD",
                 signal: AbortSignal.timeout(8000), // 8 second timeout
             });
 
-            if (response.ok || response.status === 405) { // 405 Method Not Allowed is expected for HEAD
+            if (response.ok || response.status === 405) {
+                // 405 Method Not Allowed is expected for HEAD
                 console.log("✅ R2 connectivity check passed");
                 setIsConnected(true);
                 onConnectivityChange?.(true);
@@ -42,7 +43,7 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
         } catch (error) {
             console.error("❌ R2 connectivity check error:", error);
             setIsConnected(false);
-            
+
             if (error instanceof Error) {
                 if (error.name === "TimeoutError") {
                     setError("R2 connection timeout - network may be blocking Cloudflare R2 access");
@@ -64,12 +65,8 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
                 <div className="flex items-center gap-3">
                     <Wifi className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
                     <div>
-                        <h3 className="font-medium text-blue-900 dark:text-blue-100">
-                            Checking Network Connectivity
-                        </h3>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                            Verifying connection to file upload service...
-                        </p>
+                        <h3 className="font-medium text-blue-900 dark:text-blue-100">Checking Network Connectivity</h3>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">Verifying connection to file upload service...</p>
                     </div>
                 </div>
             </div>
@@ -82,9 +79,7 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
                 <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                        <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">
-                            Network Connectivity Issue Detected
-                        </h3>
+                        <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Network Connectivity Issue Detected</h3>
                         <p className="text-sm text-red-700 dark:text-red-300 mb-3">
                             Your network cannot reach our file upload service (Cloudflare R2). This may be due to:
                         </p>
@@ -94,11 +89,10 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
                             <li>ISP filtering or connectivity issues</li>
                         </ul>
                         <div className="bg-red-100 dark:bg-red-900/30 rounded p-3">
-                            <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
-                                What happens if you continue:
-                            </p>
+                            <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">What happens if you continue:</p>
                             <p className="text-sm text-red-700 dark:text-red-300">
-                                When you submit the form, file uploads will fail and you&apos;ll be given an email fallback option to manually process your registration.
+                                When you submit the form, file uploads will fail and you&apos;ll be given an email fallback option to
+                                manually process your registration.
                             </p>
                         </div>
                         <div className="flex items-center gap-2 mt-3">
@@ -114,9 +108,7 @@ export function R2ConnectivityCheck({ onConnectivityChange }: ConnectivityCheckP
                         </div>
                         {error && (
                             <details className="mt-3">
-                                <summary className="text-xs text-red-600 dark:text-red-400 cursor-pointer">
-                                    Technical Details
-                                </summary>
+                                <summary className="text-xs text-red-600 dark:text-red-400 cursor-pointer">Technical Details</summary>
                                 <pre className="text-xs text-red-600 dark:text-red-400 mt-1 font-mono bg-red-100 dark:bg-red-900/20 p-2 rounded overflow-x-auto">
                                     {error}
                                 </pre>

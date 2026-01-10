@@ -19,7 +19,7 @@ export function BookingStatusLabel({ status, bookingId, size = 16, startDate, en
     const isUncompleted = status === "uncompleted";
 
     const bookingIconColor = isCompleted ? STATUS_GREEN : isUncompleted ? STATUS_ORANGE : STATUS_GREY;
-    const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     const content = (
         <div className="flex items-center gap-2 p-1 rounded transition-colors cursor-pointer hover:bg-opacity-20">

@@ -28,21 +28,21 @@ export function MultiSelectFilterDropdown({ label, selectedValues, options, onCh
 
     const handleToggle = (option: string) => {
         if (selectedValues.includes(option)) {
-            onChange(selectedValues.filter(v => v !== option));
+            onChange(selectedValues.filter((v) => v !== option));
         } else {
             onChange([...selectedValues, option]);
         }
     };
 
-    const displayValue = selectedValues.length > 0
-        ? selectedValues.length === 1
-            ? selectedValues[0]
-            : `${selectedValues.length} selected`
-        : "None";
+    const displayValue =
+        selectedValues.length > 0 ? (selectedValues.length === 1 ? selectedValues[0] : `${selectedValues.length} selected`) : "None";
 
     return (
         <div ref={dropdownRef} className="relative">
-            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
+            >
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <AdranlinkIcon className="w-4 h-4" />
                 </motion.div>

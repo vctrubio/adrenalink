@@ -95,76 +95,81 @@ export function StatItemUI({
     className = "",
 }: {
     type: StatType;
-        value: number | string | React.ReactNode; 
-        hideLabel?: boolean; 
-        labelOverride?: string; 
-        variant?: "profit" | "loss" | "default" | "primary";
-        iconColor?: boolean;
-        desc?: string;
-        className?: string;
-    }) {
-            const config = STAT_TYPE_CONFIG[type];
-            if (!config) return null;
-        
-            let displayValue: string | number | React.ReactNode = value;
-            
-            if (type === "duration" && typeof value === "number") {
-                displayValue = getHMDuration(value);
-            } else if (["revenue", "profit", "loss", "payments", "studentPayments", "teacherPayments", "commission", "balance"].includes(type)) {
-                // Try to parse string numbers if needed, but prefer raw numbers
-                const num = typeof value === "string" ? parseFloat(value) : typeof value === "number" ? value : NaN;
-                if (!isNaN(num)) {
-                    displayValue = getCompactNumber(num);
-                }
-            }
-        
-            const numValue = typeof value === "string" ? parseFloat(value) : typeof value === "number" ? value : NaN;
-        
-            // Dynamic icon logic for financials - only for specific trending types
-            let Icon = config.icon;
-            const isTrendingType = ["profit", "loss", "balance"].includes(type);
-    
-        if (isTrendingType && !isNaN(numValue)) {
-            if (numValue > 0) Icon = TrendingUp;
-            else if (numValue < 0) Icon = TrendingDown;
-            else Icon = TrendingUpDown;
+    value: number | string | React.ReactNode;
+    hideLabel?: boolean;
+    labelOverride?: string;
+    variant?: "profit" | "loss" | "default" | "primary";
+    iconColor?: boolean;
+    desc?: string;
+    className?: string;
+}) {
+    const config = STAT_TYPE_CONFIG[type];
+    if (!config) return null;
+
+    let displayValue: string | number | React.ReactNode = value;
+
+    if (type === "duration" && typeof value === "number") {
+        displayValue = getHMDuration(value);
+    } else if (
+        ["revenue", "profit", "loss", "payments", "studentPayments", "teacherPayments", "commission", "balance"].includes(type)
+    ) {
+        // Try to parse string numbers if needed, but prefer raw numbers
+        const num = typeof value === "string" ? parseFloat(value) : typeof value === "number" ? value : NaN;
+        if (!isNaN(num)) {
+            displayValue = getCompactNumber(num);
         }
-    
-        const title = labelOverride || config.label;
-    
-        // Variant-based color overrides
-        let displayColor = config.color;
-        let containerClass = "";
-    
-        if (variant === "profit") displayColor = "#10b981"; // Emerald
-        if (variant === "loss") displayColor = "#f43f5e"; // Rose
-    
-        if (variant === "primary") {
-            containerClass = "bg-primary/20 rounded-full px-2.5 py-0.5 border border-primary/30";
-        }
-    
-        return (
-            <div className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-help ${containerClass} ${className}`} title={title}>
-                <span 
-                    className={`inline-flex ${!iconColor && variant !== "primary" ? "text-muted-foreground" : ""} ${variant === "primary" ? "text-primary" : ""}`} 
-                    style={iconColor && variant !== "primary" ? { color: displayColor } : undefined}
-                >
-                    <Icon size={12} />
-                </span>
-                {!hideLabel && (
-                    <span 
-                        className={`text-[10px] font-bold uppercase tracking-wider ${variant === "primary" ? "text-primary" : "text-muted-foreground"}`} 
-                        style={variant !== "default" && variant !== "primary" ? { color: displayColor } : undefined}
-                    >
-                        {labelOverride || config.label}:
-                    </span>
-                )}
-                <span 
-                    className={`tabular-nums ${!className.includes("text-") ? "text-xs font-bold" : ""} ${variant === "primary" ? "text-primary" : "text-foreground"}`} 
+    }
+
+    const numValue = typeof value === "string" ? parseFloat(value) : typeof value === "number" ? value : NaN;
+
+    // Dynamic icon logic for financials - only for specific trending types
+    let Icon = config.icon;
+    const isTrendingType = ["profit", "loss", "balance"].includes(type);
+
+    if (isTrendingType && !isNaN(numValue)) {
+        if (numValue > 0) Icon = TrendingUp;
+        else if (numValue < 0) Icon = TrendingDown;
+        else Icon = TrendingUpDown;
+    }
+
+    const title = labelOverride || config.label;
+
+    // Variant-based color overrides
+    let displayColor = config.color;
+    let containerClass = "";
+
+    if (variant === "profit") displayColor = "#10b981"; // Emerald
+    if (variant === "loss") displayColor = "#f43f5e"; // Rose
+
+    if (variant === "primary") {
+        containerClass = "bg-primary/20 rounded-full px-2.5 py-0.5 border border-primary/30";
+    }
+
+    return (
+        <div
+            className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-help ${containerClass} ${className}`}
+            title={title}
+        >
+            <span
+                className={`inline-flex ${!iconColor && variant !== "primary" ? "text-muted-foreground" : ""} ${variant === "primary" ? "text-primary" : ""}`}
+                style={iconColor && variant !== "primary" ? { color: displayColor } : undefined}
+            >
+                <Icon size={12} />
+            </span>
+            {!hideLabel && (
+                <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${variant === "primary" ? "text-primary" : "text-muted-foreground"}`}
                     style={variant !== "default" && variant !== "primary" ? { color: displayColor } : undefined}
                 >
-                    {displayValue}
+                    {labelOverride || config.label}:
                 </span>
-            </div>
-        );
-    }
+            )}
+            <span
+                className={`tabular-nums ${!className.includes("text-") ? "text-xs font-bold" : ""} ${variant === "primary" ? "text-primary" : "text-foreground"}`}
+                style={variant !== "default" && variant !== "primary" ? { color: displayColor } : undefined}
+            >
+                {displayValue}
+            </span>
+        </div>
+    );
+}

@@ -3,16 +3,22 @@ import { RAINBOW_COLORS } from "@/config/rainbow-entities";
 
 const allShades = Object.keys(RAINBOW_COLORS) as RainbowShade[];
 
-export const Rainbow = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: RainbowShade | null) => void; hoveredShade: RainbowShade | null }) => {
-  const centerX = 960;
-  const centerY = 700;
-  const baseRadius = 50;
-  const strokeWidth = 50;
+export const Rainbow = ({
+    onShadeHover,
+    hoveredShade,
+}: {
+    onShadeHover: (shade: RainbowShade | null) => void;
+    hoveredShade: RainbowShade | null;
+}) => {
+    const centerX = 960;
+    const centerY = 700;
+    const baseRadius = 50;
+    const strokeWidth = 50;
 
-  const createArc = (radius: number, shade: string, index: number) => {
-    const isHovered = hoveredShade === shade;
-    const shadeColor = RAINBOW_COLORS[shade];
-    const fillColor = isHovered ? shadeColor.hoverFill : shadeColor.fill;
+    const createArc = (radius: number, shade: string, index: number) => {
+        const isHovered = hoveredShade === shade;
+        const shadeColor = RAINBOW_COLORS[shade];
+        const fillColor = isHovered ? shadeColor.hoverFill : shadeColor.fill;
 
         return (
             <path
@@ -34,7 +40,13 @@ export const Rainbow = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: 
 
     return (
         <div className="flex justify-center items-start pt-8 w-full">
-            <svg width="1920" height="800" viewBox="0 0 1920 800" className="w-full h-auto max-h-[50vh]" xmlns="http://www.w3.org/2000/svg">
+            <svg
+                width="1920"
+                height="800"
+                viewBox="0 0 1920 800"
+                className="w-full h-auto max-h-[50vh]"
+                xmlns="http://www.w3.org/2000/svg"
+            >
                 {allShades.map((shade, index) => {
                     const radius = baseRadius + index * strokeWidth;
                     return createArc(radius, shade, index);

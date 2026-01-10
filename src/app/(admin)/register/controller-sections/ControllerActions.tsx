@@ -31,7 +31,7 @@ export function ControllerActions({
             {/* Error Display */}
             <AnimatePresence>
                 {error && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, height: 0, scale: 0.95 }}
                         animate={{ opacity: 1, height: "auto", scale: 1 }}
                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
@@ -53,25 +53,27 @@ export function ControllerActions({
                     className={`
                         relative w-full h-14 rounded-full font-bold text-sm tracking-wide
                         transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden group
-                        ${canSubmit && !loading 
-                            ? "bg-foreground text-background hover:scale-[1.02] active:scale-[0.98] shadow-lg" 
-                            : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"}
+                        ${
+                            canSubmit && !loading
+                                ? "bg-foreground text-background hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                                : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                        }
                     `}
                 >
-                    <SpinAdranalink 
-                        isSpinning={loading || (canSubmit && isHovered)} 
-                        duration={loading ? 0.5 : 0.8} 
+                    <SpinAdranalink
+                        isSpinning={loading || (canSubmit && isHovered)}
+                        duration={loading ? 0.5 : 0.8}
                         size={20}
                         color={canSubmit && !loading ? "text-background" : "text-foreground"}
                     />
-                    
+
                     <span>{loading ? "Processing..." : submitLabel}</span>
-                    
+
                     {!loading && canSubmit && (
                         <ArrowRight size={18} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
                     )}
                 </button>
-                
+
                 <button
                     onClick={onReset}
                     disabled={loading}

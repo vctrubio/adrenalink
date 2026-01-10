@@ -56,24 +56,22 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                         if (eventId && getBookingIdForEvent) {
                             const cachedBookingId = getBookingIdForEvent(eventId);
                             if (cachedBookingId) {
-                                console.log(`[EVENT-LISTENER] ✅ Resolved booking_id ${cachedBookingId} from local cache for event ${eventId}`);
+                                console.log(
+                                    `[EVENT-LISTENER] ✅ Resolved booking_id ${cachedBookingId} from local cache for event ${eventId}`,
+                                );
                                 fetchAndNotify(cachedBookingId);
                                 return;
                             }
                         }
-                        
+
                         console.warn("[EVENT-LISTENER] ⚠️ Could not extract lesson_id from event payload and local lookup failed");
                         return;
                     }
 
                     // Resolve booking_id from lesson_id
                     const resolveBookingId = async () => {
-                        const { data, error } = await supabase
-                            .from("lesson")
-                            .select("booking_id")
-                            .eq("id", lessonId)
-                            .single();
-                        
+                        const { data, error } = await supabase.from("lesson").select("booking_id").eq("id", lessonId).single();
+
                         if (error || !data) {
                             console.error("[EVENT-LISTENER] ❌ Failed to resolve booking_id from lesson:", error);
                             return null;
@@ -188,10 +186,16 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                             console.log("✅ [EVENT-LISTENER] Successfully subscribed to event changes");
                             retryCountRef.current = 0;
                         } else if (status === "CHANNEL_ERROR") {
-                            console.error(`❌ [EVENT-LISTENER] CHANNEL_ERROR occurred (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`, err);
+                            console.error(
+                                `❌ [EVENT-LISTENER] CHANNEL_ERROR occurred (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`,
+                                err,
+                            );
                             handleSubscriptionError();
                         } else if (status === "TIMED_OUT") {
-                            console.error(`❌ [EVENT-LISTENER] TIMED_OUT waiting for subscription (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`, err);
+                            console.error(
+                                `❌ [EVENT-LISTENER] TIMED_OUT waiting for subscription (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`,
+                                err,
+                            );
                             handleSubscriptionError();
                         }
                     });
@@ -206,7 +210,9 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                             setupSubscription();
                         }, RETRY_DELAY_MS);
                     } else {
-                        console.error("[EVENT-LISTENER] ⚠️ Max retries reached. Real-time updates disabled. Classboard will still work with manual refreshes.");
+                        console.error(
+                            "[EVENT-LISTENER] ⚠️ Max retries reached. Real-time updates disabled. Classboard will still work with manual refreshes.",
+                        );
                     }
                 };
 

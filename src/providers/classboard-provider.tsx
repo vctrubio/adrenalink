@@ -10,12 +10,7 @@
  */
 
 import { createContext, useContext, type ReactNode } from "react";
-import {
-    useClassboardFlag,
-    optimisticEventToNode,
-    type OptimisticEvent,
-    type EventCardStatus,
-} from "@/src/hooks/useClassboardFlag";
+import { useClassboardFlag, optimisticEventToNode, type OptimisticEvent, type EventCardStatus } from "@/src/hooks/useClassboardFlag";
 import type { ClassboardModel, ClassboardData } from "@/backend/classboard/ClassboardModel";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/classboard/TeacherQueue";
 import type { GlobalFlag } from "@/backend/classboard/GlobalFlag";
@@ -75,11 +70,7 @@ export function ClassboardProvider({ children, initialClassboardModel, serverErr
 
     const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
 
-    return (
-        <ClassboardContext.Provider value={hookValue}>
-            {children}
-        </ClassboardContext.Provider>
-    );
+    return <ClassboardContext.Provider value={hookValue}>{children}</ClassboardContext.Provider>;
 }
 
 export function useClassboardContext(): ClassboardContextType {

@@ -8,9 +8,5 @@ interface TableBodyProps {
 }
 
 export function TableBody({ children, className = "" }: TableBodyProps) {
-    return (
-        <tbody className={className}>
-            {children}
-        </tbody>
-    );
+    return <tbody className={className}>{children}</tbody>;
 }

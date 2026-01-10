@@ -64,7 +64,10 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
 
     return (
         <div className="rounded-xl border border-border overflow-hidden bg-card">
-            <button onClick={onToggle} className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors cursor-pointer">
+            <button
+                onClick={onToggle}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors cursor-pointer"
+            >
                 <div className="flex items-center gap-3">
                     <HoverToEntity entity={bookingEntity} id={lesson.bookingId}>
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -81,42 +84,51 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
                         )}
                     </div>
                     <div className="flex items-center gap-2">
-                        <BookingStatusLabel 
-                            status={lesson.bookingStatus} 
+                        <BookingStatusLabel
+                            status={lesson.bookingStatus}
                             bookingId={lesson.bookingId}
-                            size={16} 
-                            startDate={lesson.dateStart} 
-                            endDate={lesson.dateEnd} 
+                            size={16}
+                            startDate={lesson.dateStart}
+                            endDate={lesson.dateEnd}
                         />
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                        <TeacherLessonComissionValue 
-                            commissionType={lesson.commissionType} 
-                            cph={lesson.cph} 
-                            currency={currency} 
-                        />
+                        <TeacherLessonComissionValue commissionType={lesson.commissionType} cph={lesson.cph} currency={currency} />
                         <span className="text-muted-foreground">×</span>
                         <LessonEventDurationBadge status={lesson.lessonStatus} events={lesson.eventCount} hours={lesson.totalHours} />
                         <span className="text-muted-foreground">=</span>
-                        <span className="text-green-600 dark:text-green-400 font-bold">{(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}</span>
+                        <span className="text-green-600 dark:text-green-400 font-bold">
+                            {(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}
+                        </span>
                     </div>
-                    <ToggleAdranalinkIcon 
-                        isOpen={isExpanded} 
-                        className="text-muted-foreground"
-                    />
+                    <ToggleAdranalinkIcon isOpen={isExpanded} className="text-muted-foreground" />
                 </div>
             </button>
 
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                    >
                         <div className="px-4 pb-3 space-y-2">
                             {lesson.events.map((event) => (
-                                <div key={event.eventId} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 text-sm">
+                                <div
+                                    key={event.eventId}
+                                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 text-sm"
+                                >
                                     <div className="flex items-center gap-3">
-                                        <FlagIcon size={14} style={{ color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }} />
+                                        <FlagIcon
+                                            size={14}
+                                            style={{
+                                                color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color,
+                                            }}
+                                        />
                                         <span className="font-medium">{event.dateLabel}</span>
                                         <span className="font-mono text-muted-foreground">{event.time}</span>
                                         <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -127,8 +139,14 @@ export function TeacherLessonCard({ lesson, isExpanded, onToggle }: TeacherLesso
                                             <MapPin size={12} />
                                             <span>{event.location}</span>
                                         </div>
-                                        
-                                        <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color}20`, color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color }}>
+
+                                        <span
+                                            className="px-2 py-0.5 rounded text-xs font-medium"
+                                            style={{
+                                                backgroundColor: `${EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color}20`,
+                                                color: EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG]?.color,
+                                            }}
+                                        >
                                             {event.status}
                                         </span>
                                     </div>

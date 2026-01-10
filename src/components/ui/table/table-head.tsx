@@ -33,7 +33,9 @@ export function TableHead({
             <div className="flex items-center gap-1.5">
                 {children}
                 {sortActive && (
-                    <ChevronDownIcon className={`w-4 h-4 flex-shrink-0 transition-transform ${sortDirection === "asc" ? "" : "rotate-180"}`} />
+                    <ChevronDownIcon
+                        className={`w-4 h-4 flex-shrink-0 transition-transform ${sortDirection === "asc" ? "" : "rotate-180"}`}
+                    />
                 )}
             </div>
         </th>

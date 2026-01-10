@@ -22,7 +22,11 @@ export const BookingPaymentTab = ({ data, pricePerStudent, pricePerHour }: Booki
     const totalEventMinutes = allEvents.reduce((sum, e) => sum + e.duration, 0);
     const totalEventHours = totalEventMinutes / 60;
     const totalPrice = totalEventHours * pricePerHour;
-    const startDate = new Date(data.booking.dateStart).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+    const startDate = new Date(data.booking.dateStart).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
 
     const receiptText = `Students: ${studentName}
 Package Hours: ${packageHours}h
@@ -33,15 +37,18 @@ As of Date: ${startDate}
 
 *** RECEIPT ***
 ${allEvents
-            .map((event, i) => {
-                const lesson = data.lessons.find((l) => l.events.some((e) => e.id === event.id));
-                const teacherName = lesson?.teacher.firstName && lesson?.teacher.lastName ? `${lesson.teacher.firstName} ${lesson.teacher.lastName}` : lesson?.teacher.username || "Unknown";
-                const eventDate = new Date(event.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
-                const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-                const eventLocation = event.location || "No location";
-                return `${i + 1}. ${teacherName}, ${eventDate}, ${eventTime}, ${getPrettyDuration(event.duration)}, ${eventLocation}`;
-            })
-            .join("\n")}`;
+    .map((event, i) => {
+        const lesson = data.lessons.find((l) => l.events.some((e) => e.id === event.id));
+        const teacherName =
+            lesson?.teacher.firstName && lesson?.teacher.lastName
+                ? `${lesson.teacher.firstName} ${lesson.teacher.lastName}`
+                : lesson?.teacher.username || "Unknown";
+        const eventDate = new Date(event.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
+        const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+        const eventLocation = event.location || "No location";
+        return `${i + 1}. ${teacherName}, ${eventDate}, ${eventTime}, ${getPrettyDuration(event.duration)}, ${eventLocation}`;
+    })
+    .join("\n")}`;
 
     const handleCopyToClipboard = async () => {
         try {
@@ -59,7 +66,10 @@ ${allEvents
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-3 pb-2 border-b border-border">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${packageColor}20`, color: packageColor }}>
+                <div
+                    className="w-12 h-12 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${packageColor}20`, color: packageColor }}
+                >
                     <CreditIcon size={24} />
                 </div>
                 <div className="flex flex-col">
@@ -68,22 +78,29 @@ ${allEvents
                 </div>
             </div>
 
-            <div onClick={handleCopyToClipboard} className="flex items-start justify-between gap-4 cursor-pointer hover:bg-muted/10 transition-colors">
+            <div
+                onClick={handleCopyToClipboard}
+                className="flex items-start justify-between gap-4 cursor-pointer hover:bg-muted/10 transition-colors"
+            >
                 <div className="flex-1 space-y-1 text-sm font-mono">
                     <div>
                         <span className="text-muted-foreground">Students:</span> <span className="text-foreground">{studentName}</span>
                     </div>
                     <div>
-                        <span className="text-muted-foreground">Package Hours:</span> <span className="text-foreground">{packageHours}h</span>
+                        <span className="text-muted-foreground">Package Hours:</span>{" "}
+                        <span className="text-foreground">{packageHours}h</span>
                     </div>
                     <div>
-                        <span className="text-muted-foreground">Total Kited Hours:</span> <span className="text-foreground">{totalEventHours.toFixed(1)}h</span>
+                        <span className="text-muted-foreground">Total Kited Hours:</span>{" "}
+                        <span className="text-foreground">{totalEventHours.toFixed(1)}h</span>
                     </div>
                     <div>
-                        <span className="text-muted-foreground">Price per Hour per Student:</span> <span className="text-foreground">€{pricePerHour.toFixed(2)}</span>
+                        <span className="text-muted-foreground">Price per Hour per Student:</span>{" "}
+                        <span className="text-foreground">€{pricePerHour.toFixed(2)}</span>
                     </div>
                     <div>
-                        <span className="text-muted-foreground">Total Price to Pay:</span> <span className="text-foreground font-semibold">€{totalPrice.toFixed(2)}</span>
+                        <span className="text-muted-foreground">Total Price to Pay:</span>{" "}
+                        <span className="text-foreground font-semibold">€{totalPrice.toFixed(2)}</span>
                     </div>
                     <div>
                         <span className="text-muted-foreground">As of Date:</span> <span className="text-foreground">{startDate}</span>

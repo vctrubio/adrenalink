@@ -13,12 +13,7 @@ interface EventHomeStatusLabelProps {
     className?: string;
 }
 
-export function EventHomeStatusLabel({
-    eventId,
-    status,
-    onStatusChange,
-    className = "",
-}: EventHomeStatusLabelProps) {
+export function EventHomeStatusLabel({ eventId, status, onStatusChange, className = "" }: EventHomeStatusLabelProps) {
     const [isUpdating, setIsUpdating] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(status);
     const statusConfig = EVENT_STATUS_CONFIG[currentStatus] || EVENT_STATUS_CONFIG.planned;
@@ -56,7 +51,7 @@ export function EventHomeStatusLabel({
                 </span>
 
                 {/* Status options on hover */}
-                <div 
+                <div
                     className="hidden group-hover:flex items-center gap-1.5 rounded-lg backdrop-blur-sm border border-border/50 p-2"
                     style={{
                         backgroundColor: statusConfig.color + "15",

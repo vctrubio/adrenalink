@@ -16,7 +16,10 @@ export const BankCalculatorTag = ({ icon, revenue, expenses, bgColor, color }: B
     const isPositive = profit >= 0;
 
     return (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 transition-all hover:border-border" style={{ backgroundColor: `${bgColor}15` }}>
+        <div
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 transition-all hover:border-border"
+            style={{ backgroundColor: `${bgColor}15` }}
+        >
             <div style={{ color }}>{icon}</div>
             <div className="flex items-center gap-1.5 font-mono text-xs">
                 <span className="text-muted-foreground/60">{revenue.toFixed(0)}</span>

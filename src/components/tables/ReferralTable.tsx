@@ -22,11 +22,7 @@ interface ReferralTableProps {
 type SortColumn = "code" | "commission" | null;
 type SortDirection = "asc" | "desc";
 
-export function ReferralTable({
-    referrals,
-    selectedReferral,
-    onSelect
-}: ReferralTableProps) {
+export function ReferralTable({ referrals, selectedReferral, onSelect }: ReferralTableProps) {
     const [search, setSearch] = useState("");
     const [sortColumn, setSortColumn] = useState<SortColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -107,19 +103,11 @@ export function ReferralTable({
                 <TableBody>
                     {filteredReferrals.map((referral) => {
                         const isSelected = selectedReferral?.id === referral.id;
-                        
+
                         return (
-                            <TableRow
-                                key={referral.id}
-                                onClick={() => onSelect(referral)}
-                                isSelected={isSelected}
-                            >
-                                <TableCell className="font-medium text-foreground">
-                                    {referral.code}
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {referral.description || "-"}
-                                </TableCell>
+                            <TableRow key={referral.id} onClick={() => onSelect(referral)} isSelected={isSelected}>
+                                <TableCell className="font-medium text-foreground">{referral.code}</TableCell>
+                                <TableCell className="text-muted-foreground">{referral.description || "-"}</TableCell>
                                 <TableCell className="capitalize">
                                     <span className="font-semibold text-primary">
                                         {referral.commissionValue}

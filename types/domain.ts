@@ -27,36 +27,36 @@ export interface SubdomainInfo {
 export function detectSubdomain(hostname: string): SubdomainInfo | null {
     const isDevSubdomain = hostname.includes(DOMAINS.DEVELOPMENT) && !hostname.startsWith(BASE_DOMAINS.DEVELOPMENT);
     const isProdSubdomain = hostname.includes(DOMAINS.PRODUCTION) && !hostname.startsWith(BASE_DOMAINS.PRODUCTION);
-    
+
     if (isDevSubdomain) {
         const subdomain = hostname.split(".")[0];
-        
+
         // Skip reserved subdomains
         if (RESERVED_SUBDOMAINS.includes(subdomain as any)) {
             return null;
         }
-        
+
         return {
             subdomain,
             type: "development",
-            hostname
+            hostname,
         };
     }
-    
+
     if (isProdSubdomain) {
         const subdomain = hostname.split(".")[0];
-        
+
         // Skip reserved subdomains
         if (RESERVED_SUBDOMAINS.includes(subdomain as any)) {
             return null;
         }
-        
+
         return {
             subdomain,
             type: "production",
-            hostname
+            hostname,
         };
     }
-    
+
     return null;
 }

@@ -17,11 +17,13 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
 
         const { data, error } = await supabase
             .from("school_package")
-            .select(`
+            .select(
+                `
                 *,
                 booking(count),
                 student_package(count)
-            `)
+            `,
+            )
             .eq("school_id", schoolId)
             .order("created_at", { ascending: false });
 
@@ -58,7 +60,7 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
 
             return {
                 ...result,
-                stats
+                stats,
             };
         });
     } catch (error) {

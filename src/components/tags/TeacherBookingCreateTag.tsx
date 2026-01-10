@@ -10,7 +10,7 @@ interface TeacherBookingCreateTagProps {
 }
 
 export const TeacherBookingCreateTag = ({ icon, onClick }: TeacherBookingCreateTagProps) => {
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     const handleClick = () => {
         if (onClick) {
@@ -22,13 +22,7 @@ export const TeacherBookingCreateTag = ({ icon, onClick }: TeacherBookingCreateT
 
     return (
         <div onClick={handleClick}>
-            <Tag
-                icon={icon}
-                name="Assign"
-                bgColor="#e5e7eb"
-                borderColorHex={teacherEntity.color}
-                color="#4b5563"
-            />
+            <Tag icon={icon} name="Assign" bgColor="#e5e7eb" borderColorHex={teacherEntity.color} color="#4b5563" />
         </div>
     );
 };

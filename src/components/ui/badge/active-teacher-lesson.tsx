@@ -17,18 +17,18 @@ interface ActiveTeacherLessonBadgeProps {
     };
 }
 
-export function ActiveTeacherLessonBadge({ 
-    bookingId, 
-    category, 
-    leaderName, 
+export function ActiveTeacherLessonBadge({
+    bookingId,
+    category,
+    leaderName,
     capacity,
     status,
-    commission
+    commission,
 }: ActiveTeacherLessonBadgeProps) {
     const router = useRouter();
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find(c => c.id === category);
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
     const Icon = equipmentConfig?.icon || (() => null);
-    
+
     // Theme selection based on status
     const isRest = status === "rest";
     const bgClass = isRest ? "bg-zinc-100/50 dark:bg-zinc-800/30" : "bg-blue-100/50 dark:bg-blue-900/30";
@@ -49,11 +49,9 @@ export function ActiveTeacherLessonBadge({
             <div className={`shrink-0 ${textClass} ${iconOpacity} group-hover:scale-110 transition-transform`}>
                 <Icon size={14} />
             </div>
-            
+
             <div className="flex items-center gap-1.5 overflow-hidden">
-                <span className={`text-[10px] font-bold ${textClass} truncate`}>
-                    {leaderName || "Unknown"}
-                </span>
+                <span className={`text-[10px] font-bold ${textClass} truncate`}>{leaderName || "Unknown"}</span>
                 {capacity > 1 && (
                     <span className={`text-[8px] font-black opacity-60 bg-muted-foreground/10 px-1 rounded ${textClass}`}>
                         +{capacity - 1}
@@ -64,9 +62,7 @@ export function ActiveTeacherLessonBadge({
 
                 <div className="flex items-center gap-1 opacity-60 shrink-0">
                     <HandshakeIcon size={10} className={textClass} />
-                    <span className={`text-[9px] font-black uppercase ${textClass}`}>
-                        {formattedCommission}
-                    </span>
+                    <span className={`text-[9px] font-black uppercase ${textClass}`}>{formattedCommission}</span>
                 </div>
             </div>
         </button>

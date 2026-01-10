@@ -54,25 +54,41 @@ export const ClassboardSkeleton = ({ error, errorMessage }: ClassboardSkeletonPr
                 }}
             />
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} className="flex flex-col items-center w-full">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="flex flex-col items-center w-full"
+            >
                 {/* TEXT CONTAINER */}
                 <div className="flex flex-col items-center gap-6 w-full px-4 min-h-[100px]">
                     {error && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
                             <p className="text-lg text-center text-muted-foreground">We couldn&apos;t find you</p>
                             {credentials?.username && <p className="font-semibold text-xl text-foreground">@{credentials.username}</p>}
-                            {errorMessage && <p className="text-xs text-center text-muted-foreground/60 max-w-md px-4 mt-2">{errorMessage}</p>}
+                            {errorMessage && (
+                                <p className="text-xs text-center text-muted-foreground/60 max-w-md px-4 mt-2">{errorMessage}</p>
+                            )}
                         </motion.div>
                     )}
 
                     {!error && credentials?.name && (
-                        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl schools-name tracking-wide">
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="text-4xl schools-name tracking-wide"
+                        >
                             {credentials.name}&apos;s School
                         </motion.p>
                     )}
 
                     {!error && !credentials?.name && (
-                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground animate-pulse tracking-widest uppercase text-sm">
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-muted-foreground animate-pulse tracking-widest uppercase text-sm"
+                        >
                             Checking the wind...
                         </motion.p>
                     )}
@@ -91,7 +107,12 @@ export const ClassboardSkeleton = ({ error, errorMessage }: ClassboardSkeletonPr
                 </div>
 
                 {/* SPORTS - Always shown */}
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 1 }} className="w-full">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 1 }}
+                    className="w-full"
+                >
                     <ClassboardSports animate={!error} freezeAtCategory={frozenCategory} />
                 </motion.div>
             </motion.div>

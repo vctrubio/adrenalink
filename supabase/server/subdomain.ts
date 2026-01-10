@@ -21,11 +21,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
     try {
         const supabase = getServerConnection();
 
-        const { data, error } = await supabase
-            .from("school")
-            .select("*, school_package(*)")
-            .eq("username", username)
-            .single();
+        const { data, error } = await supabase.from("school").select("*, school_package(*)").eq("username", username).single();
 
         if (error) {
             console.error(`❌ Error fetching school by username "${username}":`, error);
@@ -39,7 +35,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
 
         const school = data as School;
         const packages: SchoolPackage[] = (data as School & { school_package: SchoolPackage[] }).school_package || [];
-        
+
         // Fetch both asset URLs in one go
         const { bannerUrl, iconUrl } = await getCDNImages(username);
 
@@ -56,5 +52,3 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         return null;
     }
 }
-
-

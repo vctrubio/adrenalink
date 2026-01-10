@@ -1,6 +1,6 @@
 /**
  * @file School credentials type definitions
- * 
+ *
  * This file defines the structure of school credentials that are fetched
  * from the database and R2 storage, then provided to the application
  * via context/provider pattern.

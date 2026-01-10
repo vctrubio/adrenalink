@@ -20,28 +20,28 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     const student: StudentData = result.data;
 
     const stats: TableStat[] = [
-        { 
-            type: "students", 
-            value: `${student.schema.first_name} ${student.schema.last_name}`, 
-            desc: "Student Profile" 
+        {
+            type: "students",
+            value: `${student.schema.first_name} ${student.schema.last_name}`,
+            desc: "Student Profile",
         },
-        { 
-            type: "events", 
-            value: StudentTableGetters.getEventCount(student), 
-            label: "Events", 
-            desc: "Total events attended" 
+        {
+            type: "events",
+            value: StudentTableGetters.getEventCount(student),
+            label: "Events",
+            desc: "Total events attended",
         },
-        { 
-            type: "duration", 
-            value: StudentTableGetters.getTotalDurationMinutes(student), 
-            desc: "Total time spent in lessons" 
+        {
+            type: "duration",
+            value: StudentTableGetters.getTotalDurationMinutes(student),
+            desc: "Total time spent in lessons",
         },
-        { 
-            type: "studentPayments", 
-            value: StudentTableGetters.getTotalPaid(student), 
-            label: "Payments", 
-            desc: "Total payments made"
-        }
+        {
+            type: "studentPayments",
+            value: StudentTableGetters.getTotalPaid(student),
+            label: "Payments",
+            desc: "Total payments made",
+        },
     ];
 
     return (

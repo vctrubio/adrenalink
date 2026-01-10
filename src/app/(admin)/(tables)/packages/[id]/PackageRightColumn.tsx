@@ -55,11 +55,13 @@ export function PackageRightColumn({ packageData }: PackageRightColumnProps) {
             if (filter !== "all") result = result.filter((r) => r.status === filter);
             if (search) {
                 const query = search.toLowerCase();
-                result = result.filter((r) => r.wallet_id.toLowerCase().includes(query) || r.referral?.code.toLowerCase().includes(query));
+                result = result.filter(
+                    (r) => r.wallet_id.toLowerCase().includes(query) || r.referral?.code.toLowerCase().includes(query),
+                );
             }
             result.sort((a, b) => {
-                const valA = new Date(a[sort.field as keyof typeof a] as string || 0).getTime();
-                const valB = new Date(b[sort.field as keyof typeof b] as string || 0).getTime();
+                const valA = new Date((a[sort.field as keyof typeof a] as string) || 0).getTime();
+                const valB = new Date((b[sort.field as keyof typeof b] as string) || 0).getTime();
                 return sort.direction === "desc" ? valB - valA : valA - valB;
             });
             return result;
@@ -67,11 +69,13 @@ export function PackageRightColumn({ packageData }: PackageRightColumnProps) {
             let result = [...bookings];
             if (search) {
                 const query = search.toLowerCase();
-                result = result.filter((b) => b.leader_student_name.toLowerCase().includes(query) || b.id.toLowerCase().includes(query));
+                result = result.filter(
+                    (b) => b.leader_student_name.toLowerCase().includes(query) || b.id.toLowerCase().includes(query),
+                );
             }
             result.sort((a, b) => {
-                const valA = new Date(a[sort.field as keyof typeof a] as string || 0).getTime();
-                const valB = new Date(b[sort.field as keyof typeof b] as string || 0).getTime();
+                const valA = new Date((a[sort.field as keyof typeof a] as string) || 0).getTime();
+                const valB = new Date((b[sort.field as keyof typeof b] as string) || 0).getTime();
                 return sort.direction === "desc" ? valB - valA : valA - valB;
             });
             return result;
@@ -118,12 +122,12 @@ export function PackageRightColumn({ packageData }: PackageRightColumnProps) {
                     {viewMode === "requests" ? (
                         processedData.length > 0 ? (
                             processedData.map((req: any) => (
-                                <StudentPackageCard 
-                                    key={req.id} 
-                                    studentPackage={req} 
-                                    schoolPackage={packageData as any} 
-                                    formatCurrency={formatCurrency} 
-                                    currency={currency} 
+                                <StudentPackageCard
+                                    key={req.id}
+                                    studentPackage={req}
+                                    schoolPackage={packageData as any}
+                                    formatCurrency={formatCurrency}
+                                    currency={currency}
                                 />
                             ))
                         ) : (
@@ -131,24 +135,22 @@ export function PackageRightColumn({ packageData }: PackageRightColumnProps) {
                                 No requests found
                             </div>
                         )
+                    ) : processedData.length > 0 ? (
+                        processedData.map((booking: any) => (
+                            <FullBookingCard
+                                key={booking.id}
+                                bookingData={{
+                                    ...booking,
+                                    school_package: packageData.schema, // Provide package context
+                                }}
+                                currency={currency}
+                                formatCurrency={formatCurrency}
+                            />
+                        ))
                     ) : (
-                        processedData.length > 0 ? (
-                            processedData.map((booking: any) => (
-                                <FullBookingCard 
-                                    key={booking.id} 
-                                    bookingData={{
-                                        ...booking,
-                                        school_package: packageData.schema // Provide package context
-                                    }} 
-                                    currency={currency} 
-                                    formatCurrency={formatCurrency} 
-                                />
-                            ))
-                        ) : (
-                            <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-2xl border-2 border-dashed border-border/50">
-                                No bookings found
-                            </div>
-                        )
+                        <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-2xl border-2 border-dashed border-border/50">
+                            No bookings found
+                        </div>
                     )}
                 </motion.div>
             </AnimatePresence>

@@ -15,14 +15,14 @@ interface GoToAdranlinkProps {
     isLoading?: boolean;
 }
 
-export function GoToAdranlink({ 
-    href, 
-    onNavigate, 
+export function GoToAdranlink({
+    href,
+    onNavigate,
     onClick,
-    className = "", 
-    size = 20, 
+    className = "",
+    size = 20,
     isHovered = false,
-    isLoading = false
+    isLoading = false,
 }: GoToAdranlinkProps) {
     const router = useRouter();
     const [isNavigating, setIsNavigating] = useState(false);
@@ -30,7 +30,7 @@ export function GoToAdranlink({
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsNavigating(true);
-        
+
         if (onClick) {
             onClick(e);
             return;
@@ -39,7 +39,7 @@ export function GoToAdranlink({
         if (onNavigate) {
             onNavigate();
         }
-        
+
         if (href) {
             router.push(href);
         }
@@ -52,20 +52,28 @@ export function GoToAdranlink({
     return (
         <motion.div
             className={`cursor-pointer inline-flex items-center justify-center ${className}`}
-            animate={showLoading ? {
-                rotate: [startAngle, endAngle],
-                scale: 0.8,
-            } : { 
-                rotate: isHovered ? 45 : 0, 
-                scale: 1,
-            }}
-            transition={showLoading ? {
-                rotate: { repeat: Infinity, duration: 1, ease: "linear" },
-                scale: { duration: 0.2 }
-            } : { 
-                duration: 0.6, 
-                ease: "easeInOut" 
-            }}
+            animate={
+                showLoading
+                    ? {
+                          rotate: [startAngle, endAngle],
+                          scale: 0.8,
+                      }
+                    : {
+                          rotate: isHovered ? 45 : 0,
+                          scale: 1,
+                      }
+            }
+            transition={
+                showLoading
+                    ? {
+                          rotate: { repeat: Infinity, duration: 1, ease: "linear" },
+                          scale: { duration: 0.2 },
+                      }
+                    : {
+                          duration: 0.6,
+                          ease: "easeInOut",
+                      }
+            }
             onClick={handleClick}
         >
             <div className="rotate-45">

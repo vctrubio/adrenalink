@@ -12,7 +12,14 @@ interface FormProps<T extends FieldValues = FieldValues> {
     className?: string;
 }
 
-export default function Form<T extends FieldValues = FieldValues>({ children, methods, onSubmit, isOpen = true, onClose, className = "" }: FormProps<T>) {
+export default function Form<T extends FieldValues = FieldValues>({
+    children,
+    methods,
+    onSubmit,
+    isOpen = true,
+    onClose,
+    className = "",
+}: FormProps<T>) {
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {

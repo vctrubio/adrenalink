@@ -109,7 +109,7 @@ export function RegisterProvider({
     children,
     initialData,
     refreshAction,
-    school
+    school,
 }: {
     children: ReactNode;
     initialData: RegisterTables;
@@ -123,7 +123,7 @@ export function RegisterProvider({
         students: [],
         teachers: [],
         packages: [],
-        bookings: []
+        bookings: [],
     });
 
     // Booking form state
@@ -176,7 +176,7 @@ export function RegisterProvider({
     }, [refreshAction]);
 
     const updateDataStats = useCallback((updates: Partial<RegisterTables>) => {
-        setData(prev => ({
+        setData((prev) => ({
             ...prev,
             ...updates,
         }));
@@ -184,21 +184,21 @@ export function RegisterProvider({
 
     // Queue management
     const addToQueue = useCallback((type: keyof EntityQueues, item: QueueItem) => {
-        setQueues(prev => ({
+        setQueues((prev) => ({
             ...prev,
-            [type]: [...prev[type], item]
+            [type]: [...prev[type], item],
         }));
     }, []);
 
     const removeFromQueue = useCallback((type: keyof EntityQueues, id: string) => {
-        setQueues(prev => ({
+        setQueues((prev) => ({
             ...prev,
-            [type]: prev[type].filter(item => item.id !== id)
+            [type]: prev[type].filter((item) => item.id !== id),
         }));
     }, []);
 
     const setBookingForm = useCallback((updates: Partial<BookingFormState>) => {
-        setBookingFormState(prev => ({ ...prev, ...updates }));
+        setBookingFormState((prev) => ({ ...prev, ...updates }));
     }, []);
 
     const resetBookingForm = useCallback(() => {
@@ -206,9 +206,7 @@ export function RegisterProvider({
     }, []);
 
     // Get selected students
-    const selectedStudents = data.students
-        .filter(s => bookingForm.selectedStudentIds.includes(s.student?.id))
-        .map(s => s.student);
+    const selectedStudents = data.students.filter((s) => bookingForm.selectedStudentIds.includes(s.student?.id)).map((s) => s.student);
 
     // Determine active form based on pathname
     const activeForm: ActiveForm = useMemo(() => {
@@ -233,7 +231,7 @@ export function RegisterProvider({
     }, [bookingForm]);
 
     const getLeaderStudentName = useCallback(() => {
-        const leaderStudent = selectedStudents.find(s => s.id === bookingForm.leaderStudentId);
+        const leaderStudent = selectedStudents.find((s) => s.id === bookingForm.leaderStudentId);
         return leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "";
     }, [selectedStudents, bookingForm.leaderStudentId]);
 
@@ -252,7 +250,7 @@ export function RegisterProvider({
                 bookingForm.selectedTeacher?.schema.id,
                 bookingForm.selectedCommission?.id,
                 bookingForm.selectedReferral?.id,
-                leaderStudentName
+                leaderStudentName,
             );
 
             if (!result.success) {
@@ -376,7 +374,7 @@ export function useRegisterActions() {
         addToQueue: context.addToQueue,
         removeFromQueue: context.removeFromQueue,
         refreshData: context.refreshData,
-        isRefreshing: context.isRefreshing
+        isRefreshing: context.isRefreshing,
     };
 }
 
@@ -385,7 +383,6 @@ export function useRegisterQueues() {
     if (!context) throw new Error("useRegisterQueues must be used within RegisterProvider");
     return context.queues;
 }
-
 
 export function useBookingForm() {
     const context = useContext(RegisterContext);

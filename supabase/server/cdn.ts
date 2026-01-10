@@ -8,10 +8,7 @@ import { cache } from "react";
 
 // In-memory cache for CDN image verification results
 // Map structure: schoolUsername -> { bannerUrl, iconUrl, timestamp }
-const CDN_IMAGE_CACHE = new Map<
-    string,
-    { bannerUrl: string; iconUrl: string; timestamp: number }
->();
+const CDN_IMAGE_CACHE = new Map<string, { bannerUrl: string; iconUrl: string; timestamp: number }>();
 
 // Cache TTL: 1 hour (3600000 ms)
 const CACHE_TTL = 3600000;
@@ -19,7 +16,7 @@ const CACHE_TTL = 3600000;
 /**
  * Check if CDN images exist via HEAD requests and return both URLs
  * Results are cached in-memory to minimize unnecessary HEAD requests
- * 
+ *
  * @param username - School username
  * @returns Object with bannerUrl and iconUrl (verified or fallback to /admin/)
  */
@@ -78,4 +75,3 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
 // Use React's cache() for request-level deduplication
 // This prevents multiple calls to getCDNImages in the same request
 export const getCDNImages = cache(getCDNImagesImpl);
-

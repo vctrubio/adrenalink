@@ -59,16 +59,14 @@ export function ClassboardSports({ animate = false, freezeAtCategory }: Classboa
                             }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             className={`relative rounded-2xl overflow-hidden border transition-all duration-500 flex items-center justify-center gap-2
-                                ${isActive 
-                                    ? "bg-secondary/10 border-secondary shadow-sm" 
-                                    : "bg-muted/30 border-transparent hover:bg-muted/50"
+                                ${
+                                    isActive
+                                        ? "bg-secondary/10 border-secondary shadow-sm"
+                                        : "bg-muted/30 border-transparent hover:bg-muted/50"
                                 }
                             `}
                         >
-                            <motion.div
-                                layout="position"
-                                className="relative flex-shrink-0"
-                            >
+                            <motion.div layout="position" className="relative flex-shrink-0">
                                 <Image
                                     src={sport.image}
                                     alt={sport.label}

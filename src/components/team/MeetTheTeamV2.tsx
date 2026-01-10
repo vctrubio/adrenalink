@@ -9,7 +9,13 @@ interface MeetTheTeamV2Props {
     onShadeHover?: (shade: string | null) => void;
 }
 
-const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: string | null) => void; rainbowHoveredShade: string | null }) => {
+const Team = ({
+    onShadeHover,
+    rainbowHoveredShade,
+}: {
+    onShadeHover?: (shade: string | null) => void;
+    rainbowHoveredShade: string | null;
+}) => {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -69,11 +75,12 @@ const Team = ({ onShadeHover, rainbowHoveredShade }: { onShadeHover?: (shade: st
                                     }}
                                     transition={{ duration: 0.5, type: "spring" }}
                                     style={{
-                                        color: isHovered || isSelected
-                                            ? isHovered && !isSelected
-                                                ? TEAM_COLORS[entity.colorKey].hoverFill
-                                                : TEAM_COLORS[entity.colorKey].fill
-                                            : "#ffffff",
+                                        color:
+                                            isHovered || isSelected
+                                                ? isHovered && !isSelected
+                                                    ? TEAM_COLORS[entity.colorKey].hoverFill
+                                                    : TEAM_COLORS[entity.colorKey].fill
+                                                : "#ffffff",
                                     }}
                                 >
                                     <Icon />
@@ -151,8 +158,14 @@ export const MeetTheTeamV2 = ({ hoveredShade, onShadeHover }: MeetTheTeamV2Props
         <div className="relative z-[2] py-16">
             {selectedEntity && SelectedIcon ? (
                 <div className="max-w-2xl mx-auto px-6 text-center">
-                    <div className="bg-zinc-900/40 backdrop-blur-md rounded-2xl p-8 border-2" style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}>
-                        <div className="w-20 h-20 mx-auto mb-4 [&>svg]:w-full [&>svg]:h-full" style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}>
+                    <div
+                        className="bg-zinc-900/40 backdrop-blur-md rounded-2xl p-8 border-2"
+                        style={{ borderColor: TEAM_COLORS[selectedEntity.colorKey].fill }}
+                    >
+                        <div
+                            className="w-20 h-20 mx-auto mb-4 [&>svg]:w-full [&>svg]:h-full"
+                            style={{ color: TEAM_COLORS[selectedEntity.colorKey].fill }}
+                        >
                             <SelectedIcon />
                         </div>
                         <h3 className="text-3xl font-bold text-white mb-2">{selectedEntity.name}</h3>

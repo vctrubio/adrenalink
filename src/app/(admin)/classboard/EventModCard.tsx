@@ -17,7 +17,7 @@ import { LeaderStudent } from "@/src/components/LeaderStudent";
 // Custom hook for booking duration minutes
 const useBookingDurationMinutes = (bookingId: string) => {
     const { bookingsForSelectedDate } = useClassboardContext();
-    
+
     return useMemo(() => {
         const bookingData = bookingsForSelectedDate.find((b) => b.booking.id === bookingId);
         const packageInfo = bookingData ? getPackageInfo(bookingData.schoolPackage, bookingData.lessons) : null;
@@ -37,7 +37,19 @@ interface EventModCardProps {
 
 // Sub-components
 
-const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { isFirst: boolean; isLast: boolean; event: EventNode; eventId: string; queueController: QueueControllerType }) => {
+const QueueControls = ({
+    isFirst,
+    isLast,
+    event,
+    eventId,
+    queueController,
+}: {
+    isFirst: boolean;
+    isLast: boolean;
+    event: EventNode;
+    eventId: string;
+    queueController: QueueControllerType;
+}) => {
     const handleDelete = () => {
         if (!eventId) return;
 
@@ -48,12 +60,20 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
     return (
         <div className="flex items-center gap-1">
             {!isFirst && (
-                <button onClick={() => queueController.moveUp(eventId)} className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" title="Move front in queue">
+                <button
+                    onClick={() => queueController.moveUp(eventId)}
+                    className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20"
+                    title="Move front in queue"
+                >
                     <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
             )}
             {!isLast && (
-                <button onClick={() => queueController.moveDown(eventId)} className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20" title="Move back in queue">
+                <button
+                    onClick={() => queueController.moveDown(eventId)}
+                    className="p-1.5 bg-muted/50 hover:bg-muted text-blue-600 dark:text-blue-400 rounded-lg transition-colors border border-border/20"
+                    title="Move back in queue"
+                >
                     <ChevronRight className="w-3.5 h-3.5" />
                 </button>
             )}
@@ -68,15 +88,27 @@ const QueueControls = ({ isFirst, isLast, event, eventId, queueController }: { i
     );
 };
 
-const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueController }: { event: EventNode; canMoveEarlier: boolean; canMoveLater: boolean; eventId: string; queueController: QueueControllerType }) => {
+const TimeControls = ({
+    event,
+    canMoveEarlier,
+    canMoveLater,
+    eventId,
+    queueController,
+}: {
+    event: EventNode;
+    canMoveEarlier: boolean;
+    canMoveLater: boolean;
+    eventId: string;
+    queueController: QueueControllerType;
+}) => {
     const startTime = getTimeFromISO(event.eventData.date);
     const startMinutes = timeToMinutes(startTime);
     const duration = event.eventData.duration;
     const endTime = minutesToTime(startMinutes + duration);
-    
+
     // Find original state from snapshot to show session-only changes
-    const originalEvent = queueController.getOriginalSnapshot().find(e => e.id === eventId);
-    
+    const originalEvent = queueController.getOriginalSnapshot().find((e) => e.id === eventId);
+
     // Session shifts (vs original snapshot)
     const timeShift = queueController.getQueue().getEventTimeDifference(eventId, queueController.getOriginalSnapshot());
     const durationShift = originalEvent ? duration - originalEvent.eventData.duration : 0;
@@ -115,14 +147,15 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
             {/* Bottom Row: Times and Session Differences */}
             <div className="flex items-center justify-between gap-1.5">
                 <span className="text-3xl font-black tracking-tighter leading-none text-foreground truncate">{startTime}</span>
-                
+
                 <div className="flex flex-col items-end gap-1">
                     <span className="text-sm font-bold tracking-tight leading-none text-muted-foreground/30">— {endTime}</span>
 
                     <div className="flex flex-col items-end text-[10px] font-black tracking-tighter text-cyan-600 dark:text-cyan-400 uppercase leading-none">
                         {timeShift !== 0 && (
                             <span className="shrink-0">
-                                {timeShift > 0 ? "+" : "-"}{getHMDuration(Math.abs(timeShift))}
+                                {timeShift > 0 ? "+" : "-"}
+                                {getHMDuration(Math.abs(timeShift))}
                             </span>
                         )}
                         {/* {durationShift !== 0 && (
@@ -137,7 +170,15 @@ const TimeControls = ({ event, canMoveEarlier, canMoveLater, eventId, queueContr
     );
 };
 
-const DurationControls = ({ duration, eventId, queueController }: { duration: number; eventId: string; queueController: QueueControllerType }) => {
+const DurationControls = ({
+    duration,
+    eventId,
+    queueController,
+}: {
+    duration: number;
+    eventId: string;
+    queueController: QueueControllerType;
+}) => {
     const handleDurationAdjustment = (increment: boolean) => {
         const controller = queueController.getSettings();
 
@@ -158,7 +199,11 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
 
             <div className="flex items-center gap-2 justify-end">
                 <div className="flex gap-1">
-                    <button onClick={() => handleDurationAdjustment(true)} className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 transition-colors" title="Increase duration">
+                    <button
+                        onClick={() => handleDurationAdjustment(true)}
+                        className="p-1 rounded-md bg-muted/50 hover:bg-muted border border-border/20 transition-colors"
+                        title="Increase duration"
+                    >
                         <Plus className="w-3.5 h-3.5" />
                     </button>
 
@@ -183,7 +228,17 @@ const DurationControls = ({ duration, eventId, queueController }: { duration: nu
     );
 };
 
-const LocationControls = ({ eventId, currentLocation, queueController, locationOptions }: { eventId: string; currentLocation: string; queueController: QueueControllerType; locationOptions: string[] }) => {
+const LocationControls = ({
+    eventId,
+    currentLocation,
+    queueController,
+    locationOptions,
+}: {
+    eventId: string;
+    currentLocation: string;
+    queueController: QueueControllerType;
+    locationOptions: string[];
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -200,7 +255,12 @@ const LocationControls = ({ eventId, currentLocation, queueController, locationO
 
     return (
         <div className="relative">
-            <button ref={triggerRef} onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border/50" title="Change location">
+            <button
+                ref={triggerRef}
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border/50"
+                title="Change location"
+            >
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-sm font-medium">{currentLocation || "Set Location"}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -233,16 +293,28 @@ const RemainingTimeControl = ({ durationMinutes, eventDuration }: { durationMinu
 
     return (
         <div className="flex flex-col items-end">
-            <span className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
+            <span
+                className={`text-sm font-bold ${remainingMinutes < 0 ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}
+            >
                 {remainingMinutes < 0 ? "+" : "-"}
                 {getPrettyDuration(Math.abs(remainingMinutes))}
             </span>
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{remainingMinutes < 0 ? "Over" : "Left"}</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                {remainingMinutes < 0 ? "Over" : "Left"}
+            </span>
         </div>
     );
 };
 
-export default function EventModCard({ event, queueController, isFirst, isLast, canMoveEarlier, canMoveLater, previousEvent }: EventModCardProps) {
+export default function EventModCard({
+    event,
+    queueController,
+    isFirst,
+    isLast,
+    canMoveEarlier,
+    canMoveLater,
+    previousEvent,
+}: EventModCardProps) {
     const { globalFlag } = useClassboardContext();
     const eventId = event.id;
 
@@ -257,7 +329,11 @@ export default function EventModCard({ event, queueController, isFirst, isLast, 
             {/* Header: Student & Controls */}
             <div className="flex items-center justify-between px-4 py-1 border-b border-border/50 bg-muted/10">
                 <div className="scale-90 origin-left">
-                    <LeaderStudent leaderStudentName={event.bookingLeaderName} bookingId={event.bookingId} bookingStudents={event.bookingStudents || []} />
+                    <LeaderStudent
+                        leaderStudentName={event.bookingLeaderName}
+                        bookingId={event.bookingId}
+                        bookingStudents={event.bookingStudents || []}
+                    />
                 </div>
                 <QueueControls isFirst={isFirst} isLast={isLast} event={event} eventId={eventId} queueController={queueController} />
             </div>
@@ -289,15 +365,28 @@ export default function EventModCard({ event, queueController, isFirst, isLast, 
                         className="w-auto shadow-sm"
                     />
                 )}
-                <TimeControls event={event} canMoveEarlier={canMoveEarlier} canMoveLater={canMoveLater} eventId={eventId} queueController={queueController} />
+                <TimeControls
+                    event={event}
+                    canMoveEarlier={canMoveEarlier}
+                    canMoveLater={canMoveLater}
+                    eventId={eventId}
+                    queueController={queueController}
+                />
                 <div className="h-16 w-px bg-border/60 mx-2" />
                 <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
             </div>
 
             {/* Footer: Location & Meta */}
             <div className="px-4 py-2 flex items-end justify-between">
-                <LocationControls eventId={eventId} currentLocation={event.eventData.location} queueController={queueController} locationOptions={locationOptions} />
-                {bookingDurationMinutes > 0 && <RemainingTimeControl durationMinutes={bookingDurationMinutes} eventDuration={event.eventData.duration} />}
+                <LocationControls
+                    eventId={eventId}
+                    currentLocation={event.eventData.location}
+                    queueController={queueController}
+                    locationOptions={locationOptions}
+                />
+                {bookingDurationMinutes > 0 && (
+                    <RemainingTimeControl durationMinutes={bookingDurationMinutes} eventDuration={event.eventData.duration} />
+                )}
             </div>
         </div>
     );

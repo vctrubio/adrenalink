@@ -66,7 +66,16 @@ const defaultStudentForm: StudentFormData = {
     canRent: false,
 };
 
-export function StudentsSection({ students, selectedStudentIds, onToggle, capacity, isExpanded, onSectionToggle, studentStatsMap, selectedPackage }: StudentsSectionProps) {
+export function StudentsSection({
+    students,
+    selectedStudentIds,
+    onToggle,
+    capacity,
+    isExpanded,
+    onSectionToggle,
+    studentStatsMap,
+    selectedPackage,
+}: StudentsSectionProps) {
     const pathname = usePathname();
     const router = useRouter();
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
@@ -103,12 +112,12 @@ export function StudentsSection({ students, selectedStudentIds, onToggle, capaci
         selectedPackage && selectedStudentIds.length > 0
             ? `(${selectedStudentIds.length}/${selectedPackage.capacityStudents}) ${selectedStudentNames}`
             : selectedPackage
-                ? `Select Students (${selectedPackage.capacityStudents})`
-                : capacity
-                    ? `Select Students (${selectedStudentIds.length}/${capacity})`
-                    : selectedStudentIds.length > 0
-                        ? `(${selectedStudentIds.length}) ${selectedStudentNames}`
-                        : "Select Students";
+              ? `Select Students (${selectedPackage.capacityStudents})`
+              : capacity
+                ? `Select Students (${selectedStudentIds.length}/${capacity})`
+                : selectedStudentIds.length > 0
+                  ? `(${selectedStudentIds.length}) ${selectedStudentNames}`
+                  : "Select Students";
 
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
@@ -161,7 +170,13 @@ export function StudentsSection({ students, selectedStudentIds, onToggle, capaci
                 showAddButton={true}
                 onAddClick={() => setIsDialogOpen(true)}
             >
-                <StudentTable students={students} selectedStudentIds={selectedStudentIds} onToggle={onToggle} capacity={capacity} studentStatsMap={studentStatsMap} />
+                <StudentTable
+                    students={students}
+                    selectedStudentIds={selectedStudentIds}
+                    onToggle={onToggle}
+                    capacity={capacity}
+                    studentStatsMap={studentStatsMap}
+                />
             </Section>
 
             <EntityAddDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)}>

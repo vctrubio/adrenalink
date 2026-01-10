@@ -27,8 +27,14 @@ export default function ToggleTheme() {
 
     return (
         <div className="flex items-center gap-3">
-            <Switch checked={isDark} onChange={(checked) => setTheme(checked ? "dark" : "light")} className={`${isDark ? "bg-gray-700" : "bg-gray-400"} relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}>
-                <span className={`${isDark ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+            <Switch
+                checked={isDark}
+                onChange={(checked) => setTheme(checked ? "dark" : "light")}
+                className={`${isDark ? "bg-gray-700" : "bg-gray-400"} relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+            >
+                <span
+                    className={`${isDark ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                />
             </Switch>
         </div>
     );

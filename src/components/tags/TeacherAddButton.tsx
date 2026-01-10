@@ -28,7 +28,7 @@ export const TeacherAddButton = ({ teacher, color }: TeacherAddButtonProps) => {
             e.stopPropagation();
             setIsDropdownOpen(!isDropdownOpen);
         } else {
-            // Default behavior handled by Link in Tag if provided, 
+            // Default behavior handled by Link in Tag if provided,
             // but we need to construct the link here if we are not passing it to Tag
             router.push(`/register?add=teacher:${teacher.schema.id}`);
         }
@@ -52,9 +52,10 @@ export const TeacherAddButton = ({ teacher, color }: TeacherAddButtonProps) => {
 
     const dropdownItems: DropdownItemProps[] = commissions.map((commission: any) => ({
         id: commission.id,
-        label: commission.commissionType === "fixed" 
-            ? `€${commission.commissionValue}/hour (Fixed)` 
-            : `${commission.commissionValue}% (Percentage)`,
+        label:
+            commission.commissionType === "fixed"
+                ? `€${commission.commissionValue}/hour (Fixed)`
+                : `${commission.commissionValue}% (Percentage)`,
         icon: () => <div className="w-2 h-2 rounded-full bg-primary" />, // Simple dot icon
         onClick: () => {
             router.push(`/register?add=teacher:${teacher.schema.id}:${commission.id}`);
@@ -75,7 +76,7 @@ export const TeacherAddButton = ({ teacher, color }: TeacherAddButtonProps) => {
                     link={!hasMultipleCommissions ? `/register?add=teacher:${teacher.schema.id}` : undefined}
                 />
             </div>
-            
+
             {hasMultipleCommissions && (
                 <Dropdown
                     isOpen={isDropdownOpen}

@@ -44,12 +44,16 @@ const CategoryFieldMemo = memo(function CategoryField({
                             key={cat.id}
                             type="button"
                             onClick={() => onCategoryChange(cat.id)}
-                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${category === cat.id
-                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700`
-                                : "border-border bg-background hover:border-green-300/50"
-                                }`}
+                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${
+                                category === cat.id
+                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700`
+                                    : "border-border bg-background hover:border-green-300/50"
+                            }`}
                         >
-                            <div className="w-12 h-12 flex items-center justify-center" style={{ color: category === cat.id ? cat.color : "#94a3b8" }}>
+                            <div
+                                className="w-12 h-12 flex items-center justify-center"
+                                style={{ color: category === cat.id ? cat.color : "#94a3b8" }}
+                            >
                                 <CategoryIcon className="w-12 h-12" />
                             </div>
                             <div className="font-medium text-sm">{cat.name}</div>
@@ -158,10 +162,11 @@ const StatusFieldMemo = memo(function StatusField({
                             key={opt}
                             type="button"
                             onClick={() => onStatusChange(opt)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${status === opt
-                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                                : "bg-background text-foreground border-input hover:border-green-300/50"
-                                }`}
+                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
+                                status === opt
+                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                    : "bg-background text-foreground border-input hover:border-green-300/50"
+                            }`}
                         >
                             {opt.charAt(0).toUpperCase() + opt.slice(1)}
                         </button>
@@ -196,11 +201,14 @@ export default function Equipment4SchoolForm({
         onFormDataChange(defaultEquipmentForm);
     }, [onFormDataChange]);
 
-    const updateField = useCallback((field: keyof EquipmentFormData, value: any) => {
-        onFormDataChange((prevData: EquipmentFormData) => {
-            return { ...prevData, [field]: value };
-        });
-    }, [onFormDataChange]);
+    const updateField = useCallback(
+        (field: keyof EquipmentFormData, value: any) => {
+            onFormDataChange((prevData: EquipmentFormData) => {
+                return { ...prevData, [field]: value };
+            });
+        },
+        [onFormDataChange],
+    );
 
     const getFieldError = (field: keyof EquipmentFormData): string | undefined => {
         try {
@@ -249,10 +257,7 @@ export default function Equipment4SchoolForm({
             />
 
             {/* Status */}
-            <StatusFieldMemo
-                status={formData.status}
-                onStatusChange={(value) => updateField("status", value)}
-            />
+            <StatusFieldMemo status={formData.status} onStatusChange={(value) => updateField("status", value)} />
 
             {/* TODO: Equipment-Teacher Relation
              * After equipment is created, we need to:

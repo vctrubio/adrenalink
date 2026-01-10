@@ -19,6 +19,8 @@ import CreditIcon from "@/public/appSvgs/CreditIcon";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 
+export const dynamic = "force-dynamic";
+
 interface TransactionPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
@@ -126,12 +128,24 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                     </PerspectiveSection>
 
                     {/* Student Perspective */}
-                    <PerspectiveSection title="The Student" subtitle="Track booking progress and payments" icon={HelmetIcon} bgColor="bg-yellow-500/10" iconColor="text-yellow-500">
+                    <PerspectiveSection
+                        title="The Student"
+                        subtitle="Track booking progress and payments"
+                        icon={HelmetIcon}
+                        bgColor="bg-yellow-500/10"
+                        iconColor="text-yellow-500"
+                    >
                         <div className="space-y-6">
                             {transaction.students_json.map((s: any, idx: number) => (
                                 <div key={idx} className="space-y-2">
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                                        Viewing as: <a href={`/students/${s.id}`} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all font-black">{s.name}</a>
+                                        Viewing as:{" "}
+                                        <a
+                                            href={`/students/${s.id}`}
+                                            className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all font-black"
+                                        >
+                                            {s.name}
+                                        </a>
                                     </p>
                                     <EventStudentCard
                                         teacherName={teacher.username}
@@ -169,9 +183,9 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                 { label: "Package", value: transaction.package_description },
                                 { label: "Duration", value: getHMDuration(transaction.event_duration) },
                                 { label: "Price", value: `${transaction.price_per_student} ${currency}` },
-                                { 
-                                    label: "PPH", 
-                                    value: `${(transaction.price_per_student / (transaction.event_duration / 60)).toFixed(2)} ${currency}/h` 
+                                {
+                                    label: "PPH",
+                                    value: `${(transaction.price_per_student / (transaction.event_duration / 60)).toFixed(2)} ${currency}/h`,
                                 },
                             ]}
                         />
@@ -183,7 +197,13 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             data={[
                                 { label: "Username", value: transaction.teacher_username },
                                 { label: "Comm. Type", value: transaction.commission_type, isCapitalize: true },
-                                { label: "Comm. Value", value: transaction.commission_type === "fixed" ? `${transaction.commission_hourly} ${currency}/h` : `${transaction.commission_hourly}%` },
+                                {
+                                    label: "Comm. Value",
+                                    value:
+                                        transaction.commission_type === "fixed"
+                                            ? `${transaction.commission_hourly} ${currency}/h`
+                                            : `${transaction.commission_hourly}%`,
+                                },
                                 { label: "Net Earning", value: `${transaction.teacher_commission.toFixed(2)} ${currency}` },
                             ]}
                         />
@@ -193,8 +213,22 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             icon={FlagIcon}
                             color="#06b6d4"
                             data={[
-                                { label: "Date", value: new Date(transaction.event_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
-                                { label: "Time", value: new Date(transaction.event_date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }) },
+                                {
+                                    label: "Date",
+                                    value: new Date(transaction.event_date).toLocaleDateString("en-US", {
+                                        month: "long",
+                                        day: "numeric",
+                                        year: "numeric",
+                                    }),
+                                },
+                                {
+                                    label: "Time",
+                                    value: new Date(transaction.event_date).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                    }),
+                                },
                                 { label: "Location", value: transaction.event_location || "TBD" },
                                 { label: "Status", value: transaction.event_status, isStatusBadge: true },
                             ]}
@@ -206,7 +240,14 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             color="#eab308"
                             data={transaction.students_json.map((s: any) => ({
                                 label: "Involved",
-                                value: <a href={`/students/${s.id}`} className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">{s.name}</a>
+                                value: (
+                                    <a
+                                        href={`/students/${s.id}`}
+                                        className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
+                                    >
+                                        {s.name}
+                                    </a>
+                                ),
                             }))}
                         />
 
@@ -217,10 +258,10 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             data={
                                 transaction.equipments.length > 0
                                     ? transaction.equipments.map((e: any) => ({
-                                        label: e.category || "Equipment",
-                                        value: `${e.brand} ${e.model} (${e.size || "N/A"})`,
-                                        isCapitalize: true,
-                                    }))
+                                          label: e.category || "Equipment",
+                                          value: `${e.brand} ${e.model} (${e.size || "N/A"})`,
+                                          isCapitalize: true,
+                                      }))
                                     : [{ label: "Equipment", value: "None" }]
                             }
                         />
@@ -232,7 +273,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             data={[
                                 { label: "Gross Revenue", value: `${transaction.gross_revenue} ${currency}` },
                                 { label: "Teacher Comm.", value: `${transaction.teacher_commission.toFixed(2)} ${currency}` },
-                                { label: "Net Profit", value: `${transaction.net_revenue.toFixed(2)} ${currency}`, isStatusBadge: true },
+                                {
+                                    label: "Net Profit",
+                                    value: `${transaction.net_revenue.toFixed(2)} ${currency}`,
+                                    isStatusBadge: true,
+                                },
                             ]}
                         />
                     </div>
@@ -246,7 +291,23 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
 
 // --- Sub-components ---
 
-function PerspectiveSection({ title, subtitle, icon: Icon, bgColor, iconColor, viewingAs, children }: { title: string; subtitle: string; icon: any; bgColor: string; iconColor: string; viewingAs?: { label: string; link: string }; children: React.ReactNode }) {
+function PerspectiveSection({
+    title,
+    subtitle,
+    icon: Icon,
+    bgColor,
+    iconColor,
+    viewingAs,
+    children,
+}: {
+    title: string;
+    subtitle: string;
+    icon: any;
+    bgColor: string;
+    iconColor: string;
+    viewingAs?: { label: string; link: string };
+    children: React.ReactNode;
+}) {
     return (
         <section className="space-y-6 flex flex-col z-10">
             <div className="flex items-center gap-3 pb-2 border-b border-border/50">
@@ -264,7 +325,10 @@ function PerspectiveSection({ title, subtitle, icon: Icon, bgColor, iconColor, v
                     {viewingAs && (
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                             Viewing as:{" "}
-                            <a href={viewingAs.link} className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all">
+                            <a
+                                href={viewingAs.link}
+                                className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
+                            >
                                 {viewingAs.label}
                             </a>
                         </p>
@@ -276,7 +340,22 @@ function PerspectiveSection({ title, subtitle, icon: Icon, bgColor, iconColor, v
     );
 }
 
-function ResumeCard({ title, icon: Icon, color, data }: { title: string; icon: any; color: string; data: { label: string; value: string | number | null | undefined | React.ReactNode; isCapitalize?: boolean; isStatusBadge?: boolean }[] }) {
+function ResumeCard({
+    title,
+    icon: Icon,
+    color,
+    data,
+}: {
+    title: string;
+    icon: any;
+    color: string;
+    data: {
+        label: string;
+        value: string | number | null | undefined | React.ReactNode;
+        isCapitalize?: boolean;
+        isStatusBadge?: boolean;
+    }[];
+}) {
     return (
         <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-muted/20">
@@ -290,7 +369,13 @@ function ResumeCard({ title, icon: Icon, color, data }: { title: string; icon: a
                     <div key={i} className="px-4 py-2.5 flex items-center justify-between text-xs">
                         <span className="text-muted-foreground font-medium">{item.label}</span>
                         <div className="text-foreground font-semibold text-right">
-                            {item.isStatusBadge ? <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] uppercase font-black tracking-tight">{item.value}</span> : <span className={item.isCapitalize ? "capitalize" : ""}>{item.value}</span>}
+                            {item.isStatusBadge ? (
+                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] uppercase font-black tracking-tight">
+                                    {item.value}
+                                </span>
+                            ) : (
+                                <span className={item.isCapitalize ? "capitalize" : ""}>{item.value}</span>
+                            )}
                         </div>
                     </div>
                 ))}

@@ -22,20 +22,20 @@ const header = headers().get("x-school-username");
 // 2. Conditional data fetching with shared relations
 let result;
 if (header) {
-  result = await db.query.entity.findMany({
-    where: eq(table.field, header),
-    with: sharedRelations,
-  });
+    result = await db.query.entity.findMany({
+        where: eq(table.field, header),
+        with: sharedRelations,
+    });
 } else {
-  result = await db.query.entity.findMany({
-    with: sharedRelations,
-  });
+    result = await db.query.entity.findMany({
+        with: sharedRelations,
+    });
 }
 
 // 3. Single processing/mapping block
 if (result) {
-  const entities = result.map((data) => createEntityModel(data));
-  return entities;
+    const entities = result.map((data) => createEntityModel(data));
+    return entities;
 }
 ```
 
@@ -81,22 +81,22 @@ if (result) {
 - Props should be passed inline for clarity
 - Avoid unnecessary abstractions or complex patterns
 - **Component grouping with index exports** - When creating multiple related components, group them in a subdirectory with an index.ts file for clean imports:
-  ```
-  src/components/ui/form/
-  ├── form.tsx
-  ├── form-field.tsx
-  ├── form-input.tsx
-  └── index.ts
-  ```
-  ```typescript
-  // index.ts
-  export { default as Form } from "./form";
-  export { default as FormField } from "./form-field";
-  ```
-  ```typescript
-  // Usage
-  import { Form, FormField } from "../../components/ui/form";
-  ```
+    ```
+    src/components/ui/form/
+    ├── form.tsx
+    ├── form-field.tsx
+    ├── form-input.tsx
+    └── index.ts
+    ```
+    ```typescript
+    // index.ts
+    export { default as Form } from "./form";
+    export { default as FormField } from "./form-field";
+    ```
+    ```typescript
+    // Usage
+    import { Form, FormField } from "../../components/ui/form";
+    ```
 
 ## Layout Guidelines
 
@@ -120,12 +120,12 @@ if (result) {
 - **Auto-focus first field** - Forms automatically focus the first input when opened
 - **CRITICAL: Input height consistency** - ALL form inputs MUST have identical height using `h-10` class. Never mix different heights or padding - this looks unprofessional
 - **Form components structure** (all in `src/components/ui/form/`):
-  - `form.tsx` - Parent wrapper with keyboard handling and React Hook Form provider
-  - `form-field.tsx` - Wraps label, input, and error display
-  - `form-input.tsx` - Styled input with semantic colors
-  - `form-select.tsx` - Styled select with semantic colors
-  - `form-button.tsx` - Styled button with variant system (primary, secondary, tertiary, fourth, fifth, destructive)
-  - `form-submit.tsx` - Styled submit button with entity color support
+    - `form.tsx` - Parent wrapper with keyboard handling and React Hook Form provider
+    - `form-field.tsx` - Wraps label, input, and error display
+    - `form-input.tsx` - Styled input with semantic colors
+    - `form-select.tsx` - Styled select with semantic colors
+    - `form-button.tsx` - Styled button with variant system (primary, secondary, tertiary, fourth, fifth, destructive)
+    - `form-submit.tsx` - Styled submit button with entity color support
 - **Validation with Zod** - Use Zod schemas with `@hookform/resolvers/zod` for type-safe validation
 - **Error handling** - FormField automatically displays validation errors below inputs
 - **Semantic colors** - Forms use the semantic color system (border-input, focus:ring-ring, text-destructive for errors)
@@ -140,24 +140,18 @@ if (result) {
 
 ## API Call Guidelines
 
-- **Use actions directory** - All database operations must be performed through server actions in the `actions/` directory
-- **File naming convention** - Use `entities-action.ts` format (e.g., `students-action.ts`, `schools-action.ts`)
-- **Drizzle ORM integration** - Use Drizzle's type-safe queries and schema types for all database operations
-- **CRITICAL: Use db.query syntax with relations** - ALWAYS use `db.query.entityTable.findMany()` and `db.query.entityTable.findFirst()` instead of `db.select()` to automatically handle relations
-- **CRITICAL: Server-First Data Fetching** - ALL data fetching MUST happen in Server Components (page.tsx), NOT in Client Components. Client Components should only render data passed as props
-- **Header Utilities** - Use `getHeaderUsername()` from `@/types/headers` instead of calling `headers().get()` directly
-- **Single Query with Relations** - Fetch ALL required data in one server query using Drizzle relations, then pass complete serialized data to client components
-- **CRITICAL: Relations Pattern** - Access related data via `.relations.tableName` (e.g., `school.relations.schoolPackages`, `package.relations.school.username`). Use `.schema` for direct table field access only
-- **Consistent patterns** - Follow the established CRUD pattern for all entity operations
-- **Schema-based parameters** - Use `entitySchema` parameter names that match the database schema (e.g., `studentSchema: StudentForm`)
-- **Return types** - Use `ApiActionResponseModel<T>` for single items and `ApiActionResponseModel<T[]>` for arrays
-- **CRITICAL: API Response Format** - Actions MUST return `{ success: true, data: T }` or `{ success: false, error: string }` using the Result pattern
-- **Schema purity** - Schema objects contain ONLY database table fields. Relations go in separate `relations` property
-- **Relations data structure** - All related data accessed through `.relations.tableName` pattern, never directly on schema
-- **Type safety** - Always use Drizzle's inferred types (`StudentForm`, `SchoolForm`, etc.) for parameters
-- **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data
+- **DEPRECATED: Use actions directory** - The `actions/` directory is deprecated. All new database operations must be performed through Supabase server actions in the `supabase/server/` directory.
+- **Supabase Server Actions** - Use `supabase/server/` for all database operations. Use the `getServerConnection()` from `@/supabase/connection` to get a Supabase client.
+- **File naming convention** - Use `entities.ts` format in `supabase/server/` (e.g., `students.ts`, `teachers.ts`).
+- **CRITICAL: Server-First Data Fetching** - ALL data fetching MUST happen in Server Components (page.tsx), NOT in Client Components. Client Components should only render data passed as props.
+- **Header Utilities** - Use `getSchoolHeader()` from `@/types/headers` or `headers()` from `next/headers` to get school context.
+- **Return types** - Use `ApiActionResponseModel<T>` for single items and `ApiActionResponseModel<T[]>` for arrays.
+- **CRITICAL: API Response Format** - Actions MUST return `{ success: true, data: T }` or `{ success: false, error: string }` using the Result pattern.
+- **CRITICAL: revalidatePath** - ALWAYS import and call `revalidatePath()` after create/update/delete operations to refresh cached data.
 
-### Standard Action Function Template
+### DEPRECATED: Standard Action Function Template (Drizzle)
+
+_This pattern is being replaced by Supabase server actions in `supabase/server/`._
 
 ```typescript
 "use server";
@@ -165,74 +159,58 @@ if (result) {
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import {
-  entityTable,
-  type EntityForm,
-  type EntityType,
-} from "@/drizzle/schema";
+import { entityTable, type EntityForm, type EntityType } from "@/drizzle/schema";
 import { createEntityModel, type EntityModel } from "@/backend/models";
-import type {
-  ApiActionResponseModelArray,
-  ApiActionResponseModel,
-} from "@/types/actions";
+import type { ApiActionResponseModelArray, ApiActionResponseModel } from "@/types/actions";
 
 // DRY Relations constant
 const entityWithRelations = {
-  entityRelations: {
-    with: {
-      relatedEntity: true,
+    entityRelations: {
+        with: {
+            relatedEntity: true,
+        },
     },
-  },
 };
 
 // CREATE - Returns data directly or { error: string }
-export async function createEntity(
-  entitySchema: EntityForm,
-): Promise<ApiActionResponseModel<EntityType>> {
-  try {
-    const result = await db
-      .insert(entityTable)
-      .values(entitySchema)
-      .returning();
-    revalidatePath("/entities");
-    // Return the data directly (AbstractModel type instance)
-    return createEntityModel(result[0]);
-  } catch (error) {
-    console.error("Error creating entity:", error);
-    // Return error object
-    return { error: "Failed to create entity" };
-  }
+export async function createEntity(entitySchema: EntityForm): Promise<ApiActionResponseModel<EntityType>> {
+    try {
+        const result = await db.insert(entityTable).values(entitySchema).returning();
+        revalidatePath("/entities");
+        // Return the data directly (AbstractModel type instance)
+        return createEntityModel(result[0]);
+    } catch (error) {
+        console.error("Error creating entity:", error);
+        // Return error object
+        return { error: "Failed to create entity" };
+    }
 }
 
 // READ - Returns array directly or { error: string }
-export async function getEntities(): Promise<
-  ApiActionResponseModelArray<EntityType>
-> {
-  try {
-    const result = await db.query.entityTable.findMany({
-      with: entityWithRelations,
-    });
+export async function getEntities(): Promise<ApiActionResponseModelArray<EntityType>> {
+    try {
+        const result = await db.query.entityTable.findMany({
+            with: entityWithRelations,
+        });
 
-    const entities: EntityModel[] = result.map((entityData) =>
-      createEntityModel(entityData),
-    );
+        const entities: EntityModel[] = result.map((entityData) => createEntityModel(entityData));
 
-    // Return the array directly
-    return entities;
-  } catch (error) {
-    console.error("Error fetching entities:", error);
-    // Return error object
-    return { error: "Failed to fetch entities" };
-  }
+        // Return the array directly
+        return entities;
+    } catch (error) {
+        console.error("Error fetching entities:", error);
+        // Return error object
+        return { error: "Failed to fetch entities" };
+    }
 }
 
 // Component usage - Check for success property
 const result = await getEntities();
 if (!result.success) {
-  console.error("Error:", result.error);
+    console.error("Error:", result.error);
 } else {
-  // result.data is the array - no .serialize() needed
-  setEntities(result.data);
+    // result.data is the array - no .serialize() needed
+    setEntities(result.data);
 }
 ```
 
@@ -280,62 +258,65 @@ if (!result.success) {
 
 **CRITICAL: Understand the purpose of each directory - this determines WHERE code goes:**
 
-1. **actions/** - Server Actions for database operations ONLY
-   - ONLY: Database queries, mutations, authentication checks
-   - NOT: Business logic, calculations, transformations
-   - NOT: Client-side functionality
-   - Use: `getSchoolIdFromHeader()` to get context from `x-school-username` header
-   - Pattern: `async function actionName(params): Promise<ApiActionResponseModel<T>>`
+1. **supabase/server/** - Server Actions for database operations (Supabase)
+    - ONLY: Database queries, mutations, authentication checks
+    - NOT: Business logic, calculations, transformations
+    - Use: `getSchoolHeader()` to get context from headers
+    - Pattern: `async function actionName(params): Promise<ApiActionResponseModel<T>>`
 
-2. **getters/** - Pure utility functions and business logic
-   - ONLY: Data transformation, calculations, formatting
-   - ONLY: Pure functions with no side effects
-   - NOT: React hooks (these go in hooks/)
-   - NOT: Database operations (these go in actions/)
-   - Pattern: `export function getEntityName(data): string`
-   - Can be imported in both server and client code
+2. **actions/** - DEPRECATED (Use supabase/server/ instead)
+    - Legacy Drizzle server actions.
 
-3. **hooks/** - React hooks for state management
-   - ONLY: `useCallback`, `useMemo`, `useState`, `useEffect`, custom hooks
-   - ONLY: Client-side state and side effects
-   - NOT: Database operations (use actions)
-   - NOT: Pure calculations (use getters)
-   - Pattern: `export function useEntityName(): T { ... }`
+3. **getters/** - Pure utility functions and business logic
+    - ONLY: Data transformation, calculations, formatting
+    - ONLY: Pure functions with no side effects
+    - NOT: React hooks (these go in hooks/)
+    - NOT: Database operations (these go in actions/)
+    - Pattern: `export function getEntityName(data): string`
+    - Can be imported in both server and client code
 
-4. **backend/** - Type definitions and class implementations
-   - ONLY: TypeScript types, interfaces, classes
-   - ONLY: Business logic models (e.g., `TeacherQueue`)
-   - NOT: React components
-   - NOT: Database operations (use actions)
-   - NOT: UI concerns
+4. **hooks/** - React hooks for state management
+    - ONLY: `useCallback`, `useMemo`, `useState`, `useEffect`, custom hooks
+    - ONLY: Client-side state and side effects
+    - NOT: Database operations (use actions)
+    - NOT: Pure calculations (use getters)
+    - Pattern: `export function useEntityName(): T { ... }`
 
-5. **src/app/** - React components and pages
-   - ONLY: Rendering and user interactions
-   - NOT: Database operations (use actions)
-   - NOT: Business calculations (use getters)
-   - NOT: State management logic (use hooks or pass via props)
+5. **backend/** - Type definitions and class implementations
+    - ONLY: TypeScript types, interfaces, classes
+    - ONLY: Business logic models (e.g., `TeacherQueue`)
+    - NOT: React components
+    - NOT: Database operations (use actions)
+    - NOT: UI concerns
+
+6. **src/app/** - React components and pages
+    - ONLY: Rendering and user interactions
+    - NOT: Database operations (use actions)
+    - NOT: Business calculations (use getters)
+    - NOT: State management logic (use hooks or pass via props)
 
 ### Header Context Pattern
 
-**CRITICAL: Use x-school-username header for context in server actions:**
+**CRITICAL: Use getSchoolHeader() for context in Supabase server actions:**
 
 ```typescript
-import { getHeaderUsername, getSchoolIdFromHeader, getSchoolTimezoneFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 export async function myAction(): Promise<...> {
   // Get school context from header
-  const schoolId = await getSchoolIdFromHeader();
-  const username = await getHeaderUsername();
-  const timezone = await getSchoolTimezoneFromHeader();
+  const schoolHeader = await getSchoolHeader();
+  const schoolId = schoolHeader?.id;
 
   if (!schoolId) {
     return { success: false, error: "School not found" };
   }
 
+  const supabase = getServerConnection();
   // Use schoolId in database queries
-  const result = await db.query.entity.findMany({
-    where: eq(table.schoolId, schoolId)
-  });
+  const { data, error } = await supabase
+    .from("entity")
+    .select("*")
+    .eq("school_id", schoolId);
 }
 ```
 
@@ -351,14 +332,14 @@ import { getEventCardProps } from "@/getters/event-getter";
 // Src-level utilities (use @/src)
 import { getTimeFromISO } from "@/src/components";
 
-// Actions (always root level)
-import { createClassboardEvent } from "@/actions/classboard-action";
+// Actions (Supabase server actions)
+import { createClassboardEvent } from "@/supabase/server/classboard";
 
 // Types and headers (always root level)
-import { getSchoolIdFromHeader } from "@/types/headers";
+import { getSchoolHeader } from "@/types/headers";
 
 // Components (always from src)
-import EventCard from "@/src/app/(admin)/classboard/EventCard";
+import { EventCard } from "@/src/components/events/EventCard";
 ```
 
 **Rule of thumb:**
@@ -375,7 +356,7 @@ For detailed project structure, see `docs/structure.md`
 - **actions/** - Server Actions for database operations ONLY
 - **ai/** - Cloud-related files and generated markdown content
 - **backend/** - Backend type definitions and logic declarations
-  - **models/** - Entity model types and create functions based on AbstractModel type
+    - **models/** - Entity model types and create functions based on AbstractModel type
 - **config/** - Tenant-specific configuration files (includes entities.ts for entity visual config)
 - **docs/** - Application documentation for Adrenalink
 - **drizzle/** - ORM configuration and database schema definitions

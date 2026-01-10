@@ -7,6 +7,7 @@ Building the home for the adrenaline sports community. We're creating the next g
 ## Problem Statement
 
 Adrenaline sports schools face operational chaos:
+
 - **Booking Automation**: Manual scheduling and constant rescheduling wastes valuable time
 - **Payment Clarity**: Students and schools lack transparency on package hours, pricing, and commissions
 - **Equipment Tracking**: No system for monitoring equipment usage, damage, flight hours, and rentals
@@ -21,6 +22,7 @@ Adrenalink provides a comprehensive platform that automates school operations, c
 ## Description Versions
 
 ### Landing Hero (Professional & Corporate)
+
 **Use:** Main landing page, below header and slogan
 **Tone:** Professional, high-level, problem-focused
 **Length:** 3-4 sentences
@@ -28,6 +30,7 @@ Adrenalink provides a comprehensive platform that automates school operations, c
 > Our technology streamlines adrenaline sports school operations through automated booking, transparent payment tracking, and comprehensive equipment management. We provide schools with real-time revenue analytics and data-driven insights to optimize their business. By connecting students, teachers, and administrators on one platform, we eliminate the chaos of manual scheduling and spreadsheet management. Adrenalink is the next-generation solution for modern sports schools.
 
 ### About Page (Detailed)
+
 **Use:** /docs/wwd, About section
 **Tone:** Visionary, community-focused
 **Length:** Longer form
@@ -37,6 +40,7 @@ Adrenalink provides a comprehensive platform that automates school operations, c
 > Our technology facilitates seamless booking, provides one source of truth for pricing and packages, and gamifies the learning journey. From kitesurfing to paragliding, we're creating the home for the adrenaline community—one lesson at a time.
 
 ### Founder Section (Personal Narrative)
+
 **Use:** Founder info card, personal bio
 **Tone:** Authentic, mission-driven, story-based
 **Length:** Multiple paragraphs
@@ -50,6 +54,7 @@ Adrenalink provides a comprehensive platform that automates school operations, c
 > We're targeting the kitesurfing world first (kite, wind, wing) for the early beta version. Later, we'll expand to all adrenaline communities—paragliding, speed riding, white water rafting, ski and snowboard. Each school gets their own homepage with direct links to their website and social networks. We're empowering schools while building the next community of adrenaline junkies.
 
 ### Pitch Deck / Investor (Business-Focused)
+
 **Use:** Fundraising, partnerships, B2B outreach
 **Tone:** Data-driven, market opportunity
 **Length:** Concise value props
@@ -68,6 +73,7 @@ Adrenalink provides a comprehensive platform that automates school operations, c
 "The next-generation platform for adrenaline sports schools and students"
 
 **Alternative Taglines:**
+
 - "Connecting schools and students" (current slogan)
 - "The Airbnb for adrenaline experiences"
 - "NextGen management for adrenaline sports"
@@ -99,16 +105,19 @@ Your original ideas that shaped the vision:
 ## Target Audiences
 
 ### Schools
+
 **Pain Points:** Manual scheduling, payment tracking, equipment management, lack of analytics
 **Value Props:** Automation, real-time sync, transparent commissions, revenue insights
 **CTA:** "Automate your operations"
 
 ### Students
+
 **Pain Points:** Finding lessons, unclear pricing, progress tracking
 **Value Props:** Easy booking, transparent packages, gamified progress, community
 **CTA:** "Find your next adventure"
 
 ### Teachers
+
 **Pain Points:** Commission tracking, schedule changes, student communication
 **Value Props:** Automatic earnings calculations, live schedule sync, transparent hours
 **CTA:** "Manage your teaching"
@@ -118,15 +127,18 @@ Your original ideas that shaped the vision:
 ## Sport Roadmap
 
 **Phase 1 (Beta - Jan 2026):**
+
 - Kitesurfing
 - Windsurfing
 - Wingfoiling
 
 **Phase 2:**
+
 - Paragliding
 - Speed riding
 
 **Phase 3:**
+
 - White water rafting
 - Skiing
 - Snowboarding
@@ -141,6 +153,7 @@ Your original ideas that shaped the vision:
 **We are not:** A marketplace, a booking widget, a CRM
 
 **Competitive Advantage:**
+
 - Built specifically for weather-dependent sports
 - Comprehensive: booking + payments + equipment + analytics
 - Community-focused: connecting the adrenaline sports world

@@ -57,7 +57,7 @@ const PillarsMinimal = () => {
             isStarting={isStarting}
             isNavigatingOther={isNavigatingTeam}
             header={
-                <SchoolHeaderContent 
+                <SchoolHeaderContent
                     titleMain="Four pillars."
                     titleSub="One platform."
                     descriptionMain="Home of Adrenaline Activities"
@@ -66,7 +66,7 @@ const PillarsMinimal = () => {
                 />
             }
             footer={
-                <ChangeTheWindFooter 
+                <ChangeTheWindFooter
                     showFooter={showFooter}
                     isStarting={isStarting}
                     onGetStarted={() => setIsStarting(true)}
@@ -76,7 +76,10 @@ const PillarsMinimal = () => {
                         isMoreButtonVisible && (
                             <>
                                 {extraPillarsCount < 2 ? (
-                                    <div onClick={handleTellMeMore} className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group relative">
+                                    <div
+                                        onClick={handleTellMeMore}
+                                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group relative"
+                                    >
                                         <Plus className="w-5 h-5 group-hover:text-primary transition-colors" />
                                         <span className="font-medium">Tell me more</span>
                                         {extraPillarsCount > 0 && (
@@ -94,7 +97,13 @@ const PillarsMinimal = () => {
                                         )}
                                     </div>
                                 ) : (
-                                    <button onClick={() => { setIsNavigatingTeam(true); window.location.href = "/team"; }} className="px-6 py-3 rounded-full border border-transparent text-primary/70 hover:border-primary/40 hover:text-primary/70 transition-colors font-bold flex items-center gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setIsNavigatingTeam(true);
+                                            window.location.href = "/team";
+                                        }}
+                                        className="px-6 py-3 rounded-full border border-transparent text-primary/70 hover:border-primary/40 hover:text-primary/70 transition-colors font-bold flex items-center gap-3"
+                                    >
                                         <span>Meet the team</span>
                                     </button>
                                 )}
@@ -121,12 +130,20 @@ const PillarsMinimal = () => {
                                     transition={{ type: "spring", stiffness: 120, damping: 14 }}
                                     className="group border-t border-border py-12 flex items-center gap-8 hover:bg-muted/30 transition-colors px-4 -mx-4 cursor-pointer"
                                 >
-                                    <span className="text-5xl font-display font-bold text-muted-foreground/30 group-hover:text-primary/50 transition-colors w-20">{pillar.number}</span>
-                                    <div className={`w-12 h-12 flex items-center justify-center transition-all ${hasBorder ? "border border-border group-hover:border-primary group-hover:bg-primary/5 rounded-full" : ""}`}>
-                                        {Icon && <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />}
+                                    <span className="text-5xl font-display font-bold text-muted-foreground/30 group-hover:text-primary/50 transition-colors w-20">
+                                        {pillar.number}
+                                    </span>
+                                    <div
+                                        className={`w-12 h-12 flex items-center justify-center transition-all ${hasBorder ? "border border-border group-hover:border-primary group-hover:bg-primary/5 rounded-full" : ""}`}
+                                    >
+                                        {Icon && (
+                                            <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        )}
                                     </div>
                                     <div>
-                                        <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">{pillar.title}</h3>
+                                        <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                                            {pillar.title}
+                                        </h3>
                                         <p className="text-muted-foreground">{pillar.description}</p>
                                     </div>
                                 </motion.div>

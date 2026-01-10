@@ -37,7 +37,7 @@ export function transformRawToClassboardModel(rawData: any[]): ClassboardModel {
 
         // Add unique student
         if (row.student_id && !bookingData.bookingStudents.find((bs: any) => bs.student.id === row.student_id)) {
-            const languages = typeof row.languages === "string" ? JSON.parse(row.languages) : (row.languages || []);
+            const languages = typeof row.languages === "string" ? JSON.parse(row.languages) : row.languages || [];
             bookingData.bookingStudents.push({
                 student: {
                     id: row.student_id,

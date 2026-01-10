@@ -63,10 +63,10 @@ export default function RegisterController({
 }: RegisterControllerProps) {
     const router = useRouter();
     const bookingForm = useBookingForm();
-    
+
     // Use school from props
     const displaySchool = school;
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form state from context
@@ -110,13 +110,7 @@ export default function RegisterController({
                     <div className="flex items-start justify-between relative z-10">
                         <div className="flex items-center gap-5">
                             <div className="w-14 h-14 rounded-2xl bg-white border border-border flex items-center justify-center shadow-sm ring-4 ring-black/[0.02] overflow-hidden">
-                                <Image 
-                                    src="/ADR.webp" 
-                                    alt="School Logo" 
-                                    width={56} 
-                                    height={56} 
-                                    className="object-cover"
-                                />
+                                <Image src="/ADR.webp" alt="School Logo" width={56} height={56} className="object-cover" />
                             </div>
                             <div className="flex flex-col gap-1">
                                 <h2 className="text-3xl font-black tracking-tighter text-foreground uppercase leading-none">
@@ -134,7 +128,7 @@ export default function RegisterController({
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Background Brand Watermark */}
                     <AdranlinkIcon className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.03] text-primary rotate-12 pointer-events-none" />
                 </div>
@@ -150,13 +144,11 @@ export default function RegisterController({
                                     key={tab.id}
                                     onClick={() => router.push(tab.path)}
                                     className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all duration-300 relative ${
-                                        isActive 
-                                        ? "text-primary" 
-                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                        isActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     }`}
                                 >
                                     {isActive && (
-                                        <motion.div 
+                                        <motion.div
                                             layoutId="activeTab"
                                             className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-2xl"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
@@ -184,21 +176,45 @@ export default function RegisterController({
                                 {activeForm === "student" && studentFormData && (
                                     <>
                                         <StudentSummary studentFormData={studentFormData} />
-                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Register Student" resetLabel="Clear Form" error={error} />
+                                        <ControllerActions
+                                            onSubmit={handleActionSubmit}
+                                            onReset={onReset}
+                                            loading={isActionLoading}
+                                            canSubmit={isFormValid}
+                                            submitLabel="Register Student"
+                                            resetLabel="Clear Form"
+                                            error={error}
+                                        />
                                     </>
                                 )}
 
                                 {activeForm === "teacher" && teacherFormData && (
                                     <>
                                         <TeacherSummary teacherFormData={teacherFormData} />
-                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Register Teacher" resetLabel="Clear Form" error={error} />
+                                        <ControllerActions
+                                            onSubmit={handleActionSubmit}
+                                            onReset={onReset}
+                                            loading={isActionLoading}
+                                            canSubmit={isFormValid}
+                                            submitLabel="Register Teacher"
+                                            resetLabel="Clear Form"
+                                            error={error}
+                                        />
                                     </>
                                 )}
 
                                 {activeForm === "package" && packageFormData && (
                                     <>
                                         <PackageSummary packageFormData={packageFormData} />
-                                        <ControllerActions onSubmit={handleActionSubmit} onReset={onReset} loading={isActionLoading} canSubmit={isFormValid} submitLabel="Create Package" resetLabel="Clear Form" error={error} />
+                                        <ControllerActions
+                                            onSubmit={handleActionSubmit}
+                                            onReset={onReset}
+                                            loading={isActionLoading}
+                                            canSubmit={isFormValid}
+                                            submitLabel="Create Package"
+                                            resetLabel="Clear Form"
+                                            error={error}
+                                        />
                                     </>
                                 )}
 
@@ -221,7 +237,9 @@ export default function RegisterController({
                                             onReset={onReset}
                                             loading={isActionLoading}
                                             canSubmit={isFormValid}
-                                            submitLabel={selectedTeacher && selectedCommission ? "Register Lesson" : "Register Booking"}
+                                            submitLabel={
+                                                selectedTeacher && selectedCommission ? "Register Lesson" : "Register Booking"
+                                            }
                                             resetLabel="Reset All"
                                             error={error}
                                         />

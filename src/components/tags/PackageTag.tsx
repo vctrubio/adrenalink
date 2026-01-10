@@ -15,5 +15,13 @@ export const PackageTag = ({ icon, duration, price, pricePerHour }: PackageTagPr
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
     const displayText = `${duration} • $${price.toFixed(2)} • $${pricePerHour.toFixed(2)}/hr`;
 
-    return <Tag icon={icon} name={displayText} bgColor={packageEntity.bgColor} borderColorHex={packageEntity.color} color={packageEntity.color} />;
+    return (
+        <Tag
+            icon={icon}
+            name={displayText}
+            bgColor={packageEntity.bgColor}
+            borderColorHex={packageEntity.color}
+            color={packageEntity.color}
+        />
+    );
 };

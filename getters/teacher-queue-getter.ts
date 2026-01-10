@@ -54,7 +54,9 @@ export function calculateTeacherQueues({
             const teacherName = `${lesson.teacher.firstName} ${lesson.teacher.lastName}`;
 
             if (!teacherId) {
-                console.warn(`⚠️ [calculateTeacherQueues] Teacher ${teacherUsername} not found in active teachers, skipping lesson ${lesson.id}`);
+                console.warn(
+                    `⚠️ [calculateTeacherQueues] Teacher ${teacherUsername} not found in active teachers, skipping lesson ${lesson.id}`,
+                );
                 return;
             }
 

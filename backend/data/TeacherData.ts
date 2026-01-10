@@ -10,13 +10,13 @@ export function calculateTeacherStats(teacher: TeacherWithLessonsAndPayments): T
         const { commission, events, lessonRevenue } = l;
         const duration = events.totalDuration / 60;
         const cph = parseFloat(commission.cph || "0");
-        
+
         if (commission.type === "fixed") {
-            return sum + (cph * duration);
+            return sum + cph * duration;
         } else if (commission.type === "percentage") {
-            return sum + (lessonRevenue * (cph / 100));
+            return sum + lessonRevenue * (cph / 100);
         }
-        return sum; 
+        return sum;
     }, 0);
     const totalPayments = teacher.lessons.reduce((sum, l) => sum + l.teacherPayments, 0);
 

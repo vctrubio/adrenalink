@@ -28,21 +28,21 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
         <div className="flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="w-full sm:w-96">
-                    <SearchInput 
-                        placeholder="Search wallet ID..." 
+                    <SearchInput
+                        placeholder="Search wallet ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         variant="background"
                         className="bg-white"
                     />
                 </div>
-                
-                <FilterDropdown 
+
+                <FilterDropdown
                     label="Status"
                     value={statusFilter}
                     options={STATUS_OPTIONS}
                     onChange={setStatusFilter}
-                    entityColor="#3b82f6" 
+                    entityColor="#3b82f6"
                 />
             </div>
 

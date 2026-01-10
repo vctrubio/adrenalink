@@ -10,7 +10,7 @@ interface EquipmentCreateTagProps {
 }
 
 export const EquipmentCreateTag = ({ icon, onClick }: EquipmentCreateTagProps) => {
-    const equipmentEntity = ENTITY_DATA.find(e => e.id === "equipment")!;
+    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
 
     const handleClick = () => {
         if (onClick) {
@@ -22,13 +22,7 @@ export const EquipmentCreateTag = ({ icon, onClick }: EquipmentCreateTagProps) =
 
     return (
         <div onClick={handleClick}>
-            <Tag
-                icon={icon}
-                name="Add Equipment"
-                bgColor="#e5e7eb"
-                borderColorHex={equipmentEntity.color}
-                color="#4b5563"
-            />
+            <Tag icon={icon} name="Add Equipment" bgColor="#e5e7eb" borderColorHex={equipmentEntity.color} color="#4b5563" />
         </div>
     );
 };

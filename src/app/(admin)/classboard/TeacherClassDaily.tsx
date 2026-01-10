@@ -41,7 +41,7 @@ export default function TeacherClassDaily() {
 
         teacherQueues.forEach((queue) => {
             const hasEvents = queue.getAllEvents().length > 0;
-            
+
             // Criteria for 'Active' view:
             // 1. Teacher is marked as active in the system
             // 2. OR Teacher has events today (crucial for stats/planning)
@@ -70,7 +70,13 @@ export default function TeacherClassDaily() {
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as TeacherFilter)} values={{ left: "active", right: "all" }} counts={counts} tintColor={TEACHER_COLOR} />
+                    <ToggleSwitch
+                        value={filter}
+                        onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}
+                        values={{ left: "active", right: "all" }}
+                        counts={counts}
+                        tintColor={TEACHER_COLOR}
+                    />
                 </div>
             </div>
 
@@ -104,7 +110,12 @@ export default function TeacherClassDaily() {
                                             }}
                                             className="py-2 transition-colors"
                                         >
-                                            <TeacherQueueRow queue={queue} viewMode={viewMode} isCollapsed={isCollapsed} onToggleCollapse={() => toggleCollapsed(queue.teacher.id)} />
+                                            <TeacherQueueRow
+                                                queue={queue}
+                                                viewMode={viewMode}
+                                                isCollapsed={isCollapsed}
+                                                onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
+                                            />
                                         </motion.div>
                                     );
                                 })}

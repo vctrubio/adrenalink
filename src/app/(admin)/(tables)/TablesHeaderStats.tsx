@@ -14,7 +14,19 @@ export interface TableStat {
     desc?: string;
 }
 
-const MONEY_TYPES = ["revenue", "profit", "loss", "payments", "studentPayments", "teacherPayments", "commission", "balance", "moneyToPay", "moneyPaid", "studentBalance"];
+const MONEY_TYPES = [
+    "revenue",
+    "profit",
+    "loss",
+    "payments",
+    "studentPayments",
+    "teacherPayments",
+    "commission",
+    "balance",
+    "moneyToPay",
+    "moneyPaid",
+    "studentBalance",
+];
 
 export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
     if (!stats || stats.length === 0) return null;
@@ -30,20 +42,22 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                 return (
                     <div key={index} className="flex items-center relative group/stat">
                         <div className="flex items-center px-4 py-2">
-                            <StatItemUI 
-                                type={stat.type} 
-                                value={canAnimate ? (
-                                    <AnimatedCounter 
-                                        value={rawValue as number} 
-                                        formatter={(num) => {
-                                            if (isMoney) return getCompactNumber(num);
-                                            if (isDuration) return getHMDuration(num);
-                                            return Math.round(num).toLocaleString();
-                                        }} 
-                                    />
-                                ) : (
-                                    stat.value
-                                )}
+                            <StatItemUI
+                                type={stat.type}
+                                value={
+                                    canAnimate ? (
+                                        <AnimatedCounter
+                                            value={rawValue as number}
+                                            formatter={(num) => {
+                                                if (isMoney) return getCompactNumber(num);
+                                                if (isDuration) return getHMDuration(num);
+                                                return Math.round(num).toLocaleString();
+                                            }}
+                                        />
+                                    ) : (
+                                        stat.value
+                                    )
+                                }
                                 labelOverride={stat.label}
                                 hideLabel={true}
                                 variant={stat.variant === "profit" ? "profit" : "default"}
@@ -56,9 +70,7 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                                 {stat.desc}
                             </span>
                         )}
-                        {index < stats.length - 1 && (
-                            <div className="h-4 w-px bg-border/60 rotate-[25deg] mx-1" />
-                        )}
+                        {index < stats.length - 1 && <div className="h-4 w-px bg-border/60 rotate-[25deg] mx-1" />}
                     </div>
                 );
             })}

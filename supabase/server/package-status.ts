@@ -7,10 +7,7 @@ export async function updatePackageStatus(packageId: string, updates: { active?:
     try {
         const supabase = getServerConnection();
 
-        const { error } = await supabase
-            .from("school_package")
-            .update(updates)
-            .eq("id", packageId);
+        const { error } = await supabase.from("school_package").update(updates).eq("id", packageId);
 
         if (error) {
             console.error("Error updating package status:", error);

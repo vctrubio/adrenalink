@@ -28,11 +28,11 @@ const DEFAULT_SORT_OPTIONS: SortOption[] = [
 
 const DEFAULT_FILTER_OPTIONS = ["All", "Planned", "Tbc", "Completed", "Uncompleted"] as const;
 const DEFAULT_FILTER_MAP: Record<string, EventStatusFilter> = {
-    "All": "all",
-    "Planned": "planned",
-    "Tbc": "tbc",
-    "Completed": "completed",
-    "Uncompleted": "uncompleted"
+    All: "all",
+    Planned: "planned",
+    Tbc: "tbc",
+    Completed: "completed",
+    Uncompleted: "uncompleted",
 };
 
 export function TimelineHeader({

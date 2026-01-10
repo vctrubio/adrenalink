@@ -1,6 +1,6 @@
 /**
  * Payment Seeding (Fresh)
- * 
+ *
  * Create teacher lesson payments
  * Create student booking payments with realistic amounts
  */
@@ -17,7 +17,7 @@ import { faker } from "@faker-js/faker";
 export const createTeacherLessonPayments = async (
     lessons: any[],
     teacherCommissions: Map<string, any>, // lesson.commission_id -> commission object
-    schoolPackages: Map<string, any> // booking.school_package_id -> package object
+    schoolPackages: Map<string, any>, // booking.school_package_id -> package object
 ): Promise<void> => {
     const payments: any[] = [];
 
@@ -58,7 +58,7 @@ export const createTeacherLessonPayments = async (
 export const createStudentBookingPayments = async (
     bookings: any[],
     bookingStudents: Map<string, string[]>,
-    schoolPackages: Map<string, any> // school_package_id -> package object
+    schoolPackages: Map<string, any>, // school_package_id -> package object
 ): Promise<void> => {
     const payments: any[] = [];
 

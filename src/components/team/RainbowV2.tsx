@@ -2,7 +2,13 @@ import { TEAM_COLORS } from "@/config/team-entities";
 
 const allShades: (keyof typeof TEAM_COLORS)[] = ["grey", "purple", "blue", "green", "yellow", "orange", "red"];
 
-export const RainbowV2 = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade: string | null) => void; hoveredShade: string | null }) => {
+export const RainbowV2 = ({
+    onShadeHover,
+    hoveredShade,
+}: {
+    onShadeHover: (shade: string | null) => void;
+    hoveredShade: string | null;
+}) => {
     const centerX = 960;
     const centerY = 700;
     const baseRadius = 50;
@@ -33,7 +39,13 @@ export const RainbowV2 = ({ onShadeHover, hoveredShade }: { onShadeHover: (shade
 
     return (
         <div className="flex justify-center items-start pt-8 w-full">
-            <svg width="1920" height="800" viewBox="0 0 1920 800" className="w-full h-auto max-h-[50vh]" xmlns="http://www.w3.org/2000/svg">
+            <svg
+                width="1920"
+                height="800"
+                viewBox="0 0 1920 800"
+                className="w-full h-auto max-h-[50vh]"
+                xmlns="http://www.w3.org/2000/svg"
+            >
                 {allShades.map((shade, index) => {
                     const radius = baseRadius + index * strokeWidth;
                     return createArc(radius, shade, index);

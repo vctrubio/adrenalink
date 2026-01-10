@@ -31,7 +31,7 @@ export function TeacherModalListRow({
     statusBadge,
     accentColor,
     iconColor,
-    layoutId = "teacher-row-indicator"
+    layoutId = "teacher-row-indicator",
 }: TeacherModalListRowProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const color = accentColor || teacherEntity?.color;
@@ -65,10 +65,7 @@ export function TeacherModalListRow({
             )}
 
             <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div
-                    style={{ color: iconColorFinal }}
-                    className="flex-shrink-0 transition-colors"
-                >
+                <div style={{ color: iconColorFinal }} className="flex-shrink-0 transition-colors">
                     <HeadsetIcon size={20} />
                 </div>
                 <div className="flex flex-col min-w-0">
@@ -81,11 +78,7 @@ export function TeacherModalListRow({
                 </div>
             </div>
 
-            {statusBadge && (
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    {statusBadge}
-                </div>
-            )}
+            {statusBadge && <div className="flex items-center gap-2 flex-shrink-0">{statusBadge}</div>}
         </motion.div>
     );
 }

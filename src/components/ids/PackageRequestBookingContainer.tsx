@@ -113,7 +113,18 @@ import { transformEventsToRows } from "@/getters/event-getter";
 import type { EventData as TypedEventData } from "@/types/booking-lesson-event";
 
 // Sub-component: Booking Card
-function BookingCard({ booking, schoolPackage, formatCurrency, currency }: { booking: BookingData; schoolPackage: any; formatCurrency: (num: number) => string; currency: string; referral?: ReferralData }) {
+function BookingCard({
+    booking,
+    schoolPackage,
+    formatCurrency,
+    currency,
+}: {
+    booking: BookingData;
+    schoolPackage: any;
+    formatCurrency: (num: number) => string;
+    currency: string;
+    referral?: ReferralData;
+}) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const lessons = booking.lessons || [];
 
@@ -151,7 +162,13 @@ function BookingCard({ booking, schoolPackage, formatCurrency, currency }: { boo
             {teacherLessonRows.length > 0 && (
                 <div className="border-t border-border/50 mt-2 pt-2 bg-card/50 rounded-lg overflow-hidden">
                     {teacherLessonRows.map((lessonData) => (
-                        <TeacherComissionLessonTable key={lessonData.lessonId} lesson={lessonData as TeacherComissionLessonData} formatCurrency={formatCurrency} currency={currency} teacherEntity={teacherEntity} />
+                        <TeacherComissionLessonTable
+                            key={lessonData.lessonId}
+                            lesson={lessonData as TeacherComissionLessonData}
+                            formatCurrency={formatCurrency}
+                            currency={currency}
+                            teacherEntity={teacherEntity}
+                        />
                     ))}
                 </div>
             )}
@@ -160,7 +177,17 @@ function BookingCard({ booking, schoolPackage, formatCurrency, currency }: { boo
 }
 
 // Sub-component: Student Package Card
-export function StudentPackageCard({ studentPackage, schoolPackage, formatCurrency, currency }: { studentPackage: StudentPackageData; schoolPackage: any; formatCurrency: (num: number) => string; currency: string }) {
+export function StudentPackageCard({
+    studentPackage,
+    schoolPackage,
+    formatCurrency,
+    currency,
+}: {
+    studentPackage: StudentPackageData;
+    schoolPackage: any;
+    formatCurrency: (num: number) => string;
+    currency: string;
+}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
     const referralEntity = ENTITY_DATA.find((e) => e.id === "referral")!;
@@ -232,8 +259,8 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
 
     return (
         <div className="bg-card border border-border rounded-lg overflow-hidden group/package">
-            <div 
-                onClick={() => setIsExpanded(!isExpanded)} 
+            <div
+                onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full text-left outline-none cursor-pointer px-4 py-3 flex items-start justify-between gap-4 hover:bg-muted/20 transition-colors"
             >
                 <div className="flex-1">
@@ -245,7 +272,10 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                         </div>
                         {studentPackage.referral && (
                             <HoverToEntity entity={referralEntity} id={studentPackage.referral.id}>
-                                <div className="flex items-center gap-1.5 text-xs cursor-pointer hover:opacity-80" style={{ color: referralEntity.color }}>
+                                <div
+                                    className="flex items-center gap-1.5 text-xs cursor-pointer hover:opacity-80"
+                                    style={{ color: referralEntity.color }}
+                                >
                                     <Tag size={12} />
                                     <span className="font-medium">{studentPackage.referral.code}</span>
                                 </div>
@@ -271,18 +301,26 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                                 }, 0);
 
                                 return (
-                                    <div key={booking.id} className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30" onClick={(e) => e.stopPropagation()}>
+                                    <div
+                                        key={booking.id}
+                                        className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <div className="w-fit">
-                                            <BookingStatusLabel 
-                                                status={booking.status} 
+                                            <BookingStatusLabel
+                                                status={booking.status}
                                                 bookingId={booking.id}
-                                                startDate={booking.date_start} 
-                                                endDate={booking.date_end} 
-                                                size={20} 
+                                                startDate={booking.date_start}
+                                                endDate={booking.date_end}
+                                                size={20}
                                             />
                                         </div>
                                         <div className="flex-1 space-y-1.5 min-w-0">
-                                            <BookingProgressBadge usedMinutes={usedMins} totalMinutes={packageDurationMinutes} background={progress.background} />
+                                            <BookingProgressBadge
+                                                usedMinutes={usedMins}
+                                                totalMinutes={packageDurationMinutes}
+                                                background={progress.background}
+                                            />
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs text-muted-foreground">
                                                     {booking.created_at ? `Created ${formatDate(booking.created_at)}` : ""}
@@ -328,22 +366,31 @@ export function StudentPackageCard({ studentPackage, schoolPackage, formatCurren
                             </div>
                         </div>
                     )}
-                    <ToggleAdranalinkIcon 
-                        isOpen={isExpanded} 
-                        color={packageEntity.color} 
-                    />
+                    <ToggleAdranalinkIcon isOpen={isExpanded} color={packageEntity.color} />
                 </div>
             </div>
 
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                    >
                         <div className="px-4 pb-4 pt-2 space-y-4">
                             {hasBookings ? (
                                 <>
                                     {bookings.map((booking, idx) => (
                                         <div key={booking.id} className={`${idx > 0 ? "border-t border-border/30 pt-4" : ""}`}>
-                                            <BookingCard booking={booking} schoolPackage={pkg} formatCurrency={formatCurrency} currency={currency} referral={studentPackage.referral} />
+                                            <BookingCard
+                                                booking={booking}
+                                                schoolPackage={pkg}
+                                                formatCurrency={formatCurrency}
+                                                currency={currency}
+                                                referral={studentPackage.referral}
+                                            />
                                         </div>
                                     ))}
                                 </>

@@ -41,12 +41,8 @@ export async function proxy(request: NextRequest) {
         let timezone: string | null = null;
         try {
             const supabase = getServerConnection();
-            const { data } = await supabase
-                .from("school")
-                .select("id, timezone")
-                .eq("username", subdomainInfo.subdomain)
-                .single();
-            
+            const { data } = await supabase.from("school").select("id, timezone").eq("username", subdomainInfo.subdomain).single();
+
             if (!data?.id) {
                 printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
                 // Redirect to www domain /discover
@@ -87,7 +83,7 @@ export async function proxy(request: NextRequest) {
         if (timezone) {
             response.headers.set("x-school-timezone", timezone);
         }
-        
+
         printf("DEV:DEBUG 📝 SET HEADERS:", { username: subdomainInfo.subdomain, id: schoolId, zone: timezone });
 
         // Only rewrite the main page request to subdomain portal
@@ -114,9 +110,7 @@ export async function proxy(request: NextRequest) {
 // Matcher excludes static files, fonts, and images to reduce middleware invocations
 // Next.js 16 optimization: Early returns in function are more efficient than complex matchers
 export const config = {
-    matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|apple-touch-icon.png|robots.txt|sitemap.xml).*)",
-    ],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico|apple-touch-icon.png|robots.txt|sitemap.xml).*)"],
 };
 
 export default proxy;

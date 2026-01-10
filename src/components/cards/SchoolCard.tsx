@@ -34,7 +34,10 @@ export default function SchoolCard({ school }: SchoolCardProps) {
     };
 
     return (
-        <div className="bg-card border border-border rounded-lg p-6 transition-colors hover:bg-accent/30 cursor-pointer" onClick={handleCardClick}>
+        <div
+            className="bg-card border border-border rounded-lg p-6 transition-colors hover:bg-accent/30 cursor-pointer"
+            onClick={handleCardClick}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-1">{school.schema.name}</h3>
@@ -51,12 +54,18 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                             {studentCount} {studentCount === 1 ? "Student" : "Students"}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {school.schema.username}{process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}
+                            {school.schema.username}
+                            {process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <button onClick={handleSubdomainClick} className="p-2 hover:bg-blue-500/20 border border-blue-500/30 rounded-md transition-colors group" aria-label="Test subdomain portal" title={`Open ${school.schema.username}${process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}`}>
+                        <button
+                            onClick={handleSubdomainClick}
+                            className="p-2 hover:bg-blue-500/20 border border-blue-500/30 rounded-md transition-colors group"
+                            aria-label="Test subdomain portal"
+                            title={`Open ${school.schema.username}${process.env.NODE_ENV === "development" ? DOMAINS.DEVELOPMENT : DOMAINS.PRODUCTION}`}
+                        >
                             <ExternalLink className="h-4 w-4 text-blue-500 group-hover:text-blue-400" />
                         </button>
 
@@ -69,7 +78,11 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                                 className="p-2 hover:bg-accent rounded-md transition-colors"
                                 aria-label={isExpanded ? "Hide students" : "Show students"}
                             >
-                                {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                                {isExpanded ? (
+                                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                )}
                             </button>
                         )}
                     </div>
@@ -81,7 +94,12 @@ export default function SchoolCard({ school }: SchoolCardProps) {
                     <h4 className="text-sm font-medium text-foreground mb-3">Students:</h4>
                     <div className="space-y-2">
                         {school.relations?.schoolStudents?.map((schoolStudent: any) => (
-                            <Link key={schoolStudent.student.id} href={`/students/${schoolStudent.student.id}`} className="block p-3 bg-muted/50 rounded-md hover:bg-accent/50 transition-colors" onClick={(e) => e.stopPropagation()}>
+                            <Link
+                                key={schoolStudent.student.id}
+                                href={`/students/${schoolStudent.student.id}`}
+                                className="block p-3 bg-muted/50 rounded-md hover:bg-accent/50 transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="font-medium text-foreground">{schoolStudent.student.name}</p>

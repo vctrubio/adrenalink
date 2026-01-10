@@ -1,6 +1,6 @@
 /**
  * Booking Package Lesson Teacher Orchestrator
- * 
+ *
  * High-level utility to create complete bookings with all related entities:
  * - Booking with students (respecting package capacity)
  * - Student packages (marked as purchased)
@@ -8,7 +8,7 @@
  * - Events with full duration
  * - Equipment assignments via teacher_equipment
  * - Student and teacher payments
- * 
+ *
  * Usage: orchestrateBookingFlow({
  *   schoolId: "...",
  *   packageId: "...",
@@ -42,34 +42,20 @@ export interface BookingFlowResult {
 
 /**
  * Create a complete booking flow: booking -> lesson -> events -> payments -> equipment
- * 
+ *
  * @param input - Booking configuration
  * @returns Created booking, lesson, events, and student package
  */
 export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<BookingFlowResult> => {
-    const {
-        schoolId,
-        packageId,
-        teacherId,
-        commissionId,
-        studentIds,
-        equipment,
-        dayOffset = 0,
-    } = input;
+    const { schoolId, packageId, teacherId, commissionId, studentIds, equipment, dayOffset = 0 } = input;
 
     // 1. Get school package details
-    const { data: schoolPkg, error: pkgError } = await supabase
-        .from("school_package")
-        .select("*")
-        .eq("id", packageId)
-        .single();
+    const { data: schoolPkg, error: pkgError } = await supabase.from("school_package").select("*").eq("id", packageId).single();
     if (pkgError) throw pkgError;
 
     // 2. Validate student count matches package capacity
     if (studentIds.length !== schoolPkg.capacity_students) {
-        throw new Error(
-            `Student count (${studentIds.length}) must match package capacity (${schoolPkg.capacity_students})`
-        );
+        throw new Error(`Student count (${studentIds.length}) must match package capacity (${schoolPkg.capacity_students})`);
     }
 
     // 3. Create or get student package
@@ -89,9 +75,7 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
                 school_package_id: packageId,
                 wallet_id: faker.string.uuid(),
                 requested_date_start: new Date().toISOString().split("T")[0],
-                requested_date_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split("T")[0],
+                requested_date_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
                 status: "purchased",
             })
             .select()
@@ -132,9 +116,7 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
         student_id: studentId,
     }));
 
-    const { error: linkError } = await supabase
-        .from("booking_student")
-        .insert(bookingStudentRecords);
+    const { error: linkError } = await supabase.from("booking_student").insert(bookingStudentRecords);
     if (linkError) throw linkError;
 
     // 6. Create lesson with teacher and commission
@@ -174,21 +156,15 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
             equipment.slice(0, 2).map((eq) => ({
                 equipment_id: eq.id,
                 event_id: event.id,
-            }))
+            })),
         );
 
-        const { error: eqError } = await supabase
-            .from("equipment_event")
-            .insert(equipmentEventRecords);
+        const { error: eqError } = await supabase.from("equipment_event").insert(equipmentEventRecords);
         if (eqError) throw eqError;
     }
 
     // 9. Create student booking payments
-    const { data: commission } = await supabase
-        .from("teacher_commission")
-        .select("*")
-        .eq("id", commissionId)
-        .single();
+    const { data: commission } = await supabase.from("teacher_commission").select("*").eq("id", commissionId).single();
 
     const studentPaymentAmount = schoolPkg.price_per_student || 100;
     const studentPaymentRecords = studentIds.map((studentId) => ({
@@ -197,9 +173,7 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
         amount: studentPaymentAmount,
     }));
 
-    const { error: spayError } = await supabase
-        .from("student_booking_payment")
-        .insert(studentPaymentRecords);
+    const { error: spayError } = await supabase.from("student_booking_payment").insert(studentPaymentRecords);
     if (spayError) throw spayError;
 
     // 10. Create teacher lesson payment
@@ -211,12 +185,10 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
         teacherPaymentAmount = Math.round(parseFloat(commission.cph) * 100);
     }
 
-    const { error: tpayError } = await supabase
-        .from("teacher_lesson_payment")
-        .insert({
-            lesson_id: lesson.id,
-            amount: teacherPaymentAmount,
-        });
+    const { error: tpayError } = await supabase.from("teacher_lesson_payment").insert({
+        lesson_id: lesson.id,
+        amount: teacherPaymentAmount,
+    });
     if (tpayError) throw tpayError;
 
     // 11. Create student feedback
@@ -226,13 +198,11 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
         feedback: faker.lorem.sentence(),
     }));
 
-    const { error: feedbackError } = await supabase
-        .from("student_lesson_feedback")
-        .insert(feedbackRecords);
+    const { error: feedbackError } = await supabase.from("student_lesson_feedback").insert(feedbackRecords);
     if (feedbackError) throw feedbackError;
 
     console.log(
-        `✅ Orchestrated complete booking flow: ${booking.id} (${studentIds.length} students, 1 teacher, ${events.length} event(s))`
+        `✅ Orchestrated complete booking flow: ${booking.id} (${studentIds.length} students, 1 teacher, ${events.length} event(s))`,
     );
 
     return {

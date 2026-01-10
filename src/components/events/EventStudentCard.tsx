@@ -28,6 +28,7 @@ export function EventStudentCard({
     capacityEquipment = 0,
     packageDescription = "No description available",
     pricePerHour = 0,
+    status,
 }: EventStudentCardProps) {
     const teacherFirstName = teacherName.split(" ")[0];
 
@@ -50,28 +51,20 @@ export function EventStudentCard({
         <div className="flex items-center gap-5 text-zinc-400">
             <div className="flex items-center gap-2">
                 <HeadsetIcon size={20} className="text-green-500" />
-                <span className="text-sm font-bold tracking-tight text-white">
-                    {teacherFirstName}
-                </span>
+                <span className="text-sm font-bold tracking-tight text-white">{teacherFirstName}</span>
             </div>
 
             <div className="h-4 w-px bg-white/10" />
 
             <div className="flex items-center gap-2">
                 <MapPin size={18} className="text-zinc-400" />
-                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">
-                    {location}
-                </span>
+                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">{location}</span>
             </div>
         </div>
     );
 
     return (
-        <EventUserCard 
-            date={date} 
-            duration={duration} 
-            footerLeftContent={footerLeftContent}
-        >
+        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent}>
             <CardList fields={fields} />
         </EventUserCard>
     );

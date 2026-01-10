@@ -24,6 +24,6 @@ export function getAggregateStudents(students: StudentTableData[]): AggregateStu
             totalDurationMinutes: 0,
             totalRevenue: 0,
             totalPayments: 0,
-        }
+        },
     );
 }

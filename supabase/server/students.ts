@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
 import { calculateStudentStats } from "@/backend/data/StudentData";
 import { calculateBookingStats } from "@/backend/data/BookingData";
+import { getStudentEventsRPC } from "@/supabase/rpc/student_events";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {
     try {
@@ -19,7 +21,8 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
         // Fetch students associated with the school and their bookings
         const { data, error } = await supabase
             .from("school_students")
-            .select(`
+            .select(
+                `
                 active,
                 description,
                 student!inner(
@@ -56,7 +59,8 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                         )
                     )
                 )
-            `)
+            `,
+            )
             .eq("school_id", schoolId);
 
         if (error) {
@@ -66,14 +70,16 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
 
         return data.map((ss: any) => {
             const student = ss.student;
-            
+
             const bookings = student.booking_student.map((bs: any) => {
                 const b = bs.booking;
                 const pkg = b.school_package;
-                
+
                 const lessons: LessonWithPayments[] = b.lesson.map((l: any) => {
                     const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-                    const recordedPayments = l.teacher_lesson_payment ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) : 0;
+                    const recordedPayments = l.teacher_lesson_payment
+                        ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+                        : 0;
 
                     return {
                         id: l.id,
@@ -93,7 +99,10 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                     };
                 });
 
-                const payments: BookingStudentPayments[] = b.student_booking_payment.map((p: any) => ({ student_id: 0, amount: p.amount }));
+                const payments: BookingStudentPayments[] = b.student_booking_payment.map((p: any) => ({
+                    student_id: 0,
+                    amount: p.amount,
+                }));
 
                 const bookingData = {
                     package: {
@@ -140,11 +149,46 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
 
             return {
                 ...result,
-                stats
+                stats,
             };
         });
     } catch (error) {
         console.error("Unexpected error in getStudentsTable:", error);
         return [];
+    }
+}
+
+export async function getStudentEvents(studentId: string, schoolId?: string): Promise<ApiActionResponseModel<any[]>> {
+    try {
+        const supabase = getServerConnection();
+        const events = await getStudentEventsRPC(supabase, studentId, schoolId);
+
+        const mappedEvents = events.map((e) => ({
+            id: e.event_id,
+            date: e.event_date,
+            duration: e.event_duration,
+            location: e.event_location,
+            status: e.event_status,
+            teacher: {
+                id: e.teacher_id,
+                firstName: e.teacher_first_name,
+                lastName: e.teacher_last_name,
+                username: e.teacher_username,
+            },
+            schoolPackage: {
+                id: e.package_id,
+                description: e.package_description,
+                durationMinutes: e.package_duration_minutes,
+                pricePerStudent: e.package_price_per_student,
+                categoryEquipment: e.package_category_equipment,
+                capacityEquipment: e.package_capacity_equipment,
+                capacityStudents: e.package_capacity_students,
+            },
+        }));
+
+        return { success: true, data: mappedEvents };
+    } catch (error) {
+        console.error("Error in getStudentEvents:", error);
+        return { success: false, error: "Failed to fetch student events" };
     }
 }

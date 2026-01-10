@@ -16,9 +16,9 @@ export interface BookingStatsData {
     packagePricePerHour: number;
     packageCapacityStudents: number;
     // Balance calculations
-    moneyToPay: number;      // Calculated from events
-    moneyPaid: number;       // Sum of student_booking_payment
-    balance: number;         // moneyToPay - moneyPaid
+    moneyToPay: number; // Calculated from events
+    moneyPaid: number; // Sum of student_booking_payment
+    balance: number; // moneyToPay - moneyPaid
 }
 
 export interface GlobalStatsType {
@@ -102,36 +102,37 @@ export function getBookingStatsData(student: StudentModel): BookingStatsData[] {
 // Helper: Count payments for specific booking
 function getBookingPaymentsCount(student: StudentModel, bookingId: string): number {
     const payments = student.relations?.bookingPayments || [];
-    return payments.filter(p => p.bookingId === bookingId).length;
+    return payments.filter((p) => p.bookingId === bookingId).length;
 }
 
 // Helper: Total amount paid for specific booking
 function getBookingPaymentsTotal(student: StudentModel, bookingId: string): number {
     const payments = student.relations?.bookingPayments || [];
-    return payments
-        .filter(p => p.bookingId === bookingId)
-        .reduce((sum, p) => sum + (p.amount || 0), 0);
+    return payments.filter((p) => p.bookingId === bookingId).reduce((sum, p) => sum + (p.amount || 0), 0);
 }
 
 // Calculate global totals
 export function getGlobalStats(bookings: BookingStatsData[]): GlobalStatsType {
-    return bookings.reduce((acc, b) => ({
-        eventsCount: acc.eventsCount + b.eventsCount,
-        durationHours: acc.durationHours + b.durationHours,
-        paymentsCount: acc.paymentsCount + b.paymentsCount,
-        revenue: acc.revenue + b.revenue,
-        expenses: acc.expenses + b.expenses,
-        moneyToPay: acc.moneyToPay + b.moneyToPay,
-        moneyPaid: acc.moneyPaid + b.moneyPaid,
-        balance: acc.balance + b.balance,
-    }), {
-        eventsCount: 0,
-        durationHours: 0,
-        paymentsCount: 0,
-        revenue: 0,
-        expenses: 0,
-        moneyToPay: 0,
-        moneyPaid: 0,
-        balance: 0,
-    });
+    return bookings.reduce(
+        (acc, b) => ({
+            eventsCount: acc.eventsCount + b.eventsCount,
+            durationHours: acc.durationHours + b.durationHours,
+            paymentsCount: acc.paymentsCount + b.paymentsCount,
+            revenue: acc.revenue + b.revenue,
+            expenses: acc.expenses + b.expenses,
+            moneyToPay: acc.moneyToPay + b.moneyToPay,
+            moneyPaid: acc.moneyPaid + b.moneyPaid,
+            balance: acc.balance + b.balance,
+        }),
+        {
+            eventsCount: 0,
+            durationHours: 0,
+            paymentsCount: 0,
+            revenue: 0,
+            expenses: 0,
+            moneyToPay: 0,
+            moneyPaid: 0,
+            balance: 0,
+        },
+    );
 }

@@ -41,7 +41,10 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
         if (!schoolData.status) missingFields.push("status");
 
         if (missingFields.length > 0) {
-            console.error(`❌ [getSchoolCredentials] Missing mandatory configuration for "${schoolUsername}":`, missingFields.join(", "));
+            console.error(
+                `❌ [getSchoolCredentials] Missing mandatory configuration for "${schoolUsername}":`,
+                missingFields.join(", "),
+            );
             // We return null to trigger the /no-credentials redirect if anything critical is missing
             return null;
         }

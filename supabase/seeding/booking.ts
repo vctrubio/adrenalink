@@ -1,6 +1,6 @@
 /**
- * Booking Seeding (Fresh) 
- * 
+ * Booking Seeding (Fresh)
+ *
  * Create bookings with dates from today to +3 days
  * Link students and student packages properly
  * Set student package status to purchased
@@ -13,7 +13,7 @@ export const createBookings = async (
     schoolId: string,
     students: any[],
     studentPackages: any[],
-    schoolPackages: any[]
+    schoolPackages: any[],
 ): Promise<{ bookings: any[]; studentMap: Map<string, string[]>; studentPackageMap: Map<string, string> }> => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -35,19 +35,15 @@ export const createBookings = async (
             for (let i = 0; i < pkg.capacity_students; i++) {
                 if (nextStudentIndex < students.length) {
                     assignedStudents.push(students[nextStudentIndex]);
-                    studentBookingCount[students[nextStudentIndex].id] =
-                        (studentBookingCount[students[nextStudentIndex].id] || 0) + 1;
+                    studentBookingCount[students[nextStudentIndex].id] = (studentBookingCount[students[nextStudentIndex].id] || 0) + 1;
                     nextStudentIndex++;
                 } else {
                     // Wrap around: find least-booked student
                     const leastBookedStudent = students.reduce((min, curr) =>
-                        (studentBookingCount[curr.id] || 0) < (studentBookingCount[min.id] || 0)
-                            ? curr
-                            : min
+                        (studentBookingCount[curr.id] || 0) < (studentBookingCount[min.id] || 0) ? curr : min,
                     );
                     assignedStudents.push(leastBookedStudent);
-                    studentBookingCount[leastBookedStudent.id] =
-                        (studentBookingCount[leastBookedStudent.id] || 0) + 1;
+                    studentBookingCount[leastBookedStudent.id] = (studentBookingCount[leastBookedStudent.id] || 0) + 1;
                     nextStudentIndex = (nextStudentIndex + 1) % students.length;
                 }
             }
@@ -90,7 +86,7 @@ export const createBookings = async (
             bookingRecords.map((b) => {
                 const { _studentPackageId, ...rest } = b;
                 return rest;
-            })
+            }),
         )
         .select();
     if (error) throw error;
@@ -104,16 +100,11 @@ export const createBookings = async (
         studentPackageMap.set(booking.id, bookingRecords[i]._studentPackageId);
     }
 
-    console.log(
-        `✅ Created ${data.length} bookings from today to +3 days (all COMPLETED)`
-    );
+    console.log(`✅ Created ${data.length} bookings from today to +3 days (all COMPLETED)`);
     return { bookings: data, studentMap: bookingStudentMap, studentPackageMap };
 };
 
-export const linkStudentsToBookings = async (bookingData: {
-    bookings: any[];
-    studentMap: Map<string, string[]>;
-}): Promise<void> => {
+export const linkStudentsToBookings = async (bookingData: { bookings: any[]; studentMap: Map<string, string[]> }): Promise<void> => {
     const relationsSet = new Set<string>(); // Track unique (booking_id, student_id) pairs
     const relations = [];
 
@@ -148,10 +139,7 @@ export const updateStudentPackageStatus = async (studentPackageMap: Map<string, 
     const studentPackageIds = Array.from(new Set(studentPackageMap.values()));
     if (studentPackageIds.length === 0) return;
 
-    const { error } = await supabase
-        .from("student_package")
-        .update({ status: "purchased" })
-        .in("id", studentPackageIds);
+    const { error } = await supabase.from("student_package").update({ status: "purchased" }).in("id", studentPackageIds);
 
     if (error) throw error;
     console.log(`✅ Updated ${studentPackageIds.length} student packages to purchased`);

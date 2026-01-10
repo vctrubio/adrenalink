@@ -34,7 +34,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
         const draw = () => {
             time += 0.01;
             const elapsed = Date.now() - introStartTime;
-            
+
             // Particle/Pulse progress (starts after 10s)
             const extraElapsed = Math.max(0, elapsed - PARTICLE_DELAY);
             const extraProgress = Math.min(extraElapsed / PARTICLE_FADE_DURATION, 1);

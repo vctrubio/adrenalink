@@ -2,6 +2,9 @@ import { getEquipmentsTable } from "@/supabase/server/equipments";
 import { EquipmentsTable } from "./EquipmentsTable";
 import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
+import { getAggregateEquipments } from "@/backend/data/EquipmentStats";
+
+export const dynamic = "force-dynamic";
 
 export default async function EquipmentsMasterTablePage() {
     const equipments = await getEquipmentsTable();

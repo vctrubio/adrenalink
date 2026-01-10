@@ -18,7 +18,7 @@ const ICON_MAP: Record<string, any> = {
     selling: ShoppingCart,
     sold: Trash2,
     inrepair: Settings,
-    rip: AlertCircle
+    rip: AlertCircle,
 };
 
 export function EquipmentStatusLabel({ equipmentId, status }: EquipmentStatusLabelProps) {
@@ -31,18 +31,18 @@ export function EquipmentStatusLabel({ equipmentId, status }: EquipmentStatusLab
 
     const handleStatusChange = async (newStatus: string) => {
         if (newStatus === status) return;
-        
+
         setIsPending(true);
         setIsOpen(false);
-        
+
         const result = await updateEquipmentStatus(equipmentId, newStatus);
-        
+
         if (result.success) {
             toast.success(`Equipment status updated to ${newStatus}`);
         } else {
             toast.error(result.error || "Failed to update status");
         }
-        
+
         setIsPending(false);
     };
 
@@ -63,20 +63,14 @@ export function EquipmentStatusLabel({ equipmentId, status }: EquipmentStatusLab
                 style={{
                     backgroundColor: `${config.color}15`,
                     color: config.color,
-                    borderColor: `${config.color}30`
+                    borderColor: `${config.color}30`,
                 }}
             >
                 <span>{config.label}</span>
                 <ChevronDown size={10} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
             </button>
 
-            <Dropdown
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                items={dropdownItems}
-                triggerRef={triggerRef}
-                align="right"
-            />
+            <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} items={dropdownItems} triggerRef={triggerRef} align="right" />
         </div>
     );
 }

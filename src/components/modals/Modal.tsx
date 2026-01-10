@@ -26,7 +26,7 @@ export default function Modal({
     maxWidth = "2xl",
     entityId,
     icon,
-    iconColor
+    iconColor,
 }: ModalProps) {
     const entity = entityId ? ENTITY_DATA.find((e) => e.id === entityId) : null;
     const EntityIcon = entity?.icon;
@@ -100,9 +100,7 @@ export default function Modal({
                                                 </motion.h2>
                                             )}
                                         </div>
-                                        {subtitle && (
-                                            <div className="popup-header-subtitle">{subtitle}</div>
-                                        )}
+                                        {subtitle && <div className="popup-header-subtitle">{subtitle}</div>}
                                     </div>
                                 )}
 

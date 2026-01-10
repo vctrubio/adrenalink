@@ -12,6 +12,6 @@ export function getAggregateEquipment(equipments: EquipmentTableData[]): Equipme
             totalRentalsCount: acc.totalRentalsCount + curr.stats.totalRentalsCount,
             totalLessonEventsCount: acc.totalLessonEventsCount + curr.stats.totalLessonEventsCount,
         }),
-        { equipmentCount: 0, totalRepairs: 0, totalRentalsCount: 0, totalLessonEventsCount: 0 }
+        { equipmentCount: 0, totalRepairs: 0, totalRentalsCount: 0, totalLessonEventsCount: 0 },
     );
 }

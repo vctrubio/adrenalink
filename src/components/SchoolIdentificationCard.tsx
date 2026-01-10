@@ -21,13 +21,16 @@ export function SchoolIdentificationCard({
     country,
     currency,
     equipmentCategories,
-    iconUrl
+    iconUrl,
 }: SchoolIdentificationCardProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Parse categories from comma-separated string
     const categories = equipmentCategories
-        ? equipmentCategories.split(",").map(cat => cat.trim()).filter(Boolean)
+        ? equipmentCategories
+              .split(",")
+              .map((cat) => cat.trim())
+              .filter(Boolean)
         : [];
 
     return (
@@ -40,13 +43,7 @@ export function SchoolIdentificationCard({
                 <div className="relative flex items-center justify-between px-6 py-6 overflow-hidden bg-white border-b border-neutral-100">
                     {/* Background Banner (Subtle texture) */}
                     <div className="absolute inset-0 z-0">
-                        <Image
-                            src="/beach-banner.jpg"
-                            alt="Banner"
-                            fill
-                            className="object-cover opacity-10 grayscale"
-                            priority
-                        />
+                        <Image src="/beach-banner.jpg" alt="Banner" fill className="object-cover opacity-10 grayscale" priority />
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
                     </div>
 
@@ -54,13 +51,7 @@ export function SchoolIdentificationCard({
                         {/* School Logo */}
                         {iconUrl ? (
                             <div className="relative w-12 h-12 rounded-full overflow-hidden border border-black/10 bg-white/50 backdrop-blur-sm shadow-sm flex-shrink-0">
-                                <Image
-                                    src={iconUrl}
-                                    alt={name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="48px"
-                                />
+                                <Image src={iconUrl} alt={name} fill className="object-cover" sizes="48px" />
                             </div>
                         ) : (
                             <div className="w-12 h-12 rounded-full bg-zinc-900 text-white flex items-center justify-center border border-black/5 backdrop-blur-sm flex-shrink-0">
@@ -132,12 +123,7 @@ export function SchoolIdentificationCard({
                         }}
                         className="focus:outline-none"
                     >
-                        <ToggleAdranalinkIcon
-                            isOpen={isOpen}
-                            onClick={() => {}}
-                            variant="lg"
-                            color="white"
-                        />
+                        <ToggleAdranalinkIcon isOpen={isOpen} onClick={() => {}} variant="lg" color="white" />
                     </button>
                 </div>
             </motion.div>

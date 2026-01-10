@@ -35,7 +35,10 @@ export function getPricePerMinute(pricePerStudent: number, durationMinutes: numb
     return durationMinutes > 0 ? pricePerStudent / durationMinutes : 0;
 }
 
-export function getPackageInfo(schoolPackage: { pricePerStudent: number; durationMinutes: number }, lessons: ClassboardLesson[]): PackageInfo {
+export function getPackageInfo(
+    schoolPackage: { pricePerStudent: number; durationMinutes: number },
+    lessons: ClassboardLesson[],
+): PackageInfo {
     const durationMinutes = schoolPackage.durationMinutes;
     const pricePerStudent = schoolPackage.pricePerStudent;
     const durationHours = durationMinutes > 0 ? durationMinutes / 60 : 0;

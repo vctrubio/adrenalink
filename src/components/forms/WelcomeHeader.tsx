@@ -9,7 +9,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 // Style Constants matching SchoolHeader.tsx
 const BORDER_STYLE = "border-4 border-secondary";
 const AVATAR_SIZE = {
-    small: "w-24 h-24", 
+    small: "w-24 h-24",
     large: "md:w-32 md:h-32",
 };
 const ICON_SIZE = {
@@ -41,7 +41,7 @@ export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
         <div className="w-full mb-6 md:mb-8">
             <AnimatePresence mode="wait">
                 {!showPreview ? (
-                    <motion.div 
+                    <motion.div
                         key="placeholder"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -53,7 +53,7 @@ export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
                         <p className="text-lg md:text-xl text-muted-foreground">Tell Us Who You Are</p>
                     </motion.div>
                 ) : (
-                    <motion.div 
+                    <motion.div
                         key="preview"
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -93,18 +93,23 @@ export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
                         {/* Banner Section */}
                         <div className="relative w-full h-32 md:h-48 flex items-center justify-center bg-muted group">
                             <div className="relative w-full h-full overflow-hidden">
-                                <img src={bannerUrl} alt="School Banner" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                <img
+                                    src={bannerUrl}
+                                    alt="School Banner"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                             </div>
                         </div>
 
                         {/* Header Content */}
                         <div className="relative px-4 pb-6 -mt-12 md:-mt-16 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6">
-                            
                             {/* Icon */}
                             <div className="flex-shrink-0 z-10">
                                 <div className={`relative ${AVATAR_SIZE.small} ${AVATAR_SIZE.large}`}>
-                                    <div className={`w-full h-full rounded-full overflow-hidden shadow-lg ${BORDER_STYLE} bg-background flex items-center justify-center`}>
+                                    <div
+                                        className={`w-full h-full rounded-full overflow-hidden shadow-lg ${BORDER_STYLE} bg-background flex items-center justify-center`}
+                                    >
                                         {iconUrl ? (
                                             <img src={iconUrl} alt="School Icon" className="w-full h-full object-cover" />
                                         ) : (
@@ -124,21 +129,21 @@ export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
                                         <MapPin className={ICON_SIZE.small} />
                                         {formData.country || "Location"}
                                     </span>
-                                    
+
                                     {/* Equipment Categories Labels */}
                                     <div className="flex flex-wrap gap-1.5">
                                         {formData.equipmentCategories?.map((categoryId) => {
-                                            const config = EQUIPMENT_CATEGORIES.find(c => c.id === categoryId);
+                                            const config = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
                                             if (!config) return null;
                                             const Icon = config.icon;
                                             return (
-                                                <span 
+                                                <span
                                                     key={categoryId}
                                                     className="px-2 py-0.5 rounded-full text-[10px] md:text-xs font-semibold flex items-center gap-1 border shadow-sm backdrop-blur-sm"
-                                                    style={{ 
-                                                        backgroundColor: `${config.color}15`, 
+                                                    style={{
+                                                        backgroundColor: `${config.color}15`,
                                                         color: config.color,
-                                                        borderColor: `${config.color}30`
+                                                        borderColor: `${config.color}30`,
                                                     }}
                                                 >
                                                     <Icon className="w-3 h-3" style={{ fill: config.color }} />
@@ -153,17 +158,23 @@ export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
                             {/* Social Links */}
                             <div className="flex gap-2 md:mb-2 z-10">
                                 {/* WhatsApp/Phone */}
-                                <div className={`${SOCIAL_BUTTON_STYLE} ${hasPhone ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}>
+                                <div
+                                    className={`${SOCIAL_BUTTON_STYLE} ${hasPhone ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}
+                                >
                                     <MessageCircle className={ICON_SIZE.large} />
                                 </div>
 
                                 {/* Website */}
-                                <div className={`${SOCIAL_BUTTON_STYLE} ${hasWebsite ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}>
+                                <div
+                                    className={`${SOCIAL_BUTTON_STYLE} ${hasWebsite ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}
+                                >
                                     <Globe className={ICON_SIZE.large} />
                                 </div>
 
                                 {/* Instagram */}
-                                <div className={`${SOCIAL_BUTTON_STYLE} ${hasInstagram ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}>
+                                <div
+                                    className={`${SOCIAL_BUTTON_STYLE} ${hasInstagram ? "bg-secondary/20 hover:bg-secondary/40 text-foreground cursor-pointer" : "bg-muted/50 text-muted-foreground opacity-50 cursor-not-allowed"}`}
+                                >
                                     <Instagram className={ICON_SIZE.large} />
                                 </div>
                             </div>

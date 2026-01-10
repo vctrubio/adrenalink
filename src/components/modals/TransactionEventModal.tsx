@@ -37,7 +37,7 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
 
     const { event, teacher, studentNames, packageData, financials } = data;
     const statusConfig = EVENT_STATUS_CONFIG[event.status as EventStatus];
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find(c => c.id === packageData.categoryEquipment);
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === packageData.categoryEquipment);
     const EquipmentIcon = equipmentConfig?.icon;
 
     return (
@@ -67,7 +67,9 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
                                 <Image src="/ADR.webp" alt="Adrenalink" width={24} height={24} />
                                 <div>
                                     <h3 className="text-lg font-bold tracking-tight uppercase tracking-tighter">Transaction</h3>
-                                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest font-bold">Instructor: {teacher.username}</p>
+                                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest font-bold">
+                                        Instructor: {teacher.username}
+                                    </p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors">
@@ -77,20 +79,51 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
 
                         <div className="overflow-y-auto p-6 space-y-6">
                             {/* 1. Booking & Event (BLUE) */}
-                            <SectionWrapper title="Booking & Event" colorClass="text-blue-600" bgColorClass="bg-blue-50/50 dark:bg-blue-900/10">
+                            <SectionWrapper
+                                title="Booking & Event"
+                                colorClass="text-blue-600"
+                                bgColorClass="bg-blue-50/50 dark:bg-blue-900/10"
+                            >
                                 <div className="grid grid-cols-2 gap-4">
-                                    <DataPoint icon={<FlagIcon size={14} />} label="Date" value={new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} />
-                                    <DataPoint icon={<FlagIcon size={14} />} label="Time" value={new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })} />
-                                    <DataPoint icon={<DurationIcon size={14} />} label="Duration" value={getHMDuration(event.duration)} />
+                                    <DataPoint
+                                        icon={<FlagIcon size={14} />}
+                                        label="Date"
+                                        value={new Date(event.date).toLocaleDateString("en-US", {
+                                            month: "short",
+                                            day: "numeric",
+                                            year: "numeric",
+                                        })}
+                                    />
+                                    <DataPoint
+                                        icon={<FlagIcon size={14} />}
+                                        label="Time"
+                                        value={new Date(event.date).toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: false,
+                                        })}
+                                    />
+                                    <DataPoint
+                                        icon={<DurationIcon size={14} />}
+                                        label="Duration"
+                                        value={getHMDuration(event.duration)}
+                                    />
                                     <DataPoint icon={<MapPin size={14} />} label="Location" value={event.location || "TBD"} />
                                 </div>
                             </SectionWrapper>
 
                             {/* 2. Students Involved (YELLOW) */}
-                            <SectionWrapper title="Involved Students" colorClass="text-yellow-600" bgColorClass="bg-yellow-50/50 dark:bg-yellow-900/10">
+                            <SectionWrapper
+                                title="Involved Students"
+                                colorClass="text-yellow-600"
+                                bgColorClass="bg-yellow-50/50 dark:bg-yellow-900/10"
+                            >
                                 <div className="flex flex-wrap gap-2">
                                     {studentNames.map((name, i) => (
-                                        <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border">
+                                        <div
+                                            key={i}
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border"
+                                        >
                                             <HelmetIcon size={14} className="text-yellow-500" />
                                             <span className="text-xs font-semibold">{name}</span>
                                         </div>
@@ -99,13 +132,17 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
                             </SectionWrapper>
 
                             {/* 3. Package & Equipment (ORANGE) */}
-                            <SectionWrapper title="Package Details" colorClass="text-orange-600" bgColorClass="bg-orange-50/50 dark:bg-orange-900/10">
+                            <SectionWrapper
+                                title="Package Details"
+                                colorClass="text-orange-600"
+                                bgColorClass="bg-orange-50/50 dark:bg-orange-900/10"
+                            >
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
                                         <span className="font-semibold text-foreground">{packageData.description}</span>
                                     </div>
                                     <div className="pt-2 border-t border-orange-100/50 dark:border-orange-900/20">
-                                        <EquipmentStudentPackagePriceBadge 
+                                        <EquipmentStudentPackagePriceBadge
                                             categoryEquipment={packageData.categoryEquipment}
                                             equipmentCapacity={packageData.capacityEquipment}
                                             studentCapacity={packageData.capacityStudents}
@@ -117,24 +154,37 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
                             </SectionWrapper>
 
                             {/* 4. Financials & Status (GREY/ZINC) */}
-                            <SectionWrapper title="Financial Summary" colorClass="text-zinc-600" bgColorClass="bg-zinc-50/50 dark:bg-zinc-900/10">
+                            <SectionWrapper
+                                title="Financial Summary"
+                                colorClass="text-zinc-600"
+                                bgColorClass="bg-zinc-50/50 dark:bg-zinc-900/10"
+                            >
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground font-medium">
                                             <User size={14} />
                                             <span>Student Revenue</span>
                                         </div>
-                                        <span className="font-bold">{financials.studentRevenue.toFixed(2)} {financials.currency}</span>
+                                        <span className="font-bold">
+                                            {financials.studentRevenue.toFixed(2)} {financials.currency}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground font-medium">
                                             <HandshakeIcon size={14} />
                                             <span>
-                                                Commission <span className="font-bold text-foreground ml-1">{financials.commissionType === 'fixed' ? `${financials.commissionValue} ${financials.currency}/h` : `${financials.commissionValue}%`}</span>
+                                                Commission{" "}
+                                                <span className="font-bold text-foreground ml-1">
+                                                    {financials.commissionType === "fixed"
+                                                        ? `${financials.commissionValue} ${financials.currency}/h`
+                                                        : `${financials.commissionValue}%`}
+                                                </span>
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-destructive">-{financials.teacherEarnings.toFixed(2)} {financials.currency}</span>
+                                            <span className="font-bold text-destructive">
+                                                -{financials.teacherEarnings.toFixed(2)} {financials.currency}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between pt-3 border-t border-border mt-2">
@@ -153,7 +203,7 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
                             {/* Status Footer */}
                             <div className="pt-2 flex justify-center pb-4">
                                 {statusConfig && (
-                                    <div 
+                                    <div
                                         className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em]"
                                         style={{ backgroundColor: `${statusConfig.color}20`, color: statusConfig.color }}
                                     >
@@ -170,7 +220,17 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
     );
 }
 
-function SectionWrapper({ title, children, colorClass, bgColorClass }: { title: string, children: React.ReactNode, colorClass: string, bgColorClass: string }) {
+function SectionWrapper({
+    title,
+    children,
+    colorClass,
+    bgColorClass,
+}: {
+    title: string;
+    children: React.ReactNode;
+    colorClass: string;
+    bgColorClass: string;
+}) {
     return (
         <div className="space-y-3">
             <div className={`py-1.5 rounded-lg ${bgColorClass} inline-block`}>
@@ -181,7 +241,7 @@ function SectionWrapper({ title, children, colorClass, bgColorClass }: { title: 
     );
 }
 
-function DataPoint({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+function DataPoint({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
         <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground">

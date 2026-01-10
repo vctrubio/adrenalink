@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
             if (iconResult.$metadata.httpStatusCode === 200) {
                 uploadResults.push("icon");
             } else {
-                return NextResponse.json({ error: `Icon upload failed with status: ${iconResult.$metadata.httpStatusCode}` }, { status: 500 });
+                return NextResponse.json(
+                    { error: `Icon upload failed with status: ${iconResult.$metadata.httpStatusCode}` },
+                    { status: 500 },
+                );
             }
         }
 
@@ -84,7 +87,10 @@ export async function POST(request: NextRequest) {
             if (bannerResult.$metadata.httpStatusCode === 200) {
                 uploadResults.push("banner");
             } else {
-                return NextResponse.json({ error: `Banner upload failed with status: ${bannerResult.$metadata.httpStatusCode}` }, { status: 500 });
+                return NextResponse.json(
+                    { error: `Banner upload failed with status: ${bannerResult.$metadata.httpStatusCode}` },
+                    { status: 500 },
+                );
             }
         }
 

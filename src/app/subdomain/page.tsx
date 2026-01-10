@@ -5,6 +5,8 @@ import { cache } from "react";
 import { SubDomainHomePage } from "./SubDomainHomePage";
 import { getSchool4Subdomain } from "@/supabase/server/subdomain";
 
+export const dynamic = "force-dynamic";
+
 const getSchoolData = cache(async (username: string) => {
     return await getSchool4Subdomain(username);
 });
@@ -65,5 +67,3 @@ export async function generateMetadata(): Promise<Metadata> {
         },
     };
 }
-
-    

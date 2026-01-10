@@ -42,11 +42,17 @@ export default function PopoverNav({ items }: PopoverNavProps) {
                                     href={item.link}
                                     className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 group ${isActive ? "bg-accent" : "hover:bg-accent"}`}
                                 >
-                                    <div className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isActive ? "bg-secondary/20" : "bg-muted/50 group-hover:bg-muted"}`}>
-                                        <IconComponent className={`w-5 h-5 transition-colors ${isActive ? "text-secondary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                                    <div
+                                        className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isActive ? "bg-secondary/20" : "bg-muted/50 group-hover:bg-muted"}`}
+                                    >
+                                        <IconComponent
+                                            className={`w-5 h-5 transition-colors ${isActive ? "text-secondary" : "text-muted-foreground group-hover:text-foreground"}`}
+                                        />
                                     </div>
                                     <div className="flex-1">
-                                        <span className={`font-medium text-sm ${isActive ? "text-secondary" : "text-foreground"}`}>{item.name}</span>
+                                        <span className={`font-medium text-sm ${isActive ? "text-secondary" : "text-foreground"}`}>
+                                            {item.name}
+                                        </span>
                                     </div>
                                 </Link>
                             );

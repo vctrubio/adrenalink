@@ -47,6 +47,6 @@ export function useEquipment(category: string) {
         isLoading,
         fetchAvailable,
         assign,
-        unassign
+        unassign,
     };
 }

@@ -18,7 +18,8 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
         // Fetch equipment with core relations
         const { data: equipment, error: equipmentError } = await supabase
             .from("equipment")
-            .select(`
+            .select(
+                `
                 *,
                 equipment_repair(*),
                 teacher_equipment(
@@ -44,7 +45,8 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
                         )
                     )
                 )
-            `)
+            `,
+            )
             .eq("id", id)
             .eq("school_id", schoolHeader.id)
             .single();
@@ -67,7 +69,7 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
                     if (!ee.event) return null;
                     return {
                         ...ee.event,
-                        lesson: ee.event.lesson
+                        lesson: ee.event.lesson,
                     };
                 })
                 .filter(Boolean),
@@ -76,7 +78,7 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
                     if (!re.rental) return null;
                     return {
                         ...re.rental,
-                        students: (re.rental.rental_student || []).map((rs: any) => rs.student).filter(Boolean)
+                        students: (re.rental.rental_student || []).map((rs: any) => rs.student).filter(Boolean),
                     };
                 })
                 .filter(Boolean),

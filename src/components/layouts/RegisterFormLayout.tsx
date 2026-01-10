@@ -12,7 +12,7 @@ interface RegisterFormLayoutProps {
 const formAnimation = {
     initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.15, ease: "easeOut" }
+    transition: { duration: 0.15, ease: "easeOut" },
 };
 
 export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps) {
@@ -24,11 +24,7 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
             <div className="lg:hidden">
                 <div className="p-4 space-y-4">
                     {controller}
-                    <motion.div
-                        key={pathname}
-                        {...formAnimation}
-                        className="bg-card rounded-lg border border-border shadow-sm"
-                    >
+                    <motion.div key={pathname} {...formAnimation} className="bg-card rounded-lg border border-border shadow-sm">
                         <div className="p-6">{form}</div>
                     </motion.div>
                     <div className="h-24" />
@@ -46,11 +42,7 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
 
                         {/* Form Content */}
                         <div className="col-span-8">
-                            <motion.div
-                                key={pathname}
-                                {...formAnimation}
-                                className="space-y-6"
-                            >
+                            <motion.div key={pathname} {...formAnimation} className="space-y-6">
                                 {form}
                             </motion.div>
                         </div>

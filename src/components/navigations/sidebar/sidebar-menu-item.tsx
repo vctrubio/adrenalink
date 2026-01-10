@@ -30,11 +30,9 @@ export function SidebarMenuItem({ href, icon: Icon, label, count, onClick, iconC
                 </span>
             );
         }
-        
-        const className = isActive
-            ? "text-blue-500"
-            : "text-muted-foreground group-hover:text-foreground";
-        
+
+        const className = isActive ? "text-blue-500" : "text-muted-foreground group-hover:text-foreground";
+
         return <Icon size={size} className={`transition-colors ${className}`} />;
     };
 

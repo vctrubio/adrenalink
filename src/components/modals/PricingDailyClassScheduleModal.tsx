@@ -36,13 +36,13 @@ export default function PricingDailyClassScheduleModal({
                     eventNode.packageData.pricePerStudent,
                     studentCount,
                     eventNode.eventData.duration,
-                    eventNode.packageData.durationMinutes
+                    eventNode.packageData.durationMinutes,
                 );
                 const commissionCalc = calculateCommission(
                     eventNode.eventData.duration,
                     eventNode.commission,
                     lessonRevenue,
-                    eventNode.packageData.durationMinutes
+                    eventNode.packageData.durationMinutes,
                 );
                 const schoolRevenue = calculateSchoolProfit(lessonRevenue, commissionCalc.earned);
 
@@ -76,7 +76,7 @@ export default function PricingDailyClassScheduleModal({
             schoolRevenue: acc.schoolRevenue + event.schoolRevenue,
             totalRevenue: acc.totalRevenue + event.totalRevenue,
         }),
-        { duration: 0, teacherEarnings: 0, schoolRevenue: 0, totalRevenue: 0 }
+        { duration: 0, teacherEarnings: 0, schoolRevenue: 0, totalRevenue: 0 },
     );
 
     return (
@@ -118,9 +118,7 @@ export default function PricingDailyClassScheduleModal({
                                     <td className="p-3 text-right font-mono text-orange-600 dark:text-orange-400">
                                         €{formatCurrency(event.schoolRevenue)}
                                     </td>
-                                    <td className="p-3 text-right font-mono font-semibold">
-                                        €{formatCurrency(event.totalRevenue)}
-                                    </td>
+                                    <td className="p-3 text-right font-mono font-semibold">€{formatCurrency(event.totalRevenue)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -129,18 +127,14 @@ export default function PricingDailyClassScheduleModal({
                                 <td colSpan={6} className="p-3 text-right">
                                     ** TOTAL **
                                 </td>
-                                <td className="p-3">
-                                    {getPrettyDuration(totals.duration)}
-                                </td>
+                                <td className="p-3">{getPrettyDuration(totals.duration)}</td>
                                 <td className="p-3 text-right font-mono text-green-600 dark:text-green-400">
                                     €{formatCurrency(totals.teacherEarnings)}
                                 </td>
                                 <td className="p-3 text-right font-mono text-orange-600 dark:text-orange-400">
                                     €{formatCurrency(totals.schoolRevenue)}
                                 </td>
-                                <td className="p-3 text-right font-mono font-bold text-lg">
-                                    €{formatCurrency(totals.totalRevenue)}
-                                </td>
+                                <td className="p-3 text-right font-mono font-bold text-lg">€{formatCurrency(totals.totalRevenue)}</td>
                             </tr>
                         </tfoot>
                     </table>

@@ -9,17 +9,16 @@ import { revalidatePath } from "next/cache";
 /**
  * Updates specific boolean configuration flags for a package.
  */
-export async function updatePackageConfig(id: string, updates: { active?: boolean; is_public?: boolean }): Promise<{ success: boolean; error?: string }> {
+export async function updatePackageConfig(
+    id: string,
+    updates: { active?: boolean; is_public?: boolean },
+): Promise<{ success: boolean; error?: string }> {
     try {
         const schoolHeader = await getSchoolHeader();
         if (!schoolHeader) return { success: false, error: "School context not found" };
 
         const supabase = getServerConnection();
-        const { error } = await supabase
-            .from("school_package")
-            .update(updates)
-            .eq("id", id)
-            .eq("school_id", schoolHeader.id);
+        const { error } = await supabase.from("school_package").update(updates).eq("id", id).eq("school_id", schoolHeader.id);
 
         if (error) throw error;
 
@@ -47,7 +46,8 @@ export async function getPackageId(id: string): Promise<{ success: boolean; data
         // Note: booking and student_package are peers under school_package
         const { data: pkg, error: pkgError } = await supabase
             .from("school_package")
-            .select(`
+            .select(
+                `
                 *,
                 student_package(
                     *,
@@ -64,7 +64,8 @@ export async function getPackageId(id: string): Promise<{ success: boolean; data
                         event(*)
                     )
                 )
-            `)
+            `,
+            )
             .eq("id", id)
             .eq("school_id", schoolHeader.id)
             .single();
@@ -79,7 +80,7 @@ export async function getPackageId(id: string): Promise<{ success: boolean; data
             requests: (pkg.student_package || []).map((rp: any) => ({
                 ...rp,
                 referral: rp.referral,
-                bookings: [] // Bookings are not directly linked to requests in schema
+                bookings: [], // Bookings are not directly linked to requests in schema
             })),
             bookings: (pkg.booking || []).map((b: any) => ({
                 ...b,

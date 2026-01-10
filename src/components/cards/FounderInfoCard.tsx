@@ -14,7 +14,8 @@ const FOUNDER_DATA = {
     descriptionSections: [
         {
             title: "Adrenalink",
-            content: "It is specifically designed for sports management activities, where weather conditions mean changing the lesson planning constantly; and that's what's been desginged. Call it a simply redeisgn of excel for outdoor schools.",
+            content:
+                "It is specifically designed for sports management activities, where weather conditions mean changing the lesson planning constantly; and that's what's been desginged. Call it a simply redeisgn of excel for outdoor schools.",
         },
         {
             title: "Mission",
@@ -23,7 +24,8 @@ const FOUNDER_DATA = {
         },
         {
             title: "Social",
-            content: "Our focus now is on supporting each school with its own homepage, along with direct links to your website and social channels. Follow along for updates, or reach out to my personal email here.",
+            content:
+                "Our focus now is on supporting each school with its own homepage, along with direct links to your website and social channels. Follow along for updates, or reach out to my personal email here.",
         },
         {
             title: "Getting Started",
@@ -68,13 +70,25 @@ export const FounderInfoCard = ({ accentColor = "#3b82f6", className }: FounderI
                 border: `3px solid ${accentColor}`,
             }}
         >
-            <Image src="/pp.webp" alt={FOUNDER_DATA.name} width={384} height={192} className="object-cover w-full h-full scale-160 translate-y-9 translate-x-1" />
+            <Image
+                src="/pp.webp"
+                alt={FOUNDER_DATA.name}
+                width={384}
+                height={192}
+                className="object-cover w-full h-full scale-160 translate-y-9 translate-x-1"
+            />
         </div>
     );
 
     return (
         <Card accentColor={accentColor} stats={socialIcons} isActionable={true} className={className}>
-            <CardHeader name={FOUNDER_DATA.name} status={FOUNDER_DATA.role} avatar={avatar} accentColor={accentColor} desc={FOUNDER_DATA.description} />
+            <CardHeader
+                name={FOUNDER_DATA.name}
+                status={FOUNDER_DATA.role}
+                avatar={avatar}
+                accentColor={accentColor}
+                desc={FOUNDER_DATA.description}
+            />
             <FounderDescriptionSection sections={FOUNDER_DATA.descriptionSections} />
             <div className="pt-6 text-center">
                 <p className="text-xs uppercase tracking-wider text-gray-500">Thank you for stopping by.</p>

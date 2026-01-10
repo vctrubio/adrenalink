@@ -16,6 +16,7 @@ r2://adrenalink-assets/
 ## Public URLs
 
 Assets accessible via CDN domain for optimal performance:
+
 ```
 https://cdn.adrenalink.tech/admin/icon.png       # Default fallback icon
 https://cdn.adrenalink.tech/admin/banner.png     # Default fallback banner
@@ -33,6 +34,7 @@ https://cdn.adrenalink.tech/{username}/banner.jpeg # School banner
 ## Reserved Subdomains
 
 The following subdomains are reserved and cannot be used as school usernames:
+
 - `assets` - Legacy asset domain
 - `api` - API endpoints
 - `www` - Main website
@@ -45,12 +47,12 @@ The following subdomains are reserved and cannot be used as school usernames:
 
 ```json
 {
-  "school_username": "mit-kite-school",
-  "school_name": "MIT Kite School", 
-  "owner_email": "admin@mitkiteschool.com",
-  "reference_note": "Initial registration submission",
-  "created_at": "2024-10-24T10:30:00Z",
-  "approved_at": null
+    "school_username": "mit-kite-school",
+    "school_name": "MIT Kite School",
+    "owner_email": "admin@mitkiteschool.com",
+    "reference_note": "Initial registration submission",
+    "created_at": "2024-10-24T10:30:00Z",
+    "approved_at": null
 }
 ```
 

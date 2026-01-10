@@ -1,6 +1,6 @@
 /**
  * Teacher Commission Seeding
- * 
+ *
  * Create commission records for teachers
  */
 

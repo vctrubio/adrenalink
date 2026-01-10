@@ -12,7 +12,7 @@ export const SCHOOL_STATUS = {
     CLOSED: "closed",
     BETA: "beta",
 } as const;
-export type SchoolStatus = typeof SCHOOL_STATUS[keyof typeof SCHOOL_STATUS];
+export type SchoolStatus = (typeof SCHOOL_STATUS)[keyof typeof SCHOOL_STATUS];
 
 // Equipment categories
 export const EQUIPMENT_CATEGORY = {
@@ -20,7 +20,7 @@ export const EQUIPMENT_CATEGORY = {
     WING: "wing",
     WINDSURF: "windsurf",
 } as const;
-export type EquipmentCategory = typeof EQUIPMENT_CATEGORY[keyof typeof EQUIPMENT_CATEGORY];
+export type EquipmentCategory = (typeof EQUIPMENT_CATEGORY)[keyof typeof EQUIPMENT_CATEGORY];
 
 // Student package statuses
 export const STUDENT_PACKAGE_STATUS = {
@@ -28,14 +28,14 @@ export const STUDENT_PACKAGE_STATUS = {
     ACCEPTED: "accepted",
     REJECTED: "rejected",
 } as const;
-export type StudentPackageStatus = typeof STUDENT_PACKAGE_STATUS[keyof typeof STUDENT_PACKAGE_STATUS];
+export type StudentPackageStatus = (typeof STUDENT_PACKAGE_STATUS)[keyof typeof STUDENT_PACKAGE_STATUS];
 
 // Commission types
 export const COMMISSION_TYPE = {
     FIXED: "fixed",
     PERCENTAGE: "percentage",
 } as const;
-export type CommissionType = typeof COMMISSION_TYPE[keyof typeof COMMISSION_TYPE];
+export type CommissionType = (typeof COMMISSION_TYPE)[keyof typeof COMMISSION_TYPE];
 
 // Equipment statuses
 export const EQUIPMENT_STATUS = {
@@ -46,7 +46,7 @@ export const EQUIPMENT_STATUS = {
     INREPAIR: "inrepair",
     RIP: "rip",
 } as const;
-export type EquipmentStatus = typeof EQUIPMENT_STATUS[keyof typeof EQUIPMENT_STATUS];
+export type EquipmentStatus = (typeof EQUIPMENT_STATUS)[keyof typeof EQUIPMENT_STATUS];
 
 // Lesson statuses
 export const LESSON_STATUS = {
@@ -55,7 +55,7 @@ export const LESSON_STATUS = {
     COMPLETED: "completed",
     UNCOMPLETED: "uncompleted",
 } as const;
-export type LessonStatus = typeof LESSON_STATUS[keyof typeof LESSON_STATUS];
+export type LessonStatus = (typeof LESSON_STATUS)[keyof typeof LESSON_STATUS];
 
 // Event statuses
 export const EVENT_STATUS = {
@@ -64,7 +64,7 @@ export const EVENT_STATUS = {
     COMPLETED: "completed",
     UNCOMPLETED: "uncompleted",
 } as const;
-export type EventStatus = typeof EVENT_STATUS[keyof typeof EVENT_STATUS];
+export type EventStatus = (typeof EVENT_STATUS)[keyof typeof EVENT_STATUS];
 
 // Rental statuses
 export const RENTAL_STATUS = {
@@ -72,14 +72,14 @@ export const RENTAL_STATUS = {
     COMPLETED: "completed",
     UNCOMPLETED: "uncompleted",
 } as const;
-export type RentalStatus = typeof RENTAL_STATUS[keyof typeof RENTAL_STATUS];
+export type RentalStatus = (typeof RENTAL_STATUS)[keyof typeof RENTAL_STATUS];
 
 // Package types
 export const PACKAGE_TYPE = {
     RENTAL: "rental",
     LESSONS: "lessons",
 } as const;
-export type PackageType = typeof PACKAGE_TYPE[keyof typeof PACKAGE_TYPE];
+export type PackageType = (typeof PACKAGE_TYPE)[keyof typeof PACKAGE_TYPE];
 
 // Languages
 export const LANGUAGES = {
@@ -89,7 +89,7 @@ export const LANGUAGES = {
     GERMAN: "German",
     ITALIAN: "Italian",
 } as const;
-export type Language = typeof LANGUAGES[keyof typeof LANGUAGES];
+export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES];
 
 // Booking statuses
 export const BOOKING_STATUS = {
@@ -97,7 +97,7 @@ export const BOOKING_STATUS = {
     COMPLETED: "completed",
     UNCOMPLETED: "uncompleted",
 } as const;
-export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
+export type BookingStatus = (typeof BOOKING_STATUS)[keyof typeof BOOKING_STATUS];
 
 // Currencies
 export const CURRENCY = {
@@ -105,7 +105,7 @@ export const CURRENCY = {
     EUR: "EUR",
     CHF: "CHF",
 } as const;
-export type Currency = typeof CURRENCY[keyof typeof CURRENCY];
+export type Currency = (typeof CURRENCY)[keyof typeof CURRENCY];
 
 // Subscription tiers
 export const SUBSCRIPTION_TIER = {
@@ -113,7 +113,7 @@ export const SUBSCRIPTION_TIER = {
     SILVER: "silver",
     GOLD: "gold",
 } as const;
-export type SubscriptionTier = typeof SUBSCRIPTION_TIER[keyof typeof SUBSCRIPTION_TIER];
+export type SubscriptionTier = (typeof SUBSCRIPTION_TIER)[keyof typeof SUBSCRIPTION_TIER];
 
 // Subscription statuses
 export const SUBSCRIPTION_STATUS = {
@@ -123,7 +123,7 @@ export const SUBSCRIPTION_STATUS = {
     EXPIRED: "expired",
     TRIAL: "trial",
 } as const;
-export type SubscriptionStatus = typeof SUBSCRIPTION_STATUS[keyof typeof SUBSCRIPTION_STATUS];
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS];
 
 /**
  * Validation helpers

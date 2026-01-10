@@ -52,17 +52,35 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
 
                 return (
                     <div key={group.date} className="rounded-2xl bg-card border border-border overflow-hidden shadow-sm">
-                        <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-accent/5 transition-colors" onClick={() => toggleDate(group.date)}>
+                        <div
+                            className="flex items-center justify-between p-5 cursor-pointer hover:bg-accent/5 transition-colors"
+                            onClick={() => toggleDate(group.date)}
+                        >
                             <div className="flex flex-col gap-1 min-w-[140px]">
                                 <span className="font-bold text-xl tracking-tight">
                                     {(() => {
                                         const date = new Date(group.date + "T00:00:00");
                                         const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                                        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                        const months = [
+                                            "Jan",
+                                            "Feb",
+                                            "Mar",
+                                            "Apr",
+                                            "May",
+                                            "Jun",
+                                            "Jul",
+                                            "Aug",
+                                            "Sep",
+                                            "Oct",
+                                            "Nov",
+                                            "Dec",
+                                        ];
                                         return `${weekdays[date.getUTCDay()]} ${date.getUTCDate()} ${months[date.getUTCMonth()]}`;
                                     })()}
                                 </span>
-                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date(group.date + "T00:00:00").getUTCFullYear()}</span>
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    {new Date(group.date + "T00:00:00").getUTCFullYear()}
+                                </span>
                             </div>
 
                             <div className="flex items-center gap-4 sm:gap-8 text-sm">
@@ -71,16 +89,23 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                         <div className="2xl:hidden flex items-center gap-1.5">
                                             <displayStats.completed.Icon size={14} className="text-muted-foreground/70" />
                                             <span className="font-semibold text-lg text-foreground">
-                                                {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
+                                                {
+                                                    group.events.filter((e) => e.status === "completed" || e.status === "uncompleted")
+                                                        .length
+                                                }
+                                                /{group.events.length}
                                             </span>
                                         </div>
                                         <span className="hidden 2xl:inline font-semibold text-lg text-foreground">
-                                            {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/{group.events.length}
+                                            {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}
+                                            /{group.events.length}
                                         </span>
                                     </div>
                                     <div className="hidden 2xl:flex items-center gap-1">
                                         <displayStats.completed.Icon size={12} className="text-muted-foreground/70" />
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.completed.label}</span>
+                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                            {displayStats.completed.label}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -91,7 +116,9 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     </div>
                                     <div className="hidden 2xl:flex items-center gap-1">
                                         <displayStats.profit.Icon size={12} />
-                                        <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.profit.label}</span>
+                                        <span className="text-[10px] uppercase tracking-wider font-medium">
+                                            {displayStats.profit.label}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -99,31 +126,43 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <div className="flex flex-col items-center">
                                         <div className="flex items-center gap-1.5">
                                             <displayStats.students.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">{displayStats.students.formatted}</span>
+                                            <span className="font-semibold text-lg text-foreground">
+                                                {displayStats.students.formatted}
+                                            </span>
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.students.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.students.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                                {displayStats.students.label}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center">
                                         <div className="flex items-center gap-1.5">
                                             <displayStats.teachers.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">{displayStats.teachers.formatted}</span>
+                                            <span className="font-semibold text-lg text-foreground">
+                                                {displayStats.teachers.formatted}
+                                            </span>
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.teachers.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.teachers.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                                {displayStats.teachers.label}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center">
                                         <div className="flex items-center gap-1.5">
                                             <displayStats.duration.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">{displayStats.duration.formatted}</span>
+                                            <span className="font-semibold text-lg text-foreground">
+                                                {displayStats.duration.formatted}
+                                            </span>
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.duration.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.duration.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                                {displayStats.duration.label}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -132,11 +171,15 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <div className="flex flex-col items-center">
                                         <div className="flex items-center gap-1.5">
                                             <displayStats.revenue.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">{displayStats.revenue.formatted}</span>
+                                            <span className="font-semibold text-lg text-foreground">
+                                                {displayStats.revenue.formatted}
+                                            </span>
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.revenue.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{displayStats.revenue.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                                {displayStats.revenue.label}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center text-muted-foreground">
@@ -146,7 +189,9 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.commission.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.commission.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider font-medium">
+                                                {displayStats.commission.label}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="h-8 w-px bg-border/60 rotate-12 mx-1" />
@@ -157,7 +202,9 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                         </div>
                                         <div className="hidden 2xl:flex items-center gap-1">
                                             <displayStats.profit.Icon size={12} />
-                                            <span className="text-[10px] uppercase tracking-wider font-medium">{displayStats.profit.label}</span>
+                                            <span className="text-[10px] uppercase tracking-wider font-medium">
+                                                {displayStats.profit.label}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -170,7 +217,12 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
 
                         <AnimatePresence>
                             {isExpanded && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
                                     <div className="border-t border-border divide-y divide-border bg-muted/10">
                                         {group.events.map((event) => (
                                             <motion.div
@@ -184,7 +236,12 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             <div style={{ color: EVENT_STATUS_CONFIG[event.status].color }}>
                                                                 <FlagIcon size={16} className="opacity-80" />
                                                             </div>
-                                                            <span className="text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                                            <span className="text-sm font-mono text-muted-foreground tabular-nums">
+                                                                {new Date(event.date).toLocaleTimeString([], {
+                                                                    hour: "2-digit",
+                                                                    minute: "2-digit",
+                                                                })}
+                                                            </span>
                                                         </div>
                                                         <EquipmentStudentPackagePriceBadge
                                                             categoryEquipment={event.categoryEquipment}
@@ -194,13 +251,24 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
                                                         />
                                                     </div>
-                                                    <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">{new Date(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                                                    <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">
+                                                        {new Date(event.date).toLocaleTimeString([], {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        })}
+                                                    </div>
                                                     <div>
                                                         <div className="mb-1 group-hover/row:text-primary transition-colors flex items-center gap-2">
                                                             <span>{event.packageName}</span>
                                                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-yellow-student text-foreground">
-                                                                <span className="font-semibold text-foreground">{event.leaderStudentName}</span>
-                                                                {event.capacityStudents > 1 && <span className="text-[10px] font-bold">+{event.capacityStudents - 1}</span>}
+                                                                <span className="font-semibold text-foreground">
+                                                                    {event.leaderStudentName}
+                                                                </span>
+                                                                {event.capacityStudents > 1 && (
+                                                                    <span className="text-[10px] font-bold">
+                                                                        +{event.capacityStudents - 1}
+                                                                    </span>
+                                                                )}
                                                             </span>
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -242,10 +310,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
                                                     />
 
-                                                    <EventHomeStatusLabel
-                                                        eventId={event.id}
-                                                        status={event.status}
-                                                    />
+                                                    <EventHomeStatusLabel eventId={event.id} status={event.status} />
                                                 </div>
                                             </motion.div>
                                         ))}

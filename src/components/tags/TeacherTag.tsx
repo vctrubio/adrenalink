@@ -13,5 +13,14 @@ interface TeacherTagProps {
 export const TeacherTag = ({ icon, username, id }: TeacherTagProps) => {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
-    return <Tag icon={icon} name={username} bgColor={teacherEntity.bgColor} borderColorHex={teacherEntity.bgColor} color={teacherEntity.color} link={`/teachers/${username}`} />;
+    return (
+        <Tag
+            icon={icon}
+            name={username}
+            bgColor={teacherEntity.bgColor}
+            borderColorHex={teacherEntity.bgColor}
+            color={teacherEntity.color}
+            link={`/teachers/${username}`}
+        />
+    );
 };

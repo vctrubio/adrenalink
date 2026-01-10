@@ -33,14 +33,16 @@ export function EventTeacherCard({
     capacityEquipment = 0,
     commissionType = "fixed",
     commissionValue = 0,
+    status,
 }: EventTeacherCardProps) {
     const durationHours = minutesToHours(duration);
     const earnedAmount = pricePerHour * durationHours;
 
     // Format earnings breakdown string
-    const earningsLabel = commissionType === "fixed" 
-        ? `Earnings (${commissionValue} € x ${durationHours.toFixed(1)} hrs)`
-        : `Earnings (${commissionValue}% of Revenue)`;
+    const earningsLabel =
+        commissionType === "fixed"
+            ? `Earnings (${commissionValue} € x ${durationHours.toFixed(1)} hrs)`
+            : `Earnings (${commissionValue}% of Revenue)`;
 
     // Prepare fields for CardList - displaying students
     const studentFields = students.map((studentName, index) => ({
@@ -59,7 +61,7 @@ export function EventTeacherCard({
     const footerLeftContent = (
         <div className="flex items-center gap-5">
             <div className="[&_span]:text-white">
-                <EquipmentStudentCommissionBadge 
+                <EquipmentStudentCommissionBadge
                     categoryEquipment={categoryEquipment}
                     equipmentCapacity={capacityEquipment}
                     studentCapacity={capacity}
@@ -78,11 +80,7 @@ export function EventTeacherCard({
     );
 
     return (
-        <EventUserCard 
-            date={date} 
-            duration={duration} 
-            footerLeftContent={footerLeftContent}
-        >
+        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent}>
             <CardList fields={fields} />
         </EventUserCard>
     );

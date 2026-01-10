@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
+import { getTeacherEventsRPC } from "@/supabase/rpc/teacher_events";
+import type { ApiActionResponseModel } from "@/types/actions";
 
 export interface TeacherProvider {
     schema: {
@@ -45,7 +47,8 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
         // Optimized query for provider usage
         const { data, error } = await supabase
             .from("teacher")
-            .select(`
+            .select(
+                `
                 id,
                 username,
                 first_name,
@@ -64,7 +67,8 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
                 lesson (
                     status
                 )
-            `)
+            `,
+            )
             .eq("school_id", schoolId)
             .order("username", { ascending: true });
 
@@ -99,7 +103,7 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
                 lessonStats: {
                     totalLessons,
                     completedLessons,
-                }
+                },
             };
         });
 
@@ -125,7 +129,8 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
         // Fetch teachers with their commissions, lessons (for stats), and assigned equipment
         const { data, error } = await supabase
             .from("teacher")
-            .select(`
+            .select(
+                `
                 *,
                 teacher_commission (
                     id,
@@ -170,7 +175,8 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                         category
                     )
                 )
-            `)
+            `,
+            )
             .eq("school_id", schoolId)
             .order("created_at", { ascending: false });
 
@@ -186,7 +192,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                 const booking = l.booking;
                 const pkg = booking.school_package;
 
-                const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+                const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
                 const studentCount = pkg.capacity_students || 1;
                 const lessonRevenue = pricePerHourPerStudent * (totalDuration / 60) * studentCount;
 
@@ -216,7 +222,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
 
             // Activity Stats by category - Only COMPLETED or UNCOMPLETED
             const activityStats: Record<string, { count: number; durationMinutes: number }> = {};
-            lessons.forEach(l => {
+            lessons.forEach((l) => {
                 if (l.status === "completed" || l.status === "uncompleted") {
                     const category = l.category;
                     if (!activityStats[category]) {
@@ -258,7 +264,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
 
             return {
                 ...result,
-                stats
+                stats,
             };
         });
     } catch (error) {
@@ -267,25 +273,61 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
     }
 }
 
-export async function updateTeacherActive(
-  teacherId: string,
-  active: boolean,
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const supabase = getServerConnection();
+export async function updateTeacherActive(teacherId: string, active: boolean): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = getServerConnection();
 
-    const { error } = await supabase
-      .from("teacher")
-      .update({ active })
-      .eq("id", teacherId);
+        const { error } = await supabase.from("teacher").update({ active }).eq("id", teacherId);
 
-    if (error) {
-      return { success: false, error: "Failed to update teacher status" };
+        if (error) {
+            return { success: false, error: "Failed to update teacher status" };
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating teacher status:", error);
+        return { success: false, error: "Failed to update teacher status" };
     }
+}
 
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating teacher status:", error);
-    return { success: false, error: "Failed to update teacher status" };
-  }
+export async function getTeacherEvents(teacherId: string, schoolId?: string): Promise<ApiActionResponseModel<any[]>> {
+    try {
+        const supabase = getServerConnection();
+        const events = await getTeacherEventsRPC(supabase, teacherId, schoolId);
+
+        const mappedEvents = events.map((e) => ({
+            id: e.event_id,
+            date: e.event_date,
+            duration: e.event_duration,
+            location: e.event_location,
+            status: e.event_status,
+            booking: {
+                id: e.booking_id,
+                leaderStudentName: e.leader_student_name,
+            },
+            students: e.students_json,
+            studentCount: e.student_count,
+            schoolPackage: {
+                id: e.package_id,
+                description: e.package_description,
+                durationMinutes: e.package_duration_minutes,
+                pricePerStudent: e.package_price_per_student,
+                categoryEquipment: e.package_category_equipment,
+                capacityEquipment: e.package_capacity_equipment,
+                capacityStudents: e.package_capacity_students,
+            },
+            lesson: {
+                commission: {
+                    id: e.commission_id,
+                    commissionType: e.commission_type,
+                    cph: e.commission_cph,
+                },
+            },
+        }));
+
+        return { success: true, data: mappedEvents };
+    } catch (error) {
+        console.error("Error in getTeacherEvents:", error);
+        return { success: false, error: "Failed to fetch teacher events" };
+    }
 }

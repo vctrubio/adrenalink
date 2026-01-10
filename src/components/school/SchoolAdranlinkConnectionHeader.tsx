@@ -53,11 +53,21 @@ export function SchoolAdranlinkConnectionHeader({
             <div className="flex items-start gap-5">
                 <motion.div variants={itemVariants} className="mt-1 shrink-0">
                     <Link href="/home">
-                        <Image src="/ADR.webp" alt="Adrenalink" width={48} height={48} priority className="hover:opacity-80 transition-opacity dark:invert" />
+                        <Image
+                            src="/ADR.webp"
+                            alt="Adrenalink"
+                            width={48}
+                            height={48}
+                            priority
+                            className="hover:opacity-80 transition-opacity dark:invert"
+                        />
                     </Link>
                 </motion.div>
                 <div className="flex flex-col gap-0.5">
-                    <motion.h1 variants={itemVariants} className="text-3xl md:text-4xl font-black tracking-tighter text-primary uppercase leading-none">
+                    <motion.h1
+                        variants={itemVariants}
+                        className="text-3xl md:text-4xl font-black tracking-tighter text-primary uppercase leading-none"
+                    >
                         {schoolName}
                     </motion.h1>
                     <motion.h2 variants={itemVariants} className="text-lg font-bold tracking-tight text-foreground/90">
@@ -67,7 +77,10 @@ export function SchoolAdranlinkConnectionHeader({
             </div>
 
             {/* 2. Main Headline */}
-            <motion.h3 variants={itemVariants} className="text-3xl md:text-5xl font-black text-foreground leading-[1.1] tracking-tight max-w-2xl">
+            <motion.h3
+                variants={itemVariants}
+                className="text-3xl md:text-5xl font-black text-foreground leading-[1.1] tracking-tight max-w-2xl"
+            >
                 {description}
             </motion.h3>
 
@@ -77,7 +90,9 @@ export function SchoolAdranlinkConnectionHeader({
                     <div className="flex items-center px-1">
                         <div className="group relative px-4 py-1.5 flex items-center gap-2.5 cursor-help">
                             <AdminIcon size={18} className="text-primary" />
-                            <span className="text-sm font-bold tracking-tight whitespace-nowrap leading-none text-foreground">{username}</span>
+                            <span className="text-sm font-bold tracking-tight whitespace-nowrap leading-none text-foreground">
+                                {username}
+                            </span>
                             <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-border shadow-md opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 mb-1">
                                 Username
                             </span>
@@ -113,7 +128,11 @@ export function SchoolAdranlinkConnectionHeader({
 function MetadataItem({ label, value, isPrimary }: { label: string; value: string; isPrimary?: boolean }) {
     return (
         <div className="group relative px-4 py-1 flex flex-col items-center justify-center cursor-help">
-            <span className={`text-sm font-bold tracking-tight whitespace-nowrap leading-none ${isPrimary ? "text-primary" : "text-foreground"}`}>{value}</span>
+            <span
+                className={`text-sm font-bold tracking-tight whitespace-nowrap leading-none ${isPrimary ? "text-primary" : "text-foreground"}`}
+            >
+                {value}
+            </span>
             <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-border shadow-md opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 mb-1">
                 {label}
             </span>

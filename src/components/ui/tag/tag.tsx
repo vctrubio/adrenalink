@@ -17,7 +17,19 @@ interface TagProps {
     className?: string;
 }
 
-export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon, eventCount, durationIcon, duration, className }: TagProps) => {
+export const Tag = ({
+    icon,
+    name,
+    bgColor,
+    borderColorHex,
+    color,
+    link,
+    flagIcon,
+    eventCount,
+    durationIcon,
+    duration,
+    className,
+}: TagProps) => {
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -34,9 +46,11 @@ export const Tag = ({ icon, name, bgColor, borderColorHex, color, link, flagIcon
             style={{ borderColor: borderColorHex } as React.CSSProperties}
             onClick={link ? handleClick : undefined}
         >
-            <div style={{ color }} className="[&>svg]:w-5 [&>svg]:h-5">{icon}</div>
+            <div style={{ color }} className="[&>svg]:w-5 [&>svg]:h-5">
+                {icon}
+            </div>
             <span className="text-foreground text-sm">{name}</span>
-            
+
             {eventCount !== undefined && eventCount > 0 && (
                 <div className="flex items-center gap-1 ml-1.5">
                     {flagIcon && <div style={{ color }}>{flagIcon}</div>}

@@ -14,9 +14,20 @@ interface EquipmentTeacherTagProps {
 }
 
 export const EquipmentTeacherTag = ({ icon, username, hours, link, duration }: EquipmentTeacherTagProps) => {
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const displayText = username;
     const durationIcon = duration ? <DurationIcon className="w-3 h-3" /> : null;
 
-    return <Tag icon={icon} name={displayText} bgColor="#e5e7eb" borderColorHex={teacherEntity.color} color="#4b5563" link={link} durationIcon={durationIcon} duration={duration} />;
+    return (
+        <Tag
+            icon={icon}
+            name={displayText}
+            bgColor="#e5e7eb"
+            borderColorHex={teacherEntity.color}
+            color="#4b5563"
+            link={link}
+            durationIcon={durationIcon}
+            duration={duration}
+        />
+    );
 };

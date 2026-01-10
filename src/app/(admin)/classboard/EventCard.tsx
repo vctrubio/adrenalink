@@ -25,7 +25,19 @@ interface EventCardProps {
 }
 
 // Status Icon - shows different states
-const StatusIcon = ({ size = 24, isPosting, isDeleting, isError, EquipmentIcon }: { size?: number, isPosting?: boolean, isDeleting?: boolean, isError?: boolean, EquipmentIcon?: any }) => {
+const StatusIcon = ({
+    size = 24,
+    isPosting,
+    isDeleting,
+    isError,
+    EquipmentIcon,
+}: {
+    size?: number;
+    isPosting?: boolean;
+    isDeleting?: boolean;
+    isError?: boolean;
+    EquipmentIcon?: any;
+}) => {
     if (isPosting) {
         return (
             <motion.div
@@ -70,7 +82,13 @@ const StatusIcon = ({ size = 24, isPosting, isDeleting, isError, EquipmentIcon }
                 }}
                 className="flex items-center justify-center shrink-0"
             >
-                <Image src="/ADR.webp" width={size} height={size} alt="" className="rounded-full object-cover grayscale opacity-40 ring-2 ring-red-500" />
+                <Image
+                    src="/ADR.webp"
+                    width={size}
+                    height={size}
+                    alt=""
+                    className="rounded-full object-cover grayscale opacity-40 ring-2 ring-red-500"
+                />
             </motion.div>
         );
     }
@@ -87,7 +105,13 @@ const StatusIcon = ({ size = 24, isPosting, isDeleting, isError, EquipmentIcon }
  * EventCard - Renders a single event card
  * Reads gapMinutes from GlobalFlag (source of truth)
  */
-export default function EventCard({ event, queueController, gapMinutes: gapMinutesProp, showLocation = true, cardStatus }: EventCardProps) {
+export default function EventCard({
+    event,
+    queueController,
+    gapMinutes: gapMinutesProp,
+    showLocation = true,
+    cardStatus,
+}: EventCardProps) {
     const contextValue = useClassboardContext();
     const { deleteEvent, updateEventStatus } = contextValue;
 
@@ -145,15 +169,12 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
     const isError = cardStatus === "error";
     const isLoading = isPosting || isUpdating || isDeleting;
 
-    const IconWrapper = useCallback((props: { size?: number }) => (
-        <StatusIcon 
-            {...props} 
-            isPosting={isPosting} 
-            isDeleting={isDeleting} 
-            isError={isError} 
-            EquipmentIcon={EquipmentIcon} 
-        />
-    ), [isPosting, isDeleting, isError, EquipmentIcon]);
+    const IconWrapper = useCallback(
+        (props: { size?: number }) => (
+            <StatusIcon {...props} isPosting={isPosting} isDeleting={isDeleting} isError={isError} EquipmentIcon={EquipmentIcon} />
+        ),
+        [isPosting, isDeleting, isError, EquipmentIcon],
+    );
 
     // Actions
     const handleStatusClick = async (newStatus: EventStatus) => {
@@ -194,18 +215,20 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
                 {effectivePreviousEvent && gapMinutes !== undefined && !isDeleting && (
-                    <EventGapDetection 
-                        currentEvent={event} 
-                        previousEvent={effectivePreviousEvent} 
-                        requiredGapMinutes={gapMinutes} 
-                        updateMode="updateNow" 
-                        wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20" 
-                        className="w-auto shadow-sm" 
+                    <EventGapDetection
+                        currentEvent={event}
+                        previousEvent={effectivePreviousEvent}
+                        requiredGapMinutes={gapMinutes}
+                        updateMode="updateNow"
+                        wrapperClassName="absolute top-1 left-6 right-0 flex justify-start pointer-events-none z-20"
+                        className="w-auto shadow-sm"
                     />
                 )}
 
                 {/* Left Side: Time and Duration */}
-                <div className={`transition-all duration-500 ${isWaitingForPrevious ? "blur-[2px] opacity-50 scale-95 origin-left grayscale" : ""}`}>
+                <div
+                    className={`transition-all duration-500 ${isWaitingForPrevious ? "blur-[2px] opacity-50 scale-95 origin-left grayscale" : ""}`}
+                >
                     <EventStartDurationTime date={event.eventData.date} duration={duration} />
                 </div>
 
@@ -256,7 +279,15 @@ export default function EventCard({ event, queueController, gapMinutes: gapMinut
                 </button>
 
                 {/* Student Dropdown - Only if multiple students */}
-                {hasMultipleStudents && <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={studentTriggerRef} />}
+                {hasMultipleStudents && (
+                    <Dropdown
+                        isOpen={isStudentDropdownOpen}
+                        onClose={() => setIsStudentDropdownOpen(false)}
+                        items={studentDropdownItems}
+                        align="left"
+                        triggerRef={studentTriggerRef}
+                    />
+                )}
             </div>
         </div>
     );

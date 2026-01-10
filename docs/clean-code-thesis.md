@@ -44,33 +44,29 @@ We believe in writing **DRY, reusable, and human-friendly code** that tells a st
 ### ✅ GOOD: Clean Structure with Result Pattern
 
 ```typescript
-export async function getStudents(): Promise<
-  ApiActionResponseModel<StudentType[]>
-> {
-  try {
-    const header = headers().get("x-school-username");
+export async function getStudents(): Promise<ApiActionResponseModel<StudentType[]>> {
+    try {
+        const header = headers().get("x-school-username");
 
-    let result;
-    if (header) {
-      result = await db.query.schoolStudents.findMany({
-        where: eq(school.username, header),
-        with: studentWithRelations,
-      });
-    } else {
-      result = await db.query.student.findMany({
-        with: studentWithRelations,
-      });
+        let result;
+        if (header) {
+            result = await db.query.schoolStudents.findMany({
+                where: eq(school.username, header),
+                with: studentWithRelations,
+            });
+        } else {
+            result = await db.query.student.findMany({
+                with: studentWithRelations,
+            });
+        }
+
+        const students = header ? result.map((schoolStudent) => schoolStudent.student) : result;
+
+        return { success: true, data: students };
+    } catch (error) {
+        console.error("Error fetching students:", error);
+        return { success: false, error: "Failed to fetch students" };
     }
-
-    const students = header
-      ? result.map((schoolStudent) => schoolStudent.student)
-      : result;
-
-    return { success: true, data: students };
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    return { success: false, error: "Failed to fetch students" };
-  }
 }
 ```
 
@@ -78,26 +74,22 @@ export async function getStudents(): Promise<
 
 ```typescript
 export async function getStudents(): Promise<StudentModel[]> {
-  const schoolUsername = headers().get("x-school-username");
+    const schoolUsername = headers().get("x-school-username");
 
-  if (schoolUsername) {
-    const result = await db.query.schoolStudents.findMany({
-      where: eq(school.username, schoolUsername),
-      with: studentWithRelations,
-    });
-    const students = result.map((schoolStudent) =>
-      createStudentModel(schoolStudent.student),
-    );
-    return students;
-  } else {
-    const result = await db.query.student.findMany({
-      with: studentWithRelations,
-    });
-    const students = result.map((studentData) =>
-      createStudentModel(studentData),
-    );
-    return students;
-  }
+    if (schoolUsername) {
+        const result = await db.query.schoolStudents.findMany({
+            where: eq(school.username, schoolUsername),
+            with: studentWithRelations,
+        });
+        const students = result.map((schoolStudent) => createStudentModel(schoolStudent.student));
+        return students;
+    } else {
+        const result = await db.query.student.findMany({
+            with: studentWithRelations,
+        });
+        const students = result.map((studentData) => createStudentModel(studentData));
+        return students;
+    }
 }
 ```
 
@@ -120,7 +112,7 @@ const color = getEventStatusColor(status);
 const getBaseColor = (shade: RainbowShade) => shade.split("-")[0];
 
 const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
-  return colorLabels[getBaseColor(shade) as ColorType];
+    return colorLabels[getBaseColor(shade) as ColorType];
 };
 
 // Developer now has to jump to getBaseColor definition to understand what it does
@@ -137,8 +129,8 @@ const label = EVENT_STATUS_CONFIG[status].label;
 
 // Example 2: Inline simple operations
 const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
-  const baseColor = shade.split("-")[0];
-  return colorLabels[baseColor as ColorType];
+    const baseColor = shade.split("-")[0];
+    return colorLabels[baseColor as ColorType];
 };
 ```
 
@@ -147,13 +139,13 @@ const ColorLabel = ({ shade }: { shade: RainbowShade }) => {
 ```typescript
 // types/status.ts - Creates intermediate wrapper
 export const STATUS_COLORS = {
-  eventPlanned: "#9ca3af",
-  eventCompleted: "#86efac",
+    eventPlanned: "#9ca3af",
+    eventCompleted: "#86efac",
 };
 
 export const EVENT_STATUS_CONFIG = {
-  planned: { color: STATUS_COLORS.eventPlanned, label: "Planned" },
-  completed: { color: STATUS_COLORS.eventCompleted, label: "Completed" },
+    planned: { color: STATUS_COLORS.eventPlanned, label: "Planned" },
+    completed: { color: STATUS_COLORS.eventCompleted, label: "Completed" },
 };
 
 // Later: getters/booking-progress-getter.ts imports STATUS_COLORS directly
@@ -168,8 +160,8 @@ import { STATUS_COLORS } from "@/types/status";
 ```typescript
 // types/status.ts - Single source of truth
 export const EVENT_STATUS_CONFIG = {
-  planned: { color: "#9ca3af", label: "Planned" },
-  completed: { color: "#86efac", label: "Completed" },
+    planned: { color: "#9ca3af", label: "Planned" },
+    completed: { color: "#86efac", label: "Completed" },
 };
 
 // getters/booking-progress-getter.ts

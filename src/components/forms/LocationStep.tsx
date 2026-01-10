@@ -28,11 +28,30 @@ interface LocationStepProps {
     phoneError?: string;
     onCountryChange: (country: string) => void;
     onPhoneChange: (phone: string) => void;
-    onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string; city?: string; timezone?: string }) => void;
+    onLocationChange: (location: {
+        latitude?: number;
+        longitude?: number;
+        googlePlaceId?: string;
+        city?: string;
+        timezone?: string;
+    }) => void;
     triggerPhoneClear: () => void;
 }
 
-export function LocationStep({ country, phone, latitude, longitude, googlePlaceId, city, countryError, phoneError, onCountryChange, onPhoneChange, onLocationChange, triggerPhoneClear }: LocationStepProps) {
+export function LocationStep({
+    country,
+    phone,
+    latitude,
+    longitude,
+    googlePlaceId,
+    city,
+    countryError,
+    phoneError,
+    onCountryChange,
+    onPhoneChange,
+    onLocationChange,
+    triggerPhoneClear,
+}: LocationStepProps) {
     const [googlePlaces, setGooglePlaces] = useState<GooglePlace[]>([]);
     const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState<any>(null);
@@ -125,7 +144,10 @@ export function LocationStep({ country, phone, latitude, longitude, googlePlaceI
                     setSelectedPlace(result);
                     setTimezone(fetchedTimezone);
 
-                    const cityComponent = result.address_components?.find((component: any) => component.types.includes("locality") || component.types.includes("administrative_area_level_1"));
+                    const cityComponent = result.address_components?.find(
+                        (component: any) =>
+                            component.types.includes("locality") || component.types.includes("administrative_area_level_1"),
+                    );
 
                     onLocationChange({
                         googlePlaceId: place.place_id,
@@ -172,7 +194,12 @@ export function LocationStep({ country, phone, latitude, longitude, googlePlaceI
 
             <FormField label="Search Location">
                 <div className="relative">
-                    <FormInput type="text" placeholder="Search for your school location..." value={searchValue} onChange={handleSearchChange} />
+                    <FormInput
+                        type="text"
+                        placeholder="Search for your school location..."
+                        value={searchValue}
+                        onChange={handleSearchChange}
+                    />
                     {isSearchingPlaces && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -181,9 +208,18 @@ export function LocationStep({ country, phone, latitude, longitude, googlePlaceI
                     {googlePlaces.length > 0 && (
                         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
                             {googlePlaces.map((place) => (
-                                <button key={place.place_id} type="button" onClick={() => selectPlace(place)} className="w-full text-left px-4 py-3 hover:bg-accent border-b border-border last:border-b-0">
-                                    <div className="font-medium">{place.structured_formatting?.main_text || place.terms?.[0]?.value || place.description}</div>
-                                    <div className="text-sm text-muted-foreground">{place.structured_formatting?.secondary_text || place.description}</div>
+                                <button
+                                    key={place.place_id}
+                                    type="button"
+                                    onClick={() => selectPlace(place)}
+                                    className="w-full text-left px-4 py-3 hover:bg-accent border-b border-border last:border-b-0"
+                                >
+                                    <div className="font-medium">
+                                        {place.structured_formatting?.main_text || place.terms?.[0]?.value || place.description}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        {place.structured_formatting?.secondary_text || place.description}
+                                    </div>
                                 </button>
                             ))}
                         </div>

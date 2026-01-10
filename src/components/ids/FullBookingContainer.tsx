@@ -190,7 +190,12 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     const teacherLessons: TeacherLessonRow[] = lessons.map((lesson) => {
         const events = lesson.events || [];
         const lessonDurationMinutes = events.reduce((sum, e) => sum + (e.duration || 0), 0);
-        const lessonRevenue = calculateLessonRevenue(schoolPackage.price_per_student, studentCount, lessonDurationMinutes, schoolPackage.duration_minutes);
+        const lessonRevenue = calculateLessonRevenue(
+            schoolPackage.price_per_student,
+            studentCount,
+            lessonDurationMinutes,
+            schoolPackage.duration_minutes,
+        );
 
         const commissionType = (lesson.commission?.commission_type as "fixed" | "percentage") || "fixed";
         const cph = parseFloat(lesson.commission?.cph || "0");
@@ -229,7 +234,12 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
     );
 
     // Calculate total revenue and school revenue
-    const totalRevenue = calculateLessonRevenue(schoolPackage.price_per_student, studentCount, totals.duration, schoolPackage.duration_minutes);
+    const totalRevenue = calculateLessonRevenue(
+        schoolPackage.price_per_student,
+        studentCount,
+        totals.duration,
+        schoolPackage.duration_minutes,
+    );
     totals.totalRevenue = totalRevenue;
     totals.schoolRevenue = totalRevenue - totals.teacherEarnings;
 
@@ -247,13 +257,17 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                         <div className="flex-1 space-y-2">
                             {/* Date and Progress Badge */}
                             <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
-                                <BookingStatusLabel 
-                                    status={bookingData.status} 
+                                <BookingStatusLabel
+                                    status={bookingData.status}
                                     bookingId={bookingData.id}
-                                    startDate={bookingData.date_start} 
-                                    endDate={bookingData.date_end} 
+                                    startDate={bookingData.date_start}
+                                    endDate={bookingData.date_end}
                                 />
-                                <BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={schoolPackage.duration_minutes} background={progressBar.background} />
+                                <BookingProgressBadge
+                                    usedMinutes={usedMinutes}
+                                    totalMinutes={schoolPackage.duration_minutes}
+                                    background={progressBar.background}
+                                />
                             </div>
 
                             {/* Package Info and Revenue Row */}
@@ -276,26 +290,34 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                         </div>
 
                         {/* Icon */}
-                        <ToggleAdranalinkIcon 
-                            isOpen={isExpanded} 
-                            color={bookingEntity_color} 
-                            className="flex-shrink-0"
-                        />
+                        <ToggleAdranalinkIcon isOpen={isExpanded} color={bookingEntity_color} className="flex-shrink-0" />
                     </div>
                 </div>
 
                 {/* Expanded Content */}
                 <AnimatePresence>
                     {isExpanded && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                        >
                             <div className="p-4 space-y-3 border-t border-border">
                                 {/* Package Description */}
                                 <div className="space-y-1.5">
                                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Package</div>
                                     {schoolPackage && (
                                         <div onClick={(e) => e.stopPropagation()}>
-                                            <HoverToEntity entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!} id={schoolPackage.id}>
-                                                <div className="text-sm font-semibold text-foreground cursor-pointer transition-colors hover:opacity-80" style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}>
+                                            <HoverToEntity
+                                                entity={ENTITY_DATA.find((e) => e.id === "schoolPackage")!}
+                                                id={schoolPackage.id}
+                                            >
+                                                <div
+                                                    className="text-sm font-semibold text-foreground cursor-pointer transition-colors hover:opacity-80"
+                                                    style={{ color: ENTITY_DATA.find((e) => e.id === "schoolPackage")!.color }}
+                                                >
                                                     {schoolPackage.description}
                                                 </div>
                                             </HoverToEntity>
@@ -306,7 +328,9 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                                 {/* Students */}
                                 {bookingData.booking_student && bookingData.booking_student.length > 0 && (
                                     <div className="space-y-1.5">
-                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Students</div>
+                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                            Students
+                                        </div>
                                         <div className="space-y-1">
                                             {bookingData.booking_student.map((bs) => {
                                                 const student = bs.student;
@@ -347,7 +371,15 @@ export function FullBookingCard({ bookingData, currency, formatCurrency }: FullB
                                                 earned: lesson.totalEarning,
                                                 events: lesson.events,
                                             };
-                                            return <TeacherComissionLessonTable key={lesson.lessonId} lesson={lessonData} formatCurrency={formatCurrency} currency={currency} teacherEntity={teacherEntity} />;
+                                            return (
+                                                <TeacherComissionLessonTable
+                                                    key={lesson.lessonId}
+                                                    lesson={lessonData}
+                                                    formatCurrency={formatCurrency}
+                                                    currency={currency}
+                                                    teacherEntity={teacherEntity}
+                                                />
+                                            );
                                         })}
                                     </div>
                                 )}

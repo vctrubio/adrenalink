@@ -28,7 +28,15 @@ interface TeacherQueueRowProps {
  */
 export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
     const contextValue = useClassboardContext();
-    const { globalFlag, bookingsForSelectedDate, draggedBooking, setDraggedBooking, addLessonEvent, getEventCardStatus, selectedDate } = contextValue;
+    const {
+        globalFlag,
+        bookingsForSelectedDate,
+        draggedBooking,
+        setDraggedBooking,
+        addLessonEvent,
+        getEventCardStatus,
+        selectedDate,
+    } = contextValue;
     const renderCount = useRef(0);
     renderCount.current++;
 
@@ -44,7 +52,7 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     // In view mode, memoize a temporary QueueController for cascade delete operations
     const tempController = useMemo(() => {
         if (isAdjustmentMode) return null;
-        return new QueueController(queue, controller, () => { });
+        return new QueueController(queue, controller, () => {});
     }, [queue, controller, isAdjustmentMode]);
 
     if (!queueController) {
@@ -56,8 +64,9 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
 
     useEffect(() => {
         const events = activeQueue.getAllEvents();
-        console.log(`📊 [TeacherQueueRow] Queue Update for ${queue.teacher.username}:`, 
-            events.map(e => ({ id: e.id, time: e.eventData.date.split('T')[1], status: e.eventData.status }))
+        console.log(
+            `📊 [TeacherQueueRow] Queue Update for ${queue.teacher.username}:`,
+            events.map((e) => ({ id: e.id, time: e.eventData.date.split("T")[1], status: e.eventData.status })),
         );
     }, [activeQueue, queue.teacher.username]);
 
@@ -68,23 +77,25 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     // Calculate next available slot for overlay display
     const nextSlotTime = useMemo(() => {
         if (!isEligible || !draggedBooking) return null;
-        
+
         const cap = draggedBooking.capacityStudents;
         const duration = cap === 1 ? controller.durationCapOne : cap === 2 ? controller.durationCapTwo : controller.durationCapThree;
-        
+
         return activeQueue.getNextAvailableSlot(controller.submitTime, duration, controller.gapMinutes);
     }, [isEligible, draggedBooking, activeQueue, controller, activeQueue.version]);
 
     // Memoize the entire event list computation
     const eventsWithOptimistic = useMemo(() => {
         // TeacherQueue now manages its own optimistic state internally
-        // In adjustment mode, we hide deleted events immediately. 
+        // In adjustment mode, we hide deleted events immediately.
         // In view mode, we show them with a spinner until the server confirms.
         const events = activeQueue.getAllEvents({ includeDeleted: !isAdjustmentMode });
-        
-        console.log(`  🎫 [TeacherQueueRow] Rendering ${events.length} events for ${queue.teacher.username} (v${activeQueue.version})`);
-        
-        return events.map(node => ({ node }));
+
+        console.log(
+            `  🎫 [TeacherQueueRow] Rendering ${events.length} events for ${queue.teacher.username} (v${activeQueue.version})`,
+        );
+
+        return events.map((node) => ({ node }));
     }, [activeQueue, selectedDate, activeQueue.version, isAdjustmentMode]);
 
     // Calculate progress counts for collapsed view
@@ -196,39 +207,43 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
     );
 
     return (
-        <motion.div 
+        <motion.div
             layout
             animate={{
                 opacity: isDraggingSomething && !isEligible ? 0.2 : 1,
             }}
             transition={{ duration: 0.2 }}
-            className={`w-full overflow-hidden transition-all duration-300 flex flex-row items-stretch group/row rounded-xl relative ${isDraggingSomething && !isEligible ? "grayscale opacity-20 pointer-events-none" : ""}`} 
-            onDragOver={handleDragOver} 
+            className={`w-full overflow-hidden transition-all duration-300 flex flex-row items-stretch group/row rounded-xl relative ${isDraggingSomething && !isEligible ? "grayscale opacity-20 pointer-events-none" : ""}`}
+            onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
             {/* Visual Drop Zone Indicator - Sophisticated Overlay */}
             <AnimatePresence>
                 {isDraggingSomething && isEligible && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
                         animate={{ opacity: 1, backdropFilter: "blur(2px)" }}
                         exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
                         className="absolute inset-0 pointer-events-none border-2 border-dashed border-cyan-500/40 rounded-xl z-50 flex items-center justify-center bg-cyan-500/5"
                     >
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="bg-cyan-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-2xl ring-4 ring-cyan-500/20 flex items-center gap-2"
                         >
                             <span>Start at</span>
-                            <span className="text-sm font-mono bg-white/20 px-1.5 py-0.5 rounded leading-none">{nextSlotTime || "--:--"}</span>
+                            <span className="text-sm font-mono bg-white/20 px-1.5 py-0.5 rounded leading-none">
+                                {nextSlotTime || "--:--"}
+                            </span>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* Teacher Card */}
-            <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
+            <div
+                className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}
+            >
                 <TeacherClassCard
                     queue={activeQueue}
                     onClick={onToggleCollapse}
@@ -250,7 +265,13 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                 {/* Optimise and Lock controls - always show in adjustment mode */}
                 {viewMode === "adjustment" && queueController && (
                     <div className="mt-2 px-2">
-                        <LockMutationQueue isLocked={queueController.isLocked()} onToggle={handleToggleLock} isOptimised={queueController.isQueueOptimised()} optimisationStats={queueController.getOptimisationStats()} onOptimise={handleOptimise} />
+                        <LockMutationQueue
+                            isLocked={queueController.isLocked()}
+                            onToggle={handleToggleLock}
+                            isOptimised={queueController.isQueueOptimised()}
+                            optimisationStats={queueController.getOptimisationStats()}
+                            onOptimise={handleOptimise}
+                        />
                     </div>
                 )}
             </div>
@@ -271,13 +292,15 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                                 const canMoveLater = queueController ? queueController.canMoveLater(event.id) : false;
                                 const previousEvent = event.prev;
 
-                                console.log(`  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`);
+                                console.log(
+                                    `  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`,
+                                );
 
                                 return (
                                     <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-start">
                                         {viewMode === "adjustment" && queueController ? (
-                                            <EventModCard 
-                                                event={event} 
+                                            <EventModCard
+                                                event={event}
                                                 queueController={queueController}
                                                 isFirst={isFirst}
                                                 isLast={isLast}
@@ -286,13 +309,21 @@ export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggle
                                                 previousEvent={previousEvent}
                                             />
                                         ) : (
-                                            <EventCard event={event} cardStatus={effectiveCardStatus} queueController={queueController} gapMinutes={gapMinutes} showLocation={true} />
+                                            <EventCard
+                                                event={event}
+                                                cardStatus={effectiveCardStatus}
+                                                queueController={queueController}
+                                                gapMinutes={gapMinutes}
+                                                showLocation={true}
+                                            />
                                         )}
                                     </div>
                                 );
                             })
                         ) : (
-                            <div className="flex items-center justify-center w-full text-xs text-muted-foreground">No events today</div>
+                            <div className="flex items-center justify-center w-full text-xs text-muted-foreground">
+                                No events today
+                            </div>
                         )}
                     </div>
                 </div>

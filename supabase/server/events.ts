@@ -2,10 +2,10 @@
 
 /**
  * Event Server Actions
- * 
+ *
  * All server-side operations related to events are defined here.
  * This includes updating event status, fetching event data, and other event mutations.
- * 
+ *
  * These are used by client components (like EventHomeStatusLabel) for optimistic updates
  * and real-time synchronization with the database.
  */
@@ -66,7 +66,9 @@ export async function updateEventIdStatus(eventId: string, newStatus: EventStatu
  * Fetches a complete event transaction with all nested relations
  * Returns formatted TransactionEventData for table and page consumption
  */
-export async function getEventTransaction(eventId: string): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
+export async function getEventTransaction(
+    eventId: string,
+): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
     try {
         const supabase = getServerConnection();
         const schoolHeader = await getSchoolHeader();
@@ -77,7 +79,8 @@ export async function getEventTransaction(eventId: string): Promise<{ success: b
 
         const { data, error } = await supabase
             .from("event")
-            .select(`
+            .select(
+                `
                 id,
                 lesson_id,
                 date,
@@ -150,7 +153,8 @@ export async function getEventTransaction(eventId: string): Promise<{ success: b
                         status
                     )
                 )
-            `)
+            `,
+            )
             .eq("id", eventId)
             .single();
 
@@ -174,8 +178,15 @@ export async function getEventTransaction(eventId: string): Promise<{ success: b
         const commissionValue = parseFloat(commission.cph || "0");
         const currency = teacher.school?.currency || "YEN";
 
-        const studentRevenue = pkg ? calculateLessonRevenue(pkg.price_per_student, studentCount, data.duration, pkg.duration_minutes) : 0;
-        const commCalc = calculateCommission(data.duration, { type: commissionType, cph: commissionValue }, studentRevenue, pkg?.duration_minutes || 60);
+        const studentRevenue = pkg
+            ? calculateLessonRevenue(pkg.price_per_student, studentCount, data.duration, pkg.duration_minutes)
+            : 0;
+        const commCalc = calculateCommission(
+            data.duration,
+            { type: commissionType, cph: commissionValue },
+            studentRevenue,
+            pkg?.duration_minutes || 60,
+        );
         const teacherEarnings = commCalc.earned;
         const profit = studentRevenue - teacherEarnings;
 

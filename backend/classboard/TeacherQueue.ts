@@ -23,10 +23,10 @@ export class TeacherQueue {
     public teacher: TeacherInfo;
     public version: number = 0;
     public isActive: boolean = true;
-    
+
     // THE GROUND TRUTH: Last known state from the server
     private serverEvents = new Map<string, EventNode>();
-    
+
     // Internal optimistic state
     private optimisticAdditions = new Map<string, EventNode>();
     private optimisticDeletions = new Set<string>();
@@ -114,14 +114,12 @@ export class TeacherQueue {
     private refreshQueueStructure(): void {
         // ALWAYS use serverEvents as the source of truth for the base list
         const baseEvents = Array.from(this.serverEvents.values());
-        
+
         // Combine with optimistic additions
         const allActiveEvents = [...baseEvents, ...Array.from(this.optimisticAdditions.values())];
 
         // Sort
-        allActiveEvents.sort((a, b) => 
-            new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime()
-        );
+        allActiveEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
 
         // Rebuild Links
         this.rebuildQueue(allActiveEvents);
@@ -256,7 +254,7 @@ export class TeacherQueue {
             }
             prev = event;
         });
-        
+
         this.version++;
     }
 
@@ -267,11 +265,11 @@ export class TeacherQueue {
     syncEvents(newEventsData: EventNode[], mutatingIds: Set<string> = new Set()): string[] {
         console.log(`[Queue:${this.teacher.username}] 🔄 Syncing ${newEventsData.length} events from server...`);
         const confirmedIds: string[] = [];
-        
+
         // 1. Update the 'Server Truth' map, preserving object references
         const updatedServerMap = new Map<string, EventNode>();
-        
-        newEventsData.forEach(newData => {
+
+        newEventsData.forEach((newData) => {
             const existingNode = this.serverEvents.get(newData.id);
             if (existingNode) {
                 // Update properties in place
@@ -286,7 +284,7 @@ export class TeacherQueue {
                 existingNode.categoryEquipment = newData.categoryEquipment;
                 existingNode.capacityEquipment = newData.capacityEquipment;
                 existingNode.commission = newData.commission;
-                
+
                 if (!isMutating) {
                     existingNode.eventData = newData.eventData;
                 } else {
@@ -299,11 +297,11 @@ export class TeacherQueue {
                 updatedServerMap.set(newData.id, newData);
             }
         });
-        
+
         this.serverEvents = updatedServerMap;
 
         // 2. Self-heal deletions: If server says it's gone, remove from local deletion markers
-        this.optimisticDeletions.forEach(id => {
+        this.optimisticDeletions.forEach((id) => {
             if (!this.serverEvents.has(id)) {
                 console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed deletion of ${id}`);
                 this.optimisticDeletions.delete(id);
@@ -314,13 +312,13 @@ export class TeacherQueue {
         // 3. Self-heal additions: If server now has the event, remove from local additions
         this.optimisticAdditions.forEach((event, id) => {
             const optTime = event.eventData.date.substring(0, 16);
-            const isConfirmed = Array.from(this.serverEvents.values()).find(e => 
-                e.id === id || (e.lessonId === event.lessonId && e.eventData.date.substring(0, 16) === optTime)
+            const isConfirmed = Array.from(this.serverEvents.values()).find(
+                (e) => e.id === id || (e.lessonId === event.lessonId && e.eventData.date.substring(0, 16) === optTime),
             );
-            
+
             if (isConfirmed) {
                 console.log(`[Queue:${this.teacher.username}] ✅ Server confirmed event: ${id}`);
-                this.optimisticAdditions.delete(id); 
+                this.optimisticAdditions.delete(id);
                 confirmedIds.push(id); // Newly added event confirmed
                 confirmedIds.push(isConfirmed.id); // Add the real server ID too
             }
@@ -329,8 +327,10 @@ export class TeacherQueue {
         // 4. Solidify the linked list
         this.refreshQueueStructure();
         this.version++;
-        console.log(`[Queue:${this.teacher.username}] ✨ Sync complete. Board Size: ${this.getAllEvents({includeDeleted: true}).length}`);
-        
+        console.log(
+            `[Queue:${this.teacher.username}] ✨ Sync complete. Board Size: ${this.getAllEvents({ includeDeleted: true }).length}`,
+        );
+
         return confirmedIds;
     }
 
@@ -359,7 +359,7 @@ export class TeacherQueue {
      */
     updateEventStatus(eventId: string, status: EventNode["eventData"]["status"]): void {
         console.log(`[Queue:${this.teacher.username}] 🏷️ Updating status for ${eventId} -> ${status}`);
-        const event = this.getAllEvents({ includeDeleted: true }).find(e => e.id === eventId);
+        const event = this.getAllEvents({ includeDeleted: true }).find((e) => e.id === eventId);
         if (event) {
             event.eventData.status = status;
             this.version++;
@@ -395,7 +395,10 @@ export class TeacherQueue {
      * Packs all events back-to-back with required gap, starting from the given time
      * Returns updates for events that need moving + skipped event IDs if they exceed 24:00
      */
-    optimiseFromTime(startTimeMinutes: number, gapMinutes: number): { updates: Array<{ id: string; date: string; duration: number }>; skipped: string[] } {
+    optimiseFromTime(
+        startTimeMinutes: number,
+        gapMinutes: number,
+    ): { updates: Array<{ id: string; date: string; duration: number }>; skipped: string[] } {
         // Use getAllEvents() which automatically excludes ghosted (deleting) nodes
         const events = this.getAllEvents();
         const updates: Array<{ id: string; date: string; duration: number }> = [];
@@ -434,7 +437,9 @@ export class TeacherQueue {
             nextAvailableMinutes += eventDuration + gapMinutes;
         });
 
-        console.log(`✅ [Queue:${this.teacher.username}] Gap Optimization: ${updates.length} events shifted starting from ${minutesToTime(startTimeMinutes)}`);
+        console.log(
+            `✅ [Queue:${this.teacher.username}] Gap Optimization: ${updates.length} events shifted starting from ${minutesToTime(startTimeMinutes)}`,
+        );
         return { updates, skipped };
     }
 
@@ -497,10 +502,12 @@ export class TeacherQueue {
      */
     getNextAvailableSlot(submitTime: string, duration: number, gapMinutes: number, pendingEvents: EventNode[] = []): string | null {
         const allEvents = [...this.getAllEvents(), ...pendingEvents].sort(
-            (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b)
+            (a, b) => this.getStartTimeMinutes(a) - this.getStartTimeMinutes(b),
         );
 
-        console.log(`🔍 [TeacherQueue] Finding slot for ${submitTime} (${duration}m + ${gapMinutes}m gap). Events: ${allEvents.length}`);
+        console.log(
+            `🔍 [TeacherQueue] Finding slot for ${submitTime} (${duration}m + ${gapMinutes}m gap). Events: ${allEvents.length}`,
+        );
 
         // Try submitTime if no conflicts and before midnight
         const hasConflict = this.doesTimeConflict(submitTime, duration, gapMinutes, allEvents);
@@ -522,7 +529,9 @@ export class TeacherQueue {
         const lastEventEndMinutes = this.getStartTimeMinutes(lastEvent) + lastEvent.eventData.duration;
         const nextSlotTime = minutesToTime(lastEventEndMinutes + gapMinutes);
 
-        console.log(`   👉 Checking Next Slot ${nextSlotTime} (after last event at ${minutesToTime(this.getStartTimeMinutes(lastEvent))} + ${lastEvent.eventData.duration}m)`);
+        console.log(
+            `   👉 Checking Next Slot ${nextSlotTime} (after last event at ${minutesToTime(this.getStartTimeMinutes(lastEvent))} + ${lastEvent.eventData.duration}m)`,
+        );
 
         if (this.startsBeforeMidnight(nextSlotTime)) {
             return nextSlotTime;

@@ -71,8 +71,11 @@ export default function Devbar() {
                             <Link
                                 key={href}
                                 href={href}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out ${pathname === href ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
-                                    }`}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out ${
+                                    pathname === href
+                                        ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
+                                        : "text-foreground hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md"
+                                }`}
                             >
                                 <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
                                 <span className="text-sm">{label}</span>
@@ -90,7 +93,11 @@ export default function Devbar() {
                 <div className="border-t border-border py-2">
                     <div className="flex flex-wrap gap-2">
                         {visibleNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
-                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}>
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}
+                            >
                                 <Icon size={14} className={pathname === href ? "text-white" : color} />
                                 <span className="text-xs">{label}</span>
                             </Link>
@@ -102,7 +109,11 @@ export default function Devbar() {
                 <div className="border-t border-border py-2">
                     <div className="flex flex-wrap gap-2">
                         {hiddenNavigationItems.map(({ href, icon: Icon, label, color, bgColor }) => (
-                            <Link key={href} href={href} className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}>
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors ${pathname === href ? `${bgColor} text-white` : `text-foreground hover:${bgColor} hover:text-white`}`}
+                            >
                                 <Icon size={14} className={pathname === href ? "text-white" : color} />
                                 <span className="text-xs">{label}</span>
                             </Link>

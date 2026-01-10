@@ -35,7 +35,7 @@ interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     successMessage?: string;
     successButtonText?: string;
     onSuccessButtonClick?: () => void;
-    
+
     // State change callback
     onStateChange?: (state: { isSubmitted: boolean; isError: boolean }) => void;
 }
@@ -62,7 +62,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isError, setIsError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    
+
     const { handleSubmit, trigger, formState, setFocus } = formMethods;
 
     // Auto-focus first input when step changes
@@ -208,7 +208,11 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
 
             {/* Form */}
-            <Form methods={formMethods} onSubmit={handleSubmit(handleFormSubmit)} className="bg-card rounded-lg md:rounded-xl border border-border/50 p-3 md:p-8 lg:p-12 shadow-lg mx-auto">
+            <Form
+                methods={formMethods}
+                onSubmit={handleSubmit(handleFormSubmit)}
+                className="bg-card rounded-lg md:rounded-xl border border-border/50 p-3 md:p-8 lg:p-12 shadow-lg mx-auto"
+            >
                 {/* Current Step Content */}
                 {CurrentStepComponent && (
                     <div className="space-y-4 md:space-y-6">
@@ -217,7 +221,14 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                 )}
 
                 {/* Navigation */}
-                <MultiFormButtons isFirstStep={stepIndex === 0} isLastStep={stepIndex === steps.length - 1} onPrev={prev} onNext={next} submitButtonText={submitButtonText} isFormValid={formState.isValid} />
+                <MultiFormButtons
+                    isFirstStep={stepIndex === 0}
+                    isLastStep={stepIndex === steps.length - 1}
+                    onPrev={prev}
+                    onNext={next}
+                    submitButtonText={submitButtonText}
+                    isFormValid={formState.isValid}
+                />
             </Form>
         </div>
     );

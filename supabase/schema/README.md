@@ -60,6 +60,7 @@ The schema is split into 12 files, loaded in strict dependency order to resolve 
 ## Critical Dependencies
 
 **Why this order matters:**
+
 - `school` must be first (base entity, referenced by most tables)
 - `student`, `teacher` depend on `school`
 - `booking` depends on `school` + `school_package`
@@ -74,37 +75,44 @@ The schema is split into 12 files, loaded in strict dependency order to resolve 
 ## Key Schema Features
 
 ### School & Packages
+
 - `school`: Core school account with wallet_id for future Clerk integration
 - `school_package`: Lesson/rental packages with capacity_students & capacity_equipment
 - `referral`: Referral codes with commission tracking (in school.sql for early availability)
 
 ### Students
+
 - `student`: Base student data with country phone code
 - `school_students`: Many-to-many junction with rental flag
 - `student_package`: Individual package bookings
 
 ### Teachers & Equipment
+
 - `teacher`: Base teacher data
 - `teacher_commission`: Configurable commission rates (percentage or fixed)
 - `equipment`: Equipment with brand, NUMERIC(4,1) size (supports decimals like 3.5, 4.7)
 - `teacher_equipment`: Junction table linking teachers to equipment (created after equipment)
 
 ### Bookings & Lessons
+
 - `booking`: References school_package directly (not student_package)
 - `booking_student`: Many-to-many students per booking (enforced to match capacity_students)
 - `lesson`: One teacher per booking, one lesson per booking (1:1 with booking)
 - `event`: Dates/times for lessons, created from lesson
 
 ### Equipment Management
+
 - `equipment_event`: Junction table (equipment used in events)
 - `equipment_repair`: Track maintenance/repairs
 
 ### Rentals
+
 - `rental`: Standalone rental requests (separate from bookings)
 - `rental_student`: Students participating in rental
 - `rental_equipment`: Equipment assigned to rental
 
 ### Payments & Feedback
+
 - `teacher_lesson_payment`: Teacher earnings from lessons
 - `student_booking_payment`: Student payments for bookings
 - `subscription_payment`: Subscription/membership charges
@@ -113,19 +121,23 @@ The schema is split into 12 files, loaded in strict dependency order to resolve 
 ## Key Constraints
 
 ### Booking Capacity
+
 ```sql
 -- Enforced in application: COUNT(booking_student) = school_package.capacity_students
 -- Example: Group package (4 students) MUST have exactly 4 booking_student rows
 ```
 
 ### Equipment Sizes
+
 ```sql
 -- NUMERIC(4, 1) allows: 3.5, 4.7, 5.2, 12.0, etc.
 -- Stores with 4 total digits, 1 decimal place
 ```
 
 ### Text-Based Enums
+
 All enum fields are TEXT for flexibility:
+
 - `school.status`: 'beta', 'active', 'pending', 'closed'
 - `school_package.category_equipment`: 'kite', 'wing', 'windsurf'
 - `booking.status`: 'confirmed', 'completed', 'cancelled'
@@ -134,6 +146,7 @@ All enum fields are TEXT for flexibility:
 ## Migration File
 
 Generated migration consolidates all 12 schema files:
+
 - Path: `supabase/migrations/20250106000000_adrenalink_complete_schema.sql`
 - Size: ~360 lines
 - Contains: All 22 tables, indexes, foreign keys in correct order
@@ -152,12 +165,14 @@ Generated migration consolidates all 12 schema files:
 ## Migration & Deployment
 
 ### Local Development
+
 ```bash
 # Supabase reads from config.toml schema_paths
 supabase db push --linked --yes
 ```
 
 ### Production
+
 - Single consolidated migration file handles all 22 tables
 - No need to manage 12 separate migration files
 - All dependencies resolved in correct order

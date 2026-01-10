@@ -5,12 +5,14 @@
 **CRITICAL CONTEXT:** This application serves schools globally across multiple timezones. Each school operates in its own local timezone.
 
 **FINAL ARCHITECTURE (Tested & Working):**
+
 - **Database:** Stores all times in UTC with TIMESTAMPTZ (PostgreSQL automatically converts to UTC internally)
 - **Server Action:** Converts UTC → school's local timezone BEFORE sending data to client
 - **Client:** Receives pre-converted times ready for display, no conversion needed
 - **Display:** Shows times in school's local timezone
 
 **Example Flow:**
+
 1. User sets event at 10:00 Madrid time
 2. Server converts to UTC: 09:00 UTC
 3. Database stores: `2025-11-15 09:00:00+00` (UTC)
@@ -25,22 +27,25 @@
 ### What Happened
 
 **Scenario:**
+
 - User (school in Spain, UTC+1) sets controller submitTime to 11:00
 - Database stores event starting at 10:00 UTC ending at 12:00 UTC
 - When adjusting event time by +30 min at 12:00, it went BACKWARD to 11:30
 
 **Root Cause:**
+
 ```typescript
 // BUGGY CODE (getters/timezone-getter.ts)
 export function getTimeFromISO(isoString: string): string {
     const date = new Date(isoString);
-    const hours = date.getHours();  // ❌ WRONG: Converts UTC to browser's LOCAL timezone
+    const hours = date.getHours(); // ❌ WRONG: Converts UTC to browser's LOCAL timezone
     const minutes = date.getMinutes();
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 ```
 
 **The Problem:**
+
 - Database stored: `2025-11-14T11:30:00+00` (UTC)
 - Browser converted to local time: 12:30 (UTC+1)
 - But TeacherQueue used the UTC value (11:30) for calculations
@@ -51,18 +56,20 @@ export function getTimeFromISO(isoString: string): string {
 ### The Fix
 
 **Step 1: Fixed `getTimeFromISO()` to parse ISO directly**
+
 ```typescript
 // FIXED CODE
 export function getTimeFromISO(isoString: string): string {
     const match = isoString.match(/T(\d{2}):(\d{2})/);
     if (match) {
-        return `${match[1]}:${match[2]}`;  // ✅ Parse directly, no timezone conversion
+        return `${match[1]}:${match[2]}`; // ✅ Parse directly, no timezone conversion
     }
     return "00:00";
 }
 ```
 
 **Step 2: Added timezone-safe utilities**
+
 ```typescript
 // Extract minutes from ISO without timezone conversion
 export function getMinutesFromISO(isoString: string): number {
@@ -86,6 +93,7 @@ export function createISODateTime(dateString: string, time: string): string {
 ```
 
 **Step 3: Updated TeacherQueue to use safe utilities**
+
 ```typescript
 // Before: Mixed timezone conversions
 private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
@@ -102,6 +110,7 @@ private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
 ```
 
 **Result:**
+
 - All time calculations now work on ISO strings directly
 - No more timezone conversion mismatches
 - Time adjustments work correctly in both directions
@@ -158,6 +167,7 @@ All times are stored and calculated using the school's LOCAL timezone. Times are
 ```
 
 **Why this approach works:**
+
 - ✅ Database handles timezone correctly (PostgreSQL stores UTC internally)
 - ✅ Server converts UTC → school timezone BEFORE sending to client
 - ✅ Client receives ready-to-display times
@@ -170,6 +180,7 @@ All times are stored and calculated using the school's LOCAL timezone. Times are
 **Possible future step:** Display times across multiple schools' timezones simultaneously
 
 This would require:
+
 - Fetching event times with their timezone offsets
 - Using the school's timezone to display each event in its own context
 - UI showing timezone labels alongside times
@@ -181,6 +192,7 @@ This would require:
 ### In Actions (Server-Side)
 
 **Creating Events: Convert school local time → UTC for storage**
+
 ```typescript
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/src/getters/timezone-getter";
@@ -237,6 +249,7 @@ export async function createClassboardEvent(
 ```
 
 **Fetching Events: Convert UTC → school timezone BEFORE sending to client**
+
 ```typescript
 export async function getClassboardBookings(): Promise<ApiActionResponseModel<ClassboardModel>> {
     const schoolHeader = await getSchoolHeader();
@@ -256,7 +269,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
         bookingData.lessons?.forEach((lesson) => {
             lesson.events?.forEach((event) => {
                 const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), schoolHeader.zone);
-                event.date = convertedDate.toISOString();  // Pre-converted for client
+                event.date = convertedDate.toISOString(); // Pre-converted for client
             });
         });
     });
@@ -266,6 +279,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 ```
 
 **Key points:**
+
 - Input `eventDate` is school's local time (e.g., "2025-11-15T10:00:00")
 - Get school context with `getSchoolHeader()`.
 - Use `schoolHeader.zone` for the IANA timezone.
@@ -277,6 +291,7 @@ export async function getClassboardBookings(): Promise<ApiActionResponseModel<Cl
 ### In Components (Client-Side)
 
 **Display times correctly:**
+
 ```typescript
 import { getTimeFromISO } from "@/src/getters/timezone-getter";
 
@@ -294,6 +309,7 @@ export function EventCard({ event }: EventCardProps) {
 ```
 
 **Why this is simple:**
+
 - Server action converts UTC → school timezone before sending data
 - Client receives pre-converted times
 - Just extract and display - no conversion needed in components
@@ -302,22 +318,23 @@ export function EventCard({ event }: EventCardProps) {
 ### In TeacherQueue (Business Logic)
 
 **All calculations use timezone-safe utilities:**
+
 ```typescript
 import { getMinutesFromISO, adjustISODateTime, createISODateTime } from "@/getters/timezone-getter";
 
 export class TeacherQueue {
     private getStartTimeMinutes(eventNode: EventNode): number {
-        return getMinutesFromISO(eventNode.eventData.date);  // Safe extraction
+        return getMinutesFromISO(eventNode.eventData.date); // Safe extraction
     }
 
     private updateEventDateTime(eventNode: EventNode, changeMinutes: number): void {
-        eventNode.eventData.date = adjustISODateTime(eventNode.eventData.date, changeMinutes);  // Safe adjustment
+        eventNode.eventData.date = adjustISODateTime(eventNode.eventData.date, changeMinutes); // Safe adjustment
     }
 
     private recalculateStartTimesFromPosition(startIndex: number, startTimeMinutes: number): void {
         // ...
         const newTime = minutesToTime(currentTimeMinutes);
-        event.eventData.date = createISODateTime(datePart, newTime);  // Safe creation
+        event.eventData.date = createISODateTime(datePart, newTime); // Safe creation
     }
 }
 ```
@@ -327,6 +344,7 @@ export class TeacherQueue {
 ## Schema: School Timezone Storage
 
 ### school table
+
 ```sql
 CREATE TABLE school (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -344,6 +362,7 @@ CREATE TABLE school (
 ```
 
 ### event table
+
 ```sql
 CREATE TABLE event (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -366,6 +385,7 @@ CREATE TABLE event (
 ## Available Timezone Functions (Minimal API)
 
 ### Core Functions ✅
+
 - `parseDate(dateStr)` - Parse date string (YYYY-MM-DD or ISO) to Date object
 - `getTimeFromISO(isoString)` - Extract time (HH:MM) from ISO string
 - `getTodayDateString()` - Get today's date as YYYY-MM-DD string
@@ -373,28 +393,31 @@ CREATE TABLE event (
 - `convertUTCToSchoolTimezone(utcDate, schoolTimezone)` - Convert UTC Date to school timezone (server action only)
 
 ### Helper Functions
+
 - `getSchoolHeader()` - Get unified school context object `{id, name, zone}` from the `x-school-username` header (cached) - **USE THIS**
 
 ### In createClassboardEvent Action
+
 - `Intl.DateTimeFormat` with school timezone to calculate UTC offset
 - Convert school local time to UTC for storage
 
 ### In getClassboardBookings Action
+
 - `convertUTCToSchoolTimezone()` to convert fetched UTC times back to school timezone before sending to client
 
 ---
 
 ## When to Use What
 
-| Situation | Use This | Example |
-|-----------|----------|---------|
-| Display time from pre-converted data | `getTimeFromISO(isoString)` | Show "10:00" in EventCard |
-| Get today's date | `getTodayDateString()` | Initialize date picker |
-| Check if date is in range | `isDateInRange()` | Validate booking dates |
-| Parse date string | `parseDate(dateStr)` | Convert "2025-11-15" to Date |
-| Convert UTC to school time (server only) | `convertUTCToSchoolTimezone()` | In `getClassboardBookings()` before returning data |
-| Create event (server action) | `Intl.DateTimeFormat + offset calculation` | In `createClassboardEvent()` |
-| Get school timezone context | `getSchoolHeader()` | In any server action needing timezone |
+| Situation                                | Use This                                   | Example                                            |
+| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| Display time from pre-converted data     | `getTimeFromISO(isoString)`                | Show "10:00" in EventCard                          |
+| Get today's date                         | `getTodayDateString()`                     | Initialize date picker                             |
+| Check if date is in range                | `isDateInRange()`                          | Validate booking dates                             |
+| Parse date string                        | `parseDate(dateStr)`                       | Convert "2025-11-15" to Date                       |
+| Convert UTC to school time (server only) | `convertUTCToSchoolTimezone()`             | In `getClassboardBookings()` before returning data |
+| Create event (server action)             | `Intl.DateTimeFormat + offset calculation` | In `createClassboardEvent()`                       |
+| Get school timezone context              | `getSchoolHeader()`                        | In any server action needing timezone              |
 
 ---
 
@@ -403,6 +426,7 @@ CREATE TABLE event (
 When making timezone-related changes, verify:
 
 ### Week 1 (✓ COMPLETED)
+
 - [x] Create event at controller submitTime → no timezone conversion mismatches
 - [x] Display time matches what user set
 - [x] Adjust time +30 min → goes forward (not backward)
@@ -414,6 +438,7 @@ When making timezone-related changes, verify:
 - [x] Event removal cascades times correctly
 
 ### Week 2 (✅ COMPLETED & TESTED)
+
 - [x] Create event at controller submitTime (10:00 Madrid) → stored as UTC in database (09:00)
 - [x] Database stores UTC in TIMESTAMPTZ field (`2025-11-15 09:00:00+00`)
 - [x] Display time matches what user set (shows 10:00, not 09:00)
@@ -429,14 +454,17 @@ When making timezone-related changes, verify:
 ## Key Takeaway: Less is More ✅
 
 ### Week 1 Fix ✓
+
 **The Bug:** Mixing UTC (database value) with browser local timezone (display value) in calculations
 
 **The Solution:** Always parse ISO strings directly without timezone conversion
 
 ### Week 2 Implementation ✅ TESTED & WORKING
+
 **The Goal:** Correct timezone handling across all layers
 
 **The Approach (Simplified):**
+
 1. Client sends school local time: `2025-11-15T10:00:00` (Madrid)
 2. Server calculates UTC offset and converts to UTC: `09:00:00Z`
 3. Database stores UTC (PostgreSQL TIMESTAMPTZ handles it)
@@ -444,6 +472,7 @@ When making timezone-related changes, verify:
 5. Client receives pre-converted time and displays it
 
 **The Benefit:**
+
 - ✅ Database stores UTC (correct, normalized)
 - ✅ Server handles all conversions (single responsibility)
 - ✅ Components receive ready-to-display data (no prop drilling)
@@ -452,6 +481,7 @@ When making timezone-related changes, verify:
 - ✅ Components stay simple (just display, no logic)
 
 **The Architecture:**
+
 ```
 School Local Time → Server converts to UTC → Store
 Database (UTC) → Server converts to School TZ → Send to Client
@@ -459,6 +489,7 @@ Client receives pre-converted → Display directly
 ```
 
 **Why this is the right approach:**
+
 - PostgreSQL handles UTC correctly (that's what TIMESTAMPTZ does)
 - Server action is the right place for conversion (centralized, single source of truth)
 - No timezone context needed in components (conversion already done)

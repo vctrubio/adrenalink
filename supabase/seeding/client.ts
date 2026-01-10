@@ -1,6 +1,6 @@
 /**
  * Supabase Client Setup for Seeding
- * 
+ *
  * Provides a singleton instance of the Supabase client
  * with service role key for seeding operations
  */

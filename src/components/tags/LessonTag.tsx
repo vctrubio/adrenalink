@@ -30,8 +30,8 @@ export const LessonTag = ({ icon, createdAt, status, link, duration, eventCount,
         <div className="flex items-center gap-2">
             <span>{studentName || formattedDate}</span>
             {capacity && capacity > 1 && (
-                <span 
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold text-foreground" 
+                <span
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold text-foreground"
                     style={{ backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_MEDIUM}` }}
                 >
                     +{capacity - 1}
@@ -43,5 +43,18 @@ export const LessonTag = ({ icon, createdAt, status, link, duration, eventCount,
     const color = isCompleted ? lessonEntity.color : "#9ca3af";
     const bgColor = isCompleted ? lessonEntity.bgColor : "#e5e7eb";
 
-    return <Tag icon={icon} name={displayName} bgColor={bgColor} borderColorHex={lessonEntity.bgColor} color={color} link={link} flagIcon={flagIcon} eventCount={eventCount} durationIcon={durationIcon} duration={duration} />;
+    return (
+        <Tag
+            icon={icon}
+            name={displayName}
+            bgColor={bgColor}
+            borderColorHex={lessonEntity.bgColor}
+            color={color}
+            link={link}
+            flagIcon={flagIcon}
+            eventCount={eventCount}
+            durationIcon={durationIcon}
+            duration={duration}
+        />
+    );
 };

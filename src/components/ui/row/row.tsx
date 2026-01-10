@@ -34,7 +34,19 @@ interface RowProps {
     stats?: StatItem[];
 }
 
-export const Row = ({ id, entityData, entityBgColor, entityColor, isActive, head, str, action, popover, rightAction, stats }: RowProps) => {
+export const Row = ({
+    id,
+    entityData,
+    entityBgColor,
+    entityColor,
+    isActive,
+    head,
+    str,
+    action,
+    popover,
+    rightAction,
+    stats,
+}: RowProps) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
@@ -57,11 +69,23 @@ export const Row = ({ id, entityData, entityBgColor, entityColor, isActive, head
 
     return (
         <div className="bg-card overflow-visible">
-            <div ref={rowRef} className="px-4 py-6 hover:bg-accent/20 transition-colors relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <div
+                ref={rowRef}
+                className="px-4 py-6 hover:bg-accent/20 transition-colors relative"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
                     {/* Head */}
                     <div className="flex-shrink-0">
-                        <RowHead avatar={head.avatar} name={head.name} status={head.status} dropdownItems={head.dropdownItems} statusColor={head.statusColor} statusDisabled={head.statusDisabled} />
+                        <RowHead
+                            avatar={head.avatar}
+                            name={head.name}
+                            status={head.status}
+                            dropdownItems={head.dropdownItems}
+                            statusColor={head.statusColor}
+                            statusDisabled={head.statusDisabled}
+                        />
                     </div>
 
                     {/* Str and Action */}

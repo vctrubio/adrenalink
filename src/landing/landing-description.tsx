@@ -77,7 +77,12 @@ function PhotoCredit() {
 function JoinForcesHeading() {
     return (
         <div className="space-y-6 flex flex-col items-center">
-            <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} viewport={{ once: true, amount: 0.5 }}>
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true, amount: 0.5 }}
+            >
                 <div
                     className="w-[240px] h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                     style={{
@@ -92,12 +97,20 @@ function JoinForcesHeading() {
                     }}
                 />
             </motion.div>
-            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">Join Forces</h2>
+            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">
+                Join Forces
+            </h2>
         </div>
     );
 }
 
-function UserRoleSelection({ selectedRole, setSelectedRole }: { selectedRole: string | null; setSelectedRole: (role: string | null) => void }) {
+function UserRoleSelection({
+    selectedRole,
+    setSelectedRole,
+}: {
+    selectedRole: string | null;
+    setSelectedRole: (role: string | null) => void;
+}) {
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
 
     return (
@@ -122,7 +135,9 @@ function UserRoleSelection({ selectedRole, setSelectedRole }: { selectedRole: st
                             onHoverStart={() => setHoveredRole(role.id)}
                             onHoverEnd={() => setHoveredRole(null)}
                             className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
-                                isSelected ? "bg-white/20 border-white/60 text-white z-10" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                isSelected
+                                    ? "bg-white/20 border-white/60 text-white z-10"
+                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
                             }`}
                         >
                             <motion.div
@@ -136,7 +151,10 @@ function UserRoleSelection({ selectedRole, setSelectedRole }: { selectedRole: st
                                 <Icon size={42} className="transition-all duration-300" />
                             </motion.div>
 
-                            <motion.span layout="position" className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${isHovered || isSelected ? "text-white" : "text-white/60"}`}>
+                            <motion.span
+                                layout="position"
+                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
+                            >
                                 {role.label}
                             </motion.span>
                         </motion.button>

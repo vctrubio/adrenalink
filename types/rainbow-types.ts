@@ -14,8 +14,8 @@ export type RainbowShade = keyof typeof RAINBOW_COLORS;
  *         e.g., [["value1", "value2"], ["value3", "value4"]]
  */
 export interface EntityInfo {
-  schema: Record<string, string>; // Field name -> Type mapping
-  rows: string[][]; // Example data rows
+    schema: Record<string, string>; // Field name -> Type mapping
+    rows: string[][]; // Example data rows
 }
 
 /**
@@ -23,11 +23,11 @@ export interface EntityInfo {
  * All data derived from manual.md
  */
 export interface EntityConfig {
-  id: string; // Unique identifier (e.g., "school", "teacher")
-  name: string; // Display name (e.g., "Schools")
-  shadeId: string; // Rainbow shade ID (e.g., "grey-1", "blue-2")
-  icon: React.ComponentType<{ className?: string }>; // Icon component
-  description: React.ComponentType; // Description component
-  info: EntityInfo; // Schema and example data
-  relations?: string[]; // Related entity IDs
+    id: string; // Unique identifier (e.g., "school", "teacher")
+    name: string; // Display name (e.g., "Schools")
+    shadeId: string; // Rainbow shade ID (e.g., "grey-1", "blue-2")
+    icon: React.ComponentType<{ className?: string }>; // Icon component
+    description: React.ComponentType; // Description component
+    info: EntityInfo; // Schema and example data
+    relations?: string[]; // Related entity IDs
 }

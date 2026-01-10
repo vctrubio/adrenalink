@@ -25,7 +25,7 @@ export interface DragState {
 export function getDragOverTeacherColumnColor(
     dragOverTeacher: string | null,
     dragCompatibility: DragCompatibility,
-    teacherUsername: string
+    teacherUsername: string,
 ): string {
     if (dragOverTeacher !== teacherUsername) return "border-transparent";
     if (dragCompatibility === "compatible") return "border-green-400";

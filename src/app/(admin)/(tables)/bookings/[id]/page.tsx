@@ -21,29 +21,29 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const balance = BookingTableGetters.getBalance(booking);
 
     const stats: TableStat[] = [
-        { 
-            type: "bookings", 
-            value: booking.schema.leader_student_name, 
-            desc: "Booking Leader" 
+        {
+            type: "bookings",
+            value: booking.schema.leader_student_name,
+            desc: "Booking Leader",
         },
-        { 
-            type: "students", 
-            value: booking.relations.students.length, 
-            label: "Students", 
-            desc: "Students in group" 
+        {
+            type: "students",
+            value: booking.relations.students.length,
+            label: "Students",
+            desc: "Students in group",
         },
-        { 
-            type: "events", 
+        {
+            type: "events",
             value: booking.relations.lessons.reduce((sum, l) => sum + (l.events?.length || 0), 0),
-            label: "Events", 
-            desc: "Total lesson events" 
+            label: "Events",
+            desc: "Total lesson events",
         },
-        { 
-            type: balance >= 0 ? "profit" : "loss", 
-            value: Math.abs(balance), 
+        {
+            type: balance >= 0 ? "profit" : "loss",
+            value: Math.abs(balance),
             label: balance >= 0 ? "Profit" : "Deficit",
-            desc: balance >= 0 ? "Operating profit" : "Operating deficit"
-        }
+            desc: balance >= 0 ? "Operating profit" : "Operating deficit",
+        },
     ];
 
     return (

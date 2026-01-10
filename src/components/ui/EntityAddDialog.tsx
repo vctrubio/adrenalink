@@ -39,9 +39,7 @@ export function EntityAddDialog({ isOpen, onClose, children }: EntityAddDialogPr
                     >
                         <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-card border border-border shadow-2xl">
                             {/* Content */}
-                            <div className="p-6 max-h-[70vh] overflow-y-auto">
-                                {children}
-                            </div>
+                            <div className="p-6 max-h-[70vh] overflow-y-auto">{children}</div>
                         </Dialog.Panel>
                     </Transition.Child>
                 </div>

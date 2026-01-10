@@ -36,7 +36,7 @@ export interface EventGapDetection {
 export function detectEventGapStatus(
     currentEvent: EventNode,
     previousEvent: EventNode,
-    requiredGapMinutes: number
+    requiredGapMinutes: number,
 ): EventGapDetection {
     const previousStartMinutes = getMinutesFromISO(previousEvent.eventData.date);
     const previousEndMinutes = previousStartMinutes + previousEvent.eventData.duration;

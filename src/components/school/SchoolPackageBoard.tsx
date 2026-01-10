@@ -50,19 +50,19 @@ export function SchoolPackageBoard({ packages, currencySymbol }: SchoolPackageBo
                 const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
                 const label = sportConfig?.label || cat;
                 const icon = sportConfig?.image;
-                
+
                 const isSelected = selectedCategory === cat;
                 const isDimmed = selectedCategory !== null && !isSelected;
 
                 return (
-                    <motion.div 
+                    <motion.div
                         key={cat}
                         layout
                         initial={false}
-                        animate={{ 
+                        animate={{
                             opacity: isDimmed ? 0.4 : 1,
-                            scale: isSelected ? 1.02 : (isDimmed ? 0.98 : 1),
-                            filter: isDimmed ? "grayscale(100%)" : "grayscale(0%)"
+                            scale: isSelected ? 1.02 : isDimmed ? 0.98 : 1,
+                            filter: isDimmed ? "grayscale(100%)" : "grayscale(0%)",
                         }}
                         transition={{ duration: 0.3 }}
                         onClick={() => setSelectedCategory(isSelected ? null : cat)}
@@ -72,24 +72,38 @@ export function SchoolPackageBoard({ packages, currencySymbol }: SchoolPackageBo
                         `}
                     >
                         {/* Category Header */}
-                        <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-300 ${isSelected ? "bg-zinc-50 border-zinc-200 shadow-sm" : "bg-transparent border-transparent"}`}>
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-colors duration-300 ${isSelected ? "bg-white border-zinc-100" : "bg-zinc-50 border-zinc-100"}`}>
+                        <div
+                            className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-300 ${isSelected ? "bg-zinc-50 border-zinc-200 shadow-sm" : "bg-transparent border-transparent"}`}
+                        >
+                            <div
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-colors duration-300 ${isSelected ? "bg-white border-zinc-100" : "bg-zinc-50 border-zinc-100"}`}
+                            >
                                 {icon && (
                                     <div className="relative w-6 h-6">
-                                        <Image src={icon} alt={label} fill className={`object-contain transition-all duration-300 ${isSelected ? "brightness-0" : "brightness-0 opacity-40"}`} />
+                                        <Image
+                                            src={icon}
+                                            alt={label}
+                                            fill
+                                            className={`object-contain transition-all duration-300 ${isSelected ? "brightness-0" : "brightness-0 opacity-40"}`}
+                                        />
                                     </div>
                                 )}
                             </div>
-                            <h3 className={`text-xl font-black uppercase tracking-tight transition-colors duration-300 ${isSelected ? "text-zinc-900" : "text-zinc-400"}`}>
+                            <h3
+                                className={`text-xl font-black uppercase tracking-tight transition-colors duration-300 ${isSelected ? "text-zinc-900" : "text-zinc-400"}`}
+                            >
                                 {label}
                             </h3>
-                            <span className={`ml-auto text-xs font-bold px-2 py-1 rounded-lg transition-colors duration-300 ${isSelected ? "bg-zinc-200 text-zinc-900" : "bg-zinc-50 text-zinc-300"}`}>
+                            <span
+                                className={`ml-auto text-xs font-bold px-2 py-1 rounded-lg transition-colors duration-300 ${isSelected ? "bg-zinc-200 text-zinc-900" : "bg-zinc-50 text-zinc-300"}`}
+                            >
                                 {categoryPackages.length}
                             </span>
                         </div>
 
                         {/* Packages List - Vertical scroll on desktop column, Horizontal on mobile row */}
-                        <div className="
+                        <div
+                            className="
                             flex 
                             flex-row md:flex-col 
                             gap-4 
@@ -97,7 +111,8 @@ export function SchoolPackageBoard({ packages, currencySymbol }: SchoolPackageBo
                             pb-4 md:pb-2 md:pr-2
                             snap-x md:snap-none
                             scrollbar-hide
-                        ">
+                        "
+                        >
                             {categoryPackages.map((pkg) => (
                                 <div key={pkg.id} className="w-[300px] md:w-full flex-shrink-0 snap-center">
                                     <SchoolPackageCard pkg={pkg} currencySymbol={currencySymbol} />

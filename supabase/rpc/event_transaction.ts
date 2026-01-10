@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { TransactionEventData } from '@/types/transaction-event';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { TransactionEventData } from "@/types/transaction-event";
 
 // --- Types ---
 
@@ -43,7 +43,7 @@ export interface EventTransaction {
 /**
  * Maps RPC result to the rich TransactionEventData type used by components
  */
-export function mapTransactionToEventData(t: EventTransaction, currency: string = 'YEN'): TransactionEventData {
+export function mapTransactionToEventData(t: EventTransaction, currency: string = "YEN"): TransactionEventData {
     return {
         event: {
             id: t.event_id,
@@ -58,7 +58,7 @@ export function mapTransactionToEventData(t: EventTransaction, currency: string 
         },
         leaderStudentName: t.leader_student_name,
         studentCount: t.student_count,
-        studentNames: t.students_json.map(s => s.name),
+        studentNames: t.students_json.map((s) => s.name),
         packageData: {
             description: t.package_description,
             pricePerStudent: t.price_per_student,
@@ -75,14 +75,14 @@ export function mapTransactionToEventData(t: EventTransaction, currency: string 
             commissionType: t.commission_type as "fixed" | "percentage",
             commissionValue: t.commission_hourly,
         },
-        equipments: t.equipments.map(eq => ({
-            id: (eq as any).id || '',
+        equipments: t.equipments.map((eq) => ({
+            id: (eq as any).id || "",
             brand: eq.brand,
             model: eq.model,
             size: eq.size,
             sku: (eq as any).sku,
-            color: (eq as any).color
-        }))
+            color: (eq as any).color,
+        })),
     };
 }
 
@@ -91,13 +91,8 @@ export function mapTransactionToEventData(t: EventTransaction, currency: string 
 /**
  * Fetch revenue data for a single event without loading full relations
  */
-export async function getEventTransaction(
-    supabase: SupabaseClient,
-    eventId: string
-): Promise<EventTransaction> {
-    const { data, error } = await supabase
-        .rpc('get_event_transaction', { p_event_id: eventId })
-        .single();
+export async function getEventTransaction(supabase: SupabaseClient, eventId: string): Promise<EventTransaction> {
+    const { data, error } = await supabase.rpc("get_event_transaction", { p_event_id: eventId }).single();
 
     if (error) {
         throw new Error(`Failed to fetch event transaction: ${error.message}`);
@@ -109,14 +104,10 @@ export async function getEventTransaction(
 /**
  * Fetch revenue data for multiple events
  */
-export async function getEventTransactions(
-    supabase: SupabaseClient,
-    eventIds: string[]
-): Promise<EventTransaction[]> {
-    const { data, error } = await supabase
-        .rpc('get_event_transactions_batch', { 
-            p_event_ids: eventIds 
-        });
+export async function getEventTransactions(supabase: SupabaseClient, eventIds: string[]): Promise<EventTransaction[]> {
+    const { data, error } = await supabase.rpc("get_event_transactions_batch", {
+        p_event_ids: eventIds,
+    });
 
     if (error) {
         throw new Error(`Failed to fetch event transactions: ${error.message}`);
@@ -128,14 +119,10 @@ export async function getEventTransactions(
 /**
  * Fetch all event transactions for a booking
  */
-export async function getBookingEventTransactions(
-    supabase: SupabaseClient,
-    bookingId: string
-): Promise<EventTransaction[]> {
-    const { data, error } = await supabase
-        .rpc('get_booking_event_transactions', { 
-            p_booking_id: bookingId 
-        });
+export async function getBookingEventTransactions(supabase: SupabaseClient, bookingId: string): Promise<EventTransaction[]> {
+    const { data, error } = await supabase.rpc("get_booking_event_transactions", {
+        p_booking_id: bookingId,
+    });
 
     if (error) {
         throw new Error(`Failed to fetch booking event transactions: ${error.message}`);

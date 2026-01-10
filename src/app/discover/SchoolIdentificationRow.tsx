@@ -19,13 +19,13 @@ interface SchoolIdentificationRowProps {
 /**
  * Sub-component for individual school rows
  */
-export const SchoolIdentificationRow = ({ 
-    school, 
-    index, 
-    hoveredIndex, 
+export const SchoolIdentificationRow = ({
+    school,
+    index,
+    hoveredIndex,
     setHoveredIndex,
     hoveredSportId,
-    setHoveredSportId
+    setHoveredSportId,
 }: SchoolIdentificationRowProps) => {
     const isRowHovered = hoveredIndex === index;
 
@@ -47,10 +47,10 @@ export const SchoolIdentificationRow = ({
 
             {/* Banner Background */}
             <div className="absolute inset-0 z-0">
-                <Image 
+                <Image
                     src={school.bannerUrl}
-                    alt="" 
-                    fill 
+                    alt=""
+                    fill
                     className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-[0.15] group-hover:opacity-[0.3]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-background via-background/20 to-transparent" />
@@ -58,12 +58,7 @@ export const SchoolIdentificationRow = ({
 
             {/* School Icon */}
             <div className="relative z-10 w-32 h-32 md:w-48 md:h-48 flex-shrink-0 transition-all duration-700 rounded-full overflow-hidden shadow-2xl bg-background border-4 border-card">
-                <Image 
-                    src={school.iconUrl}
-                    alt={school.name}
-                    fill
-                    className="object-cover"
-                />
+                <Image src={school.iconUrl} alt={school.name} fill className="object-cover" />
             </div>
 
             {/* Name and Info */}
@@ -78,14 +73,14 @@ export const SchoolIdentificationRow = ({
 
             {/* Sport Categories - Interactive Grid */}
             <div className="relative z-10 flex gap-4 md:gap-8">
-                {SPORTS_CONFIG.filter(sport => {
+                {SPORTS_CONFIG.filter((sport) => {
                     if (!school.equipment_categories) return false;
-                    const categories = school.equipment_categories.split(",").map(c => c.trim());
+                    const categories = school.equipment_categories.split(",").map((c) => c.trim());
                     return categories.includes(sport.id);
                 }).map((sport) => {
                     const uniqueSportId = `${school.username}-${sport.id}`;
                     const isSportHovered = hoveredSportId === uniqueSportId;
-                    
+
                     return (
                         <motion.div
                             key={sport.id}
@@ -93,8 +88,14 @@ export const SchoolIdentificationRow = ({
                             onMouseLeave={() => setHoveredSportId(null)}
                             layout
                             animate={{
-                                width: isSportHovered ? (typeof window !== "undefined" && window.innerWidth < 768 ? 140 : 220) : (typeof window !== "undefined" && window.innerWidth < 768 ? 72 : 96),
-                                backgroundColor: isSportHovered ? "rgba(var(--secondary), 0.1)" : "rgba(255,255,255,0.03)"
+                                width: isSportHovered
+                                    ? typeof window !== "undefined" && window.innerWidth < 768
+                                        ? 140
+                                        : 220
+                                    : typeof window !== "undefined" && window.innerWidth < 768
+                                      ? 72
+                                      : 96,
+                                backgroundColor: isSportHovered ? "rgba(var(--secondary), 0.1)" : "rgba(255,255,255,0.03)",
                             }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             className="relative h-16 md:h-24 rounded-[2.5rem] border border-border/30 overflow-hidden flex items-center gap-5 px-4 group/sport transition-colors duration-300 backdrop-blur-md"

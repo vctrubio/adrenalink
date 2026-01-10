@@ -41,11 +41,11 @@ export function PackageSection({
     onSelect,
     isExpanded,
     onToggle,
-    selectedStudentCount = 0
+    selectedStudentCount = 0,
 }: PackageSectionProps) {
     const pathname = usePathname();
     const router = useRouter();
-    const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage");
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const { refreshData } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { setFormValidity } = useFormRegistration();
@@ -73,24 +73,22 @@ export function PackageSection({
 
     const title = selectedPackage
         ? (() => {
-            const equipmentConfig = EQUIPMENT_CATEGORIES.find(
-                (cat) => cat.id === selectedPackage.categoryEquipment
-            );
-            const EquipmentIcon = equipmentConfig?.icon;
+              const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === selectedPackage.categoryEquipment);
+              const EquipmentIcon = equipmentConfig?.icon;
 
-            return (
-                <div className="flex items-center gap-3">
-                    <span>{selectedPackage.description}</span>
-                    {EquipmentIcon && (
-                        <EquipmentStudentCapacityBadge
-                            categoryIcon={EquipmentIcon}
-                            equipmentCapacity={selectedPackage.capacityEquipment}
-                            studentCapacity={selectedPackage.capacityStudents}
-                        />
-                    )}
-                </div>
-            );
-        })()
+              return (
+                  <div className="flex items-center gap-3">
+                      <span>{selectedPackage.description}</span>
+                      {EquipmentIcon && (
+                          <EquipmentStudentCapacityBadge
+                              categoryIcon={EquipmentIcon}
+                              equipmentCapacity={selectedPackage.capacityEquipment}
+                              studentCapacity={selectedPackage.capacityStudents}
+                          />
+                      )}
+                  </div>
+              );
+          })()
         : "Select Package";
 
     const handleSubmit = useCallback(async () => {
@@ -161,10 +159,7 @@ export function PackageSection({
                 />
             </Section>
 
-            <EntityAddDialog
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-            >
+            <EntityAddDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
                 <Package4SchoolForm
                     formData={formData}
                     onFormDataChange={setFormData}

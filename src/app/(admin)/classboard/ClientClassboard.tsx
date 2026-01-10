@@ -26,7 +26,13 @@ export default function ClientClassboard() {
     }
 
     if (!credentials?.timezone) {
-        return <ClassboardSkeleton error={true} errorMessage={`No TimeZone Configuration found for ${credentials?.name || "School"}. Please refresh or update school settings.`} schoolUsername={schoolUsername} />;
+        return (
+            <ClassboardSkeleton
+                error={true}
+                errorMessage={`No TimeZone Configuration found for ${credentials?.name || "School"}. Please refresh or update school settings.`}
+                schoolUsername={schoolUsername}
+            />
+        );
     }
 
     return (

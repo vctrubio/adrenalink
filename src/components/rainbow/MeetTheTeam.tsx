@@ -19,14 +19,20 @@ const Team = () => {
                 {displayEntities.map((entity) => {
                     const bgColor = RAINBOW_COLORS[entity.shadeId].fill;
                     return (
-                        <div key={entity.id} className="py-4 px-6 rounded-lg border-2 text-center transition-all" style={{ borderColor: bgColor }}>
+                        <div
+                            key={entity.id}
+                            className="py-4 px-6 rounded-lg border-2 text-center transition-all"
+                            style={{ borderColor: bgColor }}
+                        >
                             <span className="text-white text-lg font-medium">{entity.name}</span>
                         </div>
                     );
                 })}
             </div>
             <div className="text-center mt-8">
-                <span className="font-bold text-xl text-gray-400 italic">Think of each icon as a character, each with a specific role.</span>
+                <span className="font-bold text-xl text-gray-400 italic">
+                    Think of each icon as a character, each with a specific role.
+                </span>
             </div>
         </div>
     );
@@ -44,10 +50,15 @@ export const MeetTheTeam = ({ hoveredShade }: MeetTheTeamProps) => {
             {/* Rainbow Spotlight Effect */}
             <div
                 className="absolute -top-20 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 opacity-50 blur-3xl pointer-events-none z-[3]"
-                style={{ background: "radial-gradient(ellipse at top, rgba(168, 85, 247, 0.5), rgba(59, 130, 246, 0.4), rgba(34, 197, 94, 0.4), rgba(234, 179, 8, 0.4), rgba(249, 115, 22, 0.4), rgba(239, 68, 68, 0.4), transparent 70%)" }}
+                style={{
+                    background:
+                        "radial-gradient(ellipse at top, rgba(168, 85, 247, 0.5), rgba(59, 130, 246, 0.4), rgba(34, 197, 94, 0.4), rgba(234, 179, 8, 0.4), rgba(249, 115, 22, 0.4), rgba(239, 68, 68, 0.4), transparent 70%)",
+                }}
             />
 
-            {!selectedEntity && <h2 className="text-4xl md:text-5xl font-bold text-white text-center relative z-[4]">Meet the Team</h2>}
+            {!selectedEntity && (
+                <h2 className="text-4xl md:text-5xl font-bold text-white text-center relative z-[4]">Meet the Team</h2>
+            )}
             {selectedEntity ? (
                 <RainbowIdentityCard entity={selectedEntity} />
             ) : (

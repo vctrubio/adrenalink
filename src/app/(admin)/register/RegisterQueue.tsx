@@ -72,16 +72,32 @@ function QueueItem({ item }: { item: any }) {
     if (!Icon) return null;
 
     return (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <Link href={href} className="flex items-center justify-between py-2.5 group transition-colors hover:bg-muted/30 px-1 -mx-1" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+        >
+            <Link
+                href={href}
+                className="flex items-center justify-between py-2.5 group transition-colors hover:bg-muted/30 px-1 -mx-1"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
                 <div className="flex items-center gap-3">
                     <div style={{ color: entityConfig?.color }} className="opacity-80 group-hover:opacity-100 transition-opacity">
                         <Icon size={14} />
                     </div>
-                    <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[180px]">{item.name}</span>
+                    <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[180px]">
+                        {item.name}
+                    </span>
                 </div>
 
-                <GoToAdranlink size={14} isHovered={isHovered} className="text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                <GoToAdranlink
+                    size={14}
+                    isHovered={isHovered}
+                    className="text-muted-foreground/30 group-hover:text-primary transition-colors"
+                />
             </Link>
         </motion.div>
     );

@@ -1,6 +1,6 @@
 /**
  * Student Seeding
- * 
+ *
  * Create student records and associate with schools
  */
 
@@ -9,29 +9,29 @@ import { faker } from "@faker-js/faker";
 
 // Country to phone code mapping
 const COUNTRY_CODES: Record<string, string> = {
-    "Spain": "+34",
-    "Germany": "+49",
-    "France": "+33",
-    "Italy": "+39",
-    "Netherlands": "+31",
+    Spain: "+34",
+    Germany: "+49",
+    France: "+33",
+    Italy: "+39",
+    Netherlands: "+31",
     "United Kingdom": "+44",
-    "Portugal": "+351",
-    "Belgium": "+32",
-    "Austria": "+43",
-    "Greece": "+30",
-    "Poland": "+48",
+    Portugal: "+351",
+    Belgium: "+32",
+    Austria: "+43",
+    Greece: "+30",
+    Poland: "+48",
     "Czech Republic": "+420",
-    "Hungary": "+36",
-    "Romania": "+40",
-    "Bulgaria": "+359",
-    "Croatia": "+385",
-    "Slovenia": "+386",
-    "Slovakia": "+421",
-    "Denmark": "+45",
-    "Sweden": "+46",
-    "Norway": "+47",
-    "Finland": "+358",
-    "Iceland": "+354",
+    Hungary: "+36",
+    Romania: "+40",
+    Bulgaria: "+359",
+    Croatia: "+385",
+    Slovenia: "+386",
+    Slovakia: "+421",
+    Denmark: "+45",
+    Sweden: "+46",
+    Norway: "+47",
+    Finland: "+358",
+    Iceland: "+354",
 };
 
 const getCountryCode = (country: string): string => {
@@ -52,7 +52,7 @@ export const createStudents = async (count = 8): Promise<any[]> => {
         const country = faker.location.country();
         const countryCode = getCountryCode(country);
         const phoneNumber = faker.string.numeric(9);
-        
+
         return {
             first_name: faker.person.firstName(),
             last_name: faker.person.lastName(),

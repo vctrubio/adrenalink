@@ -26,9 +26,10 @@ export function PopUpRows<T extends PopUpItem>({ items, renderItem, selectedId, 
                                 onClick={() => onSelect?.(item)}
                                 className={`
                                     relative rounded-xl border transition-all cursor-pointer group
-                                    ${isSelected 
-                                        ? "bg-primary/10 border-primary/20 shadow-sm" 
-                                        : "bg-transparent border-transparent hover:bg-muted/10 hover:border-border/20"
+                                    ${
+                                        isSelected
+                                            ? "bg-primary/10 border-primary/20 shadow-sm"
+                                            : "bg-transparent border-transparent hover:bg-muted/10 hover:border-border/20"
                                     }
                                 `}
                             >
@@ -46,11 +47,7 @@ export function PopUpRows<T extends PopUpItem>({ items, renderItem, selectedId, 
                         );
                     })}
                 </AnimatePresence>
-                {items.length === 0 && (
-                     <div className="text-center py-8 text-muted-foreground">
-                        No items found
-                    </div>
-                )}
+                {items.length === 0 && <div className="text-center py-8 text-muted-foreground">No items found</div>}
             </div>
         </motion.div>
     );

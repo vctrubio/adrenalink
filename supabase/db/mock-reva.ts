@@ -1,6 +1,6 @@
 /**
  * Mock Reva Kite School - Complete Seed
- * 
+ *
  * Comprehensive seeding flow:
  * 1. School setup
  * 2. Teachers & Commissions
@@ -14,7 +14,7 @@
  * 10. Equipment to Events (via teacher_equipment)
  * 11. Student Feedback
  * 12. Teacher & Student Payments
- * 
+ *
  * Usage: bun supabase/db/mock-reva.ts
  */
 
@@ -44,50 +44,29 @@ const seedRevaKiteSchoolFresh = async () => {
         console.log("🌱 Starting Reva Kite School FRESH Seed...\n");
 
         // Delete existing Reva school completely
-        const { data: existingSchools } = await supabase
-            .from("school")
-            .select("id")
-            .eq("username", "reva10");
+        const { data: existingSchools } = await supabase.from("school").select("id").eq("username", "reva10");
 
         if (existingSchools && existingSchools.length > 0) {
             const schoolId = existingSchools[0].id;
             console.log("🗑️  Cleaning up existing Reva school...\n");
 
             // Delete all related data in reverse dependency order
-            const { data: bookings } = await supabase
-                .from("booking")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: bookings } = await supabase.from("booking").select("id").eq("school_id", schoolId);
             const bookingIds = bookings?.map((b) => b.id) || [];
 
-            const { data: lessons } = await supabase
-                .from("lesson")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: lessons } = await supabase.from("lesson").select("id").eq("school_id", schoolId);
             const lessonIds = lessons?.map((l) => l.id) || [];
 
-            const { data: events } = await supabase
-                .from("event")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: events } = await supabase.from("event").select("id").eq("school_id", schoolId);
             const eventIds = events?.map((e) => e.id) || [];
 
-            const { data: teachers } = await supabase
-                .from("teacher")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: teachers } = await supabase.from("teacher").select("id").eq("school_id", schoolId);
             const teacherIds = teachers?.map((t) => t.id) || [];
 
-            const { data: equipmentRecords } = await supabase
-                .from("equipment")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: equipmentRecords } = await supabase.from("equipment").select("id").eq("school_id", schoolId);
             const equipmentIds = equipmentRecords?.map((e) => e.id) || [];
 
-            const { data: packages } = await supabase
-                .from("school_package")
-                .select("id")
-                .eq("school_id", schoolId);
+            const { data: packages } = await supabase.from("school_package").select("id").eq("school_id", schoolId);
             const packageIds = packages?.map((p) => p.id) || [];
 
             // Delete in order
@@ -124,8 +103,10 @@ const seedRevaKiteSchoolFresh = async () => {
             }
 
             await supabase.from("rental_equipment").delete().in("equipment_id", equipmentIds);
-            await supabase.from("rental_student").delete().in("rental_id",
-                (await supabase.from("rental").select("id").eq("school_id", schoolId)).data?.map(r => r.id) || []);
+            await supabase
+                .from("rental_student")
+                .delete()
+                .in("rental_id", (await supabase.from("rental").select("id").eq("school_id", schoolId)).data?.map((r) => r.id) || []);
             await supabase.from("rental").delete().eq("school_id", schoolId);
             await supabase.from("referral").delete().eq("school_id", schoolId);
             await supabase.from("school_students").delete().eq("school_id", schoolId);
@@ -161,10 +142,7 @@ const seedRevaKiteSchoolFresh = async () => {
         const schoolId = school.id;
 
         // Update school with equipment_categories
-        await supabase
-            .from("school")
-            .update({ equipment_categories: "kite,wing,windsurf" })
-            .eq("id", schoolId);
+        await supabase.from("school").update({ equipment_categories: "kite,wing,windsurf" }).eq("id", schoolId);
         console.log("✅ Updated with equipment_categories: kite,wing,windsurf");
 
         // 2. Create Teachers & Commissions
@@ -225,7 +203,7 @@ const seedRevaKiteSchoolFresh = async () => {
             schoolId,
             packages,
             equipment,
-            bookingData.studentPackageMap
+            bookingData.studentPackageMap,
         );
 
         // 9. Add Equipment to Events

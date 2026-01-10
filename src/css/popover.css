@@ -2,85 +2,85 @@
 
 /* Row/Item States */
 .popup-row {
-  @apply bg-background border-border/40;
-  @apply hover:bg-muted/30 hover:border-border/60;
-  @apply transition-all duration-200;
+    @apply bg-background border-border/40;
+    @apply hover:bg-muted/30 hover:border-border/60;
+    @apply transition-all duration-200;
 }
 
 .popup-row-focused {
-  @apply bg-primary/10 border-primary/30;
-  @apply shadow-lg z-10;
+    @apply bg-primary/10 border-primary/30;
+    @apply shadow-lg z-10;
 }
 
 /* Text States */
 .popup-text-primary {
-  @apply text-foreground font-bold;
+    @apply text-foreground font-bold;
 }
 
 .popup-text-secondary {
-  @apply text-muted-foreground/80 font-medium;
+    @apply text-muted-foreground/80 font-medium;
 }
 
 .popup-text-tertiary {
-  @apply text-muted-foreground/60 text-[10px] uppercase font-bold tracking-widest;
+    @apply text-muted-foreground/60 text-[10px] uppercase font-bold tracking-widest;
 }
 
 .popup-text-inactive {
-  @apply text-muted-foreground/40;
+    @apply text-muted-foreground/40;
 }
 
 /* Keyboard Hints */
 .popup-hint-container {
-  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full;
-  @apply bg-muted/20 border border-border/20;
-  @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60;
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full;
+    @apply bg-muted/20 border border-border/20;
+    @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60;
 }
 
 .popup-hint-key {
-  @apply bg-muted border border-border/40 px-1.5 py-0.5 rounded shadow-sm;
-  @apply text-foreground font-black text-[10px];
+    @apply bg-muted border border-border/40 px-1.5 py-0.5 rounded shadow-sm;
+    @apply text-foreground font-black text-[10px];
 }
 
 /* Button States */
 .popup-button-disabled {
-  @apply bg-muted/50;
-  @apply text-muted-foreground/40;
-  @apply cursor-not-allowed;
+    @apply bg-muted/50;
+    @apply text-muted-foreground/40;
+    @apply cursor-not-allowed;
 }
 
 /* Background Overlays */
 .popup-backdrop {
-  @apply fixed inset-0 bg-background/80 backdrop-blur-md;
+    @apply fixed inset-0 bg-background/80 backdrop-blur-md;
 }
 
 /* Status Toggle */
 .popup-toggle-unchecked {
-  @apply bg-muted/40;
+    @apply bg-muted/40;
 }
 
 /* Headers/Titles */
 .popup-header-title {
-  @apply text-foreground font-black tracking-tighter uppercase;
+    @apply text-foreground font-black tracking-tighter uppercase;
 }
 
 .popup-header-subtitle {
-  @apply text-muted-foreground/60 text-xs font-bold uppercase tracking-widest;
+    @apply text-muted-foreground/60 text-xs font-bold uppercase tracking-widest;
 }
 
 /* Loading States */
 .popup-loading {
-  @apply flex items-center justify-center text-primary/60;
+    @apply flex items-center justify-center text-primary/60;
 }
 
 /* Status Badges */
 .popup-badge-success {
-  @apply flex items-center gap-1.5 px-2 py-0.5 rounded-full;
-  @apply bg-green-500/10 text-green-600 dark:text-green-400;
-  @apply font-black text-[10px] uppercase tracking-widest;
+    @apply flex items-center gap-1.5 px-2 py-0.5 rounded-full;
+    @apply bg-green-500/10 text-green-600 dark:text-green-400;
+    @apply font-black text-[10px] uppercase tracking-widest;
 }
 
 .popup-badge-inactive {
-  @apply flex items-center gap-1.5 px-2 py-0.5 rounded-full;
-  @apply bg-muted/50 text-muted-foreground/60;
-  @apply font-black text-[10px] uppercase tracking-widest;
+    @apply flex items-center gap-1.5 px-2 py-0.5 rounded-full;
+    @apply bg-muted/50 text-muted-foreground/60;
+    @apply font-black text-[10px] uppercase tracking-widest;
 }

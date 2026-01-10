@@ -37,9 +37,15 @@ export default function EventGapDetection({
     }
 
     // Detect gap status - recalculate when requiredGapMinutes or event dates/durations change
-    const gapStatus = useMemo(() => 
-        detectEventGapStatus(currentEvent, previousEvent, requiredGapMinutes),
-        [currentEvent.eventData.date, currentEvent.eventData.duration, previousEvent.eventData.date, previousEvent.eventData.duration, requiredGapMinutes]
+    const gapStatus = useMemo(
+        () => detectEventGapStatus(currentEvent, previousEvent, requiredGapMinutes),
+        [
+            currentEvent.eventData.date,
+            currentEvent.eventData.duration,
+            previousEvent.eventData.date,
+            previousEvent.eventData.duration,
+            requiredGapMinutes,
+        ],
     );
 
     const handleClick = async () => {
@@ -84,7 +90,8 @@ export default function EventGapDetection({
                 };
             case "overdue":
                 return {
-                    className: "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20",
+                    className:
+                        "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20",
                     icon: <Clock className="w-3 h-3 flex-shrink-0" />,
                     text: `Overdue: ${getPrettyDuration(gapStatus.durationMinutes)}`,
                     title: `Adjust gap (+${getPrettyDuration(gapStatus.durationMinutes)})`,
@@ -114,11 +121,7 @@ export default function EventGapDetection({
             title={buttonProps.title}
             style={{ pointerEvents: "auto", zIndex: 10 }}
         >
-            {isUpdating ? (
-                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
-            ) : (
-                buttonProps.icon
-            )}
+            {isUpdating ? <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" /> : buttonProps.icon}
             <span>{isUpdating ? "Adjusting..." : buttonProps.text}</span>
         </button>
     );

@@ -11,12 +11,7 @@ interface DropdownLabelProps {
     disabled?: boolean;
 }
 
-export function DropdownLabel({
-    value,
-    items,
-    color,
-    disabled = false,
-}: DropdownLabelProps) {
+export function DropdownLabel({ value, items, color, disabled = false }: DropdownLabelProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -56,19 +51,10 @@ export function DropdownLabel({
                 }}
             >
                 <span className="font-medium capitalize">{value}</span>
-                {isLoading ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                    !isDisabled && <ChevronDown className="w-3 h-3" />
-                )}
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : !isDisabled && <ChevronDown className="w-3 h-3" />}
             </button>
             {!isDisabled && (
-                <Dropdown
-                    isOpen={isDropdownOpen}
-                    onClose={() => setIsDropdownOpen(false)}
-                    items={wrappedItems}
-                    align="right"
-                />
+                <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={wrappedItems} align="right" />
             )}
         </div>
     );

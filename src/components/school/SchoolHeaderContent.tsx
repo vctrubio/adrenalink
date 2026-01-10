@@ -16,17 +16,17 @@ interface SchoolHeaderContentProps {
  * Reusable branding header content for School and Landing pages
  * Static branding (Logo + Name) loads immediately, while content animates
  */
-export const SchoolHeaderContent = ({ 
-    titleMain, 
-    titleSub, 
-    descriptionMain, 
+export const SchoolHeaderContent = ({
+    titleMain,
+    titleSub,
+    descriptionMain,
     descriptionSub,
-    isExiting = false
+    isExiting = false,
 }: SchoolHeaderContentProps) => {
     const contentVariants = {
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-        exit: { opacity: 0, y: -20, filter: "blur(10px)" }
+        exit: { opacity: 0, y: -20, filter: "blur(10px)" },
     };
 
     return (
@@ -40,8 +40,8 @@ export const SchoolHeaderContent = ({
                 >
                     <Image src={adrLogo} alt="Adrenalink" width={48} height={48} className="rounded-md dark:invert" />
                 </motion.div>
-                
-                <motion.h1 
+
+                <motion.h1
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.3, ease: "circOut" }}
@@ -53,7 +53,7 @@ export const SchoolHeaderContent = ({
 
             <div className="space-y-6">
                 {/* Main Titles - Staggered after branding */}
-                <motion.h2 
+                <motion.h2
                     variants={contentVariants}
                     initial="initial"
                     animate={isExiting ? "exit" : "animate"}
@@ -66,7 +66,7 @@ export const SchoolHeaderContent = ({
                 </motion.h2>
 
                 {/* Sub Description - Final Sequential Entrance */}
-                <motion.p 
+                <motion.p
                     variants={contentVariants}
                     initial="initial"
                     animate={isExiting ? "exit" : "animate"}

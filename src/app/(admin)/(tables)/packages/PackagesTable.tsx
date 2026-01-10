@@ -23,9 +23,13 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
-    const packageEntity = ENTITY_DATA.find(e => e.id === "schoolPackage")!;
+    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
-    const { filteredRows: filteredPackages, masterTableGroupBy, getGroupKey } = useTableLogic({
+    const {
+        filteredRows: filteredPackages,
+        masterTableGroupBy,
+        getGroupKey,
+    } = useTableLogic({
         data: packages,
         filterSearch: filterPackages,
         filterStatus: (pkg, status) => {
@@ -33,16 +37,19 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             if (status === "Inactive") return !pkg.active;
             return true;
         },
-        dateField: "createdAt"
+        dateField: "createdAt",
     });
 
     const calculateStats = (groupRows: PackageTableData[]): GroupStats => {
-        return groupRows.reduce((acc, curr) => ({
-            packageCount: acc.packageCount + 1,
-            totalBookings: acc.totalBookings + curr.usageStats.bookingCount,
-            totalRequests: acc.totalRequests + curr.usageStats.requestCount,
-            totalRevenue: acc.totalRevenue + curr.usageStats.revenue,
-        }), { packageCount: 0, totalBookings: 0, totalRequests: 0, totalRevenue: 0 });
+        return groupRows.reduce(
+            (acc, curr) => ({
+                packageCount: acc.packageCount + 1,
+                totalBookings: acc.totalBookings + curr.usageStats.bookingCount,
+                totalRequests: acc.totalRequests + curr.usageStats.requestCount,
+                totalRevenue: acc.totalRevenue + curr.usageStats.revenue,
+            }),
+            { packageCount: 0, totalBookings: 0, totalRequests: 0, totalRevenue: 0 },
+        );
     };
 
     const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
@@ -71,9 +78,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             header: "Type",
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    {data.packageType}
-                </span>
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{data.packageType}</span>
             ),
         },
         {
@@ -84,7 +89,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                     <HoverToEntity entity={packageEntity} id={data.id}>
                         <span className="font-bold text-foreground whitespace-nowrap">{data.description}</span>
                     </HoverToEntity>
-                    <EquipmentStudentPackagePriceBadge 
+                    <EquipmentStudentPackagePriceBadge
                         categoryEquipment={data.categoryEquipment}
                         equipmentCapacity={data.capacityEquipment}
                         studentCapacity={data.capacityStudents}
@@ -100,24 +105,24 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => (
                 <div className="flex items-center gap-4">
-                    <StatItemUI 
-                        type="bookings" 
-                        value={data.usageStats.bookingCount} 
-                        iconColor={true} 
+                    <StatItemUI
+                        type="bookings"
+                        value={data.usageStats.bookingCount}
+                        iconColor={true}
                         hideLabel={true}
                         desc="Total confirmed bookings"
                     />
-                    <StatItemUI 
-                        type="requests" 
-                        value={data.usageStats.requestCount} 
-                        iconColor={true} 
+                    <StatItemUI
+                        type="requests"
+                        value={data.usageStats.requestCount}
+                        iconColor={true}
                         hideLabel={true}
                         desc="Pending package requests"
                     />
-                    <StatItemUI 
-                        type="revenue" 
-                        value={data.usageStats.revenue} 
-                        iconColor={true} 
+                    <StatItemUI
+                        type="revenue"
+                        value={data.usageStats.revenue}
+                        iconColor={true}
                         hideLabel={true}
                         desc="Revenue from confirmed bookings"
                     />
@@ -129,11 +134,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
                 <div className="flex justify-center">
-                    <PackageConfigToggles 
-                        packageId={data.id} 
-                        isActive={data.active} 
-                        isPublic={data.isPublic} 
-                    />
+                    <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
                 </div>
             ),
         },
@@ -151,7 +152,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                         </HoverToEntity>
                     </div>
                     <div className="scale-90 origin-left">
-                        <EquipmentStudentPackagePriceBadge 
+                        <EquipmentStudentPackagePriceBadge
                             categoryEquipment={data.categoryEquipment}
                             equipmentCapacity={data.capacityEquipment}
                             studentCapacity={data.capacityStudents}
@@ -179,11 +180,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
                 <div className="flex justify-end scale-90 origin-right">
-                    <PackageConfigToggles 
-                        packageId={data.id} 
-                        isActive={data.active} 
-                        isPublic={data.isPublic} 
-                    />
+                    <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
                 </div>
             ),
         },

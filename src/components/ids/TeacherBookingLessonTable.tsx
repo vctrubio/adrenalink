@@ -40,7 +40,13 @@ interface TeacherBookingLessonTableProps {
     studentEntity: any;
 }
 
-export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookingEntity, studentEntity }: TeacherBookingLessonTableProps) {
+export function TeacherBookingLessonTable({
+    lesson,
+    isExpanded,
+    onToggle,
+    bookingEntity,
+    studentEntity,
+}: TeacherBookingLessonTableProps) {
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === lesson.equipmentCategory);
     const EquipmentIcon = equipmentConfig?.icon;
     const credentials = useSchoolCredentials();
@@ -48,25 +54,32 @@ export function TeacherBookingLessonTable({ lesson, isExpanded, onToggle, bookin
 
     return (
         <div className="rounded-xl border border-border overflow-hidden bg-card">
-            <button onClick={onToggle} className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors cursor-pointer">
+            <button
+                onClick={onToggle}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors cursor-pointer"
+            >
                 <div className="flex items-center gap-3">
                     <HoverToEntity entity={bookingEntity} id={lesson.bookingId}>
-                        <div className="flex items-center gap-2 text-muted-foreground">{EquipmentIcon && <EquipmentIcon size={20} />}</div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            {EquipmentIcon && <EquipmentIcon size={20} />}
+                        </div>
                     </HoverToEntity>
                     <div className="flex items-center gap-2">
                         <div style={{ color: studentEntity.color }}>
                             <HelmetIcon size={16} />
                         </div>
                         <span className="font-semibold">{lesson.leaderName}</span>
-                        {lesson.studentCapacity > 1 && <span className="text-xs text-muted-foreground">+{lesson.studentCapacity - 1} students</span>}
+                        {lesson.studentCapacity > 1 && (
+                            <span className="text-xs text-muted-foreground">+{lesson.studentCapacity - 1} students</span>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
-                        <BookingStatusLabel 
-                            status={lesson.bookingStatus} 
+                        <BookingStatusLabel
+                            status={lesson.bookingStatus}
                             bookingId={lesson.bookingId}
-                            size={16} 
-                            startDate={lesson.dateStart} 
-                            endDate={lesson.dateEnd} 
+                            size={16}
+                            startDate={lesson.dateStart}
+                            endDate={lesson.dateEnd}
                         />
                     </div>
                 </div>

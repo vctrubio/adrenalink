@@ -24,9 +24,7 @@ export default function StudentClassDaily() {
     const { filteredBookings, counts } = useMemo(() => {
         const hasRealEvents = (booking: ClassboardData): boolean => {
             const lessons = booking.lessons || [];
-            return lessons.some((lesson) => 
-                (lesson.events || []).some(event => event.date.startsWith(selectedDate))
-            );
+            return lessons.some((lesson) => (lesson.events || []).some((event) => event.date.startsWith(selectedDate)));
         };
 
         const onboardBookings = bookings.filter(hasRealEvents);
@@ -58,7 +56,13 @@ export default function StudentClassDaily() {
                     </div>
                     <span className="text-lg font-bold text-foreground">Students</span>
                     <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                        <ToggleSwitch value={filter} onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)} values={{ left: "available", right: "all" }} counts={counts} tintColor={STUDENT_COLOR} />
+                        <ToggleSwitch
+                            value={filter}
+                            onChange={(newFilter) => setFilter(newFilter as StudentBookingFilter)}
+                            values={{ left: "available", right: "all" }}
+                            counts={counts}
+                            tintColor={STUDENT_COLOR}
+                        />
                     </div>
                 </div>
             )}
@@ -80,14 +84,12 @@ export default function StudentClassDaily() {
                                 <AnimatePresence mode="popLayout" initial={false}>
                                     {filteredBookings.map((bookingData) => {
                                         const lessons = bookingData.lessons || [];
-                                        const hasRealEvents = lessons.some((lesson) => 
-                                            (lesson.events || []).some(event => event.date.startsWith(selectedDate))
+                                        const hasRealEvents = lessons.some((lesson) =>
+                                            (lesson.events || []).some((event) => event.date.startsWith(selectedDate)),
                                         );
-                                        
+
                                         // Determine which component to render - ONLY use Onboard card if REAL events exist
-                                        const Component = (filter === "all" || !hasRealEvents) 
-                                            ? StudentBookingCard 
-                                            : BookingOnboardCard;
+                                        const Component = filter === "all" || !hasRealEvents ? StudentBookingCard : BookingOnboardCard;
 
                                         return (
                                             <motion.div
@@ -98,7 +100,7 @@ export default function StudentClassDaily() {
                                                 exit={{ opacity: 0, y: -10 }}
                                                 transition={{
                                                     duration: 0.3,
-                                                    ease: [0.23, 1, 0.32, 1] 
+                                                    ease: [0.23, 1, 0.32, 1],
                                                 }}
                                                 className="flex-shrink-0"
                                             >

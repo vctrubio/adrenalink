@@ -68,28 +68,31 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         setFilterMode("all");
     }, [isOpen, allTeachers, teacherEntity]);
 
-    const handleStatusToggle = useCallback((teacherId: string, active: boolean) => {
-        const originalTeacher = allTeachers.find(t => t.schema.id === teacherId);
-        const originalActive = originalTeacher?.schema.active;
+    const handleStatusToggle = useCallback(
+        (teacherId: string, active: boolean) => {
+            const originalTeacher = allTeachers.find((t) => t.schema.id === teacherId);
+            const originalActive = originalTeacher?.schema.active;
 
-        setStatusChanges((prev) => {
-            const newChanges = new Map(prev);
-            if (originalActive === active) {
-                newChanges.delete(teacherId);
-            } else {
-                newChanges.set(teacherId, active);
-            }
-            return newChanges;
-        });
-        
-        setItems((prev) =>
-            prev.map((item) =>
-                item.id === teacherId
-                    ? { ...item, isActive: active, teacher: { ...item.teacher, schema: { ...item.teacher.schema, active } } }
-                    : item
-            )
-        );
-    }, [allTeachers]);
+            setStatusChanges((prev) => {
+                const newChanges = new Map(prev);
+                if (originalActive === active) {
+                    newChanges.delete(teacherId);
+                } else {
+                    newChanges.set(teacherId, active);
+                }
+                return newChanges;
+            });
+
+            setItems((prev) =>
+                prev.map((item) =>
+                    item.id === teacherId
+                        ? { ...item, isActive: active, teacher: { ...item.teacher, schema: { ...item.teacher.schema, active } } }
+                        : item,
+                ),
+            );
+        },
+        [allTeachers],
+    );
 
     const handleSubmit = useCallback(async () => {
         try {
@@ -97,10 +100,10 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                 // Update Supabase and local context for each change
                 for (const [teacherId, active] of statusChanges.entries()) {
                     // Fire and forget server update
-                    updateTeacherActive(teacherId, active).catch(err => {
+                    updateTeacherActive(teacherId, active).catch((err) => {
                         console.error(`Failed to update status for ${teacherId}:`, err);
                     });
-                    
+
                     // Update local context immediately (Silent Update)
                     setTeacherActive(teacherId, active);
                 }
@@ -132,16 +135,10 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
 
     const displayItems = useMemo(() => {
         if (filterMode === "all") return items;
-        return items.filter(item => item.isActive);
+        return items.filter((item) => item.isActive);
     }, [items, filterMode]);
 
-    const {
-        searchQuery,
-        setSearchQuery,
-        filteredItems,
-        focusedIndex,
-        setFocusedIndex
-    } = useModalNavigation({
+    const { searchQuery, setSearchQuery, filteredItems, focusedIndex, setFocusedIndex } = useModalNavigation({
         items: displayItems,
         filterField: "title",
         isOpen,
@@ -151,7 +148,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
             onClose();
         },
         onShiftSelect: () => handleSubmit(),
-        onTabSelect: (item) => handleStatusToggle(item.id, !item.isActive)
+        onTabSelect: (item) => handleStatusToggle(item.id, !item.isActive),
     });
 
     const handleReorder = (newItems: TeacherSortItem[]) => {
@@ -160,7 +157,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
         setHasChanges(true);
     };
 
-    const activeCount = items.filter(i => i.isActive).length;
+    const activeCount = items.filter((i) => i.isActive).length;
 
     return (
         <Transition show={isOpen} as={Fragment}>
@@ -208,13 +205,13 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                     />
 
                                     <div className="flex p-1 bg-muted/30 rounded-xl border border-border/50 flex-shrink-0">
-                                        <button 
+                                        <button
                                             onClick={() => setFilterMode("all")}
                                             className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterMode === "all" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
                                             All ({items.length})
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setFilterMode("active")}
                                             className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterMode === "active" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
@@ -230,15 +227,13 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                     className="flex-1 min-h-0 overflow-y-auto custom-scrollbar mb-6 p-1"
                                 >
                                     {filteredItems.length === 0 ? (
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            No teachers found
-                                        </div>
+                                        <div className="text-center py-8 text-muted-foreground">No teachers found</div>
                                     ) : (
                                         <DragSortList
                                             items={filteredItems}
                                             onReorder={handleReorder}
                                             renderItem={(item) => {
-                                                const index = filteredItems.findIndex(i => i.id === item.id);
+                                                const index = filteredItems.findIndex((i) => i.id === item.id);
                                                 const isFocused = index === focusedIndex;
                                                 const isHovered = index === hoveredIndex;
 
@@ -274,16 +269,23 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                 {item.icon}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                 <span className={`transition-colors truncate ${isFocused ? "font-black text-foreground" : `font-bold ${item.isActive ? "text-foreground" : "text-muted-foreground/60"}`}`}>
+                                                                <span
+                                                                    className={`transition-colors truncate ${isFocused ? "font-black text-foreground" : `font-bold ${item.isActive ? "text-foreground" : "text-muted-foreground/60"}`}`}
+                                                                >
                                                                     {item.title}
-                                                                 </span>
+                                                                </span>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="flex items-center gap-3 flex-shrink-0">
                                                             {(() => {
                                                                 const stats = item.teacher.lessonStats;
-                                                                return <TeacherActiveLesson totalLessons={stats.totalLessons} completedLessons={stats.completedLessons} />;
+                                                                return (
+                                                                    <TeacherActiveLesson
+                                                                        totalLessons={stats.totalLessons}
+                                                                        completedLessons={stats.completedLessons}
+                                                                    />
+                                                                );
                                                             })()}
 
                                                             <StatusToggle
@@ -295,7 +297,7 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                                                 color={item.color}
                                                                 className="popup-toggle-unchecked"
                                                             />
-                                                            
+
                                                             <GoToAdranlink
                                                                 href={`/teachers/${item.teacher.schema.id}`}
                                                                 onNavigate={onClose}
@@ -310,48 +312,74 @@ export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPrio
                                 </motion.div>
 
                                 <div className="flex flex-col gap-4">
-                                     <SubmitCancelReset
+                                    <SubmitCancelReset
                                         onSubmit={handleSubmit}
                                         onCancel={handleCancel}
                                         onReset={handleReset}
                                         hasChanges={hasChanges || statusChanges.size > 0}
                                         submitLabel="Apply Changes"
                                         color={teacherEntity?.color}
-                                        extraContent={(statusChanges.size > 0 || hasChanges) && (
-                                            <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.1)] border border-white/10">
-                                                {statusChanges.size + (hasChanges ? 1 : 0)}
-                                            </span>
-                                        )}
-                                     />
+                                        extraContent={
+                                            (statusChanges.size > 0 || hasChanges) && (
+                                                <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.1)] border border-white/10">
+                                                    {statusChanges.size + (hasChanges ? 1 : 0)}
+                                                </span>
+                                            )
+                                        }
+                                    />
 
-                                     <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-border/20">
+                                    <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-border/20">
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
-                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Go-To</span>
-                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ENTER</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                                                Go-To
+                                            </span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">
+                                                ENTER
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
-                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Submit</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                                                Submit
+                                            </span>
                                             <div className="flex gap-1">
-                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">⇧</span>
-                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ENTER</span>
+                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">
+                                                    ⇧
+                                                </span>
+                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">
+                                                    ENTER
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
-                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Toggle</span>
-                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">TAB</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                                                Toggle
+                                            </span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">
+                                                TAB
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
-                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Reset</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                                                Reset
+                                            </span>
                                             <div className="flex gap-1">
-                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">⇧</span>
-                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">TAB</span>
+                                                <span className="bg-background px-1 py-0.5 rounded shadow-sm text-foreground font-black text-[9px]">
+                                                    ⇧
+                                                </span>
+                                                <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">
+                                                    TAB
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40">
-                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Close</span>
-                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">ESC</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                                                Close
+                                            </span>
+                                            <span className="bg-background px-1.5 py-0.5 rounded shadow-sm text-foreground font-black text-[10px]">
+                                                ESC
+                                            </span>
                                         </div>
-                                     </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         </Dialog.Panel>

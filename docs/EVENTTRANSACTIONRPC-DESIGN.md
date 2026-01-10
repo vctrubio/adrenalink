@@ -9,11 +9,13 @@
 ## Problem Solved
 
 Instead of fetching:
+
 ```typescript
 // BAD: Requires massive nested select
 const event = await supabase
-    .from('event')
-    .select(`
+    .from("event")
+    .select(
+        `
         *,
         lesson(
             *,
@@ -24,16 +26,16 @@ const event = await supabase
             ),
             teacher_commission(*)
         )
-    `)
-    .eq('id', eventId);
+    `,
+    )
+    .eq("id", eventId);
 ```
 
 You call an RPC function:
+
 ```typescript
 // GOOD: Single clean call, DB does the work
-const revenue = await supabase
-    .rpc('get_event_transaction', { event_id: eventId })
-    .single();
+const revenue = await supabase.rpc("get_event_transaction", { event_id: eventId }).single();
 ```
 
 ## PostgreSQL RPC Function
@@ -59,7 +61,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         e.id,
         e.lesson_id,
         b.id,
@@ -72,7 +74,7 @@ BEGIN
         tc.cph::NUMERIC,
         (sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC,
         (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC,
-        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC 
+        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC
     FROM event e
     JOIN lesson l ON e.lesson_id = l.id
@@ -91,7 +93,7 @@ Create a utility function to call the RPC:
 ```typescript
 // supabase/rpc/event_transaction.ts
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface EventTransaction {
     event_id: string;
@@ -115,13 +117,8 @@ export interface EventTransaction {
  * @param eventId - Event ID to fetch revenue for
  * @returns Event transaction data with calculated revenue
  */
-export async function getEventTransaction(
-    supabase: SupabaseClient,
-    eventId: string
-): Promise<EventTransaction> {
-    const { data, error } = await supabase
-        .rpc('get_event_transaction', { event_id: eventId })
-        .single();
+export async function getEventTransaction(supabase: SupabaseClient, eventId: string): Promise<EventTransaction> {
+    const { data, error } = await supabase.rpc("get_event_transaction", { event_id: eventId }).single();
 
     if (error) {
         throw new Error(`Failed to fetch event transaction: ${error.message}`);
@@ -136,14 +133,10 @@ export async function getEventTransaction(
  * @param eventIds - Array of event IDs
  * @returns Array of event transactions
  */
-export async function getEventTransactions(
-    supabase: SupabaseClient,
-    eventIds: string[]
-): Promise<EventTransaction[]> {
-    const { data, error } = await supabase
-        .rpc('get_event_transactions_batch', { 
-            event_ids: eventIds 
-        });
+export async function getEventTransactions(supabase: SupabaseClient, eventIds: string[]): Promise<EventTransaction[]> {
+    const { data, error } = await supabase.rpc("get_event_transactions_batch", {
+        event_ids: eventIds,
+    });
 
     if (error) {
         throw new Error(`Failed to fetch event transactions: ${error.message}`);
@@ -158,14 +151,10 @@ export async function getEventTransactions(
  * @param bookingId - Booking ID
  * @returns Array of all event transactions for that booking
  */
-export async function getBookingEventTransactions(
-    supabase: SupabaseClient,
-    bookingId: string
-): Promise<EventTransaction[]> {
-    const { data, error } = await supabase
-        .rpc('get_booking_event_transactions', { 
-            booking_id: bookingId 
-        });
+export async function getBookingEventTransactions(supabase: SupabaseClient, bookingId: string): Promise<EventTransaction[]> {
+    const { data, error } = await supabase.rpc("get_booking_event_transactions", {
+        booking_id: bookingId,
+    });
 
     if (error) {
         throw new Error(`Failed to fetch booking event transactions: ${error.message}`);
@@ -185,7 +174,7 @@ export function summarizeTransactions(transactions: EventTransaction[]) {
         totalTeacherCommissions: transactions.reduce((sum, t) => sum + t.teacher_commission, 0),
         totalNetRevenue: transactions.reduce((sum, t) => sum + t.net_revenue, 0),
         averageNetPerEvent: 0,
-        profitMargin: 0
+        profitMargin: 0,
     };
 }
 ```
@@ -242,7 +231,7 @@ export function BookingTransactions({ bookingId }: { bookingId: string }) {
     return (
         <div className="booking-transactions">
             <h2>Transactions</h2>
-            
+
             {/* Summary Cards */}
             <div className="summary-cards">
                 <Card>
@@ -306,7 +295,7 @@ import { useAsync } from '@react-hookz/web';
 
 export function TransactionDashboard({ schoolId }: { schoolId: string }) {
     const [dateRange, setDateRange] = useState({ start: null, end: null });
-    
+
     const { data: transactions } = useAsync(
         async () => {
             // You'd create another RPC for date range queries
@@ -412,7 +401,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         e.id,
         e.lesson_id,
         b.id,
@@ -425,7 +414,7 @@ BEGIN
         tc.cph::NUMERIC,
         (sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC,
         (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC,
-        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC 
+        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC
     FROM event e
     JOIN lesson l ON e.lesson_id = l.id
@@ -460,7 +449,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         e.id,
         e.lesson_id,
         b.id,
@@ -473,7 +462,7 @@ BEGIN
         tc.cph::NUMERIC,
         (sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC,
         (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC,
-        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC 
+        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC
     FROM event e
     JOIN lesson l ON e.lesson_id = l.id
@@ -512,7 +501,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         e.id,
         e.lesson_id,
         b.id,
@@ -525,7 +514,7 @@ BEGIN
         tc.cph::NUMERIC,
         (sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC,
         (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC,
-        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC 
+        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student WHERE booking_id = b.id))::NUMERIC
          - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC
     FROM event e
     JOIN lesson l ON e.lesson_id = l.id
@@ -542,19 +531,20 @@ $$ LANGUAGE plpgsql STABLE;
 
 ## Comparison: RPC vs BookingData Class
 
-| Aspect | EventTransactionRpc | BookingData Class |
-|--------|---|---|
-| **Data fetched** | Only revenue numbers | Full nested objects |
-| **DB joins** | Done in database | Done in app (single fetch) |
-| **Network payload** | Minimal (~1KB) | Large (~50KB) |
-| **Latency** | ~50ms | ~30ms (single large fetch) |
-| **Flexibility** | Limited to RPC returns | Full object manipulation |
-| **Use case** | Transaction lists, dashboards | Detail views, complex logic |
-| **Best for** | Showing $$ everywhere | Full booking management |
+| Aspect              | EventTransactionRpc           | BookingData Class           |
+| ------------------- | ----------------------------- | --------------------------- |
+| **Data fetched**    | Only revenue numbers          | Full nested objects         |
+| **DB joins**        | Done in database              | Done in app (single fetch)  |
+| **Network payload** | Minimal (~1KB)                | Large (~50KB)               |
+| **Latency**         | ~50ms                         | ~30ms (single large fetch)  |
+| **Flexibility**     | Limited to RPC returns        | Full object manipulation    |
+| **Use case**        | Transaction lists, dashboards | Detail views, complex logic |
+| **Best for**        | Showing $$ everywhere         | Full booking management     |
 
 ## When to Use Each
 
 **Use EventTransactionRpc when:**
+
 - You only need revenue numbers
 - Displaying transaction lists/tables
 - Building dashboards with many events
@@ -562,6 +552,7 @@ $$ LANGUAGE plpgsql STABLE;
 - Multiple parallel event queries needed
 
 **Use BookingData class when:**
+
 - You need full booking details
 - Managing/editing booking data
 - Complex business logic on the booking
@@ -572,11 +563,13 @@ $$ LANGUAGE plpgsql STABLE;
 1. Create the RPC functions in Supabase SQL Editor (copy the functions above)
 2. Create the TypeScript wrapper file: `supabase/rpc/event_transaction.ts`
 3. Import and use in components:
-   ```typescript
-   import { getEventTransaction } from '@/supabase/rpc/event_transaction';
-   
-   const revenue = await getEventTransaction(supabase, eventId);
-   ```
+
+    ```typescript
+    import { getEventTransaction } from "@/supabase/rpc/event_transaction";
+
+    const revenue = await getEventTransaction(supabase, eventId);
+    ```
+
 4. Call the RPC functions from your components as shown in the examples
 
 ## Benefits

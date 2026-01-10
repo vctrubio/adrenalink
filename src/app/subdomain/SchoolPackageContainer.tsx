@@ -13,7 +13,6 @@ interface PackageCardProps {
     currencySymbol: string;
 }
 
-
 interface SchoolPackageContainerProps {
     packages: SchoolPackage[];
     currencySymbol: string;
@@ -24,12 +23,22 @@ interface SchoolPackageContainerProps {
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
 export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
-    const { id, name, description, price_per_student, duration_minutes, package_type, capacity_students, capacity_equipment, category_equipment } = pkg;
+    const {
+        id,
+        name,
+        description,
+        price_per_student,
+        duration_minutes,
+        package_type,
+        capacity_students,
+        capacity_equipment,
+        category_equipment,
+    } = pkg;
     const [isHovered, setIsHovered] = useState(false);
     const router = useRouter();
 
     // Get sport config for image
-    const sportConfig = SPORTS_CONFIG.find(s => s.id === category_equipment);
+    const sportConfig = SPORTS_CONFIG.find((s) => s.id === category_equipment);
 
     // Determine type and color theme
     const isRental = package_type?.toLowerCase().includes("rental");
@@ -63,10 +72,12 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                 </h4>
                 {/* Type Badge */}
                 {package_type && (
-                    <span className={`
+                    <span
+                        className={`
                         shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
                         ${isRental ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"}
-                    `}>
+                    `}
+                    >
                         {package_type}
                     </span>
                 )}
@@ -77,15 +88,10 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                 {/* Sport Image */}
                 {sportConfig?.image && (
                     <div className="relative w-20 h-20 flex-shrink-0">
-                        <Image
-                            src={sportConfig.image}
-                            alt={sportConfig.id}
-                            fill
-                            className="object-contain"
-                        />
+                        <Image src={sportConfig.image} alt={sportConfig.id} fill className="object-contain" />
                     </div>
                 )}
-                
+
                 {/* Capacity Info */}
                 <div className="flex flex-col gap-3 flex-1">
                     {capacity_students && (
@@ -109,12 +115,18 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                 <div className="mb-4 grid grid-cols-2 gap-4 text-center">
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Per Student</span>
-                        <span className="text-xl font-black text-zinc-900">{currencySymbol}{price_per_student}</span>
+                        <span className="text-xl font-black text-zinc-900">
+                            {currencySymbol}
+                            {price_per_student}
+                        </span>
                     </div>
                     {pph && (
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Per Hour</span>
-                            <span className="text-xl font-black text-zinc-900">{currencySymbol}{pph}</span>
+                            <span className="text-xl font-black text-zinc-900">
+                                {currencySymbol}
+                                {pph}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -127,11 +139,7 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                 {/* Action Button */}
                 <div className="flex items-center justify-between gap-4 mt-4">
                     <div className="flex-1 min-w-0">
-                        {name && (
-                            <p className="text-xs text-zinc-600 line-clamp-2 font-medium">
-                                {name}
-                            </p>
-                        )}
+                        {name && <p className="text-xs text-zinc-600 line-clamp-2 font-medium">{name}</p>}
                     </div>
 
                     <div className="relative w-14 h-14 shrink-0 transition-transform duration-300 group-hover:scale-110">
@@ -147,7 +155,6 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
         </motion.div>
     );
 }
-
 
 export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPackageContainerProps) {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -169,7 +176,7 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
         return groupKeys.sort((a, b) => {
             const configA = EQUIPMENT_CATEGORIES.find((c) => c.id === a);
             const configB = EQUIPMENT_CATEGORIES.find((c) => c.id === b);
-            
+
             if (!configA && !configB) return a.localeCompare(b);
             if (!configA) return 1;
             if (!configB) return -1;
@@ -195,7 +202,7 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                 const categoryPackages = groupedPackages[cat];
                 const config = EQUIPMENT_CATEGORIES.find((c) => c.id === cat);
                 const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
-                
+
                 const isSelected = selectedCategory === cat;
                 const isDimmed = selectedCategory !== null && !isSelected;
 
@@ -228,8 +235,8 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                                 }`}
                             >
                                 {sportConfig?.image ? (
-                                    <Image 
-                                        src={sportConfig.image} 
+                                    <Image
+                                        src={sportConfig.image}
                                         alt={sportConfig.id}
                                         width={24}
                                         height={24}
@@ -256,7 +263,8 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                         </div>
 
                         {/* Packages List */}
-                        <div className="
+                        <div
+                            className="
                             flex 
                             flex-row md:flex-col 
                             gap-4 
@@ -264,16 +272,11 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                             pb-4 md:pb-2 md:pr-2
                             snap-x md:snap-none
                             scrollbar-hide
-                        ">
+                        "
+                        >
                             {categoryPackages.map((pkg) => (
-                                <div
-                                    key={pkg.id}
-                                    className="w-[300px] md:w-full flex-shrink-0 snap-center"
-                                >
-                                    <PackageCard 
-                                        pkg={pkg}
-                                        currencySymbol={currencySymbol} 
-                                    />
+                                <div key={pkg.id} className="w-[300px] md:w-full flex-shrink-0 snap-center">
+                                    <PackageCard pkg={pkg} currencySymbol={currencySymbol} />
                                 </div>
                             ))}
                         </div>

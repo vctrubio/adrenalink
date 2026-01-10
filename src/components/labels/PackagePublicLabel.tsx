@@ -18,18 +18,18 @@ export function PackagePublicLabel({ packageId, isPublic }: PackagePublicLabelPr
 
     const handlePublicChange = async (newValue: boolean) => {
         if (newValue === isPublic) return;
-        
+
         setIsPending(true);
         setIsOpen(false);
-        
+
         const result = await updatePackageStatus(packageId, { is_public: newValue });
-        
+
         if (result.success) {
             toast.success(`Package visibility set to ${newValue ? "Public" : "Private"}`);
         } else {
             toast.error(result.error || "Failed to update visibility");
         }
-        
+
         setIsPending(false);
     };
 
@@ -58,7 +58,7 @@ export function PackagePublicLabel({ packageId, isPublic }: PackagePublicLabelPr
                 style={{
                     backgroundColor: isPublic ? "rgba(6, 182, 212, 0.1)" : "rgba(107, 114, 128, 0.1)",
                     color: isPublic ? "#0891b2" : "#4b5563",
-                    borderColor: isPublic ? "rgba(6, 182, 212, 0.2)" : "rgba(107, 114, 128, 0.2)"
+                    borderColor: isPublic ? "rgba(6, 182, 212, 0.2)" : "rgba(107, 114, 128, 0.2)",
                 }}
             >
                 {isPublic ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -66,13 +66,7 @@ export function PackagePublicLabel({ packageId, isPublic }: PackagePublicLabelPr
                 <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
             </button>
 
-            <Dropdown
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                items={dropdownItems}
-                triggerRef={triggerRef}
-                align="right"
-            />
+            <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} items={dropdownItems} triggerRef={triggerRef} align="right" />
         </div>
     );
 }

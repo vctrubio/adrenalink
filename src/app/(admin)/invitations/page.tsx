@@ -1,9 +1,11 @@
 import { getStudentPackageRequests } from "@/supabase/server/student-package";
 import { InvitationsController } from "./InvitationsController";
 
+export const dynamic = "force-dynamic";
+
 export default async function InvitationsPage() {
     const response = await getStudentPackageRequests();
-    
+
     const invitations = response.success && response.data ? response.data : [];
 
     return (
@@ -13,7 +15,7 @@ export default async function InvitationsPage() {
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Invitations</h1>
                     <p className="text-muted-foreground font-medium">Manage incoming package requests</p>
                 </div>
-                
+
                 <InvitationsController invitations={invitations} />
             </div>
         </div>

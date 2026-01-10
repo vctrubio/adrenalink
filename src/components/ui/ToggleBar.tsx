@@ -18,7 +18,9 @@ interface ToggleBarProps<T extends string> {
 
 export function ToggleBar<T extends string>({ value, onChange, options, className = "" }: ToggleBarProps<T>) {
     return (
-        <div className={`relative flex items-center p-1 rounded-xl bg-muted/20 border border-white/10 backdrop-blur-sm shadow-sm overflow-hidden ${className}`}>
+        <div
+            className={`relative flex items-center p-1 rounded-xl bg-muted/20 border border-white/10 backdrop-blur-sm shadow-sm overflow-hidden ${className}`}
+        >
             {options.map((option) => {
                 const isActive = value === option.id;
                 const Icon = option.icon;

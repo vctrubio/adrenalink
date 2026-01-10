@@ -35,11 +35,11 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
     // // Sort teachers according to saved order
     // const sortedTeachers = useMemo(() => {
     //     if (savedSortOrder.length === 0) return teachers;
-        
+
     //     return [...teachers].sort((a, b) => {
     //         const aIndex = savedSortOrder.indexOf(a.id);
     //         const bIndex = savedSortOrder.indexOf(b.id);
-            
+
     //         // If both are in the order, sort by order
     //         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
     //         // If only a is in the order, it comes first
@@ -73,7 +73,10 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
         console.log("Starting transformation for teachers:", filteredTeachers.length);
 
         filteredTeachers.forEach((teacher) => {
-            const periods: Record<string, { lessons: any[]; duration: number; commission: number; payments: number; categoryStats: any }> = {};
+            const periods: Record<
+                string,
+                { lessons: any[]; duration: number; commission: number; payments: number; categoryStats: any }
+            > = {};
 
             teacher.lessons.forEach((lesson) => {
                 const date = lesson.dateCreated || (teacher as any).createdAt;
@@ -110,7 +113,12 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                         totalCommissions: stats.commission,
                         totalPayments: 0,
                     },
-                    activityStats: Object.fromEntries(Object.entries(stats.categoryStats).map(([cat, s]: [string, any]) => [cat, { count: s.count, durationMinutes: s.duration }])),
+                    activityStats: Object.fromEntries(
+                        Object.entries(stats.categoryStats).map(([cat, s]: [string, any]) => [
+                            cat,
+                            { count: s.count, durationMinutes: s.duration },
+                        ]),
+                    ),
                 } as any);
             });
         });
@@ -146,7 +154,13 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
                 return newStats;
             },
-            { teacherCount: 0, totalLessons: 0, totalCommissions: 0, totalPayments: 0, categoryStats: {} as Record<string, { count: number; durationMinutes: number }> },
+            {
+                teacherCount: 0,
+                totalLessons: 0,
+                totalCommissions: 0,
+                totalPayments: 0,
+                categoryStats: {} as Record<string, { count: number; durationMinutes: number }>,
+            },
         );
     };
 
@@ -161,7 +175,11 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 const Icon = config?.icon || Calendar;
 
                 return (
-                    <div key={catId} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity" title={`${config?.label || catId} Events`}>
+                    <div
+                        key={catId}
+                        className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity"
+                        title={`${config?.label || catId} Events`}
+                    >
                         <span className="text-muted-foreground">
                             <Icon size={12} />
                         </span>
@@ -196,11 +214,18 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                         <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
                             {data.firstName} {data.lastName}
                         </span>
-                        <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} title={data.active ? "Active" : "Inactive"} />
+                        <div
+                            className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
+                            title={data.active ? "Active" : "Inactive"}
+                        />
                     </Link>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-tight">
                         <div className="flex items-center" title={data.country}>
-                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1.2em", height: "1.2em" }} />
+                            <ReactCountryFlag
+                                countryCode={getCountryCode(data.country)}
+                                svg
+                                style={{ width: "1.2em", height: "1.2em" }}
+                            />
                         </div>
                         <span className="opacity-20 text-foreground">|</span>
                         <span className="tabular-nums">{data.phone}</span>
@@ -244,7 +269,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                         {activeTeacherLessons.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 pb-2 mb-1 border-b border-border/40 max-h-[150px] overflow-y-auto custom-scrollbar">
                                 {activeTeacherLessons.map((l) => (
-                                    <ActiveTeacherLessonBadge key={l.id} bookingId={l.bookingId} category={l.category} leaderName={l.leaderStudentName} capacity={l.capacityStudents} status={l.status} commission={l.commission} />
+                                    <ActiveTeacherLessonBadge
+                                        key={l.id}
+                                        bookingId={l.bookingId}
+                                        category={l.category}
+                                        leaderName={l.leaderStudentName}
+                                        capacity={l.capacityStudents}
+                                        status={l.status}
+                                        commission={l.commission}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -261,7 +294,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
                     <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
                     <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
-                    {masterTableGroupBy === "all" && <StatItemUI type="teacherPayments" value={data.stats.totalPayments} labelOverride="Paid" iconColor={true} hideLabel={true} />}
+                    {masterTableGroupBy === "all" && (
+                        <StatItemUI
+                            type="teacherPayments"
+                            value={data.stats.totalPayments}
+                            labelOverride="Paid"
+                            iconColor={true}
+                            hideLabel={true}
+                        />
+                    )}
                 </div>
             ),
         },
@@ -297,7 +338,15 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     return (
                         <div className="flex flex-col gap-1.5 scale-90 origin-right items-end max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
                             {activeTeacherLessons.map((l) => (
-                                <ActiveTeacherLessonBadge key={l.id} bookingId={l.bookingId} category={l.category} leaderName={l.leaderStudentName} capacity={l.capacityStudents} status={l.status} commission={l.commission} />
+                                <ActiveTeacherLessonBadge
+                                    key={l.id}
+                                    bookingId={l.bookingId}
+                                    category={l.category}
+                                    leaderName={l.leaderStudentName}
+                                    capacity={l.capacityStudents}
+                                    status={l.status}
+                                    commission={l.commission}
+                                />
                             ))}
                         </div>
                     );
@@ -368,6 +417,8 @@ function getPeriodKey(dateStr: string, groupBy: GroupingType) {
 
 // Helper to attempt mapping country name to code (simple fallback)
 function getCountryCode(countryName: string): string {
-    const country = COUNTRIES.find((c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
+    const country = COUNTRIES.find(
+        (c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase(),
+    );
     return country?.code || "US";
 }

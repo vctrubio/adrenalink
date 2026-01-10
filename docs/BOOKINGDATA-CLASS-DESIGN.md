@@ -7,6 +7,7 @@
 ## Problem Solved
 
 When you fetch a booking, you have:
+
 - `booking_id`
 - `school_package_id`
 - `lessons[]` (array of lessons for this booking)
@@ -28,16 +29,16 @@ export class BookingData {
     date_end: Date;
     leader_student_name: string;
     status: string;
-    
+
     // Nested data (populated via eager loading)
     school_package: {
         price_per_student: number;
         duration_minutes: number;
         capacity_students: number;
     };
-    
+
     booking_student: Array<{ student_id: string }>;
-    
+
     lessons: Array<{
         id: string;
         teacher_id: string;
@@ -86,7 +87,7 @@ export class BookingData {
             netRevenue: totalGross - totalCommission,
             eventCount,
             studentCount: this.booking_student.length,
-            averagePerEvent: eventCount > 0 ? (totalGross - totalCommission) / eventCount : 0
+            averagePerEvent: eventCount > 0 ? (totalGross - totalCommission) / eventCount : 0,
         };
     }
 
@@ -101,9 +102,7 @@ export class BookingData {
      */
     getRevenueOfEvent(event: any) {
         // Find the lesson this event belongs to
-        const lesson = this.lessons.find((l) =>
-            l.events.some((e) => e.id === event.id)
-        );
+        const lesson = this.lessons.find((l) => l.events.some((e) => e.id === event.id));
 
         if (!lesson) {
             throw new Error(`Event ${event.id} not found in booking lessons`);
@@ -122,7 +121,7 @@ export class BookingData {
             netRevenue: revenue.net,
             studentCount: this.booking_student.length,
             pricePerStudent: this.school_package.price_per_student,
-            commissionHourly: lesson.teacher_commission.cph
+            commissionHourly: lesson.teacher_commission.cph,
         };
     }
 
@@ -150,14 +149,14 @@ export class BookingData {
             const revenue = this._calculateEventRevenue(lesson, event);
             totalGross += revenue.gross;
             totalCommission += revenue.commission;
-            
+
             events.push({
                 eventId: event.id,
                 date: event.date,
                 duration: event.duration,
                 grossRevenue: revenue.gross,
                 teacherCommission: revenue.commission,
-                netRevenue: revenue.net
+                netRevenue: revenue.net,
             });
         });
 
@@ -169,7 +168,7 @@ export class BookingData {
             teacherCommissions: totalCommission,
             netRevenue: totalGross - totalCommission,
             studentCount: this.booking_student.length,
-            events
+            events,
         };
     }
 
@@ -199,7 +198,7 @@ export class BookingData {
             commission,
             net,
             studentCount,
-            durationHours
+            durationHours,
         };
     }
 
@@ -212,9 +211,9 @@ export class BookingData {
      */
     getSummary() {
         const bookingRevenue = this.getRevenue();
-        const totalDuration = this.lessons.reduce((sum, lesson) =>
-            sum + lesson.events.reduce((lessonSum, event) => lessonSum + event.duration, 0),
-            0
+        const totalDuration = this.lessons.reduce(
+            (sum, lesson) => sum + lesson.events.reduce((lessonSum, event) => lessonSum + event.duration, 0),
+            0,
         );
 
         return {
@@ -227,15 +226,12 @@ export class BookingData {
             grossRevenue: bookingRevenue.grossRevenue,
             totalCommissions: bookingRevenue.teacherCommissions,
             netRevenue: bookingRevenue.netRevenue,
-            profitMargin: bookingRevenue.grossRevenue > 0 
-                ? ((bookingRevenue.netRevenue / bookingRevenue.grossRevenue) * 100).toFixed(2) + '%'
-                : '0%',
-            costPerEvent: bookingRevenue.eventCount > 0 
-                ? bookingRevenue.teacherCommissions / bookingRevenue.eventCount
-                : 0,
-            revenuePerEvent: bookingRevenue.eventCount > 0
-                ? bookingRevenue.netRevenue / bookingRevenue.eventCount
-                : 0
+            profitMargin:
+                bookingRevenue.grossRevenue > 0
+                    ? ((bookingRevenue.netRevenue / bookingRevenue.grossRevenue) * 100).toFixed(2) + "%"
+                    : "0%",
+            costPerEvent: bookingRevenue.eventCount > 0 ? bookingRevenue.teacherCommissions / bookingRevenue.eventCount : 0,
+            revenuePerEvent: bookingRevenue.eventCount > 0 ? bookingRevenue.netRevenue / bookingRevenue.eventCount : 0,
         };
     }
 }
@@ -379,17 +375,17 @@ export function TransactionDashboard({ bookingData }: { bookingData: BookingData
 1. Fetch Booking from Supabase
    ↓
    booking (with related data)
-   
+
 2. Instantiate BookingData
    ↓
    const booking = new BookingData(data);
-   
+
 3. Call Revenue Methods
    ├─ booking.getRevenue()           → Total for booking
    ├─ booking.getRevenueOfEvent(e)   → Per-event breakdown
    ├─ booking.getRevenueOfLesson(l)  → Per-lesson breakdown
    └─ booking.getSummary()            → Dashboard metrics
-   
+
 4. Display in Components
    ↓
    Render revenue data
@@ -401,8 +397,9 @@ When fetching booking, include all nested relations:
 
 ```typescript
 const booking = await supabase
-    .from('booking')
-    .select(`
+    .from("booking")
+    .select(
+        `
         id,
         school_id,
         school_package_id,
@@ -432,8 +429,9 @@ const booking = await supabase
                 status
             )
         )
-    `)
-    .eq('id', bookingId)
+    `,
+    )
+    .eq("id", bookingId)
     .single();
 
 const bookingData = new BookingData(booking);

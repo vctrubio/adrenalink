@@ -31,37 +31,27 @@ export const BookingStats = {
 
         const pricePerStudent = schoolPackage.pricePerStudent;
         const packageDurationMinutes = schoolPackage.durationMinutes;
-        
+
         const studentCount = booking.relations?.bookingStudents?.length;
         if (studentCount === undefined) throw new Error(`Booking ${booking.schema.id} has no bookingStudents loaded`);
 
         return lessons.reduce((total, lesson) => {
             const events = lesson.events || [];
             const lessonDurationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
-            
+
             // Calculate revenue portion for this lesson (based on duration and student count)
-            const lessonRevenue = calculateLessonRevenue(
-                pricePerStudent,
-                studentCount,
-                lessonDurationMinutes,
-                packageDurationMinutes
-            );
+            const lessonRevenue = calculateLessonRevenue(pricePerStudent, studentCount, lessonDurationMinutes, packageDurationMinutes);
 
             if (!lesson.commission) throw new Error(`Lesson ${lesson.id} has no commission data`);
 
             // Construct CommissionInfo object (handling potential missing/wrong types)
             const commissionInfo: CommissionInfo = {
-                type: (lesson.commission.commissionType as "fixed" | "percentage"),
-                cph: parseFloat(lesson.commission.cph)
+                type: lesson.commission.commissionType as "fixed" | "percentage",
+                cph: parseFloat(lesson.commission.cph),
             };
 
-            const commissionResult = calculateCommission(
-                lessonDurationMinutes,
-                commissionInfo,
-                lessonRevenue,
-                packageDurationMinutes
-            );
-            
+            const commissionResult = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, packageDurationMinutes);
+
             return total + commissionResult.earned;
         }, 0);
     },
@@ -154,10 +144,11 @@ export function getBookingCompletionPercentage(booking: BookingModel): number {
 }
 
 export function getBookingDays(booking: BookingModel): number {
-    return Math.ceil(
-        (new Date(booking.schema.dateEnd).getTime() - new Date(booking.schema.dateStart).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+    return (
+        Math.ceil(
+            (new Date(booking.schema.dateEnd).getTime() - new Date(booking.schema.dateStart).getTime()) / (1000 * 60 * 60 * 24),
+        ) + 1
+    );
 }
 
 export function getBookingStudentNames(booking: BookingModel): string {
@@ -172,11 +163,7 @@ export function getBookingStudentNames(booking: BookingModel): string {
  */
 export function getLeaderCapacity(leaderName: string, totalStudents: number) {
     if (totalStudents <= 1) {
-        return (
-            <span className="text-foreground font-semibold">
-                {leaderName}
-            </span>
-        );
+        return <span className="text-foreground font-semibold">{leaderName}</span>;
     }
 
     return (

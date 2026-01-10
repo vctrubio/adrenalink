@@ -7,7 +7,17 @@ import { BadgeCheck } from "lucide-react";
 import { COUNTRIES, DEFAULT_COUNTRY_CONFIG, getCountryByCode, getCountryByName } from "@/config/countries";
 
 // Sub-component for Country Selector
-function CountrySelector({ selectedCountryCode, onCountryChange, countryError, isValid }: { selectedCountryCode: string; onCountryChange: (countryCode: string, countryName: string) => void; countryError?: string; isValid?: boolean }) {
+function CountrySelector({
+    selectedCountryCode,
+    onCountryChange,
+    countryError,
+    isValid,
+}: {
+    selectedCountryCode: string;
+    onCountryChange: (countryCode: string, countryName: string) => void;
+    countryError?: string;
+    isValid?: boolean;
+}) {
     const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const countryCode = e.target.value;
         const country = getCountryByCode(countryCode);
@@ -137,7 +147,17 @@ interface CountryFlagPhoneSubFormProps {
 }
 
 // Main component - ONLY RENDERS, logic in sub-components
-export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countryValue, countryError, phoneError, onClearPhone, countryIsValid, phoneIsValid, initialPhone }: CountryFlagPhoneSubFormProps & { initialPhone?: string }) {
+export function CountryFlagPhoneSubForm({
+    onCountryChange,
+    onPhoneChange,
+    countryValue,
+    countryError,
+    phoneError,
+    onClearPhone,
+    countryIsValid,
+    phoneIsValid,
+    initialPhone,
+}: CountryFlagPhoneSubFormProps & { initialPhone?: string }) {
     // Initialize from countryValue or use default
     const initialCountry = countryValue ? getCountryByName(countryValue) : null;
     const [selectedCountryCode, setSelectedCountryCode] = useState<string>(initialCountry?.code || DEFAULT_COUNTRY_CONFIG.code);
@@ -205,10 +225,23 @@ export function CountryFlagPhoneSubForm({ onCountryChange, onPhoneChange, countr
         <div className="flex flex-col gap-4">
             <div className="flex gap-4">
                 <div className="shrink-0">
-                    <CountrySelector selectedCountryCode={selectedCountryCode} onCountryChange={handleCountryChange} countryError={countryError} isValid={countryIsValid} />
+                    <CountrySelector
+                        selectedCountryCode={selectedCountryCode}
+                        onCountryChange={handleCountryChange}
+                        countryError={countryError}
+                        isValid={countryIsValid}
+                    />
                 </div>
                 <div className="flex-1">
-                    <PhoneInput phonePrefix={phonePrefix} phoneNumber={phoneNumber} isPrefixModified={isPrefixModified} onPrefixChange={handlePrefixChange} onNumberChange={handleNumberChange} phoneError={phoneError} isValid={phoneIsValid} />
+                    <PhoneInput
+                        phonePrefix={phonePrefix}
+                        phoneNumber={phoneNumber}
+                        isPrefixModified={isPrefixModified}
+                        onPrefixChange={handlePrefixChange}
+                        onNumberChange={handleNumberChange}
+                        phoneError={phoneError}
+                        isValid={phoneIsValid}
+                    />
                 </div>
             </div>
         </div>

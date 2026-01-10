@@ -23,7 +23,12 @@ export function DateRangeBadge({ startDate, endDate }: DateRangeBadgeProps) {
         return (
             <div className="flex items-center gap-2">
                 <span>{startFormatted}</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold text-foreground" style={{ backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_MEDIUM}` }}>One Day</span>
+                <span
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold text-foreground"
+                    style={{ backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_MEDIUM}` }}
+                >
+                    One Day
+                </span>
             </div>
         );
     }
@@ -38,7 +43,12 @@ export function DateRangeBadge({ startDate, endDate }: DateRangeBadgeProps) {
             <span>
                 {startFormatted} - {endFormatted}
             </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-foreground" style={{ backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_MEDIUM}` }}>{diffDaysText}</span>
+            <span
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-foreground"
+                style={{ backgroundColor: `${BADGE_ACTION_CYAN}${BADGE_BG_OPACITY_MEDIUM}` }}
+            >
+                {diffDaysText}
+            </span>
         </div>
     );
 }

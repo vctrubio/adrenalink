@@ -12,13 +12,13 @@ interface EquipmentStudentPaymentsBadgeProps {
     currency?: string;
 }
 
-export function EquipmentStudentPaymentsBadge({ 
-    categoryEquipment, 
-    equipmentCapacity, 
-    studentCapacity, 
-    packageDurationHours, 
+export function EquipmentStudentPaymentsBadge({
+    categoryEquipment,
+    equipmentCapacity,
+    studentCapacity,
+    packageDurationHours,
     pricePerHour,
-    currency = "YEN"
+    currency = "YEN",
 }: EquipmentStudentPaymentsBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
@@ -26,13 +26,13 @@ export function EquipmentStudentPaymentsBadge({
 
     const studentColor = studentEntity.color;
     const StudentIcon = studentEntity.icon;
-    
+
     const packageColor = packageEntity.color;
     const PackageIcon = packageEntity.icon;
-    
+
     const equipmentColor = equipmentConfig?.color || "#a855f7";
     const CategoryIcon = equipmentConfig?.icon;
-    
+
     // Calculate total price per hour for the group
     const totalPricePerHour = pricePerHour * (studentCapacity > 0 ? studentCapacity : 1);
 

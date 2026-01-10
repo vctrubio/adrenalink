@@ -10,7 +10,7 @@ interface LessonCreateTagProps {
 }
 
 export const LessonCreateTag = ({ icon, onClick }: LessonCreateTagProps) => {
-    const lessonEntity = ENTITY_DATA.find(e => e.id === "lesson")!;
+    const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
 
     const handleClick = () => {
         if (onClick) {

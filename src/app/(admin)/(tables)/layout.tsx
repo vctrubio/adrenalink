@@ -9,7 +9,7 @@ interface TablesController {
     onStatsChange: (stats: TableStat[]) => void;
     search: string;
     onSearchChange: (value: string) => void;
-    
+
     // New Filter/Group states
     filter: DataboardFilterByDate;
     onFilterChange: (value: DataboardFilterByDate) => void;
@@ -32,7 +32,7 @@ export function useTablesController() {
 export function TablesProvider({ children }: { children: ReactNode }) {
     const [stats, setStats] = useState<TableStat[]>([]);
     const [search, setSearch] = useState("");
-    
+
     // New States
     const [filter, setFilter] = useState<DataboardFilterByDate>("All");
     const [group, setGroup] = useState<DataboardGroupByDate>("All");
@@ -72,17 +72,9 @@ export function TablesProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    return (
-        <TablesContext.Provider value={controller}>
-            {children}
-        </TablesContext.Provider>
-    );
+    return <TablesContext.Provider value={controller}>{children}</TablesContext.Provider>;
 }
 
 export default function TablesLayout({ children }: { children: ReactNode }) {
-    return (
-        <TablesProvider>
-            {children}
-        </TablesProvider>
-    );
+    return <TablesProvider>{children}</TablesProvider>;
 }

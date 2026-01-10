@@ -10,7 +10,13 @@ interface EquipmentStudentCommissionBadgeProps {
     commissionValue: number;
 }
 
-export function EquipmentStudentCommissionBadge({ categoryEquipment, equipmentCapacity, studentCapacity, commissionType, commissionValue }: EquipmentStudentCommissionBadgeProps) {
+export function EquipmentStudentCommissionBadge({
+    categoryEquipment,
+    equipmentCapacity,
+    studentCapacity,
+    commissionType,
+    commissionValue,
+}: EquipmentStudentCommissionBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
 

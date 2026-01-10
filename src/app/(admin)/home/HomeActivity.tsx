@@ -14,7 +14,15 @@ interface HomeActivityProps {
     events: TransactionEventData[];
 }
 
-function Heatmap({ data, onDateSelect, selectedDate }: { data: Record<string, { count: number; profit: number; duration: number; studentCount: number }>; onDateSelect: (d: string) => void; selectedDate: string | null }) {
+function Heatmap({
+    data,
+    onDateSelect,
+    selectedDate,
+}: {
+    data: Record<string, { count: number; profit: number; duration: number; studentCount: number }>;
+    onDateSelect: (d: string) => void;
+    selectedDate: string | null;
+}) {
     const { weeks, monthLabels } = useMemo(() => {
         const today = new Date();
         const endDate = new Date(today);
@@ -109,35 +117,51 @@ function Heatmap({ data, onDateSelect, selectedDate }: { data: Record<string, { 
                                 {week.map((day, di) => {
                                     const stats = data[day.date];
                                     return (
-                                        <button key={day.date} onClick={() => onDateSelect(day.date)} className={`w-2.5 h-2.5 rounded-sm transition-all relative group ${intensityColors[day.intensity]} ${selectedDate === day.date ? "ring-2 ring-primary ring-offset-2" : ""}`}>
+                                        <button
+                                            key={day.date}
+                                            onClick={() => onDateSelect(day.date)}
+                                            className={`w-2.5 h-2.5 rounded-sm transition-all relative group ${intensityColors[day.intensity]} ${selectedDate === day.date ? "ring-2 ring-primary ring-offset-2" : ""}`}
+                                        >
                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-4 py-3 bg-popover text-popover-foreground rounded-2xl border border-border shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-all flex flex-col gap-2 items-start scale-95 group-hover:scale-100 origin-bottom">
                                                 <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary border-b border-border w-full pb-1.5 mb-1">
-                                                    {new Date(day.date).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+                                                    {new Date(day.date).toLocaleDateString(undefined, {
+                                                        weekday: "long",
+                                                        month: "short",
+                                                        day: "numeric",
+                                                    })}
                                                 </div>
                                                 <div className="flex items-center gap-2.5">
                                                     <HelmetIcon size={12} className="text-muted-foreground" />
                                                     <span className="text-[11px] font-bold">
-                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">Students:</span>
+                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">
+                                                            Students:
+                                                        </span>
                                                         {stats?.studentCount || 0}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2.5">
                                                     <FlagIcon size={12} className="text-muted-foreground" />
                                                     <span className="text-[11px] font-bold">
-                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">Lessons:</span>
+                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">
+                                                            Lessons:
+                                                        </span>
                                                         {stats?.count || 0}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2.5">
                                                     <DurationIcon size={12} className="text-muted-foreground" />
                                                     <span className="text-[11px] font-bold">
-                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">Duration:</span>
+                                                        <span className="text-muted-foreground font-medium uppercase text-[9px] mr-1">
+                                                            Duration:
+                                                        </span>
                                                         {getHMDuration(stats?.duration || 0)}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2.5 mt-1 pt-1.5 border-t border-border w-full">
                                                     <TrendingUp size={12} className="text-emerald-500" />
-                                                    <span className="text-[11px] font-black text-emerald-600">{stats?.profit.toFixed(0) || 0} PROFIT</span>
+                                                    <span className="text-[11px] font-black text-emerald-600">
+                                                        {stats?.profit.toFixed(0) || 0} PROFIT
+                                                    </span>
                                                 </div>
                                             </div>
                                         </button>
@@ -179,7 +203,13 @@ export function HomeActivity({ events }: HomeActivityProps) {
 
             <AnimatePresence mode="wait">
                 {selectedDate ? (
-                    <motion.div key={selectedDate} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
+                    <motion.div
+                        key={selectedDate}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="space-y-4"
+                    >
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-xl font-black tracking-tight uppercase tracking-tighter flex items-center gap-3">
                                 <Calendar size={20} className="text-primary" />
@@ -190,7 +220,9 @@ export function HomeActivity({ events }: HomeActivityProps) {
                                     year: "numeric",
                                 })}
                             </h3>
-                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">{filteredEvents.length} Lessons</span>
+                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+                                {filteredEvents.length} Lessons
+                            </span>
                         </div>
 
                         {filteredEvents.length > 0 ? (
@@ -202,9 +234,15 @@ export function HomeActivity({ events }: HomeActivityProps) {
                         )}
                     </motion.div>
                 ) : (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-20 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-20 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5"
+                    >
                         <Activity size={48} className="mx-auto text-muted-foreground/20 mb-4" strokeWidth={1} />
-                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Select a day from the heatmap to view details</p>
+                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
+                            Select a day from the heatmap to view details
+                        </p>
                     </motion.div>
                 )}
             </AnimatePresence>

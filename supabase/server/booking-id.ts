@@ -20,7 +20,8 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
         // Fetch booking with core relations
         const { data: booking, error: bookingError } = await supabase
             .from("booking")
-            .select(`
+            .select(
+                `
                 *,
                 school_package(*),
                 booking_student(
@@ -40,7 +41,8 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                     *,
                     student(*)
                 )
-            `)
+            `,
+            )
             .eq("id", id)
             .eq("school_id", schoolHeader.id)
             .single();
@@ -107,11 +109,7 @@ export async function updateBookingStatus(bookingId: string, status: string): Pr
 
         const supabase = getServerConnection();
 
-        const { error } = await supabase
-            .from("booking")
-            .update({ status })
-            .eq("id", bookingId)
-            .eq("school_id", schoolHeader.id);
+        const { error } = await supabase.from("booking").update({ status }).eq("id", bookingId).eq("school_id", schoolHeader.id);
 
         if (error) {
             console.error("Error updating booking status:", error);

@@ -20,14 +20,9 @@ export function EntityIdLayout({ stats, leftColumn, rightColumn }: EntityIdLayou
     return (
         <div className="lg:grid lg:grid-cols-12 lg:gap-8 space-y-6 lg:space-y-0">
             <div className="lg:col-span-4">
-                <div className="sticky top-8">
-                    {leftColumn}
-                </div>
+                <div className="sticky top-8">{leftColumn}</div>
             </div>
-            <div className="lg:col-span-8">
-                {rightColumn}
-            </div>
+            <div className="lg:col-span-8">{rightColumn}</div>
         </div>
     );
 }
-

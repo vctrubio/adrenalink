@@ -69,7 +69,13 @@ export const NavCenter = () => {
 
             {/* Mobile dropdown menu */}
             <div className="md:hidden">
-                <Dropdown isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} items={mobileMenuItems} align="center" triggerRef={centerButtonRef} />
+                <Dropdown
+                    isOpen={isMobileMenuOpen}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                    items={mobileMenuItems}
+                    align="center"
+                    triggerRef={centerButtonRef}
+                />
             </div>
 
             <NavigationWizardModal isOpen={isNavModalOpen} onClose={() => setIsNavModalOpen(false)} />

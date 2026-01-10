@@ -22,19 +22,19 @@ export function TeacherStatusLabel({ teacherId, isActive }: TeacherStatusLabelPr
 
     const handleStatusChange = async (newStatus: TeacherStatus) => {
         if (newStatus === status) return;
-        
+
         setIsPending(true);
         setIsOpen(false);
-        
+
         const activeValue = newStatus === "active";
         const result = await updateTeacherStatus(teacherId, activeValue);
-        
+
         if (result.success) {
             toast.success(`Teacher marked as ${newStatus}`);
         } else {
             toast.error(result.error || "Failed to update status");
         }
-        
+
         setIsPending(false);
     };
 
@@ -63,20 +63,14 @@ export function TeacherStatusLabel({ teacherId, isActive }: TeacherStatusLabelPr
                 style={{
                     backgroundColor: `${config.color}15`,
                     color: config.color,
-                    borderColor: `${config.color}30`
+                    borderColor: `${config.color}30`,
                 }}
             >
                 <span className="capitalize">{status}</span>
                 <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
             </button>
 
-            <Dropdown
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                items={dropdownItems}
-                triggerRef={triggerRef}
-                align="right"
-            />
+            <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} items={dropdownItems} triggerRef={triggerRef} align="right" />
         </div>
     );
 }

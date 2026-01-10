@@ -7,10 +7,7 @@ export async function updateTeacherStatus(teacherId: string, isActive: boolean) 
     try {
         const supabase = getServerConnection();
 
-        const { error } = await supabase
-            .from("teacher")
-            .update({ active: isActive })
-            .eq("id", teacherId);
+        const { error } = await supabase.from("teacher").update({ active: isActive }).eq("id", teacherId);
 
         if (error) {
             console.error("Error updating teacher status:", error);

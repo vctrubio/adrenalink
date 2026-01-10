@@ -20,14 +20,20 @@ export const EventDurationTag = ({ icon, eventCount, duration, location }: Event
                     {icon}
                     <span>{location}</span>
                 </div>
-                <span className="text-sm font-bold text-foreground/80 mt-1 leading-none whitespace-nowrap">
-                    +{duration}
-                </span>
+                <span className="text-sm font-bold text-foreground/80 mt-1 leading-none whitespace-nowrap">+{duration}</span>
             </div>
         );
     }
 
     const displayText = eventCount ? `${eventCount} events • ${duration}` : duration;
 
-    return <Tag icon={icon} name={displayText} bgColor={`${DURATION_COLOR_FILL}20`} borderColorHex={DURATION_COLOR_FILL} color={DURATION_COLOR_FILL} />;
+    return (
+        <Tag
+            icon={icon}
+            name={displayText}
+            bgColor={`${DURATION_COLOR_FILL}20`}
+            borderColorHex={DURATION_COLOR_FILL}
+            color={DURATION_COLOR_FILL}
+        />
+    );
 };

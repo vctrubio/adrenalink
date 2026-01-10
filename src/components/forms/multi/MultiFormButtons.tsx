@@ -13,7 +13,16 @@ interface MultiFormButtonsProps {
     isFormValid?: boolean;
 }
 
-export function MultiFormButtons({ isFirstStep, isLastStep, onPrev, onNext, submitButtonText = "Submit", backButtonText = "Back", nextButtonText = "Next", isFormValid = false }: MultiFormButtonsProps) {
+export function MultiFormButtons({
+    isFirstStep,
+    isLastStep,
+    onPrev,
+    onNext,
+    submitButtonText = "Submit",
+    backButtonText = "Back",
+    nextButtonText = "Next",
+    isFormValid = false,
+}: MultiFormButtonsProps) {
     return (
         <div className="mt-6 md:mt-8 pt-6 md:pt-8 flex items-center justify-between">
             {/* Back Button */}
@@ -29,9 +38,18 @@ export function MultiFormButtons({ isFirstStep, isLastStep, onPrev, onNext, subm
 
             {/* Next/Submit Button */}
             {isLastStep ? (
-                <FormSubmit className={`px-4 py-2 md:px-6 md:py-2 text-sm md:text-base w-auto transition-opacity ${isFormValid ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 opacity-100" : "opacity-70 hover:opacity-100"}`}>{submitButtonText}</FormSubmit>
+                <FormSubmit
+                    className={`px-4 py-2 md:px-6 md:py-2 text-sm md:text-base w-auto transition-opacity ${isFormValid ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 opacity-100" : "opacity-70 hover:opacity-100"}`}
+                >
+                    {submitButtonText}
+                </FormSubmit>
             ) : (
-                <FormButton type="button" variant="secondary" onClick={onNext} className="px-4 py-2 md:px-6 md:py-2 text-sm md:text-base opacity-70 hover:opacity-100 transition-opacity">
+                <FormButton
+                    type="button"
+                    variant="secondary"
+                    onClick={onNext}
+                    className="px-4 py-2 md:px-6 md:py-2 text-sm md:text-base opacity-70 hover:opacity-100 transition-opacity"
+                >
                     {nextButtonText}
                 </FormButton>
             )}

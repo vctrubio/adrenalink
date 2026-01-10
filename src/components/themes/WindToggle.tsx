@@ -64,20 +64,21 @@ export function WindToggle({ onThemeChange, compact = false }: WindToggleProps =
         }
     };
 
-            return (
-                <button
-                    onClick={mounted ? handleToggle : undefined}
-                    className={`flex items-center justify-center p-2 rounded-lg transition-colors ${ // Removed w-full
-                        mounted ? "hover:bg-accent cursor-pointer" : ""
-                    } ${collapsed || compact ? "justify-center" : ""}`} // Added compact here
-                    title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
-                >
-                    {mounted && isDarkMode ? (
-                        <WindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
-                    ) : (
-                        <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
-                    )}
-                    {!collapsed && !compact && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
-                </button>
-            );
-        }
+    return (
+        <button
+            onClick={mounted ? handleToggle : undefined}
+            className={`flex items-center justify-center p-2 rounded-lg transition-colors ${
+                // Removed w-full
+                mounted ? "hover:bg-accent cursor-pointer" : ""
+            } ${collapsed || compact ? "justify-center" : ""}`} // Added compact here
+            title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
+        >
+            {mounted && isDarkMode ? (
+                <WindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+            ) : (
+                <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
+            )}
+            {!collapsed && !compact && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
+        </button>
+    );
+}

@@ -59,7 +59,14 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             <StatItemUI type="bookings" value={stats.bookingCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="events" value={stats.eventCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="studentPayments" value={stats.totalPayments} labelOverride="Paid" hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI
+                type="studentPayments"
+                value={stats.totalPayments}
+                labelOverride="Paid"
+                hideLabel={hideLabel}
+                variant="primary"
+                iconColor={false}
+            />
         </>
     );
 
@@ -87,17 +94,28 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                             <span className="font-bold text-foreground text-sm normal-case group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
                                 {data.firstName} {data.lastName}
                             </span>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-muted-foreground/30"}`} title={isActive ? "Active" : "Inactive"} />
+                            <div
+                                className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
+                                title={isActive ? "Active" : "Inactive"}
+                            />
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-tight">
                             <div className="flex items-center" title={data.country}>
-                                <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1.2em", height: "1.2em" }} />
+                                <ReactCountryFlag
+                                    countryCode={getCountryCode(data.country)}
+                                    svg
+                                    style={{ width: "1.2em", height: "1.2em" }}
+                                />
                             </div>
                             <span className="tabular-nums">{data.phone}</span>
                             <span className="opacity-20 text-foreground">|</span>
                             <span className="tabular-nums">{data.id.slice(0, 8)}</span>
                         </div>
-                        {data.schoolStudentDescription && <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">{data.schoolStudentDescription}</p>}
+                        {data.schoolStudentDescription && (
+                            <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">
+                                {data.schoolStudentDescription}
+                            </p>
+                        )}
                     </div>
                 );
             },
@@ -137,7 +155,9 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${data.schoolStudentStatus === "active" ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
+                        <div
+                            className={`w-1.5 h-1.5 rounded-full ${data.schoolStudentStatus === "active" ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
+                        />
                         <div className="font-bold text-sm">
                             {data.firstName} {data.lastName}
                         </div>
@@ -194,6 +214,8 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
 
 // Helper to attempt mapping country name to code (simple fallback)
 function getCountryCode(countryName: string): string {
-    const country = COUNTRIES.find((c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
+    const country = COUNTRIES.find(
+        (c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase(),
+    );
     return country?.code || "US";
 }

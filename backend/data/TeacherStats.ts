@@ -18,6 +18,6 @@ export function getAggregateTeachers(teachers: TeacherTableData[]): TeacherTable
             totalDurationMinutes: 0,
             totalCommissions: 0,
             totalPayments: 0,
-        }
+        },
     );
 }

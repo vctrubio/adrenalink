@@ -47,8 +47,8 @@ export function TeacherCommissionPanelModal({
     // Helper to get equipment category counts from lessons for a specific commission
     const getCategoryCounts = (commissionId: string) => {
         const counts: Record<string, number> = {};
-        const commissionLessons = (lessons || []).filter(l => l.commission_id === commissionId);
-        
+        const commissionLessons = (lessons || []).filter((l) => l.commission_id === commissionId);
+
         commissionLessons.forEach((lesson: any) => {
             const category = lesson.booking?.school_package?.category_equipment;
             if (category) {
@@ -59,12 +59,13 @@ export function TeacherCommissionPanelModal({
     };
 
     // Map commissions to items for navigation
-    const commissionItems = useMemo(() =>
-        commissions.map((c: any) => ({
-            id: c.id,
-            commission: c,
-        })),
-        [commissions]
+    const commissionItems = useMemo(
+        () =>
+            commissions.map((c: any) => ({
+                id: c.id,
+                commission: c,
+            })),
+        [commissions],
     );
 
     const handleDelete = useCallback(async (commissionId: string) => {
@@ -85,11 +86,7 @@ export function TeacherCommissionPanelModal({
         setCommissions((prev) => [...prev, newCommission]);
     }, []);
 
-    const {
-        filteredItems,
-        focusedIndex,
-        setFocusedIndex
-    } = useModalNavigation({
+    const { filteredItems, focusedIndex, setFocusedIndex } = useModalNavigation({
         items: commissionItems,
         filterField: (item) => {
             const c = item.commission;
@@ -98,7 +95,7 @@ export function TeacherCommissionPanelModal({
         isOpen,
         isActive: true,
         onSelect: (item) => {
-            const inUse = (lessons || []).some(l => l.commission_id === item.id);
+            const inUse = (lessons || []).some((l) => l.commission_id === item.id);
             if (!inUse) {
                 handleDelete(item.id);
             }
@@ -123,12 +120,7 @@ export function TeacherCommissionPanelModal({
         >
             <div className="flex flex-col gap-4">
                 {/* Add Commission Dropdown */}
-                <AddCommissionDropdown
-                    teacherId={teacherId}
-                    currency={currency}
-                    color={color}
-                    onAdd={handleAddCommission}
-                />
+                <AddCommissionDropdown teacherId={teacherId} currency={currency} color={color} onAdd={handleAddCommission} />
 
                 {/* Commissions List */}
                 <div className="overflow-y-auto custom-scrollbar max-h-[400px] flex flex-col gap-2">
@@ -140,7 +132,7 @@ export function TeacherCommissionPanelModal({
                         filteredItems.map((item, index) => {
                             const commission = item.commission;
                             const data = commission;
-                            const commissionLessons = (lessons || []).filter(l => l.commission_id === data.id);
+                            const commissionLessons = (lessons || []).filter((l) => l.commission_id === data.id);
                             const canDelete = commissionLessons.length === 0;
                             const categoryCounts = getCategoryCounts(data.id);
                             const isFocused = index === focusedIndex;
@@ -181,7 +173,7 @@ export function TeacherCommissionPanelModal({
                                         {Object.keys(categoryCounts).length > 0 ? (
                                             <div className="flex items-center gap-2">
                                                 {Object.entries(categoryCounts).map(([category, count]) => {
-                                                    const categoryConfig = EQUIPMENT_CATEGORIES.find(c => c.id === category);
+                                                    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === category);
                                                     if (!categoryConfig) return null;
                                                     const CategoryIcon = categoryConfig.icon;
                                                     return (

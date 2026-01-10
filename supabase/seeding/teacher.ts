@@ -1,6 +1,6 @@
 /**
  * Teacher Seeding
- * 
+ *
  * Create teacher records for a school
  */
 

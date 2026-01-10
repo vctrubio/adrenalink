@@ -1,6 +1,6 @@
 /**
  * School Seeding
- * 
+ *
  * Create school records with specific credentials
  */
 

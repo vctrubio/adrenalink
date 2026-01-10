@@ -12,9 +12,5 @@ const getSchoolCredentials = cache(getSchoolCredentialsFromSupabase);
 export default async function TransactionLayout({ children }: TransactionLayoutProps) {
     const credentials = await getSchoolCredentials();
 
-    return (
-        <SchoolCredentialsProvider credentials={credentials}>
-            {children}
-        </SchoolCredentialsProvider>
-    );
+    return <SchoolCredentialsProvider credentials={credentials}>{children}</SchoolCredentialsProvider>;
 }

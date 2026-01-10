@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&key=${apiKey}`;
 
         console.log("🔗 Proxying place details request to Google Places API");
-        
+
         const response = await fetch(url);
         const data = await response.json();
 

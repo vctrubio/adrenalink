@@ -82,13 +82,13 @@ function buildBookingQuery() {
 export async function getHomeBookings(): Promise<ClassboardModel> {
     const headersList = await headers();
     const schoolId = headersList.get("x-school-id");
-    
+
     if (!schoolId) {
         throw new Error("School ID not found in headers");
     }
 
     const supabase = await getServerConnection();
-    
+
     // Single call: Fetch bookings for this school with all nested relations
     const { data: bookings, error: bookingsError } = await supabase
         .from("booking")
@@ -102,6 +102,6 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
 
     // Transform raw booking data into ClassboardModel format
     const classboardData = createClassboardModel(bookings || []);
-    
+
     return classboardData;
 }

@@ -144,7 +144,7 @@ export class GlobalFlag {
     // ============ OPTIMISTIC EVENT MANAGEMENT ============
 
     addOptimisticEvent(teacherId: string, event: any): void {
-        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
         if (queue) {
             queue.addOptimisticEvent(event);
             this.refreshKey++;
@@ -153,7 +153,7 @@ export class GlobalFlag {
     }
 
     removeOptimisticEvent(teacherId: string, eventId: string): void {
-        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
         if (queue) {
             queue.removeOptimisticEvent(eventId);
             this.refreshKey++;
@@ -162,7 +162,7 @@ export class GlobalFlag {
     }
 
     markEventAsDeleted(teacherId: string, eventId: string): void {
-        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
         if (queue) {
             queue.markAsDeleted(eventId);
             this.refreshKey++;
@@ -171,7 +171,7 @@ export class GlobalFlag {
     }
 
     unmarkEventAsDeleted(teacherId: string, eventId: string): void {
-        const queue = this.teacherQueues.find(q => q.teacher.id === teacherId);
+        const queue = this.teacherQueues.find((q) => q.teacher.id === teacherId);
         if (queue) {
             queue.unmarkAsDeleted(eventId);
             this.refreshKey++;
@@ -361,7 +361,7 @@ export class GlobalFlag {
         }
 
         // Propagate potential lock changes to all controllers
-        this.queueControllers.forEach(qc => qc.updateSettings(this.controller));
+        this.queueControllers.forEach((qc) => qc.updateSettings(this.controller));
 
         this.refreshKey++;
         this.triggerRefresh();
@@ -493,7 +493,7 @@ export class GlobalFlag {
 
     adjustTime(newTime: string): void {
         console.log(`⏱️ [GlobalFlag.adjustTime] New: ${newTime} | Locked: ${this.isLockedTime}`);
-        
+
         // Only propagate time change to queues if global time lock is ON
         if (this.isLockedTime) {
             console.log(`  🔗 Propagation ACTIVE (adjusting ${this.queueControllers.size} queues)`);
@@ -511,11 +511,11 @@ export class GlobalFlag {
 
     lockToAdjustmentTime(targetTime: string): void {
         console.log(`🔒 [GlobalFlag.lockToAdjustmentTime] Target: ${targetTime}`);
-        
+
         // 1. Update persistent intent
         this.isLockedTime = true;
         this.globalCascadeMode = true;
-        
+
         // 2. Snap all queues
         this.queueControllers.forEach((qc) => {
             qc.setFirstEventTime(targetTime);
@@ -523,7 +523,7 @@ export class GlobalFlag {
 
         // 3. Update controller settings and propagate to all edit sessions
         this.updateController({ locked: true });
-        
+
         this.globalTime = targetTime;
         this.refreshKey++;
         this.triggerRefresh();
@@ -532,19 +532,19 @@ export class GlobalFlag {
     unlockTime(): void {
         console.log("🔓 [GlobalFlag.unlockTime]");
         this.isLockedTime = false;
-        
+
         // If location is also unlocked, we can unlock the underlying controllers too
         if (!this.isLockedLocation) {
             this.updateController({ locked: false });
         }
-        
+
         this.refreshKey++;
         this.triggerRefresh();
     }
 
     adjustLocation(newLocation: string): void {
         console.log(`📍 [GlobalFlag.adjustLocation] New: ${newLocation} | Locked: ${this.isLockedLocation}`);
-        
+
         // Only propagate location change to queues if global location lock is ON
         if (this.isLockedLocation) {
             console.log("  🔗 Propagation ACTIVE");
@@ -562,14 +562,14 @@ export class GlobalFlag {
 
     lockToLocation(targetLocation: string): void {
         console.log(`🔒 [GlobalFlag.lockToLocation] Target: ${targetLocation}`);
-        
+
         this.queueControllers.forEach((qc) => {
             qc.setAllEventsLocation(targetLocation);
         });
 
         this.globalLocation = targetLocation;
         this.isLockedLocation = true;
-        
+
         this.refreshKey++;
         this.triggerRefresh();
     }
@@ -587,7 +587,9 @@ export class GlobalFlag {
         const pendingControllers = Array.from(this.queueControllers.values());
         const totalTeachers = pendingControllers.length;
 
-        const pendingTeachersTimes = pendingControllers.map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() })).filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
+        const pendingTeachersTimes = pendingControllers
+            .map((qc) => ({ username: qc.getQueue().teacher.username, earliestTime: qc.getQueue().getEarliestTime() }))
+            .filter((t) => t.earliestTime !== null) as { username: string; earliestTime: string }[];
 
         if (pendingTeachersTimes.length === 0 || totalTeachers === 0) {
             return { isLockFlagTime: false, lockCount: 0, totalTeachers: 0 };
@@ -643,8 +645,8 @@ export class GlobalFlag {
             });
         }
 
-        const synchronizedTeachersCount = referenceLocation 
-            ? pendingTeachersLocations.filter((t) => t.location === referenceLocation).length 
+        const synchronizedTeachersCount = referenceLocation
+            ? pendingTeachersLocations.filter((t) => t.location === referenceLocation).length
             : 0;
 
         const allSynchronized = referenceLocation ? synchronizedTeachersCount === totalTeachers : false;
@@ -686,7 +688,7 @@ export class GlobalFlag {
         this.isLockedLocation = true;
         this.controller.locked = true;
         this.globalCascadeMode = true;
-        
+
         this.refreshKey++;
     }
 

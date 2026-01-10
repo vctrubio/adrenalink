@@ -20,25 +20,25 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
     const teacher: TeacherData = result.data;
 
     const stats: TableStat[] = [
-        { 
-            type: "teachers", 
-            value: `${teacher.schema.first_name} ${teacher.schema.last_name}`, 
-            desc: "Instructor Profile" 
+        {
+            type: "teachers",
+            value: `${teacher.schema.first_name} ${teacher.schema.last_name}`,
+            desc: "Instructor Profile",
         },
-        { 
-            type: "lessons", 
-            value: TeacherTableGetters.getLessonCount(teacher), 
-            desc: "Total lessons taught" 
+        {
+            type: "lessons",
+            value: TeacherTableGetters.getLessonCount(teacher),
+            desc: "Total lessons taught",
         },
-        { 
-            type: "duration", 
-            value: TeacherTableGetters.getTotalDurationMinutes(teacher), 
-            desc: "Total instruction time" 
+        {
+            type: "duration",
+            value: TeacherTableGetters.getTotalDurationMinutes(teacher),
+            desc: "Total instruction time",
         },
-        { 
-            type: "commission", 
-            value: TeacherTableGetters.getCommissionEarned(teacher), 
-            desc: "Total earned commissions" 
+        {
+            type: "commission",
+            value: TeacherTableGetters.getCommissionEarned(teacher),
+            desc: "Total earned commissions",
         },
     ];
 

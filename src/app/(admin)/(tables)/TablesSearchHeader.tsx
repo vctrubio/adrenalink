@@ -25,9 +25,9 @@ interface TablesSearchHeaderProps {
 export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
     const pathname = usePathname();
     const controller = useTablesController();
-    
+
     // Determine which entity we are on - check prop first, then pathname
-    const entity = ENTITY_DATA.find(e => (entityId ? e.id === entityId : pathname.includes(e.link)));
+    const entity = ENTITY_DATA.find((e) => (entityId ? e.id === entityId : pathname.includes(e.link)));
     if (!entity) return null;
 
     const statusOptions = getStatusOptions(entity.id);
@@ -44,33 +44,38 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                     placeholder={`Search ${entity.name.toLowerCase()}...`}
                 />
             </div>
-            
+
             {/* Filters */}
             <div className="flex items-center gap-2">
-                <FilterDropdown 
-                    label="Status" 
-                    value={controller.status} 
-                    options={statusOptions} 
-                    onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)} 
-                    entityColor={entity.color} 
+                <FilterDropdown
+                    label="Status"
+                    value={controller.status}
+                    options={statusOptions}
+                    onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
+                    entityColor={entity.color}
                 />
-                
+
                 {/* Only show Date Filter/Group for time-relevant entities */}
-                {(entity.id === "booking" || entity.id === "event" || entity.id === "teacher" || entity.id === "equipment" || entity.id === "student" || entity.id === "schoolPackage") && (
+                {(entity.id === "booking" ||
+                    entity.id === "event" ||
+                    entity.id === "teacher" ||
+                    entity.id === "equipment" ||
+                    entity.id === "student" ||
+                    entity.id === "schoolPackage") && (
                     <>
-                        <FilterDropdown 
-                            label="Filter" 
-                            value={controller.filter} 
-                            options={FILTER_OPTIONS_DEFAULT} 
-                            onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)} 
-                            entityColor={entity.color} 
+                        <FilterDropdown
+                            label="Filter"
+                            value={controller.filter}
+                            options={FILTER_OPTIONS_DEFAULT}
+                            onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)}
+                            entityColor={entity.color}
                         />
-                        <FilterDropdown 
-                            label="Group" 
-                            value={controller.group} 
-                            options={GROUP_OPTIONS} 
-                            onChange={(v) => controller.onGroupChange(v as DataboardGroupByDate)} 
-                            entityColor={entity.color} 
+                        <FilterDropdown
+                            label="Group"
+                            value={controller.group}
+                            options={GROUP_OPTIONS}
+                            onChange={(v) => controller.onGroupChange(v as DataboardGroupByDate)}
+                            entityColor={entity.color}
                         />
                     </>
                 )}

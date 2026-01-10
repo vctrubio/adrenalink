@@ -18,20 +18,18 @@ export function PackageConfigToggles({ packageId, isActive, isPublic }: PackageC
 
     const handleToggle = async (type: "active" | "is_public") => {
         setLoading(type === "active" ? "active" : "public");
-        
-        const updates = type === "active" 
-            ? { active: !isActive } 
-            : { is_public: !isPublic };
+
+        const updates = type === "active" ? { active: !isActive } : { is_public: !isPublic };
 
         const res = await updatePackageConfig(packageId, updates);
-        
+
         if (res.success) {
             router.refresh();
             toast.success(`${type === "active" ? "Status" : "Visibility"} updated`);
         } else {
             toast.error(res.error || "Update failed");
         }
-        
+
         setLoading(null);
     };
 
@@ -39,7 +37,10 @@ export function PackageConfigToggles({ packageId, isActive, isPublic }: PackageC
         <div className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-tight">
             {/* Status Toggle */}
             <button
-                onClick={(e) => { e.stopPropagation(); handleToggle("active"); }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggle("active");
+                }}
                 disabled={!!loading}
                 className="transition-colors"
             >
@@ -56,7 +57,10 @@ export function PackageConfigToggles({ packageId, isActive, isPublic }: PackageC
 
             {/* Visibility Toggle */}
             <button
-                onClick={(e) => { e.stopPropagation(); handleToggle("is_public"); }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggle("is_public");
+                }}
                 disabled={!!loading}
                 className="transition-colors"
             >

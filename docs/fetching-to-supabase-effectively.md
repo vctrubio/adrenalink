@@ -32,9 +32,9 @@ Transaction poolers do not support Prepared Statements (which Drizzle tries to u
 ```typescript
 // drizzle/db.ts
 export const db = drizzle(client, {
-  schema: fullSchema,
-  // essential for Supabase Transaction pooler
-  // prepare: false
+    schema: fullSchema,
+    // essential for Supabase Transaction pooler
+    // prepare: false
 });
 ```
 
@@ -90,14 +90,14 @@ Your app uses `postgres-js` with Drizzle ORM, which provides built-in connection
 
 ```typescript
 const client = postgres(process.env.DATABASE_URL, {
-  max: 20, // Max connections (adjust based on your server capacity)
-  idle_timeout: 20, // Seconds before closing idle connections
-  max_lifetime: 60 * 30, // 30 minutes max connection lifetime
-  prepare: false, // Disable for better Supabase compatibility
-  transform: undefined, // Better performance
-  connection: {
-    application_name: "adrenalink-beta", // For monitoring
-  },
+    max: 20, // Max connections (adjust based on your server capacity)
+    idle_timeout: 20, // Seconds before closing idle connections
+    max_lifetime: 60 * 30, // 30 minutes max connection lifetime
+    prepare: false, // Disable for better Supabase compatibility
+    transform: undefined, // Better performance
+    connection: {
+        application_name: "adrenalink-beta", // For monitoring
+    },
 });
 ```
 
@@ -131,14 +131,14 @@ Add to your `drizzle/db.ts`:
 ```typescript
 // Graceful shutdown handler
 if (typeof process !== "undefined") {
-  const shutdown = async () => {
-    console.log("Closing database connections...");
-    await client.end();
-    process.exit(0);
-  };
+    const shutdown = async () => {
+        console.log("Closing database connections...");
+        await client.end();
+        process.exit(0);
+    };
 
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
 }
 ```
 
@@ -149,9 +149,9 @@ if (typeof process !== "undefined") {
 ```typescript
 // Log connection events (development only)
 if (process.env.NODE_ENV === "development") {
-  client.on("connect", () => console.log("DB connected"));
-  client.on("disconnect", () => console.log("DB disconnected"));
-  client.on("error", (err) => console.error("DB error:", err));
+    client.on("connect", () => console.log("DB connected"));
+    client.on("disconnect", () => console.log("DB disconnected"));
+    client.on("error", (err) => console.error("DB error:", err));
 }
 ```
 
@@ -175,12 +175,12 @@ if (process.env.NODE_ENV === "development") {
 ```typescript
 // Robust error handling
 export const executeQuery = async (queryFn: () => Promise<any>) => {
-  try {
-    return await queryFn();
-  } catch (error) {
-    console.error("Database query failed:", error);
-    throw new Error("Database operation failed");
-  }
+    try {
+        return await queryFn();
+    } catch (error) {
+        console.error("Database query failed:", error);
+        throw new Error("Database operation failed");
+    }
 };
 ```
 
@@ -194,10 +194,10 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+    connectionString: process.env.DATABASE_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 export const db = drizzle(pool);
@@ -240,7 +240,7 @@ Minimal changes to make your current setup production-ready:
 
 ```typescript
 const client = postgres(process.env.DATABASE_URL, {
-  max: 15, // Safe for most Supabase plans
-  prepare: false, // Better Supabase compatibility
+    max: 15, // Safe for most Supabase plans
+    prepare: false, // Better Supabase compatibility
 });
 ```

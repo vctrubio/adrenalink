@@ -49,23 +49,17 @@ interface StudentTableProps {
 type SortColumn = "firstName" | "lastName" | "status" | null;
 type StatusFilter = "All" | "New" | "Ongoing" | "Available";
 
-function StudentTable({
-    students,
-    selectedStudentIds,
-    onToggle,
-    capacity,
-    studentStatsMap = {}
-}: StudentTableProps) {
+function StudentTable({ students, selectedStudentIds, onToggle, capacity, studentStatsMap = {} }: StudentTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
-    const studentEntity = ENTITY_DATA.find(e => e.id === "student");
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
 
     // Filter and sort students
     const filteredStudents = useMemo(() => {
         let filtered = filterBySearch(students, search, (schoolStudent) => {
-             const s = schoolStudent.student;
-             return `${s.firstName} ${s.lastName} ${s.passport}`;
+            const s = schoolStudent.student;
+            return `${s.firstName} ${s.lastName} ${s.passport}`;
         });
 
         filtered = filtered.filter((schoolStudent) => {
@@ -113,7 +107,13 @@ function StudentTable({
     }, [students, search, sortColumn, sortDirection, statusFilter, studentStatsMap]);
 
     useEffect(() => {
-        console.log("[StudentTable] filter changed:", { studentsCount: students.length, filteredCount: filteredStudents.length, search, statusFilter, sortColumn });
+        console.log("[StudentTable] filter changed:", {
+            studentsCount: students.length,
+            filteredCount: filteredStudents.length,
+            search,
+            statusFilter,
+            sortColumn,
+        });
     }, [filteredStudents.length, search, statusFilter, sortColumn, students.length]);
 
     if (students.length === 0) {
@@ -167,51 +167,55 @@ function StudentTable({
                         </TableHead>
                     </tr>
                 </TableHeader>
-            <TableBody>
-                {filteredStudents.map((schoolStudent, index) => {
-                    const student = schoolStudent.student;
-                    const isSelected = selectedStudentIds.includes(student.id);
-                    const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;
+                <TableBody>
+                    {filteredStudents.map((schoolStudent, index) => {
+                        const student = schoolStudent.student;
+                        const isSelected = selectedStudentIds.includes(student.id);
+                        const isDisabled = capacity && !isSelected && selectedStudentIds.length >= capacity;
 
-                    const stats = studentStatsMap[student.id] || { bookingCount: 0, totalEventCount: 0, totalEventDuration: 0 };
+                        const stats = studentStatsMap[student.id] || { bookingCount: 0, totalEventCount: 0, totalEventDuration: 0 };
 
-                    return (
-                        <TableRow
-                            key={student.id}
-                            onClick={!isDisabled ? () => onToggle(student.id) : undefined}
-                            isSelected={isSelected}
-                            selectedColor={studentEntity?.color}
-                            className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-                        >
-                            <TableCell className="font-medium text-foreground">
-                                <div className="flex flex-col gap-0.5">
-                                    <div className="font-bold text-sm">{student.firstName} {student.lastName}</div>
-                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-tight font-black">
-                                        <span>{student.passport}</span>
-                                        <span className="opacity-20 text-foreground">|</span>
-                                        <div className="flex items-center gap-1">
-                                            <ReactCountryFlag countryCode={getCountryCode(student.country)} svg style={{ width: '1.2em', height: '1.2em' }} />
+                        return (
+                            <TableRow
+                                key={student.id}
+                                onClick={!isDisabled ? () => onToggle(student.id) : undefined}
+                                isSelected={isSelected}
+                                selectedColor={studentEntity?.color}
+                                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                            >
+                                <TableCell className="font-medium text-foreground">
+                                    <div className="flex flex-col gap-0.5">
+                                        <div className="font-bold text-sm">
+                                            {student.firstName} {student.lastName}
                                         </div>
-                                        <span className="opacity-20 text-foreground">|</span>
-                                        <span className="truncate max-w-[200px]">{student.languages.join(", ")}</span>
+                                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-tight font-black">
+                                            <span>{student.passport}</span>
+                                            <span className="opacity-20 text-foreground">|</span>
+                                            <div className="flex items-center gap-1">
+                                                <ReactCountryFlag
+                                                    countryCode={getCountryCode(student.country)}
+                                                    svg
+                                                    style={{ width: "1.2em", height: "1.2em" }}
+                                                />
+                                            </div>
+                                            <span className="opacity-20 text-foreground">|</span>
+                                            <span className="truncate max-w-[200px]">{student.languages.join(", ")}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                                {schoolStudent.description || "-"}
-                            </TableCell>
-                            <TableCell>
-                                <StudentStatusBadge
-                                    bookingCount={stats.bookingCount}
-                                    totalEventDuration={stats.totalEventDuration}
-                                    allBookingsCompleted={stats.allBookingsCompleted}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    );
-                })}
-            </TableBody>
-        </Table>
+                                </TableCell>
+                                <TableCell className="text-sm text-muted-foreground">{schoolStudent.description || "-"}</TableCell>
+                                <TableCell>
+                                    <StudentStatusBadge
+                                        bookingCount={stats.bookingCount}
+                                        totalEventDuration={stats.totalEventDuration}
+                                        allBookingsCompleted={stats.allBookingsCompleted}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
+            </Table>
         </div>
     );
 }
@@ -219,6 +223,8 @@ function StudentTable({
 export const MemoStudentTable = memo(StudentTable);
 
 function getCountryCode(countryName: string): string {
-    const country = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase());
+    const country = COUNTRIES.find(
+        (c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase(),
+    );
     return country?.code || "US";
 }

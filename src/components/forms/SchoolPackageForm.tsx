@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormField, FormInput, FormSelect, FormSubmit } from "@/src/components/ui/form";
-import { createPackage } from "@/actions/packages-action";
+import { createSchoolPackage } from "@/supabase/server/register";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 const schoolPackageSchema = z.object({
@@ -17,6 +17,7 @@ const schoolPackageSchema = z.object({
     schoolId: z.string().min(1, "School is required"),
     isPublic: z.boolean(),
     active: z.boolean(),
+    packageType: z.enum(["rental", "lessons"]),
 });
 
 type SchoolPackageFormData = z.infer<typeof schoolPackageSchema>;
@@ -39,6 +40,7 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
             schoolId: schoolId || "",
             isPublic: true,
             active: true,
+            packageType: "lessons",
         },
     });
 
@@ -56,9 +58,23 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
 
     const onSubmit = async (data: SchoolPackageFormData) => {
         try {
-            await createPackage(data);
-            methods.reset();
-            onSuccess?.();
+            const result = await createSchoolPackage({
+                durationMinutes: data.durationMinutes,
+                description: data.description || "",
+                pricePerStudent: data.pricePerStudent,
+                capacityStudents: data.capacityStudents,
+                capacityEquipment: data.capacityEquipment,
+                categoryEquipment: data.categoryEquipment,
+                packageType: data.packageType,
+                isPublic: data.isPublic,
+            });
+
+            if (result.success) {
+                methods.reset();
+                onSuccess?.();
+            } else {
+                console.error("Failed to create package:", result.error);
+            }
         } catch (error) {
             console.error("Error creating package:", error);
         }
@@ -67,12 +83,17 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
     return (
         <Form methods={methods} onSubmit={onSubmit} className="bg-card border-border rounded-lg shadow-sm">
             <div className="space-y-6">
-                <FormField label="Duration (minutes)" required error={errors.durationMinutes?.message} isValid={!errors.durationMinutes && durationValue > 0}>
-                    <FormInput 
-                        {...register("durationMinutes", { valueAsNumber: true })} 
-                        type="number" 
-                        placeholder="Enter duration in minutes" 
-                        error={!!errors.durationMinutes} 
+                <FormField
+                    label="Duration (minutes)"
+                    required
+                    error={errors.durationMinutes?.message}
+                    isValid={!errors.durationMinutes && durationValue > 0}
+                >
+                    <FormInput
+                        {...register("durationMinutes", { valueAsNumber: true })}
+                        type="number"
+                        placeholder="Enter duration in minutes"
+                        error={!!errors.durationMinutes}
                     />
                 </FormField>
 
@@ -80,40 +101,60 @@ export function SchoolPackageForm({ schoolId, onSuccess }: SchoolPackageFormProp
                     <FormInput {...register("description")} placeholder="Enter package description" error={!!errors.description} />
                 </FormField>
 
-                <FormField label="Price per Student" required error={errors.pricePerStudent?.message} isValid={!errors.pricePerStudent && priceValue > 0}>
-                    <FormInput 
-                        {...register("pricePerStudent", { valueAsNumber: true })} 
-                        type="number" 
-                        placeholder="Enter price per student" 
-                        error={!!errors.pricePerStudent} 
+                <FormField
+                    label="Price per Student"
+                    required
+                    error={errors.pricePerStudent?.message}
+                    isValid={!errors.pricePerStudent && priceValue > 0}
+                >
+                    <FormInput
+                        {...register("pricePerStudent", { valueAsNumber: true })}
+                        type="number"
+                        placeholder="Enter price per student"
+                        error={!!errors.pricePerStudent}
                     />
                 </FormField>
 
-                <FormField label="Student Capacity" required error={errors.capacityStudents?.message} isValid={!errors.capacityStudents && capacityStudentsValue > 0}>
-                    <FormInput 
-                        {...register("capacityStudents", { valueAsNumber: true })} 
-                        type="number" 
-                        placeholder="Enter student capacity" 
-                        error={!!errors.capacityStudents} 
+                <FormField
+                    label="Student Capacity"
+                    required
+                    error={errors.capacityStudents?.message}
+                    isValid={!errors.capacityStudents && capacityStudentsValue > 0}
+                >
+                    <FormInput
+                        {...register("capacityStudents", { valueAsNumber: true })}
+                        type="number"
+                        placeholder="Enter student capacity"
+                        error={!!errors.capacityStudents}
                     />
                 </FormField>
 
-                <FormField label="Equipment Capacity" required error={errors.capacityEquipment?.message} isValid={!errors.capacityEquipment && capacityEquipmentValue > 0}>
-                    <FormInput 
-                        {...register("capacityEquipment", { valueAsNumber: true })} 
-                        type="number" 
-                        placeholder="Enter equipment capacity" 
-                        error={!!errors.capacityEquipment} 
+                <FormField
+                    label="Equipment Capacity"
+                    required
+                    error={errors.capacityEquipment?.message}
+                    isValid={!errors.capacityEquipment && capacityEquipmentValue > 0}
+                >
+                    <FormInput
+                        {...register("capacityEquipment", { valueAsNumber: true })}
+                        type="number"
+                        placeholder="Enter equipment capacity"
+                        error={!!errors.capacityEquipment}
                     />
                 </FormField>
 
-                <FormField label="Equipment Category" required error={errors.categoryEquipment?.message} isValid={!errors.categoryEquipment && !!categoryValue}>
-                    <FormSelect 
-                        {...register("categoryEquipment")} 
+                <FormField
+                    label="Equipment Category"
+                    required
+                    error={errors.categoryEquipment?.message}
+                    isValid={!errors.categoryEquipment && !!categoryValue}
+                >
+                    <FormSelect
+                        {...register("categoryEquipment")}
                         error={!!errors.categoryEquipment}
-                        options={EQUIPMENT_CATEGORIES.map(category => ({
+                        options={EQUIPMENT_CATEGORIES.map((category) => ({
                             value: category.id,
-                            label: category.name
+                            label: category.name,
                         }))}
                     />
                 </FormField>

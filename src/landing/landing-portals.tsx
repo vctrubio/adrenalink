@@ -90,171 +90,173 @@ export function LandingPortals() {
 
                 {/* Portal Container - Positioned relative to center */}
                 <div className="relative h-[550px]">
+                    {/* Connection Lines SVG */}
+                    <svg
+                        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+                        viewBox="0 0 400 450"
+                        preserveAspectRatio="xMidYMid meet"
+                    >
+                        <defs>
+                            {/* Gradient for Student-Teacher connection through Lesson */}
+                            <linearGradient id="studentTeacherGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style={{ stopColor: ROLE_CONFIGS.student.color, stopOpacity: 0.6 }} />
+                                <stop offset="100%" style={{ stopColor: ROLE_CONFIGS.teacher.color, stopOpacity: 0.6 }} />
+                            </linearGradient>
+                        </defs>
 
-                {/* Connection Lines SVG */}
-                <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none z-0"
-                    viewBox="0 0 400 450"
-                    preserveAspectRatio="xMidYMid meet"
-                >
-                    <defs>
-                        {/* Gradient for Student-Teacher connection through Lesson */}
-                        <linearGradient id="studentTeacherGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style={{ stopColor: ROLE_CONFIGS.student.color, stopOpacity: 0.6 }} />
-                            <stop offset="100%" style={{ stopColor: ROLE_CONFIGS.teacher.color, stopOpacity: 0.6 }} />
-                        </linearGradient>
-                    </defs>
+                        {/* Student to School */}
+                        {hoveredRole === "student" && (
+                            <line
+                                x1="80"
+                                y1="400"
+                                x2="200"
+                                y2="80"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                        {/* Student to Lesson - with gradient */}
+                        {hoveredRole === "student" && (
+                            <line
+                                x1="80"
+                                y1="400"
+                                x2="200"
+                                y2="300"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                        {/* Teacher to School */}
+                        {hoveredRole === "teacher" && (
+                            <line
+                                x1="320"
+                                y1="400"
+                                x2="200"
+                                y2="80"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                        {/* Teacher to Lesson - with gradient */}
+                        {hoveredRole === "teacher" && (
+                            <line
+                                x1="320"
+                                y1="400"
+                                x2="200"
+                                y2="300"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                        {/* School to Student - with gradient */}
+                        {hoveredRole === "school" && (
+                            <line
+                                x1="200"
+                                y1="80"
+                                x2="80"
+                                y2="400"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                        {/* School to Teacher - with gradient */}
+                        {hoveredRole === "school" && (
+                            <line
+                                x1="200"
+                                y1="80"
+                                x2="320"
+                                y2="400"
+                                stroke="url(#studentTeacherGradient)"
+                                strokeWidth="3"
+                                className="opacity-60 animate-pulse"
+                                strokeDasharray="8 8"
+                            />
+                        )}
+                    </svg>
 
-                    {/* Student to School */}
-                    {hoveredRole === "student" && (
-                        <line
-                            x1="80"
-                            y1="400"
-                            x2="200"
-                            y2="80"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                    {/* Student to Lesson - with gradient */}
-                    {hoveredRole === "student" && (
-                        <line
-                            x1="80"
-                            y1="400"
-                            x2="200"
-                            y2="300"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                    {/* Teacher to School */}
-                    {hoveredRole === "teacher" && (
-                        <line
-                            x1="320"
-                            y1="400"
-                            x2="200"
-                            y2="80"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                    {/* Teacher to Lesson - with gradient */}
-                    {hoveredRole === "teacher" && (
-                        <line
-                            x1="320"
-                            y1="400"
-                            x2="200"
-                            y2="300"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                    {/* School to Student - with gradient */}
-                    {hoveredRole === "school" && (
-                        <line
-                            x1="200"
-                            y1="80"
-                            x2="80"
-                            y2="400"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                    {/* School to Teacher - with gradient */}
-                    {hoveredRole === "school" && (
-                        <line
-                            x1="200"
-                            y1="80"
-                            x2="320"
-                            y2="400"
-                            stroke="url(#studentTeacherGradient)"
-                            strokeWidth="3"
-                            className="opacity-60 animate-pulse"
-                            strokeDasharray="8 8"
-                        />
-                    )}
-                </svg>
-
-                {/* School Portal - Top */}
-                <div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 z-10"
-                    onMouseEnter={() => setHoveredRole("school")}
-                    onMouseLeave={() => setHoveredRole(null)}
-                >
-                    <div className="flex flex-col items-center gap-3 cursor-pointer">
-                        <div className="p-6">
-                            <div style={{ color: ROLE_CONFIGS.school.color }}>
-                                <AdminIcon className="h-12 w-12" />
-                            </div>
-                        </div>
-                        <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.school.label}</span>
-                    </div>
-                </div>
-
-                {/* Lesson Portal - Lower Position (Always visible, unhoverable, no border) */}
-                <div className="absolute top-[70%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="relative" style={{ width: "200px", height: "200px" }}>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6">
-                                <div
-                                    className="transition-colors duration-300"
-                                    style={{
-                                        color: showLessonActive ? ROLE_CONFIGS.lesson.color : "#6b7280",
-                                    }}
-                                >
-                                    <FlagIcon className="h-12 w-12" />
+                    {/* School Portal - Top */}
+                    <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 z-10"
+                        onMouseEnter={() => setHoveredRole("school")}
+                        onMouseLeave={() => setHoveredRole(null)}
+                    >
+                        <div className="flex flex-col items-center gap-3 cursor-pointer">
+                            <div className="p-6">
+                                <div style={{ color: ROLE_CONFIGS.school.color }}>
+                                    <AdminIcon className="h-12 w-12" />
                                 </div>
                             </div>
-                            {/* Animated Canvas in front of Lesson - appears on hover */}
-                            {showLessonActive && (
-                                <AnimatedCanvas className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 20 }} />
-                            )}
+                            <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.school.label}</span>
                         </div>
-                        <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.lesson.label}</span>
                     </div>
-                </div>
 
-                {/* Student Portal - Bottom Left */}
-                <div
-                    className="absolute bottom-0 left-[10%] md:left-[15%] z-10"
-                    onMouseEnter={() => setHoveredRole("student")}
-                    onMouseLeave={() => setHoveredRole(null)}
-                >
-                    <div className="flex flex-col items-center gap-3 cursor-pointer">
-                        <div className="p-6">
-                            <div style={{ color: ROLE_CONFIGS.student.color }}>
-                                <HelmetIcon className="h-12 w-12" />
+                    {/* Lesson Portal - Lower Position (Always visible, unhoverable, no border) */}
+                    <div className="absolute top-[70%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="relative" style={{ width: "200px", height: "200px" }}>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6">
+                                    <div
+                                        className="transition-colors duration-300"
+                                        style={{
+                                            color: showLessonActive ? ROLE_CONFIGS.lesson.color : "#6b7280",
+                                        }}
+                                    >
+                                        <FlagIcon className="h-12 w-12" />
+                                    </div>
+                                </div>
+                                {/* Animated Canvas in front of Lesson - appears on hover */}
+                                {showLessonActive && (
+                                    <AnimatedCanvas
+                                        className="absolute inset-0 w-full h-full pointer-events-none"
+                                        style={{ zIndex: 20 }}
+                                    />
+                                )}
                             </div>
+                            <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.lesson.label}</span>
                         </div>
-                        <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.student.label}</span>
                     </div>
-                </div>
 
-                {/* Teacher Portal - Bottom Right */}
-                <div
-                    className="absolute bottom-0 right-[10%] md:right-[15%] z-10"
-                    onMouseEnter={() => setHoveredRole("teacher")}
-                    onMouseLeave={() => setHoveredRole(null)}
-                >
-                    <div className="flex flex-col items-center gap-3 cursor-pointer">
-                        <div className="p-6">
-                            <div style={{ color: ROLE_CONFIGS.teacher.color }}>
-                                <HeadsetIcon className="h-12 w-12" />
+                    {/* Student Portal - Bottom Left */}
+                    <div
+                        className="absolute bottom-0 left-[10%] md:left-[15%] z-10"
+                        onMouseEnter={() => setHoveredRole("student")}
+                        onMouseLeave={() => setHoveredRole(null)}
+                    >
+                        <div className="flex flex-col items-center gap-3 cursor-pointer">
+                            <div className="p-6">
+                                <div style={{ color: ROLE_CONFIGS.student.color }}>
+                                    <HelmetIcon className="h-12 w-12" />
+                                </div>
                             </div>
+                            <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.student.label}</span>
                         </div>
-                        <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.teacher.label}</span>
                     </div>
-                </div>
+
+                    {/* Teacher Portal - Bottom Right */}
+                    <div
+                        className="absolute bottom-0 right-[10%] md:right-[15%] z-10"
+                        onMouseEnter={() => setHoveredRole("teacher")}
+                        onMouseLeave={() => setHoveredRole(null)}
+                    >
+                        <div className="flex flex-col items-center gap-3 cursor-pointer">
+                            <div className="p-6">
+                                <div style={{ color: ROLE_CONFIGS.teacher.color }}>
+                                    <HeadsetIcon className="h-12 w-12" />
+                                </div>
+                            </div>
+                            <span className="text-lg font-bold text-white whitespace-nowrap">{ROLE_CONFIGS.teacher.label}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

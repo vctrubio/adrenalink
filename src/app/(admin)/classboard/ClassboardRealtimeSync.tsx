@@ -47,46 +47,51 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         };
     }, []);
 
-    const handleEventDetected = useCallback((newData: ClassboardModel) => {
-        console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
+    const handleEventDetected = useCallback(
+        (newData: ClassboardModel) => {
+            console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
-        // 1. Calculate the new model state based on current ref
-        const prevModel = modelRef.current;
-        const updatedModel = [...prevModel];
+            // 1. Calculate the new model state based on current ref
+            const prevModel = modelRef.current;
+            const updatedModel = [...prevModel];
 
-        newData.forEach((newBooking) => {
-            const existingIndex = updatedModel.findIndex((b) => b.booking.id === newBooking.booking.id);
-            if (existingIndex >= 0) {
-                updatedModel[existingIndex] = newBooking;
-            } else {
-                updatedModel.push(newBooking);
-            }
-        });
-
-        // 2. Update the model state
-        setClassboardModel(updatedModel);
-
-    }, [setClassboardModel]);
-
-    const handleNewBookingDetected = useCallback(async (bookingId: string) => {
-        console.log(`🔔 [ClassboardRealtimeSync] New booking detected: ${bookingId}`);
-        const result = await getSQLClassboardDataForBooking(bookingId);
-        if ("success" in result && result.success && result.data) {
-            // Merge the new booking into existing classboard model instead of replacing everything
-            setClassboardModel((prev) => {
-                // Remove if it already exists (in case of duplicate), then add it
-                const filtered = prev.filter((b) => b.booking.id !== bookingId);
-                console.log(`  📥 Adding ${result.data.length} booking(s) to model`);
-                return [...filtered, ...result.data];
+            newData.forEach((newBooking) => {
+                const existingIndex = updatedModel.findIndex((b) => b.booking.id === newBooking.booking.id);
+                if (existingIndex >= 0) {
+                    updatedModel[existingIndex] = newBooking;
+                } else {
+                    updatedModel.push(newBooking);
+                }
             });
-        }
-    }, [setClassboardModel]);
+
+            // 2. Update the model state
+            setClassboardModel(updatedModel);
+        },
+        [setClassboardModel],
+    );
+
+    const handleNewBookingDetected = useCallback(
+        async (bookingId: string) => {
+            console.log(`🔔 [ClassboardRealtimeSync] New booking detected: ${bookingId}`);
+            const result = await getSQLClassboardDataForBooking(bookingId);
+            if ("success" in result && result.success && result.data) {
+                // Merge the new booking into existing classboard model instead of replacing everything
+                setClassboardModel((prev) => {
+                    // Remove if it already exists (in case of duplicate), then add it
+                    const filtered = prev.filter((b) => b.booking.id !== bookingId);
+                    console.log(`  📥 Adding ${result.data.length} booking(s) to model`);
+                    return [...filtered, ...result.data];
+                });
+            }
+        },
+        [setClassboardModel],
+    );
 
     const getBookingIdForEvent = useCallback((eventId: string) => {
         // Search current model for this event ID
         for (const bookingData of modelRef.current) {
             for (const lesson of bookingData.lessons) {
-                if (lesson.events?.some(e => e.id === eventId)) {
+                if (lesson.events?.some((e) => e.id === eventId)) {
                     return bookingData.booking.id;
                 }
             }
@@ -94,9 +99,9 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         return undefined;
     }, []);
 
-    useAdminClassboardEventListener({ 
+    useAdminClassboardEventListener({
         onEventDetected: handleEventDetected,
-        getBookingIdForEvent 
+        getBookingIdForEvent,
     });
     useAdminClassboardBookingListener({ onNewBooking: handleNewBookingDetected });
 

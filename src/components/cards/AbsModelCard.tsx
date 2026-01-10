@@ -9,16 +9,16 @@ export default function AbsModelCard({ model }: { model: SerializedAbstractModel
                 {/* Header */}
                 <div className="border-b border-border pb-4">
                     <h2 className="text-2xl font-bold text-foreground">Model Debug Card</h2>
-                    <p className="text-muted-foreground">Table: <span className="font-mono text-foreground">{model.tableName}</span></p>
+                    <p className="text-muted-foreground">
+                        Table: <span className="font-mono text-foreground">{model.tableName}</span>
+                    </p>
                 </div>
 
                 {/* Schema */}
                 <div>
                     <h3 className="text-lg font-semibold text-foreground mb-3">Schema</h3>
                     <div className="bg-muted/20 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                        <pre className="text-foreground whitespace-pre-wrap">
-                            {JSON.stringify(model.schema, null, 2)}
-                        </pre>
+                        <pre className="text-foreground whitespace-pre-wrap">{JSON.stringify(model.schema, null, 2)}</pre>
                     </div>
                 </div>
 
@@ -27,9 +27,7 @@ export default function AbsModelCard({ model }: { model: SerializedAbstractModel
                     <div>
                         <h3 className="text-lg font-semibold text-foreground mb-3">Relations</h3>
                         <div className="bg-muted/20 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                            <pre className="text-foreground whitespace-pre-wrap">
-                                {JSON.stringify(model.relations, null, 2)}
-                            </pre>
+                            <pre className="text-foreground whitespace-pre-wrap">{JSON.stringify(model.relations, null, 2)}</pre>
                         </div>
                     </div>
                 )}
@@ -39,9 +37,7 @@ export default function AbsModelCard({ model }: { model: SerializedAbstractModel
                     <div>
                         <h3 className="text-lg font-semibold text-foreground mb-3">Lambda (Computed Values)</h3>
                         <div className="bg-muted/20 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                            <pre className="text-foreground whitespace-pre-wrap">
-                                {JSON.stringify(model.lambda, null, 2)}
-                            </pre>
+                            <pre className="text-foreground whitespace-pre-wrap">{JSON.stringify(model.lambda, null, 2)}</pre>
                         </div>
                     </div>
                 )}

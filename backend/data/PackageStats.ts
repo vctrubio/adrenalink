@@ -16,6 +16,6 @@ export function getAggregatePackages(packages: PackageTableData[]): PackageTable
             totalBookings: 0,
             totalRequests: 0,
             totalRevenue: 0,
-        }
+        },
     );
 }

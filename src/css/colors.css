@@ -1,182 +1,182 @@
 /* Adrenalink Color Schema - Tailwind v4 Theme Configuration */
 
 @theme {
-	/* Tailwind utilities - reference CSS custom properties for dark mode support */
-	--color-background: rgb(var(--background));
-	--color-foreground: rgb(var(--foreground));
-	--color-card: rgb(var(--card));
-	--color-card-foreground: rgb(var(--card-foreground));
-	--color-popover: rgb(var(--popover));
-	--color-popover-foreground: rgb(var(--popover-foreground));
+    /* Tailwind utilities - reference CSS custom properties for dark mode support */
+    --color-background: rgb(var(--background));
+    --color-foreground: rgb(var(--foreground));
+    --color-card: rgb(var(--card));
+    --color-card-foreground: rgb(var(--card-foreground));
+    --color-popover: rgb(var(--popover));
+    --color-popover-foreground: rgb(var(--popover-foreground));
 
-	--color-muted: rgb(var(--muted));
-	--color-muted-foreground: rgb(var(--muted-foreground));
+    --color-muted: rgb(var(--muted));
+    --color-muted-foreground: rgb(var(--muted-foreground));
 
-	--color-accent: rgb(var(--accent));
-	--color-accent-foreground: rgb(var(--accent-foreground));
+    --color-accent: rgb(var(--accent));
+    --color-accent-foreground: rgb(var(--accent-foreground));
 
-	--color-primary: rgb(var(--primary));
-	--color-primary-foreground: rgb(var(--primary-foreground));
-	--color-secondary: rgb(var(--secondary));
-	--color-secondary-foreground: rgb(var(--secondary-foreground));
-	--color-tertiary: rgb(var(--tertiary));
-	--color-tertiary-foreground: rgb(var(--tertiary-foreground));
-	--color-fourth: rgb(var(--fourth));
-	--color-fourth-foreground: rgb(var(--fourth-foreground));
+    --color-primary: rgb(var(--primary));
+    --color-primary-foreground: rgb(var(--primary-foreground));
+    --color-secondary: rgb(var(--secondary));
+    --color-secondary-foreground: rgb(var(--secondary-foreground));
+    --color-tertiary: rgb(var(--tertiary));
+    --color-tertiary-foreground: rgb(var(--tertiary-foreground));
+    --color-fourth: rgb(var(--fourth));
+    --color-fourth-foreground: rgb(var(--fourth-foreground));
 
-	--color-destructive: rgb(var(--destructive));
-	--color-destructive-foreground: rgb(var(--destructive-foreground));
-	--color-warning: rgb(var(--warning));
-	--color-warning-foreground: rgb(var(--warning-foreground));
+    --color-destructive: rgb(var(--destructive));
+    --color-destructive-foreground: rgb(var(--destructive-foreground));
+    --color-warning: rgb(var(--warning));
+    --color-warning-foreground: rgb(var(--warning-foreground));
 
-	--color-border: rgb(var(--border));
-	--color-input: rgb(var(--input));
-	--color-ring: rgb(var(--ring));
+    --color-border: rgb(var(--border));
+    --color-input: rgb(var(--input));
+    --color-ring: rgb(var(--ring));
 
-	--color-facebook: rgb(var(--facebook-background));
-	--color-facebook-border: rgb(var(--facebook-border));
+    --color-facebook: rgb(var(--facebook-background));
+    --color-facebook-border: rgb(var(--facebook-border));
 
-	--color-footer: rgb(var(--footer));
-	--color-footer-foreground: rgb(var(--footer-foreground));
+    --color-footer: rgb(var(--footer));
+    --color-footer-foreground: rgb(var(--footer-foreground));
 
-	--color-subscription-default: rgb(var(--subscription-default));
-	--color-subscription-blue: rgb(var(--subscription-blue));
-	--color-subscription-gold: rgb(var(--subscription-gold));
+    --color-subscription-default: rgb(var(--subscription-default));
+    --color-subscription-blue: rgb(var(--subscription-blue));
+    --color-subscription-gold: rgb(var(--subscription-gold));
 
-	--color-request: rgb(var(--request));
-	--color-request-foreground: rgb(var(--request-foreground));
-	--color-primary-orange: rgb(var(--primary-orange));
-	--color-primary-blue: rgb(var(--primary-blue));
-	--color-primary-green: rgb(var(--primary-green));
+    --color-request: rgb(var(--request));
+    --color-request-foreground: rgb(var(--request-foreground));
+    --color-primary-orange: rgb(var(--primary-orange));
+    --color-primary-blue: rgb(var(--primary-blue));
+    --color-primary-green: rgb(var(--primary-green));
 
-	--color-red-clade: rgb(var(--red-clade));
-	--color-blue-clude: rgb(var(--blue-clude));
+    --color-red-clade: rgb(var(--red-clade));
+    --color-blue-clude: rgb(var(--blue-clude));
 
-	/* Entity-based colors */
-	--color-yellow-student: rgb(var(--yellow-student));
-	--color-yellow-student-foreground: rgb(var(--yellow-student-foreground));
-	--color-yellow-helmet: rgb(var(--yellow-helmet));
-	--color-yellow-helmet-foreground: rgb(var(--yellow-helmet-foreground));
-	--color-green-teacher: rgb(var(--green-teacher));
-	--color-green-teacher-foreground: rgb(var(--green-teacher-foreground));
-	--color-red-rental: rgb(var(--red-rental));
-	--color-red-rental-foreground: rgb(var(--red-rental-foreground));
-	--color-purple-equipment: rgb(var(--purple-equipment));
-	--color-purple-equipment-foreground: rgb(var(--purple-equipment-foreground));
-	--color-blue-booking: rgb(var(--blue-booking));
-	--color-blue-booking-foreground: rgb(var(--blue-booking-foreground));
+    /* Entity-based colors */
+    --color-yellow-student: rgb(var(--yellow-student));
+    --color-yellow-student-foreground: rgb(var(--yellow-student-foreground));
+    --color-yellow-helmet: rgb(var(--yellow-helmet));
+    --color-yellow-helmet-foreground: rgb(var(--yellow-helmet-foreground));
+    --color-green-teacher: rgb(var(--green-teacher));
+    --color-green-teacher-foreground: rgb(var(--green-teacher-foreground));
+    --color-red-rental: rgb(var(--red-rental));
+    --color-red-rental-foreground: rgb(var(--red-rental-foreground));
+    --color-purple-equipment: rgb(var(--purple-equipment));
+    --color-purple-equipment-foreground: rgb(var(--purple-equipment-foreground));
+    --color-blue-booking: rgb(var(--blue-booking));
+    --color-blue-booking-foreground: rgb(var(--blue-booking-foreground));
 }
 
 @layer base {
-	:root {
-		--background: 248 250 252;
-		--foreground: 30 41 59;
-		--card: 241 245 249;
-		--card-foreground: 30 41 59;
-		--popover: 248 250 252;
-		--popover-foreground: 30 41 59;
-		--muted: 226 232 240;
-		--muted-foreground: 100 116 139;
-		--accent: 226 232 240;
-		--accent-foreground: 30 41 59;
-		--primary: 22 97 14;
-		--primary-foreground: 248 250 252;
-		--secondary: 59 130 246;
-		--secondary-foreground: 248 250 252;
-		--tertiary: 251 146 60;
-		--tertiary-foreground: 248 250 252;
-		--fourth: 51 65 85;
-		--fourth-foreground: 248 250 252;
-		--destructive: 255 59 48;
-		--destructive-foreground: 248 250 252;
-		--warning: 255 149 0;
-		--warning-foreground: 248 250 252;
-		--subscription-default: 148 163 184;
-		--subscription-blue: 59 130 246;
-		--subscription-gold: 217 119 6;
-		--footer: 226 232 240;
-		--footer-foreground: 30 41 59;
-		--border: 203 213 225;
-		--input: 203 213 225;
-		--ring: 59 130 246;
-		--facebook-background: 241 245 249;
-		--facebook-border: 226 232 240;
-		--request: 34 197 94;
-		--request-foreground: 255 255 255;
-		--primary-orange: 251 146 60;
-		--primary-blue: 59 130 246;
-		--primary-green: 22 97 14;
-		--red-clade: 239 68 68;
-		--blue-clude: 59 130 246;
+    :root {
+        --background: 248 250 252;
+        --foreground: 30 41 59;
+        --card: 241 245 249;
+        --card-foreground: 30 41 59;
+        --popover: 248 250 252;
+        --popover-foreground: 30 41 59;
+        --muted: 226 232 240;
+        --muted-foreground: 100 116 139;
+        --accent: 226 232 240;
+        --accent-foreground: 30 41 59;
+        --primary: 22 97 14;
+        --primary-foreground: 248 250 252;
+        --secondary: 59 130 246;
+        --secondary-foreground: 248 250 252;
+        --tertiary: 251 146 60;
+        --tertiary-foreground: 248 250 252;
+        --fourth: 51 65 85;
+        --fourth-foreground: 248 250 252;
+        --destructive: 255 59 48;
+        --destructive-foreground: 248 250 252;
+        --warning: 255 149 0;
+        --warning-foreground: 248 250 252;
+        --subscription-default: 148 163 184;
+        --subscription-blue: 59 130 246;
+        --subscription-gold: 217 119 6;
+        --footer: 226 232 240;
+        --footer-foreground: 30 41 59;
+        --border: 203 213 225;
+        --input: 203 213 225;
+        --ring: 59 130 246;
+        --facebook-background: 241 245 249;
+        --facebook-border: 226 232 240;
+        --request: 34 197 94;
+        --request-foreground: 255 255 255;
+        --primary-orange: 251 146 60;
+        --primary-blue: 59 130 246;
+        --primary-green: 22 97 14;
+        --red-clade: 239 68 68;
+        --blue-clude: 59 130 246;
 
-		/* Entity-based colors - Light mode */
-		--yellow-student: 234 179 8 / 0.35; /* #eab308 with 35% opacity */
-		--yellow-student-foreground: 82 82 82; /* Dark text */
-		--yellow-helmet: 234 179 8; /* #eab308 bright */
-		--yellow-helmet-foreground: 82 82 82; /* Dark text */
-		--green-teacher: 34 197 94 / 0.15; /* #22c55e with opacity */
-		--green-teacher-foreground: 22 97 14; /* Dark green text */
-		--red-rental: 239 68 68 / 0.15; /* #ef4444 with opacity */
-		--red-rental-foreground: 127 29 29; /* Dark red text */
-		--purple-equipment: 168 85 247 / 0.15; /* #a855f7 with opacity */
-		--purple-equipment-foreground: 88 28 135; /* Dark purple text */
-		--blue-booking: 59 130 246 / 0.15; /* #3b82f6 with opacity */
-		--blue-booking-foreground: 30 58 138; /* Dark blue text */
-	}
+        /* Entity-based colors - Light mode */
+        --yellow-student: 234 179 8 / 0.35; /* #eab308 with 35% opacity */
+        --yellow-student-foreground: 82 82 82; /* Dark text */
+        --yellow-helmet: 234 179 8; /* #eab308 bright */
+        --yellow-helmet-foreground: 82 82 82; /* Dark text */
+        --green-teacher: 34 197 94 / 0.15; /* #22c55e with opacity */
+        --green-teacher-foreground: 22 97 14; /* Dark green text */
+        --red-rental: 239 68 68 / 0.15; /* #ef4444 with opacity */
+        --red-rental-foreground: 127 29 29; /* Dark red text */
+        --purple-equipment: 168 85 247 / 0.15; /* #a855f7 with opacity */
+        --purple-equipment-foreground: 88 28 135; /* Dark purple text */
+        --blue-booking: 59 130 246 / 0.15; /* #3b82f6 with opacity */
+        --blue-booking-foreground: 30 58 138; /* Dark blue text */
+    }
 
-	.dark {
-		--background: 15 23 42;
-		--foreground: 248 250 252;
-		--card: 30 41 59;
-		--card-foreground: 248 250 252;
-		--popover: 15 23 42;
-		--popover-foreground: 248 250 252;
-		--muted: 51 65 85;
-		--muted-foreground: 148 163 184;
-		--accent: 51 65 85;
-		--accent-foreground: 248 250 252;
-		--primary: 251 146 60;
-		--primary-foreground: 15 23 42;
-		--secondary: 59 130 246;
-		--secondary-foreground: 248 250 252;
-		--tertiary: 22 97 14;
-		--tertiary-foreground: 248 250 252;
-		--fourth: 71 85 105;
-		--fourth-foreground: 248 250 252;
-		--destructive: 255 69 58;
-		--destructive-foreground: 248 250 252;
-		--warning: 255 159 10;
-		--warning-foreground: 15 23 42;
-		--subscription-default: 100 116 139;
-		--subscription-blue: 96 165 250;
-		--subscription-gold: 251 146 60;
-		--footer: 51 65 85;
-		--footer-foreground: 248 250 252;
-		--border: 51 65 85;
-		--input: 52 115 162;
-		--ring: 96 165 250;
-		--facebook-background: 30 41 59;
-		--facebook-border: 51 65 85;
-		--request: 74 222 128;
-		--request-foreground: 15 23 42;
-		--primary-orange: 251 146 60;
-		--primary-blue: 59 130 246;
-		--primary-green: 22 97 14;
-		--red-clade: 220 38 38;
-		--blue-clude: 96 165 250;
+    .dark {
+        --background: 15 23 42;
+        --foreground: 248 250 252;
+        --card: 30 41 59;
+        --card-foreground: 248 250 252;
+        --popover: 15 23 42;
+        --popover-foreground: 248 250 252;
+        --muted: 51 65 85;
+        --muted-foreground: 148 163 184;
+        --accent: 51 65 85;
+        --accent-foreground: 248 250 252;
+        --primary: 251 146 60;
+        --primary-foreground: 15 23 42;
+        --secondary: 59 130 246;
+        --secondary-foreground: 248 250 252;
+        --tertiary: 22 97 14;
+        --tertiary-foreground: 248 250 252;
+        --fourth: 71 85 105;
+        --fourth-foreground: 248 250 252;
+        --destructive: 255 69 58;
+        --destructive-foreground: 248 250 252;
+        --warning: 255 159 10;
+        --warning-foreground: 15 23 42;
+        --subscription-default: 100 116 139;
+        --subscription-blue: 96 165 250;
+        --subscription-gold: 251 146 60;
+        --footer: 51 65 85;
+        --footer-foreground: 248 250 252;
+        --border: 51 65 85;
+        --input: 52 115 162;
+        --ring: 96 165 250;
+        --facebook-background: 30 41 59;
+        --facebook-border: 51 65 85;
+        --request: 74 222 128;
+        --request-foreground: 15 23 42;
+        --primary-orange: 251 146 60;
+        --primary-blue: 59 130 246;
+        --primary-green: 22 97 14;
+        --red-clade: 220 38 38;
+        --blue-clude: 96 165 250;
 
-		/* Entity-based colors - Dark mode */
-		--yellow-student: 202 138 4 / 0.45; /* #ca8a04 darker with 45% opacity */
-		--yellow-student-foreground: 255 255 255; /* White text */
-		--yellow-helmet: 202 138 4; /* #ca8a04 bright */
-		--yellow-helmet-foreground: 255 255 255; /* White text */
-		--green-teacher: 22 163 74 / 0.2; /* #16a34a with opacity */
-		--green-teacher-foreground: 255 255 255; /* White text */
-		--red-rental: 220 38 38 / 0.2; /* #dc2626 with opacity */
-		--red-rental-foreground: 255 255 255; /* White text */
-		--purple-equipment: 147 51 234 / 0.2; /* #9333ea with opacity */
-		--purple-equipment-foreground: 255 255 255; /* White text */
-		--blue-booking: 37 99 235 / 0.2; /* #2563eb with opacity */
-		--blue-booking-foreground: 255 255 255; /* White text */
-	}
+        /* Entity-based colors - Dark mode */
+        --yellow-student: 202 138 4 / 0.45; /* #ca8a04 darker with 45% opacity */
+        --yellow-student-foreground: 255 255 255; /* White text */
+        --yellow-helmet: 202 138 4; /* #ca8a04 bright */
+        --yellow-helmet-foreground: 255 255 255; /* White text */
+        --green-teacher: 22 163 74 / 0.2; /* #16a34a with opacity */
+        --green-teacher-foreground: 255 255 255; /* White text */
+        --red-rental: 220 38 38 / 0.2; /* #dc2626 with opacity */
+        --red-rental-foreground: 255 255 255; /* White text */
+        --purple-equipment: 147 51 234 / 0.2; /* #9333ea with opacity */
+        --purple-equipment-foreground: 255 255 255; /* White text */
+        --blue-booking: 37 99 235 / 0.2; /* #2563eb with opacity */
+        --blue-booking-foreground: 255 255 255; /* White text */
+    }
 }

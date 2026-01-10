@@ -65,7 +65,17 @@ interface Totals {
 }
 
 // Sub-component: Table View
-function TableView({ eventRows, teacherEntity, TeacherIcon, totals }: { eventRows: EventRow[]; teacherEntity: any; TeacherIcon: any; totals: Totals }) {
+function TableView({
+    eventRows,
+    teacherEntity,
+    TeacherIcon,
+    totals,
+}: {
+    eventRows: EventRow[];
+    teacherEntity: any;
+    TeacherIcon: any;
+    totals: Totals;
+}) {
     return (
         <motion.div key="table" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
             <div className="rounded-xl border border-border overflow-hidden bg-card">
@@ -84,10 +94,20 @@ function TableView({ eventRows, teacherEntity, TeacherIcon, totals }: { eventRow
                         </thead>
                         <tbody>
                             {eventRows.map((event, idx) => (
-                                <tr key={event.eventId} className={`border-t border-border hover:bg-muted/30 transition-colors ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"}`}>
+                                <tr
+                                    key={event.eventId}
+                                    className={`border-t border-border hover:bg-muted/30 transition-colors ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"}`}
+                                >
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: EVENT_STATUS_CONFIG[event.eventStatus as keyof typeof EVENT_STATUS_CONFIG]?.color }} />
+                                            <div
+                                                className="w-2 h-2 rounded-full"
+                                                style={{
+                                                    backgroundColor:
+                                                        EVENT_STATUS_CONFIG[event.eventStatus as keyof typeof EVENT_STATUS_CONFIG]
+                                                            ?.color,
+                                                }}
+                                            />
                                             <span className="font-medium">{event.dateLabel}</span>
                                             <span className="text-xs text-muted-foreground">{event.dayOfWeek}</span>
                                         </div>
@@ -104,9 +124,15 @@ function TableView({ eventRows, teacherEntity, TeacherIcon, totals }: { eventRow
                                         </HoverToEntity>
                                     </td>
                                     <td className="p-4 font-mono font-medium">{event.durationLabel}</td>
-                                    <td className="p-4 text-right font-mono text-green-600 dark:text-green-400">{(Math.round(event.teacherEarning * 100) / 100).toString()}</td>
-                                    <td className="p-4 text-right font-mono text-orange-600 dark:text-orange-400">{(Math.round(event.schoolRevenue * 100) / 100).toString()}</td>
-                                    <td className="p-4 text-right font-mono font-bold">{(Math.round(event.totalRevenue * 100) / 100).toString()}</td>
+                                    <td className="p-4 text-right font-mono text-green-600 dark:text-green-400">
+                                        {(Math.round(event.teacherEarning * 100) / 100).toString()}
+                                    </td>
+                                    <td className="p-4 text-right font-mono text-orange-600 dark:text-orange-400">
+                                        {(Math.round(event.schoolRevenue * 100) / 100).toString()}
+                                    </td>
+                                    <td className="p-4 text-right font-mono font-bold">
+                                        {(Math.round(event.totalRevenue * 100) / 100).toString()}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -116,9 +142,15 @@ function TableView({ eventRows, teacherEntity, TeacherIcon, totals }: { eventRow
                                     <span className="text-muted-foreground">{eventRows.length} events</span>
                                 </td>
                                 <td className="p-4 font-mono">{getHMDuration(totals.duration)}</td>
-                                <td className="p-4 text-right font-mono text-green-600 dark:text-green-400">{(Math.round(totals.teacherEarnings * 100) / 100).toString()}</td>
-                                <td className="p-4 text-right font-mono text-orange-600 dark:text-orange-400">{(Math.round(totals.schoolRevenue * 100) / 100).toString()}</td>
-                                <td className="p-4 text-right font-mono text-lg">{(Math.round(totals.totalRevenue * 100) / 100).toString()}</td>
+                                <td className="p-4 text-right font-mono text-green-600 dark:text-green-400">
+                                    {(Math.round(totals.teacherEarnings * 100) / 100).toString()}
+                                </td>
+                                <td className="p-4 text-right font-mono text-orange-600 dark:text-orange-400">
+                                    {(Math.round(totals.schoolRevenue * 100) / 100).toString()}
+                                </td>
+                                <td className="p-4 text-right font-mono text-lg">
+                                    {(Math.round(totals.totalRevenue * 100) / 100).toString()}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -154,7 +186,14 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
         .flatMap((lesson: any) => {
             const events = (lesson.events || []) as EventData[];
             const lessonDurationMinutes = events.reduce((sum: number, event: any) => sum + (event.duration || 0), 0);
-            const lessonRevenue = schoolPackage ? calculateLessonRevenue(schoolPackage.price_per_student, studentCount, lessonDurationMinutes, schoolPackage.duration_minutes) : 0;
+            const lessonRevenue = schoolPackage
+                ? calculateLessonRevenue(
+                      schoolPackage.price_per_student,
+                      studentCount,
+                      lessonDurationMinutes,
+                      schoolPackage.duration_minutes,
+                  )
+                : 0;
             const commissionType = (lesson.commission_type as "fixed" | "percentage") || "fixed";
             const cph = parseFloat(lesson.commission?.cph || "0");
 
@@ -163,7 +202,12 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
             return basicRows.map((row) => {
                 const eventProportion = lessonDurationMinutes > 0 ? row.duration / lessonDurationMinutes : 0;
                 const eventRevenue = lessonRevenue * eventProportion;
-                const eventCommission = calculateCommission(row.duration, { type: commissionType, cph }, eventRevenue, schoolPackage?.duration_minutes || 60);
+                const eventCommission = calculateCommission(
+                    row.duration,
+                    { type: commissionType, cph },
+                    eventRevenue,
+                    schoolPackage?.duration_minutes || 60,
+                );
 
                 return {
                     eventId: row.eventId,
@@ -245,9 +289,23 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
             />
 
             <AnimatePresence mode="wait">
-                {viewMode === "timeline" && <Timeline events={timelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={true} showFinancials={true} />}
+                {viewMode === "timeline" && (
+                    <Timeline
+                        events={timelineEvents}
+                        currency={currency}
+                        formatCurrency={formatCurrency}
+                        showTeacher={true}
+                        showFinancials={true}
+                    />
+                )}
                 {viewMode === "by-teacher" && (
-                    <motion.div key="by-teacher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
+                    <motion.div
+                        key="by-teacher"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-3"
+                    >
                         {teacherStats.map((teacher) => {
                             const lessonData: TeacherComissionLessonData = {
                                 lessonId: teacher.lessonId,
@@ -273,21 +331,28 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
 
                             return (
                                 <div key={teacher.lessonId} className="rounded-xl border border-border overflow-hidden bg-card">
-                                    <TeacherComissionLessonTable lesson={lessonData} formatCurrency={formatCurrency} currency={currency} teacherEntity={teacherEntity} />
+                                    <TeacherComissionLessonTable
+                                        lesson={lessonData}
+                                        formatCurrency={formatCurrency}
+                                        currency={currency}
+                                        teacherEntity={teacherEntity}
+                                    />
                                 </div>
                             );
                         })}
                     </motion.div>
                 )}
-                {viewMode === "table" && <TableView eventRows={eventRows} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} totals={totals} />}
+                {viewMode === "table" && (
+                    <TableView eventRows={eventRows} teacherEntity={teacherEntity} TeacherIcon={TeacherIcon} totals={totals} />
+                )}
                 {viewMode === "receipt" && (
-                    <BookingReceipt 
-                        booking={booking as any} 
-                        eventRows={eventRows as BookingReceiptEventRow[]} 
-                        totals={totals} 
-                        schoolPackage={schoolPackage as any} 
-                        formatCurrency={formatCurrency} 
-                        currency={currency} 
+                    <BookingReceipt
+                        booking={booking as any}
+                        eventRows={eventRows as BookingReceiptEventRow[]}
+                        totals={totals}
+                        schoolPackage={schoolPackage as any}
+                        formatCurrency={formatCurrency}
+                        currency={currency}
                     />
                 )}
             </AnimatePresence>

@@ -11,7 +11,14 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { MapPin, Calendar, List, Table } from "lucide-react";
-import { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEvent, type LessonEventRowData, TeacherBookingLessonTable, type TeacherBookingLessonTableData } from "@/src/components/ids";
+import {
+    TeacherLessonCard,
+    type TeacherLessonCardData,
+    type TeacherLessonCardEvent,
+    type LessonEventRowData,
+    TeacherBookingLessonTable,
+    type TeacherBookingLessonTableData,
+} from "@/src/components/ids";
 import { getHMDuration } from "@/getters/duration-getter";
 import { transformEventsToRows } from "@/getters/event-getter";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
@@ -57,7 +64,9 @@ function CommissionHeader({ commission, formatCurrency }: { commission: Commissi
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={currency} />
-                    <span className="text-sm font-semibold text-muted-foreground capitalize">{commission.type === "fixed" ? "Fixed" : "Percentage"}</span>
+                    <span className="text-sm font-semibold text-muted-foreground capitalize">
+                        {commission.type === "fixed" ? "Fixed" : "Percentage"}
+                    </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <FlagIcon size={14} />
@@ -69,7 +78,9 @@ function CommissionHeader({ commission, formatCurrency }: { commission: Commissi
                     <DurationIcon size={14} />
                     <span className="font-medium">{getHMDuration(commission.hours * 60)}</span>
                 </div>
-                <span className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(Math.round(commission.earning * 100) / 100)}</span>
+                <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(Math.round(commission.earning * 100) / 100)}
+                </span>
             </div>
         </div>
     );
@@ -96,13 +107,13 @@ function CommissionsView({
         (acc, lesson) => {
             const key = `${lesson.commissionType}-${lesson.cph}`;
             if (!acc[key]) {
-                acc[key] = { 
-                    type: lesson.commissionType, 
-                    hours: 0, 
-                    earning: 0, 
-                    cph: lesson.cph, 
-                    lessons: [] as LessonRow[], 
-                    lessonCount: 0 
+                acc[key] = {
+                    type: lesson.commissionType,
+                    hours: 0,
+                    earning: 0,
+                    cph: lesson.cph,
+                    lessons: [] as LessonRow[],
+                    lessonCount: 0,
                 };
             }
             acc[key].hours += lesson.totalHours;
@@ -117,7 +128,13 @@ function CommissionsView({
     const commissionArray = Object.values(commissionGroups).sort((a, b) => b.earning - a.earning);
 
     return (
-        <motion.div key="commissions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+        <motion.div
+            key="commissions"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-4"
+        >
             {commissionArray.map((commission, idx) => (
                 <div key={idx} className="space-y-2">
                     <CommissionHeader commission={commission} formatCurrency={formatCurrency} />
@@ -142,7 +159,14 @@ function CommissionsView({
                                 studentCapacity: lesson.studentCapacity,
                             };
 
-                            return <TeacherLessonCard key={lesson.lessonId} lesson={lessonData} isExpanded={expandedLesson === lesson.lessonId} onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)} />;
+                            return (
+                                <TeacherLessonCard
+                                    key={lesson.lessonId}
+                                    lesson={lessonData}
+                                    isExpanded={expandedLesson === lesson.lessonId}
+                                    onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
+                                />
+                            );
                         })}
                     </div>
                 </div>
@@ -152,9 +176,27 @@ function CommissionsView({
 }
 
 // Sub-component: Lessons View
-function LessonsView({ lessonRows, expandedLesson, setExpandedLesson, bookingEntity, studentEntity }: { lessonRows: LessonRow[]; expandedLesson: string | null; setExpandedLesson: (id: string | null) => void; bookingEntity: any; studentEntity: any }) {
+function LessonsView({
+    lessonRows,
+    expandedLesson,
+    setExpandedLesson,
+    bookingEntity,
+    studentEntity,
+}: {
+    lessonRows: LessonRow[];
+    expandedLesson: string | null;
+    setExpandedLesson: (id: string | null) => void;
+    bookingEntity: any;
+    studentEntity: any;
+}) {
     return (
-        <motion.div key="lessons" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
+        <motion.div
+            key="lessons"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-3"
+        >
             {lessonRows.map((lesson) => {
                 const lessonData: TeacherBookingLessonTableData = {
                     lessonId: lesson.lessonId,
@@ -225,7 +267,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         const totalHours = totalDuration / 60;
         const cph = parseFloat(commission?.cph || "0");
         const commissionType = (commission?.commission_type as "fixed" | "percentage") || "fixed";
-        
+
         const eventRows = transformEventsToRows(events as any);
         let totalEarning = 0;
 
@@ -236,9 +278,14 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             const packageDurationMinutes = school_package?.duration_minutes || 60;
 
             const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
-            const eventCommission = calculateCommission(eventRow.duration, { type: commissionType, cph }, eventRevenue, packageDurationMinutes);
+            const eventCommission = calculateCommission(
+                eventRow.duration,
+                { type: commissionType, cph },
+                eventRevenue,
+                packageDurationMinutes,
+            );
             const eventEarning = eventCommission.earned;
-            
+
             totalEarning += eventEarning;
             const schoolRevenue = eventRevenue - eventEarning;
 
@@ -309,7 +356,11 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     });
 
     if (lessonRows.length === 0) {
-        return <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">No lessons found for this teacher</div>;
+        return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
+                No lessons found for this teacher
+            </div>
+        );
     }
 
     return (
@@ -325,9 +376,35 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             />
 
             <AnimatePresence mode="wait">
-                {viewMode === "lessons" && <LessonsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} />}
-                {viewMode === "commissions" && <CommissionsView lessonRows={filteredLessonRows} expandedLesson={expandedLesson} setExpandedLesson={setExpandedLesson} bookingEntity={bookingEntity} studentEntity={studentEntity} formatCurrency={formatCurrency} />}
-                {viewMode === "timeline" && <Timeline events={filteredTimelineEvents} currency={currency} formatCurrency={formatCurrency} showTeacher={false} showFinancials={true} searchPlaceholder="Search locations..." />}
+                {viewMode === "lessons" && (
+                    <LessonsView
+                        lessonRows={filteredLessonRows}
+                        expandedLesson={expandedLesson}
+                        setExpandedLesson={setExpandedLesson}
+                        bookingEntity={bookingEntity}
+                        studentEntity={studentEntity}
+                    />
+                )}
+                {viewMode === "commissions" && (
+                    <CommissionsView
+                        lessonRows={filteredLessonRows}
+                        expandedLesson={expandedLesson}
+                        setExpandedLesson={setExpandedLesson}
+                        bookingEntity={bookingEntity}
+                        studentEntity={studentEntity}
+                        formatCurrency={formatCurrency}
+                    />
+                )}
+                {viewMode === "timeline" && (
+                    <Timeline
+                        events={filteredTimelineEvents}
+                        currency={currency}
+                        formatCurrency={formatCurrency}
+                        showTeacher={false}
+                        showFinancials={true}
+                        searchPlaceholder="Search locations..."
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

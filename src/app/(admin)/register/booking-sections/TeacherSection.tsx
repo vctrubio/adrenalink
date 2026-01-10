@@ -42,9 +42,9 @@ export function TeacherSection({
     onSelectCommission,
     isExpanded,
     onToggle,
-    onClose
+    onClose,
 }: TeacherSectionProps) {
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher");
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const pathname = usePathname();
     const router = useRouter();
     const { addToQueue, refreshData } = useRegisterActions();
@@ -55,28 +55,33 @@ export function TeacherSection({
 
     // Build stats map from teachers' lessonStats
     const teacherStatsMap = useMemo(() => {
-        return teachers.reduce((acc, teacher) => {
-            acc[teacher.schema.id] = {
-                totalLessons: teacher.lessonStats.totalLessons,
-                completedLessons: teacher.lessonStats.completedLessons,
-            };
-            return acc;
-        }, {} as Record<string, { totalLessons: number; completedLessons: number }>);
+        return teachers.reduce(
+            (acc, teacher) => {
+                acc[teacher.schema.id] = {
+                    totalLessons: teacher.lessonStats.totalLessons,
+                    completedLessons: teacher.lessonStats.completedLessons,
+                };
+                return acc;
+            },
+            {} as Record<string, { totalLessons: number; completedLessons: number }>,
+        );
     }, [teachers]);
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
-    const [formData, setFormData] = useState<TeacherFormData>(contextForm || {
-        firstName: "",
-        lastName: "",
-        username: "",
-        passport: "",
-        country: "",
-        phone: "",
-        languages: ["English"],
-        commissions: [],
-    });
+    const [formData, setFormData] = useState<TeacherFormData>(
+        contextForm || {
+            firstName: "",
+            lastName: "",
+            username: "",
+            passport: "",
+            country: "",
+            phone: "",
+            languages: ["English"],
+            commissions: [],
+        },
+    );
 
     // Update context when form data changes
     useEffect(() => {
@@ -94,16 +99,20 @@ export function TeacherSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
-    const title = selectedTeacher && selectedCommission
-        ? (
+    const title =
+        selectedTeacher && selectedCommission ? (
             <div className="flex items-center gap-2">
                 <span>{selectedTeacher.schema.username}</span>
-                <CommissionTypeValue value={selectedCommission.cph} type={selectedCommission.commissionType as "fixed" | "percentage"} />
+                <CommissionTypeValue
+                    value={selectedCommission.cph}
+                    type={selectedCommission.commissionType as "fixed" | "percentage"}
+                />
             </div>
-        )
-        : selectedTeacher
-        ? `${selectedTeacher.schema.username} - Select Commission`
-        : "Teacher";
+        ) : selectedTeacher ? (
+            `${selectedTeacher.schema.username} - Select Commission`
+        ) : (
+            "Teacher"
+        );
 
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
@@ -194,10 +203,7 @@ export function TeacherSection({
                 />
             </Section>
 
-            <EntityAddDialog
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-            >
+            <EntityAddDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
                 <TeacherForm
                     formData={formData}
                     onFormDataChange={setFormData}

@@ -19,7 +19,9 @@ async function removeBucketContents() {
 
     if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
         console.error("❌ Missing R2 SUDO environment variables!");
-        console.error("Required: CLOUDFLARE_R2_ACCOUNT_ID, SUDO_CLOUDFLARE_R2_ACCESS_KEY, SUDO_CLOUDFLARE_R2_SECRET_KEY, CLOUDFLARE_R2_BUCKET");
+        console.error(
+            "Required: CLOUDFLARE_R2_ACCOUNT_ID, SUDO_CLOUDFLARE_R2_ACCESS_KEY, SUDO_CLOUDFLARE_R2_SECRET_KEY, CLOUDFLARE_R2_BUCKET",
+        );
         process.exit(1);
     }
 

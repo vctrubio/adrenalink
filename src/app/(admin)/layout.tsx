@@ -6,6 +6,8 @@ import FacebookNav from "@/src/components/navigations/FacebookNav";
 import { getSchoolCredentials as getSchoolCredentialsFromSupabase } from "@/supabase/server/admin";
 import { getSchoolTeacherProvider } from "@/supabase/server/teachers";
 
+export const dynamic = "force-dynamic";
+
 interface AdminLayoutProps {
     children: ReactNode;
 }
@@ -15,19 +17,19 @@ const getSchoolCredentials = cache(getSchoolCredentialsFromSupabase);
 const getTeachers = cache(getSchoolTeacherProvider);
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-    const [credentials, teachersResult] = await Promise.all([
-        getSchoolCredentials(),
-        getTeachers()
-    ]);
+    const [credentials, teachersResult] = await Promise.all([getSchoolCredentials(), getTeachers()]);
 
     if (!credentials) {
         redirect("/no-credentials");
     }
 
-    const initialTeachersData = teachersResult.success && teachersResult.data ? {
-        allTeachers: teachersResult.data,
-        teachers: teachersResult.data.filter(t => t.schema.active)
-    } : null;
+    const initialTeachersData =
+        teachersResult.success && teachersResult.data
+            ? {
+                  allTeachers: teachersResult.data,
+                  teachers: teachersResult.data.filter((t) => t.schema.active),
+              }
+            : null;
 
     return (
         <SchoolCredentialsProvider credentials={credentials}>
@@ -42,4 +44,3 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
         </SchoolCredentialsProvider>
     );
 }
-

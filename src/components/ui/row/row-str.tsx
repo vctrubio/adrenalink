@@ -43,9 +43,7 @@ export const RowStr = ({ label, items, entityColor }: RowStrProps) => {
                 onClose={() => setIsOpen(false)}
                 items={dropdownItems}
                 align="right"
-                renderItem={(item, onClose) => (
-                    <DropdownDictItem item={item as DropdownDictItemProps} onClose={onClose} />
-                )}
+                renderItem={(item, onClose) => <DropdownDictItem item={item as DropdownDictItemProps} onClose={onClose} />}
             />
         </div>
     );

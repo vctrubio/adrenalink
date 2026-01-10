@@ -26,18 +26,18 @@ import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 
 // --- Sub-component: Equipment Fulfillment Dropdown ---
 
-function EquipmentFulfillmentCell({ 
-    data, 
-    onUpdate 
-}: { 
-    data: TransactionEventData; 
-    onUpdate: (eventId: string, equipment: any) => void 
+function EquipmentFulfillmentCell({
+    data,
+    onUpdate,
+}: {
+    data: TransactionEventData;
+    onUpdate: (eventId: string, equipment: any) => void;
 }) {
     const categoryId = data.packageData.categoryEquipment;
     const { availableEquipment, fetchAvailable, assign } = useEquipment(categoryId);
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find(c => c.id === categoryId);
+    const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
     const CategoryIcon = equipmentConfig?.icon || Activity;
 
     const handleAssign = async (equipment: any) => {
@@ -54,7 +54,7 @@ function EquipmentFulfillmentCell({
         if (isOpen && availableEquipment.length > 0) {
             const firstEq = availableEquipment[0];
             console.log(`[TransactionTable] 🔍 Checking preferred gear for ${data.teacher.username} (${data.teacher.id})`, {
-                gearRelations: firstEq.teacher_equipment?.map((te: any) => te.teacher_id)
+                gearRelations: firstEq.teacher_equipment?.map((te: any) => te.teacher_id),
             });
         }
     }, [isOpen, availableEquipment, data.teacher]);
@@ -71,7 +71,7 @@ function EquipmentFulfillmentCell({
                     <span className="font-bold">{data.teacher.username}</span>
                     <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                         <FlagIcon size={12} className="opacity-70" />
-                        <span className="translate-y-[0.5px]">{data.event.date.split('T')[1].substring(0, 5)}</span>
+                        <span className="translate-y-[0.5px]">{data.event.date.split("T")[1].substring(0, 5)}</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                         <DurationIcon size={12} className="opacity-70" />
@@ -81,7 +81,7 @@ function EquipmentFulfillmentCell({
             ) as any,
             icon: HeadsetIcon,
             color: "#16a34a",
-            disabled: true
+            disabled: true,
         },
         ...availableEquipment
             .sort((a, b) => {
@@ -91,21 +91,24 @@ function EquipmentFulfillmentCell({
                 if (!aPreferred && bPreferred) return 1;
                 return 0;
             })
-            .map(eq => {
+            .map((eq) => {
                 const isPreferred = eq.teacher_equipment?.some((te: any) => te.teacher_id === data.teacher.id);
                 return {
                     id: eq.id,
                     label: (
                         <div className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50" : ""}`}>
-                            <span className="font-bold text-foreground/90">{eq.brand} {eq.model}{eq.size ? ` (${eq.size})` : ""}</span>
+                            <span className="font-bold text-foreground/90">
+                                {eq.brand} {eq.model}
+                                {eq.size ? ` (${eq.size})` : ""}
+                            </span>
                         </div>
                     ) as any,
                     description: `SKU: ${eq.sku}${eq.color ? ` • ${eq.color}` : ""}`,
                     icon: CategoryIcon,
                     color: "rgb(var(--muted-foreground))",
-                    onClick: () => handleAssign(eq)
+                    onClick: () => handleAssign(eq),
                 };
-            })
+            }),
     ];
 
     return (
@@ -124,10 +127,10 @@ function EquipmentFulfillmentCell({
             </button>
 
             {isOpen && (
-                <Dropdown 
-                    isOpen={isOpen} 
-                    onClose={() => setIsOpen(false)} 
-                    items={dropdownItems} 
+                <Dropdown
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    items={dropdownItems}
                     align="left"
                     triggerRef={triggerRef}
                 />
@@ -156,23 +159,29 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
         setEvents(initialEvents);
     }, [initialEvents]);
 
-    const { filteredRows: filteredEvents, masterTableGroupBy, getGroupKey } = useTableLogic({
+    const {
+        filteredRows: filteredEvents,
+        masterTableGroupBy,
+        getGroupKey,
+    } = useTableLogic({
         data: events,
         filterSearch: filterTransactionEvents,
-        dateField: (row) => row.event.date
+        dateField: (row) => row.event.date,
     });
 
     const handleEquipmentUpdate = (eventId: string, equipment: any) => {
-        setEvents(prev => prev.map(row => {
-            if (row.event.id === eventId) {
-                return {
-                    ...row,
-                    event: { ...row.event, status: "completed" },
-                    equipments: [...(row.equipments || []), equipment]
-                };
-            }
-            return row;
-        }));
+        setEvents((prev) =>
+            prev.map((row) => {
+                if (row.event.id === eventId) {
+                    return {
+                        ...row,
+                        event: { ...row.event, status: "completed" },
+                        equipments: [...(row.equipments || []), equipment],
+                    };
+                }
+                return row;
+            }),
+        );
     };
 
     const desktopColumns: ColumnDef<TransactionEventData>[] = [
@@ -181,7 +190,11 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
                 const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
-                return <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{dateFormat.format(new Date(data.event.date))}</span>;
+                return (
+                    <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                        {dateFormat.format(new Date(data.event.date))}
+                    </span>
+                );
             },
         },
         {
@@ -189,39 +202,66 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
                 const timeFormat = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
-                return <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-medium">{timeFormat.format(new Date(data.event.date))}</span>;
+                return (
+                    <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-medium">
+                        {timeFormat.format(new Date(data.event.date))}
+                    </span>
+                );
             },
         },
         {
             header: "Dur",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{getHMDuration(data.event.duration)}</span>,
+            render: (data) => (
+                <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                    {getHMDuration(data.event.duration)}
+                </span>
+            ),
         },
         {
             header: "Loc",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <span className="text-muted-foreground bg-blue-50/[0.03] dark:bg-blue-900/[0.02] text-xs">{data.event.location || "-"}</span>,
+            render: (data) => (
+                <span className="text-muted-foreground bg-blue-50/[0.03] dark:bg-blue-900/[0.02] text-xs">
+                    {data.event.location || "-"}
+                </span>
+            ),
         },
         {
             header: "Teacher",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{data.teacher.username}</span>,
+            render: (data) => (
+                <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                    {data.teacher.username}
+                </span>
+            ),
         },
         {
             header: "Students",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => <span className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">{getLeaderCapacity(data.leaderStudentName, data.studentCount)}</span>,
+            render: (data) => (
+                <span className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                    {getLeaderCapacity(data.leaderStudentName, data.studentCount)}
+                </span>
+            ),
         },
         {
             header: "Package",
             headerClassName: HEADER_CLASSES.orange,
-            render: (data) => <span className="max-w-[150px] truncate text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-medium italic">{data.packageData.description}</span>,
+            render: (data) => (
+                <span className="max-w-[150px] truncate text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-medium italic">
+                    {data.packageData.description}
+                </span>
+            ),
         },
         {
             header: "PPH",
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => {
-                const pricePerHour = data.packageData.durationMinutes / 60 > 0 ? data.packageData.pricePerStudent / (data.packageData.durationMinutes / 60) : 0;
+                const pricePerHour =
+                    data.packageData.durationMinutes / 60 > 0
+                        ? data.packageData.pricePerStudent / (data.packageData.durationMinutes / 60)
+                        : 0;
                 return (
                     <span className="tabular-nums text-orange-900/80 dark:text-orange-100/80 bg-orange-50/[0.03] dark:bg-orange-900/[0.02] font-bold">
                         {getCompactNumber(pricePerHour)} <span className="text-[10px] font-normal">{data.financials.currency}</span>
@@ -234,7 +274,13 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => {
                 const EquipmentIcon = EQUIPMENT_CATEGORIES.find((c) => c.id === data.packageData.categoryEquipment)?.icon;
-                return EquipmentIcon ? <EquipmentStudentCapacityBadge categoryIcon={EquipmentIcon} equipmentCapacity={data.packageData.capacityEquipment} studentCapacity={data.packageData.capacityStudents} /> : null;
+                return EquipmentIcon ? (
+                    <EquipmentStudentCapacityBadge
+                        categoryIcon={EquipmentIcon}
+                        equipmentCapacity={data.packageData.capacityEquipment}
+                        studentCapacity={data.packageData.capacityStudents}
+                    />
+                ) : null;
             },
         },
         {
@@ -245,12 +291,20 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
         {
             header: "Commission",
             headerClassName: HEADER_CLASSES.zincRight,
-            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{getCompactNumber(data.financials.teacherEarnings)}</span>,
+            render: (data) => (
+                <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
+                    {getCompactNumber(data.financials.teacherEarnings)}
+                </span>
+            ),
         },
         {
             header: "Revenue",
             headerClassName: HEADER_CLASSES.zincRight,
-            render: (data) => <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">{getCompactNumber(data.financials.studentRevenue)}</span>,
+            render: (data) => (
+                <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
+                    {getCompactNumber(data.financials.studentRevenue)}
+                </span>
+            ),
         },
         {
             header: "Profit",
@@ -260,8 +314,16 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
                 const isPositive = profit >= 0;
                 return (
                     <div className="flex items-center justify-end gap-1 bg-emerald-500/[0.02]">
-                        {isPositive ? <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" /> : <TrendingDown size={14} className="text-rose-600 dark:text-rose-400" />}
-                        <span className={`text-right tabular-nums font-black ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>{getCompactNumber(Math.abs(profit))}</span>
+                        {isPositive ? (
+                            <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                            <TrendingDown size={14} className="text-rose-600 dark:text-rose-400" />
+                        )}
+                        <span
+                            className={`text-right tabular-nums font-black ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                        >
+                            {getCompactNumber(Math.abs(profit))}
+                        </span>
                     </div>
                 );
             },
@@ -272,7 +334,10 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             render: (data) => {
                 const statusConfig = EVENT_STATUS_CONFIG[data.event.status as EventStatus];
                 return statusConfig ? (
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}>
+                    <div
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter"
+                        style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
+                    >
                         {data.event.status === "completed" && <Check size={10} strokeWidth={4} />}
                         {statusConfig.label}
                     </div>
@@ -289,10 +354,14 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
                 return (
                     <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-muted-foreground/60">{new Date(data.event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}</span>
+                            <span className="text-[10px] font-black text-muted-foreground/60">
+                                {new Date(data.event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}
+                            </span>
                             <span className="text-sm font-black text-foreground">{timeFormat.format(new Date(data.event.date))}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">+{getHMDuration(data.event.duration)}</span>
+                        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">
+                            +{getHMDuration(data.event.duration)}
+                        </span>
                     </div>
                 );
             },
@@ -330,8 +399,15 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             render: (data) => {
                 const statusConfig = EVENT_STATUS_CONFIG[data.event.status as EventStatus];
                 return statusConfig ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tighter" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}>
-                        {data.financials.profit >= 0 ? <TrendingUp size={12} strokeWidth={4} className="shrink-0" /> : <TrendingDown size={12} strokeWidth={4} className="shrink-0" />}
+                    <div
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tighter"
+                        style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
+                    >
+                        {data.financials.profit >= 0 ? (
+                            <TrendingUp size={12} strokeWidth={4} className="shrink-0" />
+                        ) : (
+                            <TrendingDown size={12} strokeWidth={4} className="shrink-0" />
+                        )}
                         {getCompactNumber(Math.abs(data.financials.profit))}
                     </div>
                 ) : null;
@@ -350,18 +426,37 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
                 totalRevenue: acc.totalRevenue + curr.financials.studentRevenue,
                 totalProfit: acc.totalProfit + curr.financials.profit,
             }),
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalCommissions: 0, totalRevenue: 0, totalProfit: 0 },
+            {
+                totalDuration: 0,
+                eventCount: 0,
+                completedCount: 0,
+                studentCount: 0,
+                totalCommissions: 0,
+                totalRevenue: 0,
+                totalProfit: 0,
+            },
         );
     };
 
     const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
         <>
             <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type="events" value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`} hideLabel={hideLabel} iconColor={false} />
+            <StatItemUI
+                type="events"
+                value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`}
+                hideLabel={hideLabel}
+                iconColor={false}
+            />
             <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="commission" value={stats.totalCommissions} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="revenue" value={stats.totalRevenue} hideLabel={hideLabel} iconColor={false} />
-            <StatItemUI type={stats.totalProfit >= 0 ? "profit" : "loss"} value={Math.abs(stats.totalProfit)} hideLabel={hideLabel} variant="primary" iconColor={false} />
+            <StatItemUI
+                type={stats.totalProfit >= 0 ? "profit" : "loss"}
+                value={Math.abs(stats.totalProfit)}
+                hideLabel={hideLabel}
+                variant="primary"
+                iconColor={false}
+            />
         </>
     );
 

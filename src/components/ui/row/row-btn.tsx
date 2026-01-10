@@ -18,7 +18,7 @@ export const RowBtn = ({ buttons }: RowBtnProps) => {
         const variants = {
             primary: "bg-primary text-primary-foreground hover:bg-primary/90",
             secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-            tertiary: "bg-accent text-accent-foreground hover:bg-accent/80"
+            tertiary: "bg-accent text-accent-foreground hover:bg-accent/80",
         };
         return `${baseStyles} ${variants[variant]}`;
     };
@@ -28,21 +28,13 @@ export const RowBtn = ({ buttons }: RowBtnProps) => {
             {buttons.map((button, index) => {
                 if (button.href) {
                     return (
-                        <Link
-                            key={index}
-                            href={button.href}
-                            className={getButtonStyles(button.variant)}
-                        >
+                        <Link key={index} href={button.href} className={getButtonStyles(button.variant)}>
                             {button.label}
                         </Link>
                     );
                 }
                 return (
-                    <button
-                        key={index}
-                        onClick={button.onClick}
-                        className={getButtonStyles(button.variant)}
-                    >
+                    <button key={index} onClick={button.onClick} className={getButtonStyles(button.variant)}>
                         {button.label}
                     </button>
                 );

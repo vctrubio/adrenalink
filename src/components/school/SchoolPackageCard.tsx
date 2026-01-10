@@ -25,8 +25,8 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
     const { id, description, pricePerStudent, durationMinutes, categoryEquipment, capacityStudents, capacityEquipment } = pkg;
     const [isHovered, setIsHovered] = useState(false);
     const router = useRouter();
-    
-    const sportConfig = SPORTS_CONFIG.find(s => s.id === categoryEquipment);
+
+    const sportConfig = SPORTS_CONFIG.find((s) => s.id === categoryEquipment);
 
     // Determine type and color theme
     const isRental = pkg.packageType?.toLowerCase().includes("rental");
@@ -59,17 +59,19 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
                     {description}
                 </h4>
                 {/* Type Badge */}
-                <span className={`
+                <span
+                    className={`
                     shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
                     ${isRental ? "bg-red-50 text-red-clade border-red-100" : "bg-blue-50 text-blue-clude border-blue-100"}
-                `}>
+                `}
+                >
                     {pkg.packageType}
                 </span>
             </div>
 
             {/* 2. Middle (Patty) - Package Comparison Badge */}
             <div className="px-8 py-8 flex items-center">
-                <PackageComparisonBadge 
+                <PackageComparisonBadge
                     categoryEquipment={categoryEquipment}
                     equipmentCapacity={capacityEquipment}
                     studentCapacity={capacityStudents}
@@ -82,19 +84,19 @@ export const SchoolPackageCard = ({ pkg, currencySymbol }: SchoolPackageCardProp
             {/* 3. Footer (Bottom Bun) - Chalkboard Table & Action */}
             <div className="px-6 py-6 mt-auto flex items-center justify-between gap-6 border-t border-dashed border-zinc-100 bg-zinc-50/50 rounded-b-[2rem]">
                 <div className="flex-1">
-                    <ChalkboardTable 
-                        duration={getPrettyDuration(durationMinutes)} 
-                        price={pricePerStudent} 
-                        pph={pph} 
-                        currency={currencySymbol} 
+                    <ChalkboardTable
+                        duration={getPrettyDuration(durationMinutes)}
+                        price={pricePerStudent}
+                        pph={pph}
+                        currency={currencySymbol}
                     />
                 </div>
 
                 <div className="relative w-14 h-14 shrink-0 transition-transform duration-300 group-hover:scale-110">
-                    <Image 
-                        src="/ADR.webp" 
-                        alt="Go" 
-                        fill 
+                    <Image
+                        src="/ADR.webp"
+                        alt="Go"
+                        fill
                         className={`object-contain transition-all duration-500 ${isHovered ? "grayscale-0 opacity-100" : "grayscale opacity-30"}`}
                     />
                 </div>

@@ -52,13 +52,19 @@ const AdjustmentSection = ({
                     </span>
                 </div>
                 <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-600/10">
-                    <div className="h-full bg-cyan-600 transition-all duration-300" style={{ width: `${(lockCount / Math.max(totalCount, 1)) * 100}%` }} />
+                    <div
+                        className="h-full bg-cyan-600 transition-all duration-300"
+                        style={{ width: `${(lockCount / Math.max(totalCount, 1)) * 100}%` }}
+                    />
                 </div>
             </div>
             <button onClick={() => onAdjust(true)} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                 <ChevronRight size={18} />
             </button>
-            <button onClick={onToggleLock} className={`p-3 rounded-xl transition-all duration-200 ${isLocked ? "bg-cyan-600 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}>
+            <button
+                onClick={onToggleLock}
+                className={`p-3 rounded-xl transition-all duration-200 ${isLocked ? "bg-cyan-600 text-white shadow-lg" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
+            >
                 {isLocked ? <Lock size={18} /> : <LockOpen size={18} />}
             </button>
         </div>
@@ -88,14 +94,20 @@ const OptimisationSection = ({
         <div className="space-y-3">
             <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Gap Duration</label>
             <div className="flex items-center gap-2">
-                <button onClick={() => onGapChange(-5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80">
+                <button
+                    onClick={() => onGapChange(-5)}
+                    className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"
+                >
                     <Minus size={14} />
                 </button>
                 <div className="flex-1 bg-background/50 border border-border/40 rounded-lg px-3 py-2 text-center text-sm font-mono font-bold flex items-center justify-center gap-2">
                     <Clock size={14} className="text-muted-foreground/40" />
                     {gapMinutes}m
                 </div>
-                <button onClick={() => onGapChange(5)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80">
+                <button
+                    onClick={() => onGapChange(5)}
+                    className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-border/40 hover:border-border/80"
+                >
                     <Plus size={14} />
                 </button>
             </div>
@@ -110,10 +122,21 @@ const OptimisationSection = ({
                     : "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 active:scale-95 cursor-pointer shadow-sm"
             }`}
         >
-            <svg className={`w-4 h-4 ${isFullyOptimised ? "text-green-500" : "text-blue-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isFullyOptimised ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />}
+            <svg
+                className={`w-4 h-4 ${isFullyOptimised ? "text-green-500" : "text-blue-500"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                {isFullyOptimised ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                )}
             </svg>
-            <span className={`text-[10px] font-black uppercase tracking-wider ${isFullyOptimised ? "text-green-500/80" : "text-blue-500"}`}>
+            <span
+                className={`text-[10px] font-black uppercase tracking-wider ${isFullyOptimised ? "text-green-500/80" : "text-blue-500"}`}
+            >
                 {isFullyOptimised ? `${total} Events Synced` : `Optimise ${total} Events`}
             </span>
         </button>
@@ -134,7 +157,9 @@ const ActiveQueueSection = ({
     onIndividualSubmit: (id: string) => void;
 }) => (
     <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
-        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Active Queue ({pendingTeachers.size})</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
+            Active Queue ({pendingTeachers.size})
+        </label>
         <div className="flex-1 overflow-y-auto pr-2 space-y-2 scrollbar-hide">
             {teachers
                 .filter((q) => pendingTeachers.has(q.teacher.id))
@@ -147,7 +172,10 @@ const ActiveQueueSection = ({
                     const isMatchingGlobal = firstTime === adjustmentTime;
 
                     return (
-                        <div key={q.teacher.id} className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm animate-in slide-in-from-left-2 duration-200">
+                        <div
+                            key={q.teacher.id}
+                            className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm animate-in slide-in-from-left-2 duration-200"
+                        >
                             <div className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
                                     <HeadsetIcon size={16} className="text-muted-foreground shrink-0" />
@@ -155,11 +183,18 @@ const ActiveQueueSection = ({
                                 </div>
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     <FlagIcon size={14} className={isMatchingGlobal ? "text-cyan-500" : "text-primary/60"} />
-                                    <span className={`font-mono text-xs font-bold ${isMatchingGlobal ? "text-cyan-600" : "text-primary"}`}>{firstTime || "--:--"}</span>
+                                    <span
+                                        className={`font-mono text-xs font-bold ${isMatchingGlobal ? "text-cyan-600" : "text-primary"}`}
+                                    >
+                                        {firstTime || "--:--"}
+                                    </span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1.5 ml-2">
-                                <button onClick={() => globalFlag.optOut(q.teacher.id)} className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors">
+                                <button
+                                    onClick={() => globalFlag.optOut(q.teacher.id)}
+                                    className="p-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                                >
                                     <X size={14} />
                                 </button>
                                 <button
@@ -167,7 +202,11 @@ const ActiveQueueSection = ({
                                     disabled={!hasChanges || isSubmitting}
                                     className={`p-2 rounded-lg transition-all shadow-sm ${hasChanges ? "bg-cyan-600 text-white hover:bg-cyan-700 shadow-cyan-500/20" : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"}`}
                                 >
-                                    {isSubmitting ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Zap size={14} className={hasChanges ? "fill-current" : ""} />}
+                                    {isSubmitting ? (
+                                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Zap size={14} className={hasChanges ? "fill-current" : ""} />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -323,22 +362,61 @@ export default function LessonFlagLocationSettingsController() {
                 hasChanges={updatesCount > 0}
                 isSubmitting={isSubmitting}
                 submitLabel="Apply Changes"
-                extraContent={updatesCount > 0 && <span className="ml-2 flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/20 text-white text-[10px] font-bold">{updatesCount}</span>}
+                extraContent={
+                    updatesCount > 0 && (
+                        <span className="ml-2 flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/20 text-white text-[10px] font-bold">
+                            {updatesCount}
+                        </span>
+                    )
+                }
             />
 
-            <AdjustmentSection label="Start Time" value={adjustmentTime || ""} lockCount={timeLock.lockCount} totalCount={timeLock.totalTeachers} onAdjust={handleAdjustTime} onToggleLock={handleToggleTimeLock} isLocked={isLockFlagTime} isMono />
+            <AdjustmentSection
+                label="Start Time"
+                value={adjustmentTime || ""}
+                lockCount={timeLock.lockCount}
+                totalCount={timeLock.totalTeachers}
+                onAdjust={handleAdjustTime}
+                onToggleLock={handleToggleTimeLock}
+                isLocked={isLockFlagTime}
+                isMono
+            />
 
             <div className="h-px bg-border/10" />
 
-            <AdjustmentSection label="Location" value={adjustmentLocation || ""} lockCount={locLock.synchronizedTeachersCount} totalCount={locLock.totalTeachers} onAdjust={handleAdjustLocation} onToggleLock={handleToggleLocationLock} isLocked={isLockFlagLocation} icon={MapPin} />
+            <AdjustmentSection
+                label="Location"
+                value={adjustmentLocation || ""}
+                lockCount={locLock.synchronizedTeachersCount}
+                totalCount={locLock.totalTeachers}
+                onAdjust={handleAdjustLocation}
+                onToggleLock={handleToggleLocationLock}
+                isLocked={isLockFlagLocation}
+                icon={MapPin}
+            />
 
             <div className="h-px bg-border/10" />
 
-            <OptimisationSection optimised={optimisation.optimised} total={optimisation.total} gapMinutes={controller.gapMinutes} onGapChange={(d) => globalFlag.updateController({ gapMinutes: Math.max(0, (controller.gapMinutes || 0) + d) })} onOptimise={() => globalFlag.optimiseAllQueues()} isFullyOptimised={optimisation.optimised === optimisation.total && optimisation.total > 0 && isLockFlagTime && isLockFlagLocation} />
+            <OptimisationSection
+                optimised={optimisation.optimised}
+                total={optimisation.total}
+                gapMinutes={controller.gapMinutes}
+                onGapChange={(d) => globalFlag.updateController({ gapMinutes: Math.max(0, (controller.gapMinutes || 0) + d) })}
+                onOptimise={() => globalFlag.optimiseAllQueues()}
+                isFullyOptimised={
+                    optimisation.optimised === optimisation.total && optimisation.total > 0 && isLockFlagTime && isLockFlagLocation
+                }
+            />
 
             <div className="h-px bg-border/10" />
 
-            <ActiveQueueSection teachers={globalFlag.getTeacherQueues()} pendingTeachers={pendingTeachers} globalFlag={globalFlag} adjustmentTime={adjustmentTime} onIndividualSubmit={handleIndividualSubmit} />
+            <ActiveQueueSection
+                teachers={globalFlag.getTeacherQueues()}
+                pendingTeachers={pendingTeachers}
+                globalFlag={globalFlag}
+                adjustmentTime={adjustmentTime}
+                onIndividualSubmit={handleIndividualSubmit}
+            />
         </div>
     );
 }

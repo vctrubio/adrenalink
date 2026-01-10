@@ -40,7 +40,11 @@ export function FilterDropdown({ label, value, options, onChange, entityColor }:
 
     return (
         <div ref={dropdownRef} className="relative">
-            <button ref={buttonRef} onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm">
+            <button
+                ref={buttonRef}
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
+            >
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <AdranlinkIcon className="w-4 h-4" />
                 </motion.div>

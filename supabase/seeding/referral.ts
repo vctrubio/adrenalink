@@ -1,6 +1,6 @@
 /**
  * Referral Seeding
- * 
+ *
  * Create referral codes and commission rules
  */
 
@@ -31,11 +31,46 @@ export const createReferrals = async (schoolId: string, referrals: ReferralInput
 
 export const createDefaultReferrals = async (schoolId: string): Promise<any[]> => {
     const referrals = [
-        { code: "ALFA-2024", school_id: schoolId, commission_type: "percentage", commission_value: "10.00", description: "Standard affiliate 10% per booking", active: true },
-        { code: "BETA-2024", school_id: schoolId, commission_type: "percentage", commission_value: "15.00", description: "Premium affiliate 15% per booking", active: true },
-        { code: "GAMMA-2024", school_id: schoolId, commission_type: "fixed", commission_value: "50.00", description: "Corporate fixed €50 per booking", active: true },
-        { code: "DELTA-2024", school_id: schoolId, commission_type: "fixed", commission_value: "75.00", description: "VIP fixed €75 per booking", active: true },
-        { code: "EPSILON-2024", school_id: schoolId, commission_type: "percentage", commission_value: "20.00", description: "Premium partner 20% per booking", active: true },
+        {
+            code: "ALFA-2024",
+            school_id: schoolId,
+            commission_type: "percentage",
+            commission_value: "10.00",
+            description: "Standard affiliate 10% per booking",
+            active: true,
+        },
+        {
+            code: "BETA-2024",
+            school_id: schoolId,
+            commission_type: "percentage",
+            commission_value: "15.00",
+            description: "Premium affiliate 15% per booking",
+            active: true,
+        },
+        {
+            code: "GAMMA-2024",
+            school_id: schoolId,
+            commission_type: "fixed",
+            commission_value: "50.00",
+            description: "Corporate fixed €50 per booking",
+            active: true,
+        },
+        {
+            code: "DELTA-2024",
+            school_id: schoolId,
+            commission_type: "fixed",
+            commission_value: "75.00",
+            description: "VIP fixed €75 per booking",
+            active: true,
+        },
+        {
+            code: "EPSILON-2024",
+            school_id: schoolId,
+            commission_type: "percentage",
+            commission_value: "20.00",
+            description: "Premium partner 20% per booking",
+            active: true,
+        },
     ];
 
     const { data, error } = await supabase.from("referral").insert(referrals).select();

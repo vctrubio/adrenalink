@@ -7,7 +7,13 @@ export const DATABOARD_DATE_GROUPS: DataboardGroupByDate[] = ["All", "Daily", "W
 export const DATABOARD_ENTITY_SEARCH_FIELDS: Record<string, string[]> = {
     student: ["firstName", "lastName", "phone", "passport"],
     teacher: ["username", "passport", "phone"],
-    booking: ["leaderStudentName", "bookingStudentFirstNames", "bookingStudentLastNames", "bookingStudentPassports", "bookingStudentPhones"],
+    booking: [
+        "leaderStudentName",
+        "bookingStudentFirstNames",
+        "bookingStudentLastNames",
+        "bookingStudentPassports",
+        "bookingStudentPhones",
+    ],
     equipment: ["sku", "model", "color", "category"],
     event: ["location"],
     rental: ["location"],

@@ -34,15 +34,15 @@ Centralized type definition for all school data:
 ```typescript
 interface SchoolCredentials {
     id: string;
-    logoUrl: string | null;           // URL to school logo from CDN
-    bannerUrl: string | null;         // URL to school banner from CDN
-    currency: string;                 // USD, EUR, CHF
-    name: string;                     // School display name
-    username: string;                 // School identifier/subdomain
-    status: string;                   // active, pending, closed
-    ownerId: string;                  // UUID of school owner
-    country: string;                  // School country
-    timezone: string | null;          // School timezone
+    logoUrl: string | null; // URL to school logo from CDN
+    bannerUrl: string | null; // URL to school banner from CDN
+    currency: string; // USD, EUR, CHF
+    name: string; // School display name
+    username: string; // School identifier/subdomain
+    status: string; // active, pending, closed
+    ownerId: string; // UUID of school owner
+    country: string; // School country
+    timezone: string | null; // School timezone
 }
 ```
 
@@ -62,11 +62,7 @@ export const getSchoolHeader = cache(async (): Promise<SchoolCredentials | null>
 
     try {
         const supabase = getServerConnection();
-        const { data: schoolData } = await supabase
-            .from("school")
-            .select("*")
-            .eq("username", username)
-            .single();
+        const { data: schoolData } = await supabase.from("school").select("*").eq("username", username).single();
 
         if (!schoolData) {
             return null;
@@ -91,6 +87,7 @@ export const getSchoolHeader = cache(async (): Promise<SchoolCredentials | null>
 ```
 
 **Key Features:**
+
 - **Single function** handles all credential fetching
 - **React cache()** ensures no duplicate DB hits per request
 - **Supports both header keys** for subdomain and auth routes
@@ -103,7 +100,7 @@ Layouts fetch credentials once and provide via context:
 
 ```typescript
 import { cache } from "react";
-import { getSchoolCredentials as getSchoolCredentialsFromSupabase } 
+import { getSchoolCredentials as getSchoolCredentialsFromSupabase }
     from "@/supabase/server/admin";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 
@@ -166,6 +163,7 @@ export function useSchoolCredentials(): SchoolCredentials {
 ```
 
 **Usage in client components:**
+
 ```typescript
 "use client";
 
@@ -190,7 +188,7 @@ import { getSchoolHeader } from "@/types/headers";
 
 export default async function ExamplePage() {
     const credentials = await getSchoolHeader();
-    
+
     return (
         <div>
             <h1>{credentials.name}</h1>
@@ -237,7 +235,7 @@ const credentials = await getSchoolHeader(); // DB hit
 // Second call in child page (same request)
 const credentials2 = await getSchoolHeader(); // Cache hit, no DB
 
-// Third call in another component (same request)  
+// Third call in another component (same request)
 const credentials3 = await getSchoolHeader(); // Cache hit, no DB
 ```
 
@@ -258,6 +256,7 @@ The system supports both header keys for flexibility:
 - **`username`** - Legacy support for backwards compatibility
 
 Code checks both keys:
+
 ```typescript
 const username = headersList.get("x-school-username") || headersList.get("username");
 ```
@@ -267,19 +266,20 @@ const username = headersList.get("x-school-username") || headersList.get("userna
 Logo and banner images are fetched from Cloudflare CDN:
 
 ### Located in `supabase/server/cdn.ts`:
+
 ```typescript
 export const getCDNImages = cache(async (username: string) => {
     // 1. Check in-memory cache (1 hour TTL)
     if (cache.has(username)) return cache.get(username);
-    
+
     // 2. HEAD request to verify URL exists
     const logoUrl = await verifyCDNUrl(`/logos/${username}.png`);
     const bannerUrl = await verifyCDNUrl(`/banners/${username}.png`);
-    
+
     // 3. Fallback to admin assets if not found
     if (!logoUrl) return adminLogoUrl;
     if (!bannerUrl) return adminBannerUrl;
-    
+
     // 4. Cache result for 1 hour
     cache.set(username, { logoUrl, bannerUrl });
     return { logoUrl, bannerUrl };
@@ -287,12 +287,14 @@ export const getCDNImages = cache(async (username: string) => {
 ```
 
 **Features:**
+
 - In-memory caching to reduce HEAD requests
 - Fallback to admin assets if school-specific not found
 - Detailed logging for debugging asset issues
 - Returns guaranteed URLs (never null)
 
 ### Example Usage:
+
 ```typescript
 const images = await getCDNImages("kite-tarifa");
 // Returns: { logoUrl: "https://cdn.../kite-tarifa.png", bannerUrl: "..." }
@@ -303,6 +305,7 @@ const images = await getCDNImages("kite-tarifa");
 Subdomain pages use dedicated function `getSchool4Subdomain()`:
 
 **Located in `supabase/server/subdomain.ts`:**
+
 ```typescript
 export async function getSchool4Subdomain(username: string) {
     // 1. Fetch school and packages
@@ -312,21 +315,22 @@ export async function getSchool4Subdomain(username: string) {
 ```
 
 **Usage in subdomain/page.tsx:**
+
 ```typescript
 export default async function SubdomainPage() {
     const headersList = await headers();
     const username = headersList.get("x-school-username");
-    
+
     if (!username) {
         return redirect("/error");
     }
-    
+
     const schoolWithPackages = await getSchool4Subdomain(username);
-    
+
     if (!schoolWithPackages) {
         return redirect("/error");
     }
-    
+
     return <SubDomainHomePage school={schoolWithPackages} />;
 }
 ```
@@ -334,17 +338,20 @@ export default async function SubdomainPage() {
 ## Troubleshooting
 
 ### CDN Images Not Loading
+
 - Check browser console for "Empty string passed to src"
 - This means `bannerUrl` or `logoUrl` is null or empty
 - **Solution:** Ensure SchoolAssets interface uses `bannerUrl` and `iconUrl` (not `banner`/`logo`)
 - Check CDN URL is accessible (HEAD request succeeds)
 
 ### Credentials Not Available
+
 - Check if `x-school-username` header is set by proxy
 - Verify school record exists in Supabase with matching username
 - Check browser Network tab → headers for `x-school-username` value
 
 ### Duplicate Credential Calls
+
 - Verify layout is using `cache(getSchoolCredentialsFromSupabase)`
 - Check that multiple components aren't importing `getSchoolHeader()` without cache
 - Use browser DevTools Network tab to count DB requests per page load (should be 1)
@@ -353,11 +360,10 @@ export default async function SubdomainPage() {
 
 - **Credentials Type:** [types/credentials.ts](../types/credentials.ts)
 - **Centralized Fetching:** [types/headers.ts](../types/headers.ts#L1)
-- **Admin Layout:** [src/app/(admin)/layout.tsx](../src/app/(admin)/layout.tsx)
+- **Admin Layout:** [src/app/(admin)/layout.tsx](<../src/app/(admin)/layout.tsx>)
 - **Provider:** [src/providers/school-credentials-provider.tsx](../src/providers/school-credentials-provider.tsx)
 - **CDN Handling:** [supabase/server/cdn.ts](../supabase/server/cdn.ts)
 - **Subdomain Fetching:** [supabase/server/subdomain.ts](../supabase/server/subdomain.ts)
-
 
 3. Provider Setup
    ├─ SchoolCredentialsProvider wraps tree
@@ -367,6 +373,7 @@ export default async function SubdomainPage() {
    ├─ useSchoolCredentials() hook
    ├─ Accesses context value
    └─ Renders logo, currency, etc.
+
 ```
 
 ## Caching Strategy
@@ -396,12 +403,14 @@ The system tries logos in this order:
 
 Example for school "kite-tarifa":
 ```
+
 Try: kite-tarifa/icon.png
 ├─ Success → return URL
 └─ Fail → Try: admin/icon.png
-    ├─ Success → return URL
-    └─ Fail → return null
-```
+├─ Success → return URL
+└─ Fail → return null
+
+````
 
 ## Performance Considerations
 
@@ -445,7 +454,7 @@ return {
     // ... existing fields
     phoneNumber: schoolData.phoneNumber,
 };
-```
+````
 
 ## Security
 
@@ -457,16 +466,19 @@ return {
 ## Troubleshooting
 
 ### Logo not showing
+
 - Check R2 bucket has `{schoolUsername}/icon.png` or `admin/icon.png`
 - Verify R2 credentials in `.env.local`
 - Check public URL in `CLOUDFLARE_R2_PUBLIC_URL`
 
 ### Credentials undefined in component
+
 - Ensure component is wrapped by `SchoolCredentialsProvider`
 - Check provider is rendering in layout above component
 - Verify component uses "use client" directive
 
 ### Stale credentials
+
 - Clear cache: `revalidateTag("school-data")` or `revalidateTag("school-logo")`
 - Manually invalidate in admin panel if available
 - Wait 12 hours for auto-revalidation

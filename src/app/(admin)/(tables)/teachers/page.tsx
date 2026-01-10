@@ -4,6 +4,8 @@ import { TableLayout } from "../TableLayout";
 import type { TableStat } from "../TablesHeaderStats";
 import { getAggregateTeachers } from "@/backend/data/TeacherStats";
 
+export const dynamic = "force-dynamic";
+
 export default async function TeachersMasterTablePage() {
     const teachers = await getTeachersTable();
     const stats_data = getAggregateTeachers(teachers);

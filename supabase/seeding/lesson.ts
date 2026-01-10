@@ -1,6 +1,6 @@
 /**
  * Lesson & Event Seeding (Fresh)
- * 
+ *
  * Create lessons with one teacher per booking
  * Create events based on package duration dates
  * Add equipment through teacher_equipment relations
@@ -17,7 +17,7 @@ export const createLessonsAndEvents = async (
     schoolId: string,
     packages: any[],
     equipment: any[],
-    studentPackageMap: Map<string, string>
+    studentPackageMap: Map<string, string>,
 ): Promise<{ lessons: any[]; events: any[] }> => {
     const lessonRecords: any[] = [];
     const eventRecords: any[] = [];
@@ -67,10 +67,7 @@ export const createLessonsAndEvents = async (
         return rest;
     });
 
-    const { data: lessons, error: lessonError } = await supabase
-        .from("lesson")
-        .insert(lessonsToInsert)
-        .select();
+    const { data: lessons, error: lessonError } = await supabase.from("lesson").insert(lessonsToInsert).select();
     if (lessonError) throw lessonError;
     console.log(`✅ Created ${lessons.length} lessons (all COMPLETED)`);
 
@@ -83,10 +80,7 @@ export const createLessonsAndEvents = async (
         };
     });
 
-    const { data: events, error: eventError } = await supabase
-        .from("event")
-        .insert(eventsToInsert)
-        .select();
+    const { data: events, error: eventError } = await supabase.from("event").insert(eventsToInsert).select();
     if (eventError) throw eventError;
     console.log(`✅ Created ${events.length} events (all COMPLETED)`);
 
@@ -101,7 +95,7 @@ export const addEquipmentToEvents = async (
     events: any[],
     lessons: any[],
     teachers: any[],
-    teacherEquipment: Map<string, string[]> // teacher_id -> [equipment_ids]
+    teacherEquipment: Map<string, string[]>, // teacher_id -> [equipment_ids]
 ): Promise<void> => {
     const equipmentEventRecords: any[] = [];
 
@@ -124,9 +118,7 @@ export const addEquipmentToEvents = async (
 
     if (equipmentEventRecords.length === 0) return;
 
-    const { error } = await supabase
-        .from("equipment_event")
-        .insert(equipmentEventRecords);
+    const { error } = await supabase.from("equipment_event").insert(equipmentEventRecords);
     if (error) throw error;
     console.log(`✅ Added ${equipmentEventRecords.length} equipment items to events`);
 };
@@ -137,7 +129,7 @@ export const addEquipmentToEvents = async (
 export const createStudentLessonFeedback = async (
     bookings: any[],
     lessons: any[],
-    bookingStudents: Map<string, string[]>
+    bookingStudents: Map<string, string[]>,
 ): Promise<void> => {
     const feedbackRecords: any[] = [];
 
@@ -157,9 +149,7 @@ export const createStudentLessonFeedback = async (
 
     if (feedbackRecords.length === 0) return;
 
-    const { error } = await supabase
-        .from("student_lesson_feedback")
-        .insert(feedbackRecords);
+    const { error } = await supabase.from("student_lesson_feedback").insert(feedbackRecords);
     if (error) throw error;
     console.log(`✅ Created ${feedbackRecords.length} student lesson feedbacks`);
 };

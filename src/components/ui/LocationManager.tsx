@@ -37,7 +37,7 @@ export function LocationManager({ selected, onSelect }: LocationManagerProps) {
     // Ensure selected is in locations (sync from parent state)
     useEffect(() => {
         if (selected && !locations.includes(selected)) {
-            setLocations(prev => [...prev, selected]);
+            setLocations((prev) => [...prev, selected]);
         }
     }, [selected, locations]);
 
@@ -62,20 +62,20 @@ export function LocationManager({ selected, onSelect }: LocationManagerProps) {
 
     const handleRemove = (loc: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        const newLocs = locations.filter(l => l !== loc);
+        const newLocs = locations.filter((l) => l !== loc);
         setLocations(newLocs);
         if (selected === loc && newLocs.length > 0) {
             onSelect(newLocs[0]);
         } else if (newLocs.length === 0) {
-             onSelect(""); // Or handle empty state
+            onSelect(""); // Or handle empty state
         }
     };
 
     return (
         <div className="space-y-3">
-             <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                 <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Location</label>
-                <button 
+                <button
                     onClick={() => setIsAdding(!isAdding)}
                     className="text-[10px] text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
                 >
@@ -91,9 +91,10 @@ export function LocationManager({ selected, onSelect }: LocationManagerProps) {
                         onClick={() => onSelect(loc)}
                         className={`
                             group relative px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all border
-                            ${selected === loc 
-                                ? "bg-primary text-primary-foreground border-primary shadow-sm" 
-                                : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted hover:border-border/80"
+                            ${
+                                selected === loc
+                                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                    : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted hover:border-border/80"
                             }
                         `}
                     >
@@ -101,7 +102,7 @@ export function LocationManager({ selected, onSelect }: LocationManagerProps) {
                             <MapPin size={10} className={selected === loc ? "opacity-100" : "opacity-50"} />
                             {loc}
                         </div>
-                        
+
                         {/* Only show remove for non-defaults or if we want to allow hiding defaults too. 
                             Let's allow removing any location as requested. 
                         */}

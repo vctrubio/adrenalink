@@ -20,26 +20,26 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     const equipment: EquipmentData = result.data;
 
     const stats: TableStat[] = [
-        { 
-            type: "equipment", 
-            value: `${equipment.schema.brand} ${equipment.schema.model}`, 
-            desc: "Equipment Profile" 
+        {
+            type: "equipment",
+            value: `${equipment.schema.brand} ${equipment.schema.model}`,
+            desc: "Equipment Profile",
         },
-        { 
-            type: "events", 
-            value: EquipmentTableGetters.getEventCount(equipment), 
-            label: "Activity", 
-            desc: "Lessons using this gear" 
+        {
+            type: "events",
+            value: EquipmentTableGetters.getEventCount(equipment),
+            label: "Activity",
+            desc: "Lessons using this gear",
         },
-        { 
-            type: "rentals", 
-            value: EquipmentTableGetters.getRentalCount(equipment), 
-            desc: "Direct student rentals" 
+        {
+            type: "rentals",
+            value: EquipmentTableGetters.getRentalCount(equipment),
+            desc: "Direct student rentals",
         },
-        { 
-            type: "repairs", 
-            value: EquipmentTableGetters.getRepairCount(equipment), 
-            desc: "Total maintenance logs" 
+        {
+            type: "repairs",
+            value: EquipmentTableGetters.getRepairCount(equipment),
+            desc: "Total maintenance logs",
         },
     ];
 

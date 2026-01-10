@@ -13,13 +13,13 @@ export function SearchInput({ entityColor, className, placeholder = "Search...",
     const handleClear = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (props.onChange) {
             // Create a synthetic event compatible with React.ChangeEvent<HTMLInputElement>
             const nativeEvent = new Event("change", { bubbles: true });
             const target = document.createElement("input");
             target.value = "";
-            
+
             const syntheticEvent = {
                 ...nativeEvent,
                 target: target,
@@ -27,9 +27,9 @@ export function SearchInput({ entityColor, className, placeholder = "Search...",
                 preventDefault: () => {},
                 stopPropagation: () => {},
                 nativeEvent: nativeEvent,
-                type: "change"
+                type: "change",
             } as unknown as React.ChangeEvent<HTMLInputElement>;
-            
+
             props.onChange(syntheticEvent);
         }
     };

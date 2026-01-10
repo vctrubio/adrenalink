@@ -12,7 +12,7 @@ interface TeacherSummaryProps {
 
 const ProgressBar = ({ progress }: { progress: number }) => (
     <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
             className={`h-full ${progress === 100 ? "bg-emerald-500" : "bg-primary"}`}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -38,74 +38,83 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
     if (isPhoneComplete) progress += 10;
     if (isLanguagesComplete) progress += 10;
 
-    const teacherColor = ENTITY_DATA.find(e => e.id === "teacher")?.color || "#22c55e";
+    const teacherColor = ENTITY_DATA.find((e) => e.id === "teacher")?.color || "#22c55e";
 
-    const StatusIcon = ({ isComplete }: { isComplete: boolean }) => (
-        isComplete 
-            ? <VerifiedIcon size={16} className="text-blue-500" /> 
-            : <AlertCircle size={14} className="text-amber-500/50" />
-    );
+    const StatusIcon = ({ isComplete }: { isComplete: boolean }) =>
+        isComplete ? <VerifiedIcon size={16} className="text-blue-500" /> : <AlertCircle size={14} className="text-amber-500/50" />;
 
     const fields = [
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Full Name</span>
                     <StatusIcon isComplete={isNameComplete} />
                 </div>
-            ), 
-            value: isNameComplete 
-                ? `${teacherFormData.firstName} ${teacherFormData.lastName}` 
-                : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: isNameComplete ? (
+                `${teacherFormData.firstName} ${teacherFormData.lastName}`
+            ) : (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isUsernameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Username</span>
                     <StatusIcon isComplete={isUsernameComplete} />
                 </div>
-            ), 
+            ),
             value: teacherFormData.username ? (
                 <span className="font-mono text-primary font-black">@{teacherFormData.username}</span>
-            ) : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ) : (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
                     <StatusIcon isComplete={isPassportComplete} />
                 </div>
-            ), 
-            value: teacherFormData.passport || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: teacherFormData.passport || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isCountryComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Country</span>
                     <StatusIcon isComplete={isCountryComplete} />
                 </div>
-            ), 
-            value: teacherFormData.country || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: teacherFormData.country || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isPhoneComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Phone</span>
                     <StatusIcon isComplete={isPhoneComplete} />
                 </div>
-            ), 
-            value: teacherFormData.phone || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: teacherFormData.phone || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isLanguagesComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Languages</span>
                     <StatusIcon isComplete={isLanguagesComplete} />
                 </div>
-            ), 
-            value: isLanguagesComplete 
-                ? teacherFormData.languages.join(", ") 
-                : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: isLanguagesComplete ? (
+                teacherFormData.languages.join(", ")
+            ) : (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
     ];
 
@@ -113,7 +122,10 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                    <div style={{ color: progress === 100 ? teacherColor : undefined }} className={progress === 100 ? "" : "text-primary"}>
+                    <div
+                        style={{ color: progress === 100 ? teacherColor : undefined }}
+                        className={progress === 100 ? "" : "text-primary"}
+                    >
                         <HeadsetIcon size={14} />
                     </div>
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Check-in Teacher</h3>

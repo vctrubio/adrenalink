@@ -1,15 +1,15 @@
 /**
  * Supabase Relations Map
- * 
+ *
  * Documents all foreign key relationships between tables.
  * Used for understanding joins, building queries, and API documentation.
- * 
+ *
  * Unlike Drizzle, Supabase uses PostgREST which infers relationships from FKs.
  * This file is a reference and can be used to generate complex queries.
- * 
+ *
  * @see supabase/schema/ - SQL table definitions organized by domain
  * @see supabase/db/types.ts - TypeScript row types (single source of truth)
- * 
+ *
  * Schema Load Order (dependency-driven):
  * 1. school.sql
  * 2. student.sql
@@ -27,7 +27,7 @@
 
 /**
  * Relationship Graph
- * 
+ *
  * One-to-Many (parent -> child):
  * - school -> school_package
  * - school -> equipment
@@ -49,7 +49,7 @@
  * - rental -> rental_student
  * - rental -> rental_equipment
  * - school_subscription -> subscription_payment
- * 
+ *
  * Many-to-Many (junction tables):
  * - school_students (school <-> student)
  * - booking_student (booking <-> student)
@@ -61,7 +61,7 @@
 
 /**
  * Table Relationships Definition
- * 
+ *
  * Each entry describes:
  * - table: The table name
  * - foreign_keys: Array of {column, references_table, references_column}
@@ -147,7 +147,12 @@ export const relations = {
             { table: "teacher_equipment", via_column: "teacher_id" },
         ],
         many_to_many: [
-            { through_table: "teacher_equipment", parent_column: "teacher_id", child_table: "equipment", child_column: "equipment_id" },
+            {
+                through_table: "teacher_equipment",
+                parent_column: "teacher_id",
+                child_table: "equipment",
+                child_column: "equipment_id",
+            },
         ],
     },
 
@@ -334,7 +339,7 @@ export const relations = {
 
 /**
  * Query Helper Functions
- * 
+ *
  * These help build PostgREST queries with proper joins
  */
 
@@ -359,7 +364,7 @@ export const getTableManyToMany = (tableName: string) => {
 
 /**
  * Example Usage:
- * 
+ *
  * // Get all schools with their packages
  * const schoolsWithPackages = await supabase
  *   .from('school')
@@ -367,7 +372,7 @@ export const getTableManyToMany = (tableName: string) => {
  *     *,
  *     school_package(*)
  *   `)
- * 
+ *
  * // Get booking with students and lessons
  * const booking = await supabase
  *   .from('booking')
@@ -378,7 +383,7 @@ export const getTableManyToMany = (tableName: string) => {
  *   `)
  *   .eq('id', bookingId)
  *   .single()
- * 
+ *
  * // Get teacher with equipment and lessons
  * const teacher = await supabase
  *   .from('teacher')

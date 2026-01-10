@@ -7,10 +7,7 @@ export async function updateEquipmentStatus(equipmentId: string, status: string)
     try {
         const supabase = getServerConnection();
 
-        const { error } = await supabase
-            .from("equipment")
-            .update({ status })
-            .eq("id", equipmentId);
+        const { error } = await supabase.from("equipment").update({ status }).eq("id", equipmentId);
 
         if (error) {
             console.error("Error updating equipment status:", error);

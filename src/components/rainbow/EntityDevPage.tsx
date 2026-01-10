@@ -5,7 +5,20 @@ import { RAINBOW_ENTITIES, RAINBOW_COLORS } from "@/config/rainbow-entities";
 import { RainbowIdentityCardList, RainbowIdentityCardHead } from "@/src/components/rainbow/RainbowIdentityCard";
 import type { EntityConfig } from "@/types/rainbow-types";
 
-const ENTITY_ORDER = ["school", "rental", "studentPackage", "schoolPackage", "student", "teacher", "commission", "lesson", "booking", "event", "equipment", "repairs"];
+const ENTITY_ORDER = [
+    "school",
+    "rental",
+    "studentPackage",
+    "schoolPackage",
+    "student",
+    "teacher",
+    "commission",
+    "lesson",
+    "booking",
+    "event",
+    "equipment",
+    "repairs",
+];
 
 function EntityFrontCard({ entity }: { entity: EntityConfig }) {
     return (
@@ -32,7 +45,19 @@ function EntityBackCard({ entity }: { entity: EntityConfig }) {
     );
 }
 
-function EntityCard({ entity, isSelected, isRelated, isFlipped, onFlip }: { entity: EntityConfig; isSelected: boolean; isRelated: boolean; isFlipped: boolean; onFlip: (entityId: string) => void }) {
+function EntityCard({
+    entity,
+    isSelected,
+    isRelated,
+    isFlipped,
+    onFlip,
+}: {
+    entity: EntityConfig;
+    isSelected: boolean;
+    isRelated: boolean;
+    isFlipped: boolean;
+    onFlip: (entityId: string) => void;
+}) {
     const [isHovered, setIsHovered] = useState(false);
     const shade = RAINBOW_COLORS[entity.shadeId];
     const isEntityRelatedAndSelected = isSelected && isRelated;
@@ -54,7 +79,11 @@ function EntityCard({ entity, isSelected, isRelated, isFlipped, onFlip }: { enti
             <div
                 className="h-2 transition-colors duration-200"
                 style={{
-                    background: showBorderTop ? (isEntityRelatedAndSelected ? shade.fill : `linear-gradient(90deg, ${shade.fill}, ${shade.hoverFill})`) : "transparent",
+                    background: showBorderTop
+                        ? isEntityRelatedAndSelected
+                            ? shade.fill
+                            : `linear-gradient(90deg, ${shade.fill}, ${shade.hoverFill})`
+                        : "transparent",
                 }}
             />
             <div
@@ -111,8 +140,18 @@ export function EntityDevPage() {
                     const isEntityRelated = isRelated(entity.id);
 
                     return (
-                        <div key={entity.id} onClick={() => setSelectedEntity(isEntitySelected ? null : entity.id)} className="text-left">
-                            <EntityCard entity={entity} isSelected={selectedEntity !== null} isRelated={isEntityRelated || isEntitySelected} isFlipped={flippedEntityId === entity.id} onFlip={handleFlip} />
+                        <div
+                            key={entity.id}
+                            onClick={() => setSelectedEntity(isEntitySelected ? null : entity.id)}
+                            className="text-left"
+                        >
+                            <EntityCard
+                                entity={entity}
+                                isSelected={selectedEntity !== null}
+                                isRelated={isEntityRelated || isEntitySelected}
+                                isFlipped={flippedEntityId === entity.id}
+                                onFlip={handleFlip}
+                            />
                         </div>
                     );
                 })}

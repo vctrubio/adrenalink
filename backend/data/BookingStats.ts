@@ -28,6 +28,6 @@ export function getAggregateBookings(bookings: BookingTableData[]): BookingTable
             payments: { student: 0, teacher: 0 },
             commissions: 0,
             balance: 0,
-        }
+        },
     );
 }

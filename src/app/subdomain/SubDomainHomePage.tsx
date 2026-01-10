@@ -10,13 +10,23 @@ import { motion } from "framer-motion";
 import { SchoolPackageContainer } from "./SchoolPackageContainer";
 
 // Style Constants
-const SOCIAL_BUTTON_STYLE = "w-12 h-12 flex items-center justify-center rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 text-zinc-600 hover:text-zinc-900 transition-all border border-zinc-200";
+const SOCIAL_BUTTON_STYLE =
+    "w-12 h-12 flex items-center justify-center rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 text-zinc-600 hover:text-zinc-900 transition-all border border-zinc-200";
 
 /**
  * Shared layout component for the School Landing Page
  */
 export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackages) {
-    const { name, country, phone, website_url: websiteUrl, instagram_url: instagramUrl, equipment_categories: equipmentCategories, currency, username } = school;
+    const {
+        name,
+        country,
+        phone,
+        website_url: websiteUrl,
+        instagram_url: instagramUrl,
+        equipment_categories: equipmentCategories,
+        currency,
+        username,
+    } = school;
     const { bannerUrl, iconUrl } = assets;
     const currencySymbol = getCurrencySymbol(currency);
 
@@ -27,7 +37,6 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
 
     const categoryList = equipmentCategories ? equipmentCategories.split(",").map((cat) => cat.trim()) : [];
 
-    
     // Filter categories to only show those with active packages
     const activeCategories = useMemo(() => {
         const categoriesWithPackages = new Set(packages.map((p) => p.category_equipment));
@@ -68,7 +77,9 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
 
                         {/* Name & Categories */}
                         <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left gap-2">
-                            <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tighter leading-none uppercase">{name}</h1>
+                            <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tighter leading-none uppercase">
+                                {name}
+                            </h1>
 
                             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                 {activeCategories.map((cat, index) => {
@@ -92,10 +103,15 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
                         </div>
 
                         {/* Location Display */}
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5, ease: "backOut" }} className="flex flex-col items-center md:items-end gap-2 md:mb-4 flex-shrink-0">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4, duration: 0.5, ease: "backOut" }}
+                            className="flex flex-col items-center md:items-end gap-2 md:mb-4 flex-shrink-0"
+                        >
                             <div className="flex gap-2 bg-white rounded-xl px-4 py-2 ">
-                            <MapPin size={32} className="text-zinc-900" />
-                            <span className="text-lg md:text-xl font-black text-zinc-900 uppercase tracking-wider">{country}</span>
+                                <MapPin size={32} className="text-zinc-900" />
+                                <span className="text-lg md:text-xl font-black text-zinc-900 uppercase tracking-wider">{country}</span>
                             </div>
                         </motion.div>
 

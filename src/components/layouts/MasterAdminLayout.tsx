@@ -31,9 +31,7 @@ export function MasterAdminLayout({ controller, form }: MasterAdminLayoutProps) 
                         </div>
 
                         {/* Form Content */}
-                        <div className="col-span-8 space-y-8">
-                            {form}
-                        </div>
+                        <div className="col-span-8 space-y-8">{form}</div>
                     </div>
                 </div>
             </div>

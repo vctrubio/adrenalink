@@ -6,14 +6,14 @@ import { db } from "@/drizzle/db";
 // Calculates students, events, duration, and revenue for a single package
 
 export interface PackageIdStats {
-  student_count: number;
-  events_count: number;
-  total_duration_minutes: number;
-  money_in: number;
+    student_count: number;
+    events_count: number;
+    total_duration_minutes: number;
+    money_in: number;
 }
 
 export async function getPackageIdStats(packageId: string): Promise<PackageIdStats> {
-  const result = await db.execute(sql`
+    const result = await db.execute(sql`
     SELECT
       COUNT(DISTINCT bs.student_id)::integer as student_count,
       COUNT(DISTINCT e.id)::integer as events_count,
@@ -34,12 +34,12 @@ export async function getPackageIdStats(packageId: string): Promise<PackageIdSta
     WHERE sp.id = ${packageId}
   `);
 
-  const row = Array.isArray(result) ? result[0] : (result as any).rows?.[0];
+    const row = Array.isArray(result) ? result[0] : (result as any).rows?.[0];
 
-  return {
-    student_count: row?.student_count || 0,
-    events_count: row?.events_count || 0,
-    total_duration_minutes: row?.total_duration_minutes || 0,
-    money_in: Number(row?.money_in || 0),
-  };
+    return {
+        student_count: row?.student_count || 0,
+        events_count: row?.events_count || 0,
+        total_duration_minutes: row?.total_duration_minutes || 0,
+        money_in: Number(row?.money_in || 0),
+    };
 }

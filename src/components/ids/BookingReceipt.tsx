@@ -48,12 +48,12 @@ interface BookingReceiptProps {
 
 export function BookingReceipt({ booking, eventRows, totals, schoolPackage, formatCurrency, currency }: BookingReceiptProps) {
     const [copied, setCopied] = useState(false);
-    
+
     // Abstract data access to support both structures
     const isSupabase = !!booking.schema.date_start;
     const dateStart = isSupabase ? booking.schema.date_start : booking.schema.dateStart;
     const dateEnd = isSupabase ? booking.schema.date_end : booking.schema.dateEnd;
-    
+
     const packageDescription = schoolPackage?.description || "No Package";
     const packageMinutes = schoolPackage?.duration_minutes ?? schoolPackage?.durationMinutes ?? 0;
     const packageHours = Math.round(packageMinutes / 60);
@@ -71,19 +71,32 @@ export function BookingReceipt({ booking, eventRows, totals, schoolPackage, form
     const bookingEndDate = formatBookingDate(dateEnd);
     const pricePerStudent = studentCapacity > 1 ? totals.totalRevenue / studentCapacity : totals.totalRevenue;
 
-    const students = isSupabase 
+    const students = isSupabase
         ? (booking.relations?.students || []).map((s: any) => ({
-            firstName: s.first_name,
-            lastName: s.last_name,
-            passport: s.passport,
+              firstName: s.first_name,
+              lastName: s.last_name,
+              passport: s.passport,
           }))
         : (booking.relations?.bookingStudents || []).map((bs: any) => ({
-            firstName: bs.student?.firstName || "Unknown",
-            lastName: bs.student?.lastName || "",
-            passport: bs.student?.passport || undefined,
+              firstName: bs.student?.firstName || "Unknown",
+              lastName: bs.student?.lastName || "",
+              passport: bs.student?.passport || undefined,
           }));
 
-    const receiptText = formatBookingReceiptText(bookingStartDate, bookingEndDate, students, packageDescription, packageHours, packageTypeStr, studentCapacity, totalHours, formatCurrency, totals.totalRevenue, pricePerStudent, eventRows as any);
+    const receiptText = formatBookingReceiptText(
+        bookingStartDate,
+        bookingEndDate,
+        students,
+        packageDescription,
+        packageHours,
+        packageTypeStr,
+        studentCapacity,
+        totalHours,
+        formatCurrency,
+        totals.totalRevenue,
+        pricePerStudent,
+        eventRows as any,
+    );
 
     const handleCopy = async () => {
         await navigator.clipboard.writeText(receiptText);
@@ -100,7 +113,10 @@ export function BookingReceipt({ booking, eventRows, totals, schoolPackage, form
                         <Share2 size={20} className="text-primary" />
                         <span className="font-semibold">Receipt</span>
                     </div>
-                    <button onClick={handleCopy} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors">
+                    <button
+                        onClick={handleCopy}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+                    >
                         {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
                         <span className={copied ? "text-green-600" : ""}>{copied ? "Copied!" : "Copy to clipboard"}</span>
                     </button>

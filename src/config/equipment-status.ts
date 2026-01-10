@@ -7,4 +7,4 @@ export const EQUIPMENT_STATUS = {
     RIP: "rip",
 } as const;
 
-export type EquipmentStatus = typeof EQUIPMENT_STATUS[keyof typeof EQUIPMENT_STATUS];
+export type EquipmentStatus = (typeof EQUIPMENT_STATUS)[keyof typeof EQUIPMENT_STATUS];

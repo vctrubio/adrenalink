@@ -75,7 +75,11 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
     }, [bookings, filter, sort, search]);
 
     if (bookings.length === 0) {
-        return <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">No bookings found for this student</div>;
+        return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
+                No bookings found for this student
+            </div>
+        );
     }
 
     return (
@@ -96,7 +100,11 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                 {filteredBookings.map((b) => {
                     return <FullBookingCard key={b.id} bookingData={b} currency={currency} formatCurrency={formatCurrency} />;
                 })}
-                {filteredBookings.length === 0 && <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-xl border border-border/50">No bookings match your filters</div>}
+                {filteredBookings.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-xl border border-border/50">
+                        No bookings match your filters
+                    </div>
+                )}
             </motion.div>
         </div>
     );

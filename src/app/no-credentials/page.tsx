@@ -35,9 +35,13 @@ function NoCredentialsHeader() {
                 </div>
 
                 <div>
-                    <h1 className="text-6xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">⚠️</h1>
+                    <h1 className="text-6xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                        ⚠️
+                    </h1>
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">What were you doing?</h2>
-                    <p className="text-lg md:text-xl text-muted-foreground">We couldn&apos;t find your school credentials. Please make sure you&apos;re accessing the correct domain.</p>
+                    <p className="text-lg md:text-xl text-muted-foreground">
+                        We couldn&apos;t find your school credentials. Please make sure you&apos;re accessing the correct domain.
+                    </p>
                 </div>
             </div>
         );
@@ -48,18 +52,28 @@ function NoCredentialsHeader() {
             <div className="flex justify-center mb-6">
                 <button
                     onClick={handleThemeToggle}
-                    className={`p-6 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${isDarkMode ? "bg-card/50 border-2 border-border hover:border-primary" : "bg-card/80 border-2 border-border hover:border-primary"
-                        } backdrop-blur-sm hover:shadow-xl`}
+                    className={`p-6 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        isDarkMode
+                            ? "bg-card/50 border-2 border-border hover:border-primary"
+                            : "bg-card/80 border-2 border-border hover:border-primary"
+                    } backdrop-blur-sm hover:shadow-xl`}
                     title="Toggle theme"
                 >
-                    <AdranlinkIcon size={80} className={`w-20 h-20 transition-all duration-600 text-primary ${isSpinning ? "animate-spin" : ""}`} />
+                    <AdranlinkIcon
+                        size={80}
+                        className={`w-20 h-20 transition-all duration-600 text-primary ${isSpinning ? "animate-spin" : ""}`}
+                    />
                 </button>
             </div>
 
             <div>
-                <h1 className="text-6xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">⚠️</h1>
+                <h1 className="text-6xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                    ⚠️
+                </h1>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">What were you doing?</h2>
-                <p className="text-lg md:text-xl text-muted-foreground">We couldn&apos;t find your school credentials. Please make sure you&apos;re accessing the correct domain.</p>
+                <p className="text-lg md:text-xl text-muted-foreground">
+                    We couldn&apos;t find your school credentials. Please make sure you&apos;re accessing the correct domain.
+                </p>
             </div>
         </div>
     );
@@ -72,10 +86,16 @@ export default function NoCredentials() {
                 <NoCredentialsHeader />
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
-                    <Link href="/discover" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-center">
+                    <Link
+                        href="/discover"
+                        className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-center"
+                    >
                         Discover Schools
                     </Link>
-                    <a href="https://adrenalink.tech" className="px-8 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent/90 transition-colors text-center">
+                    <a
+                        href="https://adrenalink.tech"
+                        className="px-8 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent/90 transition-colors text-center"
+                    >
                         Back to Home
                     </a>
                 </div>

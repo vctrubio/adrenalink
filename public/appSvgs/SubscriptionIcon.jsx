@@ -1,6 +1,13 @@
 export default function SubscriptionIcon({ className = "", size = 24 }) {
     return (
-        <svg width={size} height={size} className={className} viewBox="5 8 70 70" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg
+            width={size}
+            height={size}
+            className={className}
+            viewBox="5 8 70 70"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+        >
             {/* Small Adrenalink icon at the top */}
             <g transform="translate(40, 10) scale(0.5)">
                 <g transform="translate(12, 12) rotate(-45) translate(-12, -12)">

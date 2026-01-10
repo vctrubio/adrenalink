@@ -32,7 +32,7 @@ export interface HeaderContext {
 
 /**
  * Retrieves school context from the 'x-school-username' header.
- * 
+ *
  * Uses React's cache() for request-level memoization:
  * - First call: Does DB lookup
  * - Subsequent calls in same request: Returns cached value (no DB hit)
@@ -52,12 +52,8 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
 
     try {
         const supabase = getServerConnection();
-        const { data: schoolData, error } = await supabase
-            .from("school")
-            .select("*")
-            .eq("username", username)
-            .single();
-        
+        const { data: schoolData, error } = await supabase.from("school").select("*").eq("username", username).single();
+
         if (error) {
             console.error(`❌ [getSchoolHeader] DB lookup failed for "${username}":`, error);
             unstable_rethrow(error);
@@ -92,4 +88,3 @@ export function revalidateSchoolCache(): void {
     revalidateTag("school");
     console.log("DEV:DEBUG ✅ Revalidated 'school' cache tag.");
 }
-

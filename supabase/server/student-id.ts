@@ -19,10 +19,12 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
         // 1. Fetch core student info and school student context
         const { data: student, error: studentError } = await supabase
             .from("student")
-            .select(`
+            .select(
+                `
                 *,
                 school_students!inner(*)
-            `)
+            `,
+            )
             .eq("id", id)
             .eq("school_students.school_id", schoolHeader.id)
             .single();
@@ -35,7 +37,8 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
         // 2. Fetch all bookings this student is part of, including all payments for those bookings
         const { data: bookingLinks, error: bookingError } = await supabase
             .from("booking_student")
-            .select(`
+            .select(
+                `
                 booking!inner(
                     *,
                     school_package!inner(*),
@@ -47,7 +50,8 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                     ),
                     student_booking_payment(*)
                 )
-            `)
+            `,
+            )
             .eq("student_id", id)
             .eq("booking.school_id", schoolHeader.id);
 
@@ -89,7 +93,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         commission: {
                             commission_type: l.teacher_commission?.commission_type,
                             cph: l.teacher_commission?.cph,
-                        }
+                        },
                     })),
                     student_booking_payment: (b.student_booking_payment || []).map((p: any) => ({
                         id: p.id,
@@ -101,16 +105,21 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             .filter((b: any) => b !== null);
 
         // Aggregate ALL payments from all participating bookings
-        const allBookingPayments = bookings.flatMap(b => b.student_booking_payment);
+        const allBookingPayments = bookings.flatMap((b) => b.student_booking_payment);
 
         // 4. Fetch associated student packages (requests)
         const { data: studentPackages } = await supabase
             .from("student_package")
-            .select(`
+            .select(
+                `
                 *,
                 school_package!inner(*)
-            `)
-            .in("school_package_id", bookings.map(b => b.school_package?.id).filter(id => !!id));
+            `,
+            )
+            .in(
+                "school_package_id",
+                bookings.map((b) => b.school_package?.id).filter((id) => !!id),
+            );
 
         const schoolStudent = student.school_students[0];
 
@@ -118,7 +127,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             school_students: student.school_students,
             student_package: (studentPackages || []).map((sp: any) => ({
                 ...sp,
-                school_package: sp.school_package
+                school_package: sp.school_package,
             })),
             bookings: bookings,
             student_booking_payment: allBookingPayments,

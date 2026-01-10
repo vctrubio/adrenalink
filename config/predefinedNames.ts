@@ -1,13 +1,4 @@
-export const RESERVED_SUBDOMAINS = [
-    "assets",
-    "api",
-    "www",
-    "sudo",
-    "admin",
-    "dashboard",
-    "app",
-    "cdn",
-] as const;
+export const RESERVED_SUBDOMAINS = ["assets", "api", "www", "sudo", "admin", "dashboard", "app", "cdn"] as const;
 
 export const RESERVED_USERNAMES = [
     "sudo",

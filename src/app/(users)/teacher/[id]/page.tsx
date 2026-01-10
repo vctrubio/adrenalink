@@ -1,6 +1,9 @@
-import { getTeacherEvents } from "@/actions/teacher-action";
+import { getTeacherEvents } from "@/supabase/server/teachers";
 import { EventTeacherCard } from "@/src/components/events/EventTeacherCard";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
+import { getSchoolHeader } from "@/types/headers";
+
+export const dynamic = "force-dynamic";
 
 interface TeacherPageProps {
     params: Promise<{ id: string }>;
@@ -9,7 +12,11 @@ interface TeacherPageProps {
 export default async function TeacherPage({ params }: TeacherPageProps) {
     const { id: teacherId } = await params;
 
-    const eventsResult = await getTeacherEvents(teacherId);
+    // Get school from subdomain header
+    const schoolHeader = await getSchoolHeader();
+    const schoolId = schoolHeader?.id;
+
+    const eventsResult = await getTeacherEvents(teacherId, schoolId);
     const events = eventsResult.success ? eventsResult.data : [];
 
     return (
@@ -33,13 +40,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                         pkg.pricePerStudent,
                         studentCount,
                         event.duration,
-                        pkg.durationMinutes
+                        pkg.durationMinutes,
                     );
                     const commCalc = calculateCommission(
                         event.duration,
                         { type: commissionType, cph: commissionValue },
                         lessonRevenue,
-                        pkg.durationMinutes
+                        pkg.durationMinutes,
                     );
                     teacherPricePerHour = commCalc.earned / (event.duration / 60);
                 }

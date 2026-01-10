@@ -20,7 +20,9 @@ async function getAdminBucketAssets() {
 
     if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicBaseUrl) {
         console.error("❌ Missing R2 environment variables!");
-        console.error("Required: CLOUDFLARE_R2_ACCOUNT_ID, CLOUDFLARE_R2_ACCESS_KEY, CLOUDFLARE_R2_SECRET_KEY, CLOUDFLARE_R2_BUCKET, CLOUDFLARE_R2_PUBLIC_URL");
+        console.error(
+            "Required: CLOUDFLARE_R2_ACCOUNT_ID, CLOUDFLARE_R2_ACCESS_KEY, CLOUDFLARE_R2_SECRET_KEY, CLOUDFLARE_R2_BUCKET, CLOUDFLARE_R2_PUBLIC_URL",
+        );
         process.exit(1);
     }
 

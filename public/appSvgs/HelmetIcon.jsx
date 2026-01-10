@@ -1,6 +1,12 @@
 export default function HelmetIcon({ className = "", size = 24, rental = false }) {
     return (
-        <svg width={size} height={size} className={rental ? "text-destructive" : className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg
+            width={size}
+            height={size}
+            className={rental ? "text-destructive" : className}
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+        >
             <g transform="translate(12, 12) scale(1.3) translate(-12, -12)">
                 <path
                     fill="currentColor"

@@ -24,11 +24,11 @@ interface HeaderDatePickerProps {
 
 export function HeaderDatePicker({ selectedDate, onDateChange }: HeaderDatePickerProps) {
     const dateObj = new Date(selectedDate + "T00:00:00");
-    
+
     const dayOfWeek = dateObj.toLocaleDateString("en-US", { weekday: "long" });
     const dayNumber = dateObj.getDate();
     const monthShort = dateObj.toLocaleDateString("en-US", { month: "short" });
-    
+
     const diffDays = getRelativeDays(selectedDate);
     const isToday = diffDays === 0;
     const relativeLabel = getRelativeLabel(diffDays);
@@ -73,19 +73,13 @@ export function HeaderDatePicker({ selectedDate, onDateChange }: HeaderDatePicke
             <div className="flex items-center gap-4">
                 {/* Big Day Number */}
                 <div className="flex flex-col items-center">
-                    <span className="text-4xl font-black text-foreground leading-none">
-                        {dayNumber}
-                    </span>
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                        {monthShort}
-                    </span>
+                    <span className="text-4xl font-black text-foreground leading-none">{dayNumber}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">{monthShort}</span>
                 </div>
 
                 {/* Day of Week & Status */}
                 <div className="flex flex-col gap-1">
-                    <span className="text-xl font-bold text-foreground">
-                        {dayOfWeek}
-                    </span>
+                    <span className="text-xl font-bold text-foreground">{dayOfWeek}</span>
                     <div className="flex items-center gap-2">
                         {isToday ? (
                             <span className="px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary border border-primary/20 rounded-full">
@@ -96,7 +90,7 @@ export function HeaderDatePicker({ selectedDate, onDateChange }: HeaderDatePicke
                                 <span className="px-2 py-0.5 text-xs font-mono font-semibold bg-muted text-muted-foreground border border-border rounded-full">
                                     {relativeLabel}
                                 </span>
-                                <button 
+                                <button
                                     onClick={goToToday}
                                     className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
                                 >

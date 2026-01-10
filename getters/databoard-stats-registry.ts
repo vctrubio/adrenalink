@@ -8,18 +8,18 @@ import { calculateSchoolPackageGroupStats } from "@/src/components/databoard/row
 import type { StatItem } from "@/src/components/ui/row";
 
 export const DATABOARD_STATS_REGISTRY: Record<string, (data: any[]) => StatItem[]> = {
-  student: calculateStudentGroupStats,
-  teacher: calculateTeacherGroupStats,
-  booking: calculateBookingGroupStats,
-  equipment: calculateEquipmentGroupStats,
-  event: calculateEventGroupStats,
-  studentPackage: calculateStudentPackageGroupStats,
-  schoolPackage: calculateSchoolPackageGroupStats,
-  rental: () => [],
-  referral: () => [],
+    student: calculateStudentGroupStats,
+    teacher: calculateTeacherGroupStats,
+    booking: calculateBookingGroupStats,
+    equipment: calculateEquipmentGroupStats,
+    event: calculateEventGroupStats,
+    studentPackage: calculateStudentPackageGroupStats,
+    schoolPackage: calculateSchoolPackageGroupStats,
+    rental: () => [],
+    referral: () => [],
 };
 
 export function getStatsForEntity(entityId: string, data: any[]): StatItem[] {
-  const statsFunc = DATABOARD_STATS_REGISTRY[entityId];
-  return statsFunc ? statsFunc(data) : [];
+    const statsFunc = DATABOARD_STATS_REGISTRY[entityId];
+    return statsFunc ? statsFunc(data) : [];
 }

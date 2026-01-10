@@ -4,12 +4,20 @@ import { useForm } from "react-hook-form";
 import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createSchool, getSchoolsUsernames, checkUsernameAvailability } from "@/actions/schools-action";
+import { createSchool, getSchoolsUsernames, checkUsernameAvailability } from "@/supabase/server/welcome";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import { DetailsStep, CategoriesStep, AssetsStep, ContactStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import {
+    DetailsStep,
+    CategoriesStep,
+    AssetsStep,
+    ContactStep,
+    SummaryStep,
+    WELCOME_SCHOOL_STEPS,
+    type SchoolFormData,
+} from "./WelcomeSchoolSteps";
 import { WelcomeHeader } from "./WelcomeHeader";
 import { WelcomeSchoolNameRegistration } from "./WelcomeSchoolNameRegistration";
 import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
@@ -30,8 +38,12 @@ const schoolSchema = z.object({
     timezone: z.string().min(1, "Timezone is required"),
     googlePlaceId: z.string().optional(),
     equipmentCategories: z.array(z.enum(["kite", "wing", "windsurf"])).min(1, "Select at least one equipment category"),
-    iconFile: z.instanceof(File, { message: "Icon file is required" }).refine((file) => file && file.type.startsWith("image/"), "Icon must be an image file"),
-    bannerFile: z.instanceof(File, { message: "Banner file is required" }).refine((file) => file && file.type.startsWith("image/"), "Banner must be an image file"),
+    iconFile: z
+        .instanceof(File, { message: "Icon file is required" })
+        .refine((file) => file && file.type.startsWith("image/"), "Icon must be an image file"),
+    bannerFile: z
+        .instanceof(File, { message: "Banner file is required" })
+        .refine((file) => file && file.type.startsWith("image/"), "Banner must be an image file"),
     ownerEmail: z.string().email("Valid email is required"),
     referenceNote: z.string().optional(),
     websiteUrl: z.string().optional(),
@@ -118,7 +130,7 @@ export function WelcomeSchoolForm() {
             setTimeout(() => {
                 try {
                     setFocus(field as any);
-                } catch { }
+                } catch {}
             }, 100);
         }
     };
@@ -277,9 +289,10 @@ export function WelcomeSchoolForm() {
                 equipmentCategories: data.equipmentCategories.join(","),
                 latitude: data.latitude?.toString(),
                 longitude: data.longitude?.toString(),
-                instagramUrl: data.instagramUrl && !data.instagramUrl.includes("instagram.com") 
-                    ? `https://www.instagram.com/${data.instagramUrl.replace(/^@/, "")}` 
-                    : data.instagramUrl,
+                instagramUrl:
+                    data.instagramUrl && !data.instagramUrl.includes("instagram.com")
+                        ? `https://www.instagram.com/${data.instagramUrl.replace(/^@/, "")}`
+                        : data.instagramUrl,
                 // Remove file objects before sending to database
                 iconFile: undefined,
                 bannerFile: undefined,
@@ -304,7 +317,7 @@ export function WelcomeSchoolForm() {
 
             // We do NOT reset the form here, so MultiFormContainer can show the success view.
             // The redirection happens when the user clicks the success button.
-            
+
             setPendingToBucket(false);
             setUploadStatus("");
             setUploadStarted(false);
@@ -313,7 +326,13 @@ export function WelcomeSchoolForm() {
             setUploadStatus("");
 
             // Show timeout handler for R2 connectivity issues if it was an upload related error (though upload is now backgrounded, main flow might still have DB errors)
-            if (error instanceof Error && (error.message.includes("timeout") || error.message.includes("ETIMEDOUT") || error.message.includes("upload") || error.message.includes("Failed to upload assets"))) {
+            if (
+                error instanceof Error &&
+                (error.message.includes("timeout") ||
+                    error.message.includes("ETIMEDOUT") ||
+                    error.message.includes("upload") ||
+                    error.message.includes("Failed to upload assets"))
+            ) {
                 console.log("🔄 R2/DB failed, showing timeout handler");
                 setTimeoutFormData(data);
                 setShowTimeoutHandler(true);

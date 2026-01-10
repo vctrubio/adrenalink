@@ -244,13 +244,13 @@ function capitalize(str: string): string {
  * UI Component to render a stat item with icon, label, and value.
  * Used for table and group headers.
  */
-export function StatHeaderItemUI({ 
-    statType, 
+export function StatHeaderItemUI({
+    statType,
     value,
     hideLabel = false,
     labelOverride,
-    variant = "default"
-}: { 
+    variant = "default",
+}: {
     statType: StatType;
     value: string | number;
     hideLabel?: boolean;
@@ -258,11 +258,11 @@ export function StatHeaderItemUI({
     variant?: "default" | "profit";
 }) {
     const config = STAT_CONFIGS[statType];
-    
+
     if (!config) {
         return null;
     }
-    
+
     // Handle profit with dynamic icon based on value
     let IconComponent: React.ElementType | null = null;
     if (statType === "profit" && typeof value === "number") {
@@ -271,7 +271,7 @@ export function StatHeaderItemUI({
     } else if (!React.isValidElement(config.icon)) {
         IconComponent = config.icon as React.ElementType;
     }
-    
+
     const renderedIcon = React.isValidElement(config.icon) ? (
         React.cloneElement(config.icon as React.ReactElement, { size: 12 })
     ) : IconComponent ? (
@@ -283,14 +283,18 @@ export function StatHeaderItemUI({
     const valueClass = variant === "profit" ? "text-primary dark:text-primary/90" : "text-foreground";
 
     return (
-        <div 
+        <div
             className={`flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity ${profitClass}`}
-            title={hideLabel ? (labelOverride || config.label) : undefined}
+            title={hideLabel ? labelOverride || config.label : undefined}
         >
             {renderedIcon}
             {!hideLabel && (
                 <>
-                    <span className={`text-[10px] font-bold ${variant === "profit" ? "text-primary/60 dark:text-primary/50" : "text-muted-foreground"} uppercase tracking-wider`}>{labelOverride || config.label}:</span>
+                    <span
+                        className={`text-[10px] font-bold ${variant === "profit" ? "text-primary/60 dark:text-primary/50" : "text-muted-foreground"} uppercase tracking-wider`}
+                    >
+                        {labelOverride || config.label}:
+                    </span>
                     <span className={`text-xs font-bold tabular-nums ${valueClass}`}>{value}</span>
                 </>
             )}
@@ -303,21 +307,13 @@ export function StatHeaderItemUI({
  * Core function to generate a standard StatItem.
  * Used by Databoard, Home, and Classboard contexts.
  */
-export function getStat(
-    type: StatType,
-    value: number | string,
-    labelOverride?: string
-): StatItem {
+export function getStat(type: StatType, value: number | string, labelOverride?: string): StatItem {
     const config = STAT_CONFIGS[type];
     const label = labelOverride || config.label || capitalize(type);
 
     // Handle React Elements as icons vs Components
     const IconComponent = config.icon as React.ElementType;
-    const renderedIcon = React.isValidElement(config.icon) ? (
-        config.icon
-    ) : (
-        <IconComponent />
-    );
+    const renderedIcon = React.isValidElement(config.icon) ? config.icon : <IconComponent />;
 
     // Special handling for Profit/Revenue dynamic icons
     if (type === "profit" && typeof value === "number") {
@@ -376,23 +372,23 @@ export function getDashboardStatsDisplay(stats: DailyLessonStats): Record<Dashbo
     // Helper to map getStat result to DisplayableStat
     const toDisplay = (key: DashboardStatKey, type: StatType, val: number): DisplayableStat => {
         const stat = getStat(type, val);
-        
+
         // Extract the icon component if possible, or wrap the node
         // The consumers expect an Icon Component usually: <stat.Icon />
         // But getStat returns a ReactNode.
         // We need to bridge this. For the purpose of the existing components which do <stat.Icon size={...} />,
         // we should probably return the Component reference if available in config.
-        
+
         const config = STAT_CONFIGS[type];
         let IconComp: any = config.icon;
-        
+
         // Handle dynamic profit icon specifically for this display format
         if (type === "profit") {
-             IconComp = val > 0 ? TrendingUp : val < 0 ? TrendingDown : TrendingUpDown;
+            IconComp = val > 0 ? TrendingUp : val < 0 ? TrendingDown : TrendingUpDown;
         } else if (React.isValidElement(config.icon)) {
-             // If it's an element (like <TrendingUpDown />), we can't easily turn it back to a component with size props
-             // unless we wrapped it. But strictly adhering to the "Component" expectation:
-             IconComp = (props: any) => React.cloneElement(config.icon as React.ReactElement, props);
+            // If it's an element (like <TrendingUpDown />), we can't easily turn it back to a component with size props
+            // unless we wrapped it. But strictly adhering to the "Component" expectation:
+            IconComp = (props: any) => React.cloneElement(config.icon as React.ReactElement, props);
         }
 
         return {

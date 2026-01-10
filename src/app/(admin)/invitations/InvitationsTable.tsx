@@ -75,7 +75,8 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
 
     const statusColors = {
         requested: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-        accepted: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+        accepted:
+            "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
         rejected: "bg-red-50 text-red-600 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
     } as Record<string, string>;
 
@@ -121,11 +122,16 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500">From</span>
-                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded border ${isRental ? "text-red-400 border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10" : "text-blue-400 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"}`}>
+                        <span
+                            className={`text-[9px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded border ${isRental ? "text-red-400 border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10" : "text-blue-400 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"}`}
+                        >
                             {package_type}
                         </span>
                     </div>
-                    <span className="font-mono text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[140px] bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-700 select-all" title={wallet_id}>
+                    <span
+                        className="font-mono text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[140px] bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-700 select-all"
+                        title={wallet_id}
+                    >
                         {wallet_id}
                     </span>
                 </div>
@@ -155,7 +161,9 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                                 </button>
                             </div>
                         )}
-                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}>
+                        <span
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}
+                        >
                             {status}
                         </span>
                     </div>

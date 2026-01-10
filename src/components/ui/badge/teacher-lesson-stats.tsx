@@ -24,7 +24,17 @@ interface TeacherLessonStatsBadgeProps {
     currency?: string;
 }
 
-export function TeacherLessonStatsBadge({ teacherId, teacherUsername, eventCount, durationMinutes, isLoading = false, status = "active", onClick, showCommission = false, commission }: TeacherLessonStatsBadgeProps) {
+export function TeacherLessonStatsBadge({
+    teacherId,
+    teacherUsername,
+    eventCount,
+    durationMinutes,
+    isLoading = false,
+    status = "active",
+    onClick,
+    showCommission = false,
+    commission,
+}: TeacherLessonStatsBadgeProps) {
     const router = useRouter();
     const config = LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] || { color: "#22c55e", label: status };
     const teacherColor = config.color;
@@ -41,7 +51,9 @@ export function TeacherLessonStatsBadge({ teacherId, teacherUsername, eventCount
     };
 
     const cphValue = commission ? parseFloat(commission.cph) : 0;
-    const formattedCommission = !isNaN(cphValue) ? Math.round(cphValue).toString() + (commission?.type === "percentage" ? "%" : "") : "0";
+    const formattedCommission = !isNaN(cphValue)
+        ? Math.round(cphValue).toString() + (commission?.type === "percentage" ? "%" : "")
+        : "0";
 
     return (
         <button

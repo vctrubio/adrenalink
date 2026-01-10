@@ -24,27 +24,29 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
     const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental")!;
 
     // Convert events to TimelineEvents
-    const timelineEvents: TimelineEvent[] = equipment.relations.events.map((e) => ({
-        eventId: e.id,
-        lessonId: e.lesson_id,
-        date: new Date(e.date),
-        time: new Date(e.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        dateLabel: new Date(e.date).toLocaleDateString(),
-        dayOfWeek: new Date(e.date).toLocaleDateString([], { weekday: 'short' }),
-        duration: e.duration,
-        durationLabel: `${e.duration} mins`,
-        location: e.location,
-        teacherId: "", // Not directly in event
-        teacherName: "",
-        teacherUsername: "",
-        eventStatus: e.status,
-        lessonStatus: "",
-        teacherEarning: 0,
-        schoolRevenue: 0,
-        totalRevenue: 0,
-        commissionType: "fixed",
-        commissionCph: 0,
-    })).sort((a, b) => b.date.getTime() - a.date.getTime());
+    const timelineEvents: TimelineEvent[] = equipment.relations.events
+        .map((e) => ({
+            eventId: e.id,
+            lessonId: e.lesson_id,
+            date: new Date(e.date),
+            time: new Date(e.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            dateLabel: new Date(e.date).toLocaleDateString(),
+            dayOfWeek: new Date(e.date).toLocaleDateString([], { weekday: "short" }),
+            duration: e.duration,
+            durationLabel: `${e.duration} mins`,
+            location: e.location,
+            teacherId: "", // Not directly in event
+            teacherName: "",
+            teacherUsername: "",
+            eventStatus: e.status,
+            lessonStatus: "",
+            teacherEarning: 0,
+            schoolRevenue: 0,
+            totalRevenue: 0,
+            commissionType: "fixed",
+            commissionCph: 0,
+        }))
+        .sort((a, b) => b.date.getTime() - a.date.getTime());
 
     return (
         <div className="space-y-6">
@@ -60,7 +62,12 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
 
             <AnimatePresence mode="wait">
                 {viewMode === "events" && (
-                    <motion.div key="events" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <motion.div
+                        key="events"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                    >
                         {timelineEvents.length > 0 ? (
                             <Timeline events={timelineEvents} currency={currency} showTeacher={false} showFinancials={false} />
                         ) : (
@@ -72,14 +79,22 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
                 )}
 
                 {viewMode === "rentals" && (
-                    <motion.div key="rentals" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <motion.div
+                        key="rentals"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                    >
                         <div className="space-y-3">
                             {equipment.relations.rentals.length > 0 ? (
                                 equipment.relations.rentals.map((rental) => (
-                                    <div key={rental.id} className="p-4 bg-card border border-border rounded-xl flex items-center justify-between">
+                                    <div
+                                        key={rental.id}
+                                        className="p-4 bg-card border border-border rounded-xl flex items-center justify-between"
+                                    >
                                         <div>
                                             <div className="font-bold text-foreground">
-                                                {rental.students.map(s => `${s.first_name} ${s.last_name}`).join(", ")}
+                                                {rental.students.map((s) => `${s.first_name} ${s.last_name}`).join(", ")}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
                                                 {new Date(rental.date).toLocaleDateString()} | {rental.location}
@@ -100,7 +115,12 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
                 )}
 
                 {viewMode === "repairs" && (
-                    <motion.div key="repairs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <motion.div
+                        key="repairs"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                    >
                         <div className="space-y-3">
                             {equipment.relations.repairs.length > 0 ? (
                                 equipment.relations.repairs.map((repair) => (

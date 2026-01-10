@@ -15,7 +15,7 @@ export function ToggleAdranalinkIcon({ isOpen, onClick, color, className, varian
     const size = variant === "lg" ? 32 : 20;
 
     const iconContent = (
-        <motion.div 
+        <motion.div
             initial={{ scale: 0, rotate: -45, opacity: 0 }}
             animate={{ scale: 1, rotate: isOpen ? 180 : 0, opacity: 1 }}
             whileHover={{ rotate: isOpen ? 192 : 12 }}

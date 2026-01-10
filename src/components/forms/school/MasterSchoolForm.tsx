@@ -45,12 +45,7 @@ export function MasterSchoolForm({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <EntityHeader4SchoolForm
-                icon={icon}
-                color={color}
-                entityTitle={entityTitle}
-                isFormReady={isFormReady}
-            />
+            <EntityHeader4SchoolForm icon={icon} color={color} entityTitle={entityTitle} isFormReady={isFormReady} />
 
             {/* Form Content */}
             <div className="space-y-6">{children}</div>

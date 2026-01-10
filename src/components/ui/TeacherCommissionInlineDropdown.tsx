@@ -21,14 +21,27 @@ interface TeacherCommissionInlineDropdownProps {
     onCommissionCreated: (commission: Commission) => void;
 }
 
-export function TeacherCommissionInlineDropdown({ teacherId, commissions, selectedCommission, onSelectCommission, onCommissionCreated }: TeacherCommissionInlineDropdownProps) {
+export function TeacherCommissionInlineDropdown({
+    teacherId,
+    commissions,
+    selectedCommission,
+    onSelectCommission,
+    onCommissionCreated,
+}: TeacherCommissionInlineDropdownProps) {
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     return (
         <div className="space-y-2">
             <div className="flex flex-wrap gap-2 items-start">
                 {commissions.map((commission) => (
-                    <CommissionTypeValue key={commission.id} value={commission.cph} type={commission.commissionType} description={commission.description} isSelected={selectedCommission?.id === commission.id} onClick={() => onSelectCommission(commission)} />
+                    <CommissionTypeValue
+                        key={commission.id}
+                        value={commission.cph}
+                        type={commission.commissionType}
+                        description={commission.description}
+                        isSelected={selectedCommission?.id === commission.id}
+                        onClick={() => onSelectCommission(commission)}
+                    />
                 ))}
 
                 <AnimatePresence mode="wait">

@@ -45,7 +45,19 @@ export interface EventProgress {
 }
 
 // Progress bar sub-component - Inline style with Batch Actions
-function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBulkAction }: { progress: EventProgress; queue?: TeacherQueue; controller?: ControllerSettings; globalFlag: any; onBulkAction?: (ids: string[], action: "delete" | "update") => void }) {
+function TeacherEventProgressBar({
+    progress,
+    queue,
+    controller,
+    globalFlag,
+    onBulkAction,
+}: {
+    progress: EventProgress;
+    queue?: TeacherQueue;
+    controller?: ControllerSettings;
+    globalFlag: any;
+    onBulkAction?: (ids: string[], action: "delete" | "update") => void;
+}) {
     const { completed, planned, tbc, uncompleted, total, eventIds = [] } = progress;
     const totalEvents = eventIds.length;
     const completedEvents = queue ? queue.getAllEvents().filter((e) => e.eventData.status === "completed").length : 0;
@@ -143,17 +155,17 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
         },
         ...(queue && controller && !isOptimised
             ? [
-                {
-                    id: "optimise-queue",
-                    label: isLoading ? "Optimising..." : "Optimise queue",
-                    icon: CheckCircle2,
-                    color: "#2563eb",
-                    onClick: (e) => {
-                        e?.stopPropagation();
-                        handleOptimiseQueue();
-                    },
-                },
-            ]
+                  {
+                      id: "optimise-queue",
+                      label: isLoading ? "Optimising..." : "Optimise queue",
+                      icon: CheckCircle2,
+                      color: "#2563eb",
+                      onClick: (e) => {
+                          e?.stopPropagation();
+                          handleOptimiseQueue();
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -189,7 +201,13 @@ function TeacherEventProgressBar({ progress, queue, controller, globalFlag, onBu
                 />
             )}
 
-            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" triggerRef={dropdownTriggerRef} />
+            <Dropdown
+                isOpen={isDropdownOpen}
+                onClose={() => setIsDropdownOpen(false)}
+                items={dropdownItems}
+                align="right"
+                triggerRef={dropdownTriggerRef}
+            />
         </div>
     );
 }
@@ -251,8 +269,8 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
                         if (!config) return null;
                         const CategoryIcon = config.icon;
                         return (
-                            <motion.div 
-                                key={categoryId} 
+                            <motion.div
+                                key={categoryId}
                                 layout
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -318,7 +336,19 @@ export interface TeacherClassCardProps {
     onBulkAction?: (ids: string[], action: "delete" | "update") => void;
 }
 
-export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdjustment, onSubmit, onReset, onCancel, hasChanges = false, changedCount = 0, isSubmitting = false, onBulkAction }: TeacherClassCardProps) {
+export default function TeacherClassCard({
+    queue,
+    onClick,
+    viewMode,
+    onToggleAdjustment,
+    onSubmit,
+    onReset,
+    onCancel,
+    hasChanges = false,
+    changedCount = 0,
+    isSubmitting = false,
+    onBulkAction,
+}: TeacherClassCardProps) {
     const { controller, selectedDate, globalFlag } = useClassboardContext();
 
     const isAdjustmentMode = viewMode === "adjustment";
@@ -389,8 +419,14 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
         };
     }, [queue, queue.version]);
 
-    const completedCount = useMemo(() => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status === "completed").length, [queue, queue.version]);
-    const pendingCount = useMemo(() => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status !== "completed").length, [queue, queue.version]);
+    const completedCount = useMemo(
+        () => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status === "completed").length,
+        [queue, queue.version],
+    );
+    const pendingCount = useMemo(
+        () => queue.getAllEvents({ includeDeleted: true }).filter((e) => e.eventData.status !== "completed").length,
+        [queue, queue.version],
+    );
     const totalEvents = completedCount + pendingCount;
     const [showDangerBorder, setShowDangerBorder] = useState(false);
 
@@ -443,12 +479,18 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
 
     if (!isExpanded) {
         return (
-            <div className={`group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 ${!queue.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}>
+            <div
+                className={`group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 ${!queue.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}
+            >
                 {<ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
 
                 <div onClick={handleHeaderClick} className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1">
                     {/* Icon - Enter adjustment mode and expand if collapsed */}
-                    <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80" style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}>
+                    <button
+                        onClick={handleIconClick}
+                        className="flex-shrink-0 transition-opacity hover:opacity-80"
+                        style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}
+                    >
                         <HeadsetIcon size={28} />
                     </button>
 
@@ -456,7 +498,9 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                     <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
                         <span className="text-xl font-bold text-foreground truncate">{teacherName}</span>
                         {!queue.isActive && (
-                            <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">Inactive</span>
+                            <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">
+                                Inactive
+                            </span>
                         )}
                     </div>
 
@@ -517,15 +561,18 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
 
     // Expanded view
     return (
-        <div 
-            onClick={onClick} 
+        <div
+            onClick={onClick}
             className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 hover:shadow-lg cursor-pointer ${!queue.isActive ? "opacity-75 grayscale-[0.3]" : ""}`}
         >
             {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse */}
             <div onClick={handleHeaderClick} className="flex items-center gap-4 px-6 py-5 cursor-pointer">
                 {/* Left Side: Avatar Icon - Enter adjustment mode */}
                 <button onClick={handleIconClick} className="flex-shrink-0 transition-opacity hover:opacity-80">
-                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`} style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}>
+                    <div
+                        className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${isAdjustmentMode ? "bg-cyan-500/10 border-cyan-500/30" : "bg-muted border-border"}`}
+                        style={{ color: !queue.isActive ? "rgb(var(--muted-foreground))" : TEACHER_COLOR }}
+                    >
                         <HeadsetIcon size={24} />
                     </div>
                 </button>
@@ -534,9 +581,13 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                 <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">{teacherName}</span>
+                            <span className="text-lg font-bold text-foreground truncate tracking-tight leading-tight">
+                                {teacherName}
+                            </span>
                             {!queue.isActive && (
-                                <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">Inactive</span>
+                                <span className="text-[8px] bg-muted px-1 py-0.5 rounded font-black text-muted-foreground uppercase tracking-widest">
+                                    Inactive
+                                </span>
                             )}
                         </div>
                         {earliestTime && (
@@ -547,7 +598,13 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                         )}
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
-                        <TeacherEventProgressBar progress={eventProgress} queue={queue} controller={controller} globalFlag={globalFlag} onBulkAction={onBulkAction} />
+                        <TeacherEventProgressBar
+                            progress={eventProgress}
+                            queue={queue}
+                            controller={controller}
+                            globalFlag={globalFlag}
+                            onBulkAction={onBulkAction}
+                        />
                     </div>
                 </div>
             </div>
@@ -558,11 +615,17 @@ export default function TeacherClassCard({ queue, onClick, viewMode, onToggleAdj
                     <SubmitCancelReset
                         onSubmit={onSubmit || (() => onToggleAdjustment?.(false))}
                         onCancel={onCancel || (() => onToggleAdjustment?.(false))}
-                        onReset={onReset || (() => { })}
+                        onReset={onReset || (() => {})}
                         hasChanges={hasChanges}
                         isSubmitting={isSubmitting}
                         submitLabel="Save"
-                        extraContent={changedCount > 0 && <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">{changedCount}</span>}
+                        extraContent={
+                            changedCount > 0 && (
+                                <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-sm border border-white/10">
+                                    {changedCount}
+                                </span>
+                            )
+                        }
                     />
                 ) : (
                     <button

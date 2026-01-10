@@ -42,9 +42,17 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
     return (
         <div className="rounded-xl bg-blue-50/30 dark:bg-blue-900/5 border border-blue-100 dark:border-blue-900/20 overflow-hidden transition-all duration-200">
             {/* Header / Clickable Area */}
-            <div className="p-2.5 flex items-center justify-between gap-4 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            <div
+                className="p-2.5 flex items-center justify-between gap-4 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
+                onClick={() => setIsOpen(!isOpen)}
+            >
                 <div className="flex items-center gap-2 overflow-hidden flex-1">
-                    <BookingStatusDropdown bookingId={booking.id} currentStatus={booking.status} dateStart={booking.dateStart} dateEnd={booking.dateEnd} />
+                    <BookingStatusDropdown
+                        bookingId={booking.id}
+                        currentStatus={booking.status}
+                        dateStart={booking.dateStart}
+                        dateEnd={booking.dateEnd}
+                    />
 
                     <div className="h-3 w-px bg-border/60 mx-1 shrink-0 hidden sm:block" />
 
@@ -70,14 +78,23 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                             <span className="text-rose-600 font-black uppercase text-[8px]">{getCompactNumber(balance)} Due</span>
                         )}
                     </div>
-                    <div className="hidden sm:block">{isOpen ? <ChevronDown size={14} className="text-muted-foreground/40" /> : <ChevronRight size={14} className="text-muted-foreground/40" />}</div>
+                    <div className="hidden sm:block">
+                        {isOpen ? (
+                            <ChevronDown size={14} className="text-muted-foreground/40" />
+                        ) : (
+                            <ChevronRight size={14} className="text-muted-foreground/40" />
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Collapsible Content */}
             {isOpen && (
                 <>
-                    <ClassboardProgressBar counts={stats.events.statusCounts} durationMinutes={booking.packageDetails.durationMinutes} />
+                    <ClassboardProgressBar
+                        counts={stats.events.statusCounts}
+                        durationMinutes={booking.packageDetails.durationMinutes}
+                    />
 
                     <div className="p-2.5 space-y-3 pt-3">
                         <div className="flex items-center justify-between gap-4">
@@ -123,11 +140,16 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                         <div className="flex items-center justify-between pt-2 border-t border-blue-100 dark:border-blue-900/20">
                             <div className="flex items-center gap-2 flex-1 ml-1">
                                 <RequestIcon size={12} className="text-muted-foreground/40 shrink-0" />
-                                <span className="text-[10px] font-black text-foreground uppercase tracking-tight truncate">{booking.packageName}</span>
+                                <span className="text-[10px] font-black text-foreground uppercase tracking-tight truncate">
+                                    {booking.packageName}
+                                </span>
                             </div>
 
                             {statusConfig && (
-                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter shrink-0" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}>
+                                <div
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter shrink-0"
+                                    style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
+                                >
                                     {booking.status === "completed" && <Check size={8} strokeWidth={4} />}
                                     {statusConfig.label}
                                 </div>

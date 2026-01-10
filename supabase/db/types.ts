@@ -2,7 +2,7 @@
  * Database Type Definitions
  * Single source of truth for all database row types
  * Mirrors the schema structure from supabase/schema/*.sql
- * 
+ *
  * Usage:
  * - Import these types in server functions: `import { School, Student, Teacher } from "@/supabase/db/types"`
  * - Use them for function return types: `Promise<School[]>`

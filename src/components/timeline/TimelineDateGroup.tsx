@@ -16,7 +16,13 @@ interface TimelineDateGroupProps {
     showFinancials?: boolean;
 }
 
-export function TimelineDateGroup({ dateGroup, currency, formatCurrency, showTeacher = true, showFinancials = true }: TimelineDateGroupProps) {
+export function TimelineDateGroup({
+    dateGroup,
+    currency,
+    formatCurrency,
+    showTeacher = true,
+    showFinancials = true,
+}: TimelineDateGroupProps) {
     const { date, dayOfWeek, events } = dateGroup;
     const totalDuration = events.reduce((sum, e) => sum + e.duration, 0);
     const totalSchoolRevenue = events.reduce((sum, e) => sum + e.schoolRevenue, 0);
@@ -25,7 +31,9 @@ export function TimelineDateGroup({ dateGroup, currency, formatCurrency, showTea
         <div className="relative">
             <div className="flex items-center gap-3 mb-3">
                 <div className="flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-muted/50 border border-border/50">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide leading-none">{dayOfWeek}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide leading-none">
+                        {dayOfWeek}
+                    </span>
                     <span className="text-xl font-black leading-none text-foreground mt-0.5">{date.getDate()}</span>
                 </div>
                 <div className="flex-1 h-px bg-border" />
@@ -45,7 +53,14 @@ export function TimelineDateGroup({ dateGroup, currency, formatCurrency, showTea
             </div>
             <div className="ml-7 border-l-2 border-border pl-6 space-y-3">
                 {events.map((event) => (
-                    <TimelineEventCard key={event.eventId} event={event} currency={currency} formatCurrency={formatCurrency} showTeacher={showTeacher} showFinancials={showFinancials} />
+                    <TimelineEventCard
+                        key={event.eventId}
+                        event={event}
+                        currency={currency}
+                        formatCurrency={formatCurrency}
+                        showTeacher={showTeacher}
+                        showFinancials={showFinancials}
+                    />
                 ))}
             </div>
         </div>

@@ -32,7 +32,16 @@ interface TeacherTableProps {
 
 type SortColumn = "firstName" | "lastName" | "languages" | "status" | null;
 
-function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectTeacher, onSelectCommission, onSectionClose, teacherStatsMap = {}, onCommissionAdded }: TeacherTableProps) {
+function TeacherTable({
+    teachers,
+    selectedTeacher,
+    selectedCommission,
+    onSelectTeacher,
+    onSelectCommission,
+    onSectionClose,
+    teacherStatsMap = {},
+    onCommissionAdded,
+}: TeacherTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilterType>("All");
     const { sortColumn, sortDirection, handleSort } = useTableSort<SortColumn>(null);
@@ -88,11 +97,21 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
     }, [teachers, search, sortColumn, sortDirection, statusFilter, teacherStatsMap]);
 
     useEffect(() => {
-        console.log("[TeacherTable] filter changed:", { teachersCount: teachers.length, filteredCount: filteredTeachers.length, search, statusFilter, sortColumn });
+        console.log("[TeacherTable] filter changed:", {
+            teachersCount: teachers.length,
+            filteredCount: filteredTeachers.length,
+            search,
+            statusFilter,
+            sortColumn,
+        });
     }, [filteredTeachers.length, search, statusFilter, sortColumn, teachers.length]);
 
     if (teachers.length === 0) {
-        return <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">No teachers available</div>;
+        return (
+            <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                No teachers available
+            </div>
+        );
     }
 
     const handleTeacherClick = (teacher: TeacherProvider) => {
@@ -140,8 +159,23 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
     return (
         <div className="space-y-3">
             <div className="flex gap-2 items-center">
-                <SearchInput placeholder="Search by username..." value={search} onChange={(e) => setSearch(e.target.value)} variant="background" entityColor={teacherEntity?.color} className="flex-1" />
-                {teacherEntity && <FilterDropdown label="Status" value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(v) => setStatusFilter(v as StatusFilterType)} entityColor={teacherEntity.color} />}
+                <SearchInput
+                    placeholder="Search by username..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    variant="background"
+                    entityColor={teacherEntity?.color}
+                    className="flex-1"
+                />
+                {teacherEntity && (
+                    <FilterDropdown
+                        label="Status"
+                        value={statusFilter}
+                        options={STATUS_FILTER_OPTIONS}
+                        onChange={(v) => setStatusFilter(v as StatusFilterType)}
+                        entityColor={teacherEntity.color}
+                    />
+                )}
             </div>
 
             {/* Show selected teacher and commission */}
@@ -151,7 +185,9 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                         <div>
                             <div className="font-semibold text-foreground">{selectedTeacher.schema.username}</div>
                             <div className="text-sm text-muted-foreground">
-                                {currency}{selectedCommission.cph}/h ({selectedCommission.commissionType}){selectedCommission.description && ` - ${selectedCommission.description}`}
+                                {currency}
+                                {selectedCommission.cph}/h ({selectedCommission.commissionType})
+                                {selectedCommission.description && ` - ${selectedCommission.description}`}
                             </div>
                         </div>
                         <button
@@ -171,13 +207,28 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
             <Table>
                 <TableHeader>
                     <tr>
-                        <TableHead sortable sortActive={sortColumn === "firstName" || sortColumn === "lastName"} sortDirection={sortDirection} onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "firstName" || sortColumn === "lastName"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort(sortColumn === "firstName" ? "lastName" : "firstName")}
+                        >
                             Name
                         </TableHead>
-                        <TableHead sortable sortActive={sortColumn === "languages"} sortDirection={sortDirection} onSort={() => handleSort("languages")}>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "languages"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("languages")}
+                        >
                             Languages
                         </TableHead>
-                        <TableHead sortable sortActive={sortColumn === "status"} sortDirection={sortDirection} onSort={() => handleSort("status")}>
+                        <TableHead
+                            sortable
+                            sortActive={sortColumn === "status"}
+                            sortDirection={sortDirection}
+                            onSort={() => handleSort("status")}
+                        >
                             Status
                         </TableHead>
                     </tr>
@@ -187,7 +238,12 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                         const stats = teacherStatsMap[teacher.schema.id] || { totalLessons: 0, completedLessons: 0 };
                         const isSelected = selectedTeacher?.schema.id === teacher.schema.id;
                         return [
-                            <TableRow key={teacher.schema.id} onClick={() => handleTeacherClick(teacher)} isSelected={isSelected} selectedColor={teacherEntity?.color}>
+                            <TableRow
+                                key={teacher.schema.id}
+                                onClick={() => handleTeacherClick(teacher)}
+                                isSelected={isSelected}
+                                selectedColor={teacherEntity?.color}
+                            >
                                 <TableCell className="font-medium text-foreground ">
                                     {teacherEntity && (
                                         <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
@@ -202,13 +258,21 @@ function TeacherTable({ teachers, selectedTeacher, selectedCommission, onSelectT
                                 </TableCell>
                             </TableRow>,
                             isSelected && (
-                                <motion.tr key={`${teacher.schema.id}-dropdown`} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+                                <motion.tr
+                                    key={`${teacher.schema.id}-dropdown`}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
                                     <td colSpan={3} className="p-4 bg-muted/20">
                                         <div className="space-y-4">
                                             {/* Commissions List */}
                                             {localCommissions.length > 0 && (
                                                 <div>
-                                                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase">Commissions</div>
+                                                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase">
+                                                        Commissions
+                                                    </div>
                                                     <div className="flex flex-wrap gap-2">
                                                         {localCommissions.map((commission) => (
                                                             <CommissionTypeValue

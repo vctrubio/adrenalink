@@ -26,9 +26,7 @@ export const AdminRoutes = () => {
                         >
                             <Icon className="w-8 h-8 mb-2 text-blue-600" />
                             <h3 className="font-semibold text-sm mb-1">{route.label}</h3>
-                            <p className="text-xs text-gray-600">
-                                {ROUTE_DESCRIPTIONS[route.id]}
-                            </p>
+                            <p className="text-xs text-gray-600">{ROUTE_DESCRIPTIONS[route.id]}</p>
                         </Link>
                     );
                 })}

@@ -20,32 +20,32 @@ interface BookingStatusDropdownProps {
     iconOnly?: boolean;
 }
 
-export function BookingStatusDropdown({ 
-    bookingId, 
-    currentStatus, 
+export function BookingStatusDropdown({
+    bookingId,
+    currentStatus,
     dateStart,
     dateEnd,
     size = 14,
     className = "",
     children,
-    iconOnly = false
+    iconOnly = false,
 }: BookingStatusDropdownProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
     const router = useRouter();
-    
+
     const statusConfig = BOOKING_STATUS_CONFIG[currentStatus as BookingStatus];
     const statusColor = statusConfig?.color || "#3b82f6";
 
     // Date Logic - Only run if not in iconOnly mode
     let formattedDate = "";
     let diffDays = 0;
-    
+
     if (!iconOnly && dateStart && dateEnd) {
         const start = new Date(dateStart);
         const end = new Date(dateEnd);
         diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        formattedDate = start.toLocaleDateString("en-US", { month: 'short', day: 'numeric' });
+        formattedDate = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     }
 
     const handleStatusChange = async (newStatus: string) => {
@@ -56,7 +56,7 @@ export function BookingStatusDropdown({
         setIsDropdownOpen(false);
     };
 
-    const statusDropdownItems: DropdownItemProps[] = BOOKING_STATUSES.map(s => {
+    const statusDropdownItems: DropdownItemProps[] = BOOKING_STATUSES.map((s) => {
         const config = BOOKING_STATUS_CONFIG[s];
         return {
             id: s,
@@ -67,13 +67,13 @@ export function BookingStatusDropdown({
                 </div>
             ),
             color: config.color,
-            onClick: () => handleStatusChange(s)
+            onClick: () => handleStatusChange(s),
         };
     });
 
     return (
         <div className={`relative flex items-center ${className}`}>
-            <button 
+            <button
                 ref={dropdownTriggerRef}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -81,10 +81,13 @@ export function BookingStatusDropdown({
                 }}
                 className="shrink-0 flex items-center gap-2 p-1 rounded hover:bg-muted/50 transition-colors group"
             >
-                <div style={{ color: statusColor }} className="group-hover:scale-125 transition-transform duration-200 flex items-center">
+                <div
+                    style={{ color: statusColor }}
+                    className="group-hover:scale-125 transition-transform duration-200 flex items-center"
+                >
                     <BookingIcon size={size} />
                 </div>
-                
+
                 {!iconOnly && (
                     <>
                         <span className="font-bold text-foreground text-xs whitespace-nowrap">{formattedDate}</span>
@@ -96,8 +99,8 @@ export function BookingStatusDropdown({
 
                 {children}
             </button>
-            
-            <Dropdown 
+
+            <Dropdown
                 isOpen={isDropdownOpen}
                 onClose={() => setIsDropdownOpen(false)}
                 items={statusDropdownItems}

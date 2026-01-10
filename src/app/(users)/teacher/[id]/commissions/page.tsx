@@ -1,170 +1,162 @@
-import { getTeacherCommissions } from "@/actions/teacher-action";
-import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
+import { getTeacherId } from "@/supabase/server/teacher-id";
+import { LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
 
-interface CommissionPageProps {
-	params: Promise<{ id: string }>;
+export const dynamic = "force-dynamic";
+
+interface CommissionsPageProps {
+    params: Promise<{ id: string }>;
 }
 
 export default async function CommissionPage({ params }: CommissionPageProps) {
-	const { id: teacherId } = await params;
+    const { id: teacherId } = await params;
 
-	const result = await getTeacherCommissions(teacherId);
+    const result = await getTeacherId(teacherId);
 
-	if (!result.success) {
-		return (
-			<div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive">
-				Error: {result.error}
-			</div>
-		);
-	}
+    if (!result.success || !result.data) {
+        return (
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive">
+                Error: {result.error || "Teacher not found"}
+            </div>
+        );
+    }
 
-	const commissionsData = result.data;
+    const teacherData = result.data;
+    const commissions = teacherData.relations.teacher_commission;
+    const lessons = teacherData.relations.lesson;
 
-	return (
-		<div>
-			<h2 className="text-xl font-bold text-foreground mb-4">My Commissions</h2>
+    // Group lessons by commission_id
+    const groupedData = commissions.map((commission) => {
+        return {
+            commission,
+            lessons: lessons.filter((l) => l.commission_id === commission.id),
+        };
+    });
 
-			{commissionsData.length === 0 ? (
-				<p className="text-muted-foreground">No commissions found</p>
-			) : (
-				<div className="space-y-6">
-					{commissionsData.map((item) => {
-						const commission = item.commission;
-						const lessons = item.lessons;
+    return (
+        <div>
+            <h2 className="text-xl font-bold text-foreground mb-4">My Commissions</h2>
 
-						return (
-							<div
-								key={commission.id}
-								className="rounded-lg border border-border overflow-hidden"
-							>
-								{/* Commission Header */}
-								<div className="p-4 bg-muted/50 border-b border-border">
-									<div className="flex items-center justify-between mb-2">
-										<h3 className="font-bold text-foreground">
-											{commission.commissionType === "fixed"
-												? "Fixed Rate"
-												: "Percentage Based"}
-										</h3>
-										<span className="text-2xl font-bold text-foreground">
-											{commission.commissionType === "fixed"
-												? `$${parseFloat(commission.cph as any).toFixed(2)}/hr`
-												: `${parseFloat(commission.cph as any).toFixed(2)}%`}
-										</span>
-									</div>
-									{commission.description && (
-										<p className="text-sm text-muted-foreground">
-											{commission.description}
-										</p>
-									)}
-								</div>
+            {commissions.length === 0 ? (
+                <p className="text-muted-foreground">No commissions found</p>
+            ) : (
+                <div className="space-y-6">
+                    {groupedData.map((item) => {
+                        const commission = item.commission;
+                        const itemLessons = item.lessons;
 
-								{/* Lessons */}
-								<div className="p-4">
-									{lessons.length === 0 ? (
-										<p className="text-muted-foreground">No lessons yet</p>
-									) : (
-										<div className="space-y-3">
-											{lessons.map((lessonData) => {
-												const lesson = lessonData.lesson;
-												const events = lessonData.events;
-                                                const booking = (lesson as any).booking;
-                                                const schoolPackage = booking?.studentPackage?.schoolPackage;
-                                                const studentCount = booking?.bookingStudents?.length || 0;
+                        return (
+                            <div key={commission.id} className="rounded-lg border border-border overflow-hidden">
+                                {/* Commission Header */}
+                                <div className="p-4 bg-muted/50 border-b border-border">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-bold text-foreground">
+                                            {commission.commission_type === "fixed" ? "Fixed Rate" : "Percentage Based"}
+                                        </h3>
+                                        <span className="text-2xl font-bold text-foreground">
+                                            {commission.commission_type === "fixed"
+                                                ? `$${parseFloat(commission.cph as any).toFixed(2)}/hr`
+                                                : `${parseFloat(commission.cph as any).toFixed(2)}%`}
+                                        </span>
+                                    </div>
+                                    {commission.description && (
+                                        <p className="text-sm text-muted-foreground">{commission.description}</p>
+                                    )}
+                                </div>
 
-                                                const durationMinutes = events.reduce((acc, e) => acc + (e.duration || 0), 0);
+                                {/* Lessons */}
+                                <div className="p-4">
+                                    {itemLessons.length === 0 ? (
+                                        <p className="text-muted-foreground">No lessons yet</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {itemLessons.map((lesson) => {
+                                                const events = lesson.event || [];
+                                                const booking = lesson.booking;
+                                                const schoolPackage = booking?.school_package;
+                                                const studentCount = (booking as any)?.booking_student?.length || 1; // Approx if students not loaded
 
-												// Calculate commission for this lesson
-                                                const lessonRevenue = schoolPackage ? calculateLessonRevenue(
-                                                    schoolPackage.pricePerStudent,
-                                                    studentCount,
-                                                    durationMinutes,
-                                                    schoolPackage.durationMinutes
-                                                ) : 0;
+                                                const durationMinutes = events.reduce(
+                                                    (acc: number, e: any) => acc + (e.duration || 0),
+                                                    0,
+                                                );
+
+                                                // Calculate commission for this lesson
+                                                const lessonRevenue = schoolPackage
+                                                    ? calculateLessonRevenue(
+                                                          schoolPackage.price_per_student,
+                                                          studentCount,
+                                                          durationMinutes,
+                                                          schoolPackage.duration_minutes,
+                                                      )
+                                                    : 0;
 
                                                 const commissionInfo: CommissionInfo = {
-                                                    type: commission.commissionType as any,
-                                                    cph: commission.cph as any,
+                                                    type: commission.commission_type as any,
+                                                    cph: parseFloat(commission.cph),
                                                 };
 
-												const commissionCalc = calculateCommission(
-													durationMinutes,
-													commissionInfo,
+                                                const commissionCalc = calculateCommission(
+                                                    durationMinutes,
+                                                    commissionInfo,
                                                     lessonRevenue,
-                                                    schoolPackage?.durationMinutes || 0
-												);
+                                                    schoolPackage?.duration_minutes || 0,
+                                                );
 
-												return (
-													<div
-														key={lesson.id}
-														className="p-3 rounded border border-border/50 bg-card"
-													>
-														<div className="flex items-center justify-between mb-2">
-															<span className="font-medium text-foreground">
-																Lesson
-															</span>
-															<span
-																className="text-xs px-2 py-1 rounded-full"
-																style={{
-																	backgroundColor:
-																		lesson.status === "active"
-																			? "#22c55e20"
-																			: "#ef444420",
-																	backgroundColor:
-																		lesson.status === "active"
-																			? "#22c55e20"
-																			: "#ef444420",
-																	color:
-																		lesson.status === "active"
-																			? "#22c55e"
-																			: "#ef4444",
-																}}
-															>
-																{lesson.status}
-															</span>
-														</div>
+                                                const statusConfig =
+                                                    LESSON_STATUS_CONFIG[lesson.status as LessonStatus] || LESSON_STATUS_CONFIG.active;
 
-														<div className="text-sm text-muted-foreground space-y-1 mb-3">
-															<p>
-																Events:{" "}
-																<span className="text-foreground font-medium">
-																	{events.length}
-																</span>
-															</p>
-															<p>
-																Duration:{" "}
-																<span className="text-foreground font-medium">
-																	{commissionCalc.hours}
-																</span>
-															</p>
-														</div>
+                                                return (
+                                                    <div key={lesson.id} className="p-3 rounded border border-border/50 bg-card">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="font-medium text-foreground">Lesson</span>
+                                                            <span
+                                                                className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                                                                style={{
+                                                                    backgroundColor: `${statusConfig.color}20`,
+                                                                    color: statusConfig.color,
+                                                                }}
+                                                            >
+                                                                {statusConfig.label}
+                                                            </span>
+                                                        </div>
 
-														<div className="p-3 rounded bg-muted/50 border border-border/50">
-															<p className="text-xs text-muted-foreground mb-2">
-																Calculation
-															</p>
-															<p className="font-mono text-sm text-foreground mb-3">
-                                                                {commissionCalc.commissionRate} × {commissionCalc.hours} = {commissionCalc.earnedDisplay}
-															</p>
-															<div className="flex justify-between items-center">
-																<span className="text-foreground font-medium">
-																	Earned:
-																</span>
-																<span className="text-lg font-bold text-primary">
-																	{commissionCalc.earnedDisplay}
-																</span>
-															</div>
-														</div>
-													</div>
-												);
-											})}
-										</div>
-									)}
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			)}
-		</div>
-	);
+                                                        <div className="text-sm text-muted-foreground space-y-1 mb-3">
+                                                            <p>
+                                                                Events:{" "}
+                                                                <span className="text-foreground font-medium">{events.length}</span>
+                                                            </p>
+                                                            <p>
+                                                                Duration:{" "}
+                                                                <span className="text-foreground font-medium">
+                                                                    {commissionCalc.hours}
+                                                                </span>
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="p-3 rounded bg-muted/50 border border-border/50">
+                                                            <p className="text-xs text-muted-foreground mb-2">Calculation</p>
+                                                            <p className="font-mono text-sm text-foreground mb-3">
+                                                                {commissionCalc.commissionRate} × {commissionCalc.hours} ={" "}
+                                                                {commissionCalc.earnedDisplay}
+                                                            </p>
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-foreground font-medium">Earned:</span>
+                                                                <span className="text-lg font-bold text-primary">
+                                                                    {commissionCalc.earnedDisplay}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
 }

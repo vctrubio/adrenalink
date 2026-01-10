@@ -12,7 +12,7 @@ interface StudentSummaryProps {
 
 const ProgressBar = ({ progress }: { progress: number }) => (
     <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
             className={`h-full ${progress === 100 ? "bg-emerald-500" : "bg-primary"}`}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -36,72 +36,81 @@ export function StudentSummary({ studentFormData }: StudentSummaryProps) {
     if (isPhoneComplete) progress += 20;
     if (isLanguagesComplete) progress += 20;
 
-    const studentColor = ENTITY_DATA.find(e => e.id === "student")?.color || "#eab308";
+    const studentColor = ENTITY_DATA.find((e) => e.id === "student")?.color || "#eab308";
 
-    const StatusIcon = ({ isComplete }: { isComplete: boolean }) => (
-        isComplete 
-            ? <VerifiedIcon size={16} className="text-blue-500" /> 
-            : <AlertCircle size={14} className="text-amber-500/50" />
-    );
+    const StatusIcon = ({ isComplete }: { isComplete: boolean }) =>
+        isComplete ? <VerifiedIcon size={16} className="text-blue-500" /> : <AlertCircle size={14} className="text-amber-500/50" />;
 
     const fields = [
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Name</span>
                     <StatusIcon isComplete={isNameComplete} />
                 </div>
-            ), 
-            value: isNameComplete 
-                ? `${studentFormData.firstName} ${studentFormData.lastName}` 
-                : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: isNameComplete ? (
+                `${studentFormData.firstName} ${studentFormData.lastName}`
+            ) : (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
                     <StatusIcon isComplete={isPassportComplete} />
                 </div>
-            ), 
-            value: studentFormData.passport || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: studentFormData.passport || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isCountryComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Country</span>
                     <StatusIcon isComplete={isCountryComplete} />
                 </div>
-            ), 
-            value: studentFormData.country || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: studentFormData.country || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isPhoneComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Phone</span>
                     <StatusIcon isComplete={isPhoneComplete} />
                 </div>
-            ), 
-            value: studentFormData.phone || <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: studentFormData.phone || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
+        {
             label: (
                 <div className="flex items-center gap-2.5">
                     <span className={isLanguagesComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Languages</span>
                     <StatusIcon isComplete={isLanguagesComplete} />
                 </div>
-            ), 
-            value: isLanguagesComplete 
-                ? studentFormData.languages.join(", ") 
-                : <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span> 
+            ),
+            value: isLanguagesComplete ? (
+                studentFormData.languages.join(", ")
+            ) : (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
         },
-        { 
-            label: "Rental Auth", 
+        {
+            label: "Rental Auth",
             value: studentFormData.canRent ? (
                 <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
                     <VerifiedIcon size={16} className="text-blue-500" />
                     Authorized
                 </span>
-            ) : <span className="text-muted-foreground text-xs font-medium">No</span> 
+            ) : (
+                <span className="text-muted-foreground text-xs font-medium">No</span>
+            ),
         },
     ];
 
@@ -109,7 +118,10 @@ export function StudentSummary({ studentFormData }: StudentSummaryProps) {
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                    <div style={{ color: progress === 100 ? studentColor : undefined }} className={progress === 100 ? "" : "text-primary"}>
+                    <div
+                        style={{ color: progress === 100 ? studentColor : undefined }}
+                        className={progress === 100 ? "" : "text-primary"}
+                    >
                         <HelmetIcon size={14} />
                     </div>
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Check-in Student</h3>

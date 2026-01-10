@@ -29,12 +29,7 @@ interface TeacherFieldOptions {
 
 type ViewMode = "text" | "table";
 
-export default function DailyClassScheduleModal({
-    isOpen,
-    onClose,
-    selectedDate,
-    teacherQueues,
-}: DailyClassScheduleModalProps) {
+export default function DailyClassScheduleModal({ isOpen, onClose, selectedDate, teacherQueues }: DailyClassScheduleModalProps) {
     const [studentFields, setStudentFields] = useState<StudentFieldOptions>({
         firstName: true,
         lastName: true,
@@ -68,15 +63,17 @@ export default function DailyClassScheduleModal({
     };
 
     const formatStudentName = (students: ClassboardStudent[]) => {
-        return students.map((s) => {
-            const parts: string[] = [];
-            if (studentFields.firstName) parts.push(s.firstName);
-            if (studentFields.lastName) parts.push(s.lastName);
-            if (studentFields.passport) parts.push(s.passport);
-            if (studentFields.country) parts.push(s.country);
-            if (studentFields.phone) parts.push(s.phone);
-            return parts.filter(Boolean).join(" ");
-        }).join(", ");
+        return students
+            .map((s) => {
+                const parts: string[] = [];
+                if (studentFields.firstName) parts.push(s.firstName);
+                if (studentFields.lastName) parts.push(s.lastName);
+                if (studentFields.passport) parts.push(s.passport);
+                if (studentFields.country) parts.push(s.country);
+                if (studentFields.phone) parts.push(s.phone);
+                return parts.filter(Boolean).join(" ");
+            })
+            .join(", ");
     };
 
     const formatEquipment = (category: string, capacity: number): string => {
@@ -97,9 +94,19 @@ export default function DailyClassScheduleModal({
                                 {events.map((eventNode, idx) => (
                                     <div key={eventNode.id} className="pl-4 text-sm">
                                         <p className="text-muted-foreground">
-                                            {idx + 1}. {new Date(eventNode.eventData.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                                            {idx + 1}.{" "}
+                                            {new Date(eventNode.eventData.date).toLocaleTimeString("en-US", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: false,
+                                            })}
                                             {" - "}
-                                            {getPrettyDuration(eventNode.eventData.duration)} at {eventNode.eventData.location} ({formatEquipment(eventNode.packageData.categoryEquipment, eventNode.packageData.capacityEquipment)})
+                                            {getPrettyDuration(eventNode.eventData.duration)} at {eventNode.eventData.location} (
+                                            {formatEquipment(
+                                                eventNode.packageData.categoryEquipment,
+                                                eventNode.packageData.capacityEquipment,
+                                            )}
+                                            )
                                         </p>
                                         <p className="font-medium">Students: {formatStudentName(eventNode.studentData)}</p>
                                     </div>
@@ -138,11 +145,20 @@ export default function DailyClassScheduleModal({
                                         </td>
                                     )}
                                     <td className="p-3 text-sm font-mono">
-                                        {new Date(eventNode.eventData.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                                        {new Date(eventNode.eventData.date).toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: false,
+                                        })}
                                     </td>
                                     <td className="p-3 text-sm">{getPrettyDuration(eventNode.eventData.duration)}</td>
                                     <td className="p-3 text-sm">{eventNode.eventData.location}</td>
-                                    <td className="p-3 text-sm">{formatEquipment(eventNode.packageData.categoryEquipment, eventNode.packageData.capacityEquipment)}</td>
+                                    <td className="p-3 text-sm">
+                                        {formatEquipment(
+                                            eventNode.packageData.categoryEquipment,
+                                            eventNode.packageData.capacityEquipment,
+                                        )}
+                                    </td>
                                     <td className="p-3 text-sm">{formatStudentName(eventNode.studentData)}</td>
                                     <td className="p-3">
                                         <span

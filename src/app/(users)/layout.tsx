@@ -1,7 +1,8 @@
 import { type ReactNode, Suspense } from "react";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import NavAdrBarShell from "@/src/components/NavAdrBarShell";
-import { LeftIconsServer, RightIconsServer, getSchoolCredentials } from "@/src/components/NavAdrBarIconsServer";
+import { LeftIconsServer, RightIconsServer } from "@/src/components/NavAdrBarIconsServer";
+import { getSchoolCredentials } from "@/supabase/server/admin";
 import { NavIconsSkeleton, NavIconsRightSkeleton } from "@/src/components/NavAdrBarIcons";
 import NavIns from "@/src/components/NavIns";
 
@@ -27,9 +28,7 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
                     </Suspense>
                 }
             />
-            <main className="pt-24 pb-20 md:pb-32 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {children}
-            </main>
+            <main className="pt-24 pb-20 md:pb-32 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</main>
             <NavIns />
         </SchoolCredentialsProvider>
     );

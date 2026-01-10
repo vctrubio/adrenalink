@@ -47,7 +47,7 @@ export function SortDropdown({ value, options, onChange, entityColor, toggleMode
     const handleButtonClick = () => {
         if (toggleMode && options.length >= 2) {
             // Find current index
-            const currentIndex = options.findIndex(o => o.field === value.field && o.direction === value.direction);
+            const currentIndex = options.findIndex((o) => o.field === value.field && o.direction === value.direction);
             // Toggle to the other option (0 -> 1, or anything else -> 0)
             const nextIndex = currentIndex === 0 ? 1 : 0;
             const nextOption = options[nextIndex];
@@ -59,7 +59,7 @@ export function SortDropdown({ value, options, onChange, entityColor, toggleMode
 
     // Determine display label based on selected config
     let displayLabel = "Sort";
-    
+
     if (value.field === "createdAt") {
         displayLabel = value.direction === "desc" ? "Newest" : "Oldest";
     } else if (value.field === "updatedAt") {
@@ -79,7 +79,7 @@ export function SortDropdown({ value, options, onChange, entityColor, toggleMode
     } else if (value.field === "date") {
         displayLabel = value.direction === "desc" ? "Newest" : "Oldest";
     } else {
-        const activeOption = options.find(o => o.field === value.field && o.direction === value.direction);
+        const activeOption = options.find((o) => o.field === value.field && o.direction === value.direction);
         displayLabel = activeOption ? activeOption.label : "Sort";
     }
 
@@ -91,18 +91,24 @@ export function SortDropdown({ value, options, onChange, entityColor, toggleMode
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
             >
                 <div className="flex items-center -space-x-0.5">
-                    <ArrowUp 
-                        size={14} 
+                    <ArrowUp
+                        size={14}
                         className="transition-all scale-y-[1.4] scale-x-90"
-                        style={{ color: value.field && value.direction === "asc" ? entityColor : "currentColor", opacity: value.field && value.direction === "asc" ? 1 : 0.3 }} 
+                        style={{
+                            color: value.field && value.direction === "asc" ? entityColor : "currentColor",
+                            opacity: value.field && value.direction === "asc" ? 1 : 0.3,
+                        }}
                     />
-                    <ArrowDown 
-                        size={14} 
+                    <ArrowDown
+                        size={14}
                         className="transition-all scale-y-[1.4] scale-x-90"
-                        style={{ color: value.field && value.direction === "desc" ? entityColor : "currentColor", opacity: value.field && value.direction === "desc" ? 1 : 0.3 }} 
+                        style={{
+                            color: value.field && value.direction === "desc" ? entityColor : "currentColor",
+                            opacity: value.field && value.direction === "desc" ? 1 : 0.3,
+                        }}
                     />
                 </div>
-                
+
                 <span className="font-medium whitespace-nowrap" style={{ color: value.field ? entityColor : undefined }}>
                     {displayLabel}
                 </span>
@@ -120,7 +126,7 @@ export function SortDropdown({ value, options, onChange, entityColor, toggleMode
                     >
                         {options.map((option) => {
                             const isActive = value.field === option.field && value.direction === option.direction;
-                            
+
                             return (
                                 <button
                                     key={`${option.field}-${option.direction}`}

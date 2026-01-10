@@ -24,14 +24,14 @@ export function ClockInput({ time, onChange, step }: ClockInputProps) {
 
     const updateMinutes = (delta: number) => {
         let newTotalMins = hours * 60 + minutes + delta;
-        
+
         // Handle full day wrap around
         const MINUTES_IN_DAY = 24 * 60;
-        newTotalMins = (newTotalMins % MINUTES_IN_DAY + MINUTES_IN_DAY) % MINUTES_IN_DAY;
+        newTotalMins = ((newTotalMins % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY;
 
         const newH = Math.floor(newTotalMins / 60);
         const newM = newTotalMins % 60;
-        
+
         onChange(`${pad(newH)}:${pad(newM)}`);
     };
 
@@ -39,16 +39,21 @@ export function ClockInput({ time, onChange, step }: ClockInputProps) {
         <div className="flex flex-col gap-2">
             <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider ml-1">Start Time</label>
             <div className="flex items-center justify-center bg-background/50 border border-border/40 rounded-xl p-3 shadow-inner">
-                
                 {/* Hours */}
                 <div className="flex flex-col items-center">
-                    <button onClick={() => updateHours(1)} className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                    <button
+                        onClick={() => updateHours(1)}
+                        className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                    >
                         <ChevronUp size={16} />
                     </button>
                     <div className="text-3xl font-mono font-bold tracking-wider text-foreground w-16 text-center select-none">
                         {pad(hours)}
                     </div>
-                    <button onClick={() => updateHours(-1)} className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                    <button
+                        onClick={() => updateHours(-1)}
+                        className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                    >
                         <ChevronDown size={16} />
                     </button>
                 </div>
@@ -57,13 +62,19 @@ export function ClockInput({ time, onChange, step }: ClockInputProps) {
 
                 {/* Minutes */}
                 <div className="flex flex-col items-center">
-                    <button onClick={() => updateMinutes(step)} className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                    <button
+                        onClick={() => updateMinutes(step)}
+                        className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                    >
                         <ChevronUp size={16} />
                     </button>
                     <div className="text-3xl font-mono font-bold tracking-wider text-foreground w-16 text-center select-none">
                         {pad(minutes)}
                     </div>
-                    <button onClick={() => updateMinutes(-step)} className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                    <button
+                        onClick={() => updateMinutes(-step)}
+                        className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                    >
                         <ChevronDown size={16} />
                     </button>
                 </div>

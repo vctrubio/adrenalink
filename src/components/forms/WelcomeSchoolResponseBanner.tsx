@@ -28,7 +28,7 @@ export function WelcomeSchoolResponseBanner({
 
     return (
         <div className="w-full">
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, type: "spring" }}
@@ -39,7 +39,7 @@ export function WelcomeSchoolResponseBanner({
             >
                 <div className="space-y-6 md:space-y-8">
                     {/* Icon */}
-                    <motion.div 
+                    <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -52,14 +52,10 @@ export function WelcomeSchoolResponseBanner({
                     </motion.div>
 
                     {/* Content */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                         <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">{title}</h1>
                         <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">{message}</p>
-                        
+
                         {errorDetails && (
                             <div className="mt-4 p-3 bg-muted/50 rounded-lg inline-block text-left max-w-full overflow-hidden text-ellipsis">
                                 <p className="text-xs md:text-sm text-muted-foreground/80 font-mono break-all">
@@ -70,7 +66,7 @@ export function WelcomeSchoolResponseBanner({
                     </motion.div>
 
                     {/* Actions */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
@@ -80,9 +76,9 @@ export function WelcomeSchoolResponseBanner({
                         {!isSuccess && (
                             <div className="p-4 bg-muted/30 rounded-lg inline-block">
                                 <p className="text-sm font-medium mb-2 text-muted-foreground">Contact me directly:</p>
-                                <a 
-                                    href="https://wa.me/+34686516248" 
-                                    target="_blank" 
+                                <a
+                                    href="https://wa.me/+34686516248"
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 text-secondary hover:text-secondary/80 font-bold transition-colors text-lg"
                                 >
@@ -93,13 +89,14 @@ export function WelcomeSchoolResponseBanner({
                         )}
 
                         <div className="flex flex-col gap-3 justify-center items-center pt-2">
-                            <button 
-                                onClick={onPrimaryAction} 
+                            <button
+                                onClick={onPrimaryAction}
                                 className={`
                                     px-8 py-3 rounded-lg font-bold text-lg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5
-                                    ${isSuccess 
-                                        ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    ${
+                                        isSuccess
+                                            ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                                            : "bg-primary text-primary-foreground hover:bg-primary/90"
                                     }
                                 `}
                             >
@@ -107,8 +104,8 @@ export function WelcomeSchoolResponseBanner({
                             </button>
 
                             {secondaryButtonText && onSecondaryAction && (
-                                <button 
-                                    onClick={onSecondaryAction} 
+                                <button
+                                    onClick={onSecondaryAction}
                                     className="text-muted-foreground hover:text-foreground text-sm underline transition-colors px-4 py-2"
                                 >
                                     {secondaryButtonText}

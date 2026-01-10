@@ -15,27 +15,27 @@ interface PackageComparisonBadgeProps {
     currencySymbol: string;
 }
 
-export function PackageComparisonBadge({ 
-    categoryEquipment, 
-    equipmentCapacity, 
-    studentCapacity, 
-    packageDurationHours, 
+export function PackageComparisonBadge({
+    categoryEquipment,
+    equipmentCapacity,
+    studentCapacity,
+    packageDurationHours,
     pricePerHour,
-    currencySymbol
+    currencySymbol,
 }: PackageComparisonBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
 
     const studentColor = studentEntity.color;
-    
+
     const equipmentColor = equipmentConfig?.color || "#a855f7";
     const equipmentBg = equipmentConfig?.bgColor || "#f3e8ff";
     const CategoryIcon = equipmentConfig?.icon;
-    
+
     // Derived colors for consistency
-    const studentBg = "#dbeafe"; 
-    const priceColor = "#f97316"; 
-    const priceBg = "#ffedd5"; 
+    const studentBg = "#dbeafe";
+    const priceColor = "#f97316";
+    const priceBg = "#ffedd5";
     const packageColor = "#3b82f6"; // blue-500
     const packageBg = "#dbeafe"; // blue-100
 
@@ -44,7 +44,7 @@ export function PackageComparisonBadge({
             {/* Equipment */}
             {equipmentCapacity > 0 && CategoryIcon && (
                 <div className="relative group" title="Equipment">
-                    <div 
+                    <div
                         className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                         style={{ backgroundColor: equipmentBg }}
                     >
@@ -62,7 +62,7 @@ export function PackageComparisonBadge({
 
             {/* Student */}
             <div className="relative group" title="Students">
-                <div 
+                <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                     style={{ backgroundColor: studentBg }}
                 >
@@ -79,7 +79,7 @@ export function PackageComparisonBadge({
 
             {/* Duration (Package) */}
             <div className="flex items-center gap-3 group" title="Duration">
-                <div 
+                <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                     style={{ backgroundColor: packageBg }}
                 >
@@ -96,7 +96,7 @@ export function PackageComparisonBadge({
             {/* PPH (Price) */}
             {pricePerHour > 0 && (
                 <div className="flex items-center gap-3 group" title="Price Per Hour">
-                    <div 
+                    <div
                         className="w-12 h-12 rounded-2xl flex items-center justify-center border border-black/5 dark:border-white/10 shadow-sm transition-transform hover:scale-105"
                         style={{ backgroundColor: priceBg }}
                     >
@@ -106,7 +106,9 @@ export function PackageComparisonBadge({
                     </div>
                     <div className="flex flex-col leading-none">
                         <span className="text-sm font-black text-zinc-700 dark:text-zinc-200">{pricePerHour.toFixed(0)}</span>
-                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{currencySymbol}/HR</span>
+                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                            {currencySymbol}/HR
+                        </span>
                     </div>
                 </div>
             )}

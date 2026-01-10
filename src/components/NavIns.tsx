@@ -42,7 +42,7 @@ function DockIcon({
 
     const widthSync = useTransform(distance, [-150, 0, 150], [45, 85, 45]);
     const width = useSpring(widthSync, { mass: 0.1, stiffness: 150, damping: 12 });
-    
+
     const [isHovered, setHovered] = useState(false);
 
     const content = (
@@ -52,24 +52,25 @@ function DockIcon({
             className={`
                 aspect-square rounded-2xl flex items-center justify-center relative 
                 transition-all duration-200 ease-out border
-                ${isActive 
-                    ? "bg-white/90 dark:bg-neutral-800/90 shadow-lg border-white/20 dark:border-white/10" 
-                    : "bg-white/10 dark:bg-white/5 border-white/10 dark:border-white/5 hover:bg-white/30 dark:hover:bg-white/10"
+                ${
+                    isActive
+                        ? "bg-white/90 dark:bg-neutral-800/90 shadow-lg border-white/20 dark:border-white/10"
+                        : "bg-white/10 dark:bg-white/5 border-white/10 dark:border-white/5 hover:bg-white/30 dark:hover:bg-white/10"
                 }
                 backdrop-blur-md
             `}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <div className={`w-full h-full p-[22%] transition-colors duration-200 ${isActive ? "text-black dark:text-white" : "text-neutral-600 dark:text-neutral-400"}`}>
+            <div
+                className={`w-full h-full p-[22%] transition-colors duration-200 ${isActive ? "text-black dark:text-white" : "text-neutral-600 dark:text-neutral-400"}`}
+            >
                 {children}
             </div>
 
             {/* Active Indicator */}
-            {isActive && (
-                <div className="absolute -bottom-2 w-1 h-1 bg-black/50 dark:bg-white/50 rounded-full" />
-            )}
-            
+            {isActive && <div className="absolute -bottom-2 w-1 h-1 bg-black/50 dark:bg-white/50 rounded-full" />}
+
             {/* Tooltip */}
             <motion.div
                 className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/10 shadow-md rounded-lg text-neutral-900 dark:text-neutral-100 text-[10px] font-semibold opacity-0 pointer-events-none whitespace-nowrap"
@@ -112,13 +113,7 @@ function DesktopDock({ items, basePath, mouseX }: { items: NavItemConfig[]; base
                     const isActive = pathname === href || (item.path === "" && pathname === basePath);
                     const Icon = item.icon;
                     return (
-                        <DockIcon
-                            key={item.id}
-                            mouseX={mouseX}
-                            label={item.label}
-                            href={href}
-                            isActive={isActive}
-                        >
+                        <DockIcon key={item.id} mouseX={mouseX} label={item.label} href={href} isActive={isActive}>
                             <Icon className="w-full h-full" />
                         </DockIcon>
                     );
@@ -139,11 +134,11 @@ function MobileNavItem({ item, basePath }: { item: NavItemConfig; basePath: stri
             href={href}
             className={`flex-1 flex flex-col items-center justify-center h-full transition-all active:scale-95 hover:bg-neutral-100/50 dark:hover:bg-white/5`}
         >
-            <div className={`relative p-2 rounded-xl transition-colors ${isActive ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500"}`}>
+            <div
+                className={`relative p-2 rounded-xl transition-colors ${isActive ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500"}`}
+            >
                 <Icon size={24} className={isActive ? "stroke-[2.5px]" : "stroke-2"} />
-                {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-current rounded-full" />
-                )}
+                {isActive && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-current rounded-full" />}
             </div>
         </Link>
     );

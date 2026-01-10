@@ -9,11 +9,13 @@ interface LessonEventDurationBadgeProps {
 }
 
 export function LessonEventDurationBadge({ status, events, hours }: LessonEventDurationBadgeProps) {
-    const config = status ? (LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] || { color: "#888", label: status }) : { color: "#888", label: "Unknown" };
+    const config = status
+        ? LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] || { color: "#888", label: status }
+        : { color: "#888", label: "Unknown" };
 
     return (
-        <div 
-            className="flex items-center gap-3 px-2.5 py-1 rounded-lg text-xs font-bold" 
+        <div
+            className="flex items-center gap-3 px-2.5 py-1 rounded-lg text-xs font-bold"
             style={{ backgroundColor: `${config.color}20`, color: config.color }}
         >
             <div className="flex items-center gap-1">

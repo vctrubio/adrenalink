@@ -21,23 +21,16 @@ interface ReferralSectionProps {
     onClose?: () => void;
 }
 
-export function ReferralSection({
-    referrals,
-    selectedReferral,
-    onSelect,
-    isExpanded,
-    onToggle,
-    onClose
-}: ReferralSectionProps) {
-    const referralEntity = ENTITY_DATA.find(e => e.id === "referral");
-    const title = selectedReferral
-        ? (
-            <div className="flex items-center gap-2">
-                <span>{selectedReferral.code}</span>
-                <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
-            </div>
-        )
-        : "Referral";
+export function ReferralSection({ referrals, selectedReferral, onSelect, isExpanded, onToggle, onClose }: ReferralSectionProps) {
+    const referralEntity = ENTITY_DATA.find((e) => e.id === "referral");
+    const title = selectedReferral ? (
+        <div className="flex items-center gap-2">
+            <span>{selectedReferral.code}</span>
+            <ReferralCommissionBadge value={selectedReferral.commissionValue} type={selectedReferral.commissionType} />
+        </div>
+    ) : (
+        "Referral"
+    );
 
     const safeReferrals = referrals || [];
 
@@ -54,11 +47,7 @@ export function ReferralSection({
             onClear={() => onSelect(null)}
             onOptional={onClose}
         >
-            <ReferralTable
-                referrals={safeReferrals}
-                selectedReferral={selectedReferral}
-                onSelect={onSelect}
-            />
+            <ReferralTable referrals={safeReferrals} selectedReferral={selectedReferral} onSelect={onSelect} />
         </Section>
     );
 }

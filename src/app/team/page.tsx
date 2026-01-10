@@ -32,11 +32,11 @@ export default function TeamPage() {
             <IntoAdrBarShell
                 onBarClick={!SelectedIcon ? "/team/pricing" : undefined}
                 leftSlot={
-                    <Image 
-                        src="/ADR.webp" 
-                        alt="Adrenalink" 
-                        width={32} 
-                        height={32} 
+                    <Image
+                        src="/ADR.webp"
+                        alt="Adrenalink"
+                        width={32}
+                        height={32}
                         className="w-8 h-8 object-contain brightness-0 invert"
                     />
                 }

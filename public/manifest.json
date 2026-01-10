@@ -1,16 +1,16 @@
 {
-  "name": "Adrenalink",
-  "short_name": "Adrenalink",
-  "description": "Home of Adrenaline Activity",
-  "start_url": "/",
-  "display": "standalone",
+    "name": "Adrenalink",
+    "short_name": "Adrenalink",
+    "description": "Home of Adrenaline Activity",
+    "start_url": "/",
+    "display": "standalone",
     "icons": [
-      {
-        "src": "/ADR.webp",
-        "sizes": "any",
-        "type": "image/webp"
-      }
+        {
+            "src": "/ADR.webp",
+            "sizes": "any",
+            "type": "image/webp"
+        }
     ],
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+    "theme_color": "#000000",
+    "background_color": "#ffffff"
 }

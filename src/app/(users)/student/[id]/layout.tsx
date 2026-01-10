@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { getStudents } from "@/actions/student-action";
+import { getStudentId } from "@/supabase/server/student-id";
 import { getSchoolHeader } from "@/types/headers";
 import UserWelcome from "@/src/components/UserWelcome";
 
@@ -12,25 +12,17 @@ export default async function StudentLayout({ children, params }: StudentLayoutP
     const { id: studentId } = await params;
 
     const schoolHeader = await getSchoolHeader();
-    const studentResult = await getStudents();
+    const studentResult = await getStudentId(studentId);
 
-    if (!studentResult.success) {
-        return <div className="p-4 text-destructive">Error loading student data</div>;
+    if (!studentResult.success || !studentResult.data) {
+        return <div className="p-4 text-destructive">Error loading student data: {studentResult.error || "Student not found"}</div>;
     }
 
-    const student = studentResult.data.find((s) => s.schema.id === studentId);
-
-    if (!student) {
-        return <div className="p-4 text-destructive">Student not found</div>;
-    }
+    const student = studentResult.data;
 
     return (
         <div className="space-y-8 max-w-2xl mx-auto">
-            <UserWelcome
-                firstName={student.schema.firstName}
-                lastName={student.schema.lastName}
-                schoolName={schoolHeader?.name}
-            />
+            <UserWelcome firstName={student.schema.first_name} lastName={student.schema.last_name} schoolName={schoolHeader?.name} />
             {children}
         </div>
     );

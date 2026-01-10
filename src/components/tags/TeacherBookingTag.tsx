@@ -15,19 +15,19 @@ interface TeacherBookingTagProps {
 }
 
 export const TeacherBookingTag = ({ icon, username, link, duration, eventCount }: TeacherBookingTagProps) => {
-    const teacherEntity = ENTITY_DATA.find(e => e.id === "teacher")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     const flagIcon = eventCount !== undefined ? <FlagIcon size={12} className="w-3 h-3" /> : null;
     const durationIcon = duration !== undefined ? <DurationIcon size={12} className="w-3 h-3" /> : null;
 
     return (
-        <Tag 
-            icon={icon} 
-            name={username} 
-            bgColor="#e5e7eb" 
-            borderColorHex={teacherEntity.color} 
-            color="#4b5563" 
-            link={link} 
+        <Tag
+            icon={icon}
+            name={username}
+            bgColor="#e5e7eb"
+            borderColorHex={teacherEntity.color}
+            color="#4b5563"
+            link={link}
             flagIcon={flagIcon}
             eventCount={eventCount}
             durationIcon={durationIcon}

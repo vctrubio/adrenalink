@@ -1,6 +1,15 @@
 export default function Elevation({ size = 24, color = "currentColor" }) {
     return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={color}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
             {/* Altitude graph - expanded state (peaks) */}
             <g>
                 <polyline points="2,18 5,14 8,16 11,8 14,12 17,6 20,10 22,8" />

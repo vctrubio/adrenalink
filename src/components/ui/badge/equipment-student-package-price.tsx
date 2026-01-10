@@ -11,13 +11,13 @@ interface EquipmentStudentPackagePriceBadgeProps {
     isRental?: boolean;
 }
 
-export function EquipmentStudentPackagePriceBadge({ 
-    categoryEquipment, 
-    equipmentCapacity, 
-    studentCapacity, 
-    packageDurationHours, 
+export function EquipmentStudentPackagePriceBadge({
+    categoryEquipment,
+    equipmentCapacity,
+    studentCapacity,
+    packageDurationHours,
     pricePerHour,
-    isRental = false
+    isRental = false,
 }: EquipmentStudentPackagePriceBadgeProps) {
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
@@ -25,103 +25,68 @@ export function EquipmentStudentPackagePriceBadge({
 
     const studentColor = studentEntity.color;
     const StudentIcon = studentEntity.icon;
-    
+
     const packageColor = packageEntity.color;
     const PackageIcon = packageEntity.icon;
-    
+
     const equipmentColor = equipmentConfig?.color || "#a855f7";
     const CategoryIcon = equipmentConfig?.icon;
-    
+
     const priceColor = "#f97316";
 
-            return (
+    return (
+        <div className="flex items-center justify-start gap-4">
+            {/* Equipment */}
 
-                <div className="flex items-center justify-start gap-4">
-
-                    {/* Equipment */}
-
-                    {equipmentCapacity > 0 && CategoryIcon && (
-
-                        <div className="flex items-center gap-1.5">
-
-                            <div style={{ color: equipmentColor }}>
-
-                                <CategoryIcon size={16} />
-
-                            </div>
-
-                            {equipmentCapacity > 1 && <span className="text-sm text-foreground">{equipmentCapacity}</span>}
-
-                        </div>
-
-                    )}
-
-        
-
-                    {/* Student */}
-
-                    <div className="flex items-center gap-1.5">
-
-                        <div style={{ color: isRental ? "#ef4444" : studentColor }}>
-
-                            <StudentIcon size={16} rental={isRental} />
-
-                        </div>
-
-                        {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
-
+            {equipmentCapacity > 0 && CategoryIcon && (
+                <div className="flex items-center gap-1.5">
+                    <div style={{ color: equipmentColor }}>
+                        <CategoryIcon size={16} />
                     </div>
 
-        
+                    {equipmentCapacity > 1 && <span className="text-sm text-foreground">{equipmentCapacity}</span>}
+                </div>
+            )}
 
-                    {/* Package Duration */}
+            {/* Student */}
 
-                    <div className="flex items-center gap-1.5">
-
-                        <div style={{ color: packageColor }}>
-
-                            <PackageIcon size={16} />
-
-                        </div>
-
-                        <div className="flex items-baseline gap-0.5">
-
-                            <span className="text-sm text-foreground">{packageDurationHours.toFixed(0)}</span>
-
-                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
-
-                        </div>
-
-                    </div>
-
-        
-
-                    {/* Price */}
-
-                    <div className="flex items-center gap-1.5">
-
-                        <div style={{ color: priceColor }}>
-
-                            <PPHIcon size={16} />
-
-                        </div>
-
-                        <div className="flex items-baseline gap-0.5">
-
-                            <span className="text-sm text-foreground">{(pricePerHour && isFinite(pricePerHour)) ? pricePerHour.toFixed(0) : "0"}</span>
-
-                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/h</span>
-
-                        </div>
-
-                    </div>
-
+            <div className="flex items-center gap-1.5">
+                <div style={{ color: isRental ? "#ef4444" : studentColor }}>
+                    <StudentIcon size={16} rental={isRental} />
                 </div>
 
-            );
+                {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
+            </div>
 
-        }
+            {/* Package Duration */}
 
-        
+            <div className="flex items-center gap-1.5">
+                <div style={{ color: packageColor }}>
+                    <PackageIcon size={16} />
+                </div>
 
-    
+                <div className="flex items-baseline gap-0.5">
+                    <span className="text-sm text-foreground">{packageDurationHours.toFixed(0)}</span>
+
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">h</span>
+                </div>
+            </div>
+
+            {/* Price */}
+
+            <div className="flex items-center gap-1.5">
+                <div style={{ color: priceColor }}>
+                    <PPHIcon size={16} />
+                </div>
+
+                <div className="flex items-baseline gap-0.5">
+                    <span className="text-sm text-foreground">
+                        {pricePerHour && isFinite(pricePerHour) ? pricePerHour.toFixed(0) : "0"}
+                    </span>
+
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/h</span>
+                </div>
+            </div>
+        </div>
+    );
+}

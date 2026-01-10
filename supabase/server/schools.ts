@@ -5,7 +5,7 @@ import type { SchoolWithAssets } from "@/supabase/db/types";
 export async function getSchools(): Promise<SchoolWithAssets[]> {
     try {
         const supabase = getServerConnection();
-        
+
         const { data: schools = [], error } = await supabase
             .from("school")
             .select("id, name, username, country, status, equipment_categories, created_at")
@@ -25,15 +25,15 @@ export async function getSchools(): Promise<SchoolWithAssets[]> {
                     bannerUrl,
                     iconUrl,
                 };
-            })
+            }),
         );
 
         // Log schools with equipment_categories for debugging
         console.log("✅ Fetched schools:", schoolsWithAssets.length);
-        schoolsWithAssets.forEach(s => {
+        schoolsWithAssets.forEach((s) => {
             console.log(`  ${s.name}: categories=${s.equipment_categories || "EMPTY"}`);
         });
-        
+
         return schoolsWithAssets as SchoolWithAssets[];
     } catch (err) {
         console.error("💥 getSchools() failed:", err);

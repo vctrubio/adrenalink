@@ -15,17 +15,17 @@ export function PopUpHeader({ title, subtitle, icon, className = "" }: PopUpHead
                     className="shrink-0"
                 >
                     {icon || (
-                        <Image 
-                            src="/ADR.webp" 
-                            alt="Adrenalink" 
-                            width={32} 
-                            height={32} 
+                        <Image
+                            src="/ADR.webp"
+                            alt="Adrenalink"
+                            width={32}
+                            height={32}
                             className="dark:invert drop-shadow-[0_0_8px_rgba(var(--primary),0.3)]"
                         />
                     )}
                 </motion.div>
-                
-                <motion.h2 
+
+                <motion.h2
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
@@ -34,7 +34,7 @@ export function PopUpHeader({ title, subtitle, icon, className = "" }: PopUpHead
                     {title}
                 </motion.h2>
             </div>
-            
+
             {subtitle && (
                 <motion.p
                     initial={{ opacity: 0, y: 3 }}

@@ -34,10 +34,10 @@ export const EquipmentTableGetters = {
 
             const pricePerMinute = pkg.price_per_student / pkg.duration_minutes;
             const eventRevenue = pricePerMinute * (event.duration || 0) * (pkg.capacity_students || 1);
-            
+
             return total + eventRevenue;
         }, 0);
-    }
+    },
 };
 
 export const PackageTableGetters = {
@@ -57,7 +57,7 @@ export const PackageTableGetters = {
         const pricePerStudent = pkg.schema.price_per_student;
         const totalStudents = PackageTableGetters.getTotalStudents(pkg);
         return totalStudents * pricePerStudent;
-    }
+    },
 };
 
 export const BookingTableGetters = {
@@ -79,7 +79,7 @@ export const BookingTableGetters = {
         const durationHours = usedMinutes / 60;
         const studentCount = booking.relations.students.length || 1;
 
-        const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? (pkg.price_per_student / (pkg.duration_minutes / 60)) : 0;
+        const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
         return pricePerHourPerStudent * durationHours * studentCount;
     },
 
@@ -90,16 +90,16 @@ export const BookingTableGetters = {
             const cph = parseFloat(l.teacher_commission?.cph || "0");
             const type = l.teacher_commission?.commission_type || "fixed";
 
-            if (type === "fixed") return sum + (cph * durationHours);
-            
+            if (type === "fixed") return sum + cph * durationHours;
+
             // Percentage based on lesson revenue
             const pkg = booking.relations.school_package;
             if (!pkg) return sum;
             const studentCount = booking.relations.students.length || 1;
-            const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? (pkg.price_per_student / (pkg.duration_minutes / 60)) : 0;
+            const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
             const lessonRevenue = pricePerHourPerStudent * durationHours * studentCount;
-            
-            return sum + (lessonRevenue * (cph / 100));
+
+            return sum + lessonRevenue * (cph / 100);
         }, 0);
     },
 
@@ -113,7 +113,7 @@ export const BookingTableGetters = {
 
     getDueAmount: (booking: BookingData): number => {
         return BookingTableGetters.getRevenue(booking) - BookingTableGetters.getPaidAmount(booking);
-    }
+    },
 };
 
 export const StudentTableGetters = {
@@ -145,13 +145,13 @@ export const StudentTableGetters = {
         return student.relations.bookings.reduce((sum, b) => {
             const pkg = b.school_package;
             if (!pkg) return sum;
-            
+
             const lessons = b.lessons || [];
             const events = lessons.flatMap((l: any) => l.event || l.events || []);
             const bookingDurationHours = events.reduce((s: number, e: any) => s + (e.duration || 0), 0) / 60;
-            
-            const pricePerHour = (pkg.duration_minutes > 0) ? (pkg.price_per_student / (pkg.duration_minutes / 60)) : 0;
-            return sum + (pricePerHour * bookingDurationHours);
+
+            const pricePerHour = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+            return sum + pricePerHour * bookingDurationHours;
         }, 0);
     },
 
@@ -159,7 +159,7 @@ export const StudentTableGetters = {
         const paid = StudentTableGetters.getTotalPaid(student);
         const expected = StudentTableGetters.getExpectedRevenue(student);
         return paid - expected;
-    }
+    },
 };
 
 export const TeacherTableGetters = {
@@ -184,9 +184,9 @@ export const TeacherTableGetters = {
 
             const durationMinutes = l.event?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
             const durationHours = durationMinutes / 60;
-            
+
             const studentCount = pkg.capacity_students || 1;
-            const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+            const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
             const lessonRevenue = pricePerHourPerStudent * durationHours * studentCount;
 
             const cph = parseFloat(l.teacher_commission?.cph || "0");
@@ -210,9 +210,9 @@ export const TeacherTableGetters = {
 
             const durationMinutes = l.event?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
             const durationHours = durationMinutes / 60;
-            
+
             const studentCount = pkg.capacity_students || 1;
-            const pricePerHourPerStudent = (pkg.duration_minutes > 0) ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+            const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
             const lessonRevenue = pricePerHourPerStudent * durationHours * studentCount;
 
             const cph = parseFloat(l.teacher_commission?.cph || "0");
@@ -224,8 +224,8 @@ export const TeacherTableGetters = {
             } else if (type === "percentage") {
                 earned = lessonRevenue * (cph / 100);
             }
-            
+
             return sum + (lessonRevenue - earned);
         }, 0);
-    }
+    },
 };

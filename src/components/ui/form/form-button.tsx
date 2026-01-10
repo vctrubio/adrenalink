@@ -8,8 +8,16 @@ interface FormButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     size?: "sm" | "md" | "lg";
 }
 
-export default function FormButton({ children, variant = "primary", size = "md", className = "", disabled, ...props }: FormButtonProps) {
-    const baseClasses = "font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed";
+export default function FormButton({
+    children,
+    variant = "primary",
+    size = "md",
+    className = "",
+    disabled,
+    ...props
+}: FormButtonProps) {
+    const baseClasses =
+        "font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const variants = {
         primary: "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary",

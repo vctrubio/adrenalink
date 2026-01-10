@@ -31,8 +31,22 @@ import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, create
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
 
-const ActionButton = ({ icon: Icon, children, onClick, buttonRef }: { icon?: React.ElementType; children?: React.ReactNode; onClick?: () => void; buttonRef?: React.RefObject<HTMLButtonElement> }) => (
-    <button ref={buttonRef} onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
+const ActionButton = ({
+    icon: Icon,
+    children,
+    onClick,
+    buttonRef,
+}: {
+    icon?: React.ElementType;
+    children?: React.ReactNode;
+    onClick?: () => void;
+    buttonRef?: React.RefObject<HTMLButtonElement>;
+}) => (
+    <button
+        ref={buttonRef}
+        onClick={onClick}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
+    >
         {Icon && <Icon className="h-5 w-5" />}
         {children}
     </button>
@@ -42,7 +56,9 @@ export const NavRight = () => {
     const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
     const [isTeacherSortModalOpen, setIsTeacherSortModalOpen] = useState(false);
-    const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(null);
+    const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(
+        null,
+    );
     const [studentFormData, setStudentFormData] = useState<StudentFormData>(defaultStudentForm);
     const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>(defaultTeacherForm);
     const [packageFormData, setPackageFormData] = useState<PackageFormData>(defaultPackageForm);
@@ -177,23 +193,23 @@ export const NavRight = () => {
 
     const adminDropdownItems: DropdownItemProps[] = credentials
         ? [
-            {
-                id: "username",
-                label: `Username: ${credentials.username}`,
-            },
-            {
-                id: "currency",
-                label: `Currency: ${credentials.currency}`,
-            },
-            {
-                id: "status",
-                label: `Status: ${credentials.status}`,
-            },
-            {
-                id: "ownerId",
-                label: `Owner ID: ${credentials.ownerId}`,
-            },
-        ]
+              {
+                  id: "username",
+                  label: `Username: ${credentials.username}`,
+              },
+              {
+                  id: "currency",
+                  label: `Currency: ${credentials.currency}`,
+              },
+              {
+                  id: "status",
+                  label: `Status: ${credentials.status}`,
+              },
+              {
+                  id: "ownerId",
+                  label: `Owner ID: ${credentials.ownerId}`,
+              },
+          ]
         : [];
 
     const renderCredentialItem = (item: DropdownItemProps) => {
@@ -211,33 +227,78 @@ export const NavRight = () => {
             <div className="flex items-center gap-2">
                 <ActionButton icon={HeadsetIcon} onClick={() => setIsTeacherSortModalOpen(true)} />
                 <div className="relative">
-                    <ActionButton buttonRef={createButtonRef} icon={Plus} onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)} />
-                    <Dropdown isOpen={isCreateDropdownOpen} onClose={() => setIsCreateDropdownOpen(false)} items={createDropdownItems} align="right" triggerRef={createButtonRef} />
+                    <ActionButton
+                        buttonRef={createButtonRef}
+                        icon={Plus}
+                        onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
+                    />
+                    <Dropdown
+                        isOpen={isCreateDropdownOpen}
+                        onClose={() => setIsCreateDropdownOpen(false)}
+                        items={createDropdownItems}
+                        align="right"
+                        triggerRef={createButtonRef}
+                    />
                 </div>
                 <ActionButton onClick={() => setTheme(isDarkMode ? "light" : "dark")} icon={isDarkMode ? Sun : Moon} />
                 <div className="relative">
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>
                         <AdminIcon className="h-6 w-6" />
                     </ActionButton>
-                    <Dropdown isOpen={isAdminDropdownOpen} onClose={() => setIsAdminDropdownOpen(false)} items={adminDropdownItems} renderItem={renderCredentialItem} align="right" triggerRef={adminButtonRef} />
+                    <Dropdown
+                        isOpen={isAdminDropdownOpen}
+                        onClose={() => setIsAdminDropdownOpen(false)}
+                        items={adminDropdownItems}
+                        renderItem={renderCredentialItem}
+                        align="right"
+                        triggerRef={adminButtonRef}
+                    />
                 </div>
             </div>
             <TeacherSortPriorityManModal isOpen={isTeacherSortModalOpen} onClose={() => setIsTeacherSortModalOpen(false)} />
 
             <EntityAddDialog isOpen={selectedCreateEntity === "student"} onClose={() => setSelectedCreateEntity(null)}>
-                <Student4SchoolForm formData={studentFormData} onFormDataChange={setStudentFormData} isFormReady={isStudentFormValid} onSubmit={handleStudentSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
+                <Student4SchoolForm
+                    formData={studentFormData}
+                    onFormDataChange={setStudentFormData}
+                    isFormReady={isStudentFormValid}
+                    onSubmit={handleStudentSubmit}
+                    isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
+                />
             </EntityAddDialog>
 
             <EntityAddDialog isOpen={selectedCreateEntity === "teacher"} onClose={() => setSelectedCreateEntity(null)}>
-                <TeacherForm formData={teacherFormData} onFormDataChange={setTeacherFormData} isFormReady={isTeacherFormValid} onSubmit={handleTeacherSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
+                <TeacherForm
+                    formData={teacherFormData}
+                    onFormDataChange={setTeacherFormData}
+                    isFormReady={isTeacherFormValid}
+                    onSubmit={handleTeacherSubmit}
+                    isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
+                />
             </EntityAddDialog>
 
             <EntityAddDialog isOpen={selectedCreateEntity === "schoolPackage"} onClose={() => setSelectedCreateEntity(null)}>
-                <Package4SchoolForm formData={packageFormData} onFormDataChange={setPackageFormData} isFormReady={isPackageFormValid} onSubmit={handlePackageSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
+                <Package4SchoolForm
+                    formData={packageFormData}
+                    onFormDataChange={setPackageFormData}
+                    isFormReady={isPackageFormValid}
+                    onSubmit={handlePackageSubmit}
+                    isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
+                />
             </EntityAddDialog>
 
             <EntityAddDialog isOpen={selectedCreateEntity === "equipment"} onClose={() => setSelectedCreateEntity(null)}>
-                <Equipment4SchoolForm formData={equipmentFormData} onFormDataChange={setEquipmentFormData} isFormReady={isEquipmentFormValid} onSubmit={handleEquipmentSubmit} isLoading={isLoadingSubmit} onClose={() => setSelectedCreateEntity(null)} />
+                <Equipment4SchoolForm
+                    formData={equipmentFormData}
+                    onFormDataChange={setEquipmentFormData}
+                    isFormReady={isEquipmentFormValid}
+                    onSubmit={handleEquipmentSubmit}
+                    isLoading={isLoadingSubmit}
+                    onClose={() => setSelectedCreateEntity(null)}
+                />
             </EntityAddDialog>
         </>
     );

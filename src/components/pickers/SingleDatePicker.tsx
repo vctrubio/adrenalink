@@ -31,7 +31,14 @@ interface SingleDatePickerProps {
     showTodayButton?: boolean;
 }
 
-export function SingleDatePicker({ selectedDate, onDateChange, disabled = false, allowPastDates = true, showNavigationButtons = true, showTodayButton = true }: SingleDatePickerProps) {
+export function SingleDatePicker({
+    selectedDate,
+    onDateChange,
+    disabled = false,
+    allowPastDates = true,
+    showNavigationButtons = true,
+    showTodayButton = true,
+}: SingleDatePickerProps) {
     const router = useRouter();
     const pathname = usePathname();
 
@@ -39,12 +46,12 @@ export function SingleDatePicker({ selectedDate, onDateChange, disabled = false,
     const { isToday, relativeLabel } = useMemo(() => {
         const today = getTodayDateString();
         const todayCheck = selectedDate === today;
-        
+
         let label = "";
         if (selectedDate && !todayCheck) {
             label = getRelativeDateLabel(selectedDate);
         }
-        
+
         return { isToday: todayCheck, relativeLabel: label };
     }, [selectedDate]);
 
@@ -95,7 +102,9 @@ export function SingleDatePicker({ selectedDate, onDateChange, disabled = false,
             <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     {showTodayButton && isToday ? (
-                        <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">Today</span>
+                        <span className="text-lg bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-md text-green-700 dark:text-green-300 font-semibold">
+                            Today
+                        </span>
                     ) : showTodayButton && !isToday ? (
                         <button
                             type="button"
@@ -107,7 +116,11 @@ export function SingleDatePicker({ selectedDate, onDateChange, disabled = false,
                         </button>
                     ) : null}
                 </div>
-                {relativeLabel && !isToday && <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">{relativeLabel}</span>}
+                {relativeLabel && !isToday && (
+                    <span className="text-lg bg-muted px-3 py-1.5 rounded-md text-muted-foreground font-semibold">
+                        {relativeLabel}
+                    </span>
+                )}
             </label>
             <div className="flex items-center gap-1">
                 {showNavigationButtons && (

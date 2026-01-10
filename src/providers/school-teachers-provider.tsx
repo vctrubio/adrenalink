@@ -30,22 +30,20 @@ export function SchoolTeachersProvider({ children, initialData }: SchoolTeachers
     const [error, setError] = useState<string | null>(null);
 
     const setTeacherActive = (teacherId: string, active: boolean) => {
-        setAllTeachers((prev) => 
-            prev.map(t => t.schema.id === teacherId ? { ...t, schema: { ...t.schema, active } } : t)
-        );
-        
+        setAllTeachers((prev) => prev.map((t) => (t.schema.id === teacherId ? { ...t, schema: { ...t.schema, active } } : t)));
+
         setTeachers((prev) => {
             // If turning on, we might need to find it in allTeachers
             if (active) {
-                const alreadyActive = prev.some(t => t.schema.id === teacherId);
+                const alreadyActive = prev.some((t) => t.schema.id === teacherId);
                 if (alreadyActive) return prev;
-                
-                const teacher = allTeachers.find(t => t.schema.id === teacherId);
+
+                const teacher = allTeachers.find((t) => t.schema.id === teacherId);
                 if (teacher) return [...prev, { ...teacher, schema: { ...teacher.schema, active: true } }];
                 return prev;
-            } 
+            }
             // If turning off, just filter it out
-            return prev.filter(t => t.schema.id !== teacherId);
+            return prev.filter((t) => t.schema.id !== teacherId);
         });
     };
 

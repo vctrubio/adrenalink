@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=establishment|geocode`;
 
         console.log("🔗 Proxying request to Google Places API");
-        
+
         const response = await fetch(url);
         const data = await response.json();
 

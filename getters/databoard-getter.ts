@@ -74,9 +74,7 @@ export const StudentDataboard = {
             const booking = bs.booking;
             if (!booking) continue;
 
-            const bookingPayments = student.relations?.bookingPayments?.filter(
-                (bp) => bp.bookingId === booking.id
-            ) || [];
+            const bookingPayments = student.relations?.bookingPayments?.filter((bp) => bp.bookingId === booking.id) || [];
             total += bookingPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
         }
 
@@ -107,7 +105,7 @@ export const StudentDataboard = {
                         pricePerStudent,
                         studentCount,
                         eventRow.duration,
-                        packageDurationMinutes
+                        packageDurationMinutes,
                     );
                     totalRevenue += eventRevenue;
                 }
@@ -122,7 +120,7 @@ export const StudentDataboard = {
                             cph: parseFloat(lesson.commission.cph || "0"),
                         },
                         totalRevenue, // This is a bit weird in the original code but I'll keep the logic consistent
-                        packageDurationMinutes
+                        packageDurationMinutes,
                     );
                     totalExpenses += commissionCalc.earned;
                 }
@@ -131,12 +129,14 @@ export const StudentDataboard = {
             // 3. Calculate referral commissions (part of Expenses)
             if (booking.studentPackage?.referral) {
                 const referral = booking.studentPackage.referral;
-                const bookingRevenue = (pricePerStudent * (lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0))) / packageDurationMinutes;
-                
+                const bookingRevenue =
+                    (pricePerStudent * lessons.flatMap((l) => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0)) /
+                    packageDurationMinutes;
+
                 if (referral.commissionType === "percentage") {
                     totalExpenses += (parseFloat(referral.commissionValue) / 100) * bookingRevenue;
                 } else {
-                    const totalHours = (lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0)) / 60;
+                    const totalHours = lessons.flatMap((l) => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0) / 60;
                     totalExpenses += parseFloat(referral.commissionValue) * totalHours;
                 }
             }
@@ -213,12 +213,7 @@ export const TeacherDataboard = {
             const packageDurationMinutes = schoolPackage?.durationMinutes || 60;
 
             for (const eventRow of eventRows) {
-                totalRevenue += calculateLessonRevenue(
-                    pricePerStudent,
-                    studentCount,
-                    eventRow.duration,
-                    packageDurationMinutes
-                );
+                totalRevenue += calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
             }
         }
         return totalRevenue;
@@ -307,7 +302,7 @@ export const SchoolPackageDataboard = {
                 for (const lesson of lessons) {
                     const events = lesson.events || [];
                     const lessonDuration = events.reduce((sum, e) => sum + (e.duration || 0), 0);
-                    
+
                     // 1. Revenue
                     totalRevenue += calculateLessonRevenue(pricePerStudent, studentCount, lessonDuration, packageDurationMinutes);
 
@@ -317,10 +312,10 @@ export const SchoolPackageDataboard = {
                             lessonDuration,
                             {
                                 type: lesson.commission.commissionType as "fixed" | "percentage",
-                                cph: parseFloat(lesson.commission.cph || "0")
+                                cph: parseFloat(lesson.commission.cph || "0"),
                             },
                             totalRevenue,
-                            packageDurationMinutes
+                            packageDurationMinutes,
                         );
                         totalExpenses += commissionCalc.earned;
                     }
@@ -329,7 +324,7 @@ export const SchoolPackageDataboard = {
                 // 3. Referral Commissions
                 if (sp.referral) {
                     const referral = sp.referral;
-                    const bookingDuration = lessons.flatMap(l => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0);
+                    const bookingDuration = lessons.flatMap((l) => l.events || []).reduce((sum, e) => sum + (e.duration || 0), 0);
                     const bookingRevenue = (pricePerStudent * bookingDuration) / packageDurationMinutes;
 
                     if (referral.commissionType === "percentage") {

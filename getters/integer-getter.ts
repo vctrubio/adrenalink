@@ -4,19 +4,19 @@
  * Handles both positive and negative numbers, returns absolute value formatted
  */
 export function getCompactNumber(num: number): string {
-  const absNum = Math.abs(num);
+    const absNum = Math.abs(num);
 
-  if (absNum < 1000) {
-    return Math.round(absNum).toString();
-  }
+    if (absNum < 1000) {
+        return Math.round(absNum).toString();
+    }
 
-  const divided = absNum / 1000;
-  const rounded = Math.round(divided * 10) / 10;
+    const divided = absNum / 1000;
+    const rounded = Math.round(divided * 10) / 10;
 
-  // If it's a whole number after rounding, don't show decimal
-  if (rounded === Math.floor(rounded)) {
-    return `${Math.floor(rounded)}k`;
-  }
+    // If it's a whole number after rounding, don't show decimal
+    if (rounded === Math.floor(rounded)) {
+        return `${Math.floor(rounded)}k`;
+    }
 
-  return `${rounded}k`;
+    return `${rounded}k`;
 }

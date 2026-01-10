@@ -25,7 +25,13 @@ const TIMEOUT_DURATION = 5000;
 
 // --- Sub-components ---
 
-const BookingProgressBar = ({ counts, durationMinutes }: { counts: ReturnType<typeof getEventStatusCounts>; durationMinutes: number }) => {
+const BookingProgressBar = ({
+    counts,
+    durationMinutes,
+}: {
+    counts: ReturnType<typeof getEventStatusCounts>;
+    durationMinutes: number;
+}) => {
     return <ClassboardProgressBar counts={counts} durationMinutes={durationMinutes} />;
 };
 
@@ -71,9 +77,14 @@ const CardHeader = ({
     return (
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Link href={`/bookings/${bookingId}`} className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-muted/80 transition-colors">
+                <Link
+                    href={`/bookings/${bookingId}`}
+                    className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-muted/80 transition-colors"
+                >
                     <span className="text-xl font-black leading-none text-foreground">{startDate.getDate()}</span>
-                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1">{startDate.toLocaleDateString("en-US", { month: "short" })}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1">
+                        {startDate.toLocaleDateString("en-US", { month: "short" })}
+                    </span>
                 </Link>
                 <div className="flex flex-col">
                     <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">{leaderName}</div>
@@ -90,7 +101,17 @@ const CardHeader = ({
     );
 };
 
-const BookingSummaryBadges = ({ schoolPackage, lessons, studentCount, students }: { schoolPackage: ClassboardData["schoolPackage"]; lessons: ClassboardLesson[]; studentCount: number; students: { id: string; firstName: string; lastName: string }[] }) => {
+const BookingSummaryBadges = ({
+    schoolPackage,
+    lessons,
+    studentCount,
+    students,
+}: {
+    schoolPackage: ClassboardData["schoolPackage"];
+    lessons: ClassboardLesson[];
+    studentCount: number;
+    students: { id: string; firstName: string; lastName: string }[];
+}) => {
     const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
     const badgeTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -101,7 +122,11 @@ const BookingSummaryBadges = ({ schoolPackage, lessons, studentCount, students }
 
     return (
         <div className="relative">
-            <button ref={badgeTriggerRef} onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)} className="w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors hover:bg-muted/50 cursor-pointer">
+            <button
+                ref={badgeTriggerRef}
+                onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                className="w-full p-2 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2 transition-colors hover:bg-muted/50 cursor-pointer"
+            >
                 <div className="flex-1 overflow-hidden">
                     <EquipmentStudentPackagePriceBadge
                         categoryEquipment={schoolPackage.categoryEquipment}
@@ -118,7 +143,13 @@ const BookingSummaryBadges = ({ schoolPackage, lessons, studentCount, students }
                 </div>
             </button>
 
-            <Dropdown isOpen={isStudentDropdownOpen} onClose={() => setIsStudentDropdownOpen(false)} items={studentDropdownItems} align="left" triggerRef={badgeTriggerRef} />
+            <Dropdown
+                isOpen={isStudentDropdownOpen}
+                onClose={() => setIsStudentDropdownOpen(false)}
+                items={studentDropdownItems}
+                align="left"
+                triggerRef={badgeTriggerRef}
+            />
         </div>
     );
 };
@@ -132,7 +163,14 @@ interface InstructorListProps {
     onAssignTeacher: () => void;
 }
 
-const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, draggableLessonIds, onAssignTeacher }: InstructorListProps) => {
+const InstructorList = ({
+    lessons,
+    bookingData,
+    onAddEvent,
+    loadingLessonId,
+    draggableLessonIds,
+    onAssignTeacher,
+}: InstructorListProps) => {
     const teacherColor = "#22c55e";
 
     // Filter to only show lessons that have teachers
@@ -146,8 +184,8 @@ const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, dra
                 <span className="text-xs font-semibold text-muted-foreground">Lessons</span>
                 <button
                     onClick={() => {
-                      console.log("Button clicked, lessons count:", lessons.length);
-                      onAssignTeacher();
+                        console.log("Button clicked, lessons count:", lessons.length);
+                        onAssignTeacher();
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors"
                 >
@@ -180,7 +218,15 @@ const InstructorList = ({ lessons, bookingData, onAddEvent, loadingLessonId, dra
     );
 };
 
-const ExpandableDetails = ({ isExpanded, schoolPackage, bookingId }: { isExpanded: boolean; schoolPackage: ClassboardData["schoolPackage"]; bookingId: string }) => {
+const ExpandableDetails = ({
+    isExpanded,
+    schoolPackage,
+    bookingId,
+}: {
+    isExpanded: boolean;
+    schoolPackage: ClassboardData["schoolPackage"];
+    bookingId: string;
+}) => {
     if (!isExpanded) return null;
 
     return (
@@ -213,7 +259,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
     const bookingId = bookingData.booking.id;
     const isDragging = draggedBooking?.bookingId === bookingId;
-    
+
     // Check if this booking is currently being added to the board
     const isConfirming = globalFlag.hasOptimisticEventsForBooking(bookingId);
 
@@ -248,7 +294,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
             return;
         }
         const target = e.target as HTMLElement;
-        if (target.closest("button") || target.closest("[role=\"button\"]")) {
+        if (target.closest("button") || target.closest('[role="button"]')) {
             e.preventDefault();
             return;
         }
@@ -280,9 +326,9 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
     };
 
     const handleAddEvent = async (lessonId: string) => {
-        const lesson = lessons.find(l => l.id === lessonId);
+        const lesson = lessons.find((l) => l.id === lessonId);
         if (lesson?.teacher) {
-            const queue = teacherQueues.find(q => q.teacher.id === lesson.teacher.id);
+            const queue = teacherQueues.find((q) => q.teacher.id === lesson.teacher.id);
             if (queue && !queue.isActive) {
                 toast.error(`${lesson.teacher.username} is not active`);
                 return;
@@ -309,8 +355,8 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 animate={{
-                    opacity: (loadingLessonId || isConfirming) ? 0.4 : isDragging ? 0.5 : 1,
-                    scale: isConfirming ? 0.98 : 1
+                    opacity: loadingLessonId || isConfirming ? 0.4 : isDragging ? 0.5 : 1,
+                    scale: isConfirming ? 0.98 : 1,
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={`group relative w-[355px] mx-auto flex-shrink-0 bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md ${isConfirming ? "cursor-wait border-cyan-500/30 shadow-cyan-500/5" : ""}`}
@@ -326,13 +372,33 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                 <BookingProgressBar counts={eventCounts} durationMinutes={packageInfo.durationMinutes} />
 
                 <div className="p-4 space-y-4">
-                    <CardHeader bookingId={booking.id} dateStart={booking.dateStart} dateEnd={booking.dateEnd} selectedDate={selectedDate} leaderName={booking.leaderStudentName} students={students} onExpand={() => setIsExpanded(!isExpanded)} />
+                    <CardHeader
+                        bookingId={booking.id}
+                        dateStart={booking.dateStart}
+                        dateEnd={booking.dateEnd}
+                        selectedDate={selectedDate}
+                        leaderName={booking.leaderStudentName}
+                        students={students}
+                        onExpand={() => setIsExpanded(!isExpanded)}
+                    />
 
                     <div className="space-y-3">
-                        <BookingSummaryBadges schoolPackage={schoolPackage} lessons={lessons} studentCount={students.length} students={students} />
+                        <BookingSummaryBadges
+                            schoolPackage={schoolPackage}
+                            lessons={lessons}
+                            studentCount={students.length}
+                            students={students}
+                        />
                     </div>
 
-                    <InstructorList lessons={lessons} bookingData={bookingData} onAddEvent={handleAddEvent} loadingLessonId={loadingLessonId} draggableLessonIds={draggableLessonIds} onAssignTeacher={handleOpenAssignTeacherModal} />
+                    <InstructorList
+                        lessons={lessons}
+                        bookingData={bookingData}
+                        onAddEvent={handleAddEvent}
+                        loadingLessonId={loadingLessonId}
+                        draggableLessonIds={draggableLessonIds}
+                        onAssignTeacher={handleOpenAssignTeacherModal}
+                    />
                 </div>
 
                 <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
@@ -340,13 +406,13 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
 
             {isAssignTeacherModalOpen && (
                 <>
-                  {console.log("Rendering modal with state:", { isOpen: isAssignTeacherModalOpen })}
-                  <AssignTeacherToLessonModal
-                      isOpen={isAssignTeacherModalOpen}
-                      onClose={() => setIsAssignTeacherModalOpen(false)}
-                      bookingData={bookingData}
-                      onAssigned={handleAssignTeacherSuccess}
-                  />
+                    {console.log("Rendering modal with state:", { isOpen: isAssignTeacherModalOpen })}
+                    <AssignTeacherToLessonModal
+                        isOpen={isAssignTeacherModalOpen}
+                        onClose={() => setIsAssignTeacherModalOpen(false)}
+                        bookingData={bookingData}
+                        onAssigned={handleAssignTeacherSuccess}
+                    />
                 </>
             )}
         </>

@@ -14,9 +14,7 @@ interface IntoAdrBarShellProps {
 
 export default function IntoAdrBarShell({ leftSlot, rightSlot, inverted = false, onBarClick }: IntoAdrBarShellProps) {
     const router = useRouter();
-    const bgClasses = inverted
-        ? "bg-transparent hover:bg-black/60"
-        : "bg-black/60 hover:bg-black/40";
+    const bgClasses = inverted ? "bg-transparent hover:bg-black/60" : "bg-black/60 hover:bg-black/40";
 
     const handleBarClick = () => {
         if (onBarClick) {
@@ -34,9 +32,7 @@ export default function IntoAdrBarShell({ leftSlot, rightSlot, inverted = false,
                 className={`relative flex items-center justify-between pointer-events-auto ${bgClasses} backdrop-blur-xl rounded-full px-5 py-2.5 border border-white/20 dark:border-white/10 shadow-sm mx-auto max-w-7xl mt-2 transition-all min-h-[60px] ${onBarClick ? "cursor-pointer" : ""}`}
             >
                 {/* Left Slot */}
-                <div className="">
-                    {leftSlot}
-                </div>
+                <div className="">{leftSlot}</div>
 
                 {/* Center: Adrenalink Branding */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" onClick={(e) => e.stopPropagation()}>
@@ -46,9 +42,7 @@ export default function IntoAdrBarShell({ leftSlot, rightSlot, inverted = false,
                 </div>
 
                 {/* Right Slot */}
-                <div className="ml-auto">
-                    {rightSlot}
-                </div>
+                <div className="ml-auto">{rightSlot}</div>
             </motion.div>
         </header>
     );

@@ -57,7 +57,9 @@ const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintC
                 } ${isRight ? "" : "bg-muted-foreground/30"}`}
                 style={{ backgroundColor: isRight ? baseColor : undefined }}
             >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${isRight ? "translate-x-6" : "translate-x-1"}`} />
+                <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${isRight ? "translate-x-6" : "translate-x-1"}`}
+                />
             </Switch>
 
             <span
@@ -78,4 +80,3 @@ const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintC
 };
 
 export default ToggleSwitch;
-

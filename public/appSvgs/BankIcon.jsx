@@ -1,6 +1,13 @@
 export default function BankIcon({ className = "", size = 24 }) {
     return (
-        <svg width={size} height={size} className={className} viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg
+            width={size}
+            height={size}
+            className={className}
+            viewBox="0 0 32 32"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+        >
             <path d="M30.492,26H1.508C0.677,26,0,26.677,0,27.508v2.983C0,31.323,0.677,32,1.508,32h28.983    C31.323,32,32,31.323,32,30.492v-2.983C32,26.677,31.323,26,30.492,26z M30,30H2v-2h28V30z" />
             <path d="M30.944,4.402L16.445,0.042L15.843,0L1.054,4.43C0.424,4.62,0,5.18,0,5.823v2.717C0,9.345,0.673,10,1.5,10    h29c0.827,0,1.5-0.655,1.5-1.459V5.796C32,5.153,31.576,4.593,30.944,4.402z M30,8H2V6.233L15.991,2L30,6.207V8z" />
             <path d="M7.8,25C8.461,25,9,24.461,9,23.8V12.2C9,11.539,8.461,11,7.8,11H4.2C3.539,11,3,11.539,3,12.2v11.6    C3,24.461,3.539,25,4.2,25H7.8z M5,13h2v10H5V13z" />

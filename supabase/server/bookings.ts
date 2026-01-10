@@ -19,7 +19,8 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
 
         const { data, error } = await supabase
             .from("booking")
-            .select(`
+            .select(
+                `
                 id,
                 date_start,
                 date_end,
@@ -57,7 +58,8 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                         student_id,
                         amount
                     )
-            `)
+            `,
+            )
             .eq("school_id", schoolId)
             .order("date_start", { ascending: false });
 
@@ -76,7 +78,9 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
                 const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0); // minutes
                 const totalCount = l.event.length;
 
-                const recordedPayments = l.teacher_lesson_payment ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) : 0;
+                const recordedPayments = l.teacher_lesson_payment
+                    ? l.teacher_lesson_payment.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+                    : 0;
 
                 return {
                     id: l.id,

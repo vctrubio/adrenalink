@@ -17,7 +17,14 @@ interface TimelineProps {
     searchPlaceholder?: string;
 }
 
-export function Timeline({ events, currency, formatCurrency, showTeacher = true, showFinancials = true, searchPlaceholder }: TimelineProps) {
+export function Timeline({
+    events,
+    currency,
+    formatCurrency,
+    showTeacher = true,
+    showFinancials = true,
+    searchPlaceholder,
+}: TimelineProps) {
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
     const [filter, setFilter] = useState<EventStatusFilter>("all");
@@ -34,14 +41,15 @@ export function Timeline({ events, currency, formatCurrency, showTeacher = true,
         // Search filter
         if (search) {
             const query = search.toLowerCase();
-            result = result.filter((event) => 
-                event.teacherName.toLowerCase().includes(query) ||
-                event.teacherUsername.toLowerCase().includes(query) ||
-                event.location.toLowerCase().includes(query) ||
-                (event.bookingStudents && event.bookingStudents.some(s => 
-                    s.firstName.toLowerCase().includes(query) || 
-                    s.lastName.toLowerCase().includes(query)
-                ))
+            result = result.filter(
+                (event) =>
+                    event.teacherName.toLowerCase().includes(query) ||
+                    event.teacherUsername.toLowerCase().includes(query) ||
+                    event.location.toLowerCase().includes(query) ||
+                    (event.bookingStudents &&
+                        event.bookingStudents.some(
+                            (s) => s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query),
+                        )),
             );
         }
 
@@ -64,20 +72,23 @@ export function Timeline({ events, currency, formatCurrency, showTeacher = true,
                 totalCommission: acc.totalCommission + event.teacherEarning,
                 totalRevenue: acc.totalRevenue + event.schoolRevenue,
             }),
-            { eventCount: 0, totalDuration: 0, totalCommission: 0, totalRevenue: 0 }
+            { eventCount: 0, totalDuration: 0, totalCommission: 0, totalRevenue: 0 },
         );
     }, [filteredEvents]);
 
     // Group events by date
     const eventsByDate = useMemo(() => {
-        return filteredEvents.reduce((acc, event) => {
-            const dateKey = event.date.toDateString();
-            if (!acc[dateKey]) {
-                acc[dateKey] = { date: event.date, dateLabel: event.dateLabel, dayOfWeek: event.dayOfWeek, events: [] };
-            }
-            acc[dateKey].events.push(event);
-            return acc;
-        }, {} as Record<string, DateGroupType>);
+        return filteredEvents.reduce(
+            (acc, event) => {
+                const dateKey = event.date.toDateString();
+                if (!acc[dateKey]) {
+                    acc[dateKey] = { date: event.date, dateLabel: event.dateLabel, dayOfWeek: event.dayOfWeek, events: [] };
+                }
+                acc[dateKey].events.push(event);
+                return acc;
+            },
+            {} as Record<string, DateGroupType>,
+        );
     }, [filteredEvents]);
 
     // Convert grouped object to sorted array based on sort order
@@ -106,13 +117,24 @@ export function Timeline({ events, currency, formatCurrency, showTeacher = true,
             />
 
             {filteredEvents.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-muted-foreground">
-                    No events found
-                </div>
+                <div className="flex items-center justify-center h-32 text-muted-foreground">No events found</div>
             ) : (
-                <motion.div key="timeline" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                <motion.div
+                    key="timeline"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4"
+                >
                     {sortedDateGroups.map((dateGroup) => (
-                        <TimelineDateGroup key={dateGroup.date.toISOString()} dateGroup={dateGroup} currency={currency} formatCurrency={formatCurrency} showTeacher={showTeacher} showFinancials={showFinancials} />
+                        <TimelineDateGroup
+                            key={dateGroup.date.toISOString()}
+                            dateGroup={dateGroup}
+                            currency={currency}
+                            formatCurrency={formatCurrency}
+                            showTeacher={showTeacher}
+                            showFinancials={showFinancials}
+                        />
                     ))}
                 </motion.div>
             )}

@@ -29,7 +29,11 @@ export function SidebarSubmenu({ label, icon: Icon, children, defaultExpanded = 
     if (collapsed) {
         return (
             <>
-                <button onClick={toggleExpanded} className="flex items-center justify-center w-full p-2 rounded-lg transition-colors hover:bg-accent" title={label}>
+                <button
+                    onClick={toggleExpanded}
+                    className="flex items-center justify-center w-full p-2 rounded-lg transition-colors hover:bg-accent"
+                    title={label}
+                >
                     <Icon size={18} className={iconColor || "text-foreground"} />
                 </button>
 
@@ -57,9 +61,7 @@ export function SidebarSubmenu({ label, icon: Icon, children, defaultExpanded = 
             </button>
 
             {/* Content */}
-            {expanded && (
-                <ul className="mt-1 ml-2 pl-2 border-l border-border/50 space-y-0.5">{children}</ul>
-            )}
+            {expanded && <ul className="mt-1 ml-2 pl-2 border-l border-border/50 space-y-0.5">{children}</ul>}
         </li>
     );
 }

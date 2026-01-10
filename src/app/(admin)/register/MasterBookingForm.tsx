@@ -10,7 +10,13 @@ import { StudentsSection } from "./booking-sections/StudentsSection";
 import { ReferralSection } from "./booking-sections/ReferralSection";
 import { TeacherSection } from "./booking-sections/TeacherSection";
 
-type SectionId = "dates-section" | "package-section" | "students-section" | "referral-section" | "teacher-section" | "commission-section";
+type SectionId =
+    | "dates-section"
+    | "package-section"
+    | "students-section"
+    | "referral-section"
+    | "teacher-section"
+    | "commission-section";
 
 interface BookingFormProps {
     school: any;
@@ -18,10 +24,16 @@ interface BookingFormProps {
     students: any[];
     teachers: any[];
     referrals: any[];
-    studentStats?: Record<string, { bookingCount: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }>;
+    studentStats?: Record<
+        string,
+        { bookingCount: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }
+    >;
 }
 
-const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm({ school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps, ref) {
+const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm(
+    { school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps,
+    ref,
+) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const studentIdParam = searchParams.get("studentId");
@@ -33,11 +45,14 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     const { shouldOpenAllSections, setShouldOpenAllSections } = useShouldOpenSections();
 
     // Use context data (updated by refreshData) or fall back to props for initial load
-    const { currentStudents, currentTeachers, currentPackages } = useMemo(() => ({
-        currentStudents: contextData.students || students,
-        currentTeachers: contextData.teachers || teachers,
-        currentPackages: contextData.packages || schoolPackages,
-    }), [contextData.students, contextData.teachers, contextData.packages, students, teachers, schoolPackages]);
+    const { currentStudents, currentTeachers, currentPackages } = useMemo(
+        () => ({
+            currentStudents: contextData.students || students,
+            currentTeachers: contextData.teachers || teachers,
+            currentPackages: contextData.packages || schoolPackages,
+        }),
+        [contextData.students, contextData.teachers, contextData.packages, students, teachers, schoolPackages],
+    );
 
     useEffect(() => {
         console.log("[MasterBookingForm] data changed:", {
@@ -59,20 +74,54 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     // Local state for UI only
     const [error, setError] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
-        () => new Set(studentIdParam ? ["package-section", "teacher-section", "commission-section"] : ["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"])
+        () =>
+            new Set(
+                studentIdParam
+                    ? ["package-section", "teacher-section", "commission-section"]
+                    : [
+                          "dates-section",
+                          "package-section",
+                          "students-section",
+                          "referral-section",
+                          "teacher-section",
+                          "commission-section",
+                      ],
+            ),
     );
 
     // Expose resetSections via ref
-    useImperativeHandle(ref, () => ({
-        resetSections: () => {
-            setExpandedSections(new Set(["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"]));
-        },
-    }), []);
+    useImperativeHandle(
+        ref,
+        () => ({
+            resetSections: () => {
+                setExpandedSections(
+                    new Set([
+                        "dates-section",
+                        "package-section",
+                        "students-section",
+                        "referral-section",
+                        "teacher-section",
+                        "commission-section",
+                    ]),
+                );
+            },
+        }),
+        [],
+    );
 
     // Open all sections when booking is submitted
     useEffect(() => {
         if (shouldOpenAllSections) {
-            setExpandedSections(new Set(["dates-section", "package-section", "students-section", "referral-section", "teacher-section", "commission-section"]));
+            setExpandedSections(
+                new Set([
+                    "dates-section",
+                    "package-section",
+                    "students-section",
+                    "referral-section",
+                    "teacher-section",
+                    "commission-section",
+                ]),
+            );
             setShouldOpenAllSections(false);
         }
     }, [shouldOpenAllSections, setShouldOpenAllSections]);
@@ -86,7 +135,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     useEffect(() => {
         if (studentIdParam && selectedPackage && selectedPackage.capacityStudents !== 1) {
             // Find single-student packages
-            const singlePackage = currentPackages.find(pkg => pkg.capacityStudents === 1);
+            const singlePackage = currentPackages.find((pkg) => pkg.capacityStudents === 1);
             if (singlePackage) {
                 bookingForm.setForm({ selectedPackage: singlePackage });
             }
@@ -131,7 +180,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
             const queueItem = queues.teachers.find((item: any) => item.id === entityId);
-            const teacher = queueItem?.metadata || currentTeachers.find(t => t.id === entityId);
+            const teacher = queueItem?.metadata || currentTeachers.find((t) => t.id === entityId);
             if (teacher) {
                 bookingForm.setForm({ selectedTeacher: teacher });
                 if (extraId) {
@@ -145,7 +194,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             router.replace("/register", { scroll: false });
         } else if (entityType === "package") {
             const queueItem = queues.packages.find((item: any) => item.id === entityId);
-            const pkg = queueItem?.metadata || currentPackages.find(p => p.id === entityId);
+            const pkg = queueItem?.metadata || currentPackages.find((p) => p.id === entityId);
             if (pkg) {
                 bookingForm.setForm({ selectedPackage: pkg });
             }
@@ -155,7 +204,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     }, [addParam, isRefreshing, selectedStudentIds, currentTeachers, currentPackages, queues, removeFromQueue, router, bookingForm]);
 
     const selectedStudentsList = currentStudents
-        .map(ss => ss.student)
+        .map((ss) => ss.student)
         .filter((student: any) => selectedStudentIds.includes(student.id));
 
     const selectedStudents = selectedStudentsList;
@@ -247,7 +296,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         alert("Commission added! (Note: This is temporary - needs backend integration)");
     };
 
-
     return (
         <div className="space-y-6">
             <DateSection
@@ -301,9 +349,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             )}
 
             {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
-                    {error}
-                </div>
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">{error}</div>
             )}
         </div>
     );

@@ -17,17 +17,10 @@ export default function ClassboardHeaderStatsGrid({ stats }: { stats: DailyLesso
                 {STATS_GROUP_TOP.map((key) => {
                     const stat = displayStats[key];
                     return (
-                        <div
-                            key={key}
-                            className="flex items-center justify-center gap-2 py-2 px-3"
-                        >
+                        <div key={key} className="flex items-center justify-center gap-2 py-2 px-3">
                             <stat.Icon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground text-xs hidden lg:inline">
-                                {stat.label}
-                            </span>
-                            <span className="text-foreground font-semibold">
-                                {stat.value}
-                            </span>
+                            <span className="text-muted-foreground text-xs hidden lg:inline">{stat.label}</span>
+                            <span className="text-foreground font-semibold">{stat.value}</span>
                         </div>
                     );
                 })}
@@ -44,17 +37,10 @@ export default function ClassboardHeaderStatsGrid({ stats }: { stats: DailyLesso
                     const formatter = key === "duration" ? getHMDuration : getCompactNumber;
 
                     return (
-                        <div
-                            key={key}
-                            className="flex items-center justify-center gap-2 py-2 px-3"
-                        >
+                        <div key={key} className="flex items-center justify-center gap-2 py-2 px-3">
                             <stat.Icon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground text-xs hidden lg:inline">
-                                {stat.label}
-                            </span>
-                            <span className="text-foreground font-semibold">
-                                {formatter(stat.value)}
-                            </span>
+                            <span className="text-muted-foreground text-xs hidden lg:inline">{stat.label}</span>
+                            <span className="text-foreground font-semibold">{formatter(stat.value)}</span>
                         </div>
                     );
                 })}

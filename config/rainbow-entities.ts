@@ -66,7 +66,18 @@ export const RAINBOW_ENTITIES: EntityConfig[] = [
                 instagram: "string",
                 website: "string",
             },
-            rows: [["hostel", "Tarifa Kite Hostel", "Spain", "EUR", "+34 723 828 282", "abcshdd888", "@myfitskitetarifa", "tkhhostel.com"]],
+            rows: [
+                [
+                    "hostel",
+                    "Tarifa Kite Hostel",
+                    "Spain",
+                    "EUR",
+                    "+34 723 828 282",
+                    "abcshdd888",
+                    "@myfitskitetarifa",
+                    "tkhhostel.com",
+                ],
+            ],
         },
     },
     {

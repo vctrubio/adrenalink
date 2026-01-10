@@ -26,16 +26,16 @@ export function BrandSizeCategoryBadge({ id, model, size, className = "", icon: 
     );
 }
 
-export function BrandSizeCategoryList({ 
-    equipments, 
-    emptyLabel = "N/A", 
+export function BrandSizeCategoryList({
+    equipments,
+    emptyLabel = "N/A",
     className = "",
-    showIcon = false 
-}: { 
-    equipments?: { id: string; model: string; size: number | null; icon?: React.ComponentType<any> }[], 
-    emptyLabel?: string, 
-    className?: string,
-    showIcon?: boolean
+    showIcon = false,
+}: {
+    equipments?: { id: string; model: string; size: number | null; icon?: React.ComponentType<any> }[];
+    emptyLabel?: string;
+    className?: string;
+    showIcon?: boolean;
 }) {
     if (!equipments || equipments.length === 0) {
         return <span className="text-zinc-400 text-[10px] font-bold">{emptyLabel}</span>;
@@ -44,19 +44,19 @@ export function BrandSizeCategoryList({
     return (
         <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
             {equipments.map((eq, i) => (
-                <BrandSizeCategoryBadge 
-                    key={i} 
-                    id={eq.id} 
-                    model={eq.model} 
-                    size={eq.size} 
-                    icon={showIcon ? eq.icon : undefined}
-                />
+                <BrandSizeCategoryBadge key={i} id={eq.id} model={eq.model} size={eq.size} icon={showIcon ? eq.icon : undefined} />
             ))}
         </div>
     );
 }
 
-export function BrandSizeCategoryListHorizontal({ equipments, className = "" }: { equipments?: { id: string; model: string; size: number | null }[], className?: string }) {
+export function BrandSizeCategoryListHorizontal({
+    equipments,
+    className = "",
+}: {
+    equipments?: { id: string; model: string; size: number | null }[];
+    className?: string;
+}) {
     if (!equipments || equipments.length === 0) return null;
 
     return (
@@ -64,14 +64,8 @@ export function BrandSizeCategoryListHorizontal({ equipments, className = "" }: 
             {equipments.map((eq, i) => (
                 <Link key={i} href={`/equipments/${eq.id}`} onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer">
-                        <span className="text-purple-700 dark:text-purple-300 font-bold text-[9px] uppercase">
-                            {eq.model}
-                        </span>
-                        {eq.size && (
-                            <span className="text-purple-600 dark:text-purple-400 font-black text-[9px]">
-                                {eq.size}
-                            </span>
-                        )}
+                        <span className="text-purple-700 dark:text-purple-300 font-bold text-[9px] uppercase">{eq.model}</span>
+                        {eq.size && <span className="text-purple-600 dark:text-purple-400 font-black text-[9px]">{eq.size}</span>}
                     </div>
                 </Link>
             ))}

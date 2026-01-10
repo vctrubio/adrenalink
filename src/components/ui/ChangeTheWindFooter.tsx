@@ -17,17 +17,17 @@ interface ChangeTheWindFooterProps {
     registerUrl?: string;
 }
 
-export function ChangeTheWindFooter({ 
-    showFooter, 
-    isStarting, 
-    onGetStarted, 
+export function ChangeTheWindFooter({
+    showFooter,
+    isStarting,
+    onGetStarted,
     variant = "primary",
     extraActions,
     getStartedUrl,
-    registerUrl = "/"
+    registerUrl = "/",
 }: ChangeTheWindFooterProps) {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
-    
+
     const accentTextClass = variant === "primary" ? "group-hover:text-primary" : "group-hover:text-secondary";
 
     return (
@@ -51,11 +51,15 @@ export function ChangeTheWindFooter({
                                 onMouseLeave={() => setIsButtonHovered(false)}
                                 className="px-6 py-3 rounded-full border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors font-medium flex items-center gap-3"
                             >
-                                <SpinAdranalink isSpinning={isStarting || isButtonHovered} duration={isStarting ? 0.3 : 0.8} size={20} />
+                                <SpinAdranalink
+                                    isSpinning={isStarting || isButtonHovered}
+                                    duration={isStarting ? 0.3 : 0.8}
+                                    size={20}
+                                />
                                 <span>Get Started</span>
                             </Link>
 
-                            <Link 
+                            <Link
                                 href={registerUrl}
                                 className="cursor-pointer transition-all group flex items-center gap-3 text-muted-foreground hover:text-foreground"
                             >

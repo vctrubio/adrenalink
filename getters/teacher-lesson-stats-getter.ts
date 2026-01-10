@@ -1,5 +1,3 @@
-
-
 import type { TeacherModel } from "@/backend/models";
 import { getPrettyDuration } from "@/getters/duration-getter";
 import { prettyDateSpan } from "@/getters/date-getter";
@@ -29,9 +27,9 @@ export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStats
         const booking = lesson.booking;
         const schoolPackage = booking?.studentPackage?.schoolPackage;
         const studentCount = booking?.bookingStudents?.length || 0;
-        
-        const commissionModel = teacher.relations?.commissions?.find(c => c.id === lesson.commissionId);
-        
+
+        const commissionModel = teacher.relations?.commissions?.find((c) => c.id === lesson.commissionId);
+
         const durationMinutes = events.reduce((acc, event) => acc + (event.duration || 0), 0);
         const durationHours = durationMinutes / 60;
 
@@ -43,7 +41,7 @@ export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStats
                 schoolPackage.pricePerStudent,
                 studentCount,
                 durationMinutes,
-                schoolPackage.durationMinutes
+                schoolPackage.durationMinutes,
             );
 
             const commissionInfo: CommissionInfo = {
@@ -51,17 +49,12 @@ export function getTeacherLessonStats(teacher: TeacherModel): TeacherLessonStats
                 cph: commissionModel.cph,
             };
 
-            const calculation = calculateCommission(
-                durationMinutes,
-                commissionInfo,
-                lessonRevenue,
-                schoolPackage.durationMinutes
-            );
+            const calculation = calculateCommission(durationMinutes, commissionInfo, lessonRevenue, schoolPackage.durationMinutes);
 
             moneyToPay = calculation.earned;
             formula = `${calculation.commissionRate} × ${calculation.hours} = ${calculation.earnedDisplay}`;
         }
-        
+
         // NOTE: moneyPaid logic will depend on how payments are associated with lessons.
         // This is a placeholder.
         const moneyPaid = 0;

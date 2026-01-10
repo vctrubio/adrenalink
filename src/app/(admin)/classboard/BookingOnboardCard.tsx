@@ -25,10 +25,7 @@ interface BookingOnboardCardProps {
     onClick?: () => void;
 }
 
-export default function BookingOnboardCard({
-    bookingData,
-    onClick
-}: BookingOnboardCardProps) {
+export default function BookingOnboardCard({ bookingData, onClick }: BookingOnboardCardProps) {
     const { booking, schoolPackage, lessons, bookingStudents } = bookingData;
     const studentCount = bookingStudents.length;
 
@@ -46,13 +43,13 @@ export default function BookingOnboardCard({
 
     // Enrich events with teacher and lesson info for the dropdown context
     const allEventsWithContext = useMemo(() => {
-        return lessons.flatMap(lesson => 
-            (lesson.events || []).map(event => ({
+        return lessons.flatMap((lesson) =>
+            (lesson.events || []).map((event) => ({
                 ...event,
                 teacher: lesson.teacher,
                 lessonStatus: lesson.status,
-                lessonId: lesson.id
-            }))
+                lessonId: lesson.id,
+            })),
         );
     }, [lessons]);
 
@@ -73,7 +70,7 @@ export default function BookingOnboardCard({
         const duration = event.duration || 0;
         const durationHours = duration / 60;
         const pricePerStudent = schoolPackage.pricePerStudent || 0;
-        return sum + (pricePerStudent * studentCount * durationHours);
+        return sum + pricePerStudent * studentCount * durationHours;
     }, 0);
 
     const capacityEquipment = schoolPackage.capacityEquipment || 1;
@@ -87,32 +84,36 @@ export default function BookingOnboardCard({
         if (success) {
             // Also mark the event as completed when equipment is assigned
             await updateEventStatus(eventId, "completed");
-            
-            setLocalEvents(prev => prev.map(evt => {
-                if (evt.id === eventId) {
-                    return {
-                        ...evt,
-                        status: "completed",
-                        equipments: [...(evt.equipments || []), equipment]
-                    };
-                }
-                return evt;
-            }));
+
+            setLocalEvents((prev) =>
+                prev.map((evt) => {
+                    if (evt.id === eventId) {
+                        return {
+                            ...evt,
+                            status: "completed",
+                            equipments: [...(evt.equipments || []), equipment],
+                        };
+                    }
+                    return evt;
+                }),
+            );
         }
     };
 
     const handleUnassign = async (eventId: string, equipmentId: string) => {
         const success = await unassign(eventId, equipmentId);
         if (success) {
-            setLocalEvents(prev => prev.map(evt => {
-                if (evt.id === eventId) {
-                    return {
-                        ...evt,
-                        equipments: (evt.equipments || []).filter((eq: any) => eq.id !== equipmentId)
-                    };
-                }
-                return evt;
-            }));
+            setLocalEvents((prev) =>
+                prev.map((evt) => {
+                    if (evt.id === eventId) {
+                        return {
+                            ...evt,
+                            equipments: (evt.equipments || []).filter((eq: any) => eq.id !== equipmentId),
+                        };
+                    }
+                    return evt;
+                }),
+            );
         }
     };
 
@@ -129,9 +130,7 @@ export default function BookingOnboardCard({
                     <div className="flex-shrink-0" style={{ color: STUDENT_COLOR }}>
                         <HelmetIcon size={24} />
                     </div>
-                    <span className="text-lg font-bold text-foreground truncate">
-                        {booking.leaderStudentName.split(" ")[0]}
-                    </span>
+                    <span className="text-lg font-bold text-foreground truncate">{booking.leaderStudentName.split(" ")[0]}</span>
                     {studentCount > 1 && (
                         <span className="text-[10px] bg-foreground/5 px-1.5 py-0.5 rounded-md text-muted-foreground font-black shrink-0">
                             +{studentCount - 1}
@@ -157,7 +156,9 @@ export default function BookingOnboardCard({
                                             <span className="font-bold text-[#16a34a]">{event.teacher.username}</span>
                                             <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                                                 <FlagIcon size={12} className="opacity-70" />
-                                                <span className="translate-y-[0.5px]">{event.date.split('T')[1]?.substring(0, 5) || "--:--"}</span>
+                                                <span className="translate-y-[0.5px]">
+                                                    {event.date.split("T")[1]?.substring(0, 5) || "--:--"}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
                                                 <DurationIcon size={12} className="opacity-70" />
@@ -167,7 +168,7 @@ export default function BookingOnboardCard({
                                     ) as any,
                                     icon: HeadsetIcon,
                                     color: "#16a34a", // Teacher Green
-                                    disabled: true
+                                    disabled: true,
                                 },
                                 // Already assigned equipment
                                 ...assignedEquipments.map((eq: any) => ({
@@ -179,27 +180,35 @@ export default function BookingOnboardCard({
                                     onClick: (e?: React.MouseEvent) => {
                                         e?.stopPropagation();
                                         handleUnassign(event.id, eq.id);
-                                    }
+                                    },
                                 })),
                                 // Available equipment (prioritizing teacher-preferred gear)
                                 ...[...availableEquipment]
-                                    .filter(eq => !assignedEquipments.some((ae: any) => ae.id === eq.id))
+                                    .filter((eq) => !assignedEquipments.some((ae: any) => ae.id === eq.id))
                                     .sort((a, b) => {
                                         const teacherId = event.teacher.id;
-                                        const aPreferred = teacherId && a.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
-                                        const bPreferred = teacherId && b.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
+                                        const aPreferred =
+                                            teacherId && a.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
+                                        const bPreferred =
+                                            teacherId && b.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
                                         if (aPreferred && !bPreferred) return -1;
                                         if (!aPreferred && bPreferred) return 1;
                                         return 0;
                                     })
-                                    .map(eq => {
+                                    .map((eq) => {
                                         const teacherId = event.teacher.id;
-                                        const isPreferred = teacherId && eq.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
+                                        const isPreferred =
+                                            teacherId && eq.teacher_equipment?.some((te: any) => te.teacher_id === teacherId);
                                         return {
                                             id: eq.id,
                                             label: (
-                                                <div className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50 pb-0.5" : ""}`}>
-                                                    <span className="font-bold text-foreground/90">{eq.brand} {eq.model}{eq.size ? ` (${eq.size})` : ""}</span>
+                                                <div
+                                                    className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50 pb-0.5" : ""}`}
+                                                >
+                                                    <span className="font-bold text-foreground/90">
+                                                        {eq.brand} {eq.model}
+                                                        {eq.size ? ` (${eq.size})` : ""}
+                                                    </span>
                                                 </div>
                                             ) as any,
                                             description: `SKU: ${eq.sku}${eq.color ? ` • ${eq.color}` : ""}`,
@@ -208,14 +217,14 @@ export default function BookingOnboardCard({
                                             onClick: (e?: React.MouseEvent) => {
                                                 e?.stopPropagation();
                                                 handleAssign(event.id, eq);
-                                            }
+                                            },
                                         };
-                                    })
+                                    }),
                             ];
 
                             return (
                                 <div key={event.id} className="relative">
-                                    <div 
+                                    <div
                                         ref={(el) => {
                                             if (el) triggerRefs.current.set(event.id, el);
                                             else triggerRefs.current.delete(event.id);
@@ -225,19 +234,19 @@ export default function BookingOnboardCard({
                                             setActiveEventId(isActive ? null : event.id);
                                         }}
                                         className={`flex items-center transition-all p-1 rounded hover:bg-muted/50 ${isActive ? "scale-110 bg-muted/80 ring-1 ring-border" : "hover:scale-110"}`}
-                                        style={{ 
-                                            color: hasEquipment ? (equipmentConfig?.color || "inherit") : "rgb(var(--muted-foreground))",
-                                            opacity: hasEquipment ? 1 : 0.3
+                                        style={{
+                                            color: hasEquipment ? equipmentConfig?.color || "inherit" : "rgb(var(--muted-foreground))",
+                                            opacity: hasEquipment ? 1 : 0.3,
                                         }}
                                     >
                                         {EquipmentIcon && <EquipmentIcon size={18} />}
                                     </div>
 
                                     {isActive && (
-                                        <Dropdown 
-                                            isOpen={isActive} 
-                                            onClose={() => setActiveEventId(null)} 
-                                            items={dropdownItems} 
+                                        <Dropdown
+                                            isOpen={isActive}
+                                            onClose={() => setActiveEventId(null)}
+                                            items={dropdownItems}
                                             align="right"
                                             triggerRef={{ current: triggerRefs.current.get(event.id) || null }}
                                         />
@@ -248,15 +257,15 @@ export default function BookingOnboardCard({
                     </div>
 
                     {totalRevenue > 0 && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: 50 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ 
+                            transition={{
                                 type: "spring",
                                 stiffness: 80,
                                 damping: 12,
                                 mass: 1,
-                                duration: 1.2
+                                duration: 1.2,
                             }}
                             className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400"
                         >

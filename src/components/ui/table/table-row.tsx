@@ -16,15 +16,17 @@ export function TableRow({ children, onClick, isSelected = false, selectedColor,
     return (
         <tr
             onClick={onClick}
-            className={`border-b border-border hover:bg-muted/30 transition-colors ${
-                onClick ? "cursor-pointer" : ""
-            } ${
+            className={`border-b border-border hover:bg-muted/30 transition-colors ${onClick ? "cursor-pointer" : ""} ${
                 isSelected ? "border-l-4" : ""
             } ${className}`}
-            style={isSelected ? {
-                backgroundColor: `${borderColor}10`,
-                borderLeftColor: borderColor
-            } : undefined}
+            style={
+                isSelected
+                    ? {
+                          backgroundColor: `${borderColor}10`,
+                          borderLeftColor: borderColor,
+                      }
+                    : undefined
+            }
         >
             {children}
         </tr>

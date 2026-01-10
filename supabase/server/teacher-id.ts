@@ -18,7 +18,8 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
         // Fetch teacher with core relations
         const { data: teacher, error: teacherError } = await supabase
             .from("teacher")
-            .select(`
+            .select(
+                `
                 *,
                 teacher_commission(*),
                 lesson(
@@ -35,7 +36,8 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                     *,
                     equipment(*)
                 )
-            `)
+            `,
+            )
             .eq("id", id)
             .eq("school_id", schoolHeader.id)
             .single();
@@ -53,7 +55,7 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                 teacher_commission: l.teacher_commission,
                 booking: l.booking,
                 event: l.event || [],
-                teacher_lesson_payment: l.teacher_lesson_payment || []
+                teacher_lesson_payment: l.teacher_lesson_payment || [],
             })),
             teacher_equipment: teacher.teacher_equipment || [],
         };

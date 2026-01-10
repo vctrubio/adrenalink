@@ -7,7 +7,8 @@ import type { StudentPackageModel } from "@/backend/models";
 export const StudentPackageStats = {
     getRevenue: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_in || 0,
     getExpenses: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_out || 0,
-    getProfit: (studentPackage: StudentPackageModel): number => StudentPackageStats.getRevenue(studentPackage) - StudentPackageStats.getExpenses(studentPackage),
+    getProfit: (studentPackage: StudentPackageModel): number =>
+        StudentPackageStats.getRevenue(studentPackage) - StudentPackageStats.getExpenses(studentPackage),
 };
 
 // ============ UTILITY FUNCTIONS ============
@@ -23,9 +24,14 @@ export function getPackageDescription(studentPackage: StudentPackageModel): stri
 
 export function getStudentNames(studentPackage: StudentPackageModel): string {
     const studentPackageStudents = studentPackage.relations?.studentPackageStudents || [];
-    return studentPackageStudents.map(sps => {
-        const student = sps.student;
-        if (!student) return null;
-        return `${student.firstName} ${student.lastName}`;
-    }).filter(Boolean).join(", ") || "No students";
+    return (
+        studentPackageStudents
+            .map((sps) => {
+                const student = sps.student;
+                if (!student) return null;
+                return `${student.firstName} ${student.lastName}`;
+            })
+            .filter(Boolean)
+            .join(", ") || "No students"
+    );
 }

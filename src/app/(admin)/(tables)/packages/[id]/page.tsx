@@ -20,28 +20,28 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
     const packageData: PackageData = result.data;
 
     const stats: TableStat[] = [
-        { 
-            type: "package", 
-            value: packageData.schema.description, 
-            desc: "Package Name" 
+        {
+            type: "package",
+            value: packageData.schema.description,
+            desc: "Package Name",
         },
-        { 
-            type: "bookings", 
-            value: PackageTableGetters.getBookingCount(packageData), 
-            label: "Bookings", 
-            desc: "Total bookings" 
+        {
+            type: "bookings",
+            value: PackageTableGetters.getBookingCount(packageData),
+            label: "Bookings",
+            desc: "Total bookings",
         },
-        { 
-            type: "requests", 
-            value: PackageTableGetters.getRequestCount(packageData), 
-            label: "Requests", 
-            desc: "Total requests" 
+        {
+            type: "requests",
+            value: PackageTableGetters.getRequestCount(packageData),
+            label: "Requests",
+            desc: "Total requests",
         },
-        { 
-            type: "revenue", 
-            value: PackageTableGetters.getRevenue(packageData), 
-            desc: "Total revenue" 
-        }
+        {
+            type: "revenue",
+            value: PackageTableGetters.getRevenue(packageData),
+            desc: "Total revenue",
+        },
     ];
 
     return (

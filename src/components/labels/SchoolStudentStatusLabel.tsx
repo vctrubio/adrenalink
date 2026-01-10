@@ -23,19 +23,19 @@ export function SchoolStudentStatusLabel({ studentId, status, description }: Sch
 
     const handleStatusChange = async (newStatus: SchoolStudentStatus) => {
         if (newStatus === status) return;
-        
+
         setIsPending(true);
         setIsOpen(false);
-        
+
         const isActive = newStatus === "active";
         const result = await updateSchoolStudentStatus(studentId, isActive);
-        
+
         if (result.success) {
             toast.success(`Student marked as ${newStatus}`);
         } else {
             toast.error(result.error || "Failed to update status");
         }
-        
+
         setIsPending(false);
     };
 
@@ -56,20 +56,14 @@ export function SchoolStudentStatusLabel({ studentId, status, description }: Sch
                 style={{
                     backgroundColor: `${config.color}15`,
                     color: config.color,
-                    borderColor: `${config.color}30`
+                    borderColor: `${config.color}30`,
                 }}
             >
                 <span className="truncate max-w-[150px]">{displayLabel}</span>
                 <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
             </button>
 
-            <Dropdown
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                items={dropdownItems}
-                triggerRef={triggerRef}
-                align="right"
-            />
+            <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} items={dropdownItems} triggerRef={triggerRef} align="right" />
         </div>
     );
 }

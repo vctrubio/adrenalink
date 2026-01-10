@@ -8,9 +8,5 @@ interface TableCellProps {
 }
 
 export function TableCell({ children, className = "" }: TableCellProps) {
-    return (
-        <td className={`p-3 ${className}`}>
-            {children}
-        </td>
-    );
+    return <td className={`p-3 ${className}`}>{children}</td>;
 }

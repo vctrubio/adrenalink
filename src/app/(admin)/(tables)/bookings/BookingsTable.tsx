@@ -33,7 +33,11 @@ const HEADER_CLASSES = {
 export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
-    const { filteredRows: filteredBookings, masterTableGroupBy, getGroupKey } = useTableLogic({
+    const {
+        filteredRows: filteredBookings,
+        masterTableGroupBy,
+        getGroupKey,
+    } = useTableLogic({
         data: bookings,
         filterSearch: filterBookings,
         filterStatus: (booking, status) => {
@@ -41,7 +45,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             if (status === "Inactive") return booking.booking.status !== "active";
             return true;
         },
-        dateField: (row) => row.booking.dateStart
+        dateField: (row) => row.booking.dateStart,
     });
 
     const calculateStats = (groupRows: BookingTableData[]): GroupStats => {
@@ -66,7 +70,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                     totalTeacherCommissions: acc.totalTeacherCommissions + teacherCommissions,
                     totalProfit: acc.totalProfit + balance,
                     completedCount: acc.completedCount + bookingEvents,
-                    categoryStats: { ...acc.categoryStats }
+                    categoryStats: { ...acc.categoryStats },
                 };
 
                 // Aggregate category stats
@@ -78,7 +82,18 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
 
                 return newStats;
             },
-            { totalDuration: 0, eventCount: 0, completedCount: 0, studentCount: 0, totalEventRevenue: 0, totalStudentPayments: 0, totalTeacherPayments: 0, totalTeacherCommissions: 0, totalProfit: 0, categoryStats: {} as Record<string, { count: number }> },
+            {
+                totalDuration: 0,
+                eventCount: 0,
+                completedCount: 0,
+                studentCount: 0,
+                totalEventRevenue: 0,
+                totalStudentPayments: 0,
+                totalTeacherPayments: 0,
+                totalTeacherCommissions: 0,
+                totalProfit: 0,
+                categoryStats: {} as Record<string, { count: number }>,
+            },
         );
     };
 
@@ -87,19 +102,26 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             <StatItemUI type="bookings" value={stats.eventCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="events" value={stats.completedCount} hideLabel={hideLabel} iconColor={false} />
-            
+
             {/* Category Breakdowns */}
-            {!hideLabel && Object.entries(stats.categoryStats as Record<string, { count: number }>).map(([catId, stat]) => {
-                const config = EQUIPMENT_CATEGORIES.find(c => c.id === catId);
-                const Icon = config?.icon || Calendar; 
-                
-                return (
-                    <div key={catId} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity" title={`${config?.label || catId} Events`}>
-                        <span className="text-muted-foreground"><Icon size={12} /></span>
-                        <span className="tabular-nums text-xs font-bold text-foreground">{stat.count}</span>
-                    </div>
-                );
-            })}
+            {!hideLabel &&
+                Object.entries(stats.categoryStats as Record<string, { count: number }>).map(([catId, stat]) => {
+                    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === catId);
+                    const Icon = config?.icon || Calendar;
+
+                    return (
+                        <div
+                            key={catId}
+                            className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity"
+                            title={`${config?.label || catId} Events`}
+                        >
+                            <span className="text-muted-foreground">
+                                <Icon size={12} />
+                            </span>
+                            <span className="tabular-nums text-xs font-bold text-foreground">{stat.count}</span>
+                        </div>
+                    );
+                })}
 
             <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="revenue" value={stats.totalEventRevenue} hideLabel={hideLabel} variant="primary" iconColor={false} />
@@ -126,11 +148,11 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const start = new Date(data.booking.dateStart);
                 const end = new Date(data.booking.dateEnd);
                 const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                const formattedDate = start.toLocaleDateString("en-US", { month: 'short', day: 'numeric' });
+                const formattedDate = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
                 return (
                     <div className="flex items-center gap-2">
-                        <Link 
+                        <Link
                             href={`/bookings/${data.booking.id}`}
                             className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] hover:text-blue-600 transition-colors font-bold"
                         >
@@ -153,13 +175,17 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-orange-900/80 dark:text-orange-100/80 italic truncate max-w-[200px]">{data.package.description}</span>
+                    <span className="font-medium text-orange-900/80 dark:text-orange-100/80 italic truncate max-w-[200px]">
+                        {data.package.description}
+                    </span>
                     <EquipmentStudentPackagePriceBadge
                         categoryEquipment={data.package.categoryEquipment}
                         equipmentCapacity={data.package.capacityEquipment}
                         studentCapacity={data.package.capacityStudents}
                         packageDurationHours={data.package.durationMinutes / 60}
-                        pricePerHour={data.package.durationMinutes > 0 ? data.package.pricePerStudent / (data.package.durationMinutes / 60) : 0}
+                        pricePerHour={
+                            data.package.durationMinutes > 0 ? data.package.pricePerStudent / (data.package.durationMinutes / 60) : 0
+                        }
                     />
                 </div>
             ),
@@ -191,9 +217,28 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex items-center gap-4">
-                        <StatItemUI type="payments" value={data.stats.events.revenue} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI
+                            type="payments"
+                            value={data.stats.events.revenue}
+                            labelOverride="Revenue"
+                            iconColor={true}
+                            hideLabel={true}
+                            desc={`Revenue for ${data.booking.leaderStudentName}`}
+                        />
+                        <StatItemUI
+                            type="commission"
+                            value={data.stats.commissions}
+                            iconColor={true}
+                            hideLabel={true}
+                            desc="Teacher Commissions"
+                        />
+                        <StatItemUI
+                            type={balance >= 0 ? "profit" : "loss"}
+                            value={Math.abs(balance)}
+                            iconColor={true}
+                            hideLabel={true}
+                            desc={balance >= 0 ? "Total Profit" : "Total Deficit"}
+                        />
                     </div>
                 );
             },
@@ -204,7 +249,10 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             render: (data) => {
                 const statusConfig = BOOKING_STATUS_CONFIG[data.booking.status as BookingStatus];
                 return statusConfig ? (
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}>
+                    <div
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter"
+                        style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
+                    >
                         {data.booking.status === "completed" && <Check size={10} strokeWidth={4} />}
                         {statusConfig.label}
                     </div>
@@ -221,13 +269,13 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const start = new Date(data.booking.dateStart);
                 const end = new Date(data.booking.dateEnd);
                 const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                const formattedDate = start.toLocaleDateString("en-US", { month: 'short', day: 'numeric' });
+                const formattedDate = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
                 return (
                     <div className="flex flex-col gap-1 items-start">
                         <div className="flex items-center gap-2">
-                            <Link 
-                                href={`/bookings/${data.booking.id}`} 
+                            <Link
+                                href={`/bookings/${data.booking.id}`}
                                 className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-bold"
                             >
                                 {formattedDate}
@@ -250,7 +298,12 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 <div className="flex flex-col gap-1.5">
                     {data.lessons.map((lesson) => (
                         <div key={lesson.id} className="scale-90 origin-left">
-                            <TeacherLessonStatsBadge teacherId={lesson.teacherId} teacherUsername={lesson.teacherUsername} eventCount={lesson.events.totalCount} durationMinutes={lesson.events.totalDuration} />
+                            <TeacherLessonStatsBadge
+                                teacherId={lesson.teacherId}
+                                teacherUsername={lesson.teacherUsername}
+                                eventCount={lesson.events.totalCount}
+                                durationMinutes={lesson.events.totalDuration}
+                            />
                         </div>
                     ))}
                 </div>
@@ -263,9 +316,28 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                 const balance = data.stats.balance;
                 return (
                     <div className="flex flex-col gap-1 scale-90 origin-right items-end">
-                        <StatItemUI type="payments" value={data.stats.events.revenue} labelOverride="Revenue" iconColor={true} hideLabel={true} desc={`Revenue for ${data.booking.leaderStudentName}`} />
-                        <StatItemUI type="commission" value={data.stats.commissions} iconColor={true} hideLabel={true} desc="Teacher Commissions" />
-                        <StatItemUI type={balance >= 0 ? "profit" : "loss"} value={Math.abs(balance)} iconColor={true} hideLabel={true} desc={balance >= 0 ? "Total Profit" : "Total Deficit"} />
+                        <StatItemUI
+                            type="payments"
+                            value={data.stats.events.revenue}
+                            labelOverride="Revenue"
+                            iconColor={true}
+                            hideLabel={true}
+                            desc={`Revenue for ${data.booking.leaderStudentName}`}
+                        />
+                        <StatItemUI
+                            type="commission"
+                            value={data.stats.commissions}
+                            iconColor={true}
+                            hideLabel={true}
+                            desc="Teacher Commissions"
+                        />
+                        <StatItemUI
+                            type={balance >= 0 ? "profit" : "loss"}
+                            value={Math.abs(balance)}
+                            iconColor={true}
+                            hideLabel={true}
+                            desc={balance >= 0 ? "Total Profit" : "Total Deficit"}
+                        />
                     </div>
                 );
             },
@@ -273,16 +345,16 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
     ];
 
     return (
-        <MasterTable 
-            rows={filteredBookings} 
-            columns={desktopColumns} 
-            mobileColumns={mobileColumns} 
-            getGroupKey={getGroupKey} 
-            calculateStats={calculateStats} 
-            renderGroupHeader={renderGroupHeader} 
-            renderMobileGroupHeader={renderMobileGroupHeader} 
+        <MasterTable
+            rows={filteredBookings}
+            columns={desktopColumns}
+            mobileColumns={mobileColumns}
+            getGroupKey={getGroupKey}
+            calculateStats={calculateStats}
+            renderGroupHeader={renderGroupHeader}
+            renderMobileGroupHeader={renderMobileGroupHeader}
             groupBy={masterTableGroupBy}
-            showGroupToggle={false} 
+            showGroupToggle={false}
         />
     );
 }

@@ -16,11 +16,7 @@ export function ForTeachers() {
 
                 <div className="flex justify-center">
                     <div className="w-full max-w-sm">
-                        <FeatureCard
-                            title="Get to know more..."
-                            link="/discover"
-                            icon={<AnimatedWindIcon />}
-                        />
+                        <FeatureCard title="Get to know more..." link="/discover" icon={<AnimatedWindIcon />} />
                     </div>
                 </div>
             </div>
@@ -40,14 +36,11 @@ function AnimatedWindIcon() {
     );
 }
 
-
 function FeatureCard({ title, icon, link }: { title: string; icon: React.ReactNode; link?: string }) {
     const content = (
         <div className="flex flex-col items-center text-center space-y-6 h-full">
-            <div>
-                {icon}
-            </div>
-             <h4 className="text-lg font-bold text-slate-400 uppercase tracking-wide">{title}</h4>
+            <div>{icon}</div>
+            <h4 className="text-lg font-bold text-slate-400 uppercase tracking-wide">{title}</h4>
         </div>
     );
 
@@ -58,6 +51,6 @@ function FeatureCard({ title, icon, link }: { title: string; icon: React.ReactNo
             </Link>
         );
     }
-    
+
     return <div className="w-full">{content}</div>;
 }

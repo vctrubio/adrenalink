@@ -11,13 +11,13 @@ import EquipmentIcon from "../public/appSvgs/EquipmentIcon.jsx";
 import PackageIcon from "../public/appSvgs/PackageIcon.jsx";
 
 export const TEAM_COLORS: Record<string, { fill: string; hoverFill: string }> = {
-    "grey": { fill: "#9ca3af", hoverFill: "#6b7280" },
-    "yellow": { fill: "#eab308", hoverFill: "#ca8a04" },
-    "green": { fill: "#4ade80", hoverFill: "#22c55e" },
-    "blue": { fill: "#93c5fd", hoverFill: "#3b82f6" },
-    "purple": { fill: "#c084fc", hoverFill: "#a855f7" },
-    "orange": { fill: "#fb923c", hoverFill: "#f97316" },
-    "red": { fill: "#ef4444", hoverFill: "#dc2626" },
+    grey: { fill: "#9ca3af", hoverFill: "#6b7280" },
+    yellow: { fill: "#eab308", hoverFill: "#ca8a04" },
+    green: { fill: "#4ade80", hoverFill: "#22c55e" },
+    blue: { fill: "#93c5fd", hoverFill: "#3b82f6" },
+    purple: { fill: "#c084fc", hoverFill: "#a855f7" },
+    orange: { fill: "#fb923c", hoverFill: "#f97316" },
+    red: { fill: "#ef4444", hoverFill: "#dc2626" },
 };
 
 export interface TeamEntity {

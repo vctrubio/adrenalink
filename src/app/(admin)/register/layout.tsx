@@ -3,6 +3,8 @@ import { getRegisterTables, type RegisterTables } from "@/supabase/server/regist
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { RegisterProvider } from "./RegisterContext";
 
+export const dynamic = "force-dynamic";
+
 interface RegisterLayoutProps {
     children: ReactNode;
 }
@@ -16,10 +18,7 @@ async function refreshRegisterData(): Promise<RegisterTables> {
 
 export default async function Layout({ children }: RegisterLayoutProps) {
     // Fetch credentials and register tables
-    const [credentialsResult, registerResult] = await Promise.all([
-        getSchoolCredentials(),
-        getRegisterTables(),
-    ]);
+    const [credentialsResult, registerResult] = await Promise.all([getSchoolCredentials(), getRegisterTables()]);
 
     if (!credentialsResult) {
         return (

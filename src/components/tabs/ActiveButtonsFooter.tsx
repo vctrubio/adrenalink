@@ -19,7 +19,15 @@ interface ActiveButtonsFooterProps {
     bookingStatus: string;
 }
 
-const AddEventButton = ({ lessons, onAddLessonEvent, loadingLessonId }: { lessons: ClassboardLesson[]; onAddLessonEvent?: (teacherUsername: string) => void; loadingLessonId?: string | null }) => {
+const AddEventButton = ({
+    lessons,
+    onAddLessonEvent,
+    loadingLessonId,
+}: {
+    lessons: ClassboardLesson[];
+    onAddLessonEvent?: (teacherUsername: string) => void;
+    loadingLessonId?: string | null;
+}) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     if (!onAddLessonEvent || lessons.length === 0) return null;
@@ -73,7 +81,13 @@ const AddEventButton = ({ lessons, onAddLessonEvent, loadingLessonId }: { lesson
                 {loadingLessonId ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                 <span>Event</span>
             </button>
-            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="left" className="bottom-full mb-2" />
+            <Dropdown
+                isOpen={isDropdownOpen}
+                onClose={() => setIsDropdownOpen(false)}
+                items={dropdownItems}
+                align="left"
+                className="bottom-full mb-2"
+            />
         </div>
     );
 };
@@ -119,12 +133,24 @@ const SettingsButton = ({ bookingStatus }: { bookingStatus: string }) => {
             >
                 <Settings size={16} />
             </button>
-            <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="right" className="bottom-full mb-2" />
+            <Dropdown
+                isOpen={isDropdownOpen}
+                onClose={() => setIsDropdownOpen(false)}
+                items={dropdownItems}
+                align="right"
+                className="bottom-full mb-2"
+            />
         </div>
     );
 };
 
-export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, loadingLessonId, bookingStatus }: ActiveButtonsFooterProps) => {
+export const ActiveButtonsFooter = ({
+    bookingId,
+    lessons,
+    onAddLessonEvent,
+    loadingLessonId,
+    bookingStatus,
+}: ActiveButtonsFooterProps) => {
     const router = useRouter();
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
@@ -134,10 +160,8 @@ export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, load
             if (result.success) {
                 router.refresh();
             } else {
-
             }
-        } catch (error) {
-        }
+        } catch (error) {}
     };
 
     return (
@@ -151,7 +175,12 @@ export const ActiveButtonsFooter = ({ bookingId, lessons, onAddLessonEvent, load
                     <SettingsButton bookingStatus={bookingStatus} />
                 </div>
             </div>
-            <LinkTeacherLessonToBookingModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} existingTeacherUsernames={lessons.map((l) => l.teacher.username)} onAssignTeacher={handleAssignTeacherToBooking} />
+            <LinkTeacherLessonToBookingModal
+                isOpen={isAssignModalOpen}
+                onClose={() => setIsAssignModalOpen(false)}
+                existingTeacherUsernames={lessons.map((l) => l.teacher.username)}
+                onAssignTeacher={handleAssignTeacherToBooking}
+            />
         </>
     );
 };

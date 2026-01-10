@@ -20,7 +20,22 @@ interface SectionProps {
     onAddClick?: () => void;
 }
 
-export function Section({ id, title, isExpanded, onToggle, children, entityIcon: EntityIcon, entityColor, alwaysExpanded = false, optional = false, hasSelection = false, onClear, onOptional, showAddButton = false, onAddClick }: SectionProps) {
+export function Section({
+    id,
+    title,
+    isExpanded,
+    onToggle,
+    children,
+    entityIcon: EntityIcon,
+    entityColor,
+    alwaysExpanded = false,
+    optional = false,
+    hasSelection = false,
+    onClear,
+    onOptional,
+    showAddButton = false,
+    onAddClick,
+}: SectionProps) {
     const handleClick = () => {
         if (!alwaysExpanded) {
             onToggle();
@@ -29,9 +44,15 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
 
     return (
         <motion.div id={id} className="scroll-mt-4" layout>
-            <motion.div className={`rounded-lg bg-card border border-border ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`} layout>
+            <motion.div
+                className={`rounded-lg bg-card border border-border ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`}
+                layout
+            >
                 {/* Header */}
-                <div className={`flex items-center justify-between p-4 ${alwaysExpanded ? "cursor-default" : "cursor-pointer active:bg-muted touch-manipulation"}`} onClick={handleClick}>
+                <div
+                    className={`flex items-center justify-between p-4 ${alwaysExpanded ? "cursor-default" : "cursor-pointer active:bg-muted touch-manipulation"}`}
+                    onClick={handleClick}
+                >
                     <div className="flex items-center gap-3">
                         {EntityIcon && (
                             <div className="w-8 h-8 flex items-center justify-center" style={{ color: entityColor }}>
@@ -109,7 +130,13 @@ export function Section({ id, title, isExpanded, onToggle, children, entityIcon:
                 {/* Content with Framer Motion animations */}
                 <AnimatePresence initial={false}>
                     {(isExpanded || alwaysExpanded) && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                        >
                             <div className="px-4 pb-4">{children}</div>
                         </motion.div>
                     )}

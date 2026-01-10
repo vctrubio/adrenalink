@@ -37,7 +37,7 @@ export function TableLayout({ children, stats, showSearch = true }: TableLayoutP
                 <TablesNavigationRoutes />
                 <TablesHeaderStats stats={stats} />
             </div>
-            
+
             <div className="space-y-6">
                 {showSearch && <TablesSearchHeader />}
                 {children}

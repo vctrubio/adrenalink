@@ -1,5 +1,8 @@
-import { getStudentEvents } from "@/actions/student-action";
+import { getStudentEvents } from "@/supabase/server/students";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
+import { getSchoolHeader } from "@/types/headers";
+
+export const dynamic = "force-dynamic";
 
 interface StudentPageProps {
     params: Promise<{ id: string }>;
@@ -8,7 +11,11 @@ interface StudentPageProps {
 export default async function StudentPage({ params }: StudentPageProps) {
     const { id: studentId } = await params;
 
-    const eventsResult = await getStudentEvents(studentId);
+    // Get school from subdomain header
+    const schoolHeader = await getSchoolHeader();
+    const schoolId = schoolHeader?.id;
+
+    const eventsResult = await getStudentEvents(studentId, schoolId);
     const events = eventsResult.success ? eventsResult.data : [];
 
     return (

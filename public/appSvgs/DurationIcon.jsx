@@ -24,8 +24,8 @@ export default function DurationIcon({ className = "", size = 24 }) {
                 <line
                     x1="0"
                     y1="0"
-                    x2={Math.cos((10 * 30 - 90) * Math.PI / 180) * 4}
-                    y2={Math.sin((10 * 30 - 90) * Math.PI / 180) * 4}
+                    x2={Math.cos(((10 * 30 - 90) * Math.PI) / 180) * 4}
+                    y2={Math.sin(((10 * 30 - 90) * Math.PI) / 180) * 4}
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -38,8 +38,8 @@ export default function DurationIcon({ className = "", size = 24 }) {
                 <line
                     x1="0"
                     y1="0"
-                    x2={Math.cos((2 * 6 - 90) * Math.PI / 180) * 5.5}
-                    y2={Math.sin((2 * 6 - 90) * Math.PI / 180) * 5.5}
+                    x2={Math.cos(((2 * 6 - 90) * Math.PI) / 180) * 5.5}
+                    y2={Math.sin(((2 * 6 - 90) * Math.PI) / 180) * 5.5}
                     stroke="currentColor"
                     strokeWidth="1"
                     strokeLinecap="round"

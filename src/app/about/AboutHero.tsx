@@ -9,7 +9,10 @@ function AboutHeroHeader() {
     return (
         <div className="relative inline-block">
             <AnimatedCanvas className="absolute inset-0 w-full h-full pointer-events-none" />
-            <h1 className="relative text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl text-slate-900" style={{ zIndex: 10 }}>
+            <h1
+                className="relative text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl text-slate-900"
+                style={{ zIndex: 10 }}
+            >
                 Adrenalink
             </h1>
         </div>

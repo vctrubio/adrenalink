@@ -102,11 +102,19 @@ function StudentList({ students, capacity }: StudentListProps) {
 
     return (
         <div className="relative inline-block">
-            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
                 <div style={{ color: studentEntity.color }}>
                     <StudentIcon size={ICON_SIZE} />
                 </div>
-                {students.length > 1 && (students.length > 2 ? <span className="text-xs font-semibold text-foreground">+{students.length}</span> : <span className="text-xs font-semibold text-foreground">{students.length}</span>)}
+                {students.length > 1 &&
+                    (students.length > 2 ? (
+                        <span className="text-xs font-semibold text-foreground">+{students.length}</span>
+                    ) : (
+                        <span className="text-xs font-semibold text-foreground">{students.length}</span>
+                    ))}
             </button>
             <Dropdown isOpen={isDropdownOpen} onClose={() => setIsDropdownOpen(false)} items={dropdownItems} align="left" />
         </div>
@@ -127,7 +135,10 @@ function BookingDays({ days, bookingId }: BookingDaysProps) {
 
     if (days === 1) {
         return (
-            <button onClick={() => router.push(`/bookings/${bookingId}`)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <button
+                onClick={() => router.push(`/bookings/${bookingId}`)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
                 <div style={{ color: bookingEntity.color }}>
                     <BookingIcon size={ICON_SIZE} />
                 </div>
@@ -136,7 +147,10 @@ function BookingDays({ days, bookingId }: BookingDaysProps) {
     }
 
     return (
-        <button onClick={() => router.push(`/bookings/${bookingId}`)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+        <button
+            onClick={() => router.push(`/bookings/${bookingId}`)}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+        >
             <div style={{ color: bookingEntity.color }}>
                 <BookingIcon size={ICON_SIZE} />
             </div>
@@ -154,7 +168,14 @@ interface PackageInfoProps {
     capacityStudents: number;
 }
 
-function PackageInfo({ durationMinutes, pricePerStudent, packageDescription, packageId, totalHours, capacityStudents }: PackageInfoProps) {
+function PackageInfo({
+    durationMinutes,
+    pricePerStudent,
+    packageDescription,
+    packageId,
+    totalHours,
+    capacityStudents,
+}: PackageInfoProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const packageDurationHours = Math.round(durationMinutes / 60);
@@ -173,7 +194,10 @@ function PackageInfo({ durationMinutes, pricePerStudent, packageDescription, pac
 
     return (
         <div className="relative inline-block">
-            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
                 <div style={{ color: packageEntity?.color }}>
                     <PackageIcon size={ICON_SIZE} />
                 </div>
@@ -242,13 +266,33 @@ interface BookingInfoCapacityProps {
     referralCode?: string;
 }
 
-function BookingInfoCapacity({ bookingDays, bookingId, equipmentCategory, capacityEquipment, capacityStudents, students, durationMinutes, pricePerStudent, packageDescription, packageId, totalHours, referralCode }: BookingInfoCapacityProps) {
+function BookingInfoCapacity({
+    bookingDays,
+    bookingId,
+    equipmentCategory,
+    capacityEquipment,
+    capacityStudents,
+    students,
+    durationMinutes,
+    pricePerStudent,
+    packageDescription,
+    packageId,
+    totalHours,
+    referralCode,
+}: BookingInfoCapacityProps) {
     return (
         <div className="flex items-center gap-6 overflow-visible">
             <BookingDays days={bookingDays} bookingId={bookingId} />
             <StudentList students={students} capacity={capacityStudents} />
             <EquipmentCapacity category={equipmentCategory} capacity={capacityEquipment} />
-            <PackageInfo durationMinutes={durationMinutes} pricePerStudent={pricePerStudent} packageDescription={packageDescription} packageId={packageId} totalHours={totalHours} capacityStudents={capacityStudents} />
+            <PackageInfo
+                durationMinutes={durationMinutes}
+                pricePerStudent={pricePerStudent}
+                packageDescription={packageDescription}
+                packageId={packageId}
+                totalHours={totalHours}
+                capacityStudents={capacityStudents}
+            />
             {referralCode && <ReferralCode code={referralCode} />}
         </div>
     );
@@ -285,33 +329,37 @@ function LessonRow({ lessons, schoolPackage, studentCount }: LessonRowProps) {
             {lessons.map((lesson) => {
                 const events = lesson.events || [];
                 const lessonDurationMinutes = events.reduce((sum, event) => sum + (event.duration || 0), 0);
-                
+
                 const lessonRevenue = calculateLessonRevenue(
                     schoolPackage.pricePerStudent,
                     studentCount,
                     lessonDurationMinutes,
-                    schoolPackage.durationMinutes
+                    schoolPackage.durationMinutes,
                 );
 
                 const commissionInfo: CommissionInfo = {
                     type: (lesson.commission?.commissionType as "fixed" | "percentage") || "fixed",
-                    cph: parseFloat(lesson.commission?.cph || "0")
+                    cph: parseFloat(lesson.commission?.cph || "0"),
                 };
 
                 const commission = calculateCommission(
                     lessonDurationMinutes,
                     commissionInfo,
                     lessonRevenue,
-                    schoolPackage.durationMinutes
+                    schoolPackage.durationMinutes,
                 );
 
-                const lessonStatusItems: DropdownItemProps[] = (["active", "rest", "completed", "uncompleted"] as const).map((status) => ({
-                    id: status,
-                    label: LESSON_STATUS_CONFIG[status].label,
-                    icon: () => <div className="w-3 h-3 rounded-full" style={{ backgroundColor: LESSON_STATUS_CONFIG[status].color }} />,
-                    color: LESSON_STATUS_CONFIG[status].color,
-                    onClick: () => handleLessonStatusUpdate(lesson.id, status),
-                }));
+                const lessonStatusItems: DropdownItemProps[] = (["active", "rest", "completed", "uncompleted"] as const).map(
+                    (status) => ({
+                        id: status,
+                        label: LESSON_STATUS_CONFIG[status].label,
+                        icon: () => (
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: LESSON_STATUS_CONFIG[status].color }} />
+                        ),
+                        color: LESSON_STATUS_CONFIG[status].color,
+                        onClick: () => handleLessonStatusUpdate(lesson.id, status),
+                    }),
+                );
 
                 return (
                     <div key={lesson.id} className="space-y-2">
@@ -340,8 +388,14 @@ function LessonRow({ lessons, schoolPackage, studentCount }: LessonRowProps) {
                         {lesson.events && lesson.events.length > 0 && (
                             <div className="space-y-1 pl-6">
                                 {lesson.events.map((event) => {
-                                    const eventDate = new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                                    const eventTime = new Date(event.date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+                                    const eventDate = new Date(event.date).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                    });
+                                    const eventTime = new Date(event.date).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    });
                                     const hours = Math.floor(event.duration / 60);
                                     const mins = event.duration % 60;
                                     const durationText = mins > 0 ? `${hours}:${mins.toString().padStart(2, "0")}` : `${hours}h`;
@@ -385,14 +439,23 @@ interface BookingFooterProps {
 function BookingFooter({ onReceiptClick, onAddStudentPayment, onAddTeacherPayment }: BookingFooterProps) {
     return (
         <div className="bg-footer p-4 flex items-center justify-between gap-2 border-t border-border">
-            <button onClick={onReceiptClick} className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded transition-colors">
+            <button
+                onClick={onReceiptClick}
+                className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded transition-colors"
+            >
                 Receipt
             </button>
             <div className="flex items-center gap-2">
-                <button onClick={onAddStudentPayment} className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors">
+                <button
+                    onClick={onAddStudentPayment}
+                    className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors"
+                >
                     Add Student Payment
                 </button>
-                <button onClick={onAddTeacherPayment} className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors">
+                <button
+                    onClick={onAddTeacherPayment}
+                    className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors"
+                >
                     Add Teacher Payment
                 </button>
             </div>
@@ -407,7 +470,12 @@ interface BookingContainerProps {
     onAddTeacherPayment?: () => void;
 }
 
-export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStudentPayment = () => { }, onAddTeacherPayment = () => { } }: BookingContainerProps) {
+export function BookingContainer({
+    booking,
+    onReceiptClick = () => {},
+    onAddStudentPayment = () => {},
+    onAddTeacherPayment = () => {},
+}: BookingContainerProps) {
     const lessons = booking.relations?.lessons || [];
     const schoolPackage = booking.relations?.studentPackage?.schoolPackage;
 
@@ -467,7 +535,11 @@ export function BookingContainer({ booking, onReceiptClick = () => { }, onAddStu
                 </div>
                 {lessons.length > 0 && <LessonRow lessons={lessons} schoolPackage={schoolPackage} studentCount={students.length} />}
             </div>
-            <BookingFooter onReceiptClick={onReceiptClick} onAddStudentPayment={onAddStudentPayment} onAddTeacherPayment={onAddTeacherPayment} />
+            <BookingFooter
+                onReceiptClick={onReceiptClick}
+                onAddStudentPayment={onAddStudentPayment}
+                onAddTeacherPayment={onAddTeacherPayment}
+            />
         </div>
     );
 }

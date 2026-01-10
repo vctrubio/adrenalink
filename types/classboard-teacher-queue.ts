@@ -49,7 +49,6 @@ export interface EventNode {
     next: EventNode | null;
 }
 
-
 export interface ControllerSettings {
     submitTime: string;
     location: string;

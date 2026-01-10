@@ -55,30 +55,75 @@ const NameFields = memo(function NameFields({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="First Name" required error={firstNameError} isValid={firstNameIsValid}>
-                <FormInput type="text" value={firstName} onChange={(e) => onFirstNameChange(e.target.value)} placeholder="Enter first name" error={!!firstNameError} autoFocus={autoFocus} />
+                <FormInput
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => onFirstNameChange(e.target.value)}
+                    placeholder="Enter first name"
+                    error={!!firstNameError}
+                    autoFocus={autoFocus}
+                />
             </FormField>
             <FormField label="Last Name" required error={lastNameError} isValid={lastNameIsValid}>
-                <FormInput type="text" value={lastName} onChange={(e) => onLastNameChange(e.target.value)} placeholder="Enter last name" error={!!lastNameError} />
+                <FormInput
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => onLastNameChange(e.target.value)}
+                    placeholder="Enter last name"
+                    error={!!lastNameError}
+                />
             </FormField>
         </div>
     );
 });
 
 // Sub-component: Username Field
-const UsernameField = memo(function UsernameField({ username, onUsernameChange, usernameError, usernameIsValid }: { username: string; onUsernameChange: (value: string) => void; usernameError?: string; usernameIsValid?: boolean }) {
+const UsernameField = memo(function UsernameField({
+    username,
+    onUsernameChange,
+    usernameError,
+    usernameIsValid,
+}: {
+    username: string;
+    onUsernameChange: (value: string) => void;
+    usernameError?: string;
+    usernameIsValid?: boolean;
+}) {
     return (
         <FormField label="Username" required error={usernameError} isValid={usernameIsValid}>
-            <FormInput type="text" value={username} onChange={(e) => onUsernameChange(e.target.value.toLowerCase())} placeholder="teacher_username" error={!!usernameError} />
+            <FormInput
+                type="text"
+                value={username}
+                onChange={(e) => onUsernameChange(e.target.value.toLowerCase())}
+                placeholder="teacher_username"
+                error={!!usernameError}
+            />
             <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, dashes, or underscores only</p>
         </FormField>
     );
 });
 
 // Sub-component: Passport Field
-const PassportField = memo(function PassportField({ passport, onPassportChange, passportError, passportIsValid }: { passport: string; onPassportChange: (value: string) => void; passportError?: string; passportIsValid?: boolean }) {
+const PassportField = memo(function PassportField({
+    passport,
+    onPassportChange,
+    passportError,
+    passportIsValid,
+}: {
+    passport: string;
+    onPassportChange: (value: string) => void;
+    passportError?: string;
+    passportIsValid?: boolean;
+}) {
     return (
         <FormField label="Passport" required error={passportError} isValid={passportIsValid}>
-            <FormInput type="text" value={passport} onChange={(e) => onPassportChange(e.target.value)} placeholder="Enter passport number" error={!!passportError} />
+            <FormInput
+                type="text"
+                value={passport}
+                onChange={(e) => onPassportChange(e.target.value)}
+                placeholder="Enter passport number"
+                error={!!passportError}
+            />
         </FormField>
     );
 });
@@ -92,7 +137,11 @@ const CommissionsListField = memo(function CommissionsListField({
     commissionColor,
 }: {
     commissions: Array<{ id: string; commissionType: "fixed" | "percentage"; commissionValue: string; commissionDescription: string }>;
-    onAddCommission: (commission: { commissionType: "fixed" | "percentage"; commissionValue: string; commissionDescription: string }) => void;
+    onAddCommission: (commission: {
+        commissionType: "fixed" | "percentage";
+        commissionValue: string;
+        commissionDescription: string;
+    }) => void;
     onRemoveCommission: (id: string) => void;
     currency: string;
     commissionColor: string;
@@ -198,7 +247,17 @@ const CommissionsListField = memo(function CommissionsListField({
 });
 
 // Sub-component: Languages Selection
-const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggle, onCustomLanguageAdd, languagesError }: { languages: string[]; onLanguageToggle: (language: string) => void; onCustomLanguageAdd: (language: string) => void; languagesError?: string }) {
+const LanguagesField = memo(function LanguagesField({
+    languages,
+    onLanguageToggle,
+    onCustomLanguageAdd,
+    languagesError,
+}: {
+    languages: string[];
+    onLanguageToggle: (language: string) => void;
+    onCustomLanguageAdd: (language: string) => void;
+    languagesError?: string;
+}) {
     const [customLanguage, setCustomLanguage] = useState("");
     const [showOtherInput, setShowOtherInput] = useState(false);
 
@@ -236,7 +295,9 @@ const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggl
                             type="button"
                             onClick={() => onLanguageToggle(language)}
                             className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                                standardLanguages.includes(language) ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground` : "bg-background text-foreground border-input hover:border-green-300/50"
+                                standardLanguages.includes(language)
+                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                    : "bg-background text-foreground border-input hover:border-green-300/50"
                             }`}
                         >
                             {language}
@@ -248,7 +309,9 @@ const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggl
                         type="button"
                         onClick={() => setShowOtherInput(!showOtherInput)}
                         className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                            showOtherInput ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground` : "bg-background text-foreground border-input hover:border-green-300/50"
+                            showOtherInput
+                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
+                                : "bg-background text-foreground border-input hover:border-green-300/50"
                         }`}
                     >
                         Other +
@@ -270,7 +333,11 @@ const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggl
                                 }
                             }}
                         />
-                        <button type="button" onClick={handleAddCustomLanguage} className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+                        <button
+                            type="button"
+                            onClick={handleAddCustomLanguage}
+                            className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
                             Add
                         </button>
                     </div>
@@ -280,9 +347,16 @@ const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggl
                 {customLanguages.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                         {customLanguages.map((language) => (
-                            <div key={language} className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}>
+                            <div
+                                key={language}
+                                className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}
+                            >
                                 {language}
-                                <button type="button" onClick={() => handleRemoveLanguage(language)} className="text-xs hover:text-destructive">
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveLanguage(language)}
+                                    className="text-xs hover:text-destructive"
+                                >
                                     ✕
                                 </button>
                             </div>
@@ -295,7 +369,15 @@ const LanguagesField = memo(function LanguagesField({ languages, onLanguageToggl
 });
 
 // Main component - ONLY RENDERS
-export default function TeacherForm({ formData, onFormDataChange, isFormReady = false, showSubmit = false, onSubmit, isLoading = false, onClose }: TeacherFormProps) {
+export default function TeacherForm({
+    formData,
+    onFormDataChange,
+    isFormReady = false,
+    showSubmit = false,
+    onSubmit,
+    isLoading = false,
+    onClose,
+}: TeacherFormProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
     const credentials = useSchoolCredentials();
@@ -314,7 +396,9 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
     const handleLanguageToggle = useCallback(
         (language: string) => {
             onFormDataChange((prevData: TeacherFormData) => {
-                const newLanguages = prevData.languages.includes(language) ? prevData.languages.filter((l) => l !== language) : [...prevData.languages, language];
+                const newLanguages = prevData.languages.includes(language)
+                    ? prevData.languages.filter((l) => l !== language)
+                    : [...prevData.languages, language];
                 return { ...prevData, languages: newLanguages };
             });
         },
@@ -375,7 +459,12 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
             />
 
             {/* Username */}
-            <UsernameField username={formData.username} onUsernameChange={(value) => updateField("username", value)} usernameError={getFieldError("username")} usernameIsValid={isFieldValid("username")} />
+            <UsernameField
+                username={formData.username}
+                onUsernameChange={(value) => updateField("username", value)}
+                usernameError={getFieldError("username")}
+                usernameIsValid={isFieldValid("username")}
+            />
 
             {/* Country & Phone */}
             <CountryFlagPhoneSubForm
@@ -389,10 +478,20 @@ export default function TeacherForm({ formData, onFormDataChange, isFormReady = 
             />
 
             {/* Passport */}
-            <PassportField passport={formData.passport} onPassportChange={(value) => updateField("passport", value)} passportError={getFieldError("passport")} passportIsValid={isFieldValid("passport")} />
+            <PassportField
+                passport={formData.passport}
+                onPassportChange={(value) => updateField("passport", value)}
+                passportError={getFieldError("passport")}
+                passportIsValid={isFieldValid("passport")}
+            />
 
             {/* Languages */}
-            <LanguagesField languages={formData.languages} onLanguageToggle={handleLanguageToggle} onCustomLanguageAdd={handleCustomLanguageAdd} languagesError={getFieldError("languages")} />
+            <LanguagesField
+                languages={formData.languages}
+                onLanguageToggle={handleLanguageToggle}
+                onCustomLanguageAdd={handleCustomLanguageAdd}
+                languagesError={getFieldError("languages")}
+            />
 
             {/* Commissions Section */}
             <div className="border-t pt-6 mt-6">

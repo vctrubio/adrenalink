@@ -70,36 +70,37 @@ export type GroupStats = Record<string, any>;
 
 ```typescript
 interface MasterTableProps<T> {
-    rows: T[];                                                    // Data array
-    columns: ColumnDef<T>[];                                     // Desktop columns
-    mobileColumns: MobileColumnDef<T>[];                         // Mobile columns
-    groupBy?: GroupingType;                                      // Initial grouping (default: "all")
-    getGroupKey?: (row: T, groupBy: GroupingType) => string;    // Key function for grouping
-    calculateStats?: (rows: T[]) => GroupStats;                 // Stats aggregation
+    rows: T[]; // Data array
+    columns: ColumnDef<T>[]; // Desktop columns
+    mobileColumns: MobileColumnDef<T>[]; // Mobile columns
+    groupBy?: GroupingType; // Initial grouping (default: "all")
+    getGroupKey?: (row: T, groupBy: GroupingType) => string; // Key function for grouping
+    calculateStats?: (rows: T[]) => GroupStats; // Stats aggregation
     renderGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
     renderMobileGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
-    showGroupToggle?: boolean;                                   // Show All/Date/Week buttons
+    showGroupToggle?: boolean; // Show All/Date/Week buttons
 }
 ```
 
 ### State Management
 
 **groupBy State Managed Internally:**
+
 - Default: `"all"` (no grouping)
 - Toggle buttons positioned: `ml-auto` (top right)
 - Affects:
-  - `getGroupKey()` function receives current `groupBy`
-  - `renderGroupHeader()` function receives current `groupBy`
-  - `renderMobileGroupHeader()` function receives current `groupBy`
-  - Group headers only render when `groupBy !== "all"`
+    - `getGroupKey()` function receives current `groupBy`
+    - `renderGroupHeader()` function receives current `groupBy`
+    - `renderMobileGroupHeader()` function receives current `groupBy`
+    - Group headers only render when `groupBy !== "all"`
 
 ### Grouping Logic
 
 ```typescript
 // In MasterTable
 const groupedData = useMemo(() => {
-    if (groupBy === "all") return { "All": rows };  // No grouping
-    
+    if (groupBy === "all") return { All: rows }; // No grouping
+
     // Group by custom key function
     const groups: Record<string, T[]> = {};
     rows.forEach((row) => {
@@ -241,10 +242,11 @@ import type { StudentTableData } from "@/types/student-table";
 
 export async function getStudents(): Promise<StudentTableData[]> {
     const supabase = createServerClient();
-    
+
     const { data, error } = await supabase
         .from("students")
-        .select(`
+        .select(
+            `
             id,
             name,
             email,
@@ -253,7 +255,8 @@ export async function getStudents(): Promise<StudentTableData[]> {
             lessons(
                 duration
             )
-        `)
+        `,
+        )
         .order("created_at", { ascending: false });
 
     if (error) throw new Error(`Failed to fetch students: ${error.message}`);
@@ -272,31 +275,37 @@ export async function getStudents(): Promise<StudentTableData[]> {
 ## Best Practices
 
 ### 1. **Type Safety**
+
 - Always define explicit types for your data (StudentTableData, TeacherTableData, etc.)
 - Use `ColumnDef<T>` and `MobileColumnDef<T>` with proper typing
 - Avoid `any` types in column definitions
 
 ### 2. **Data Transformation**
+
 - Transform supabase responses in server actions before sending to client
 - Keep page components async (server components)
 - Pass only necessary data to table components
 
 ### 3. **Grouping Implementation**
+
 - `getGroupKey` must handle all `GroupingType` values
 - Return consistent key format (ISO dates, week format)
 - Handle edge cases (null dates, missing data)
 
 ### 4. **Stats Calculation**
+
 - Use `reduce()` for aggregation
 - Include unit/currency info when needed
 - Keep stats object flat and simple
 
 ### 5. **Header Rendering**
+
 - Always accept `groupBy` parameter (even if not used initially)
 - Use consistent styling with other tables
 - Mobile headers should be more compact
 
 ### 6. **Performance**
+
 - MasterTable uses `useMemo` for grouping - no unnecessary recalculations
 - Desktop/Mobile tables are internal sub-components - no prop drilling
 - Column definitions are static, define outside component if possible
@@ -306,18 +315,21 @@ export async function getStudents(): Promise<StudentTableData[]> {
 ### Database Migration (Supabase over Drizzle)
 
 **Reason for Switch:**
+
 - Supabase PostgREST API provides direct database access
 - Better for server-side data fetching
 - Cleaner relationship handling with `select()` nesting
 - No ORM overhead for read-heavy operations
 
 **Key Points:**
+
 - Use Supabase client in server actions (`supabase/server.ts`)
 - Leverage PostgREST's count, filter, order capabilities
 - Relationships are queried directly in select statement
 - No Drizzle migrations for data fetching (still use for schema definition if needed)
 
 **Example Pattern:**
+
 ```typescript
 // Old Drizzle approach (not used for fetching)
 // const students = db.select().from(studentsTable).all();
@@ -334,27 +346,27 @@ const { data } = await supabase
 ### To Add a New Table Type:
 
 1. **Identify Data Source**
-   - Check `supabase/server/` for existing server actions
-   - Create new server action if needed (fetch from Supabase)
+    - Check `supabase/server/` for existing server actions
+    - Create new server action if needed (fetch from Supabase)
 
 2. **Define Types**
-   - Create `types/[entity]-table.ts` with all display fields
+    - Create `types/[entity]-table.ts` with all display fields
 
 3. **Create Table Component**
-   - Implement `ColumnDef<T>[]` for desktop columns
-   - Implement `MobileColumnDef<T>[]` for mobile columns
-   - Implement `getGroupKey()` function
-   - Implement `calculateStats()` function
-   - Implement `renderGroupHeader()` and `renderMobileGroupHeader()`
+    - Implement `ColumnDef<T>[]` for desktop columns
+    - Implement `MobileColumnDef<T>[]` for mobile columns
+    - Implement `getGroupKey()` function
+    - Implement `calculateStats()` function
+    - Implement `renderGroupHeader()` and `renderMobileGroupHeader()`
 
 4. **Wire Up Page**
-   - Create `/app/(admin)/(tables)/[entity]/page.tsx`
-   - Call server action, pass data to table component
+    - Create `/app/(admin)/(tables)/[entity]/page.tsx`
+    - Call server action, pass data to table component
 
 5. **Testing**
-   - Test grouping toggle (All/Date/Week)
-   - Test desktop and mobile responsive views
-   - Verify stat calculations
+    - Test grouping toggle (All/Date/Week)
+    - Test desktop and mobile responsive views
+    - Verify stat calculations
 
 ### Common Patterns to Reuse
 
@@ -367,9 +379,9 @@ const weekNum = Math.ceil((date.getDate() + new Date(date.getFullYear(), 0, 1).g
 return `${date.getFullYear()}-W${weekNum}`;
 
 // Format date header
-groupBy === "date" 
+groupBy === "date"
     ? new Date(title).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })
-    : `Week ${title.split("-W")[1]}`
+    : `Week ${title.split("-W")[1]}`;
 ```
 
 ### Debugging Tips

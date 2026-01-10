@@ -18,7 +18,8 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
         // Fetch equipment with teachers, repairs, and events
         const { data, error } = await supabase
             .from("equipment")
-            .select(`
+            .select(
+                `
                 *,
                 teacher_equipment (
                     active,
@@ -41,7 +42,8 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                         )
                     )
                 )
-            `)
+            `,
+            )
             .eq("school_id", schoolId)
             .order("created_at", { ascending: false });
 
@@ -53,10 +55,9 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
         return data.map((e: any) => {
             // Map usage stats from events
             const teacherUsageMap: Record<string, { eventCount: number; durationMinutes: number }> = {};
-            
-            const equipmentEvents = (e.equipment_event || [])
-                .filter((ee: any) => ee.event);
-            
+
+            const equipmentEvents = (e.equipment_event || []).filter((ee: any) => ee.event);
+
             equipmentEvents.forEach((ee: any) => {
                 const evt = ee.event;
                 const teacherId = evt.lesson?.teacher_id;
@@ -65,7 +66,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                         teacherUsageMap[teacherId] = { eventCount: 0, durationMinutes: 0 };
                     }
                     teacherUsageMap[teacherId].eventCount += 1;
-                    teacherUsageMap[teacherId].durationMinutes += (evt.duration || 0);
+                    teacherUsageMap[teacherId].durationMinutes += evt.duration || 0;
                 }
             });
 
@@ -116,10 +117,10 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
             };
 
             const stats = calculateEquipmentStats(result);
-            
+
             return {
                 ...result,
-                stats
+                stats,
             };
         });
     } catch (error) {

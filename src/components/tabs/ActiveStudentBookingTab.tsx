@@ -118,7 +118,21 @@ const TeacherTag = ({ lessons, tabs }: TeacherTagProps) => {
 
 // --- Package Tag Component ---
 
-const PackageTag = ({ durationMinutes, pricePerHour, eventHours, activeTab, onClick, onPaymentClick }: { durationMinutes: number; pricePerHour: number; eventHours: number; activeTab: TabType; onClick: () => void; onPaymentClick: () => void }) => {
+const PackageTag = ({
+    durationMinutes,
+    pricePerHour,
+    eventHours,
+    activeTab,
+    onClick,
+    onPaymentClick,
+}: {
+    durationMinutes: number;
+    pricePerHour: number;
+    eventHours: number;
+    activeTab: TabType;
+    onClick: () => void;
+    onPaymentClick: () => void;
+}) => {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
     const packageColor = packageEntity?.color || "#fb923c";
     const hours = Math.round(durationMinutes / 60);
@@ -220,7 +234,14 @@ const BookingHeader = ({ bookingData, month, day, tabs, selectedDate }: BookingH
 
     return (
         <div className="grid grid-cols-12 gap-3">
-            <DateCard month={month} day={day} dateRangeText={dateRangeText} bookingEntity={bookingEntity} isDateMatch={endDate.toDateString() === selected.toDateString()} href={`/bookings/${booking.id}`} />
+            <DateCard
+                month={month}
+                day={day}
+                dateRangeText={dateRangeText}
+                bookingEntity={bookingEntity}
+                isDateMatch={endDate.toDateString() === selected.toDateString()}
+                href={`/bookings/${booking.id}`}
+            />
 
             <div className="col-span-9 space-y-2">
                 <div className="flex items-center gap-3 overflow-x-auto">
@@ -243,7 +264,9 @@ const BookingHeader = ({ bookingData, month, day, tabs, selectedDate }: BookingH
 
 // --- Tab Content Wrapper Component ---
 
-const TabContentWrapper = ({ children }: { children: React.ReactNode }) => <div className="border-t border-border bg-muted/40 p-4">{children}</div>;
+const TabContentWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className="border-t border-border bg-muted/40 p-4">{children}</div>
+);
 
 // --- Tab Content Component ---
 
@@ -272,11 +295,11 @@ const BookingTabContent = ({ data, tabs }: BookingTabContentProps) => {
         }
         return (
             <TabContentWrapper>
-                <BookingTeacherLessonTab 
-                    lessons={data.lessons} 
-                    selectedTeacherId={selectedTeacherData.id} 
-                    pricePerStudent={packageInfo.pricePerStudent} 
-                    packageDurationMinutes={packageInfo.durationMinutes} 
+                <BookingTeacherLessonTab
+                    lessons={data.lessons}
+                    selectedTeacherId={selectedTeacherData.id}
+                    pricePerStudent={packageInfo.pricePerStudent}
+                    packageDurationMinutes={packageInfo.durationMinutes}
                     studentCount={data.bookingStudents.length}
                 />
             </TabContentWrapper>
@@ -290,7 +313,9 @@ const BookingTabContent = ({ data, tabs }: BookingTabContentProps) => {
         );
     }
     if (tabs.activeTab === "student") {
-        const selectedStudentData = tabs.selectedStudentId ? data.bookingStudents.find((bs) => bs.student.id === tabs.selectedStudentId) : null;
+        const selectedStudentData = tabs.selectedStudentId
+            ? data.bookingStudents.find((bs) => bs.student.id === tabs.selectedStudentId)
+            : null;
         return (
             <TabContentWrapper>
                 <BookingStudentTab student={selectedStudentData?.student} />
@@ -353,7 +378,7 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
-        if (target.closest("button") || target.closest("[role=\"button\"]")) {
+        if (target.closest("button") || target.closest('[role="button"]')) {
             e.preventDefault();
             return;
         }
@@ -388,9 +413,26 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
                     <div className="p-3 space-y-3">
                         <BookingHeader bookingData={bookingData} month={month} day={day} tabs={tabs} selectedDate={selectedDate} />
                         <div className="border-b border-border"></div>
-                        <LeaderStudent leaderStudentName={bookingData.booking.leaderStudentName} bookingId={id} bookingStudents={bookingData.bookingStudents.map((bs) => ({ id: bs.student.id, firstName: bs.student.firstName, lastName: bs.student.lastName, passport: bs.student.passport || "", country: bs.student.country || "", phone: bs.student.phone || "" }))} />
+                        <LeaderStudent
+                            leaderStudentName={bookingData.booking.leaderStudentName}
+                            bookingId={id}
+                            bookingStudents={bookingData.bookingStudents.map((bs) => ({
+                                id: bs.student.id,
+                                firstName: bs.student.firstName,
+                                lastName: bs.student.lastName,
+                                passport: bs.student.passport || "",
+                                country: bs.student.country || "",
+                                phone: bs.student.phone || "",
+                            }))}
+                        />
                     </div>
-                    <ActiveButtonsFooter bookingId={id} lessons={bookingData.lessons} onAddLessonEvent={handleAddLessonEvent} loadingLessonId={loadingLessonId} bookingStatus={bookingData.booking.dateStart} />
+                    <ActiveButtonsFooter
+                        bookingId={id}
+                        lessons={bookingData.lessons}
+                        onAddLessonEvent={handleAddLessonEvent}
+                        loadingLessonId={loadingLessonId}
+                        bookingStatus={bookingData.booking.dateStart}
+                    />
                     <BookingTabContent data={bookingData} tabs={tabs} />
                 </div>
             </div>

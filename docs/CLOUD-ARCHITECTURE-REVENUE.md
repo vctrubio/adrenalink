@@ -3,6 +3,7 @@
 ## Problem Statement
 
 To calculate event revenue, you need:
+
 ```
 event → lesson → booking → school_package (price, duration, capacity)
 event → lesson → teacher_commission (commission)
@@ -33,7 +34,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         e.id,
         e.lesson_id,
         (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC AS teacher_commission,
@@ -48,8 +49,8 @@ BEGIN
     JOIN booking b ON l.booking_id = b.id
     JOIN school_package sp ON b.school_package_id = sp.id
     JOIN (
-        SELECT booking_id, COUNT(*) as count 
-        FROM booking_student 
+        SELECT booking_id, COUNT(*) as count
+        FROM booking_student
         GROUP BY booking_id
     ) bs_count ON b.id = bs_count.booking_id
     WHERE e.id = event_id;
@@ -58,22 +59,23 @@ $$ LANGUAGE plpgsql STABLE;
 ```
 
 **Usage in TypeScript:**
+
 ```typescript
 // Single fetch, all calculations done in DB
-const result = await supabase
-    .rpc('get_event_revenue', { event_id: eventId })
-    .single();
+const result = await supabase.rpc("get_event_revenue", { event_id: eventId }).single();
 
 // Returns: { event_id, lesson_id, teacher_commission, student_total_revenue, ... }
 ```
 
 **Pros:**
+
 - ✅ Single network round trip
 - ✅ All joins computed in database (fast)
 - ✅ Transactional consistency
 - ✅ Reusable across app
 
 **Cons:**
+
 - SQL complexity grows with features
 
 ---
@@ -100,7 +102,7 @@ CREATE OR REPLACE FUNCTION update_event_revenue_fields()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE event e
-    SET 
+    SET
         package_price_per_student = sp.price_per_student,
         package_duration_minutes = sp.duration_minutes,
         commission_hourly = tc.cph::NUMERIC,
@@ -117,28 +119,31 @@ EXECUTE FUNCTION update_event_revenue_fields();
 ```
 
 **Usage in TypeScript:**
+
 ```typescript
 // Fetch only event table
 const event = await supabase
-    .from('event')
-    .select('*, package_price_per_student, booking_student_count, commission_hourly')
-    .eq('id', eventId)
+    .from("event")
+    .select("*, package_price_per_student, booking_student_count, commission_hourly")
+    .eq("id", eventId)
     .single();
 
 // Compute in app
 const revenue = {
     studentTotal: event.package_price_per_student * event.booking_student_count,
-    teacherCommission: (event.commission_hourly * (event.duration / 60)),
-    net: (event.package_price_per_student * event.booking_student_count) - (event.commission_hourly * (event.duration / 60))
+    teacherCommission: event.commission_hourly * (event.duration / 60),
+    net: event.package_price_per_student * event.booking_student_count - event.commission_hourly * (event.duration / 60),
 };
 ```
 
 **Pros:**
+
 - ✅ Single table fetch, no joins
 - ✅ Fast index lookups
 - ✅ Simple app-level calculation
 
 **Cons:**
+
 - ❌ Cache invalidation complexity
 - ❌ Triggers add overhead on writes
 - ⚠️ Risk of stale data if triggers fail
@@ -153,7 +158,7 @@ Create a materialized view:
 
 ```sql
 CREATE MATERIALIZED VIEW event_revenue_view AS
-SELECT 
+SELECT
     e.id as event_id,
     e.lesson_id,
     e.date,
@@ -177,22 +182,21 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY event_revenue_view;
 ```
 
 **Usage in TypeScript:**
+
 ```typescript
-const event = await supabase
-    .from('event_revenue_view')
-    .select('*')
-    .eq('event_id', eventId)
-    .single();
+const event = await supabase.from("event_revenue_view").select("*").eq("event_id", eventId).single();
 
 const net = event.gross_student_revenue - event.teacher_commission_amount;
 ```
 
 **Pros:**
+
 - ✅ Pre-computed joins
 - ✅ Great for analytics/dashboards
 - ✅ Consistent schema
 
 **Cons:**
+
 - ⚠️ Must refresh manually or on schedule
 - ❌ Slightly stale data
 
@@ -204,19 +208,15 @@ const net = event.gross_student_revenue - event.teacher_commission_amount;
 
 ```typescript
 // supabase/functions/calculate-event-revenue/index.ts
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
     const { eventId } = await req.json();
-    
-    const supabase = createClient(
-        Deno.env.get('SUPABASE_URL'),
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    );
+
+    const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
 
     // Single call to PostgreSQL function
-    const { data, error } = await supabase
-        .rpc('get_event_revenue', { event_id: eventId });
+    const { data, error } = await supabase.rpc("get_event_revenue", { event_id: eventId });
 
     if (error) return new Response(JSON.stringify({ error }), { status: 400 });
 
@@ -224,30 +224,33 @@ Deno.serve(async (req) => {
     const withFees = {
         ...data[0],
         platform_fee: data[0].gross_revenue * 0.05,
-        final_amount: data[0].net_revenue * 0.95
+        final_amount: data[0].net_revenue * 0.95,
     };
 
     return new Response(JSON.stringify(withFees), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
     });
 });
 ```
 
 **Usage in TypeScript:**
+
 ```typescript
-const revenue = await fetch('http://localhost:54321/functions/v1/calculate-event-revenue', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ eventId })
-}).then(r => r.json());
+const revenue = await fetch("http://localhost:54321/functions/v1/calculate-event-revenue", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventId }),
+}).then((r) => r.json());
 ```
 
 **Pros:**
+
 - ✅ Centralized business logic
 - ✅ Easy to add features (taxes, discounts, fraud detection)
 - ✅ Can call external APIs
 
 **Cons:**
+
 - ⚠️ Extra network round trip
 - ⚠️ Need to manage function deployment
 
@@ -262,8 +265,9 @@ const revenue = await fetch('http://localhost:54321/functions/v1/calculate-event
 ```typescript
 // Fetch denormalized event
 const event = await supabase
-    .from('event')
-    .select(`
+    .from("event")
+    .select(
+        `
         id, 
         date, 
         duration,
@@ -271,20 +275,21 @@ const event = await supabase
         package_price_per_student,
         booking_student_count,
         commission_hourly
-    `)
-    .eq('id', eventId)
+    `,
+    )
+    .eq("id", eventId)
     .single();
 
 // Calculate in app (millisecond speed)
 const revenue = {
     gross: event.package_price_per_student * event.booking_student_count,
-    commission: (event.commission_hourly * (event.duration / 60)),
-    net: (event.package_price_per_student * event.booking_student_count) - 
-         (event.commission_hourly * (event.duration / 60))
+    commission: event.commission_hourly * (event.duration / 60),
+    net: event.package_price_per_student * event.booking_student_count - event.commission_hourly * (event.duration / 60),
 };
 ```
 
 **Benefits:**
+
 - Single table fetch (1 query)
 - Zero joins
 - App-level logic is flexible
@@ -299,20 +304,21 @@ const revenue = {
 ```typescript
 // Fetch all events for a school in a date range
 const events = await supabase
-    .from('event_revenue_view')
-    .select('*')
-    .eq('school_id', schoolId)
-    .gte('date', startDate)
-    .lte('date', endDate);
+    .from("event_revenue_view")
+    .select("*")
+    .eq("school_id", schoolId)
+    .gte("date", startDate)
+    .lte("date", endDate);
 
 const summary = {
     total_revenue: events.reduce((sum, e) => sum + e.gross_student_revenue, 0),
     total_commission: events.reduce((sum, e) => sum + e.teacher_commission_amount, 0),
-    events: events.length
+    events: events.length,
 };
 ```
 
 **Benefits:**
+
 - Pre-computed joins
 - Fast aggregations
 - Great for dashboards
@@ -325,8 +331,8 @@ const summary = {
 
 ```typescript
 // Settlement calculation (runs monthly)
-const settlement = await supabase.functions.invoke('calculate-settlement', {
-    body: { schoolId, month: '2026-01-' }
+const settlement = await supabase.functions.invoke("calculate-settlement", {
+    body: { schoolId, month: "2026-01-" },
 });
 
 // Returns:
@@ -344,9 +350,9 @@ const settlement = await supabase.functions.invoke('calculate-settlement', {
 ## Implementation Priority
 
 1. **Now**: Add denormalized fields to `event` table
-   - `package_price_per_student`
-   - `booking_student_count`
-   - `commission_hourly`
+    - `package_price_per_student`
+    - `booking_student_count`
+    - `commission_hourly`
 
 2. **Week 2**: Create PostgreSQL function `get_event_revenue()`
 
@@ -408,11 +414,11 @@ return (
 
 ## Key Takeaways
 
-| Approach | Fetches | Joins | Latency | Best For |
-|----------|---------|-------|---------|----------|
-| PostgreSQL Function | 1 | DB-side | ~50ms | Real-time, accuracy critical |
-| Denormalization | 1 | 0 | ~10ms | User-facing, transaction view |
-| Materialized View | 1 | Pre-computed | ~10ms | Reporting, analytics |
-| Edge Function | 1-2 | Flexible | ~100ms | Complex logic, external APIs |
+| Approach            | Fetches | Joins        | Latency | Best For                      |
+| ------------------- | ------- | ------------ | ------- | ----------------------------- |
+| PostgreSQL Function | 1       | DB-side      | ~50ms   | Real-time, accuracy critical  |
+| Denormalization     | 1       | 0            | ~10ms   | User-facing, transaction view |
+| Materialized View   | 1       | Pre-computed | ~10ms   | Reporting, analytics          |
+| Edge Function       | 1-2     | Flexible     | ~100ms  | Complex logic, external APIs  |
 
 **Choose denormalization + class methods** for your transaction view. It's the fastest and simplest.

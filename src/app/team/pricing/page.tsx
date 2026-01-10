@@ -24,7 +24,17 @@ const pricingTiers = [
         borderColor: "border-gray-400",
         priceTagBg: "bg-gray-400",
         dividerColor: "bg-gray-400",
-        allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "payment"],
+        allEntityIds: [
+            "student",
+            "schoolPackage",
+            "studentPackage",
+            "booking",
+            "teacher",
+            "event",
+            "rental",
+            "student_lesson_feedback",
+            "payment",
+        ],
         uniqueEntityIds: ["rental", "student_lesson_feedback", "payment"],
         includesFrom: "Blue",
     },
@@ -35,7 +45,20 @@ const pricingTiers = [
         borderColor: "border-yellow-500",
         priceTagBg: "bg-yellow-500",
         dividerColor: "bg-yellow-500",
-        allEntityIds: ["student", "schoolPackage", "studentPackage", "booking", "teacher", "event", "rental", "student_lesson_feedback", "payment", "equipment", "repairs", "referral"],
+        allEntityIds: [
+            "student",
+            "schoolPackage",
+            "studentPackage",
+            "booking",
+            "teacher",
+            "event",
+            "rental",
+            "student_lesson_feedback",
+            "payment",
+            "equipment",
+            "repairs",
+            "referral",
+        ],
         uniqueEntityIds: ["equipment", "repairs", "referral"],
         includesFrom: "Silver",
     },
@@ -47,7 +70,9 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
     const inheritedEntities = ENTITY_DATA.filter((entity) => inheritedEntityIds.includes(entity.id));
 
     return (
-        <div className={`relative bg-zinc-900/80 backdrop-blur-md rounded-2xl p-8 border-2 ${tier.borderColor} transition-all duration-300 hover:scale-105 flex flex-col overflow-hidden`}>
+        <div
+            className={`relative bg-zinc-900/80 backdrop-blur-md rounded-2xl p-8 border-2 ${tier.borderColor} transition-all duration-300 hover:scale-105 flex flex-col overflow-hidden`}
+        >
             <div className="absolute -top-2 -right-2">
                 <div className={`${tier.priceTagBg} px-6 py-3 rounded-bl-2xl rounded-tr-xl shadow-xl`}>
                     <p className="text-2xl font-bold text-white whitespace-nowrap">{tier.price}€/month</p>
@@ -73,7 +98,11 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
                         {inheritedEntities.map((entity) => {
                             const IconComponent = entity.icon;
                             return (
-                                <div key={entity.id} className="w-6 h-6 flex items-center justify-center" style={{ color: entity.color }}>
+                                <div
+                                    key={entity.id}
+                                    className="w-6 h-6 flex items-center justify-center"
+                                    style={{ color: entity.color }}
+                                >
                                     <IconComponent className="w-5 h-5" />
                                 </div>
                             );
@@ -102,12 +131,24 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
 export default function TeamPricingPage() {
     return (
         <div className="min-h-screen relative">
-            <BackgroundImage src="/kritaps_ungurs_unplash/3tiers.jpg" position="fixed" overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)" />
+            <BackgroundImage
+                src="/kritaps_ungurs_unplash/3tiers.jpg"
+                position="fixed"
+                overlay="linear-gradient(to bottom, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.9) 100%)"
+            />
 
             <IntoAdrBarShell
                 inverted
                 onBarClick="/team"
-                leftSlot={<Image src="/ADR.webp" alt="Adrenalink" width={28} height={28} className="w-8 h-8 object-contain brightness-0 invert" />}
+                leftSlot={
+                    <Image
+                        src="/ADR.webp"
+                        alt="Adrenalink"
+                        width={28}
+                        height={28}
+                        className="w-8 h-8 object-contain brightness-0 invert"
+                    />
+                }
                 rightSlot={
                     <div className="flex items-center gap-2 text-white">
                         <ArrowLeft className="w-5 h-5" />

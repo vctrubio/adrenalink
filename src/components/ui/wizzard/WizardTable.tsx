@@ -38,7 +38,7 @@ export function WizardTable<T>({
     getRowId,
     getRowAccentColor,
     selectedId,
-    accentColor = "rgb(var(--primary))", 
+    accentColor = "rgb(var(--primary))",
     hideHeader = false,
     className = "",
     entityId,
@@ -61,14 +61,14 @@ export function WizardTable<T>({
 
     const grouped = groupBy
         ? data.reduce(
-            (acc, item) => {
-                const key = groupBy(item);
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(item);
-                return acc;
-            },
-            {} as Record<string, T[]>,
-        )
+              (acc, item) => {
+                  const key = groupBy(item);
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(item);
+                  return acc;
+              },
+              {} as Record<string, T[]>,
+          )
         : { All: data };
 
     const groups = Object.entries(grouped);
@@ -95,7 +95,10 @@ export function WizardTable<T>({
                     }}
                 >
                     {columns.map((col) => (
-                        <div key={col.id} className={`flex ml-4 items-center ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
+                        <div
+                            key={col.id}
+                            className={`flex ml-4 items-center ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}
+                        >
                             {col.header}
                         </div>
                     ))}
@@ -135,14 +138,16 @@ export function WizardTable<T>({
                                         groupHeader(groupKey, groupData.length, expandedGroups.has(groupKey))
                                     ) : (
                                         <div className="flex items-center gap-2 p-3">
-                                            <ToggleAdranalinkIcon 
-                                                isOpen={expandedGroups.has(groupKey)} 
-                                                color={accentColor} 
-                                            />
-                                            <span className="font-black text-lg tracking-tighter uppercase" style={{ color: accentColor }}>
+                                            <ToggleAdranalinkIcon isOpen={expandedGroups.has(groupKey)} color={accentColor} />
+                                            <span
+                                                className="font-black text-lg tracking-tighter uppercase"
+                                                style={{ color: accentColor }}
+                                            >
                                                 {groupKey}
                                             </span>
-                                            <span className="text-muted-foreground/50 text-[10px] font-black uppercase tracking-widest">[{groupData.length} UNITS]</span>
+                                            <span className="text-muted-foreground/50 text-[10px] font-black uppercase tracking-widest">
+                                                [{groupData.length} UNITS]
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -201,7 +206,10 @@ export function WizardTable<T>({
                                                 )}
 
                                                 {columns.map((col) => (
-                                                    <div key={`${uniqueKey}-${col.id}`} className={`flex items-center relative z-[1] ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}>
+                                                    <div
+                                                        key={`${uniqueKey}-${col.id}`}
+                                                        className={`flex items-center relative z-[1] ${col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start"} ${col.className || ""}`}
+                                                    >
                                                         {col.cell(item, { isFocused: isSelected, isHovered })}
                                                     </div>
                                                 ))}

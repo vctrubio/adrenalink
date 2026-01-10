@@ -39,7 +39,7 @@ export function filterTeachers(teachers: TeacherTableData[], search: string): Te
 export function filterBookings(bookings: BookingTableData[], search: string): BookingTableData[] {
     return filterBySearch(bookings, search, (b) => {
         const studentText = b.booking.leaderStudentName;
-        const teacherText = b.lessons.map(l => l.teacherUsername).join(" ");
+        const teacherText = b.lessons.map((l) => l.teacherUsername).join(" ");
         return `${studentText} ${teacherText}`;
     });
 }

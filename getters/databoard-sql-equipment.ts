@@ -6,14 +6,14 @@ import { db } from "@/drizzle/db";
 // Calculates lessons, events, duration, and revenue for a single equipment
 
 export interface EquipmentIdStats {
-  lessons_count: number;
-  events_count: number;
-  total_duration_minutes: number;
-  total_revenue: number;
+    lessons_count: number;
+    events_count: number;
+    total_duration_minutes: number;
+    total_revenue: number;
 }
 
 export async function getEquipmentIdStats(equipmentId: string): Promise<EquipmentIdStats> {
-  const result = await db.execute(sql`
+    const result = await db.execute(sql`
     SELECT
       COUNT(DISTINCT l.id)::integer as lessons_count,
       COUNT(DISTINCT e.id)::integer as events_count,
@@ -32,12 +32,12 @@ export async function getEquipmentIdStats(equipmentId: string): Promise<Equipmen
     WHERE eq.id = ${equipmentId}
   `);
 
-  const row = Array.isArray(result) ? result[0] : (result as any).rows?.[0];
+    const row = Array.isArray(result) ? result[0] : (result as any).rows?.[0];
 
-  return {
-    lessons_count: row?.lessons_count || 0,
-    events_count: row?.events_count || 0,
-    total_duration_minutes: row?.total_duration_minutes || 0,
-    total_revenue: row?.total_revenue || 0,
-  };
+    return {
+        lessons_count: row?.lessons_count || 0,
+        events_count: row?.events_count || 0,
+        total_duration_minutes: row?.total_duration_minutes || 0,
+        total_revenue: row?.total_revenue || 0,
+    };
 }

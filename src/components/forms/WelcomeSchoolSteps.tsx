@@ -33,7 +33,12 @@ export interface SchoolFormData {
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 1, title: "Assets", icon: <ImageIcon className="w-4 h-4" />, fields: ["iconFile", "bannerFile"] },
-    { id: 2, title: "Details", icon: <MapPin className="w-4 h-4" />, fields: ["country", "phone", "currency", "latitude", "longitude", "googlePlaceId", "websiteUrl", "instagramUrl"] },
+    {
+        id: 2,
+        title: "Details",
+        icon: <MapPin className="w-4 h-4" />,
+        fields: ["country", "phone", "currency", "latitude", "longitude", "googlePlaceId", "websiteUrl", "instagramUrl"],
+    },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
     { id: 4, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
     { id: 5, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
@@ -70,9 +75,9 @@ export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLoc
                 onLocationChange={onLocationChange}
                 triggerPhoneClear={triggerPhoneClear}
             />
-            
+
             <div className="flex justify-end">
-                 <FilterDropdown
+                <FilterDropdown
                     label="Currency"
                     value={values.currency || "EUR"}
                     options={["USD", "EUR", "CHF"]}
@@ -87,12 +92,7 @@ export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLoc
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
                             <Globe className="w-4 h-4" />
                         </div>
-                        <FormInput 
-                            type="url" 
-                            placeholder="https://..." 
-                            {...register("websiteUrl")} 
-                            className="pl-10"
-                        />
+                        <FormInput type="url" placeholder="https://..." {...register("websiteUrl")} className="pl-10" />
                     </div>
                 </FormField>
 
@@ -101,12 +101,7 @@ export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLoc
                         <div className="h-10 px-3 bg-muted border border-r-0 border-input flex items-center rounded-l-md text-sm text-muted-foreground whitespace-nowrap">
                             @
                         </div>
-                        <FormInput 
-                            type="text" 
-                            placeholder="username" 
-                            {...register("instagramUrl")} 
-                            className="rounded-l-none"
-                        />
+                        <FormInput type="text" placeholder="username" {...register("instagramUrl")} className="rounded-l-none" />
                     </div>
                 </FormField>
             </div>
@@ -123,7 +118,12 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     const values = watch();
     return (
         <div className="space-y-4">
-            <FormField label="Equipment Categories" required error={errors.equipmentCategories?.message as string | undefined} isValid={Array.isArray(values.equipmentCategories) && values.equipmentCategories.length > 0}>
+            <FormField
+                label="Equipment Categories"
+                required
+                error={errors.equipmentCategories?.message as string | undefined}
+                isValid={Array.isArray(values.equipmentCategories) && values.equipmentCategories.length > 0}
+            >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                     {EQUIPMENT_CATEGORIES.map((category) => {
                         const checked = values.equipmentCategories?.includes(category.id as "kite" | "wing" | "windsurf");
@@ -133,13 +133,14 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                                 key={category.id}
                                 style={{
                                     "--category-color": category.color,
-                                    "--category-bg-color": category.bgColor
+                                    "--category-bg-color": category.bgColor,
                                 }}
                                 className={`
                                     group cursor-pointer select-none border-2 rounded-lg p-4 flex flex-col items-center gap-3 transition-all
-                                    ${checked
-                                        ? "bg-card border-[var(--category-color)] text-[var(--category-color)]"
-                                        : "bg-card border-border text-foreground"
+                                    ${
+                                        checked
+                                            ? "bg-card border-[var(--category-color)] text-[var(--category-color)]"
+                                            : "bg-card border-border text-foreground"
                                     }
                                 `}
                             >
@@ -147,19 +148,17 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                                 <div
                                     className={`
                                         p-3 rounded-full transition-colors
-                                        ${checked
-                                            ? "bg-[var(--category-bg-color)]"
-                                            : "bg-muted group-hover:bg-[var(--category-bg-color)]"
+                                        ${
+                                            checked
+                                                ? "bg-[var(--category-bg-color)]"
+                                                : "bg-muted group-hover:bg-[var(--category-bg-color)]"
                                         }
                                     `}
                                 >
                                     <Icon
                                         className={`
                                             w-8 h-8 transition-colors
-                                            ${checked
-                                                ? "text-white"
-                                                : "text-[var(--category-color)] group-hover:text-white"
-                                            }
+                                            ${checked ? "text-white" : "text-[var(--category-color)] group-hover:text-white"}
                                         `}
                                         size={32}
                                         center={true}
@@ -210,9 +209,17 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> icon</p>
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-semibold">Click to upload</span> icon
+                            </p>
                         </div>
-                        <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleIconChange} className="hidden" disabled={pendingToBucket} />
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleIconChange}
+                            className="hidden"
+                            disabled={pendingToBucket}
+                        />
                     </label>
                     {values.iconFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Icon selected</p>}
                 </div>
@@ -226,9 +233,17 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> banner</p>
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-semibold">Click to upload</span> banner
+                            </p>
                         </div>
-                        <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleBannerChange} className="hidden" disabled={pendingToBucket} />
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleBannerChange}
+                            className="hidden"
+                            disabled={pendingToBucket}
+                        />
                     </label>
                     {values.bannerFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Banner selected</p>}
                 </div>
@@ -325,9 +340,7 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
             key: "latitude",
             label: "Geolocation",
             colSpan: 2,
-            displayValue: values.latitude && values.longitude 
-                ? `${values.latitude.toFixed(6)}, ${values.longitude.toFixed(6)}`
-                : "—",
+            displayValue: values.latitude && values.longitude ? `${values.latitude.toFixed(6)}, ${values.longitude.toFixed(6)}` : "—",
         },
         {
             key: "iconFile",
@@ -353,5 +366,12 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
         },
     ];
 
-    return <MultiStepSummary formMethods={formMethods} fields={summaryFields} onEditField={(fieldKey) => onEditField(fieldKey as keyof SchoolFormData, onGoToStep)} gridCols={2} />;
+    return (
+        <MultiStepSummary
+            formMethods={formMethods}
+            fields={summaryFields}
+            onEditField={(fieldKey) => onEditField(fieldKey as keyof SchoolFormData, onGoToStep)}
+            gridCols={2}
+        />
+    );
 }

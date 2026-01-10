@@ -33,7 +33,7 @@ export function calculateCommission(
     durationMinutes: number,
     commission: CommissionInfo,
     lessonRevenue = 0,
-    packageDurationMinutes = 0
+    packageDurationMinutes = 0,
 ): CommissionCalculation {
     const totalHours = durationMinutes / 60;
     const hours = formatDuration(durationMinutes);
@@ -101,7 +101,7 @@ export function calculateLessonRevenue(
     pricePerStudent: number,
     studentCount: number,
     eventDurationMinutes: number,
-    packageDurationMinutes: number
+    packageDurationMinutes: number,
 ): number {
     // Avoid division by zero
     if (packageDurationMinutes === 0) return 0;

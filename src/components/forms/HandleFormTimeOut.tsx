@@ -19,16 +19,17 @@ export function HandleFormTimeOut({ formData, onClose }: HandleFormTimeOutProps)
         username: formData.username,
         country: formData.country,
         phone: formData.phone,
-        geolocation: formData.latitude && formData.longitude 
-            ? `${formData.latitude.toFixed(6)}, ${formData.longitude.toFixed(6)}`
-            : "Not provided",
+        geolocation:
+            formData.latitude && formData.longitude
+                ? `${formData.latitude.toFixed(6)}, ${formData.longitude.toFixed(6)}`
+                : "Not provided",
         equipmentCategories: formData.equipmentCategories.join(", "),
         ownerEmail: formData.ownerEmail,
         referenceNote: formData.referenceNote || "Not provided",
         iconFileInfo: formData.iconFile ? `${formData.iconFile.name} (${formData.iconFile.size} bytes)` : "Not provided",
         bannerFileInfo: formData.bannerFile ? `${formData.bannerFile.name} (${formData.bannerFile.size} bytes)` : "Not provided",
         submissionDate: new Date().toISOString(),
-        issueReason: "Cloudflare R2 upload timeout - network connectivity issue"
+        issueReason: "Cloudflare R2 upload timeout - network connectivity issue",
     };
 
     const emailSubject = "Early Bird Adrenalink Request";
@@ -97,7 +98,9 @@ Note: Files need to be manually uploaded to R2 bucket under /${emailData.usernam
                         </div>
                         <div>
                             <h2 className="text-xl font-semibold text-foreground">Upload Issue - Manual Processing Required</h2>
-                            <p className="text-muted-foreground">Cloudflare R2 upload timed out. We&apos;ll process your request manually.</p>
+                            <p className="text-muted-foreground">
+                                Cloudflare R2 upload timed out. We&apos;ll process your request manually.
+                            </p>
                         </div>
                     </div>
 
@@ -105,7 +108,8 @@ Note: Files need to be manually uploaded to R2 bucket under /${emailData.usernam
                     <div className="bg-muted/50 rounded-lg p-4 mb-6">
                         <h3 className="font-medium text-foreground mb-2">What happened?</h3>
                         <p className="text-sm text-muted-foreground mb-3">
-                            Our file upload system is experiencing connectivity issues. Don&apos;t worry - your registration details are saved and we&apos;ll process everything manually.
+                            Our file upload system is experiencing connectivity issues. Don&apos;t worry - your registration details
+                            are saved and we&apos;ll process everything manually.
                         </p>
                         <h3 className="font-medium text-foreground mb-2">Next steps:</h3>
                         <ol className="text-sm text-muted-foreground space-y-1">
@@ -124,7 +128,7 @@ Note: Files need to be manually uploaded to R2 bucket under /${emailData.usernam
                             <Mail className="w-4 h-4" />
                             {emailSent ? "Email Sent!" : "Send Email"}
                         </button>
-                        
+
                         <button
                             onClick={handleCopyJson}
                             className="flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"

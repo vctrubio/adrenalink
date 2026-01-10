@@ -12,7 +12,7 @@ interface BookingCreateTagProps {
 }
 
 export const BookingCreateTag = ({ icon, onClick, link, className }: BookingCreateTagProps) => {
-    const bookingEntity = ENTITY_DATA.find(e => e.id === "booking")!;
+    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
 
     const handleClick = () => {
         if (onClick) {

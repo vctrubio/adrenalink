@@ -15,7 +15,7 @@ export default function AboutPage() {
     const [isExploding, setIsExploding] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const logoRef = useRef<HTMLDivElement>(null);
-    
+
     // We want a longer scroll range to make it feel "slower"
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -71,16 +71,11 @@ export default function AboutPage() {
             </AnimatePresence>
 
             {/* Fixed Top-Left Logo */}
-            <motion.div 
+            <motion.div
                 style={{ opacity: topLeftLogoOpacity, scale: topLeftLogoScale }}
                 className="fixed top-8 left-8 z-50 w-16 h-16 pointer-events-none mix-blend-difference"
             >
-                 <Image
-                    src="/ADR.webp"
-                    alt="Adrenalink Logo"
-                    fill
-                    className="object-contain"
-                />
+                <Image src="/ADR.webp" alt="Adrenalink Logo" fill className="object-contain" />
             </motion.div>
 
             {/* Fixed Background Hero - does not move */}
@@ -96,20 +91,13 @@ export default function AboutPage() {
                 {/* The "Paper" content - narrower, sliding over */}
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="bg-white rounded-t-[3rem] shadow-[0_-40px_100px_rgba(0,0,0,0.1)] min-h-screen">
-                        
                         {/* Icon overscroll area */}
                         <div ref={logoRef} className="relative h-[80vh] flex items-center justify-center overflow-hidden -mt-32">
-                            <motion.div 
+                            <motion.div
                                 style={{ y: yIcon, opacity: opacityIcon, scale: scaleIcon }}
                                 className="relative w-[80vw] h-[60vh] md:w-[60vw] md:h-[70vh]"
                             >
-                                <Image
-                                    src="/ADR.webp"
-                                    alt="Adrenalink"
-                                    fill
-                                    className="object-contain"
-                                    priority
-                                />
+                                <Image src="/ADR.webp" alt="Adrenalink" fill className="object-contain" priority />
                             </motion.div>
                         </div>
 
@@ -121,11 +109,10 @@ export default function AboutPage() {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Final spacer - reduced to ensure trigger hits naturally */}
                 <div className="h-[20vh]" />
             </div>
         </main>
     );
 }
-

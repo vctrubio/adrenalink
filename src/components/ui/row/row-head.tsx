@@ -23,7 +23,11 @@ export const RowHead = ({ avatar, name, status, dropdownItems, statusColor, stat
             <div className="flex-shrink-0 avatar-wrapper">{avatar}</div>
             <div>
                 <div className="text-base font-semibold text-foreground">{name}</div>
-                {dropdownItems && statusColor ? <DropdownLabel value={status} items={dropdownItems} color={statusColor} disabled={statusDisabled} /> : <div className="bg-muted px-3 text-sm rounded-2xl text-center">{status}</div>}
+                {dropdownItems && statusColor ? (
+                    <DropdownLabel value={status} items={dropdownItems} color={statusColor} disabled={statusDisabled} />
+                ) : (
+                    <div className="bg-muted px-3 text-sm rounded-2xl text-center">{status}</div>
+                )}
             </div>
         </div>
     );

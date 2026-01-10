@@ -10,7 +10,7 @@ export const SPORTS_CONFIG = [
     { id: "windsurf", label: "Windsurfing", image: "/categories/wind.webp" },
 ] as const;
 
-export type SportId = typeof SPORTS_CONFIG[number]["id"];
+export type SportId = (typeof SPORTS_CONFIG)[number]["id"];
 
 interface SportSelectionProps {
     selectedSport: string | null;
@@ -24,12 +24,12 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
 
     const isLanding = variant === "landing";
 
-    const visibleSports = counts 
-        ? SPORTS_CONFIG.filter(sport => (counts[sport.id] || 0) > 0)
-        : SPORTS_CONFIG;
+    const visibleSports = counts ? SPORTS_CONFIG.filter((sport) => (counts[sport.id] || 0) > 0) : SPORTS_CONFIG;
 
     return (
-        <div className={`grid grid-cols-3 md:flex md:flex-row gap-4 w-full items-stretch justify-center ${isLanding ? "h-[100px] md:h-[140px]" : "h-[80px] md:h-[110px]"}`}>
+        <div
+            className={`grid grid-cols-3 md:flex md:flex-row gap-4 w-full items-stretch justify-center ${isLanding ? "h-[100px] md:h-[140px]" : "h-[80px] md:h-[110px]"}`}
+        >
             {visibleSports.map((sport) => {
                 const isSelected = selectedSport === sport.id;
                 const isHovered = hoveredSport === sport.id;
@@ -55,19 +55,23 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             onHoverEnd={() => setHoveredSport(null)}
                             className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
                                 isSelected
-                                    ? isLanding ? "bg-white/20 border-white/60 text-white z-10" : "bg-secondary/20 border-secondary text-secondary z-10"
-                                    : isLanding 
-                                        ? "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
-                                        : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-border"
+                                    ? isLanding
+                                        ? "bg-white/20 border-white/60 text-white z-10"
+                                        : "bg-secondary/20 border-secondary text-secondary z-10"
+                                    : isLanding
+                                      ? "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                      : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-border"
                             }`}
                         >
                             {/* Count Badge */}
                             {count > 0 && (
-                                <div className={`absolute top-3 right-4 px-2 py-0.5 rounded-full text-[10px] font-black tabular-nums border ${
-                                    isSelected 
-                                        ? "bg-foreground text-background border-transparent" 
-                                        : "bg-muted/50 text-muted-foreground border-border/50"
-                                }`}>
+                                <div
+                                    className={`absolute top-3 right-4 px-2 py-0.5 rounded-full text-[10px] font-black tabular-nums border ${
+                                        isSelected
+                                            ? "bg-foreground text-background border-transparent"
+                                            : "bg-muted/50 text-muted-foreground border-border/50"
+                                    }`}
+                                >
                                     {count}
                                 </div>
                             )}
@@ -85,9 +89,13 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                     alt={sport.label}
                                     fill
                                     className={`object-fill transition-all duration-300 ${
-                                        isLanding 
-                                            ? (isHovered || isSelected ? "brightness-0 invert" : "brightness-0 invert opacity-60")
-                                            : (isHovered || isSelected ? "brightness-0 dark:invert" : "brightness-0 dark:invert opacity-70")
+                                        isLanding
+                                            ? isHovered || isSelected
+                                                ? "brightness-0 invert"
+                                                : "brightness-0 invert opacity-60"
+                                            : isHovered || isSelected
+                                              ? "brightness-0 dark:invert"
+                                              : "brightness-0 dark:invert opacity-70"
                                     }`}
                                 />
                             </motion.div>
@@ -95,9 +103,13 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             <motion.span
                                 layout="position"
                                 className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${
-                                    isLanding 
-                                        ? (isHovered || isSelected ? "text-white" : "text-white/60")
-                                        : (isHovered || isSelected ? "text-foreground" : "text-muted-foreground/60")
+                                    isLanding
+                                        ? isHovered || isSelected
+                                            ? "text-white"
+                                            : "text-white/60"
+                                        : isHovered || isSelected
+                                          ? "text-foreground"
+                                          : "text-muted-foreground/60"
                                 }`}
                             >
                                 {sport.label}

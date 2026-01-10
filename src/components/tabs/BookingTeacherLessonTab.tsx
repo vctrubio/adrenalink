@@ -5,7 +5,12 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ENTITY_DATA } from "@/config/entities";
-import { calculateCommission, calculateLessonRevenue, type CommissionInfo, type CommissionCalculation } from "@/getters/commission-calculator";
+import {
+    calculateCommission,
+    calculateLessonRevenue,
+    type CommissionInfo,
+    type CommissionCalculation,
+} from "@/getters/commission-calculator";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 
@@ -19,7 +24,14 @@ interface BookingTeacherLessonTabProps {
     studentCount: number;
 }
 
-const CommissionDisplay = ({ calculation, commissionColor }: { commission: CommissionCalculation; calculation: CommissionCalculation; commissionColor?: string }) => (
+const CommissionDisplay = ({
+    calculation,
+    commissionColor,
+}: {
+    commission: CommissionCalculation;
+    calculation: CommissionCalculation;
+    commissionColor?: string;
+}) => (
     <div className="flex items-center gap-1.5 text-xs">
         <div className="flex-shrink-0" style={{ color: commissionColor }}>
             <HandshakeIcon size={12} />
@@ -34,10 +46,23 @@ const CommissionDisplay = ({ calculation, commissionColor }: { commission: Commi
     </div>
 );
 
-const TeacherHeader = ({ teacher, calculation, commissionColor, teacherColor }: { teacher: ClassboardLesson["teacher"]; calculation: CommissionCalculation; commissionColor?: string; teacherColor?: string }) => (
+const TeacherHeader = ({
+    teacher,
+    calculation,
+    commissionColor,
+    teacherColor,
+}: {
+    teacher: ClassboardLesson["teacher"];
+    calculation: CommissionCalculation;
+    commissionColor?: string;
+    teacherColor?: string;
+}) => (
     <div className="flex items-center gap-3 pb-2 border-b border-border">
         <Link href={`/teachers/${teacher.id}`}>
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: `${teacherColor}20`, color: teacherColor }}>
+            <div
+                className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ backgroundColor: `${teacherColor}20`, color: teacherColor }}
+            >
                 <HeadsetIcon size={24} />
             </div>
         </Link>
@@ -75,7 +100,13 @@ const EventRow = ({ event, index, teacherColor }: { event: ClassboardLesson["eve
     );
 };
 
-export const BookingTeacherLessonTab = ({ lessons, selectedTeacherId, pricePerStudent, packageDurationMinutes, studentCount }: BookingTeacherLessonTabProps) => {
+export const BookingTeacherLessonTab = ({
+    lessons,
+    selectedTeacherId,
+    pricePerStudent,
+    packageDurationMinutes,
+    studentCount,
+}: BookingTeacherLessonTabProps) => {
     const teacherColor = ENTITY_DATA.find((e) => e.id === "teacher")?.color;
     const commissionColor = ENTITY_DATA.find((e) => e.id === "commission")?.color;
 
@@ -91,29 +122,24 @@ export const BookingTeacherLessonTab = ({ lessons, selectedTeacherId, pricePerSt
 
     const events = selectedLesson.events || [];
     const lessonDurationMinutes = events.reduce((sum, evt) => sum + evt.duration, 0);
-    
-    const lessonRevenue = calculateLessonRevenue(
-        pricePerStudent,
-        studentCount,
-        lessonDurationMinutes,
-        packageDurationMinutes
-    );
+
+    const lessonRevenue = calculateLessonRevenue(pricePerStudent, studentCount, lessonDurationMinutes, packageDurationMinutes);
 
     const commissionInfo: CommissionInfo = {
-        type: (selectedLesson.commission.type as "fixed" | "percentage"),
-        cph: parseFloat(selectedLesson.commission.cph)
+        type: selectedLesson.commission.type as "fixed" | "percentage",
+        cph: parseFloat(selectedLesson.commission.cph),
     };
 
-    const calculation = calculateCommission(
-        lessonDurationMinutes,
-        commissionInfo,
-        lessonRevenue,
-        packageDurationMinutes
-    );
+    const calculation = calculateCommission(lessonDurationMinutes, commissionInfo, lessonRevenue, packageDurationMinutes);
 
     return (
         <div className="space-y-2">
-            <TeacherHeader teacher={selectedLesson.teacher} calculation={calculation} commissionColor={commissionColor} teacherColor={teacherColor} />
+            <TeacherHeader
+                teacher={selectedLesson.teacher}
+                calculation={calculation}
+                commissionColor={commissionColor}
+                teacherColor={teacherColor}
+            />
 
             {events.length > 0 ? (
                 <div className="divide-y divide-border">

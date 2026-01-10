@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         const url = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${apiKey}`;
 
         console.log("🔗 Proxying timezone request to Google Maps API:", url.replace(apiKey, "API_KEY_HIDDEN"));
-        
+
         const response = await fetch(url);
         const data = await response.json();
 

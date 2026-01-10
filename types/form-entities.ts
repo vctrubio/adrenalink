@@ -45,7 +45,10 @@ export type CommissionData = z.infer<typeof commissionSchema>;
 export const teacherFormSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
-    username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-z0-9_-]+$/, "Username must be lowercase letters, numbers, dashes, or underscores"),
+    username: z
+        .string()
+        .min(3, "Username must be at least 3 characters")
+        .regex(/^[a-z0-9_-]+$/, "Username must be lowercase letters, numbers, dashes, or underscores"),
     passport: z.string().min(1, "Passport is required"),
     country: z.string().min(1, "Country is required"),
     phone: z.string().min(1, "Phone number is required"),

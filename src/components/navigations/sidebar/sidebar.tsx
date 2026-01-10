@@ -42,7 +42,13 @@ export function AdminSidebar({ children, defaultCollapsed = false }: AdminSideba
                     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern id="wave" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                                <path d="M0 50 Q 25 25, 50 50 T 100 50" stroke="currentColor" fill="none" strokeWidth="0.5" className="text-blue-500" />
+                                <path
+                                    d="M0 50 Q 25 25, 50 50 T 100 50"
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeWidth="0.5"
+                                    className="text-blue-500"
+                                />
                             </pattern>
                         </defs>
                         <rect width="100%" height="100%" fill="url(#wave)" />

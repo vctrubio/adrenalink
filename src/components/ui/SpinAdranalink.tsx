@@ -10,22 +10,17 @@ interface SpinAdranalinkProps {
     duration?: number;
 }
 
-export function SpinAdranalink({ 
-    isSpinning = false, 
-    className = "", 
-    size = 24,
-    duration = 1
-}: SpinAdranalinkProps) {
+export function SpinAdranalink({ isSpinning = false, className = "", size = 24, duration = 1 }: SpinAdranalinkProps) {
     return (
         <motion.div
             className={`inline-flex items-center justify-center ${className}`}
-            animate={{ 
-                rotate: isSpinning ? 360 : 0, 
+            animate={{
+                rotate: isSpinning ? 360 : 0,
             }}
-            transition={{ 
-                duration: isSpinning ? duration : 0.3, 
-                ease: isSpinning ? "linear" : "easeOut", 
-                repeat: isSpinning ? Infinity : 0 
+            transition={{
+                duration: isSpinning ? duration : 0.3,
+                ease: isSpinning ? "linear" : "easeOut",
+                repeat: isSpinning ? Infinity : 0,
             }}
         >
             <AdranlinkIcon size={size} />

@@ -64,114 +64,114 @@ export function getEventTimeRange(event: EventNode): string {
  * Event revenue calculations for databoard
  */
 export class EventStats {
-	/**
-	 * Calculate total money students paid
-	 * Formula: capacity of students * price per student
-	 */
-	static getStudentsPaid(event: EventModel): number {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		const schoolPackage = booking?.studentPackage?.schoolPackage;
+    /**
+     * Calculate total money students paid
+     * Formula: capacity of students * price per student
+     */
+    static getStudentsPaid(event: EventModel): number {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        const schoolPackage = booking?.studentPackage?.schoolPackage;
 
-		if (!schoolPackage) return 0;
+        if (!schoolPackage) return 0;
 
-		const capacityStudents = schoolPackage.capacityStudents || 0;
-		const pricePerStudent = schoolPackage.pricePerStudent || 0;
+        const capacityStudents = schoolPackage.capacityStudents || 0;
+        const pricePerStudent = schoolPackage.pricePerStudent || 0;
 
-		return capacityStudents * pricePerStudent;
-	}
+        return capacityStudents * pricePerStudent;
+    }
 
-	/**
-	 * Calculate teacher commission for this event
-	 * Based on event duration and teacher's commission rate
-	 */
-	static getTeacherCommission(event: EventModel): number {
-		const lesson = event.relations?.lesson;
-		const commission = lesson?.commission;
-		const duration = event.schema.duration || 0;
+    /**
+     * Calculate teacher commission for this event
+     * Based on event duration and teacher's commission rate
+     */
+    static getTeacherCommission(event: EventModel): number {
+        const lesson = event.relations?.lesson;
+        const commission = lesson?.commission;
+        const duration = event.schema.duration || 0;
 
-		if (!commission) return 0;
+        if (!commission) return 0;
 
-		const lessonRevenue = this.getStudentsPaid(event);
-		const packageDurationMinutes = lesson?.booking?.studentPackage?.schoolPackage?.durationMinutes || 0;
+        const lessonRevenue = this.getStudentsPaid(event);
+        const packageDurationMinutes = lesson?.booking?.studentPackage?.schoolPackage?.durationMinutes || 0;
 
-		const commissionCalculation = calculateCommission(duration, commission, lessonRevenue, packageDurationMinutes);
-		return commissionCalculation.earned;
-	}
+        const commissionCalculation = calculateCommission(duration, commission, lessonRevenue, packageDurationMinutes);
+        return commissionCalculation.earned;
+    }
 
-	/**
-	 * Calculate revenue for this event
-	 * Formula: total students paid - teacher commission
-	 */
-	static getRevenue(event: EventModel): number {
-		const studentsPaid = this.getStudentsPaid(event);
-		const teacherCommission = this.getTeacherCommission(event);
+    /**
+     * Calculate revenue for this event
+     * Formula: total students paid - teacher commission
+     */
+    static getRevenue(event: EventModel): number {
+        const studentsPaid = this.getStudentsPaid(event);
+        const teacherCommission = this.getTeacherCommission(event);
 
-		return studentsPaid - teacherCommission;
-	}
+        return studentsPaid - teacherCommission;
+    }
 
-	/**
-	 * Get teacher name from event
-	 */
-	static getTeacherName(event: EventModel): string {
-		const lesson = event.relations?.lesson;
-		const teacher = lesson?.teacher;
+    /**
+     * Get teacher name from event
+     */
+    static getTeacherName(event: EventModel): string {
+        const lesson = event.relations?.lesson;
+        const teacher = lesson?.teacher;
 
-		if (!teacher) return "No teacher";
+        if (!teacher) return "No teacher";
 
-		return `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() || teacher.username;
-	}
+        return `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() || teacher.username;
+    }
 
-	/**
-	 * Get number of enrolled students from event
-	 */
-	static getEnrolledStudentsCount(event: EventModel): number {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		const bookingStudents = booking?.bookingStudents || [];
+    /**
+     * Get number of enrolled students from event
+     */
+    static getEnrolledStudentsCount(event: EventModel): number {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        const bookingStudents = booking?.bookingStudents || [];
 
-		return bookingStudents.length;
-	}
+        return bookingStudents.length;
+    }
 
-	/**
-	 * Get student capacity from school package
-	 */
-	static getStudentCapacity(event: EventModel): number {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		const schoolPackage = booking?.studentPackage?.schoolPackage;
+    /**
+     * Get student capacity from school package
+     */
+    static getStudentCapacity(event: EventModel): number {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        const schoolPackage = booking?.studentPackage?.schoolPackage;
 
-		return schoolPackage?.capacityStudents || 0;
-	}
+        return schoolPackage?.capacityStudents || 0;
+    }
 
-	/**
-	 * Get package description
-	 */
-	static getPackageDescription(event: EventModel): string {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		const schoolPackage = booking?.studentPackage?.schoolPackage;
+    /**
+     * Get package description
+     */
+    static getPackageDescription(event: EventModel): string {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        const schoolPackage = booking?.studentPackage?.schoolPackage;
 
-		return schoolPackage?.description || "No package";
-	}
+        return schoolPackage?.description || "No package";
+    }
 
-	/**
-	 * Get leader student name from event
-	 */
-	static getLeaderStudentName(event: EventModel): string {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		return booking?.leaderStudentName || "No leader";
-	}
+    /**
+     * Get leader student name from event
+     */
+    static getLeaderStudentName(event: EventModel): string {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        return booking?.leaderStudentName || "No leader";
+    }
 
-	/**
-	 * Get all student names from event as a string
-	 */
-	static getStudentNames(event: EventModel): string[] {
-		const lesson = event.relations?.lesson;
-		const booking = lesson?.booking;
-		const bookingStudents = booking?.bookingStudents || [];
-		if (bookingStudents.length === 0) return [];
-		return bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
-	}
+    /**
+     * Get all student names from event as a string
+     */
+    static getStudentNames(event: EventModel): string[] {
+        const lesson = event.relations?.lesson;
+        const booking = lesson?.booking;
+        const bookingStudents = booking?.bookingStudents || [];
+        if (bookingStudents.length === 0) return [];
+        return bookingStudents.map((bs) => (bs.student ? `${bs.student.firstName} ${bs.student.lastName}` : "Unknown"));
+    }
 }
