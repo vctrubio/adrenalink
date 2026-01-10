@@ -69,7 +69,9 @@ function buildBookingQuery() {
                         id,
                         brand,
                         model,
-                        size
+                        size,
+                        sku,
+                        color
                     )
                 )
             )

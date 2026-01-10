@@ -23,6 +23,8 @@ export interface TransactionEventEquipment {
     brand: string;
     model: string;
     size: number | null;
+    sku?: string;
+    color?: string;
 }
 
 export interface TransactionEventData {
@@ -34,6 +36,7 @@ export interface TransactionEventData {
         status: string;
     };
     teacher: {
+        id: string;
         username: string;
     };
     leaderStudentName: string;

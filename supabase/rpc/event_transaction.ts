@@ -53,6 +53,7 @@ export function mapTransactionToEventData(t: EventTransaction, currency: string 
             status: t.event_status,
         },
         teacher: {
+            id: t.teacher_id,
             username: t.teacher_username,
         },
         leaderStudentName: t.leader_student_name,
@@ -75,10 +76,12 @@ export function mapTransactionToEventData(t: EventTransaction, currency: string 
             commissionValue: t.commission_hourly,
         },
         equipments: t.equipments.map(eq => ({
-            id: '',
+            id: (eq as any).id || '',
             brand: eq.brand,
             model: eq.model,
-            size: eq.size
+            size: eq.size,
+            sku: (eq as any).sku,
+            color: (eq as any).color
         }))
     };
 }

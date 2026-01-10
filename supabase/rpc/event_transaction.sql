@@ -63,7 +63,7 @@ BEGIN
             '[]'::jsonb
         ),
         COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('brand', eq.brand, 'model', eq.model, 'size', eq.size, 'category', eq.category))
+            (SELECT jsonb_agg(jsonb_build_object('id', eq.id, 'brand', eq.brand, 'model', eq.model, 'size', eq.size, 'category', eq.category, 'sku', eq.sku, 'color', eq.color))
              FROM equipment_event ee
              JOIN equipment eq ON ee.equipment_id = eq.id
              WHERE ee.event_id = e.id),
@@ -141,7 +141,7 @@ BEGIN
             '[]'::jsonb
         ),
         COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('brand', eq.brand, 'model', eq.model, 'size', eq.size, 'category', eq.category))
+            (SELECT jsonb_agg(jsonb_build_object('id', eq.id, 'brand', eq.brand, 'model', eq.model, 'size', eq.size, 'category', eq.category, 'sku', eq.sku, 'color', eq.color))
              FROM equipment_event ee
              JOIN equipment eq ON ee.equipment_id = eq.id
              WHERE ee.event_id = e.id),
