@@ -25,7 +25,17 @@ interface SchoolPackageContainerProps {
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
 export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProps) {
-    const { id, name, description, price_per_student, duration_minutes, package_type, capacity_students, category_equipment } = pkg;
+    const {
+        id,
+        name,
+        description,
+        price_per_student,
+        duration_minutes,
+        package_type,
+        capacity_students,
+        capacity_equipment,
+        category_equipment,
+    } = pkg;
     const [isHovered, setIsHovered] = useState(false);
     const router = useRouter();
 
