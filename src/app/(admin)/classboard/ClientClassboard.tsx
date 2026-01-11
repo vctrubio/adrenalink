@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
-import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import ClassboardDateHeader from "@/src/components/classboard/ClassboardDateHeader";
 import ClassboardFlagSettings from "@/src/components/classboard/ClassboardFlagSettings";
@@ -12,7 +11,6 @@ import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
-import { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import ClassboardFooter from "./ClassboardFooter";
 
 export default function ClientClassboard() {
@@ -32,7 +30,6 @@ export default function ClientClassboard() {
             <ClassboardSkeleton
                 error={true}
                 errorMessage={`No TimeZone Configuration found for ${credentials?.name || "School"}. Please refresh or update school settings.`}
-                schoolUsername={schoolUsername}
             />
         );
     }
@@ -60,13 +57,15 @@ function ClassboardContent() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex flex-wrap gap-4 p-4 border mx-auto w-full justify-around">
+            <div className="flex flex-wrap gap-4 p-4 border mx-auto w-full max-w-7xl">
                 <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
+                <ClassboardFlagSettings />
+                <ClassboardUpdateFlag />
             </div>
 
             <ClassboardContentBoard />
 
+            <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
             <ClassboardFooter />
         </div>
     );

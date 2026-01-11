@@ -79,7 +79,8 @@ export const ClassboardSkeleton = ({ error, errorMessage }: ClassboardSkeletonPr
                             transition={{ duration: 0.8 }}
                             className="text-4xl schools-name tracking-wide"
                         >
-                            {credentials.name}&apos;s School
+                            {/* {credentials.name}&apos;s School */}
+                            {credentials.name}
                         </motion.p>
                     )}
 
