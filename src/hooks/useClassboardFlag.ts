@@ -470,6 +470,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                     shiftUpdates = cascadeResult.updates;
 
                     if (shiftUpdates.length > 0) {
+                        console.log(`📅 [deleteEvent] Cascade updates: ${shiftUpdates.map((u) => u.id).join(", ")}`);
                         shiftUpdates.forEach((u) => {
                             globalFlag.notifyEventMutation(u.id, "updating", teacherId);
                             const node = queue!.getAllEvents({ includeDeleted: true }).find((e) => e.id === u.id);
@@ -479,8 +480,10 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                     }
                     await deleteClassboardEvent(eventId);
                     if (shiftUpdates.length > 0) {
+                        console.log(`📅 [deleteEvent] Sending cascade updates to server`);
                         await bulkUpdateClassboardEvents(shiftUpdates, []);
-                        shiftUpdates.forEach((u) => globalFlag.clearEventMutation(u.id));
+                        console.log(`📅 [deleteEvent] Cascade updates sent. Waiting for realtime sync to confirm...`);
+                        // Do NOT clear mutations here - let realtime sync confirm them
                     }
                 } else {
                     console.log(`🗑️ [deleteEvent] Calling server to delete single event: ${eventId}`);

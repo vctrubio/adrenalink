@@ -16,7 +16,7 @@ interface ClassboardRealtimeSyncProps {
  * Optimized to only update affected bookings instead of rebuilding everything
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
-    const { setClassboardModel, classboardModel } = useClassboardContext();
+    const { setClassboardModel, classboardModel, globalFlag } = useClassboardContext();
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
 
@@ -51,10 +51,14 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         (newData: ClassboardModel) => {
             console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
+            // Collect event IDs being updated to clear their "updating" mutations
+            const updatedEventIds: string[] = [];
+
             // Log event IDs being updated
             newData.forEach((booking) => {
                 booking.lessons.forEach((lesson) => {
                     lesson.events?.forEach((event) => {
+                        updatedEventIds.push(event.id);
                         console.log(`  📝 Event update detected: ${event.id} | Teacher: ${lesson.teacher?.username} | Status: ${event.status} | Time: ${event.date}`);
                     });
                 });
@@ -79,8 +83,14 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
 
             // 2. Update the model state
             setClassboardModel(updatedModel);
+
+            // 3. Clear "updating" mutations once confirmed by realtime sync
+            updatedEventIds.forEach((eventId) => {
+                globalFlag.clearEventMutation(eventId);
+                console.log(`  ✅ Cleared updating status for ${eventId} (synced)`);
+            });
         },
-        [setClassboardModel],
+        [setClassboardModel, globalFlag],
     );
 
     const handleNewBookingDetected = useCallback(

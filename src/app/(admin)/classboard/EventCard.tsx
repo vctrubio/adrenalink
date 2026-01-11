@@ -144,20 +144,22 @@ export default function EventCard({
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const studentColor = studentEntity?.color || "#eab308";
 
-    // Check if we are awaiting a previous node's deletion
-    // We traverse back to find the first NON-deleting previous event for gap detection
+    // Check if we are awaiting a previous node's deletion/update
+    // We traverse back to find the first NON-mutating previous event for gap detection
     const getEffectivePreviousEvent = (node: EventNode | null): EventNode | null => {
         let current = node;
         while (current) {
             const status = contextValue.getEventCardStatus(current.id);
-            if (status !== "deleting") return current;
+            // Skip events that are being mutated (deleting or updating)
+            if (status !== "deleting" && status !== "updating") return current;
             current = current.prev;
         }
         return null;
     };
 
     const effectivePreviousEvent = getEffectivePreviousEvent(event.prev);
-    const isWaitingForPrevious = event.prev && contextValue.getEventCardStatus(event.prev.id) === "deleting";
+    // Check if any previous event in the chain is mutating (deleting or updating from cascade)
+    const isWaitingForPrevious = event.prev && event.prev !== effectivePreviousEvent;
 
     // Check if there's a next event for cascade delete option
     const hasNextEvent = !!event.next;
@@ -214,7 +216,7 @@ export default function EventCard({
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
-                {effectivePreviousEvent && gapMinutes !== undefined && !isDeleting && (
+                {effectivePreviousEvent && gapMinutes !== undefined && !isDeleting && !isWaitingForPrevious && (
                     <EventGapDetection
                         currentEvent={event}
                         previousEvent={effectivePreviousEvent}
