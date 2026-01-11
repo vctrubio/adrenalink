@@ -60,16 +60,14 @@ function ClassboardContent() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex flex-wrap gap-4 p-4 border max-w-6xl mx-auto w-full justify-around">
+            <div className="flex flex-wrap gap-4 p-4 border mx-auto w-full justify-around">
                 <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                <ClassboardFlagSettings />
-                <ClassboardUpdateFlag />
+                <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
             </div>
 
             <ClassboardContentBoard />
 
             <ClassboardFooter />
-            <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
         </div>
     );
 }

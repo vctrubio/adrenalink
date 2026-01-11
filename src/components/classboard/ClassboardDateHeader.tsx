@@ -1,7 +1,9 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Play, Share2, RefreshCw } from "lucide-react";
 import { getTodayDateString } from "@/getters/date-getter";
+import { cn } from "@/src/lib/utils";
+import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 
 interface ClassboardDateHeaderProps {
     selectedDate: string;
@@ -50,76 +52,92 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
     const badgeText = diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
     return (
-        <div className="flex items-center justify-center gap-6 py-4 select-none">
-            {/* Previous Button */}
-            <button
-                onClick={handlePreviousDay}
-                className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all group active:scale-95"
-            >
-                <Play 
-                    size={16} 
-                    className="rotate-180 text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200 fill-current opacity-80" 
-                    strokeWidth={2.5}
-                />
-            </button>
+        <div className="flex items-stretch bg-card border border-border rounded-xl overflow-hidden shadow-sm select-none">
+            {/* Main Content: Navigation & Date */}
+            <div className="flex-1 flex items-center justify-center gap-6 py-6 px-4 relative">
+                {/* Previous Button */}
+                <button
+                    onClick={handlePreviousDay}
+                    className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-200 bg-transparent flex items-center justify-center transition-all group active:scale-95"
+                >
+                    <Play 
+                        size={12} 
+                        className="rotate-180 text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors" 
+                        strokeWidth={3}
+                    />
+                </button>
 
-            {/* Date Display */}
-            <div className="flex items-center gap-5">
-                {/* Date Number Block */}
-                <div className="flex flex-col items-center leading-none">
-                    <span className="text-4xl font-serif font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                        {dayNumber}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                        {monthShort}
-                    </span>
-                </div>
+                {/* Date Display */}
+                <div className="flex items-center gap-6">
+                    {/* Date Number Block */}
+                    <div className="flex flex-col items-center leading-none">
+                        <span className="text-4xl font-serif font-black text-slate-900 dark:text-white tracking-tighter">
+                            {dayNumber}
+                        </span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 ml-1">
+                            {monthShort}
+                        </span>
+                    </div>
 
-                {/* Day Info Block */}
-                <div className="flex flex-col items-start gap-1">
-                    <span className="text-xl font-serif font-bold text-slate-800 dark:text-slate-100 leading-none">
-                        {dayName}
-                    </span>
-                    
-                    <div className="flex items-center gap-2 h-5">
-                        {/* Today Label (Underlined when active) */}
-                        {isToday && (
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-100 underline decoration-2 underline-offset-4 mr-1">
-                                Today
-                            </span>
-                        )}
+                    {/* Day Info Block */}
+                    <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-xl font-serif font-bold text-slate-800 dark:text-slate-100 leading-none">
+                            {dayName}
+                        </span>
+                        
+                        <div className="flex items-center gap-2 h-4">
+                            {/* Relative Badge (Tomorrow, Yesterday, or -Xd/Xd) */}
+                            {showBadge && (
+                                <span className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black px-2 py-0.5 rounded-full min-w-[28px] text-center">
+                                    {badgeText}
+                                </span>
+                            )}
 
-                        {/* Relative Badge (Tomorrow, Yesterday, or -Xd/Xd) */}
-                        {showBadge && (
-                            <span className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[28px] text-center">
-                                {badgeText}
-                            </span>
-                        )}
+                            {/* Today Label (Underlined when active) */}
+                            {isToday && (
+                                <span className="text-[10px] font-black text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white pb-0.5 tracking-wider">
+                                    TODAY
+                                </span>
+                            )}
 
-                        {/* Always show Today button as a shortcut if not today */}
-                        {!isToday && (
-                            <button 
-                                onClick={handleToday}
-                                className="text-xs text-slate-400 hover:text-primary transition-colors font-medium ml-1"
-                            >
-                                Today
-                            </button>
-                        )}
+                            {/* Always show Today button as a shortcut if not today */}
+                            {!isToday && (
+                                <button 
+                                    onClick={handleToday}
+                                    className="text-[9px] font-black text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider border-b border-transparent hover:border-slate-900 dark:hover:border-white"
+                                >
+                                    Today
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* Next Button */}
+                <button
+                    onClick={handleNextDay}
+                    className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-200 bg-transparent flex items-center justify-center transition-all group active:scale-95"
+                >
+                    <Play 
+                        size={12} 
+                        className="text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors" 
+                        strokeWidth={3}
+                    />
+                </button>
             </div>
 
-            {/* Next Button */}
-            <button
-                onClick={handleNextDay}
-                className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all group active:scale-95"
-            >
-                <Play 
-                    size={16} 
-                    className="text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200 fill-current opacity-80" 
-                    strokeWidth={2.5}
-                />
-            </button>
+            {/* Right Side: Technical Action Strip */}
+            <div className="w-10 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
+                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
+                    <ToggleAdranalinkIcon isOpen={false} variant="sm" className="scale-75 opacity-80 group-hover:opacity-100" />
+                </button>
+                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
+                    <Share2 size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
+                </button>
+                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
+                    <RefreshCw size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
+                </button>
+            </div>
         </div>
     );
 }
