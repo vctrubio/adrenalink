@@ -2,7 +2,9 @@
 
 import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
@@ -10,10 +12,12 @@ import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
+const STATUS_DARK = "#6b7280"; // For inactive/sold statuses
+const ACTION_CYAN = "#06b6d4";
 
 type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
+    const { teacherQueues, draggedBooking, globalFlag, selectedDate, controller, setController } = useClassboardContext();
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -31,6 +35,40 @@ export default function TeacherClassDaily() {
             }
             return newSet;
         });
+    };
+
+    const handleTimeIncrement = () => {
+        if (!controller) return;
+        const [hours, minutes] = controller.submitTime.split(":").map(Number);
+        const newHours = (hours + 1) % 24;
+        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        setController({ ...controller, submitTime: newTime });
+    };
+
+    const handleTimeDecrement = () => {
+        if (!controller) return;
+        const [hours, minutes] = controller.submitTime.split(":").map(Number);
+        const newHours = (hours - 1 + 24) % 24;
+        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        setController({ ...controller, submitTime: newTime });
+    };
+
+    // Get earliest time from queues array
+    const earliestTime = useMemo(() => {
+        const earliestTimes = teacherQueues
+            .map((queue) => queue.getEarliestTime())
+            .filter((time) => time != null);
+        if (earliestTimes.length === 0) return null;
+        return earliestTimes.sort()[0]; // Return earliest alphabetically (HH:MM format sorts correctly)
+    }, [teacherQueues]);
+
+    const isEarliestTimeSet = earliestTime && earliestTime === controller?.submitTime;
+    const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK; // Cyan if matches earliest time, else muted
+
+    const handleFlagClick = () => {
+        if (earliestTime && controller) {
+            setController({ ...controller, submitTime: earliestTime });
+        }
     };
 
     // Filter teachers based on their registry status and current activity
@@ -66,6 +104,34 @@ export default function TeacherClassDaily() {
                     <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
+
+                {/* Start Time Section - Grouped */}
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={handleFlagClick}
+                        style={{ color: flagColor }}
+                        className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        title="Set to earliest time from queues"
+                    >
+                        <FlagIcon className="w-5 h-5 flex-shrink-0" />
+                    </button>
+                    <button
+                        onClick={handleTimeDecrement}
+                        className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        title="Decrease hour"
+                    >
+                        <ChevronLeft size={18} className="text-foreground" />
+                    </button>
+                    <span className="font-mono text-xl font-bold text-foreground w-12 text-center">{controller?.submitTime || "00:00"}</span>
+                    <button
+                        onClick={handleTimeIncrement}
+                        className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        title="Increase hour"
+                    >
+                        <ChevronRight size={18} className="text-foreground" />
+                    </button>
+                </div>
+
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <ToggleSwitch
                         value={filter}

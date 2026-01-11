@@ -1,9 +1,11 @@
 "use client";
 
-import { Play, Share2, RefreshCw } from "lucide-react";
+import { Play, Share2, RefreshCw, MapPin, Users, Layers, Phone, Plus, Minus, Timer } from "lucide-react";
 import { getTodayDateString } from "@/getters/date-getter";
 import { cn } from "@/src/lib/utils";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
 
 interface ClassboardDateHeaderProps {
     selectedDate: string;
@@ -13,6 +15,7 @@ interface ClassboardDateHeaderProps {
 export default function ClassboardDateHeader({ selectedDate, onDateChange }: ClassboardDateHeaderProps) {
     const dateObj = new Date(selectedDate + "T00:00:00");
     const today = new Date(getTodayDateString() + "T00:00:00");
+    const { controller, setController } = useClassboardContext();
 
     // Formatters
     const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
@@ -47,12 +50,152 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
         onDateChange(getTodayDateString());
     };
 
+    // Flag settings increment/decrement functions
+    const handleTimeIncrement = () => {
+        if (!controller) return;
+        const [hours, minutes] = controller.submitTime.split(":").map(Number);
+        const newHours = (hours + 1) % 24;
+        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        setController({ ...controller, submitTime: newTime });
+    };
+
+    const handleTimeDecrement = () => {
+        if (!controller) return;
+        const [hours, minutes] = controller.submitTime.split(":").map(Number);
+        const newHours = (hours - 1 + 24) % 24;
+        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        setController({ ...controller, submitTime: newTime });
+    };
+
+    const locationCycle = ["Zoom", "In-Person", "Hybrid", "Phone"];
+    const handleLocationIncrement = () => {
+        if (!controller) return;
+        const currentIndex = locationCycle.indexOf(controller.location || "Zoom");
+        const nextIndex = (currentIndex + 1) % locationCycle.length;
+        setController({ ...controller, location: locationCycle[nextIndex] });
+    };
+
+    const handleLocationDecrement = () => {
+        if (!controller) return;
+        const currentIndex = locationCycle.indexOf(controller.location || "Zoom");
+        const prevIndex = (currentIndex - 1 + locationCycle.length) % locationCycle.length;
+        setController({ ...controller, location: locationCycle[prevIndex] });
+    };
+
+    const gapCycle = [0, 5, 10, 15, 20, 30, 60];
+    const handleGapIncrement = () => {
+        if (!controller) return;
+        const currentIndex = gapCycle.indexOf(controller.gapMinutes || 0);
+        const nextIndex = (currentIndex + 1) % gapCycle.length;
+        setController({ ...controller, gapMinutes: gapCycle[nextIndex] });
+    };
+
+    const handleGapDecrement = () => {
+        if (!controller) return;
+        const currentIndex = gapCycle.indexOf(controller.gapMinutes || 0);
+        const prevIndex = (currentIndex - 1 + gapCycle.length) % gapCycle.length;
+        setController({ ...controller, gapMinutes: gapCycle[prevIndex] });
+    };
+
+    const getLocationIcon = () => {
+        switch (controller?.location) {
+            case "Zoom":
+                return <Users size={16} className="text-slate-600 dark:text-slate-400" />;
+            case "In-Person":
+                return <MapPin size={16} className="text-slate-600 dark:text-slate-400" />;
+            case "Hybrid":
+                return <Layers size={16} className="text-slate-600 dark:text-slate-400" />;
+            case "Phone":
+                return <Phone size={16} className="text-slate-600 dark:text-slate-400" />;
+            default:
+                return <Users size={16} className="text-slate-600 dark:text-slate-400" />;
+        }
+    };
+
     // Format relative days badge text (e.g., "19d", "-2d")
     const showBadge = diffDays !== 0;
     const badgeText = diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
     return (
         <div className="flex items-stretch bg-card border border-border rounded-xl overflow-hidden shadow-sm select-none">
+            {/* Left Side: Flag Settings Strip */}
+            <div className="w-64 bg-slate-100 dark:bg-slate-800 flex flex-col divide-y divide-slate-200 dark:divide-slate-700 flex-shrink-0">
+                {/* Start Time Section */}
+                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
+                    <div className="flex items-center gap-2">
+                        <FlagIcon size={16} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200" />
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Start Time</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={handleTimeDecrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Decrease hour"
+                        >
+                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                        <span className="text-sm font-black text-slate-900 dark:text-white w-12 text-center">{controller?.submitTime || "00:00"}</span>
+                        <button
+                            onClick={handleTimeIncrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Increase hour"
+                        >
+                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Location Section */}
+                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
+                    <div className="flex items-center gap-2">
+                        {getLocationIcon()}
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Location</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={handleLocationDecrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Previous location"
+                        >
+                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                        <span className="text-sm font-black text-slate-900 dark:text-white w-20 text-center">{controller?.location || "Zoom"}</span>
+                        <button
+                            onClick={handleLocationIncrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Next location"
+                        >
+                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Gap Intervals Section */}
+                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
+                    <div className="flex items-center gap-2">
+                        <Timer size={16} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200" />
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Gap Intervals</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={handleGapDecrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Decrease gap"
+                        >
+                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                        <span className="text-sm font-black text-slate-900 dark:text-white w-12 text-center">{controller?.gapMinutes || 0}m</span>
+                        <button
+                            onClick={handleGapIncrement}
+                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            title="Increase gap"
+                        >
+                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Main Content: Navigation & Date */}
             <div className="flex-1 flex items-center justify-center gap-6 py-6 px-4 relative">
                 {/* Previous Button */}
@@ -60,9 +203,9 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
                     onClick={handlePreviousDay}
                     className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-200 bg-transparent flex items-center justify-center transition-all group active:scale-95"
                 >
-                    <Play 
-                        size={12} 
-                        className="rotate-180 text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors" 
+                    <Play
+                        size={12}
+                        className="rotate-180 text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors"
                         strokeWidth={3}
                     />
                 </button>
@@ -84,7 +227,7 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
                         <span className="text-xl font-serif font-bold text-slate-800 dark:text-slate-100 leading-none">
                             {dayName}
                         </span>
-                        
+
                         <div className="flex items-center gap-2 h-4">
                             {/* Relative Badge (Tomorrow, Yesterday, or -Xd/Xd) */}
                             {showBadge && (
@@ -102,7 +245,7 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
 
                             {/* Always show Today button as a shortcut if not today */}
                             {!isToday && (
-                                <button 
+                                <button
                                     onClick={handleToday}
                                     className="text-[9px] font-black text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider border-b border-transparent hover:border-slate-900 dark:hover:border-white"
                                 >
@@ -118,9 +261,9 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
                     onClick={handleNextDay}
                     className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-200 bg-transparent flex items-center justify-center transition-all group active:scale-95"
                 >
-                    <Play 
-                        size={12} 
-                        className="text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors" 
+                    <Play
+                        size={12}
+                        className="text-slate-400 group-hover:text-slate-800 dark:text-slate-500 dark:group-hover:text-slate-200 fill-current transition-colors"
                         strokeWidth={3}
                     />
                 </button>

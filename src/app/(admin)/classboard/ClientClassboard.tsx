@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import ClassboardDateHeader from "@/src/components/classboard/ClassboardDateHeader";
-import ClassboardFlagSettings from "@/src/components/classboard/ClassboardFlagSettings";
 import ClassboardUpdateFlag from "@/src/components/classboard/ClassboardUpdateFlag";
 import ClassboardContentBoard from "./ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
@@ -59,7 +58,6 @@ function ClassboardContent() {
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex flex-wrap gap-4 p-4 border mx-auto w-full max-w-7xl">
                 <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                <ClassboardFlagSettings />
                 <ClassboardUpdateFlag />
             </div>
 
