@@ -213,7 +213,7 @@ export default function EventCard({
 
     return (
         <div
-            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 hover:shadow-lg ${isLoading ? "pointer-events-none" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 ${isLoading ? "pointer-events-none" : ""} ${isError ? "ring-2 ring-red-500" : ""}`}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 relative">
@@ -249,11 +249,11 @@ export default function EventCard({
             </div>
 
             {/* Footer / Student Toggle Trigger */}
-            <div className="px-2 pb-2">
+            <div className="px-3 pb-3">
                 <button
                     ref={studentTriggerRef}
                     onClick={() => hasMultipleStudents && setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                    className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 text-left ${hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"}`}
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-muted/50 border border-border/50 text-left ${hasMultipleStudents ? "hover:bg-muted cursor-pointer transition-colors" : "cursor-default"}`}
                 >
                     {/* Left side: Student(s) */}
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -274,7 +274,7 @@ export default function EventCard({
 
                     {/* Right side: Location */}
                     {showLocation && location && (
-                        <div className="flex items-center gap-2 text-muted-foreground shrink-0 pl-2 border-l border-border/40">
+                        <div className="flex items-center gap-2 text-muted-foreground shrink-0">
                             <MapPin size={14} className="text-foreground/40" />
                             <span className="text-[11px] font-bold truncate max-w-[80px] uppercase tracking-tight">{location}</span>
                         </div>
@@ -295,8 +295,3 @@ export default function EventCard({
         </div>
     );
 }
-
-// Re-export constants for EventModCard compatibility
-export const HEADING_PADDING = "py-1.5";
-export const ROW_MARGIN = "mx-4";
-export const ROW_PADDING = "py-2";

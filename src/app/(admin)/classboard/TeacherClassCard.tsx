@@ -293,7 +293,7 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
     }
 
     return (
-        <div className="flex items-center justify-between w-full gap-2 px-1">
+        <div className="flex items-center justify-between w-full gap-2">
             {/* Left: Equipment Categories */}
             <div className="flex items-center gap-3">
                 <AnimatePresence mode="popLayout">
@@ -596,7 +596,7 @@ export default function TeacherClassCard({
     return (
         <div
             onClick={onClick}
-            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 hover:shadow-lg cursor-pointer ${!queue.isActive ? "opacity-75 grayscale-[0.3]" : ""}`}
+            className={`group relative w-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all duration-300 cursor-pointer ${!queue.isActive ? "opacity-75 grayscale-[0.3]" : ""}`}
         >
             {/* Header: Avatar (Status) + Name/Progress/Time - Toggle collapse */}
             <div onClick={handleHeaderClick} className="flex items-center gap-4 px-6 py-5 cursor-pointer">
@@ -643,7 +643,7 @@ export default function TeacherClassCard({
             </div>
 
             {/* Footer - Stats (enter mode) or Controls */}
-            <div className="px-2 pb-2">
+            <div className="px-3 pb-3">
                 {isAdjustmentMode ? (
                     <SubmitCancelReset
                         onSubmit={onSubmit || (() => onToggleAdjustment?.(false))}

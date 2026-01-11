@@ -1,7 +1,7 @@
 // "use client";
 
 import { useState, useCallback, useRef, useMemo } from "react";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, ArrowUp, ArrowDown, MapPin, Plus, Minus } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, X, MapPin, Plus, Minus } from "lucide-react";
 import { Dropdown } from "@/src/components/ui/dropdown";
 import { getPrettyDuration, getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO, timeToMinutes, minutesToTime, getMinutesFromISO } from "@/getters/queue-getter";
@@ -106,12 +106,8 @@ const TimeControls = ({
     const duration = event.eventData.duration;
     const endTime = minutesToTime(startMinutes + duration);
 
-    // Find original state from snapshot to show session-only changes
-    const originalEvent = queueController.getOriginalSnapshot().find((e) => e.id === eventId);
-
     // Session shifts (vs original snapshot)
     const timeShift = queueController.getQueue().getEventTimeDifference(eventId, queueController.getOriginalSnapshot());
-    const durationShift = originalEvent ? duration - originalEvent.eventData.duration : 0;
 
     const handleTimeChange = (increment: boolean) => {
         queueController.adjustTime(eventId, increment);
@@ -158,11 +154,6 @@ const TimeControls = ({
                                 {getHMDuration(Math.abs(timeShift))}
                             </span>
                         )}
-                        {/* {durationShift !== 0 && (
-                            <span className="shrink-0">
-                                {durationShift > 0 ? "+" : "-"}{getHMDuration(Math.abs(durationShift))}
-                            </span>
-                        )} */}
                     </div>
                 </div>
             </div>
@@ -181,13 +172,9 @@ const DurationControls = ({
 }) => {
     const handleDurationAdjustment = (increment: boolean) => {
         const controller = queueController.getSettings();
-
         const stepDuration = controller.stepDuration || 30;
-
         const minDuration = controller.minDuration || 60;
-
         const newDuration = increment ? duration + stepDuration : duration - stepDuration;
-
         if (newDuration < minDuration) return;
 
         queueController.adjustDuration(eventId, increment);
@@ -196,7 +183,6 @@ const DurationControls = ({
     return (
         <div className="flex flex-col flex-1 gap-2 min-w-[60px] mr-1">
             {/* Top Row: Icon and Increment */}
-
             <div className="flex items-center gap-2 justify-end">
                 <div className="flex gap-1">
                     <button
@@ -219,7 +205,6 @@ const DurationControls = ({
             </div>
 
             {/* Bottom Row: Duration Text */}
-
             <div className="flex items-center gap-1 justify-end">
                 <DurationIcon size={16} className="text-muted-foreground/80" />
                 <span className="text-3xl font-black tracking-tighter leading-none text-foreground">{getHMDuration(duration)}</span>
@@ -339,7 +324,7 @@ export default function EventModCard({
             </div>
 
             {/* Main Body: Time & Duration */}
-            <div className="pt-4 px-4 flex items-center justify-between gap-2 relative">
+            <div className="pt-6 px-4 flex items-center justify-between gap-2 relative">
                 {!isFirst && previousEvent && (
                     <EventGapDetection
                         currentEvent={event}
@@ -372,7 +357,6 @@ export default function EventModCard({
                     eventId={eventId}
                     queueController={queueController}
                 />
-                <div className="h-16 w-px bg-border/60 mx-2" />
                 <DurationControls duration={event.eventData.duration} eventId={eventId} queueController={queueController} />
             </div>
 

@@ -88,9 +88,6 @@ export default function StudentClassDaily() {
                                             (lesson.events || []).some((event) => event.date.startsWith(selectedDate)),
                                         );
 
-                                        // Determine which component to render - ONLY use Onboard card if REAL events exist
-                                        const Component = filter === "all" || !hasRealEvents ? StudentBookingCard : BookingOnboardCard;
-
                                         return (
                                             <motion.div
                                                 layout="position"
@@ -104,7 +101,14 @@ export default function StudentClassDaily() {
                                                 }}
                                                 className="flex-shrink-0"
                                             >
-                                                <Component bookingData={bookingData} />
+                                                {filter === "all" || !hasRealEvents ? (
+                                                    <StudentBookingCard bookingData={bookingData} />
+                                                ) : (
+                                                    <BookingOnboardCard
+                                                        bookingData={bookingData}
+                                                        selectedDate={selectedDate}
+                                                    />
+                                                )}
                                             </motion.div>
                                         );
                                     })}
