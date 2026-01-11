@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { AnimatedCanvas } from "./animated-canvas";
 
 const BLUE_BG_GO = "bg-slate-950"; // Always use dark mode background
 const PUNCH_WORDS = "text-white font-bold";
@@ -15,14 +14,14 @@ function AdrImageSection() {
         <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            transition={{ delay: 2.3, duration: 1.2 }}
+            transition={{ delay: 6.3, duration: 1.2 }}
             viewport={{ once: true, amount: 0.5 }}
             className="flex items-center justify-end gap-4 pt-6"
         >
             <motion.div
                 initial={{ x: -400, rotate: 360 }}
                 whileInView={{ x: 0, rotate: 0 }}
-                transition={{ delay: 2.3, duration: 1.4, type: "spring", stiffness: 100, damping: 15 }}
+                transition={{ delay: 6.3, duration: 1.4, type: "spring", stiffness: 100, damping: 15 }}
                 viewport={{ once: true, amount: 0.5 }}
             >
                 <Image
@@ -38,7 +37,7 @@ function AdrImageSection() {
                 className="flex flex-col items-center gap-0"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                transition={{ delay: 2.5, duration: 0.6 }}
+                transition={{ delay: 6.5, duration: 0.6 }}
                 viewport={{ once: true, amount: 0.5 }}
                 whileHover={{ scale: 1.05 }}
             >
@@ -72,7 +71,6 @@ function AdrImageSection() {
 function LandingHeroHeader() {
     return (
         <div className="relative inline-block">
-            <AnimatedCanvas className="absolute inset-0 w-full h-full pointer-events-none" />
             <h1 className="relative text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl" style={{ zIndex: 10 }}>
                 Adrenalink
             </h1>
@@ -141,12 +139,8 @@ export function LandingHeroDescription() {
                 </div>
                 <div className="text-xl text-gray-300 text-center">
                     <span className={PUNCH_WORDS}>Adrenalink</span> is{" "}
-                    <span className="italic text-base">
-                        the <span className="text-gray-400">·</span> first <span className="text-gray-400">·</span> of{" "}
-                        <span className="text-gray-400">·</span> its <span className="text-gray-400">·</span> kind
-                    </span>{" "}
                     <span className="font-bold text-white">built</span> to <span className={KEY_WORDS}>track equipment usage</span>,{" "}
-                    <span className="text-gray-400">with</span> <span className={KEY_WORDS}>smart automation</span>.
+                    <span className="text-gray-400 italic">with</span> <span className={KEY_WORDS}>smart automation</span>.
                 </div>
             </motion.div>
 
@@ -174,7 +168,7 @@ export function LandingHero() {
         let animationId: number;
         let time = 0;
         const introStartTime = Date.now();
-        const INTRO_DURATION = 3000;
+        const INTRO_DURATION = 4500;
         const PARTICLE_DELAY = 2000;
         const PARTICLE_FADE_DURATION = 6000;
 
@@ -192,7 +186,7 @@ export function LandingHero() {
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
             const waveProgress = easeOutCubic(introProgress);
 
-            // Particle progress (starts after 10s)
+            // Particle progress
             const particleElapsed = Math.max(0, elapsed - PARTICLE_DELAY);
             const particleProgress = Math.min(particleElapsed / PARTICLE_FADE_DURATION, 1);
 
@@ -222,17 +216,18 @@ export function LandingHero() {
                 ctx.stroke();
             }
 
-            // Floating particles appearing in after 10 seconds
+            // Floating particles appearing in after delay
             if (particleProgress > 0) {
-                for (let i = 0; i < 40; i++) {
-                    const angle = (i / 40) * Math.PI * 2 + time * 0.5;
-                    const radius = (150 + Math.sin(time + i) * 50) * (0.8 + 0.2 * particleProgress);
-                    const x = centerX + Math.cos(angle) * radius * 1.5;
+                // Particles
+                for (let i = 0; i < 50; i++) {
+                    const angle = (i / 50) * Math.PI * 2 + time;
+                    const radius = 100 + Math.sin(time * 2 + i) * 50;
+                    const x = centerX + Math.cos(angle) * radius;
                     const y = centerY + Math.sin(angle) * radius * 0.5;
 
                     ctx.beginPath();
-                    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(59, 130, 246, ${(0.4 + Math.sin(time + i) * 0.2) * particleProgress})`;
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(59, 130, 246, ${(0.6 + Math.sin(time + i) * 0.4) * particleProgress})`;
                     ctx.fill();
                 }
             }

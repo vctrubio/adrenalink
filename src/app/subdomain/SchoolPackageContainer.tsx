@@ -119,7 +119,11 @@ export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProp
                     </span>
                 </div>
                 {sportConfig?.image && (
-                    <div className="relative w-16 h-16 opacity-20 grayscale mt-2">
+                    <div
+                        className={`relative w-16 h-16 transition-all duration-500 mt-2 ${
+                            isHovered ? "opacity-40 grayscale-0 brightness-0" : "opacity-20 grayscale"
+                        }`}
+                    >
                         <Image src={sportConfig.image} alt={sportConfig.id} fill className="object-contain" />
                     </div>
                 )}

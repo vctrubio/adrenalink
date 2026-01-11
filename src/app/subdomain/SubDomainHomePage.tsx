@@ -48,7 +48,7 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
             {/* Main Portal Container */}
             <div className="w-full max-w-[1600px] flex-1 bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden">
                 {/* 1. Banner Section */}
-                <div className="relative w-full h-48 md:h-64 shrink-0 rounded-t-[2.5rem] overflow-hidden">
+                <div className="relative w-full h-48 md:h-64 shrink-0 rounded-t-[2.5rem] overflow-hidden border-b border-zinc-200">
                     {bannerUrl ? (
                         <Image
                             src={bannerUrl}
@@ -70,7 +70,7 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
                     <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
                         {/* School Icon */}
                         <div className="z-10 flex-shrink-0">
-                            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white bg-zinc-100 overflow-hidden shadow-xl">
+                            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white ring-2 ring-black bg-zinc-100 overflow-hidden shadow-xl">
                                 <Image src={iconUrl} alt={`${name} Icon`} fill className="object-cover" />
                             </div>
                         </div>
