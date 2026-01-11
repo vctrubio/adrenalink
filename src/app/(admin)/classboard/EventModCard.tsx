@@ -361,7 +361,7 @@ export default function EventModCard({
             </div>
 
             {/* Footer: Location & Meta */}
-            <div className="px-4 py-2 flex items-end justify-between">
+            <div className="px-4 pt-2 pb-4 flex items-end justify-between">
                 <LocationControls
                     eventId={eventId}
                     currentLocation={event.eventData.location}

@@ -136,7 +136,7 @@ function TeacherEventProgressBar({
                     console.log(`🔧 [TeacherClassCard] Optimising ${eventIds.length} events for ${queue.teacher.username}`);
                     await bulkUpdateClassboardEvents(result.updates);
 
-                    console.log(`🔧 [TeacherClassCard] Waiting for realtime sync to confirm optimisation...`);
+                    console.log("🔧 [TeacherClassCard] Waiting for realtime sync to confirm optimisation...");
                     // Do NOT clear mutations here - let realtime sync confirm the updates
                     toast.success("Optimising queue...");
                 } else {
@@ -211,17 +211,19 @@ function TeacherEventProgressBar({
             </div>
 
             {/* Clickable Progress Label acting as Dropdown Trigger */}
-            <div
-                ref={dropdownTriggerRef}
-                className={`text-[9px] font-bold whitespace-nowrap tracking-tighter cursor-pointer select-none transition-colors rounded px-1 -mr-1
+            {totalEvents > 0 && (
+                <div
+                    ref={dropdownTriggerRef}
+                    className={`text-[9px] font-bold whitespace-nowrap tracking-tighter cursor-pointer select-none transition-colors rounded px-1 -mr-1
                     ${isDropdownOpen ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setIsDropdownOpen(!isDropdownOpen);
-                }}
-            >
-                {completedEvents}/{totalEvents} COMPLETED
-            </div>
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDropdownOpen(!isDropdownOpen);
+                    }}
+                >
+                    {completedEvents}/{totalEvents} COMPLETED
+                </div>
+            )}
 
             {/* Custom Backdrop to stop propagation on close-click */}
             {isDropdownOpen && (
@@ -286,14 +288,14 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
 
     if (!hasAnyStats) {
         return (
-            <div className="text-xs text-muted-foreground text-center py-1 font-medium tracking-tight italic opacity-50">
-                No activity yet
+            <div className="flex items-center justify-center w-full min-h-[24px]">
+                <span className="text-[10px] font-black text-muted-foreground/30 tracking-[0.2em] uppercase">No Lesson Plan</span>
             </div>
         );
     }
 
     return (
-        <div className="flex items-center justify-between w-full gap-2">
+        <div className="flex items-center justify-between w-full gap-2 min-h-[24px]">
             {/* Left: Equipment Categories */}
             <div className="flex items-center gap-3">
                 <AnimatePresence mode="popLayout">
@@ -324,32 +326,26 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
 
             {/* Right: Main Money Stats (Duration, Commission, Profit) */}
             <div className="flex items-center gap-4">
-                {hasDuration && (
-                    <div className="flex items-center gap-1">
-                        <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">
-                            <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
-                        </span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1">
+                    <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">
+                        <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
+                    </span>
+                </div>
 
-                {hasCommission && (
-                    <div className="flex items-center gap-1">
-                        <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">
-                            <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
-                        </span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1">
+                    <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">
+                        <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                    </span>
+                </div>
 
-                {hasProfit && (
-                    <div className="flex items-center gap-1">
-                        <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-bold text-foreground">
-                            <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
-                        </span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1">
+                    <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">
+                        <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                    </span>
+                </div>
             </div>
         </div>
     );
@@ -515,7 +511,7 @@ export default function TeacherClassCard({
             <div
                 className={`group relative w-full overflow-hidden rounded-xl border border-border transition-colors duration-200 ${!queue.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}
             >
-                {<ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
+                {eventProgress.total > 0 && <ClassboardProgressBar counts={progressBarCounts} durationMinutes={eventProgress.total} />}
 
                 <div onClick={handleHeaderClick} className="h-16 flex items-center gap-4 px-6 bg-background cursor-pointer flex-1">
                     {/* Icon - Enter adjustment mode and expand if collapsed */}
@@ -546,7 +542,7 @@ export default function TeacherClassCard({
                     )}
 
                     {/* Duration */}
-                    {stats.totalHours && stats.totalHours > 0 && (
+                    {stats.totalHours > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <DurationIcon size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
@@ -556,7 +552,7 @@ export default function TeacherClassCard({
                     )}
 
                     {/* Commission */}
-                    {stats.totalRevenue?.commission && stats.totalRevenue.commission > 0 && (
+                    {stats.totalRevenue.commission > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <HandshakeIcon size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
@@ -566,7 +562,7 @@ export default function TeacherClassCard({
                     )}
 
                     {/* Revenue */}
-                    {stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0 && (
+                    {stats.totalRevenue.revenue > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <TrendingUpDown size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
@@ -666,7 +662,7 @@ export default function TeacherClassCard({
                             e.stopPropagation();
                             onToggleAdjustment?.(true);
                         }}
-                        className={`w-full rounded-xl p-3 transition-all duration-200 ${showDangerBorder ? "border-2 border-red-500 bg-red-500/10" : "border border-border/50 bg-muted/50 hover:bg-muted"}`}
+                        className={`w-full rounded-xl px-3 py-2.5 transition-all duration-200 ${showDangerBorder ? "border-2 border-red-500 bg-red-500/10" : "border border-border/50 bg-muted/50 hover:bg-muted"}`}
                     >
                         <TeacherStatsRow equipmentCounts={equipmentCounts} stats={stats} />
                     </button>

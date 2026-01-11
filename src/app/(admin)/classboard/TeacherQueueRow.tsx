@@ -172,11 +172,7 @@ function EventsSection({
                             </div>
                         );
                     })
-                ) : (
-                    <div className="flex items-center justify-center w-full text-xs text-muted-foreground">
-                        No events today
-                    </div>
-                )}
+                ) : null}
             </div>
         </div>
     );
