@@ -1,11 +1,16 @@
 "use client";
 
 import { Play, Share2, RefreshCw, MapPin, Users, Layers, Phone, Plus, Minus, Timer } from "lucide-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { getTodayDateString } from "@/getters/date-getter";
 import { cn } from "@/src/lib/utils";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
+import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DailyClassScheduleModal from "@/src/components/modals/DailyClassScheduleModal";
+import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/supabase/server/classboard";
+import { STATUS_GREEN, STATUS_ORANGE } from "@/types/status";
 
 interface ClassboardDateHeaderProps {
     selectedDate: string;
@@ -15,7 +20,140 @@ interface ClassboardDateHeaderProps {
 export default function ClassboardDateHeader({ selectedDate, onDateChange }: ClassboardDateHeaderProps) {
     const dateObj = new Date(selectedDate + "T00:00:00");
     const today = new Date(getTodayDateString() + "T00:00:00");
-    const { controller, setController } = useClassboardContext();
+    const { controller, setController, teacherQueues, globalFlag } = useClassboardContext();
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Get all event IDs for bulk operations
+    const getAllEventIds = (): string[] => {
+        const eventIds: string[] = [];
+        teacherQueues.forEach((queue) => {
+            const events = queue.getAllEvents();
+            events.forEach((event) => {
+                eventIds.push(event.id);
+            });
+        });
+        return eventIds;
+    };
+
+    // Get event IDs by status
+    const getEventIdsByStatus = (targetStatus: string): string[] => {
+        const eventIds: string[] = [];
+        teacherQueues.forEach((queue) => {
+            const events = queue.getAllEvents();
+            events.forEach((event) => {
+                if (event.eventData.status !== targetStatus) {
+                    eventIds.push(event.id);
+                }
+            });
+        });
+        return eventIds;
+    };
+
+    const isAdjustmentMode = globalFlag.isAdjustmentMode();
+
+    const handleToggleAdjustmentMode = () => {
+        if (isAdjustmentMode) {
+            globalFlag.exitAdjustmentMode();
+        } else {
+            globalFlag.enterAdjustmentMode();
+        }
+    };
+
+    const handleMarkAllCompleted = async () => {
+        const eventIds = getEventIdsByStatus("completed");
+        if (eventIds.length === 0) {
+            toast.error("No events to update");
+            return;
+        }
+
+        setIsLoading(true);
+        setIsDropdownOpen(false);
+        try {
+            await bulkUpdateEventStatus(eventIds, "completed");
+            toast.success(`Marking ${eventIds.length} events as completed...`);
+        } catch (error) {
+            console.error("Bulk update failed", error);
+            toast.error("Failed to update events");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleMarkAllTBC = async () => {
+        const eventIds = getEventIdsByStatus("tbc");
+        if (eventIds.length === 0) {
+            toast.error("No events to update");
+            return;
+        }
+
+        setIsLoading(true);
+        setIsDropdownOpen(false);
+        try {
+            await bulkUpdateEventStatus(eventIds, "tbc");
+            toast.success(`Marking ${eventIds.length} events as TBC...`);
+        } catch (error) {
+            console.error("Bulk update failed", error);
+            toast.error("Failed to update events");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        const eventIds = getAllEventIds();
+        if (eventIds.length === 0) {
+            toast.error("No events to delete");
+            return;
+        }
+
+        if (!window.confirm(`Delete all ${eventIds.length} events? This cannot be undone.`)) {
+            return;
+        }
+
+        setIsLoading(true);
+        setIsDropdownOpen(false);
+        try {
+            eventIds.forEach((eventId) => {
+                globalFlag.notifyEventMutation(eventId, "deleting");
+            });
+
+            teacherQueues.forEach((queue) => {
+                const events = queue.getAllEvents();
+                events.forEach((event) => {
+                    if (eventIds.includes(event.id)) {
+                        globalFlag.markEventAsDeleted(queue.teacher.id, event.id);
+                    }
+                });
+            });
+
+            globalFlag.triggerRefresh();
+
+            const deleteResult = await bulkDeleteClassboardEvents(eventIds);
+            if (!deleteResult.success) {
+                throw new Error(deleteResult.error || "Delete failed");
+            }
+
+            toast.success(`Deleting ${eventIds.length} events...`);
+        } catch (error) {
+            console.error("Bulk delete failed", error);
+            toast.error("Failed to delete events");
+
+            eventIds.forEach((eventId) => {
+                globalFlag.clearEventMutation(eventId);
+            });
+
+            eventIds.forEach((eventId) => {
+                teacherQueues.forEach((queue) => {
+                    globalFlag.unmarkEventAsDeleted(queue.teacher.id, eventId);
+                });
+            });
+            globalFlag.triggerRefresh();
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Formatters
     const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
@@ -270,17 +408,75 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
             </div>
 
             {/* Right Side: Technical Action Strip */}
-            <div className="w-10 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
-                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
-                    <ToggleAdranalinkIcon isOpen={false} variant="sm" className="scale-75 opacity-80 group-hover:opacity-100" />
-                </button>
-                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
+            <div className="relative w-10 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
+                {/* Edit All / Adjustment Mode Toggle */}
+                <div className="flex-1 flex items-center justify-center hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button
+                        onClick={handleToggleAdjustmentMode}
+                        disabled={isLoading}
+                        className="w-full h-full flex items-center justify-center"
+                    >
+                        <ToggleSettingIcon isOpen={isAdjustmentMode} onClick={handleToggleAdjustmentMode} />
+                    </button>
+                </div>
+
+                {/* Share / Daily Schedule Modal */}
+                <button
+                    onClick={() => setIsScheduleModalOpen(true)}
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <Share2 size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
                 </button>
-                <button className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group">
-                    <RefreshCw size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
-                </button>
+
+                {/* Refresh with Dropdown Menu */}
+                <div className="flex-1 relative">
+                    <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        disabled={isLoading}
+                        className="w-full h-full flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <RefreshCw size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                        <div className="absolute bottom-10 right-0 w-44 bg-slate-900 dark:bg-white border border-slate-700 dark:border-slate-200 rounded-lg shadow-lg z-50">
+                            <button
+                                onClick={handleMarkAllCompleted}
+                                disabled={isLoading || getEventIdsByStatus("completed").length === 0}
+                                className="w-full px-4 py-3 text-left text-sm font-medium text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 border-b border-slate-700 dark:border-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed first:rounded-t-lg"
+                                style={{ color: isLoading ? undefined : STATUS_GREEN }}
+                            >
+                                {isLoading ? "Updating..." : "Complete All"}
+                            </button>
+                            <button
+                                onClick={handleMarkAllTBC}
+                                disabled={isLoading || getEventIdsByStatus("tbc").length === 0}
+                                className="w-full px-4 py-3 text-left text-sm font-medium text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 border-b border-slate-700 dark:border-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ color: isLoading ? undefined : STATUS_ORANGE }}
+                            >
+                                {isLoading ? "Updating..." : "Set Confirmation"}
+                            </button>
+                            <button
+                                onClick={handleDeleteAll}
+                                disabled={isLoading || getAllEventIds().length === 0}
+                                className="w-full px-4 py-3 text-left text-sm font-medium text-red-500 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed last:rounded-b-lg"
+                            >
+                                {isLoading ? "Deleting..." : "Delete All"}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Daily Schedule Modal */}
+            <DailyClassScheduleModal
+                isOpen={isScheduleModalOpen}
+                onClose={() => setIsScheduleModalOpen(false)}
+                selectedDate={selectedDate}
+                teacherQueues={teacherQueues}
+            />
         </div>
     );
 }

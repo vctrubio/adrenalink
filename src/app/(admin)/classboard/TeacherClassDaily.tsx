@@ -53,14 +53,14 @@ export default function TeacherClassDaily() {
         setController({ ...controller, submitTime: newTime });
     };
 
-    // Get earliest time from queues array
+    // Get earliest time from queues array (calculate only when queues count changes)
     const earliestTime = useMemo(() => {
         const earliestTimes = teacherQueues
             .map((queue) => queue.getEarliestTime())
             .filter((time) => time != null);
         if (earliestTimes.length === 0) return null;
         return earliestTimes.sort()[0]; // Return earliest alphabetically (HH:MM format sorts correctly)
-    }, [teacherQueues]);
+    }, [teacherQueues.length]);
 
     const isEarliestTimeSet = earliestTime && earliestTime === controller?.submitTime;
     const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK; // Cyan if matches earliest time, else muted

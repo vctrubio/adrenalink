@@ -9,7 +9,7 @@
  * ALL logic is centralized in useClassboardFlag hook.
  */
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useClassboardFlag, optimisticEventToNode, type OptimisticEvent, type EventCardStatus } from "@/src/hooks/useClassboardFlag";
 import type { ClassboardModel, ClassboardData } from "@/backend/classboard/ClassboardModel";
 import type { TeacherQueue, ControllerSettings, EventNode } from "@/backend/classboard/TeacherQueue";
@@ -66,9 +66,9 @@ interface ClassboardProviderProps {
 }
 
 export function ClassboardProvider({ children, initialClassboardModel, serverError }: ClassboardProviderProps) {
-    console.log(`🏛️ [ClassboardProvider] Render`);
-
     const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
+
+    console.log(`🏛️ [ClassboardProvider] Render - Queues: ${hookValue.teacherQueues.length}, Events: ${hookValue.bookingsForSelectedDate.length}, Mounted: ${hookValue.mounted}`);
 
     return <ClassboardContext.Provider value={hookValue}>{children}</ClassboardContext.Provider>;
 }
