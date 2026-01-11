@@ -410,14 +410,8 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
             {/* Right Side: Technical Action Strip */}
             <div className="relative w-10 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
                 {/* Edit All / Adjustment Mode Toggle */}
-                <div className="flex-1 flex items-center justify-center hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed">
-                    <button
-                        onClick={handleToggleAdjustmentMode}
-                        disabled={isLoading}
-                        className="w-full h-full flex items-center justify-center"
-                    >
-                        <ToggleSettingIcon isOpen={isAdjustmentMode} onClick={handleToggleAdjustmentMode} />
-                    </button>
+                <div className="flex-1 flex items-center justify-center" style={{ opacity: isLoading ? 0.5 : 1, pointerEvents: isLoading ? "none" : "auto" }}>
+                    <ToggleSettingIcon isOpen={isAdjustmentMode} onClick={handleToggleAdjustmentMode} />
                 </div>
 
                 {/* Share / Daily Schedule Modal */}
