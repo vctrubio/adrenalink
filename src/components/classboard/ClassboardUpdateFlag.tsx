@@ -116,16 +116,12 @@ export default function ClassboardUpdateFlag() {
             console.log(`🗑️ [ClassboardUpdateFlag] Step 4: Calling server to delete ${eventIds.length} events`);
             await bulkDeleteClassboardEvents(eventIds);
 
-            console.log(`🗑️ [ClassboardUpdateFlag] Step 5: Server delete complete, clearing mutations`);
-            // Clear spinners
-            eventIds.forEach((eventId) => {
-                globalFlag.clearEventMutation(eventId);
-            });
+            console.log(`🗑️ [ClassboardUpdateFlag] Step 5: Server delete complete, waiting for realtime sync to confirm...`);
+            // Do NOT clear mutations here - let realtime sync confirm the deletions
+            // This ensures events keep their spinners until the deletion is confirmed server-side
 
-            globalFlag.triggerRefresh();
-
-            console.log(`🗑️ [ClassboardUpdateFlag] ✅ Bulk delete complete`);
-            toast.success(`Deleted ${eventIds.length} events`);
+            console.log(`🗑️ [ClassboardUpdateFlag] ✅ Bulk delete sent to server`);
+            toast.success(`Deleting ${eventIds.length} events...`);
         } catch (error) {
             console.error("🗑️ [ClassboardUpdateFlag] ❌ Bulk delete failed", error);
             toast.error("Failed to delete events");
