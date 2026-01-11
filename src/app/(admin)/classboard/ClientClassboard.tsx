@@ -4,7 +4,9 @@ import { useMemo } from "react";
 import Image from "next/image";
 import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { HeaderDatePicker } from "@/src/components/ui/HeaderDatePicker";
+import ClassboardDateHeader from "@/src/components/classboard/ClassboardDateHeader";
+import ClassboardFlagSettings from "@/src/components/classboard/ClassboardFlagSettings";
+import ClassboardUpdateFlag from "@/src/components/classboard/ClassboardUpdateFlag";
 import ClassboardContentBoard from "./ClassboardContentBoard";
 import ClassboardStatisticsComponent from "./ClassboardHeaderStatsGrid";
 import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics";
@@ -58,18 +60,16 @@ function ClassboardContent() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex flex-wrap gap-4 p-4">
-                <div className="flex-1 min-w-[280px] max-w-2xl flex items-stretch gap-4">
-                    <div className="p-2 rounded-2xl flex w-full items-center justify-center bg-card border border-zinc-200 dark:border-zinc-700">
-                        <HeaderDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-                    </div>
-                </div>
-                <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
+            <div className="flex flex-wrap gap-4 p-4 border max-w-6xl mx-auto w-full justify-around">
+                <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                <ClassboardFlagSettings />
+                <ClassboardUpdateFlag />
             </div>
 
             <ClassboardContentBoard />
 
             <ClassboardFooter />
+            <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
         </div>
     );
 }

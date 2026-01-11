@@ -251,9 +251,15 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             const serverEvents = eventsByTeacher.get(teacherId) || [];
             serverEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
 
+            console.log(`⚙️ [SyncEngine] Syncing ${queue.teacher.username}: ${serverEvents.length} server events, mutating IDs:`, Array.from(mutatingIds));
+
             // Mutation Guard happens inside syncEvents
             // It returns IDs that were confirmed (deleted or added)
             const confirmedIds = queue.syncEvents(serverEvents, mutatingIds);
+
+            if (confirmedIds.length > 0) {
+                console.log(`⚙️ [SyncEngine] ${queue.teacher.username}: Confirmed ${confirmedIds.length} IDs (clearing spinners)`, confirmedIds);
+            }
 
             // Clear spinners for confirmed IDs
             confirmedIds.forEach((id) => {
@@ -477,14 +483,19 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                         shiftUpdates.forEach((u) => globalFlag.clearEventMutation(u.id));
                     }
                 } else {
+                    console.log(`🗑️ [deleteEvent] Calling server to delete single event: ${eventId}`);
                     const result = await deleteClassboardEvent(eventId);
+                    console.log(`🗑️ [deleteEvent] Server response:`, result);
+
                     if (!result.success) {
+                        console.error(`🗑️ [deleteEvent] ❌ Delete failed for ${eventId}:`, result.error);
                         clearEventMutation(eventId);
                         globalFlag.clearEventMutation(eventId);
                         globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                        toast.error("Failed to delete event");
+                        toast.error(`Failed to delete event: ${result.error || 'Unknown error'}`);
                         return;
                     }
+                    console.log(`🗑️ [deleteEvent] ✅ Delete successful for ${eventId}`);
                 }
 
                 // Watchdog: Clear spinner after 5 seconds if realtime sync didn't catch it

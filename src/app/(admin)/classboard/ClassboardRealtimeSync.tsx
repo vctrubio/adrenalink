@@ -51,6 +51,15 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         (newData: ClassboardModel) => {
             console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
+            // Log event IDs being updated
+            newData.forEach((booking) => {
+                booking.lessons.forEach((lesson) => {
+                    lesson.events?.forEach((event) => {
+                        console.log(`  📝 Event update detected: ${event.id} | Teacher: ${lesson.teacher?.username} | Status: ${event.status} | Time: ${event.date}`);
+                    });
+                });
+            });
+
             // 1. Calculate the new model state based on current ref
             const prevModel = modelRef.current;
             const updatedModel = [...prevModel];
@@ -58,11 +67,15 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             newData.forEach((newBooking) => {
                 const existingIndex = updatedModel.findIndex((b) => b.booking.id === newBooking.booking.id);
                 if (existingIndex >= 0) {
+                    console.log(`  🔄 Updating booking ${newBooking.booking.id} at index ${existingIndex}`);
                     updatedModel[existingIndex] = newBooking;
                 } else {
+                    console.log(`  ➕ Adding new booking ${newBooking.booking.id}`);
                     updatedModel.push(newBooking);
                 }
             });
+
+            console.log(`🔔 [ClassboardRealtimeSync] Applying model update (prev: ${prevModel.length}, new: ${updatedModel.length})`);
 
             // 2. Update the model state
             setClassboardModel(updatedModel);
