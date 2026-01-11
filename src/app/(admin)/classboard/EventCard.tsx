@@ -229,7 +229,7 @@ export default function EventCard({
 
                 {/* Left Side: Time and Duration */}
                 <div
-                    className={`transition-all duration-500 ${isWaitingForPrevious ? "blur-[2px] opacity-50 scale-95 origin-left grayscale" : ""}`}
+                    className={`transition-all duration-500 ${isWaitingForPrevious || isUpdating || isDeleting ? "blur-[2px] opacity-50 scale-95 origin-left grayscale" : ""}`}
                 >
                     <EventStartDurationTime date={event.eventData.date} duration={duration} />
                 </div>
