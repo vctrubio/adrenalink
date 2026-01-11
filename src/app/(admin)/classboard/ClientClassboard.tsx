@@ -55,13 +55,17 @@ function ClassboardContent() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex flex-wrap gap-4 p-4 border mx-auto w-full max-w-7xl">
-                <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            <div className="flex items-stretch gap-4 p-4 mx-auto w-full max-w-7xl">
+                <div className="w-96">
+                    <ClassboardDateHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                </div>
+                <div className="flex-1">
+                    <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
+                </div>
             </div>
 
             <ClassboardContentBoard />
 
-            <ClassboardStatisticsComponent stats={stats} gapMinutes={gapMinutes} stepDuration={controller?.stepDuration} />
             <ClassboardFooter />
         </div>
     );

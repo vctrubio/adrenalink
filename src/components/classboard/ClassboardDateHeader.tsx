@@ -1,14 +1,12 @@
 "use client";
 
-import { Play, Share2, RefreshCw, MapPin, Users, Layers, Phone, Plus, Minus, Timer } from "lucide-react";
+import { Play, Share2, RefreshCw, Users, Timer, X, Settings } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { getTodayDateString } from "@/getters/date-getter";
-import { cn } from "@/src/lib/utils";
-import ToggleSettingIcon from "@/src/components/ui/ToggleSettingIcon";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DailyClassScheduleModal from "@/src/components/modals/DailyClassScheduleModal";
+import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/supabase/server/classboard";
 import { STATUS_GREEN, STATUS_ORANGE } from "@/types/status";
 
@@ -21,7 +19,7 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
     const dateObj = new Date(selectedDate + "T00:00:00");
     const today = new Date(getTodayDateString() + "T00:00:00");
     const { controller, setController, teacherQueues, globalFlag } = useClassboardContext();
-    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [isTransactionTableOpen, setIsTransactionTableOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -188,154 +186,55 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
         onDateChange(getTodayDateString());
     };
 
-    // Flag settings increment/decrement functions
-    const handleTimeIncrement = () => {
-        if (!controller) return;
-        const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newHours = (hours + 1) % 24;
-        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        setController({ ...controller, submitTime: newTime });
-    };
-
-    const handleTimeDecrement = () => {
-        if (!controller) return;
-        const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newHours = (hours - 1 + 24) % 24;
-        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        setController({ ...controller, submitTime: newTime });
-    };
-
-    const locationCycle = ["Zoom", "In-Person", "Hybrid", "Phone"];
-    const handleLocationIncrement = () => {
-        if (!controller) return;
-        const currentIndex = locationCycle.indexOf(controller.location || "Zoom");
-        const nextIndex = (currentIndex + 1) % locationCycle.length;
-        setController({ ...controller, location: locationCycle[nextIndex] });
-    };
-
-    const handleLocationDecrement = () => {
-        if (!controller) return;
-        const currentIndex = locationCycle.indexOf(controller.location || "Zoom");
-        const prevIndex = (currentIndex - 1 + locationCycle.length) % locationCycle.length;
-        setController({ ...controller, location: locationCycle[prevIndex] });
-    };
-
-    const gapCycle = [0, 5, 10, 15, 20, 30, 60];
-    const handleGapIncrement = () => {
-        if (!controller) return;
-        const currentIndex = gapCycle.indexOf(controller.gapMinutes || 0);
-        const nextIndex = (currentIndex + 1) % gapCycle.length;
-        setController({ ...controller, gapMinutes: gapCycle[nextIndex] });
-    };
-
-    const handleGapDecrement = () => {
-        if (!controller) return;
-        const currentIndex = gapCycle.indexOf(controller.gapMinutes || 0);
-        const prevIndex = (currentIndex - 1 + gapCycle.length) % gapCycle.length;
-        setController({ ...controller, gapMinutes: gapCycle[prevIndex] });
-    };
-
-    const getLocationIcon = () => {
-        switch (controller?.location) {
-            case "Zoom":
-                return <Users size={16} className="text-slate-600 dark:text-slate-400" />;
-            case "In-Person":
-                return <MapPin size={16} className="text-slate-600 dark:text-slate-400" />;
-            case "Hybrid":
-                return <Layers size={16} className="text-slate-600 dark:text-slate-400" />;
-            case "Phone":
-                return <Phone size={16} className="text-slate-600 dark:text-slate-400" />;
-            default:
-                return <Users size={16} className="text-slate-600 dark:text-slate-400" />;
-        }
-    };
-
     // Format relative days badge text (e.g., "19d", "-2d")
     const showBadge = diffDays !== 0;
     const badgeText = diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
     return (
-        <div className="flex items-stretch bg-card border border-border rounded-xl overflow-hidden shadow-sm select-none">
-            {/* Left Side: Flag Settings Strip */}
-            <div className="w-64 bg-slate-100 dark:bg-slate-800 flex flex-col divide-y divide-slate-200 dark:divide-slate-700 flex-shrink-0">
-                {/* Start Time Section */}
-                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
-                    <div className="flex items-center gap-2">
-                        <FlagIcon size={16} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200" />
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Start Time</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={handleTimeDecrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Decrease hour"
-                        >
-                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                        <span className="text-sm font-black text-slate-900 dark:text-white w-12 text-center">{controller?.submitTime || "00:00"}</span>
-                        <button
-                            onClick={handleTimeIncrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Increase hour"
-                        >
-                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                    </div>
-                </div>
+        <div className="flex items-stretch bg-card border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32">
+            {/* Left Side: Flag Settings Strip - Quick Actions */}
+            <div className="w-12 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
+                {/* Start Time Button */}
+                <button
+                    onClick={() => console.log("Start Time clicked")}
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
+                >
+                    <FlagIcon
+                        size={16}
+                        className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all group-hover:rotate-12"
+                    />
+                </button>
 
-                {/* Location Section */}
-                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
-                    <div className="flex items-center gap-2">
-                        {getLocationIcon()}
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Location</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={handleLocationDecrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Previous location"
-                        >
-                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                        <span className="text-sm font-black text-slate-900 dark:text-white w-20 text-center">{controller?.location || "Zoom"}</span>
-                        <button
-                            onClick={handleLocationIncrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Next location"
-                        >
-                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                    </div>
-                </div>
+                {/* Location Button */}
+                <button
+                    onClick={() => console.log("Location clicked")}
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
+                >
+                    <Users
+                        size={16}
+                        strokeWidth={3}
+                        className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all group-hover:-rotate-6"
+                    />
+                </button>
 
-                {/* Gap Intervals Section */}
-                <div className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
-                    <div className="flex items-center gap-2">
-                        <Timer size={16} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200" />
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Gap Intervals</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={handleGapDecrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Decrease gap"
-                        >
-                            <Minus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                        <span className="text-sm font-black text-slate-900 dark:text-white w-12 text-center">{controller?.gapMinutes || 0}m</span>
-                        <button
-                            onClick={handleGapIncrement}
-                            className="p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                            title="Increase gap"
-                        >
-                            <Plus size={14} className="text-slate-600 dark:text-slate-400" />
-                        </button>
-                    </div>
-                </div>
+                {/* Gap Intervals Button */}
+                <button
+                    onClick={() => console.log("Gap Intervals clicked")}
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
+                >
+                    <Timer
+                        size={16}
+                        strokeWidth={3}
+                        className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all group-hover:rotate-45"
+                    />
+                </button>
             </div>
 
             {/* Main Content: Navigation & Date */}
-            <div className="flex-1 flex items-center justify-center gap-6 py-6 px-4 relative">
+            <div className="flex-1 flex items-center justify-center gap-6 py-4 px-4 relative">
                 {/* Previous Button */}
                 <button
                     onClick={handlePreviousDay}
@@ -408,34 +307,50 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
             </div>
 
             {/* Right Side: Technical Action Strip */}
-            <div className="relative w-10 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
+            <div className="relative w-12 bg-slate-900 dark:bg-white flex flex-col divide-y divide-white/10 dark:divide-slate-200 flex-shrink-0">
                 {/* Edit All / Adjustment Mode Toggle */}
-                <div className="flex-1 flex items-center justify-center" style={{ opacity: isLoading ? 0.5 : 1, pointerEvents: isLoading ? "none" : "auto" }}>
-                    <ToggleSettingIcon isOpen={isAdjustmentMode} onClick={handleToggleAdjustmentMode} />
-                </div>
-
-                {/* Share / Daily Schedule Modal */}
                 <button
-                    onClick={() => setIsScheduleModalOpen(true)}
+                    onClick={handleToggleAdjustmentMode}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
                 >
-                    <Share2 size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
+                    <Settings
+                        size={16}
+                        strokeWidth={3}
+                        className={`opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 ${isAdjustmentMode ? "rotate-90 opacity-100" : ""}`}
+                    />
+                </button>
+
+                {/* Share / Transaction Events Table */}
+                <button
+                    onClick={() => setIsTransactionTableOpen(true)}
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
+                >
+                    <Share2
+                        size={16}
+                        strokeWidth={3}
+                        className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all group-hover:-rotate-12"
+                    />
                 </button>
 
                 {/* Refresh with Dropdown Menu */}
-                <div className="flex-1 relative">
+                <div className="flex-1 relative" onClick={(e) => e.stopPropagation()}>
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         disabled={isLoading}
-                        className="w-full h-full flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full h-full flex items-center justify-center text-white dark:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3"
                     >
-                        <RefreshCw size={12} strokeWidth={3} className="opacity-80 group-hover:opacity-100" />
+                        <RefreshCw
+                            size={16}
+                            strokeWidth={3}
+                            className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all group-hover:rotate-180"
+                        />
                     </button>
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                        <div className="absolute bottom-10 right-0 w-44 bg-slate-900 dark:bg-white border border-slate-700 dark:border-slate-200 rounded-lg shadow-lg z-50">
+                        <div className="absolute -left-48 bottom-0 w-48 bg-slate-900 dark:bg-white border border-slate-700 dark:border-slate-200 rounded-lg shadow-2xl z-[60] overflow-hidden">
                             <button
                                 onClick={handleMarkAllCompleted}
                                 disabled={isLoading || getEventIdsByStatus("completed").length === 0}
@@ -464,13 +379,25 @@ export default function ClassboardDateHeader({ selectedDate, onDateChange }: Cla
                 </div>
             </div>
 
-            {/* Daily Schedule Modal */}
-            <DailyClassScheduleModal
-                isOpen={isScheduleModalOpen}
-                onClose={() => setIsScheduleModalOpen(false)}
-                selectedDate={selectedDate}
-                teacherQueues={teacherQueues}
-            />
+            {/* Transaction Events Table Modal Overlay */}
+            {isTransactionTableOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-card border border-border rounded-lg shadow-lg max-w-6xl w-full max-h-[90vh] overflow-auto">
+                        <div className="sticky top-0 flex items-center justify-between p-4 border-b border-border bg-card">
+                            <h2 className="text-lg font-semibold">Transaction Events</h2>
+                            <button
+                                onClick={() => setIsTransactionTableOpen(false)}
+                                className="p-2 hover:bg-muted rounded transition-colors"
+                            >
+                                <X size={18} className="text-muted-foreground" />
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <TransactionEventsTable events={[]} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

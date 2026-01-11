@@ -21,12 +21,6 @@ interface StudentFieldOptions {
     phone: boolean;
 }
 
-interface TeacherFieldOptions {
-    username: boolean;
-    firstName: boolean;
-    lastName: boolean;
-}
-
 type ViewMode = "text" | "table";
 
 export default function DailyClassScheduleModal({ isOpen, onClose, selectedDate, teacherQueues }: DailyClassScheduleModalProps) {
@@ -38,28 +32,14 @@ export default function DailyClassScheduleModal({ isOpen, onClose, selectedDate,
         phone: false,
     });
 
-    const [teacherFields, setTeacherFields] = useState<TeacherFieldOptions>({
-        username: true,
-        firstName: true,
-        lastName: true,
-    });
-
     const [viewMode, setViewMode] = useState<ViewMode>("text");
 
     const toggleStudentField = (field: keyof StudentFieldOptions) => {
         setStudentFields((prev) => ({ ...prev, [field]: !prev[field] }));
     };
 
-    const toggleTeacherField = (field: keyof TeacherFieldOptions) => {
-        setTeacherFields((prev) => ({ ...prev, [field]: !prev[field] }));
-    };
-
     const formatTeacherName = (queue: TeacherQueue) => {
-        const parts: string[] = [];
-        if (teacherFields.username) parts.push(queue.teacher.username);
-        if (teacherFields.firstName) parts.push(queue.teacher.name.split(" ")[0]);
-        if (teacherFields.lastName) parts.push(queue.teacher.name.split(" ").slice(1).join(" "));
-        return parts.filter(Boolean).join(" ");
+        return queue.teacher.username;
     };
 
     const formatStudentName = (students: ClassboardStudent[]) => {
@@ -213,39 +193,20 @@ export default function DailyClassScheduleModal({ isOpen, onClose, selectedDate,
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 pb-4 border-b border-border">
-                    <div>
-                        <h4 className="font-semibold mb-3">Student Fields</h4>
-                        <div className="space-y-2">
-                            {(Object.keys(studentFields) as (keyof StudentFieldOptions)[]).map((field) => (
-                                <label key={field} className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={studentFields[field]}
-                                        onChange={() => toggleStudentField(field)}
-                                        className="w-4 h-4 rounded border-border"
-                                    />
-                                    <span className="text-sm capitalize">{field.replace(/([A-Z])/g, " $1").trim()}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 className="font-semibold mb-3">Teacher Fields</h4>
-                        <div className="space-y-2">
-                            {(Object.keys(teacherFields) as (keyof TeacherFieldOptions)[]).map((field) => (
-                                <label key={field} className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={teacherFields[field]}
-                                        onChange={() => toggleTeacherField(field)}
-                                        className="w-4 h-4 rounded border-border"
-                                    />
-                                    <span className="text-sm capitalize">{field.replace(/([A-Z])/g, " $1").trim()}</span>
-                                </label>
-                            ))}
-                        </div>
+                <div className="pb-4 border-b border-border">
+                    <h4 className="font-semibold mb-3">Student Fields</h4>
+                    <div className="space-y-2">
+                        {(Object.keys(studentFields) as (keyof StudentFieldOptions)[]).map((field) => (
+                            <label key={field} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={studentFields[field]}
+                                    onChange={() => toggleStudentField(field)}
+                                    className="w-4 h-4 rounded border-border"
+                                />
+                                <span className="text-sm capitalize">{field.replace(/([A-Z])/g, " $1").trim()}</span>
+                            </label>
+                        ))}
                     </div>
                 </div>
 
