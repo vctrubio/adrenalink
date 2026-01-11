@@ -12,13 +12,28 @@ export default function ClassboardUpdateFlag() {
 
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
 
-    // Collect all event IDs from all teacher queues
+    // Collect all event IDs regardless of status (for delete operations)
     const getAllEventIds = (): string[] => {
         const eventIds: string[] = [];
         teacherQueues.forEach((queue) => {
             const events = queue.getAllEvents();
             events.forEach((event) => {
                 eventIds.push(event.id);
+            });
+        });
+        return eventIds;
+    };
+
+    // Collect event IDs by status filter (for status update operations)
+    const getEventIdsByStatus = (targetStatus: string): string[] => {
+        const eventIds: string[] = [];
+        teacherQueues.forEach((queue) => {
+            const events = queue.getAllEvents();
+            events.forEach((event) => {
+                // Only include events that DON'T already have the target status
+                if (event.eventData.status !== targetStatus) {
+                    eventIds.push(event.id);
+                }
             });
         });
         return eventIds;
@@ -33,7 +48,7 @@ export default function ClassboardUpdateFlag() {
     };
 
     const handleMarkAllCompleted = async () => {
-        const eventIds = getAllEventIds();
+        const eventIds = getEventIdsByStatus("completed");
         if (eventIds.length === 0) {
             toast.error("No events to update");
             return;
@@ -43,47 +58,48 @@ export default function ClassboardUpdateFlag() {
         try {
             console.log(`✅ [ClassboardUpdateFlag] Starting bulk completed for ${eventIds.length} events`);
 
-            // Mark events as updating in UI
-            console.log(`✅ [ClassboardUpdateFlag] Step 1: Notifying mutations (spinners)`);
-            eventIds.forEach((eventId) => {
-                globalFlag.notifyEventMutation(eventId, "updating");
-            });
-
-            // Trigger refresh to show spinners
-            globalFlag.triggerRefresh();
-
-            console.log(`✅ [ClassboardUpdateFlag] Step 2: Calling server to update status`);
+            console.log(`✅ [ClassboardUpdateFlag] Calling server to update status`);
             // Update on server
+            // CRITICAL: Do NOT call globalFlag.notifyEventMutation for status changes
+            // Status changes don't blur cards, only show icon pulse
             await bulkUpdateEventStatus(eventIds, "completed");
 
-            // Update local queue events optimistically
-            console.log(`✅ [ClassboardUpdateFlag] Step 3: Optimistically updating local queue`);
-            teacherQueues.forEach((queue) => {
-                const events = queue.getAllEvents();
-                events.forEach((event) => {
-                    if (eventIds.includes(event.id)) {
-                        event.eventData.status = "completed";
-                    }
-                });
-            });
-
-            // Trigger refresh
-            globalFlag.triggerRefresh();
-
-            console.log(`✅ [ClassboardUpdateFlag] Step 4: Server confirmed status change, waiting for realtime sync...`);
-            // Do NOT clear mutations here - let realtime sync detect the status change and clear them
-            // This keeps events spinning until realtime sync confirms the completed status
+            console.log(`✅ [ClassboardUpdateFlag] Server confirmed, waiting for realtime sync...`);
+            // Realtime sync will detect status change and update the model
 
             toast.success(`Marking ${eventIds.length} events as completed...`);
         } catch (error) {
             console.error("❌ [ClassboardUpdateFlag] Bulk update failed", error);
             toast.error("Failed to update events");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-            // Clear spinners on error
-            eventIds.forEach((eventId) => {
-                globalFlag.clearEventMutation(eventId);
-            });
-            globalFlag.triggerRefresh();
+    const handleMarkAllTBC = async () => {
+        const eventIds = getEventIdsByStatus("tbc");
+        if (eventIds.length === 0) {
+            toast.error("No events to update");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            console.log(`✅ [ClassboardUpdateFlag] Starting bulk TBC for ${eventIds.length} events`);
+
+            console.log(`✅ [ClassboardUpdateFlag] Calling server to update status`);
+            // Update on server
+            // CRITICAL: Do NOT call globalFlag.notifyEventMutation for status changes
+            // Status changes don't blur cards, only show icon pulse
+            await bulkUpdateEventStatus(eventIds, "tbc");
+
+            console.log(`✅ [ClassboardUpdateFlag] Server confirmed, waiting for realtime sync...`);
+            // Realtime sync will detect status change and update the model
+
+            toast.success(`Marking ${eventIds.length} events as TBC...`);
+        } catch (error) {
+            console.error("❌ [ClassboardUpdateFlag] Bulk update failed", error);
+            toast.error("Failed to update events");
         } finally {
             setIsLoading(false);
         }
@@ -168,6 +184,7 @@ export default function ClassboardUpdateFlag() {
                 <div className="flex flex-col items-center justify-around py-2">
                     <Settings2 size={20} className="text-muted-foreground" />
                     <CheckCircle2 size={20} className="text-muted-foreground" />
+                    <CheckCircle2 size={20} className="text-muted-foreground" />
                     <Trash2 size={20} className="text-muted-foreground" />
                 </div>
 
@@ -194,7 +211,7 @@ export default function ClassboardUpdateFlag() {
                     <div className="flex items-center justify-center gap-2 py-2">
                         <button
                             onClick={handleMarkAllCompleted}
-                            disabled={isLoading || getAllEventIds().length === 0}
+                            disabled={isLoading || getEventIdsByStatus("completed").length === 0}
                             className="w-full px-3 py-1 rounded text-sm font-semibold text-green-600 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? "Updating..." : "Complete All"}
@@ -203,7 +220,20 @@ export default function ClassboardUpdateFlag() {
 
                     <div className="border-b border-border" />
 
-                    {/* Row 3 - Delete All */}
+                    {/* Row 3 - Mark All as TBC */}
+                    <div className="flex items-center justify-center gap-2 py-2">
+                        <button
+                            onClick={handleMarkAllTBC}
+                            disabled={isLoading || getEventIdsByStatus("tbc").length === 0}
+                            className="w-full px-3 py-1 rounded text-sm font-semibold text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? "Updating..." : "Mark as TBC"}
+                        </button>
+                    </div>
+
+                    <div className="border-b border-border" />
+
+                    {/* Row 4 - Delete All */}
                     <div className="flex items-center justify-center gap-2 py-2">
                         <button
                             onClick={handleDeleteAll}
