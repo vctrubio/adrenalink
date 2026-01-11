@@ -51,10 +51,9 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         (newData: ClassboardModel) => {
             console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
-            // Collect event IDs being updated to clear their "updating" mutations
+            // Collect event IDs and update model in single pass
             const updatedEventIds: string[] = [];
 
-            // Log event IDs being updated
             newData.forEach((booking) => {
                 booking.lessons.forEach((lesson) => {
                     lesson.events?.forEach((event) => {

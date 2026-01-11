@@ -157,7 +157,10 @@ export default function EventCard({
         return null;
     };
 
-    const effectivePreviousEvent = getEffectivePreviousEvent(event.prev);
+    const effectivePreviousEvent = useMemo(
+        () => getEffectivePreviousEvent(event.prev),
+        [event.id, event.prev],
+    );
     // Check if any previous event in the chain is mutating (deleting or updating from cascade)
     const isWaitingForPrevious = event.prev && event.prev !== effectivePreviousEvent;
 
