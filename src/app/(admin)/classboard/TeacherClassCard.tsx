@@ -80,6 +80,19 @@ function TeacherEventProgressBar({
         }
     };
 
+    const handleMarkAllTBC = async () => {
+        if (eventIds.length === 0) return;
+        setIsLoading(true);
+        try {
+            await bulkUpdateEventStatus(eventIds, "tbc");
+            setIsDropdownOpen(false);
+        } catch (error) {
+            console.error("Batch update failed", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleDeleteAll = async () => {
         if (eventIds.length === 0) return;
         setIsLoading(true);
@@ -114,8 +127,18 @@ function TeacherEventProgressBar({
                 // Direct Action: Submit immediately if not in edit mode
                 const result = queue.optimiseQueue(controller.gapMinutes);
                 if (result.updates.length > 0) {
+                    // Mark all updated events with "updating" status before submitting
+                    const eventIds = result.updates.map((u) => u.id);
+                    eventIds.forEach((eventId) => {
+                        globalFlag.notifyEventMutation(eventId, "updating", queue.teacher.id);
+                    });
+
+                    console.log(`🔧 [TeacherClassCard] Optimising ${eventIds.length} events for ${queue.teacher.username}`);
                     await bulkUpdateClassboardEvents(result.updates);
-                    toast.success("Queue Optimised");
+
+                    console.log(`🔧 [TeacherClassCard] Waiting for realtime sync to confirm optimisation...`);
+                    // Do NOT clear mutations here - let realtime sync confirm the updates
+                    toast.success("Optimising queue...");
                 } else {
                     toast.success("Already optimised");
                 }
@@ -141,6 +164,16 @@ function TeacherEventProgressBar({
             onClick: (e) => {
                 e?.stopPropagation();
                 handleMarkAllCompleted();
+            },
+        },
+        {
+            id: "mark-tbc",
+            label: "Mark all as TBC",
+            icon: CheckCircle2,
+            color: "#f59e0b",
+            onClick: (e) => {
+                e?.stopPropagation();
+                handleMarkAllTBC();
             },
         },
         {

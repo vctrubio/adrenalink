@@ -524,18 +524,18 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     const updateEventStatusAction = useCallback(
         async (eventId: string, status: string) => {
             const currentQueues = Array.from(stableQueuesRef.current.values());
-            let teacherId = "";
             let teacherQueue: TeacherQueueClass | null = null;
             for (const q of currentQueues) {
                 if (q.getAllEvents({ includeDeleted: true }).some((e) => e.id === eventId)) {
-                    teacherId = q.teacher.id;
                     teacherQueue = q;
                     break;
                 }
             }
 
-            setEventMutation(eventId, "updating");
-            globalFlag.notifyEventMutation(eventId, "updating", teacherId);
+            // CRITICAL: Do NOT call setEventMutation or globalFlag.notifyEventMutation for status-only changes
+            // Status changes don't affect the queue and shouldn't mark the card as mutating
+            // Visual feedback comes from EventStatusLabel's own spinner, not card-level blur
+            // Only notify for queue-affecting operations (delete, time change)
 
             if (teacherQueue) {
                 teacherQueue.updateEventStatus(eventId, status as any);
@@ -544,16 +544,13 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             try {
                 const result = await updateEventStatus(eventId, status);
                 if (!result.success) toast.error("Failed to update status");
-                clearEventMutation(eventId);
-                globalFlag.clearEventMutation(eventId);
+                // No mutations to clear - we never marked it as mutating
             } catch (error) {
                 console.error("Error updating status:", error);
                 toast.error("Error updating status");
-                clearEventMutation(eventId);
-                globalFlag.clearEventMutation(eventId);
             }
         },
-        [setEventMutation, clearEventMutation, globalFlag],
+        [],
     );
 
     // ============ PERSISTENCE ============

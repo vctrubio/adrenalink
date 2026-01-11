@@ -98,13 +98,43 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             // 2. Update the model state
             setClassboardModel(updatedModel);
 
-            // 3. Clear mutations only for updated events
-            // For deleted events, don't clear the mutation - the event will be removed from the model
-            // so it won't render anyway. Clearing the mutation would cause a brief re-render as normal
-            // card before being removed from DOM.
-            updatedEventIds.forEach((eventId) => {
+            // 3. Clear mutations only for events that actually changed
+            // Compare old and new events to detect actual updates
+            const changedEventIds: string[] = [];
+
+            newData.forEach((newBooking) => {
+                newBooking.lessons.forEach((newLesson) => {
+                    newLesson.events?.forEach((newEvent) => {
+                        // Find the same event in old model to compare
+                        const oldBooking = prevModel.find((b) => b.booking.id === newBooking.booking.id);
+                        if (oldBooking) {
+                            const oldLesson = oldBooking.lessons.find((l) => l.id === newLesson.id);
+                            if (oldLesson) {
+                                const oldEvent = oldLesson.events?.find((e) => e.id === newEvent.id);
+                                if (oldEvent) {
+                                    // Check if time changed
+                                    if (oldEvent.date !== newEvent.date) {
+                                        changedEventIds.push(newEvent.id);
+                                        console.log(`  🔄 [Realtime] Event time changed: ${newEvent.id} from ${oldEvent.date} to ${newEvent.date}`);
+                                    }
+                                    // Check if status changed
+                                    if (oldEvent.status !== newEvent.status) {
+                                        changedEventIds.push(newEvent.id);
+                                        console.log(`  🔄 [Realtime] Event status changed: ${newEvent.id} from ${oldEvent.status} to ${newEvent.status}`);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+
+            // Clear mutations for events that actually changed
+            // Use Set to avoid duplicates if both time and status changed
+            const uniqueChangedIds = Array.from(new Set(changedEventIds));
+            uniqueChangedIds.forEach((eventId) => {
                 globalFlag.clearEventMutation(eventId);
-                console.log(`  ✅ Cleared updating status for ${eventId} (synced)`);
+                console.log(`  ✅ Cleared updating status for ${eventId} (confirmed by realtime sync)`);
             });
 
             // Deleted events: Their mutation stays active since they're removed from model

@@ -41,15 +41,23 @@ export default function ClassboardUpdateFlag() {
 
         setIsLoading(true);
         try {
+            console.log(`✅ [ClassboardUpdateFlag] Starting bulk completed for ${eventIds.length} events`);
+
             // Mark events as updating in UI
+            console.log(`✅ [ClassboardUpdateFlag] Step 1: Notifying mutations (spinners)`);
             eventIds.forEach((eventId) => {
                 globalFlag.notifyEventMutation(eventId, "updating");
             });
 
+            // Trigger refresh to show spinners
+            globalFlag.triggerRefresh();
+
+            console.log(`✅ [ClassboardUpdateFlag] Step 2: Calling server to update status`);
             // Update on server
             await bulkUpdateEventStatus(eventIds, "completed");
 
             // Update local queue events optimistically
+            console.log(`✅ [ClassboardUpdateFlag] Step 3: Optimistically updating local queue`);
             teacherQueues.forEach((queue) => {
                 const events = queue.getAllEvents();
                 events.forEach((event) => {
@@ -59,20 +67,24 @@ export default function ClassboardUpdateFlag() {
                 });
             });
 
-            // Trigger refresh to update UI
+            // Trigger refresh
             globalFlag.triggerRefresh();
 
-            toast.success(`Marked ${eventIds.length} events as completed`);
+            console.log(`✅ [ClassboardUpdateFlag] Step 4: Server confirmed status change, waiting for realtime sync...`);
+            // Do NOT clear mutations here - let realtime sync detect the status change and clear them
+            // This keeps events spinning until realtime sync confirms the completed status
+
+            toast.success(`Marking ${eventIds.length} events as completed...`);
         } catch (error) {
-            console.error("Bulk update failed", error);
+            console.error("❌ [ClassboardUpdateFlag] Bulk update failed", error);
             toast.error("Failed to update events");
-        } finally {
-            // Clear mutation spinners
+
+            // Clear spinners on error
             eventIds.forEach((eventId) => {
                 globalFlag.clearEventMutation(eventId);
             });
-            // Final refresh
             globalFlag.triggerRefresh();
+        } finally {
             setIsLoading(false);
         }
     };

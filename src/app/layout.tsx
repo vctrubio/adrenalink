@@ -35,10 +35,6 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning className="h-full">
-            <head>
-                <link rel="preload" as="image" href="/kritaps_ungurs_unplash/wave-wide.jpg" />
-                <link rel="preload" as="image" href="/kritaps_ungurs_unplash/wave.jpg" />
-            </head>
             <body className="h-full bg-background text-foreground">
                 <div className="min-h-screen bg-background">
                     <Providers>{children}</Providers>

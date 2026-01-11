@@ -406,11 +406,17 @@ export class TeacherQueue {
 
         if (events.length === 0) return { updates, skipped };
 
+        // CRITICAL: Only optimize events that START at or after startTimeMinutes
+        // This prevents affecting previous events (e.g. A) when deleting a middle event (e.g. B)
+        const eventsToOptimize = events.filter((e) => this.getStartTimeMinutes(e) >= startTimeMinutes);
+
+        if (eventsToOptimize.length === 0) return { updates, skipped };
+
         const datePart = events[0].eventData.date.split("T")[0];
         let nextAvailableMinutes = startTimeMinutes;
         const MAX_START_TIME = 1440;
 
-        events.forEach((event, index) => {
+        eventsToOptimize.forEach((event) => {
             const eventDuration = event.eventData.duration;
 
             if (nextAvailableMinutes >= MAX_START_TIME) {

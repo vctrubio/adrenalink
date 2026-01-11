@@ -7,6 +7,7 @@ import { getMinutesFromISO, minutesToTime, createISODateTime, getDatePartFromISO
 import { detectEventGapStatus, type GapDetectionState } from "@/getters/event-gap-detection";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import { updateEventStartTime } from "@/supabase/server/classboard";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 
 interface EventGapDetectionProps {
     currentEvent: EventNode;
@@ -29,6 +30,7 @@ export default function EventGapDetection({
     wrapperClassName,
     className,
 }: EventGapDetectionProps) {
+    const { globalFlag } = useClassboardContext();
     const [isUpdating, setIsUpdating] = useState(false);
 
     // If no previous event, nothing to detect
@@ -54,6 +56,11 @@ export default function EventGapDetection({
         }
 
         setIsUpdating(true);
+        const eventId = currentEvent.id;
+
+        // Notify that the event is being updated (shows blur and spinner in EventCard)
+        globalFlag.notifyEventMutation(eventId, "updating");
+
         try {
             if (updateMode === "updateNow") {
                 // Database update mode - calculate and save directly
@@ -66,13 +73,27 @@ export default function EventGapDetection({
                 const newDate = createISODateTime(datePart, minutesToTime(correctStartMinutes));
 
                 console.log(`🔧 [EventGapDetection] Adjusting gap: ${minutesToTime(correctStartMinutes)} (v${previousEvent.id})`);
-                await updateEventStartTime(currentEvent.id, newDate);
+                const result = await updateEventStartTime(eventId, newDate);
+
+                if (result.success) {
+                    // Server confirmed the update - wait for realtime sync to clear mutation
+                    // This prevents brief flicker of the gap warning with old time
+                    console.log(`🔧 [EventGapDetection] Sent to server, waiting for realtime sync confirmation...`);
+                } else {
+                    console.error(`🔧 [EventGapDetection] ❌ Update failed:`, result.error);
+                    // Clear on error so event isn't stuck spinning
+                    globalFlag.clearEventMutation(eventId);
+                }
             } else {
                 // Update on save mode - let parent QueueController handle it
                 onGapAdjust?.();
+                // For save mode, clear immediately since QueueController will manage the mutation
+                globalFlag.clearEventMutation(eventId);
             }
         } catch (error) {
             console.error("❌ [EventGapDetection] Error updating event:", error);
+            // Clear on error
+            globalFlag.clearEventMutation(eventId);
         } finally {
             setIsUpdating(false);
         }
