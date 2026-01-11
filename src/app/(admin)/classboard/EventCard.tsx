@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -146,21 +146,19 @@ export default function EventCard({
 
     // Check if we are awaiting a previous node's deletion/update
     // We traverse back to find the first NON-mutating previous event for gap detection
-    const getEffectivePreviousEvent = (node: EventNode | null): EventNode | null => {
-        let current = node;
-        while (current) {
-            const status = contextValue.getEventCardStatus(current.id);
-            // Skip events that are being mutated (deleting or updating)
-            if (status !== "deleting" && status !== "updating") return current;
-            current = current.prev;
+    // Note: Not memoized because mutation status changes independently of event.prev reference
+    let effectivePreviousEvent: EventNode | null = null;
+    let current = event.prev;
+    while (current) {
+        const status = contextValue.getEventCardStatus(current.id);
+        // Skip events that are being mutated (deleting or updating)
+        if (status !== "deleting" && status !== "updating") {
+            effectivePreviousEvent = current;
+            break;
         }
-        return null;
-    };
+        current = current.prev;
+    }
 
-    const effectivePreviousEvent = useMemo(
-        () => getEffectivePreviousEvent(event.prev),
-        [event.id, event.prev],
-    );
     // Check if any previous event in the chain is mutating (deleting or updating from cascade)
     const isWaitingForPrevious = event.prev && event.prev !== effectivePreviousEvent;
 

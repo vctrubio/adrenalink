@@ -51,20 +51,35 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         (newData: ClassboardModel) => {
             console.log(`🔔 [ClassboardRealtimeSync] Event detected -> Incremental update (${newData.length} bookings)`);
 
-            // Collect event IDs and update model in single pass
+            // Collect event IDs from new data
             const updatedEventIds: string[] = [];
+            const newEventIdSet = new Set<string>();
 
             newData.forEach((booking) => {
                 booking.lessons.forEach((lesson) => {
                     lesson.events?.forEach((event) => {
                         updatedEventIds.push(event.id);
+                        newEventIdSet.add(event.id);
                         console.log(`  📝 Event update detected: ${event.id} | Teacher: ${lesson.teacher?.username} | Status: ${event.status} | Time: ${event.date}`);
                     });
                 });
             });
 
-            // 1. Calculate the new model state based on current ref
+            // Detect deleted events (events in old model but not in new model)
+            const deletedEventIds: string[] = [];
             const prevModel = modelRef.current;
+            prevModel.forEach((booking) => {
+                booking.lessons.forEach((lesson) => {
+                    lesson.events?.forEach((event) => {
+                        if (!newEventIdSet.has(event.id)) {
+                            deletedEventIds.push(event.id);
+                            console.log(`  🗑️ Event deleted: ${event.id}`);
+                        }
+                    });
+                });
+            });
+
+            // 1. Calculate the new model state based on current ref
             const updatedModel = [...prevModel];
 
             newData.forEach((newBooking) => {
@@ -83,10 +98,18 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             // 2. Update the model state
             setClassboardModel(updatedModel);
 
-            // 3. Clear "updating" mutations once confirmed by realtime sync
+            // 3. Clear mutations only for updated events
+            // For deleted events, don't clear the mutation - the event will be removed from the model
+            // so it won't render anyway. Clearing the mutation would cause a brief re-render as normal
+            // card before being removed from DOM.
             updatedEventIds.forEach((eventId) => {
                 globalFlag.clearEventMutation(eventId);
                 console.log(`  ✅ Cleared updating status for ${eventId} (synced)`);
+            });
+
+            // Deleted events: Their mutation stays active since they're removed from model
+            deletedEventIds.forEach((eventId) => {
+                console.log(`  ✅ Event ${eventId} removed from model (will disappear with spinner)`);
             });
         },
         [setClassboardModel, globalFlag],
