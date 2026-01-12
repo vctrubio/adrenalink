@@ -1,155 +1,89 @@
 "use client";
 
-import { Minus, Plus, Clock, MapPin } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { Minus, Plus, Timer } from "lucide-react";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ControllerSettings } from "@/backend/classboard/TeacherQueue";
+import FlagIcon from "@/public/appSvgs/FlagIcon";
+import { TimePicker } from "@/src/components/ui/TimePicker";
+import { LocationPicker } from "@/src/components/ui/LocationPicker";
+import { MapPin } from "lucide-react";
 
 export default function ClassboardFlagSettings() {
-    const { globalFlag, setController } = useClassboardContext();
+    const { globalFlag } = useClassboardContext();
     const controller = globalFlag.getController();
-    const [isLocationOpen, setIsLocationOpen] = useState(false);
-    const [dropdownRect, setDropdownRect] = useState({ top: 0, right: 0 });
-    const locationRef = useRef<HTMLDivElement>(null);
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    
+    // Read locations from controller (source of truth)
+    const locations = controller.locationOptions || ["Zoom", "In-Person", "Hybrid", "Phone"];
 
-    const updateController = (key: keyof ControllerSettings, value: any) => {
-        setController({ ...controller, [key]: value });
+    const handleLocationChange = (newLoc: string) => {
+        globalFlag.updateController({ location: newLoc });
+    };
+
+    const handleOptionsChange = (newOptions: string[]) => {
+        globalFlag.updateController({ locationOptions: newOptions });
     };
 
     const updateGap = (delta: number) => {
-        setController({ ...controller, gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
+        globalFlag.updateController({ gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
     };
-
-    const changeTime = (delta: number) => {
-        const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        let newHours = hours + delta;
-
-        if (newHours < 0) newHours = 23;
-        if (newHours > 23) newHours = 0;
-
-        const formattedTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        updateController("submitTime", formattedTime);
-    };
-
-    const locations = ["Zoom", "In-Person", "Hybrid", "Phone"];
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (locationRef.current && !locationRef.current.contains(event.target as Node)) {
-                setIsLocationOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        if (isLocationOpen && buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setDropdownRect({
-                top: rect.bottom + 8,
-                right: window.innerWidth - rect.right,
-            });
-        }
-    }, [isLocationOpen]);
 
     return (
-        <div className="max-w-xs border border-border rounded-lg p-4 m-4">
-            <div className="flex gap-4">
-                {/* Icon Column */}
-                <div className="flex flex-col items-center justify-around py-2">
-                    <FlagIcon size={20} className="text-muted-foreground" />
-                    <MapPin size={20} className="text-muted-foreground" />
-                    <Clock size={20} className="text-muted-foreground" />
+        <div className="flex-1 min-w-[280px] border border-border/30 rounded-lg overflow-hidden h-full">
+            <div className="grid grid-cols-3 divide-x divide-border/30 h-full">
+                {/* Column 1: Flag Time */}
+                <div className="flex flex-col items-center justify-center gap-2 p-2">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <FlagIcon size={16} />
+                        <span className="text-[10px] uppercase font-black tracking-widest">Flag Time</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 w-full justify-center">
+                        <TimePicker 
+                            value={controller.submitTime} 
+                            onChange={(newTime) => globalFlag.updateController({ submitTime: newTime })} 
+                        />
+                    </div>
                 </div>
 
-                {/* Content Column */}
-                <div className="flex flex-col flex-1">
-                    {/* Row 1 - Start Time */}
-                    <div className="flex items-center justify-between gap-2 py-2">
-                        <button
-                            onClick={() => changeTime(-1)}
-                            className="px-2 py-1 rounded hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-                            aria-label="Decrease time"
-                        >
-                            ←
-                        </button>
-
-                        <span className="text-sm font-semibold text-foreground text-center flex-1">{controller.submitTime}</span>
-
-                        <button
-                            onClick={() => changeTime(1)}
-                            className="px-2 py-1 rounded hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-                            aria-label="Increase time"
-                        >
-                            →
-                        </button>
+                {/* Column 2: Location */}
+                <div className="flex flex-col items-center justify-center gap-2 p-2 relative">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin size={16} />
+                        <span className="text-[10px] uppercase font-black tracking-widest">Location</span>
                     </div>
 
-                    <div className="border-b border-border" />
+                    <LocationPicker
+                        value={controller.location}
+                        options={locations}
+                        onChange={handleLocationChange}
+                        onOptionsChange={handleOptionsChange}
+                    />
+                </div>
 
-                    {/* Row 2 - Location */}
-                    <div ref={locationRef} className="relative py-2">
-                        <button
-                            ref={buttonRef}
-                            onClick={() => setIsLocationOpen(!isLocationOpen)}
-                            className="w-full text-sm font-semibold text-foreground text-center hover:text-primary transition-colors outline-none"
-                        >
-                            {controller.location}
-                        </button>
-
-                        <AnimatePresence>
-                            {isLocationOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="fixed min-w-[140px] bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
-                                    style={{ top: `${dropdownRect.top}px`, right: `${dropdownRect.right}px` }}
-                                >
-                                    {locations.map((location) => (
-                                        <button
-                                            key={location}
-                                            onClick={() => {
-                                                updateController("location", location);
-                                                setIsLocationOpen(false);
-                                            }}
-                                            className={`w-full px-3 py-2 text-sm text-center transition-colors ${
-                                                controller.location === location
-                                                    ? "bg-muted/50 font-medium"
-                                                    : "hover:bg-muted/30"
-                                            }`}
-                                        >
-                                            {location}
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                {/* Column 3: In-Betweens */}
+                <div className="flex flex-col items-center justify-center gap-2 p-2">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Timer size={16} />
+                        <span className="text-[10px] uppercase font-black tracking-widest">In-Betweens</span>
                     </div>
 
-                    <div className="border-b border-border" />
-
-                    {/* Row 3 - Gap Duration */}
-                    <div className="flex items-center justify-between gap-2 py-2">
+                    <div className="flex items-center gap-1 w-full justify-center">
                         <button
                             onClick={() => updateGap(-5)}
-                            className="px-2 py-1 rounded hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-                            aria-label="Decrease gap"
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                         >
                             <Minus size={14} />
                         </button>
-
-                        <span className="text-sm font-semibold text-foreground text-center flex-1">{controller.gapMinutes || 0}m</span>
+                        
+                        <div className="bg-muted/50 px-3 py-1 rounded-md border border-transparent transition-all">
+                            <span className="text-lg font-bold text-foreground w-12 text-center font-mono">
+                                {controller.gapMinutes || 0}m
+                            </span>
+                        </div>
 
                         <button
                             onClick={() => updateGap(5)}
-                            className="px-2 py-1 rounded hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
-                            aria-label="Increase gap"
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                         >
                             <Plus size={14} />
                         </button>

@@ -227,7 +227,7 @@ export default function LessonFlagLocationSettingsController() {
 
     // Configuration from Controller
     const controller = globalFlag.getController();
-    const LOCATIONS = controller.locationOptions || ["Beach", "Bay", "Lake", "River", "Pool", "Indoor"];
+    const LOCATIONS = controller.locationOptions;
     const MIN_TIME = controller.minTimeMinutes ?? 0;
     const MAX_TIME = controller.maxTimeMinutes ?? 1380;
 
