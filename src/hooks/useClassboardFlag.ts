@@ -353,9 +353,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 }
 
                 const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
-                console.log(`📅 [addLessonEvent] Creating temp event with wall clock time: ${eventDate}`);
-                console.log(`📅 [addLessonEvent] selectedDate: ${selectedDateRef.current}, slotTime: ${slotTime}`);
-                console.log(`📅 [addLessonEvent] Temp event date format: ${eventDate} (should be wall clock, not UTC)`);
 
                 const optimisticEvent: OptimisticEvent = {
                     id: tempId,

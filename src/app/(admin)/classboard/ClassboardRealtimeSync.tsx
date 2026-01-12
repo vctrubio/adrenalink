@@ -25,7 +25,6 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
 
     // Get timezone from credentials - try multiple field names
     const schoolTimezone = credentials?.zone || credentials?.timezone || null;
-    console.log(`🔍 [ClassboardRealtimeSync] School timezone:`, schoolTimezone, `Full credentials:`, credentials);
 
     // Monitor connectivity status
     useEffect(() => {
@@ -198,16 +197,12 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
             // Convert UTC to school timezone
             let convertedDate = date;
             if (date && schoolTimezone) {
-                console.log(`  🕐 [Timezone] Before conversion: ${date}`);
-                console.log(`  🕐 [Timezone] School timezone: ${schoolTimezone}`);
                 const utcDate = new Date(date);
-                console.log(`  🕐 [Timezone] Parsed UTC Date: ${utcDate.toISOString()}`);
                 const converted = convertUTCToSchoolTimezone(utcDate, schoolTimezone);
                 convertedDate = converted.toISOString();
-                console.log(`  🕐 [Timezone] After conversion: ${convertedDate}`);
-                console.log(`  🕐 [Timezone] Expected wall clock time from ${date} should be ${convertedDate}`);
+                console.log(`  🕐 [Timezone] Converted ${date} → ${convertedDate} (${schoolTimezone})`);
             } else if (date) {
-                console.warn(`  ⚠️ [Timezone] No timezone found (schoolTimezone=${schoolTimezone}), using UTC date as-is: ${date}`);
+                console.warn(`  ⚠️ [Timezone] No timezone found, using UTC as-is: ${date}`);
             }
 
             // Handle INSERT: look up pending creation and clear its mutation
