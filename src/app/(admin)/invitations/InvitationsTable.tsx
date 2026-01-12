@@ -3,8 +3,8 @@
 import { useState } from "react";
 import type { StudentPackageRequest } from "@/supabase/server/student-package";
 import { updateStudentPackageStatus } from "@/supabase/server/student-package";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import Image from "next/image";
+import adrLogo from "@/public/ADR.webp";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";
 import { Check, X, Loader2, User } from "lucide-react";
@@ -35,8 +35,7 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
                         <tr>
                             <th className="px-8 py-2 w-[45%]">Package Details</th>
                             <th className="px-6 py-2">Booking Dates</th>
-                            <th className="px-6 py-2">Request From</th>
-                            <th className="px-6 py-2 text-right">Status</th>
+                            <th className="px-6 py-2 text-right">Request From</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,9 +49,35 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
     );
 }
 
+function InfoColumn({
+    top,
+    bottom,
+    className = "",
+    align = "left",
+}: {
+    top: React.ReactNode;
+    bottom: React.ReactNode;
+    className?: string;
+    align?: "left" | "right";
+}) {
+    const alignmentClass = align === "right" ? "items-end text-right" : "items-start text-left";
+    const justifyClass = align === "right" ? "justify-end" : "justify-start";
+
+    return (
+        <td className={`px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm ${className}`}>
+            <div className={`flex flex-col gap-3 ${alignmentClass}`}>
+                <div className="flex items-center gap-2 h-7">{top}</div>
+                <div className={`flex items-center gap-2 pt-3 border-t border-border/50 w-full ${justifyClass}`}>
+                    {bottom}
+                </div>
+            </div>
+        </td>
+    );
+}
+
 function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
     const [isPending, setIsPending] = useState(false);
-    const { id, requested_date_start, requested_date_end, status, wallet_id } = invitation;
+    const { id, requested_date_start, requested_date_end, status, wallet_id, created_at } = invitation;
     const {
         description: packageDesc,
         category_equipment,
@@ -71,18 +96,22 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
         price_per_student: 0,
     };
 
-    // Calculation logic
     const durationHours = duration_minutes / 60;
     const pph = duration_minutes !== 60 ? Math.round(price_per_student / durationHours) : price_per_student;
-    const currencySymbol = "€"; // Standardized for now, or fetch from school context
+    const currencySymbol = "€";
     const isRental = package_type?.toLowerCase().includes("rental");
 
-    const statusColors = {
-        requested: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-        accepted:
-            "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
-        rejected: "bg-red-50 text-red-600 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
-    } as Record<string, string>;
+    const statusLabels: Record<string, string> = {
+        requested: "pending",
+        accepted: "purchased",
+        rejected: "declined",
+    };
+
+    const statusColors: Record<string, string> = {
+        requested: "text-blue-500",
+        accepted: "text-emerald-500",
+        rejected: "text-red-500",
+    };
 
     const handleAction = async (newStatus: string) => {
         setIsPending(true);
@@ -96,9 +125,16 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
     };
 
     return (
-        <tr className="bg-white dark:bg-zinc-900 group transition-all border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-sm hover:border-zinc-200 dark:hover:border-zinc-700">
+        <tr className="bg-white dark:bg-zinc-900 group relative transition-all border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-sm hover:border-zinc-200 dark:hover:border-zinc-700">
             {/* Package Column */}
-            <td className="px-8 py-8 align-middle rounded-l-3xl border-y border-l border-zinc-100 dark:border-zinc-800 shadow-sm">
+            <td className="px-8 py-8 align-middle rounded-l-3xl border-y border-l border-zinc-100 dark:border-zinc-800 shadow-sm relative">
+                {/* Status Badge - Now safely inside the first TD but absolute positioned to the row corner */}
+                <div className="absolute top-0 right-[-100%] md:right-[-122%] lg:right-[-150%] xl:right-[-150%] z-20 pointer-events-none">
+                    {/* Note: In a table, absolute right-0 usually sticks to the cell. 
+                        To stick to the row, we use the last cell or a different container. 
+                        However, let's put it in the last cell for better stability. */}
+                </div>
+
                 <div className="flex flex-col gap-4">
                     <div className="pl-1">
                         <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
@@ -117,89 +153,90 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
             </td>
 
             {/* Dates Column */}
-            <td className="px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
+            <InfoColumn
+                top={
+                    <>
                         <BookingIcon size={16} className="text-muted-foreground" />
                         <DateRangeBadge startDate={requested_date_start} endDate={requested_date_end} />
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-3 border-t border-border/50">
+                    </>
+                }
+                bottom={
+                    <>
                         <RequestIcon size={16} className="text-muted-foreground" />
                         <span className="text-xs font-medium text-muted-foreground">
-                            Requested: {formatDate(invitation.created_at)}
+                            Requested: {formatDate(created_at)}
                         </span>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 text-zinc-500 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
-                            {getRelativeDateLabel(invitation.created_at)}
+                            {getRelativeDateLabel(created_at)}
                         </span>
-                    </div>
-                </div>
-            </td>
+                    </>
+                }
+            />
 
-            {/* Wallet Column */}
-            <td className="px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                        <User size={16} className="text-muted-foreground" />
-                        {wallet_id.slice(0, 14)}
-                    </div>
+            {/* Wallet Column - Final Column with Status Badge */}
+            <InfoColumn
+                className="rounded-r-3xl border-r relative"
+                align="right"
+                top={
+                    <>
+                        {/* Status Badge moved here to anchor to the right side of the row */}
+                        <div className="absolute top-[-1px] right-[-1px] z-20">
+                            <div className="bg-white dark:bg-zinc-900 px-8 py-3 rounded-bl-[2.5rem] rounded-tr-3xl border-b border-l border-zinc-100 dark:border-zinc-800 flex items-center gap-4 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <Image
+                                        src={adrLogo}
+                                        alt=""
+                                        width={16}
+                                        height={16}
+                                        className="dark:invert opacity-70"
+                                    />
+                                    <span
+                                        className={`text-sm font-black tracking-[0.4em] uppercase ${statusColors[status] || "text-zinc-400"}`}
+                                    >
+                                        {statusLabels[status] || status}
+                                    </span>
+                                </div>
 
-                    <div className="flex items-center gap-2 pt-3 border-t border-border/50">
-                        <PackageIcon size={16} className="text-muted-foreground" />
-                        <span
-                            className={`text-xs font-medium ${isRental ? "text-[rgb(var(--red-clade))]" : "text-[rgb(var(--blue-clude))]"}`}
-                        >
-                            {isRental ? "Rental" : "Lesson"}
-                        </span>
-                    </div>
-                </div>
-            </td>
-
-            {/* Status Column */}
-            <td className="px-6 py-8 align-middle text-right rounded-r-3xl border-y border-r border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <div className="flex flex-col items-end gap-4">
-                    <div className="flex items-center gap-2">
-                        {status === "requested" && (
-                            <div className="flex items-center gap-2 mr-2">
-                                <button
-                                    onClick={() => handleAction("accepted")}
-                                    disabled={isPending}
-                                    className="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
-                                    title="Accept Request"
-                                >
-                                    {isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} strokeWidth={3} />}
-                                </button>
-                                <button
-                                    onClick={() => handleAction("rejected")}
-                                    disabled={isPending}
-                                    className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-lg shadow-red-500/20"
-                                    title="Reject Request"
-                                >
-                                    <X size={16} strokeWidth={3} />
-                                </button>
+                                {status === "requested" && (
+                                    <div className="flex items-center gap-2 pl-6 border-l border-zinc-100 dark:border-zinc-800 pointer-events-auto">
+                                        <button
+                                            onClick={() => handleAction("accepted")}
+                                            disabled={isPending}
+                                            className="p-1.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-sm"
+                                        >
+                                            {isPending ? (
+                                                <Loader2 size={14} className="animate-spin" />
+                                            ) : (
+                                                <Check size={14} strokeWidth={3} />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleAction("rejected")}
+                                            disabled={isPending}
+                                            className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-sm"
+                                        >
+                                            <X size={14} strokeWidth={3} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        {status === "accepted" && invitation.booking && invitation.booking.length > 0 ? (
-                            <Link
-                                href={`/bookings/${invitation.booking[0].id}`}
-                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
-                            >
-                                <BookingIcon size={14} />
-                                <span>{invitation.booking[0].id.substring(0, 8).toUpperCase()}</span>
-                            </Link>
-                        ) : (
-                            <span
-                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}
-                            >
-                                {status}
-                            </span>
-                        )}
-                    </div>
-                    <div className="relative w-8 h-8 opacity-10 grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110">
-                        <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
-                    </div>
-                </div>
-            </td>
+                        </div>
+
+                        <span className="font-medium text-zinc-600 dark:text-zinc-400">{wallet_id.slice(0, 14)}</span>
+                        <User size={16} className="text-muted-foreground" />
+                    </>
+                }
+                bottom={
+                    <>
+                        <span
+                            className={`text-[10px] font-bold uppercase tracking-widest ${isRental ? "text-[rgb(var(--red-clade))]" : "text-[rgb(var(--blue-clude))]"}`}
+                        >
+                            {isRental ? "Rental Service" : "Lesson Package"}
+                        </span>
+                        <PackageIcon size={16} className="text-muted-foreground" />
+                    </>
+                }
+            />
         </tr>
     );
 }
