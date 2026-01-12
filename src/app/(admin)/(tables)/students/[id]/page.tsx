@@ -1,7 +1,6 @@
 import { getStudentId } from "@/supabase/server/student-id";
 import { StudentData } from "@/backend/data/StudentData";
 import { StudentTableGetters } from "@/getters/table-getters";
-import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { StudentLeftColumn } from "./StudentLeftColumn";
 import { StudentRightColumn } from "./StudentRightColumn";

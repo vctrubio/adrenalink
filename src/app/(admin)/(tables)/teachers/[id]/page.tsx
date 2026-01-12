@@ -1,7 +1,6 @@
 import { getTeacherId } from "@/supabase/server/teacher-id";
 import { TeacherData } from "@/backend/data/TeacherData";
 import { TeacherTableGetters } from "@/getters/table-getters";
-import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { TeacherLeftColumn } from "./TeacherLeftColumn";
 import { TeacherRightColumn } from "./TeacherRightColumn";

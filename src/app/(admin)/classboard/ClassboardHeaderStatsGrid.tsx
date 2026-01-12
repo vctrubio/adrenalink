@@ -1,59 +1,53 @@
 "use client";
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
-import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
 import { ClassboardStatistics } from "../../../../backend/classboard/ClassboardStatistics";
-import { getHMDuration } from "@/getters/duration-getter";
-import { getCompactNumber } from "@/getters/integer-getter";
-import { getDashboardStatsDisplay, STATS_GROUP_TOP, STATS_GROUP_BOTTOM } from "@/backend/RenderStats";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { StatItemUI, type StatType } from "@/backend/data/StatsData";
+
+const STATS_MAP: { key: keyof ClassboardStatistics["_cache"]["dailyLessonStats"]; type: StatType }[] = [
+    { key: "studentCount", type: "students" },
+    { key: "teacherCount", type: "teachers" },
+    { key: "eventCount", type: "events" },
+    { key: "durationCount", type: "duration" },
+    { key: "commission", type: "commission" },
+    { key: "profit", type: "profit" },
+];
 
 export default function ClassboardHeaderStatsGrid() {
     const { teacherQueues, selectedDate } = useClassboardContext();
 
     const stats = useMemo(() => {
         const statistics = new ClassboardStatistics(teacherQueues, undefined, undefined, true);
-        return statistics.getDailyLessonStats();
+        const dailyStats = statistics.getDailyLessonStats();
+        return {
+            ...dailyStats,
+            commission: dailyStats.revenue.commission,
+            profit: dailyStats.revenue.profit,
+        };
     }, [teacherQueues, selectedDate]);
 
-    const displayStats = getDashboardStatsDisplay(stats);
+    const renderStat = (key: keyof typeof stats, type: StatType) => (
+        <div key={key} className="flex items-center justify-center px-1 py-2 sm:px-3 h-full">
+            <StatItemUI
+                type={type}
+                value={stats[key]}
+                className="text-xs sm:text-sm"
+                iconColor={true}
+            />
+        </div>
+    );
 
     return (
         <div className="flex-1 flex flex-col h-full">
-            {/* Row 1: Students, Teachers, Lessons */}
             <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
-                {STATS_GROUP_TOP.map((key) => {
-                    const stat = displayStats[key];
-                    return (
-                        <div key={key} className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 py-2 sm:px-3 h-full">
-                            <stat.Icon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground text-[10px] sm:text-xs hidden lg:inline uppercase tracking-widest font-bold opacity-70">{stat.label}</span>
-                            <span className="text-foreground font-black text-sm sm:text-base tracking-tight">
-                                <AnimatedCounter value={stat.value} />
-                            </span>
-                        </div>
-                    );
-                })}
+                {STATS_MAP.slice(0, 3).map(item => renderStat(item.key, item.type))}
             </div>
 
             <div className="h-px bg-border/30 w-full" />
 
-            {/* Row 2: Duration, Commissions, Profit */}
             <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
-                {STATS_GROUP_BOTTOM.map((key) => {
-                    const stat = displayStats[key];
-                    const formatter = key === "duration" ? getHMDuration : getCompactNumber;
-                    return (
-                        <div key={key} className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 py-2 sm:px-3 h-full">
-                            <stat.Icon size={16} className="text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground text-[10px] sm:text-xs hidden lg:inline uppercase tracking-widest font-bold opacity-70">{stat.label}</span>
-                            <span className="text-foreground font-black text-sm sm:text-base tracking-tight">
-                                {key === "duration" ? formatter(stat.value) : <AnimatedCounter value={stat.value} />}
-                            </span>
-                        </div>
-                    );
-                })}
+                 {STATS_MAP.slice(3, 6).map(item => renderStat(item.key, item.type))}
             </div>
         </div>
     );

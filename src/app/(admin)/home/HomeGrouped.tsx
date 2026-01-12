@@ -9,7 +9,7 @@ import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics"
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { BrandSizeCategoryList, BrandSizeCategoryListHorizontal } from "@/src/components/ui/badge/brand-size-category";
-import { STAT_CONFIGS, getDashboardStatsDisplay } from "@/backend/RenderStats";
+import { StatItemUI } from "@/backend/data/StatsData";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { EventHomeStatusLabel } from "@/src/components/labels/EventHomeStatusLabel";
 import { getHMDuration } from "@/getters/duration-getter";
@@ -48,7 +48,6 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
             {groupedEvents.map((group) => {
                 const statsCalculator = new ClassboardStatistics(classboardData, group.date, true);
                 const stats = statsCalculator.getDailyLessonStats();
-                const displayStats = getDashboardStatsDisplay(stats);
                 const isExpanded = expandedDates[group.date] ?? false;
 
                 return (
@@ -88,130 +87,22 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-4 sm:gap-8 text-sm">
-                                <div className="flex flex-col items-center min-w-[60px]">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="2xl:hidden flex items-center gap-1.5">
-                                            <displayStats.completed.Icon size={14} className="text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">
-                                                {
-                                                    group.events.filter((e) => e.status === "completed" || e.status === "uncompleted")
-                                                        .length
-                                                }
-                                                /{group.events.length}
-                                            </span>
-                                        </div>
-                                        <span className="hidden 2xl:inline font-semibold text-lg text-foreground">
-                                            {group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}
-                                            /{group.events.length}
-                                        </span>
-                                    </div>
-                                    <div className="hidden 2xl:flex items-center gap-1">
-                                        <displayStats.completed.Icon size={12} className="text-muted-foreground/70" />
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                                            {displayStats.completed.label}
-                                        </span>
-                                    </div>
+                            <div className="flex items-center gap-4 sm:gap-6 text-sm">
+                                <StatItemUI
+                                    type="completed"
+                                    value={`${group.events.filter(e => e.status === "completed" || e.status === "uncompleted").length}/${group.events.length}`}
+                                    hideLabel={true}
+                                />
+                                <StatItemUI type="students" value={stats.studentCount} hideLabel={true} />
+                                <StatItemUI type="teachers" value={stats.teacherCount} hideLabel={true} />
+                                <StatItemUI type="duration" value={stats.durationCount} hideLabel={true} />
+                                <div className="hidden lg:flex items-center gap-4 border-l border-border/50 pl-4">
+                                    <StatItemUI type="revenue" value={stats.revenue.revenue} hideLabel={true} />
+                                    <StatItemUI type="commission" value={stats.revenue.commission} hideLabel={true} />
+                                    <StatItemUI type="profit" value={stats.revenue.profit} hideLabel={true} variant="profit" />
                                 </div>
-
-                                <div className="flex flex-col items-center text-emerald-600 dark:text-emerald-400 pl-4 border-l border-border/50 lg:hidden">
-                                    <div className="flex items-center gap-1.5">
-                                        <displayStats.profit.Icon size={14} />
-                                        <span className="font-bold text-lg">{displayStats.profit.formatted}</span>
-                                    </div>
-                                    <div className="hidden 2xl:flex items-center gap-1">
-                                        <displayStats.profit.Icon size={12} />
-                                        <span className="text-[10px] uppercase tracking-wider font-medium">
-                                            {displayStats.profit.label}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="hidden sm:flex items-center gap-6 pl-6 border-l border-border/50">
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.students.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">
-                                                {displayStats.students.formatted}
-                                            </span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.students.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                                                {displayStats.students.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.teachers.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">
-                                                {displayStats.teachers.formatted}
-                                            </span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.teachers.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                                                {displayStats.teachers.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.duration.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">
-                                                {displayStats.duration.formatted}
-                                            </span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.duration.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                                                {displayStats.duration.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="hidden lg:flex items-center gap-6 pl-6 border-l border-border/50">
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.revenue.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-semibold text-lg text-foreground">
-                                                {displayStats.revenue.formatted}
-                                            </span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.revenue.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                                                {displayStats.revenue.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center text-muted-foreground">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.commission.Icon size={14} className="2xl:hidden text-muted-foreground/70" />
-                                            <span className="font-medium text-lg">- {displayStats.commission.formatted}</span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.commission.Icon size={12} className="text-muted-foreground/70" />
-                                            <span className="text-[10px] uppercase tracking-wider font-medium">
-                                                {displayStats.commission.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="h-8 w-px bg-border/60 rotate-12 mx-1" />
-                                    <div className="flex flex-col items-center text-emerald-600 dark:text-emerald-400">
-                                        <div className="flex items-center gap-1.5">
-                                            <displayStats.profit.Icon size={16} className="2xl:hidden" />
-                                            <span className="font-bold text-lg">= {displayStats.profit.formatted}</span>
-                                        </div>
-                                        <div className="hidden 2xl:flex items-center gap-1">
-                                            <displayStats.profit.Icon size={12} />
-                                            <span className="text-[10px] uppercase tracking-wider font-medium">
-                                                {displayStats.profit.label}
-                                            </span>
-                                        </div>
-                                    </div>
+                                <div className="lg:hidden">
+                                     <StatItemUI type="profit" value={stats.revenue.profit} hideLabel={true} variant="profit" />
                                 </div>
                             </div>
 

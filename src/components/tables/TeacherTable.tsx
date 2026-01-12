@@ -6,7 +6,7 @@ import { SearchInput } from "@/src/components/SearchInput";
 import { AddCommissionDropdown } from "@/src/components/ui/AddCommissionDropdown";
 import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { useTableSort } from "@/hooks/useTableSort";
+import { useTableSort } from "@/src/hooks/useTableSort";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { STATUS_FILTER_OPTIONS, type StatusFilterType } from "@/config/filterOptions";

@@ -9,7 +9,7 @@ import { BookingTableGetters } from "@/getters/table-getters";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
-import { STAT_CONFIGS } from "@/backend/RenderStats";
+import { STAT_TYPE_CONFIG } from "@/backend/data/StatsData";
 import type { BookingData } from "@/backend/data/BookingData";
 import type { LeftColumnCardData } from "@/types/left-column";
 
@@ -166,7 +166,7 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
         status: `${due} ${currency} Due`,
         avatar: (
             <div className="flex-shrink-0" style={{ color: receiptEntity.color }}>
-                <STAT_CONFIGS.moneyToPay.icon size={40} />
+                <STAT_TYPE_CONFIG.payments.icon size={40} />
             </div>
         ),
         fields: paymentFields,

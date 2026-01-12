@@ -2,10 +2,10 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-import type { StatItem } from "@/backend/RenderStats";
+import type { TableStat } from "@/src/app/(admin)/(tables)/TablesHeaderStats";
 
 interface EntityIdLayoutProps {
-    stats: StatItem[];
+    stats: TableStat[];
     leftColumn: ReactNode;
     rightColumn: ReactNode | null;
 }

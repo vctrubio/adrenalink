@@ -4,7 +4,7 @@ import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { useTableSort } from "@/hooks/useTableSort";
+import { useTableSort } from "@/src/hooks/useTableSort";
 import { filterBySearch } from "@/types/searching-entities";
 import ReactCountryFlag from "react-country-flag";
 import { COUNTRIES } from "@/config/countries";

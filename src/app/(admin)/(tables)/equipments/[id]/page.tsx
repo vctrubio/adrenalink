@@ -1,7 +1,6 @@
 import { getEquipmentId } from "@/supabase/server/equipment-id";
 import { EquipmentData } from "@/backend/data/EquipmentData";
 import { EquipmentTableGetters } from "@/getters/table-getters";
-import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { EquipmentLeftColumn } from "./EquipmentLeftColumn";
 import { EquipmentRightColumn } from "./EquipmentRightColumn";

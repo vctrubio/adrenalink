@@ -1,16 +1,6 @@
 import type { EventNode } from "@/backend/classboard/TeacherQueue";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
-// Re-export shared stats logic from the single source of truth
-export {
-    getDashboardStatsDisplay,
-    STATS_GROUP_TOP,
-    STATS_GROUP_BOTTOM,
-    STATS_GROUP_REVENUE,
-    type DashboardStatKey,
-    type DisplayableStat,
-} from "@/backend/RenderStats";
-
 /**
  * Transforms raw database booking data into ClassboardModel format
  * This is a pure data transformation function - belongs in getters

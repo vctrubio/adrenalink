@@ -1,7 +1,6 @@
 import { getBookingId } from "@/supabase/server/booking-id";
 import { BookingData } from "@/backend/data/BookingData";
 import { BookingTableGetters } from "@/getters/table-getters";
-import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";

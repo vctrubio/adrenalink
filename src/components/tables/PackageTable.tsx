@@ -8,7 +8,7 @@ import { MultiSelectFilterDropdown } from "@/src/components/ui/MultiSelectFilter
 import { SearchInput } from "@/src/components/SearchInput";
 import { useState, useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { useTableSort } from "@/hooks/useTableSort";
+import { useTableSort } from "@/src/hooks/useTableSort";
 import { filterBySearch } from "@/types/searching-entities";
 
 interface Package {

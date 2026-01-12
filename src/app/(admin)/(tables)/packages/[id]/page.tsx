@@ -1,7 +1,6 @@
 import { getPackageId } from "@/supabase/server/package-id";
 import { PackageData } from "@/backend/data/PackageData";
 import { PackageTableGetters } from "@/getters/table-getters";
-import { getStat } from "@/backend/RenderStats";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { PackageLeftColumn } from "./PackageLeftColumn";
 import { PackageRightColumn } from "./PackageRightColumn";
