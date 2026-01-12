@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -37,30 +37,30 @@ export default function TeacherClassDaily() {
         });
     };
 
-    const handleTimeIncrement = () => {
+    const handleTimeIncrement = useCallback(() => {
         if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
         const newHours = (hours + 1) % 24;
         const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
         setController({ ...controller, submitTime: newTime });
-    };
+    }, [controller, setController]);
 
-    const handleTimeDecrement = () => {
+    const handleTimeDecrement = useCallback(() => {
         if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
         const newHours = (hours - 1 + 24) % 24;
         const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
         setController({ ...controller, submitTime: newTime });
-    };
+    }, [controller, setController]);
 
-    // Get earliest time from queues array (calculate only when queues count changes)
+    // Get earliest time from queues array (recalculate when any queue's head node changes)
     const earliestTime = useMemo(() => {
         const earliestTimes = teacherQueues
             .map((queue) => queue.getEarliestTime())
             .filter((time) => time != null);
         if (earliestTimes.length === 0) return null;
         return earliestTimes.sort()[0]; // Return earliest alphabetically (HH:MM format sorts correctly)
-    }, [teacherQueues.length]);
+    }, [teacherQueues.map((q) => q.getEarliestTime()).join(",")]);
 
     const isEarliestTimeSet = earliestTime && earliestTime === controller?.submitTime;
     const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK; // Cyan if matches earliest time, else muted
@@ -105,32 +105,13 @@ export default function TeacherClassDaily() {
                 </div>
                 <span className="text-lg font-bold text-foreground">Teachers</span>
 
-                {/* Start Time Section - Grouped */}
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={handleFlagClick}
-                        style={{ color: flagColor }}
-                        className="p-2 rounded-lg hover:bg-muted transition-colors"
-                        title="Set to earliest time from queues"
-                    >
-                        <FlagIcon className="w-5 h-5 flex-shrink-0" />
-                    </button>
-                    <button
-                        onClick={handleTimeDecrement}
-                        className="p-2 rounded-lg hover:bg-muted transition-colors"
-                        title="Decrease hour"
-                    >
-                        <ChevronLeft size={18} className="text-foreground" />
-                    </button>
-                    <span className="font-mono text-xl font-bold text-foreground w-12 text-center">{controller?.submitTime || "00:00"}</span>
-                    <button
-                        onClick={handleTimeIncrement}
-                        className="p-2 rounded-lg hover:bg-muted transition-colors"
-                        title="Increase hour"
-                    >
-                        <ChevronRight size={18} className="text-foreground" />
-                    </button>
-                </div>
+                <StartTimeSection
+                    controller={controller}
+                    flagColor={flagColor}
+                    onFlagClick={handleFlagClick}
+                    onTimeIncrement={handleTimeIncrement}
+                    onTimeDecrement={handleTimeDecrement}
+                />
 
                 <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <ToggleSwitch
@@ -186,6 +167,36 @@ export default function TeacherClassDaily() {
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function StartTimeSection({ controller, flagColor, onFlagClick, onTimeIncrement, onTimeDecrement }: { controller: typeof controller; flagColor: string; onFlagClick: () => void; onTimeIncrement: () => void; onTimeDecrement: () => void }) {
+    return (
+        <div className="flex items-center gap-1">
+            <button
+                onClick={onFlagClick}
+                style={{ color: flagColor }}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                title="Set to earliest time from queues"
+            >
+                <FlagIcon className="w-5 h-5 flex-shrink-0" />
+            </button>
+            <button
+                onClick={onTimeDecrement}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                title="Decrease hour"
+            >
+                <ChevronLeft size={18} className="text-foreground" />
+            </button>
+            <span className="font-mono text-xl font-bold text-foreground w-12 text-center">{controller?.submitTime || "00:00"}</span>
+            <button
+                onClick={onTimeIncrement}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                title="Increase hour"
+            >
+                <ChevronRight size={18} className="text-foreground" />
+            </button>
         </div>
     );
 }
