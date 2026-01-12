@@ -3,48 +3,28 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { TeacherData } from "@/backend/data/TeacherData";
+import { buildTeacherLessonData, filterTeacherLessonData, type LessonRow } from "@/backend/data/TeacherLessonData";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline, type TimelineEvent } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
+import { SearchInput } from "@/src/components/SearchInput";
+import { SortDropdown } from "@/src/components/ui/SortDropdown";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import type { EventStatusFilter } from "@/types/status";
+import type { SortConfig } from "@/types/sort";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { MapPin, Calendar, List, Table } from "lucide-react";
+import { Calendar, List } from "lucide-react";
 import {
     TeacherLessonCard,
-    type TeacherLessonCardData,
-    type TeacherLessonCardEvent,
-    type LessonEventRowData,
     TeacherBookingLessonTable,
-    type TeacherBookingLessonTableData,
 } from "@/src/components/ids";
-import { getHMDuration } from "@/getters/duration-getter";
-import { transformEventsToRows } from "@/getters/event-getter";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
-import type { EventData } from "@/types/booking-lesson-event";
+import { getHMDuration } from "@/getters/duration-getter";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
-
-interface LessonRow {
-    lessonId: string;
-    bookingId: string;
-    leaderName: string;
-    dateStart: string;
-    dateEnd: string;
-    lessonStatus: string;
-    bookingStatus: string;
-    commissionType: string;
-    cph: number;
-    totalDuration: number;
-    totalHours: number;
-    totalEarning: number;
-    eventCount: number;
-    events: LessonEventRowData[];
-    equipmentCategory: string;
-    studentCapacity: number;
-}
 
 // Sub-component: Commission Header
 interface CommissionStats {
@@ -91,15 +71,11 @@ function CommissionsView({
     lessonRows,
     expandedLesson,
     setExpandedLesson,
-    bookingEntity,
-    studentEntity,
     formatCurrency,
 }: {
     lessonRows: LessonRow[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
-    bookingEntity: any;
-    studentEntity: any;
     formatCurrency: (num: number) => string;
 }) {
     // Group lessons by unique commission rate (type + cph)
@@ -139,35 +115,14 @@ function CommissionsView({
                 <div key={idx} className="space-y-2">
                     <CommissionHeader commission={commission} formatCurrency={formatCurrency} />
                     <div className="space-y-2">
-                        {commission.lessons.map((lesson) => {
-                            const lessonData: TeacherLessonCardData = {
-                                lessonId: lesson.lessonId,
-                                bookingId: lesson.bookingId,
-                                leaderName: lesson.leaderName,
-                                dateStart: lesson.dateStart,
-                                dateEnd: lesson.dateEnd,
-                                lessonStatus: lesson.lessonStatus,
-                                bookingStatus: lesson.bookingStatus,
-                                commissionType: lesson.commissionType,
-                                cph: lesson.cph,
-                                totalDuration: lesson.totalDuration,
-                                totalHours: lesson.totalHours,
-                                totalEarning: lesson.totalEarning,
-                                eventCount: lesson.eventCount,
-                                events: lesson.events as TeacherLessonCardEvent[],
-                                equipmentCategory: lesson.equipmentCategory,
-                                studentCapacity: lesson.studentCapacity,
-                            };
-
-                            return (
-                                <TeacherLessonCard
-                                    key={lesson.lessonId}
-                                    lesson={lessonData}
-                                    isExpanded={expandedLesson === lesson.lessonId}
-                                    onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                                />
-                            );
-                        })}
+                        {commission.lessons.map((lesson) => (
+                            <TeacherLessonCard
+                                key={lesson.lessonId}
+                                lesson={lesson}
+                                isExpanded={expandedLesson === lesson.lessonId}
+                                onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
+                            />
+                        ))}
                     </div>
                 </div>
             ))}
@@ -197,37 +152,16 @@ function LessonsView({
             exit={{ opacity: 0, y: -10 }}
             className="space-y-3"
         >
-            {lessonRows.map((lesson) => {
-                const lessonData: TeacherBookingLessonTableData = {
-                    lessonId: lesson.lessonId,
-                    bookingId: lesson.bookingId,
-                    leaderName: lesson.leaderName,
-                    dateStart: lesson.dateStart,
-                    dateEnd: lesson.dateEnd,
-                    lessonStatus: lesson.lessonStatus,
-                    bookingStatus: lesson.bookingStatus,
-                    commissionType: lesson.commissionType,
-                    cph: lesson.cph,
-                    totalDuration: lesson.totalDuration,
-                    totalHours: lesson.totalHours,
-                    totalEarning: lesson.totalEarning,
-                    eventCount: lesson.eventCount,
-                    events: lesson.events as LessonEventRowData[],
-                    equipmentCategory: lesson.equipmentCategory,
-                    studentCapacity: lesson.studentCapacity,
-                };
-
-                return (
-                    <TeacherBookingLessonTable
-                        key={lesson.lessonId}
-                        lesson={lessonData}
-                        isExpanded={expandedLesson === lesson.lessonId}
-                        onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                        bookingEntity={bookingEntity}
-                        studentEntity={studentEntity}
-                    />
-                );
-            })}
+            {lessonRows.map((lesson) => (
+                <TeacherBookingLessonTable
+                    key={lesson.lessonId}
+                    lesson={lesson}
+                    isExpanded={expandedLesson === lesson.lessonId}
+                    onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
+                    bookingEntity={bookingEntity}
+                    studentEntity={studentEntity}
+                />
+            ))}
         </motion.div>
     );
 }
@@ -241,6 +175,8 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     const [viewMode, setViewMode] = useState<ViewMode>("timeline");
     const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
+    const [filter, setFilter] = useState<EventStatusFilter>("all");
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
 
@@ -248,112 +184,47 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
+    const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     // Use standardized snake_case relation
     const lessons = teacher.relations?.lesson || [];
 
     // Build lesson rows and timeline events from lessons data
-    const lessonRows: LessonRow[] = [];
-    const timelineEvents: TimelineEvent[] = [];
+    const { lessonRows, timelineEvents } = buildTeacherLessonData(lessons, {
+        id: teacher.schema.id,
+        first_name: teacher.schema.first_name,
+        username: teacher.schema.username,
+    });
 
-    for (const lesson of lessons) {
-        // Use standardized snake_case properties
-        const events = (lesson.event || []) as EventData[];
-        const booking = lesson.booking;
-        const commission = lesson.teacher_commission;
-        const school_package = booking?.school_package;
+    // Apply global search/filter across all view modes
+    const { filteredLessonRows, filteredTimelineEvents } = filterTeacherLessonData(
+        lessonRows,
+        timelineEvents,
+        searchQuery,
+        filter,
+    );
 
-        const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-        const totalHours = totalDuration / 60;
-        const cph = parseFloat(commission?.cph || "0");
-        const commissionType = (commission?.commission_type as "fixed" | "percentage") || "fixed";
+    // Apply sort to timeline events
+    const sortedTimelineEvents = useMemo(() => {
+        let result = [...filteredTimelineEvents];
 
-        const eventRows = transformEventsToRows(events as any);
-        let totalEarning = 0;
+        result.sort((a, b) => {
+            let valA: number, valB: number;
 
-        for (const eventRow of eventRows) {
-            // Calculate revenues
-            const studentCount = school_package?.capacity_students || 1;
-            const pricePerStudent = school_package?.price_per_student || 0;
-            const packageDurationMinutes = school_package?.duration_minutes || 60;
+            if (sort.field === "date") {
+                valA = a.date.getTime();
+                valB = b.date.getTime();
+            } else {
+                // Default to date
+                valA = a.date.getTime();
+                valB = b.date.getTime();
+            }
 
-            const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
-            const eventCommission = calculateCommission(
-                eventRow.duration,
-                { type: commissionType, cph },
-                eventRevenue,
-                packageDurationMinutes,
-            );
-            const eventEarning = eventCommission.earned;
-
-            totalEarning += eventEarning;
-            const schoolRevenue = eventRevenue - eventEarning;
-
-            // Override duration label for consistency
-            eventRow.durationLabel = getHMDuration(eventRow.duration);
-
-            // Build timeline event
-            timelineEvents.push({
-                eventId: eventRow.eventId,
-                lessonId: lesson.id,
-                date: eventRow.date,
-                time: eventRow.time,
-                dateLabel: eventRow.dateLabel,
-                dayOfWeek: eventRow.dayOfWeek || "",
-                duration: eventRow.duration,
-                durationLabel: eventRow.durationLabel,
-                location: eventRow.location,
-                teacherId: teacher.schema.id,
-                teacherName: teacher.schema.first_name || "Unknown",
-                teacherUsername: teacher.schema.username,
-                eventStatus: eventRow.status,
-                lessonStatus: lesson.status,
-                teacherEarning: eventEarning,
-                schoolRevenue,
-                totalRevenue: eventRevenue,
-                commissionType,
-                commissionCph: cph,
-                bookingStudents: [], // Potentially fetch if needed
-                equipmentCategory: school_package?.category_equipment,
-                capacityEquipment: school_package?.capacity_equipment,
-                capacityStudents: school_package?.capacity_students,
-            });
-        }
-
-        lessonRows.push({
-            lessonId: lesson.id,
-            bookingId: booking?.id || "",
-            leaderName: booking?.leader_student_name || "Unknown",
-            dateStart: booking?.date_start || "",
-            dateEnd: booking?.date_end || "",
-            lessonStatus: lesson.status,
-            bookingStatus: booking!.status,
-            commissionType,
-            cph,
-            totalDuration,
-            totalHours,
-            totalEarning,
-            eventCount: events.length,
-            events: eventRows,
-            equipmentCategory: school_package?.category_equipment!,
-            studentCapacity: school_package?.capacity_students!,
+            return sort.direction === "desc" ? valB - valA : valA - valB;
         });
-    }
 
-    timelineEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    // Filter based on search query
-    const filteredLessonRows = lessonRows.filter((row) => {
-        if (!searchQuery) return true;
-        const query = searchQuery.toLowerCase();
-        return row.leaderName.toLowerCase().includes(query);
-    });
-
-    const filteredTimelineEvents = timelineEvents.filter((event) => {
-        if (!searchQuery) return true;
-        const query = searchQuery.toLowerCase();
-        return event.location.toLowerCase().includes(query);
-    });
+        return result;
+    }, [filteredTimelineEvents, sort]);
 
     if (lessonRows.length === 0) {
         return (
@@ -365,6 +236,34 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     return (
         <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="flex-1 min-w-64">
+                    <SearchInput
+                        placeholder="Search by leader name or location..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        entityColor={teacherEntity.color}
+                    />
+                </div>
+                <SortDropdown
+                    value={sort}
+                    options={[
+                        { field: "date", direction: "desc", label: "Newest" },
+                        { field: "date", direction: "asc", label: "Oldest" },
+                    ]}
+                    onChange={setSort}
+                    entityColor={teacherEntity.color}
+                    toggleMode={true}
+                />
+                <FilterDropdown
+                    label="Status"
+                    value={filter === "all" ? "All" : filter}
+                    options={["All", "planned", "completed", "tbc", "uncompleted"]}
+                    onChange={(value) => setFilter(value === "All" ? "all" : (value as EventStatusFilter))}
+                    entityColor={teacherEntity.color}
+                />
+            </div>
+
             <ToggleBar
                 value={viewMode}
                 onChange={(v) => setViewMode(v as ViewMode)}
@@ -390,19 +289,16 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                         lessonRows={filteredLessonRows}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
-                        bookingEntity={bookingEntity}
-                        studentEntity={studentEntity}
                         formatCurrency={formatCurrency}
                     />
                 )}
                 {viewMode === "timeline" && (
                     <Timeline
-                        events={filteredTimelineEvents}
+                        events={sortedTimelineEvents}
                         currency={currency}
                         formatCurrency={formatCurrency}
                         showTeacher={false}
                         showFinancials={true}
-                        searchPlaceholder="Search locations..."
                     />
                 )}
             </AnimatePresence>

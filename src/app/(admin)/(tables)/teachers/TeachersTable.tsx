@@ -212,7 +212,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 <div className="flex flex-col gap-1 items-start">
                     <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group">
                         <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
-                            {data.firstName} {data.lastName}
+                            {data.username}
                         </span>
                         <div
                             className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
@@ -227,10 +227,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                                 style={{ width: "1.2em", height: "1.2em" }}
                             />
                         </div>
-                        <span className="opacity-20 text-foreground">|</span>
                         <span className="tabular-nums">{data.phone}</span>
-                        <span className="opacity-20 text-foreground">|</span>
-                        <span className="tabular-nums">@{data.username}</span>
                     </div>
                 </div>
             ),

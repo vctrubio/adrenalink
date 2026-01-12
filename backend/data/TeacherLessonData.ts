@@ -78,6 +78,13 @@ export function buildTeacherLessonData(
             // Override duration label for consistency
             eventRow.durationLabel = getHMDuration(eventRow.duration);
 
+            // Extract students from booking
+            const bookingStudents = (booking?.students || []).map((student: any) => ({
+                id: student.id,
+                firstName: student.first_name || student.firstName || "",
+                lastName: student.last_name || student.lastName || "",
+            }));
+
             // Build timeline event
             timelineEvents.push({
                 eventId: eventRow.eventId,
@@ -99,7 +106,7 @@ export function buildTeacherLessonData(
                 totalRevenue: eventRevenue,
                 commissionType,
                 commissionCph: cph,
-                bookingStudents: [],
+                bookingStudents,
                 equipmentCategory: school_package?.category_equipment,
                 capacityEquipment: school_package?.capacity_equipment,
                 capacityStudents: school_package?.capacity_students,
@@ -129,4 +136,50 @@ export function buildTeacherLessonData(
     timelineEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     return { lessonRows, timelineEvents };
+}
+
+/**
+ * Filter lesson rows and timeline events by search query and status
+ * Applied globally across all view modes (timeline, lessons, commissions)
+ */
+export function filterTeacherLessonData(
+    lessonRows: LessonRow[],
+    timelineEvents: TimelineEvent[],
+    searchQuery: string,
+    statusFilter?: string,
+): {
+    filteredLessonRows: LessonRow[];
+    filteredTimelineEvents: TimelineEvent[];
+} {
+    let filteredLessonRows = lessonRows;
+    let filteredTimelineEvents = timelineEvents;
+
+    // Apply search filter
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+
+        filteredLessonRows = filteredLessonRows.filter((row) =>
+            row.leaderName.toLowerCase().includes(query),
+        );
+
+        filteredTimelineEvents = filteredTimelineEvents.filter((event) =>
+            event.location.toLowerCase().includes(query) || event.teacherName.toLowerCase().includes(query),
+        );
+    }
+
+    // Apply status filter to lessons and timeline events
+    if (statusFilter && statusFilter !== "all") {
+        filteredLessonRows = filteredLessonRows.filter(
+            (row) => row.lessonStatus === statusFilter,
+        );
+
+        filteredTimelineEvents = filteredTimelineEvents.filter(
+            (event) => event.eventStatus === statusFilter,
+        );
+    }
+
+    // Sort by date (descending)
+    filteredTimelineEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    return { filteredLessonRows, filteredTimelineEvents };
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { ENTITY_DATA } from "@/config/entities";
 import { type EventStatus, EVENT_STATUS_CONFIG } from "@/types/status";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { TeacherUsernameCommissionBadge } from "@/src/components/ui/badge/teacher-username-commission";
 import { StudentUsernameBadge } from "@/src/components/ui/badge/student-username";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -95,23 +95,8 @@ export function TimelineEventCard({
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap text-sm mb-4">
-                    {showTeacher && (
-                        <HoverToEntity entity={teacherEntity} id={event.teacherUsername}>
-                            <TeacherUsernameCommissionBadge
-                                teacherIcon={TeacherIcon}
-                                teacherUsername={event.teacherUsername}
-                                teacherColor={teacherEntity.color}
-                                commissionValue={String(event.commissionCph)}
-                                commissionType={event.commissionType as "fixed" | "percentage"}
-                                currency={currency}
-                            />
-                        </HoverToEntity>
-                    )}
-                </div>
-
-                {!showTeacher && event.bookingStudents && event.bookingStudents.length > 0 && (
-                    <div className="flex items-center gap-2 flex-wrap mb-3 text-sm">
+                {event.bookingStudents && event.bookingStudents.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
                         {event.bookingStudents.map((student) => (
                             <StudentUsernameBadge
                                 key={student.id}
@@ -124,18 +109,31 @@ export function TimelineEventCard({
                     </div>
                 )}
 
+                <div className="flex items-center gap-3 flex-wrap ">
+                    {showTeacher && (
+                        <Link href={`/teachers/${event.teacherId}`}>
+                            <TeacherUsernameCommissionBadge
+                                teacherIcon={TeacherIcon}
+                                teacherUsername={event.teacherUsername}
+                                teacherColor={teacherEntity.color}
+                                commissionValue={String(event.commissionCph)}
+                                commissionType={event.commissionType as "fixed" | "percentage"}
+                                currency={currency}
+                            />
+                        </Link>
+                    )}
+                </div>
+
                 {showFinancials && (
-                    <div className="space-y-2 pt-3 border-t border-border/50 text-xs">
+                    <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs">
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Teacher Commission</span>
                             <div className="flex items-center gap-1">
-                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
-                                    {event.commissionCph}
-                                </span>
+                                <span className="font-mono ">{event.commissionCph}</span>
                                 <span className="text-muted-foreground">×</span>
-                                <span className="font-mono font-semibold text-primary">{(event.duration / 60).toFixed(1)}h</span>
+                                <span className="font-mono ">{getHMDuration(event.duration)}</span>
                                 <span className="text-muted-foreground">=</span>
-                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
+                                <span className="font-mono font-semibold ">
                                     {formatCurrency(Math.round(event.teacherEarning * 100) / 100)}
                                 </span>
                             </div>

@@ -4,36 +4,17 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
-import { LessonEventRow, type LessonEventRowData } from "@/src/components/ids/LessonEventRow";
+import { LessonEventRow } from "@/src/components/ids/LessonEventRow";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
-
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-
-export interface TeacherBookingLessonTableData {
-    lessonId: string;
-    bookingId: string;
-    leaderName: string;
-    dateStart: string;
-    dateEnd: string;
-    lessonStatus: string;
-    bookingStatus: string;
-    commissionType: string;
-    cph: number;
-    totalDuration: number;
-    totalHours: number;
-    totalEarning: number;
-    eventCount: number;
-    events: LessonEventRowData[];
-    equipmentCategory: string;
-    studentCapacity: number;
-}
+import { type LessonRow } from "@/backend/data/TeacherLessonData";
 
 interface TeacherBookingLessonTableProps {
-    lesson: TeacherBookingLessonTableData;
+    lesson: LessonRow;
     isExpanded: boolean;
     onToggle: () => void;
     bookingEntity: any;

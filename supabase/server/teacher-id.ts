@@ -40,7 +40,10 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                     teacher_commission(*),
                     booking(
                         *,
-                        school_package(*)
+                        school_package(*),
+                        booking_student(
+                            student(*)
+                        )
                     ),
                     event(*),
                     teacher_lesson_payment(*)
@@ -73,10 +76,20 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                     return evt;
                 });
 
+                // Extract students from booking_student junction table
+                const students = (l.booking?.booking_student || []).map((bs: any) => ({
+                    id: bs.student.id,
+                    first_name: bs.student.first_name,
+                    last_name: bs.student.last_name,
+                }));
+
                 return {
                     ...l,
                     teacher_commission: l.teacher_commission,
-                    booking: l.booking,
+                    booking: l.booking ? {
+                        ...l.booking,
+                        students,
+                    } : undefined,
                     event: events,
                     teacher_lesson_payment: l.teacher_lesson_payment || [],
                 };

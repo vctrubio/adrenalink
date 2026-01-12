@@ -16,6 +16,7 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import { type LessonRow } from "@/backend/data/TeacherLessonData";
 
 export interface TeacherLessonCardEvent {
     eventId: string;
@@ -29,27 +30,8 @@ export interface TeacherLessonCardEvent {
     status: string;
 }
 
-export interface TeacherLessonCardData {
-    lessonId: string;
-    bookingId: string;
-    leaderName: string;
-    dateStart: string;
-    dateEnd: string;
-    lessonStatus: string;
-    bookingStatus: string;
-    commissionType: string;
-    cph: number;
-    totalDuration: number;
-    totalHours: number;
-    totalEarning: number;
-    eventCount: number;
-    events: TeacherLessonCardEvent[];
-    equipmentCategory: string;
-    studentCapacity: number;
-}
-
 interface TeacherLessonCardProps {
-    lesson: TeacherLessonCardData;
+    lesson: LessonRow;
     isExpanded: boolean;
     onToggle: () => void;
 }
