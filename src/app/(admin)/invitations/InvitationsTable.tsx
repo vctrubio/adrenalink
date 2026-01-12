@@ -7,8 +7,12 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import Image from "next/image";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, User } from "lucide-react";
 import toast from "react-hot-toast";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+import RequestIcon from "@/public/appSvgs/RequestIcon";
+import { formatDate, getRelativeDateLabel } from "@/getters/date-getter";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
 
 interface InvitationsTableProps {
     invitations: StudentPackageRequest[];
@@ -114,26 +118,40 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
 
             {/* Dates Column */}
             <td className="px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <DateRangeBadge startDate={requested_date_start} endDate={requested_date_end} />
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                        <BookingIcon size={16} className="text-muted-foreground" />
+                        <DateRangeBadge startDate={requested_date_start} endDate={requested_date_end} />
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-3 border-t border-border/50">
+                        <RequestIcon size={16} className="text-muted-foreground" />
+                        <span className="text-xs font-medium text-muted-foreground">
+                            Requested: {formatDate(invitation.created_at)}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 text-zinc-500 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
+                            {getRelativeDateLabel(invitation.created_at)}
+                        </span>
+                    </div>
+                </div>
             </td>
 
             {/* Wallet Column */}
             <td className="px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500">From</span>
+                        <User size={16} className="text-muted-foreground" />
+                        {wallet_id.slice(0, 14)}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-3 border-t border-border/50">
+                        <PackageIcon size={16} className="text-muted-foreground" />
                         <span
-                            className={`text-[9px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded border ${isRental ? "text-red-400 border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10" : "text-blue-400 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"}`}
+                            className={`text-xs font-medium ${isRental ? "text-[rgb(var(--red-clade))]" : "text-[rgb(var(--blue-clude))]"}`}
                         >
-                            {package_type}
+                            {isRental ? "Rental" : "Lesson"}
                         </span>
                     </div>
-                    <span
-                        className="font-mono text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[140px] bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-700 select-all"
-                        title={wallet_id}
-                    >
-                        {wallet_id}
-                    </span>
                 </div>
             </td>
 
@@ -161,11 +179,21 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                                 </button>
                             </div>
                         )}
-                        <span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}
-                        >
-                            {status}
-                        </span>
+                        {status === "accepted" && invitation.booking && invitation.booking.length > 0 ? (
+                            <Link
+                                href={`/bookings/${invitation.booking[0].id}`}
+                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                            >
+                                <BookingIcon size={14} />
+                                <span>{invitation.booking[0].id.substring(0, 8).toUpperCase()}</span>
+                            </Link>
+                        ) : (
+                            <span
+                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || "bg-zinc-100 text-zinc-500 border-zinc-200"}`}
+                            >
+                                {status}
+                            </span>
+                        )}
                     </div>
                     <div className="relative w-8 h-8 opacity-10 grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110">
                         <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
