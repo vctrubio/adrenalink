@@ -17,6 +17,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import type { DateGroup } from "./HomePage";
+import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
 
 interface HomeGroupedProps {
     groupedEvents: DateGroup[];
@@ -59,7 +60,11 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                             <div className="flex flex-col gap-1 min-w-[140px]">
                                 <span className="font-bold text-xl tracking-tight">
                                     {(() => {
-                                        const date = new Date(group.date + "T00:00:00");
+                                        // Parse YYYY-MM-DD manually to create a UTC date at 00:00:00
+                                        // This ensures getUTCDay() etc return the exact date from the string
+                                        const [year, month, day] = group.date.split("-").map(Number);
+                                        const date = new Date(Date.UTC(year, month - 1, day));
+                                        
                                         const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                                         const months = [
                                             "Jan",
@@ -79,7 +84,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     })()}
                                 </span>
                                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    {new Date(group.date + "T00:00:00").getUTCFullYear()}
+                                    {group.date.split("-")[0]}
                                 </span>
                             </div>
 
@@ -237,10 +242,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                                 <FlagIcon size={16} className="opacity-80" />
                                                             </div>
                                                             <span className="text-sm font-mono text-muted-foreground tabular-nums">
-                                                                {new Date(event.date).toLocaleTimeString([], {
-                                                                    hour: "2-digit",
-                                                                    minute: "2-digit",
-                                                                })}
+                                                                {event.date.split("T")[1].substring(0, 5)}
                                                             </span>
                                                         </div>
                                                         <EquipmentStudentPackagePriceBadge
@@ -252,10 +254,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         />
                                                     </div>
                                                     <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">
-                                                        {new Date(event.date).toLocaleTimeString([], {
-                                                            hour: "2-digit",
-                                                            minute: "2-digit",
-                                                        })}
+                                                        {event.date.split("T")[1].substring(0, 5)}
                                                     </div>
                                                     <div>
                                                         <div className="mb-1 group-hover/row:text-primary transition-colors flex items-center gap-2">
@@ -275,6 +274,12 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             <div className="flex items-center gap-1.5">
                                                                 <HeadsetIcon size={14} className="text-muted-foreground/70" />
                                                                 <span>{event.teacherUsername}</span>
+                                                                <CommissionTypeValue
+                                                                    value={event.commissionValue}
+                                                                    type={event.commissionType}
+                                                                    as="div"
+                                                                    className="!p-0 !bg-transparent !border-none ml-1 scale-90 origin-left"
+                                                                />
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">

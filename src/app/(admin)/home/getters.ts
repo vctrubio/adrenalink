@@ -14,41 +14,40 @@ export function getHomeStats(classboardData: ClassboardModel): HomeStats {
 }
 
 export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
+    const stats = new ClassboardStatistics(classboardData, undefined, true);
+    // Currency is arbitrary here as we only need the raw event data structure
+    const allEvents = stats.getAllEventsWithFinancials("YEN");
+
     const groups: Record<string, DateGroup> = {};
 
-    Object.values(classboardData).forEach((booking) => {
-        const leaderStudent = booking.bookingStudents[0]?.student;
-        const leaderStudentName = leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "Unknown";
+    allEvents.forEach((data) => {
+        const dateKey = data.event.date.split("T")[0];
 
-        booking.lessons.forEach((lesson) => {
-            lesson.events.forEach((event) => {
-                const dateKey = event.date.split("T")[0];
+        if (!groups[dateKey]) {
+            groups[dateKey] = {
+                date: dateKey,
+                events: [],
+            };
+        }
 
-                if (!groups[dateKey]) {
-                    groups[dateKey] = {
-                        date: dateKey,
-                        events: [],
-                    };
-                }
-
-                groups[dateKey].events.push({
-                    id: event.id,
-                    date: event.date,
-                    lessonId: event.lessonId,
-                    location: event.location,
-                    duration: event.duration,
-                    status: event.status,
-                    teacherUsername: lesson.teacher.username,
-                    packageName: booking.schoolPackage.description,
-                    leaderStudentName,
-                    categoryEquipment: booking.schoolPackage.categoryEquipment,
-                    capacityEquipment: booking.schoolPackage.capacityEquipment,
-                    capacityStudents: booking.schoolPackage.capacityStudents,
-                    packageDurationMinutes: booking.schoolPackage.durationMinutes,
-                    pricePerStudent: booking.schoolPackage.pricePerStudent,
-                    equipments: (event as any).equipments || [],
-                });
-            });
+        groups[dateKey].events.push({
+            id: data.event.id,
+            date: data.event.date,
+            lessonId: data.event.lessonId || "",
+            location: data.event.location,
+            duration: data.event.duration,
+            status: data.event.status,
+            teacherUsername: data.teacher.username,
+            packageName: data.packageData.description,
+            leaderStudentName: data.leaderStudentName,
+            categoryEquipment: data.packageData.categoryEquipment,
+            capacityEquipment: data.packageData.capacityEquipment,
+            capacityStudents: data.packageData.capacityStudents,
+            packageDurationMinutes: data.packageData.durationMinutes,
+            pricePerStudent: data.packageData.pricePerStudent,
+            commissionType: data.financials.commissionType,
+            commissionValue: data.financials.commissionValue,
+            equipments: data.equipments,
         });
     });
 
@@ -56,64 +55,7 @@ export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
 }
 
 export function getAllTransactionEvents(classboardData: ClassboardModel, currency: string): TransactionEventData[] {
-    const events: TransactionEventData[] = [];
-
-    Object.values(classboardData).forEach((booking) => {
-        const { bookingStudents, lessons, schoolPackage } = booking;
-        const leaderStudent = bookingStudents[0]?.student;
-        const leaderStudentName = leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "Unknown";
-        const studentCount = bookingStudents.length;
-        const studentNames = bookingStudents.map((bs) => `${bs.student.firstName} ${bs.student.lastName}`);
-
-        lessons.forEach((lesson) => {
-            lesson.events.forEach((event) => {
-                const durationHours = event.duration / 60;
-                const studentRevenue = schoolPackage.pricePerStudent * durationHours * studentCount;
-                const cph = parseFloat(lesson.commission.cph) || 0;
-
-                let teacherEarnings = 0;
-                if (lesson.commission.type === "fixed") {
-                    teacherEarnings = cph * durationHours;
-                } else {
-                    teacherEarnings = studentRevenue * (cph / 100);
-                }
-
-                events.push({
-                    event: {
-                        id: event.id,
-                        date: event.date,
-                        duration: event.duration,
-                        location: event.location,
-                        status: event.status,
-                    },
-                    teacher: {
-                        id: lesson.teacher.id,
-                        username: lesson.teacher.username,
-                    },
-                    leaderStudentName,
-                    studentCount,
-                    studentNames,
-                    packageData: {
-                        description: schoolPackage.description,
-                        pricePerStudent: schoolPackage.pricePerStudent,
-                        durationMinutes: schoolPackage.durationMinutes,
-                        categoryEquipment: schoolPackage.categoryEquipment,
-                        capacityEquipment: schoolPackage.capacityEquipment,
-                        capacityStudents: schoolPackage.capacityStudents,
-                    },
-                    financials: {
-                        teacherEarnings,
-                        studentRevenue,
-                        profit: studentRevenue - teacherEarnings,
-                        currency: currency,
-                        commissionType: lesson.commission.type as "fixed" | "percentage",
-                        commissionValue: cph,
-                    },
-                    equipments: (event as any).equipments || [],
-                });
-            });
-        });
-    });
-
-    return events.sort((a, b) => a.event.date.localeCompare(b.event.date));
+    // Use ClassboardStatistics as single source of truth for financial logic
+    const stats = new ClassboardStatistics(classboardData, undefined, true);
+    return stats.getAllEventsWithFinancials(currency);
 }

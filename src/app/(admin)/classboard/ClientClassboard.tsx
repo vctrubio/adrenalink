@@ -50,7 +50,7 @@ function ClassboardContent() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex flex-col lg:flex-row items-stretch gap-4 py-4 mx-auto w-full max-w-7xl">
+            <div className="flex flex-col lg:flex-row items-stretch gap-4 pb-4 mx-auto w-full max-w-7xl">
                 <div className="flex-1 ">
                     <ClassboardDateHeader contentViewType={contentHeaderViewType} onContentViewChange={toggleContentView} />
                 </div>

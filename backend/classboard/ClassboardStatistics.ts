@@ -11,6 +11,7 @@
 
 import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
+import type { TransactionEventData } from "@/types/transaction-event";
 
 export interface RevenueStats {
     commission: number;
@@ -73,6 +74,86 @@ export class ClassboardStatistics {
             this.dateFilter = typeof classboardDataOrDateFilter === "string" ? classboardDataOrDateFilter : undefined;
             this.countAllEvents = typeof dateFilterOrCountAll === "boolean" ? dateFilterOrCountAll : false;
         }
+    }
+
+    /**
+     * Get detailed transaction events with financial data
+     * Single source of truth for revenue/commission calculation per event
+     */
+    getAllEventsWithFinancials(currency: string): TransactionEventData[] {
+        if (!this.classboardData) return [];
+
+        const events: TransactionEventData[] = [];
+
+        Object.values(this.classboardData).forEach((booking) => {
+            const { bookingStudents, lessons, schoolPackage } = booking;
+            const leaderStudent = bookingStudents[0]?.student;
+            const leaderStudentName = leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "Unknown";
+            const studentCount = bookingStudents.length;
+            const studentNames = bookingStudents.map((bs) => `${bs.student.firstName} ${bs.student.lastName}`);
+
+            lessons.forEach((lesson) => {
+                lesson.events.forEach((event) => {
+                    // Apply date filter if provided
+                    if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
+                        return;
+                    }
+
+                    // Count events based on the flag
+                    const shouldCountEvent = this.countAllEvents || event.status === "completed" || event.status === "uncompleted";
+
+                    if (shouldCountEvent) {
+                        const durationHours = event.duration / 60;
+                        const studentRevenue = schoolPackage.pricePerStudent * durationHours * studentCount;
+                        const cph = parseFloat(lesson.commission.cph) || 0;
+
+                        let teacherEarnings = 0;
+                        if (lesson.commission.type === "fixed") {
+                            teacherEarnings = cph * durationHours;
+                        } else {
+                            teacherEarnings = studentRevenue * (cph / 100);
+                        }
+
+                        events.push({
+                            event: {
+                                id: event.id,
+                                lessonId: event.lessonId,
+                                date: event.date,
+                                duration: event.duration,
+                                location: event.location,
+                                status: event.status,
+                            },
+                            teacher: {
+                                id: lesson.teacher.id,
+                                username: lesson.teacher.username,
+                            },
+                            leaderStudentName,
+                            studentCount,
+                            studentNames,
+                            packageData: {
+                                description: schoolPackage.description,
+                                pricePerStudent: schoolPackage.pricePerStudent,
+                                durationMinutes: schoolPackage.durationMinutes,
+                                categoryEquipment: schoolPackage.categoryEquipment,
+                                capacityEquipment: schoolPackage.capacityEquipment,
+                                capacityStudents: schoolPackage.capacityStudents,
+                            },
+                            financials: {
+                                teacherEarnings,
+                                studentRevenue,
+                                profit: studentRevenue - teacherEarnings,
+                                currency: currency,
+                                commissionType: lesson.commission.type as "fixed" | "percentage",
+                                commissionValue: cph,
+                            },
+                            equipments: (event as any).equipments || [],
+                        });
+                    }
+                });
+            });
+        });
+
+        return events.sort((a, b) => a.event.date.localeCompare(b.event.date));
     }
 
     /**
@@ -139,15 +220,15 @@ export class ClassboardStatistics {
 
                             // Calculate revenue and commission
                             const studentCount = booking.bookingStudents.length;
-                            const revenue = booking.schoolPackage.pricePerStudent * studentCount;
+                            const hours = event.duration / 60;
+                            const revenue = booking.schoolPackage.pricePerStudent * studentCount * hours;
                             totalRevenue += revenue;
 
                             // Calculate commission
                             const commissionPerHour = parseFloat(lesson.commission.cph);
-                            const hours = event.duration / 60;
                             let commission = 0;
                             if (lesson.commission.type === "fixed") {
-                                commission = commissionPerHour;
+                                commission = commissionPerHour * hours;
                             } else {
                                 // percentage
                                 commission = revenue * (commissionPerHour / 100);

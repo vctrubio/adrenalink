@@ -30,6 +30,7 @@ export interface TransactionEventEquipment {
 export interface TransactionEventData {
     event: {
         id: string;
+        lessonId?: string;
         date: string;
         duration: number;
         location: string | null;
