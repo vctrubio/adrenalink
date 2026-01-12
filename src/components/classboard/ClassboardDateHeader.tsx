@@ -34,22 +34,14 @@ const RIGHT_BUTTONS: ButtonConfig[] = [
 ];
 
 interface ClassboardDateHeaderProps {
-    selectedDate: string;
-    onDateChange: (date: string) => void;
     contentViewType: ContentHeaderViewType;
     onContentViewChange: (viewType: ContentHeaderViewType) => void;
 }
 
-export default function ClassboardDateHeader({
-    selectedDate,
-    onDateChange,
-    contentViewType,
-    onContentViewChange,
-}: ClassboardDateHeaderProps) {
+export default function ClassboardDateHeader({ contentViewType, onContentViewChange }: ClassboardDateHeaderProps) {
+    const { selectedDate, setSelectedDate, globalFlag } = useClassboardContext();
     const dateObj = new Date(selectedDate + "T00:00:00");
     const today = new Date(getTodayDateString() + "T00:00:00");
-    const { globalFlag } = useClassboardContext();
-    const [isLoading, setIsLoading] = useState(false);
 
     const isAdjustmentMode = globalFlag.isAdjustmentMode();
 
@@ -96,17 +88,17 @@ export default function ClassboardDateHeader({
     const handlePreviousDay = () => {
         const newDate = new Date(dateObj);
         newDate.setDate(newDate.getDate() - 1);
-        onDateChange(formatDateString(newDate));
+        setSelectedDate(formatDateString(newDate));
     };
 
     const handleNextDay = () => {
         const newDate = new Date(dateObj);
         newDate.setDate(newDate.getDate() + 1);
-        onDateChange(formatDateString(newDate));
+        setSelectedDate(formatDateString(newDate));
     };
 
     const handleToday = () => {
-        onDateChange(getTodayDateString());
+        setSelectedDate(getTodayDateString());
     };
 
     // Format relative days badge text (e.g., "19d", "-2d")
@@ -116,12 +108,7 @@ export default function ClassboardDateHeader({
 
     return (
         <div className="flex items-stretch border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32">
-            <LeftButtonStrip
-                contentViewType={contentViewType}
-                onViewChange={handleViewChange}
-                isLoading={isLoading}
-                isAdjustmentMode={isAdjustmentMode}
-            />
+            <LeftButtonStrip contentViewType={contentViewType} onViewChange={handleViewChange} isAdjustmentMode={isAdjustmentMode} />
 
             {/* Main Content: Navigation & Date */}
             <div className="flex-1 flex items-center justify-center gap-6 py-4 px-4 relative">
@@ -192,7 +179,7 @@ export default function ClassboardDateHeader({
                 </button>
             </div>
 
-            <RightButtonStrip contentViewType={contentViewType} onViewChange={handleViewChange} isLoading={isLoading} />
+            <RightButtonStrip contentViewType={contentViewType} onViewChange={handleViewChange} />
         </div>
     );
 }
@@ -203,12 +190,10 @@ export default function ClassboardDateHeader({
 function LeftButtonStrip({
     contentViewType,
     onViewChange,
-    isLoading,
     isAdjustmentMode,
 }: {
     contentViewType: ContentHeaderViewType;
     onViewChange: (view: ContentHeaderViewType) => void;
-    isLoading: boolean;
     isAdjustmentMode: boolean;
 }) {
     return (
@@ -217,8 +202,7 @@ function LeftButtonStrip({
                 <button
                     key={btn.id}
                     onClick={() => onViewChange(btn.view)}
-                    disabled={isLoading}
-                    className={`flex-1 flex items-center justify-center transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3 ${
+                    className={`flex-1 flex items-center justify-center transition-all group px-3 py-3 ${
                         contentViewType === btn.view ? "text-primary" : "text-white hover:text-primary transition-colors"
                     }`}
                 >
@@ -259,11 +243,9 @@ function LeftButtonStrip({
 function RightButtonStrip({
     contentViewType,
     onViewChange,
-    isLoading,
 }: {
     contentViewType: ContentHeaderViewType;
     onViewChange: (view: ContentHeaderViewType) => void;
-    isLoading: boolean;
 }) {
     return (
         <div className="w-12 bg-slate-900 dark:bg-slate-500 flex flex-col divide-y divide-white/10 flex-shrink-0">
@@ -271,8 +253,7 @@ function RightButtonStrip({
                 <button
                     key={btn.id}
                     onClick={() => onViewChange(btn.view)}
-                    disabled={isLoading}
-                    className={`flex-1 flex items-center justify-center transition-all group disabled:opacity-50 disabled:cursor-not-allowed px-3 py-3 ${
+                    className={`flex-1 flex items-center justify-center transition-all group px-3 py-3 ${
                         contentViewType === btn.view ? "text-primary" : "text-white hover:text-primary transition-colors"
                     }`}
                 >

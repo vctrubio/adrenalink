@@ -8,6 +8,95 @@ import { bulkUpdateEventStatus, bulkDeleteClassboardEvents } from "@/supabase/se
 import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 
+// ============ SUB-COMPONENTS ============
+
+const StatusGrid = ({ 
+    eventCounts, 
+    completedTotal 
+}: { 
+    eventCounts: { completed: number; tbd: number; planned: number; uncompleted: number }; 
+    completedTotal: number;
+}) => (
+    <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
+        {/* Planned */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 py-2 sm:px-3 h-full">
+            <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.planned.color }} className="shrink-0" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs hidden lg:inline uppercase tracking-widest font-bold opacity-70">Planned</span>
+            <span className="text-foreground font-black text-sm sm:text-base tracking-tight">
+                <AnimatedCounter value={eventCounts.planned} />
+            </span>
+        </div>
+
+        {/* TBC */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 py-2 sm:px-3 h-full">
+            <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.tbc.color }} className="shrink-0" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs hidden lg:inline uppercase tracking-widest font-bold opacity-70">TBC</span>
+            <span className="text-foreground font-black text-sm sm:text-base tracking-tight">
+                <AnimatedCounter value={eventCounts.tbd} />
+            </span>
+        </div>
+
+        {/* Completed */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 py-2 sm:px-3 h-full">
+            <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.completed.color }} className="shrink-0" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs hidden lg:inline uppercase tracking-widest font-bold opacity-70">Done</span>
+            <span className="text-foreground font-black text-sm sm:text-base tracking-tight">
+                <AnimatedCounter value={completedTotal} />
+            </span>
+        </div>
+    </div>
+);
+
+const ActionsRow = ({
+    eventCounts,
+    totalEvents,
+    isLoading,
+    onSetConfirmation,
+    onSetCompleted,
+    onReschedule,
+}: {
+    eventCounts: { planned: number; tbd: number };
+    totalEvents: number;
+    isLoading: boolean;
+    onSetConfirmation: () => void;
+    onSetCompleted: () => void;
+    onReschedule: () => void;
+}) => (
+    <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
+        <div className="flex items-center justify-center h-full p-1">
+            <button
+                onClick={onSetConfirmation}
+                disabled={isLoading}
+                className="w-full h-full text-[10px] font-black uppercase tracking-wider bg-transparent transition-colors disabled:opacity-50 text-muted-foreground hover:bg-muted/20 rounded group"
+            >
+                <span className="group-hover:text-[var(--tbc-color)] transition-colors" style={{ "--tbc-color": EVENT_STATUS_CONFIG.tbc.color } as any}>
+                    Mark {eventCounts.planned} TBC
+                </span>
+            </button>
+        </div>
+        <div className="flex items-center justify-center h-full p-1">
+            <button
+                onClick={onSetCompleted}
+                disabled={isLoading}
+                className="w-full h-full text-[10px] font-black uppercase tracking-wider bg-transparent hover:text-primary transition-colors disabled:opacity-50 text-muted-foreground hover:bg-muted/20 rounded"
+            >
+                Mark {eventCounts.planned + eventCounts.tbd} Done
+            </button>
+        </div>
+        <div className="flex items-center justify-center h-full p-1">
+            <button
+                onClick={onReschedule}
+                disabled={isLoading}
+                className="w-full h-full text-[10px] font-black uppercase tracking-wider bg-transparent hover:text-destructive transition-colors disabled:opacity-50 text-muted-foreground hover:bg-muted/20 rounded"
+            >
+                Reschedule {totalEvents}
+            </button>
+        </div>
+    </div>
+);
+
+// ============ MAIN COMPONENT ============
+
 export default function EventStatusSummary() {
     const { teacherQueues, globalFlag } = useClassboardContext();
     const [isLoading, setIsLoading] = useState(false);
@@ -95,14 +184,10 @@ export default function EventStatusSummary() {
         }
     };
 
-    const handleNoCancellation = async () => {
+    const handleReschedule = async () => {
         const eventIds = getAllEventIds();
         if (eventIds.length === 0) {
-            toast.error("No events to delete");
-            return;
-        }
-
-        if (!window.confirm(`Delete all ${eventIds.length} events? This cannot be undone.`)) {
+            toast.error("No events to reschedule");
             return;
         }
 
@@ -128,7 +213,7 @@ export default function EventStatusSummary() {
                 throw new Error(deleteResult.error || "Delete failed");
             }
 
-            toast.success(`Deleting ${eventIds.length} events...`);
+            toast.success(`Rescheduling ${eventIds.length} events...`);
         } catch (error) {
             console.error("Bulk delete failed", error);
             toast.error("Failed to delete events");
@@ -152,59 +237,17 @@ export default function EventStatusSummary() {
     const totalEvents = eventCounts.planned + eventCounts.tbd + completedTotal;
 
     return (
-        <div className="flex-1 rounded-lg overflow-hidden h-full">
-            <div className="grid grid-cols-3 grid-rows-2 divide-x divide-y divide-border/30 h-full">
-                {/* Row 1: Planned, TBC, Completed */}
-                <div className="flex items-center justify-center gap-2 h-full">
-                    <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.planned.color }} className="shrink-0" />
-                    <span className="text-muted-foreground text-xs hidden lg:inline">Planned</span>
-                    <span className="text-foreground font-semibold">
-                        <AnimatedCounter value={eventCounts.planned} />
-                    </span>
-                </div>
-                <div className="flex items-center justify-center gap-2 h-full">
-                    <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.tbc.color }} className="shrink-0" />
-                    <span className="text-muted-foreground text-xs hidden lg:inline">TBC</span>
-                    <span className="text-foreground font-semibold">
-                        <AnimatedCounter value={eventCounts.tbd} />
-                    </span>
-                </div>
-                <div className="flex items-center justify-center gap-2 h-full">
-                    <Flag size={16} style={{ color: EVENT_STATUS_CONFIG.completed.color }} className="shrink-0" />
-                    <span className="text-muted-foreground text-xs hidden lg:inline">Completed</span>
-                    <span className="text-foreground font-semibold">
-                        <AnimatedCounter value={completedTotal} />
-                    </span>
-                </div>
-                {/* Row 2: Action Buttons */}
-                <div className="flex items-center justify-center h-full">
-                    <button
-                        onClick={handleSetConfirmation}
-                        disabled={isLoading}
-                        className="w-full py-2 px-4 text-xs border-none text-foreground font-bold bg-transparent hover:text-primary transition-colors disabled:opacity-50"
-                    >
-                        Mark {eventCounts.planned} TBC
-                    </button>
-                </div>
-                <div className="flex items-center justify-center h-full">
-                    <button
-                        onClick={handleSetCompleted}
-                        disabled={isLoading}
-                        className="w-full py-2 px-4 text-xs border-none text-foreground font-bold bg-transparent hover:text-primary transition-colors disabled:opacity-50"
-                    >
-                        Mark {eventCounts.planned + eventCounts.tbd} Completed
-                    </button>
-                </div>
-                <div className="flex items-center justify-center h-full">
-                    <button
-                        onClick={handleNoCancellation}
-                        disabled={isLoading}
-                        className="w-full py-2 px-4 text-xs border-none text-foreground font-bold bg-transparent hover:text-destructive transition-colors disabled:opacity-50"
-                    >
-                        Delete {totalEvents}
-                    </button>
-                </div>
-            </div>
+        <div className="flex-1 rounded-lg overflow-hidden h-full flex flex-col">
+            <StatusGrid eventCounts={eventCounts} completedTotal={completedTotal} />
+            <div className="h-px bg-border/30 w-full" />
+            <ActionsRow 
+                eventCounts={eventCounts}
+                totalEvents={totalEvents}
+                isLoading={isLoading}
+                onSetConfirmation={handleSetConfirmation}
+                onSetCompleted={handleSetCompleted}
+                onReschedule={handleReschedule}
+            />
         </div>
     );
 }
