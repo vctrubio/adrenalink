@@ -10,6 +10,9 @@ import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
+import { useClassboardShareExportData } from "@/src/hooks/useClassboardShareExportData";
+import { ShareContentBoard } from "./ShareContentBoard";
+import { StatItemUI } from "@/backend/data/StatsData";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -21,6 +24,17 @@ export default function TeacherClassDaily() {
     const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
     const controller = globalFlag.getController();
     const sharingMode = globalFlag.getSharingMode();
+
+    const { 
+        isShareMode,
+        isAdminView, 
+        isStudentView, 
+        isTeacherView,
+        adminViewData, 
+        adminStats, 
+        studentViewData,
+        teacherViewData
+    } = useClassboardShareExportData();
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -108,9 +122,31 @@ export default function TeacherClassDaily() {
                         <div className="text-secondary">
                             <BookingIcon className="w-7 h-7 flex-shrink-0" />
                         </div>
-                        <span className="text-lg font-bold text-foreground">
-                            {new Date(selectedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                        </span>
+                        <div className="flex items-center justify-between flex-1">
+                            <span className="text-lg font-bold text-foreground">
+                                {new Date(selectedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                            </span>
+                            
+                            {isAdminView && adminStats && (
+                                <div className="flex items-center gap-4 scale-90 origin-right">
+                                    <StatItemUI type="students" value={adminStats.studentCount} iconColor={false} />
+                                    <StatItemUI 
+                                        type="events" 
+                                        value={`${adminStats.completedCount}/${adminStats.eventCount}`} 
+                                        iconColor={false} 
+                                    />
+                                    <StatItemUI type="duration" value={adminStats.totalDuration} iconColor={false} />
+                                    <StatItemUI type="commission" value={adminStats.totalCommissions} iconColor={false} />
+                                    <StatItemUI type="revenue" value={adminStats.totalRevenue} iconColor={false} />
+                                    <StatItemUI 
+                                        type={adminStats.totalProfit >= 0 ? "profit" : "loss"} 
+                                        value={Math.abs(adminStats.totalProfit)} 
+                                        variant="primary" 
+                                        iconColor={false} 
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </>
                 ) : (
                     <>
@@ -145,16 +181,13 @@ export default function TeacherClassDaily() {
             <div className="overflow-auto flex-1 min-h-0">
                 <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
                     {sharingMode ? (
-                        <div className="flex flex-col items-center justify-center h-full py-12 gap-4">
-                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
-                                Viewing {sharingMode} Share Mode
-                            </p>
-                            <div className="w-full max-w-md p-6 rounded-2xl border-2 border-dashed border-border/50 flex flex-col items-center gap-2">
-                                <span className="text-xs text-muted-foreground text-center">
-                                    This section will display the synchronized classboard view for {sharingMode}s.
-                                </span>
-                            </div>
-                        </div>
+                        <ShareContentBoard 
+                            mode={sharingMode as "admin" | "student" | "teacher"}
+                            adminData={adminViewData}
+                            studentData={studentViewData}
+                            teacherData={teacherViewData}
+                            selectedDate={selectedDate}
+                        />
                     ) : (
                         <div className="flex flex-col divide-y-2 divide-background">
                             <AnimatePresence mode="popLayout" initial={false}>

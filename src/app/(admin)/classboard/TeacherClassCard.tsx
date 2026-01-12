@@ -378,7 +378,8 @@ export default function TeacherClassCard({
     isSubmitting = false,
     onBulkAction,
 }: TeacherClassCardProps) {
-    const { controller, selectedDate, globalFlag } = useClassboardContext();
+    const { selectedDate, globalFlag } = useClassboardContext();
+    const controller = globalFlag.getController();
 
     const isAdjustmentMode = viewMode === "adjustment";
     const isExpanded = viewMode !== "collapsed";

@@ -24,7 +24,8 @@ export function useTableLogic<T>({ data, filterSearch, filterStatus, dateField }
     }, [data, search, status, filterSearch, filterStatus]);
 
     // 2. Map Grouping
-    const masterTableGroupBy: GroupingType = group === "Weekly" ? "week" : group === "Monthly" ? "month" : "all";
+    const masterTableGroupBy: GroupingType =
+        group === "Weekly" ? "week" : group === "Monthly" ? "month" : group === "Daily" ? "date" : "all";
 
     // 3. Generate Group Key
     const getGroupKey = (row: T, groupBy: GroupingType) => {

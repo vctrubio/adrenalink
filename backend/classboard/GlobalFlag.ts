@@ -102,7 +102,8 @@ export class GlobalFlag {
             const stored = localStorage.getItem(CONTROLLER_STORAGE_KEY);
             if (stored) {
                 const parsed = JSON.parse(stored);
-                return { ...DEFAULT_CONTROLLER, ...parsed, locked: false };
+                // Always reset transient states (locked, sharingMode) on reload
+                return { ...DEFAULT_CONTROLLER, ...parsed, locked: false, sharingMode: null };
             }
         } catch (error) {
             console.warn("[GlobalFlag] Failed to load controller from storage:", error);

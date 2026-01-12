@@ -23,6 +23,7 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 import { useEquipment } from "@/src/hooks/useEquipment";
 import { updateEventStatus } from "@/supabase/server/classboard";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
+import { StatItemUI } from "@/backend/data/StatsData";
 
 // --- Sub-component: Equipment Fulfillment Dropdown ---
 
@@ -151,7 +152,13 @@ const HEADER_CLASSES = {
 
 // --- Main component ---
 
-export function TransactionEventsTable({ events: initialEvents = [] }: { events: TransactionEventData[] }) {
+export function TransactionEventsTable({ 
+    events: initialEvents = [],
+    groupBy
+}: { 
+    events: TransactionEventData[];
+    groupBy?: GroupingType;
+}) {
     const [events, setEvents] = useState(initialEvents);
 
     // Sync state when props change
@@ -481,7 +488,7 @@ export function TransactionEventsTable({ events: initialEvents = [] }: { events:
             calculateStats={calculateStats}
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
-            groupBy={masterTableGroupBy}
+            groupBy={groupBy || masterTableGroupBy}
             showGroupToggle={false}
         />
     );

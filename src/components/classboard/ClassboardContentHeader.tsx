@@ -7,7 +7,7 @@ import ClassboardShareSettings from "@/src/components/classboard/ClassboardShare
 import ClassboardHeaderStatsGrid from "@/src/app/(admin)/classboard/ClassboardHeaderStatsGrid";
 import EventStatusSummary from "@/src/components/classboard/EventStatusSummary";
 
-type ContentHeaderViewType = "/" | "config" | "gap" | "lesson" | "admin" | "update";
+type ContentHeaderViewType = "/" | "config" | "gap" | "lesson" | "share" | "update";
 
 interface ClassboardContentHeaderProps {
     viewType: ContentHeaderViewType;
@@ -28,7 +28,7 @@ export default function ClassboardContentHeader({ viewType }: ClassboardContentH
             case "lesson":
                 return <ClassboardFlagSettings />;
 
-            case "admin":
+            case "share":
                 return <ClassboardShareSettings />;
 
             case "update":

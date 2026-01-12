@@ -6,7 +6,7 @@ import Image from "next/image";
 import { getTodayDateString } from "@/getters/date-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 
-type ContentHeaderViewType = "/" | "config" | "gap" | "lesson" | "admin" | "update";
+type ContentHeaderViewType = "/" | "config" | "gap" | "lesson" | "share" | "update";
 type IconType = "image" | "lucide";
 
 interface ButtonConfig {
@@ -29,7 +29,7 @@ const LEFT_BUTTONS: ButtonConfig[] = [
 
 const RIGHT_BUTTONS: ButtonConfig[] = [
     { id: "stats", view: "/", icon: "lucide", iconName: "BarChart3", rotate: "group-hover:scale-110" },
-    { id: "share", view: "admin", icon: "lucide", iconName: "Share2", rotate: "group-hover:-rotate-12" },
+    { id: "share", view: "share", icon: "lucide", iconName: "Share2", rotate: "group-hover:-rotate-12" },
     { id: "refresh", view: "update", icon: "lucide", iconName: "RefreshCw", rotate: "group-hover:rotate-180" },
 ];
 
@@ -62,6 +62,18 @@ export default function ClassboardDateHeader({ contentViewType, onContentViewCha
             // Toggle off if clicking settings again
             globalFlag.exitAdjustmentMode(true);
             onContentViewChange("/"); // Go back to home if toggling off
+            return;
+        }
+
+        // If we are leaving share view, exit all sharing modes
+        if (contentViewType === "share" && view !== "share") {
+            globalFlag.setSharingMode(null);
+        }
+
+        // Toggle share view off if clicking it again
+        if (contentViewType === "share" && view === "share") {
+            globalFlag.setSharingMode(null);
+            onContentViewChange("/");
             return;
         }
 
