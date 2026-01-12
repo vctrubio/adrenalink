@@ -2,7 +2,7 @@ import { type ReactNode, cache } from "react";
 import { redirect } from "next/navigation";
 import { SchoolTeachersProvider } from "@/src/providers/school-teachers-provider";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
-import FacebookNav from "@/src/components/navigations/FacebookNav";
+import FacebookNav from "@/src/components/navigations/facebook/FacebookNav";
 import { getSchoolCredentials as getSchoolCredentialsFromSupabase } from "@/supabase/server/admin";
 import { getSchoolTeacherProvider } from "@/supabase/server/teachers";
 

@@ -12,7 +12,7 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { AssignTeacherToLessonModal } from "@/src/components/modals/classboard/AssignTeacherToLessonModal";
+import { AssignTeacherToLessonModal } from "@/src/components/modals/AssignTeacherToLessonModal";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
 import { getEventStatusCounts, sortEventsByStatus } from "@/getters/booking-progress-getter";
 import { getPackageInfo } from "@/getters/school-packages-getter";

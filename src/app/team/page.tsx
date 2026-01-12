@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { RainbowV2, MeetTheTeamV2 } from "@/src/components/team";
+import {  MeetTheTeamV2 } from "./MeetTheTeamV2";
+import { RainbowV2 } from "./RainbowV2";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import IntoAdrBarShell from "@/src/components/IntoAdrBarShell";
 import { TEAM_ENTITIES, TEAM_COLORS } from "@/config/team-entities";

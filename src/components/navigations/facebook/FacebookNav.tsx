@@ -1,4 +1,4 @@
-import { NavLeft, NavCenter, NavRight } from "./facebook";
+import { NavLeft, NavCenter, NavRight } from ".";
 
 const FacebookNav = () => {
     return (
