@@ -6,6 +6,7 @@ import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolA
 import { getHMDuration } from "@/getters/duration-getter";
 import { TransactionEventsTable } from "../(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "../(admin)/(tables)/layout";
+import Link from "next/link";
 
 // Icons
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -174,28 +175,66 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        <ResumeCard
-                            title="Booking & Package"
-                            icon={BookingIcon}
-                            color="#3b82f6"
-                            data={[
-                                { label: "Leader", value: transaction.leader_student_name },
-                                { label: "Package", value: transaction.package_description },
-                                { label: "Duration", value: getHMDuration(transaction.event_duration) },
-                                { label: "Price", value: `${transaction.price_per_student} ${currency}` },
-                                {
-                                    label: "PPH",
-                                    value: `${(transaction.price_per_student / (transaction.event_duration / 60)).toFixed(2)} ${currency}/h`,
-                                },
-                            ]}
-                        />
+                        {(() => {
+                            const leaderStudent = transaction.students_json.find(
+                                (s: any) => s.name === transaction.leader_student_name,
+                            );
+                            return (
+                                <ResumeCard
+                                    title="Booking & Package"
+                                    icon={BookingIcon}
+                                    color="#3b82f6"
+                                    data={[
+                                        {
+                                            label: "Booking",
+                                            value: (
+                                                <Link
+                                                    href={`/bookings/${transaction.booking_id}`}
+                                                    className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
+                                                >
+                                                    {transaction.booking_id.slice(0, 8)}...
+                                                </Link>
+                                            ),
+                                        },
+                                        {
+                                            label: "Leader",
+                                            value: leaderStudent ? (
+                                                <Link
+                                                    href={`/students/${leaderStudent.id}`}
+                                                    className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
+                                                >
+                                                    {transaction.leader_student_name}
+                                                </Link>
+                                            ) : (
+                                                transaction.leader_student_name
+                                            ),
+                                        },
+                                        { label: "Package", value: transaction.package_description },
+                                        {
+                                            label: "PPH",
+                                            value: `${(transaction.price_per_student / (transaction.event_duration / 60)).toFixed(2)} ${currency}/h`,
+                                        },
+                                    ]}
+                                />
+                            );
+                        })()}
 
                         <ResumeCard
                             title="Teacher"
                             icon={HeadsetIcon}
                             color="#22c55e"
                             data={[
-                                { label: "Username", value: transaction.teacher_username },
+                                {
+                                    label: "Username",
+                                    value: (
+                                        <Link
+                                            href={`/teachers/${transaction.teacher_id}`}
+                                            className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
+                                        >
+                                            {transaction.teacher_username}
+                                        </Link>
+                                    ),
+                                },
                                 { label: "Comm. Type", value: transaction.commission_type, isCapitalize: true },
                                 {
                                     label: "Comm. Value",

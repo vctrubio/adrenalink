@@ -1,6 +1,4 @@
-import type { AbstractData } from "./AbstractData";
 import type { BookingWithLessonAndPayments, BookingTableStats } from "@/config/tables";
-import type { BookingTableData } from "@/supabase/server/bookings";
 
 /**
  * Calculate stats from a single booking

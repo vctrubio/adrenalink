@@ -2,15 +2,28 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { TeacherData, TeacherUpdateForm, TeacherRelations } from "@/backend/data/TeacherData";
 import { Teacher } from "@/supabase/db/types";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import { headers } from "next/headers";
 
 /**
  * Fetches a teacher by ID with all relations mapped to TeacherData interface.
  */
 export async function getTeacherId(id: string): Promise<{ success: boolean; data?: TeacherData; error?: string }> {
     try {
-        const schoolHeader = await getSchoolHeader();
-        if (!schoolHeader) {
-            return { success: false, error: "School context not found" };
+        const headersList = await headers();
+        let schoolId = headersList.get("x-school-id");
+        let timezone = headersList.get("x-school-timezone");
+
+        if (!schoolId) {
+            const schoolHeader = await getSchoolHeader();
+            if (!schoolHeader) {
+                return { success: false, error: "School context not found" };
+            }
+            schoolId = schoolHeader.id;
+            timezone = schoolHeader.timezone;
+        } else if (!timezone) {
+             const schoolHeader = await getSchoolHeader();
+             if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -39,7 +52,7 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             `,
             )
             .eq("id", id)
-            .eq("school_id", schoolHeader.id)
+            .eq("school_id", schoolId)
             .single();
 
         if (teacherError || !teacher) {
@@ -50,13 +63,24 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
         // Map Relations to standardized snake_case
         const relations: TeacherRelations = {
             teacher_commission: teacher.teacher_commission || [],
-            lesson: (teacher.lesson || []).map((l: any) => ({
-                ...l,
-                teacher_commission: l.teacher_commission,
-                booking: l.booking,
-                event: l.event || [],
-                teacher_lesson_payment: l.teacher_lesson_payment || [],
-            })),
+            lesson: (teacher.lesson || []).map((l: any) => {
+                // Convert event times if timezone is available
+                const events = (l.event || []).map((evt: any) => {
+                    if (timezone) {
+                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
+                        return { ...evt, date: convertedDate.toISOString() };
+                    }
+                    return evt;
+                });
+
+                return {
+                    ...l,
+                    teacher_commission: l.teacher_commission,
+                    booking: l.booking,
+                    event: events,
+                    teacher_lesson_payment: l.teacher_lesson_payment || [],
+                };
+            }),
             teacher_equipment: teacher.teacher_equipment || [],
         };
 

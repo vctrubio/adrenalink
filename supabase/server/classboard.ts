@@ -85,13 +85,23 @@ function buildBookingQuery() {
  */
 export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const schoolHeader = await getSchoolHeader();
+        const headersList = await headers();
+        let schoolId = headersList.get("x-school-id");
+        let timezone = headersList.get("x-school-timezone");
 
-        if (!schoolHeader) {
-            return {
-                success: false,
-                error: "School context could not be determined from header.",
-            };
+        if (!schoolId) {
+            const schoolHeader = await getSchoolHeader();
+            if (!schoolHeader) {
+                return {
+                    success: false,
+                    error: "School context could not be determined from header.",
+                };
+            }
+            schoolId = schoolHeader.id;
+            timezone = schoolHeader.timezone;
+        } else if (!timezone) {
+             const schoolHeader = await getSchoolHeader();
+             if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -100,7 +110,7 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
         const { data: bookingsResult, error } = await supabase
             .from("booking")
             .select(buildBookingQuery())
-            .eq("school_id", schoolHeader.id)
+            .eq("school_id", schoolId)
             .order("date_start", { ascending: false });
 
         if (error) {
@@ -111,14 +121,16 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
         const classboardData = createClassboardModel(bookingsResult || []);
 
         // Convert all event times from UTC to school's local timezone for display
-        classboardData.forEach((bookingData) => {
-            bookingData.lessons?.forEach((lessonData) => {
-                lessonData.events?.forEach((evt) => {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
-                    evt.date = convertedDate.toISOString();
+        if (timezone) {
+            classboardData.forEach((bookingData) => {
+                bookingData.lessons?.forEach((lessonData) => {
+                    lessonData.events?.forEach((evt) => {
+                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
+                        evt.date = convertedDate.toISOString();
+                    });
                 });
             });
-        });
+        }
 
         return { success: true, data: classboardData };
     } catch (error) {
@@ -135,13 +147,20 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
  */
 export async function getSQLClassboardDataForBooking(bookingId: string): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const schoolHeader = await getSchoolHeader();
+        const headersList = await headers();
+        let timezone = headersList.get("x-school-timezone");
 
-        if (!schoolHeader) {
-            return {
-                success: false,
-                error: "School context could not be determined from header.",
-            };
+        // Fallback if header missing
+        if (!timezone) {
+            const schoolHeader = await getSchoolHeader();
+            if (schoolHeader) {
+                timezone = schoolHeader.timezone;
+            } else {
+                 return {
+                    success: false,
+                    error: "School context could not be determined.",
+                };
+            }
         }
 
         const supabase = getServerConnection();
@@ -162,14 +181,16 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
         const classboardData = createClassboardModel([bookingData]);
 
         // Convert all event times from UTC to school's local timezone for display
-        classboardData.forEach((bd) => {
-            bd.lessons?.forEach((lessonData) => {
-                lessonData.events?.forEach((evt) => {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), schoolHeader.zone);
-                    evt.date = convertedDate.toISOString();
+        if (timezone) {
+            classboardData.forEach((bd) => {
+                bd.lessons?.forEach((lessonData) => {
+                    lessonData.events?.forEach((evt) => {
+                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
+                        evt.date = convertedDate.toISOString();
+                    });
                 });
             });
-        });
+        }
 
         return { success: true, data: classboardData };
     } catch (error) {

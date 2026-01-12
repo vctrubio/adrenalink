@@ -4,15 +4,29 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
 import { Booking } from "@/supabase/db/types";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+
+import { headers } from "next/headers";
 
 /**
  * Fetches a booking by ID with all relations mapped to BookingData interface.
  */
 export async function getBookingId(id: string): Promise<{ success: boolean; data?: BookingData; error?: string }> {
     try {
-        const schoolHeader = await getSchoolHeader();
-        if (!schoolHeader) {
-            return { success: false, error: "School context not found" };
+        const headersList = await headers();
+        let schoolId = headersList.get("x-school-id");
+        let timezone = headersList.get("x-school-timezone");
+
+        if (!schoolId) {
+            const schoolHeader = await getSchoolHeader();
+            if (!schoolHeader) {
+                return { success: false, error: "School context not found" };
+            }
+            schoolId = schoolHeader.id;
+            timezone = schoolHeader.timezone;
+        } else if (!timezone) {
+             const schoolHeader = await getSchoolHeader();
+             if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -44,7 +58,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             `,
             )
             .eq("id", id)
-            .eq("school_id", schoolHeader.id)
+            .eq("school_id", schoolId)
             .single();
 
         if (bookingError || !booking) {
@@ -56,11 +70,22 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
         const relations: BookingRelations = {
             school_package: booking.school_package,
             students: (booking.booking_student || []).map((bs: any) => bs.student).filter(Boolean),
-            lessons: (booking.lesson || []).map((l: any) => ({
-                ...l,
-                teacher: l.teacher,
-                events: l.event || [],
-            })),
+            lessons: (booking.lesson || []).map((l: any) => {
+                // Convert event times if timezone is available
+                const events = (l.event || []).map((evt: any) => {
+                    if (timezone) {
+                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
+                        return { ...evt, date: convertedDate.toISOString() };
+                    }
+                    return evt;
+                });
+
+                return {
+                    ...l,
+                    teacher: l.teacher,
+                    events: events,
+                };
+            }),
             student_booking_payment: (booking.student_booking_payment || []).map((p: any) => ({
                 id: p.id,
                 amount: p.amount,

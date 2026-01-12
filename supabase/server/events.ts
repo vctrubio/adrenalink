@@ -16,6 +16,7 @@ import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
+import { headers } from "next/headers";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -71,10 +72,18 @@ export async function getEventTransaction(
 ): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
     try {
         const supabase = getServerConnection();
-        const schoolHeader = await getSchoolHeader();
+        
+        const headersList = await headers();
+        let timezone = headersList.get("x-school-timezone");
 
-        if (!schoolHeader) {
-            return { success: false, error: "School context not found" };
+        // Fallback if header missing (e.g. direct server call without middleware)
+        if (!timezone) {
+            const schoolHeader = await getSchoolHeader();
+            if (schoolHeader) {
+                timezone = schoolHeader.timezone;
+            } else {
+                return { success: false, error: "School context not found" };
+            }
         }
 
         const { data, error } = await supabase
@@ -191,7 +200,7 @@ export async function getEventTransaction(
         const profit = studentRevenue - teacherEarnings;
 
         // Timezone conversion
-        const convertedDate = convertUTCToSchoolTimezone(new Date(data.date), schoolHeader.zone);
+        const convertedDate = convertUTCToSchoolTimezone(new Date(data.date), timezone);
 
         const transactionData: TransactionEventData = {
             event: {

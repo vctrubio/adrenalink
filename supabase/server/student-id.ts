@@ -2,6 +2,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data/StudentData";
 import { Student } from "@/supabase/db/types";
+import { headers } from "next/headers";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 
 /**
  * Fetches a student by ID with all relations mapped to StudentData interface.
@@ -9,9 +11,20 @@ import { Student } from "@/supabase/db/types";
  */
 export async function getStudentId(id: string): Promise<{ success: boolean; data?: StudentData; error?: string }> {
     try {
-        const schoolHeader = await getSchoolHeader();
-        if (!schoolHeader) {
-            return { success: false, error: "School context not found" };
+        const headersList = await headers();
+        let schoolId = headersList.get("x-school-id");
+        let timezone = headersList.get("x-school-timezone");
+
+        if (!schoolId) {
+            const schoolHeader = await getSchoolHeader();
+            if (!schoolHeader) {
+                return { success: false, error: "School context not found" };
+            }
+            schoolId = schoolHeader.id;
+            timezone = schoolHeader.timezone;
+        } else if (!timezone) {
+             const schoolHeader = await getSchoolHeader();
+             if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -26,7 +39,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             `,
             )
             .eq("id", id)
-            .eq("school_students.school_id", schoolHeader.id)
+            .eq("school_students.school_id", schoolId)
             .single();
 
         if (studentError || !student) {
@@ -53,7 +66,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             `,
             )
             .eq("student_id", id)
-            .eq("booking.school_id", schoolHeader.id);
+            .eq("booking.school_id", schoolId);
 
         if (bookingError) {
             console.error("Error fetching student bookings:", bookingError);
@@ -81,20 +94,30 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         capacity_equipment: b.school_package.capacity_equipment,
                         category_equipment: b.school_package.category_equipment,
                     },
-                    lessons: (b.lesson || []).map((l: any) => ({
-                        id: l.id,
-                        status: l.status,
-                        teacher: {
-                            id: l.teacher?.id,
-                            username: l.teacher?.username,
-                            first_name: l.teacher?.first_name,
-                        },
-                        events: l.event || [],
-                        commission: {
-                            commission_type: l.teacher_commission?.commission_type,
-                            cph: l.teacher_commission?.cph,
-                        },
-                    })),
+                    lessons: (b.lesson || []).map((l: any) => {
+                        const events = (l.event || []).map((evt: any) => {
+                            if (timezone) {
+                                const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
+                                return { ...evt, date: convertedDate.toISOString() };
+                            }
+                            return evt;
+                        });
+
+                        return {
+                            id: l.id,
+                            status: l.status,
+                            teacher: {
+                                id: l.teacher?.id,
+                                username: l.teacher?.username,
+                                first_name: l.teacher?.first_name,
+                            },
+                            events: events,
+                            commission: {
+                                commission_type: l.teacher_commission?.commission_type,
+                                cph: l.teacher_commission?.cph,
+                            },
+                        };
+                    }),
                     student_booking_payment: (b.student_booking_payment || []).map((p: any) => ({
                         id: p.id,
                         amount: p.amount,
@@ -150,7 +173,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             description: schoolStudent?.description || null,
             active: schoolStudent?.active ?? true,
             rental: schoolStudent?.rental ?? false,
-            schoolId: schoolHeader.id,
+            schoolId: schoolId,
         };
 
         const studentData: StudentData = {
