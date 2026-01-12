@@ -14,6 +14,8 @@ import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { formatDate, getRelativeDateLabel } from "@/getters/date-getter";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+
 interface InvitationsTableProps {
     invitations: StudentPackageRequest[];
 }
@@ -67,74 +69,60 @@ function InfoColumn({
         <td className={`px-6 py-8 align-middle border-y border-zinc-100 dark:border-zinc-800 shadow-sm ${className}`}>
             <div className={`flex flex-col gap-3 ${alignmentClass}`}>
                 <div className="flex items-center gap-2 h-7">{top}</div>
-                <div className={`flex items-center gap-2 pt-3 border-t border-border/50 w-full ${justifyClass}`}>
-                    {bottom}
-                </div>
+                <div className={`flex items-center gap-2 pt-3 border-t border-border/50 w-full ${justifyClass}`}>{bottom}</div>
             </div>
         </td>
     );
 }
 
+const STATUS_CONFIG: Record<string, { label: string; textColor: string; hoverBg: string }> = {
+    requested: { label: "pending", textColor: "text-blue-500", hoverBg: "hover:bg-blue-500" },
+    accepted: { label: "purchased", textColor: "text-emerald-500", hoverBg: "hover:bg-emerald-500" },
+    rejected: { label: "declined", textColor: "text-red-500", hoverBg: "hover:bg-red-500" },
+};
+
 function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
+    const { currency } = useSchoolCredentials();
+    const currencySymbol = currency === "EUR" ? "€" : currency || "¥";
     const [isPending, setIsPending] = useState(false);
-    const { id, requested_date_start, requested_date_end, status, wallet_id, created_at } = invitation;
+    const { id, requested_date_start, requested_date_end, status, wallet_id, created_at, school_package } = invitation;
+
     const {
-        description: packageDesc,
-        category_equipment,
-        capacity_equipment,
-        capacity_students,
-        package_type,
-        duration_minutes,
-        price_per_student,
-    } = invitation.school_package || {
-        description: "Unknown",
-        category_equipment: "kite",
-        capacity_equipment: 1,
-        capacity_students: 1,
-        package_type: "lessons",
-        duration_minutes: 60,
-        price_per_student: 0,
-    };
+        description: packageDesc = "N/A",
+        category_equipment = "N/A",
+        capacity_equipment = 0,
+        capacity_students = 0,
+        package_type = "N/A",
+        duration_minutes = 0,
+        price_per_student = 0,
+    } = school_package || {};
 
     const durationHours = duration_minutes / 60;
-    const pph = duration_minutes !== 60 ? Math.round(price_per_student / durationHours) : price_per_student;
-    const currencySymbol = "€";
+    const pph = duration_minutes !== 0 ? Math.round(price_per_student / durationHours) : 0;
     const isRental = package_type?.toLowerCase().includes("rental");
-
-    const statusLabels: Record<string, string> = {
-        requested: "pending",
-        accepted: "purchased",
-        rejected: "declined",
-    };
-
-    const statusColors: Record<string, string> = {
-        requested: "text-blue-500",
-        accepted: "text-emerald-500",
-        rejected: "text-red-500",
-    };
 
     const handleAction = async (newStatus: string) => {
         setIsPending(true);
         const result = await updateStudentPackageStatus(id, newStatus);
         if (result.success) {
             toast.success(`Request ${newStatus}`);
-        } else {
+        }
+        else {
             toast.error(result.error || "Failed to update request");
         }
         setIsPending(false);
+    };
+
+    const currentStatus = STATUS_CONFIG[status] || {
+        label: status,
+        textColor: "text-zinc-400",
+        hoverBg: "hover:bg-zinc-400",
     };
 
     return (
         <tr className="bg-white dark:bg-zinc-900 group relative transition-all border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-sm hover:border-zinc-200 dark:hover:border-zinc-700">
             {/* Package Column */}
             <td className="px-8 py-8 align-middle rounded-l-3xl border-y border-l border-zinc-100 dark:border-zinc-800 shadow-sm relative">
-                {/* Status Badge - Now safely inside the first TD but absolute positioned to the row corner */}
-                <div className="absolute top-0 right-[-100%] md:right-[-122%] lg:right-[-150%] xl:right-[-150%] z-20 pointer-events-none">
-                    {/* Note: In a table, absolute right-0 usually sticks to the cell. 
-                        To stick to the row, we use the last cell or a different container. 
-                        However, let's put it in the last cell for better stability. */}
-                </div>
-
                 <div className="flex flex-col gap-4">
                     <div className="pl-1">
                         <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
@@ -163,9 +151,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                 bottom={
                     <>
                         <RequestIcon size={16} className="text-muted-foreground" />
-                        <span className="text-xs font-medium text-muted-foreground">
-                            Requested: {formatDate(created_at)}
-                        </span>
+                        <span className="text-xs font-medium text-muted-foreground">Requested: {formatDate(created_at)}</span>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 text-zinc-500 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
                             {getRelativeDateLabel(created_at)}
                         </span>
@@ -174,69 +160,64 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
             />
 
             {/* Wallet Column - Final Column with Status Badge */}
-            <InfoColumn
-                className="rounded-r-3xl border-r relative"
-                align="right"
-                top={
-                    <>
-                        {/* Status Badge moved here to anchor to the right side of the row */}
-                        <div className="absolute top-[-1px] right-[-1px] z-20">
-                            <div className="bg-white dark:bg-zinc-900 px-8 py-3 rounded-bl-[2.5rem] rounded-tr-3xl border-b border-l border-zinc-100 dark:border-zinc-800 flex items-center gap-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <Image
-                                        src={adrLogo}
-                                        alt=""
-                                        width={16}
-                                        height={16}
-                                        className="dark:invert opacity-70"
-                                    />
-                                    <span
-                                        className={`text-sm font-black tracking-[0.4em] uppercase ${statusColors[status] || "text-zinc-400"}`}
-                                    >
-                                        {statusLabels[status] || status}
-                                    </span>
-                                </div>
-
-                                {status === "requested" && (
-                                    <div className="flex items-center gap-2 pl-6 border-l border-zinc-100 dark:border-zinc-800 pointer-events-auto">
-                                        <button
-                                            onClick={() => handleAction("accepted")}
-                                            disabled={isPending}
-                                            className="p-1.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-sm"
-                                        >
-                                            {isPending ? (
-                                                <Loader2 size={14} className="animate-spin" />
-                                            ) : (
-                                                <Check size={14} strokeWidth={3} />
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleAction("rejected")}
-                                            disabled={isPending}
-                                            className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-sm"
-                                        >
-                                            <X size={14} strokeWidth={3} />
-                                        </button>
-                                    </div>
-                                )}
+            <td className="px-6 py-8 align-bottom border-y border-zinc-100 dark:border-zinc-800 shadow-sm rounded-r-3xl border-r relative">
+                <div className="flex flex-col gap-6 items-end text-right">
+                    {/* Status Badge moved here to anchor to the right side of the row */}
+                    <div className="absolute top-[-1px] right-[-1px] z-20">
+                        <div
+                            className={`bg-white dark:bg-zinc-900 px-8 py-3 rounded-bl-[2.5rem] rounded-tr-3xl border-b border-l border-zinc-100 dark:border-zinc-800 flex items-center gap-4 shadow-sm transition-all duration-300 group/status ${currentStatus.hoverBg} hover:border-transparent cursor-default`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Image
+                                    src={adrLogo}
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                    className="dark:invert opacity-70 transition-all duration-300 group-hover/status:invert group-hover/status:brightness-200 group-hover/status:opacity-100"
+                                />
+                                <span
+                                    className={`text-sm font-black tracking-[0.4em] uppercase transition-colors duration-300 ${currentStatus.textColor} group-hover/status:text-white`}
+                                >
+                                    {currentStatus.label}
+                                </span>
                             </div>
-                        </div>
 
+                            {status === "requested" && (
+                                <div className="flex items-center gap-2 pl-6 border-l border-zinc-100 dark:border-zinc-800 pointer-events-auto transition-colors group-hover/status:border-white/20">
+                                    <button
+                                        onClick={() => handleAction("accepted")}
+                                        disabled={isPending}
+                                        className="p-1.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-sm"
+                                    >
+                                        {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} strokeWidth={3} />}
+                                    </button>
+                                    <button
+                                        onClick={() => handleAction("rejected")}
+                                        disabled={isPending}
+                                        className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-sm"
+                                    >
+                                        <X size={14} strokeWidth={3} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 h-7 pt-2">
                         <span className="font-medium text-zinc-600 dark:text-zinc-400">{wallet_id.slice(0, 14)}</span>
                         <User size={16} className="text-muted-foreground" />
-                    </>
-                }
-                bottom={
-                    <>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full justify-end pb-1">
                         <span
                             className={`text-[10px] font-bold uppercase tracking-widest ${isRental ? "text-[rgb(var(--red-clade))]" : "text-[rgb(var(--blue-clude))]"}`}
                         >
                             {isRental ? "Rental Service" : "Lesson Package"}
                         </span>
                         <PackageIcon size={16} className="text-muted-foreground" />
-                    </>
-                }
-            />
+                    </div>
+                </div>
+            </td>
         </tr>
     );
 }

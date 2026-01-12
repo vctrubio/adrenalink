@@ -24,7 +24,7 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
     const [sortConfig, setSortConfig] = useState<SortConfig>({ field: "created_at", direction: "desc" });
 
     const filteredAndSortedInvitations = useMemo(() => {
-        let currentInvitations = invitations.filter((invitation) => {
+        const currentInvitations = invitations.filter((invitation) => {
             const matchesSearch = invitation.wallet_id.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesStatus = statusFilter === "All" || invitation.status === statusFilter;
             return matchesSearch && matchesStatus;
