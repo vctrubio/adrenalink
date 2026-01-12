@@ -7,6 +7,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
+import { getSchoolHeader } from "@/types/headers";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 
 /**
  * Query builder for booking with all nested relations
@@ -82,9 +84,18 @@ function buildBookingQuery() {
 export async function getHomeBookings(): Promise<ClassboardModel> {
     const headersList = await headers();
     const schoolId = headersList.get("x-school-id");
+    let timezone = headersList.get("x-school-timezone");
 
     if (!schoolId) {
         throw new Error("School ID not found in headers");
+    }
+
+    // Fallback: fetch timezone if not in headers (though middleware should provide it)
+    if (!timezone) {
+        const schoolHeader = await getSchoolHeader();
+        if (schoolHeader) {
+            timezone = schoolHeader.timezone;
+        }
     }
 
     const supabase = await getServerConnection();
@@ -102,6 +113,18 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
 
     // Transform raw booking data into ClassboardModel format
     const classboardData = createClassboardModel(bookings || []);
+
+    // Convert all event times from UTC → school's timezone for display
+    if (timezone) {
+        classboardData.forEach((bookingData) => {
+            bookingData.lessons.forEach((lesson) => {
+                lesson.events.forEach((event) => {
+                    const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), timezone!);
+                    event.date = convertedDate.toISOString();
+                });
+            });
+        });
+    }
 
     return classboardData;
 }
