@@ -6,7 +6,7 @@ import type { TeacherData } from "@/backend/data/TeacherData";
 import { buildTeacherLessonData, filterTeacherLessonData, type LessonRow } from "@/backend/data/TeacherLessonData";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { Timeline, type TimelineEvent } from "@/src/components/timeline";
+import { Timeline } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import { SearchInput } from "@/src/components/SearchInput";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
@@ -25,6 +25,19 @@ import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonCo
 import { getHMDuration } from "@/getters/duration-getter";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
+
+const SORT_OPTIONS = [
+    { field: "date", direction: "desc", label: "Newest" },
+    { field: "date", direction: "asc", label: "Oldest" },
+] as const;
+
+const FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted"] as const;
+
+const VIEW_MODE_OPTIONS = [
+    { id: "timeline", label: "Timeline", icon: Calendar },
+    { id: "lessons", label: "By Lesson", icon: List },
+    { id: "commissions", label: "By Commission", icon: HandshakeIcon },
+] as const;
 
 // Sub-component: Commission Header
 interface CommissionStats {
@@ -247,10 +260,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 </div>
                 <SortDropdown
                     value={sort}
-                    options={[
-                        { field: "date", direction: "desc", label: "Newest" },
-                        { field: "date", direction: "asc", label: "Oldest" },
-                    ]}
+                    options={SORT_OPTIONS}
                     onChange={setSort}
                     entityColor={teacherEntity.color}
                     toggleMode={true}
@@ -258,7 +268,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 <FilterDropdown
                     label="Status"
                     value={filter === "all" ? "All" : filter}
-                    options={["All", "planned", "completed", "tbc", "uncompleted"]}
+                    options={[...FILTER_OPTIONS]}
                     onChange={(value) => setFilter(value === "All" ? "all" : (value as EventStatusFilter))}
                     entityColor={teacherEntity.color}
                 />
@@ -267,11 +277,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             <ToggleBar
                 value={viewMode}
                 onChange={(v) => setViewMode(v as ViewMode)}
-                options={[
-                    { id: "timeline", label: "Timeline", icon: Calendar },
-                    { id: "lessons", label: "By Lesson", icon: List },
-                    { id: "commissions", label: "By Commission", icon: HandshakeIcon },
-                ]}
+                options={VIEW_MODE_OPTIONS}
             />
 
             <AnimatePresence mode="wait">
