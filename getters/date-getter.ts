@@ -131,3 +131,22 @@ export function formatEventTime(date: string | Date): string {
     const d = new Date(date);
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
 }
+
+export function getTimeAMPM(timeString: string): string {
+    if (!timeString || !timeString.includes(":")) {
+        return timeString; // Return original if format is incorrect
+    }
+
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) {
+        return timeString; // Return original if parsing fails
+    }
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const hours12 = hours % 12 || 12; // Convert 0 to 12
+
+    const minutesStr = minutes.toString().padStart(2, "0");
+
+    return `${hours12}:${minutesStr} ${ampm}`;
+}
