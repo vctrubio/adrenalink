@@ -115,5 +115,5 @@ export function getAllTransactionEvents(classboardData: ClassboardModel, currenc
         });
     });
 
-    return events.sort((a, b) => b.event.date.localeCompare(a.event.date));
+    return events.sort((a, b) => a.event.date.localeCompare(b.event.date));
 }

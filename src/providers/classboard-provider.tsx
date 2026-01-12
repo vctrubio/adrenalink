@@ -33,11 +33,6 @@ interface ClassboardContextType {
     selectedDate: string;
     setSelectedDate: (date: string) => void;
 
-    // Controller settings
-    controller: ControllerSettings;
-    setController: (controller: ControllerSettings) => void;
-    gapMinutes: number;
-
     // Drag state
     draggedBooking: DraggableBooking | null;
     setDraggedBooking: (booking: DraggableBooking | null) => void;

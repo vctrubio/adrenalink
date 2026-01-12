@@ -7,6 +7,7 @@ import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import type { StudentViewData, TeacherViewData } from "@/src/hooks/useClassboardShareExportData";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { COUNTRIES } from "@/config/countries";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 // --- Helper Components ---
 
@@ -93,10 +94,15 @@ function formatDateRange(startDateStr: string, endDateStr: string): string {
     return `${startFormatted} - ${endFormatted} (${diffDaysText})`;
 }
 
-function formatStudentText(bookings: StudentViewData[]): string {
+function formatStudentText(bookings: StudentViewData[], schoolName: string, timezone: string, dateLabel: string): string {
     if (!bookings.length) return "No bookings available.";
 
-    return bookings
+    const header = `📅 SCHEDULE FOR ${dateLabel.toUpperCase()}
+🏢 ${schoolName.toUpperCase()} | 🌎 ${timezone}
+
+========================================\n\n`;
+
+    return header + bookings
         .map((booking) => {
             const studentsList = booking.students
                 .map((s) => `- ${s.firstName} ${s.lastName} ${getCountryFlagEmoji(s.country)}${s.passport ? ` [${s.passport}]` : ""}`)
@@ -122,10 +128,11 @@ ${studentsList}`;
         .join("\n\n========================================\n\n");
 }
 
-function formatTeacherText(teachers: TeacherViewData[], dateLabel: string): string {
+function formatTeacherText(teachers: TeacherViewData[], dateLabel: string, schoolName: string, timezone: string): string {
     if (!teachers.length) return "No classes scheduled.";
 
     return `📅 SCHEDULE FOR ${dateLabel.toUpperCase()}
+🏢 ${schoolName.toUpperCase()} | 🌎 ${timezone}
 
 ${teachers
     .map((teacher) => {
@@ -162,9 +169,9 @@ function AdminView({ events }: { events: TransactionEventData[] }) {
     );
 }
 
-function StudentView({ bookings }: { bookings: StudentViewData[] }) {
+function StudentView({ bookings, schoolName, timezone, dateLabel }: { bookings: StudentViewData[]; schoolName: string; timezone: string; dateLabel: string }) {
     if (bookings.length === 0) return <EmptyState role="student" />;
-    const text = formatStudentText(bookings);
+    const text = formatStudentText(bookings, schoolName, timezone, dateLabel);
     return (
         <div className="max-w-3xl mx-auto p-4">
             <ShareTextAction text={text} label="Student Confirmation Text" />
@@ -172,9 +179,19 @@ function StudentView({ bookings }: { bookings: StudentViewData[] }) {
     );
 }
 
-function TeacherView({ teachers, dateLabel }: { teachers: TeacherViewData[]; dateLabel: string }) {
+function TeacherView({ 
+    teachers, 
+    dateLabel, 
+    schoolName, 
+    timezone 
+}: { 
+    teachers: TeacherViewData[]; 
+    dateLabel: string;
+    schoolName: string;
+    timezone: string;
+}) {
     if (teachers.length === 0) return <EmptyState role="teacher" />;
-    const text = formatTeacherText(teachers, dateLabel);
+    const text = formatTeacherText(teachers, dateLabel, schoolName, timezone);
     return (
         <div className="max-w-3xl mx-auto p-4">
             <ShareTextAction text={text} label="Teacher Schedule Text" />
@@ -204,6 +221,7 @@ interface ShareContentBoardProps {
 }
 
 export function ShareContentBoard({ mode, adminData, studentData, teacherData, selectedDate }: ShareContentBoardProps) {
+    const credentials = useSchoolCredentials();
     const dateLabel = new Date(selectedDate).toLocaleDateString("en-US", {
         weekday: "long",
         day: "numeric",
@@ -215,9 +233,9 @@ export function ShareContentBoard({ mode, adminData, studentData, teacherData, s
         case "admin":
             return <AdminView events={adminData} />;
         case "student":
-            return <StudentView bookings={studentData} />;
+            return <StudentView bookings={studentData} schoolName={credentials.name} timezone={credentials.timezone || "UTC"} dateLabel={dateLabel} />;
         case "teacher":
-            return <TeacherView teachers={teacherData} dateLabel={dateLabel} />;
+            return <TeacherView teachers={teacherData} dateLabel={dateLabel} schoolName={credentials.name} timezone={credentials.timezone || "UTC"} />;
         default:
             return null;
     }

@@ -116,6 +116,7 @@ export function useClassboardShareExportData() {
         isAdminView: sharingMode === "admin",
         isStudentView: sharingMode === "student",
         isTeacherView: sharingMode === "teacher",
+        schoolName: credentials?.name || "School",
         adminViewData,
         adminStats,
         studentViewData,

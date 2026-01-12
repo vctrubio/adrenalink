@@ -7,6 +7,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { getHMDuration } from "@/getters/duration-getter";
 import { LESSON_STATUS_CONFIG } from "@/types/status";
+import { CommissionTypeValue } from "./commission-type-value";
 
 interface TeacherLessonStatsBadgeProps {
     teacherId: string;
@@ -74,11 +75,13 @@ export function TeacherLessonStatsBadge({
             </div>
             <span className="font-medium text-foreground">{teacherUsername}</span>
 
-            {showCommission && (
-                <div className="flex items-center gap-1 ml-0.5">
-                    <HandshakeIcon size={12} className="text-emerald-600 dark:text-emerald-400" />
-                    <span className="font-black text-[10px] ">{formattedCommission}</span>
-                </div>
+            {showCommission && commission && (
+                <CommissionTypeValue 
+                    value={commission.cph} 
+                    type={commission.type} 
+                    as="div"
+                    className="!p-0 !bg-transparent !border-none"
+                />
             )}
 
             <div className="h-3 w-px bg-border/60 mx-0.5" />

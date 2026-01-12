@@ -573,12 +573,14 @@ export class TeacherQueue {
                 });
             }
 
-            // Calculate revenue: price per student × capacity students
-            const eventRevenue = event.pricePerStudent * event.capacityStudents;
+            // Calculate revenue: price per student × actual students × duration hours
+            const hours = event.eventData.duration / 60;
+            const studentCount = event.bookingStudents?.length || 0;
+            const eventRevenue = event.pricePerStudent * studentCount * hours;
+            
             totalRevenue += eventRevenue;
 
             // Calculate commission based on event duration and revenue
-            const hours = event.eventData.duration / 60;
             let commission = 0;
 
             if (event.commission.type === "fixed") {

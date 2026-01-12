@@ -7,20 +7,30 @@ interface CommissionTypeValueProps {
     value: string | number;
     type: "fixed" | "percentage";
     description?: string | null;
-    onClick?: () => void;
+    onClick?: (e?: React.MouseEvent) => void;
     isSelected?: boolean;
+    as?: React.ElementType;
+    className?: string;
 }
 
-export function CommissionTypeValue({ value, type, description, onClick, isSelected }: CommissionTypeValueProps) {
+export function CommissionTypeValue({ 
+    value, 
+    type, 
+    description, 
+    onClick, 
+    isSelected,
+    as: Component = "button",
+    className = ""
+}: CommissionTypeValueProps) {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     const displayValue = getCompactNumber(numValue);
 
     return (
-        <button
+        <Component
             onClick={onClick}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex-shrink-0 whitespace-nowrap ${
                 isSelected ? "border-emerald-500/50 bg-emerald-500/10" : "border-border/50 bg-muted/20"
-            }`}
+            } ${Component === 'button' ? 'cursor-pointer hover:bg-muted/30' : ''} ${className}`}
         >
             <div style={{ color: "#10b981" }}>
                 <HandshakeIcon size={14} />
@@ -30,6 +40,6 @@ export function CommissionTypeValue({ value, type, description, onClick, isSelec
                 {type === "percentage" && "%"}
             </span>
             {description && <span className="text-muted-foreground">{description}</span>}
-        </button>
+        </Component>
     );
 }

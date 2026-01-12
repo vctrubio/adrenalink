@@ -21,128 +21,96 @@ const ACTION_CYAN = "#06b6d4";
 
 type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
+    // 1. Context & Hook Data
+    const { teacherQueues, globalFlag, selectedDate } = useClassboardContext();
+    const { adminViewData, adminStats, studentViewData, teacherViewData } = useClassboardShareExportData();
+
+    // 2. Controller & Sharing State
     const controller = globalFlag.getController();
     const sharingMode = globalFlag.getSharingMode();
+    const isSharing = !!sharingMode;
 
-    const { 
-        isShareMode,
-        isAdminView, 
-        isStudentView, 
-        isTeacherView,
-        adminViewData, 
-        adminStats, 
-        studentViewData,
-        teacherViewData
-    } = useClassboardShareExportData();
-
-    // Get gapMinutes from GlobalFlag (single source of truth)
-    const gapMinutes = globalFlag.getController().gapMinutes;
-
+    // 3. Local UI State
     const [filter, setFilter] = useState<TeacherFilter>("active");
     const [collapsedTeachers, setCollapsedTeachers] = useState<Set<string>>(new Set());
 
+    // 4. Handlers
     const toggleCollapsed = (teacherId: string) => {
         setCollapsedTeachers((prev) => {
             const newSet = new Set(prev);
-            if (newSet.has(teacherId)) {
-                newSet.delete(teacherId);
-            } else {
-                newSet.add(teacherId);
-            }
+            if (newSet.has(teacherId)) newSet.delete(teacherId);
+            else newSet.add(teacherId);
             return newSet;
         });
     };
 
     const handleTimeIncrement = () => {
-        if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newHours = (hours + 1) % 24;
-        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        const newTime = `${String((hours + 1) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
         globalFlag.updateController({ submitTime: newTime });
     };
 
     const handleTimeDecrement = () => {
-        if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newHours = (hours - 1 + 24) % 24;
-        const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        const newTime = `${String((hours - 1 + 24) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
         globalFlag.updateController({ submitTime: newTime });
     };
 
-    // Get earliest time from queues array (recalculate when any queue's head node changes)
+    // 5. Derived Values
     const earliestTime = useMemo(() => {
-        const earliestTimes = teacherQueues
-            .map((queue) => queue.getEarliestTime())
-            .filter((time) => time != null);
-        if (earliestTimes.length === 0) return null;
-        return earliestTimes.sort()[0]; // Return earliest alphabetically (HH:MM format sorts correctly)
+        const earliestTimes = teacherQueues.map((queue) => queue.getEarliestTime()).filter((time) => time != null);
+        return earliestTimes.length === 0 ? null : earliestTimes.sort()[0];
     }, [teacherQueues.map((q) => q.getEarliestTime()).join(",")]);
 
     const isEarliestTimeSet = earliestTime && earliestTime === controller?.submitTime;
-    const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK; // Cyan if matches earliest time, else muted
+    const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK;
 
     const handleFlagClick = () => {
-        if (earliestTime && controller) {
-            globalFlag.updateController({ submitTime: earliestTime });
-        }
+        if (earliestTime) globalFlag.updateController({ submitTime: earliestTime });
     };
 
-    // Filter teachers based on their registry status and current activity
     const { filteredQueues, counts } = useMemo(() => {
-        const onboardQueues: TeacherQueue[] = [];
-        const allQueues: TeacherQueue[] = teacherQueues;
-
-        teacherQueues.forEach((queue) => {
-            const hasEvents = queue.getAllEvents().length > 0;
-
-            // 'Active' view now strictly means: Has events today
-            if (hasEvents) {
-                onboardQueues.push(queue);
-            }
-        });
-
-        const counts = {
-            active: onboardQueues.length,
-            all: allQueues.length,
-        };
-
+        const onboardQueues = teacherQueues.filter((q) => q.getAllEvents().length > 0);
         return {
-            filteredQueues: filter === "active" ? onboardQueues : allQueues,
-            counts,
+            filteredQueues: filter === "active" ? onboardQueues : teacherQueues,
+            counts: { active: onboardQueues.length, all: teacherQueues.length },
         };
-    }, [teacherQueues, filter, selectedDate]);
+    }, [teacherQueues, filter]);
 
     return (
-        <div className="flex flex-col h-full bg-card">
+        <div className="flex flex-col h-full">
             {/* Header: Global Toggles & Filter */}
             <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
-                {sharingMode ? (
+                {isSharing ? (
                     <>
                         <div className="text-secondary">
                             <BookingIcon className="w-7 h-7 flex-shrink-0" />
                         </div>
                         <div className="flex items-center justify-between flex-1">
                             <span className="text-lg font-bold text-foreground">
-                                {new Date(selectedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                {new Date(selectedDate).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })}
                             </span>
-                            
-                            {isAdminView && adminStats && (
+
+                            {adminStats && (
                                 <div className="flex items-center gap-4 scale-90 origin-right">
                                     <StatItemUI type="students" value={adminStats.studentCount} iconColor={false} />
-                                    <StatItemUI 
-                                        type="events" 
-                                        value={`${adminStats.completedCount}/${adminStats.eventCount}`} 
-                                        iconColor={false} 
+                                    <StatItemUI
+                                        type="events"
+                                        value={`${adminStats.completedCount}/${adminStats.eventCount}`}
+                                        iconColor={false}
                                     />
                                     <StatItemUI type="duration" value={adminStats.totalDuration} iconColor={false} />
                                     <StatItemUI type="commission" value={adminStats.totalCommissions} iconColor={false} />
                                     <StatItemUI type="revenue" value={adminStats.totalRevenue} iconColor={false} />
-                                    <StatItemUI 
-                                        type={adminStats.totalProfit >= 0 ? "profit" : "loss"} 
-                                        value={Math.abs(adminStats.totalProfit)} 
-                                        variant="primary" 
-                                        iconColor={false} 
+                                    <StatItemUI
+                                        type={adminStats.totalProfit >= 0 ? "profit" : "loss"}
+                                        value={Math.abs(adminStats.totalProfit)}
+                                        variant="primary"
+                                        iconColor={false}
                                     />
                                 </div>
                             )}
@@ -176,12 +144,11 @@ export default function TeacherClassDaily() {
                 )}
             </div>
 
-            {/* Teacher List Content */}
-
+            {/* Main Content */}
             <div className="overflow-auto flex-1 min-h-0">
                 <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
-                    {sharingMode ? (
-                        <ShareContentBoard 
+                    {isSharing ? (
+                        <ShareContentBoard
                             mode={sharingMode as "admin" | "student" | "teacher"}
                             adminData={adminViewData}
                             studentData={studentViewData}
@@ -193,13 +160,12 @@ export default function TeacherClassDaily() {
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {filteredQueues.length > 0 &&
                                     filteredQueues.map((queue) => {
-                                        const isCollapsed = collapsedTeachers.has(queue.teacher.id);
-
                                         const queueController = globalFlag.getQueueController(queue.teacher.id);
-
-                                        const isAdjustmentMode = !!queueController;
-
-                                        const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+                                        const viewMode = !!queueController
+                                            ? "adjustment"
+                                            : collapsedTeachers.has(queue.teacher.id)
+                                              ? "collapsed"
+                                              : "expanded";
 
                                         return (
                                             <motion.div
@@ -208,17 +174,13 @@ export default function TeacherClassDaily() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                transition={{
-                                                    duration: 0.6,
-
-                                                    ease: [0.22, 1, 0.36, 1],
-                                                }}
+                                                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                                                 className="py-2 transition-colors"
                                             >
                                                 <TeacherQueueRow
                                                     queue={queue}
                                                     viewMode={viewMode}
-                                                    isCollapsed={isCollapsed}
+                                                    isCollapsed={collapsedTeachers.has(queue.teacher.id)}
                                                     onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
                                                 />
                                             </motion.div>
@@ -233,7 +195,19 @@ export default function TeacherClassDaily() {
     );
 }
 
-function StartTimeSection({ controller, flagColor, onFlagClick, onTimeIncrement, onTimeDecrement }: { controller: typeof controller; flagColor: string; onFlagClick: () => void; onTimeIncrement: () => void; onTimeDecrement: () => void }) {
+function StartTimeSection({
+    controller,
+    flagColor,
+    onFlagClick,
+    onTimeIncrement,
+    onTimeDecrement,
+}: {
+    controller: typeof controller;
+    flagColor: string;
+    onFlagClick: () => void;
+    onTimeIncrement: () => void;
+    onTimeDecrement: () => void;
+}) {
     return (
         <div className="flex items-center gap-1">
             <button
@@ -244,19 +218,11 @@ function StartTimeSection({ controller, flagColor, onFlagClick, onTimeIncrement,
             >
                 <FlagIcon className="w-5 h-5 flex-shrink-0" />
             </button>
-            <button
-                onClick={onTimeDecrement}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
-                title="Decrease hour"
-            >
+            <button onClick={onTimeDecrement} className="p-2 rounded-lg hover:bg-muted transition-colors" title="Decrease hour">
                 <ChevronLeft size={18} className="text-foreground" />
             </button>
             <span className="font-mono text-xl font-bold text-foreground w-12 text-center">{controller?.submitTime || "00:00"}</span>
-            <button
-                onClick={onTimeIncrement}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
-                title="Increase hour"
-            >
+            <button onClick={onTimeIncrement} className="p-2 rounded-lg hover:bg-muted transition-colors" title="Increase hour">
                 <ChevronRight size={18} className="text-foreground" />
             </button>
         </div>

@@ -196,10 +196,15 @@ export function TransactionEventsTable({
             header: "Date",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+                // Manually parse ISO string parts to avoid timezone shifts
+                const [datePart] = data.event.date.split("T");
+                const [year, month, day] = datePart.split("-");
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const formattedDate = `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+                
                 return (
                     <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
-                        {dateFormat.format(new Date(data.event.date))}
+                        {formattedDate}
                     </span>
                 );
             },
@@ -208,10 +213,13 @@ export function TransactionEventsTable({
             header: "Time",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                const timeFormat = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+                // Manually extract time from ISO: "2025-01-12T14:00:00Z" -> "14:00"
+                const timeMatch = data.event.date.match(/T(\d{2}:\d{2})/);
+                const formattedTime = timeMatch ? timeMatch[1] : "--:--";
+                
                 return (
                     <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-medium">
-                        {timeFormat.format(new Date(data.event.date))}
+                        {formattedTime}
                     </span>
                 );
             },
@@ -357,14 +365,17 @@ export function TransactionEventsTable({
         {
             label: "Event",
             render: (data) => {
-                const timeFormat = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+                const [datePart, timePartFull] = data.event.date.split("T");
+                const [, month, day] = datePart.split("-");
+                const timePart = timePartFull.substring(0, 5);
+                
                 return (
                     <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black text-muted-foreground/60">
-                                {new Date(data.event.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}
+                                {month}/{day}
                             </span>
-                            <span className="text-sm font-black text-foreground">{timeFormat.format(new Date(data.event.date))}</span>
+                            <span className="text-sm font-black text-foreground">{timePart}</span>
                         </div>
                         <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">
                             +{getHMDuration(data.event.duration)}

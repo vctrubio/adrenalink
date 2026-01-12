@@ -12,9 +12,9 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
-import { useClassboardContext, optimisticEventToNode } from "@/src/providers/classboard-provider";
+import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
-import type { TeacherStats } from "@/backend/classboard/ClassboardStatistics";
+import { ClassboardStatistics, type TeacherStats } from "@/backend/classboard/ClassboardStatistics";
 import { TeacherQueue, type ControllerSettings } from "@/backend/classboard/TeacherQueue";
 import type { TeacherViewMode } from "@/types/classboard-teacher-queue";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
@@ -279,11 +279,13 @@ function EventEquipmentStudent({ event }: { event: any }) {
 }
 
 // Stats row sub-component
-function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: EquipmentCount[]; stats: TeacherStats }) {
+function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: EquipmentCount[]; stats: any }) {
     const hasEquipment = equipmentCounts && equipmentCounts.length > 0;
-    const hasDuration = stats.totalHours && stats.totalHours > 0;
-    const hasCommission = stats.totalRevenue?.commission && stats.totalRevenue.commission > 0;
-    const hasProfit = stats.totalRevenue?.revenue && stats.totalRevenue.revenue > 0;
+    const durationMinutes = stats.durationCount || (stats.totalHours ? stats.totalHours * 60 : 0);
+    const hasDuration = durationMinutes > 0;
+    const revenueStats = stats.revenue || stats.totalRevenue || {};
+    const hasCommission = revenueStats.commission > 0;
+    const hasProfit = revenueStats.revenue > 0;
     const hasAnyStats = hasEquipment || hasDuration || hasCommission || hasProfit;
 
     if (!hasAnyStats) {
@@ -329,21 +331,21 @@ function TeacherStatsRow({ equipmentCounts, stats }: { equipmentCounts: Equipmen
                 <div className="flex items-center gap-1">
                     <DurationIcon size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-bold text-foreground">
-                        <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
+                        <AnimatedCounter value={durationMinutes} formatter={getHMDuration} />
                     </span>
                 </div>
 
                 <div className="flex items-center gap-1">
                     <HandshakeIcon size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-bold text-foreground">
-                        <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                        <AnimatedCounter value={revenueStats.commission} formatter={getCompactNumber} />
                     </span>
                 </div>
 
                 <div className="flex items-center gap-1">
                     <TrendingUpDown size={16} className="text-muted-foreground/70 shrink-0" />
                     <span className="text-sm font-bold text-foreground">
-                        <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                        <AnimatedCounter value={revenueStats.revenue} formatter={getCompactNumber} />
                     </span>
                 </div>
             </div>
@@ -388,10 +390,12 @@ export default function TeacherClassCard({
     const teacherName = queue.teacher.username;
     const earliestTime = queue.getEarliestTime();
 
-    // Stats calculated from real events only (avoid flicker)
+    // Stats calculated from real events only (avoid flicker) using single source of truth
     const stats = useMemo(() => {
         // Include deleted events in stats so the placeholders don't flash during deletion
-        return queue.getStats({ includeDeleted: true });
+        // Pass 'true' for countAllEvents to include deleted events as per existing logic
+        const statistics = new ClassboardStatistics([queue], undefined, undefined, true);
+        return statistics.getDailyLessonStats();
     }, [queue, queue.version]);
 
     const equipmentCounts = useMemo(() => {
@@ -543,31 +547,31 @@ export default function TeacherClassCard({
                     )}
 
                     {/* Duration */}
-                    {stats.totalHours > 0 && (
+                    {stats.durationCount > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <DurationIcon size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
-                                <AnimatedCounter value={stats.totalHours * 60} formatter={getHMDuration} />
+                                <AnimatedCounter value={stats.durationCount} formatter={getHMDuration} />
                             </span>
                         </div>
                     )}
 
                     {/* Commission */}
-                    {stats.totalRevenue.commission > 0 && (
+                    {stats.revenue.commission > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <HandshakeIcon size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
-                                <AnimatedCounter value={stats.totalRevenue.commission} formatter={getCompactNumber} />
+                                <AnimatedCounter value={stats.revenue.commission} formatter={getCompactNumber} />
                             </span>
                         </div>
                     )}
 
                     {/* Revenue */}
-                    {stats.totalRevenue.revenue > 0 && (
+                    {stats.revenue.revenue > 0 && (
                         <div className="flex items-center gap-1 text-base text-muted-foreground shrink-0">
                             <TrendingUpDown size={18} className="text-muted-foreground/70" />
                             <span className="font-bold">
-                                <AnimatedCounter value={stats.totalRevenue.revenue} formatter={getCompactNumber} />
+                                <AnimatedCounter value={stats.revenue.revenue} formatter={getCompactNumber} />
                             </span>
                         </div>
                     )}

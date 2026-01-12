@@ -210,6 +210,8 @@ const InstructorList = ({
                             durationMinutes={totalMinutes}
                             isLoading={isLoading}
                             onClick={() => onAddEvent(lesson.id)}
+                            showCommission={true}
+                            commission={lesson.commission}
                         />
                     );
                 })}
