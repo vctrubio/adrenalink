@@ -71,6 +71,9 @@ export class GlobalFlag {
     private queueControllers = new Map<string, QueueController>();
     private submittingTeachers = new Set<string>();
 
+    // Realtime Sync Optimization - Track which teachers were affected by realtime updates
+    private affectedTeacherIds = new Set<string>();
+
     // UI State
     public isLockedTime = false;
     public isLockedLocation = false;
@@ -233,6 +236,34 @@ export class GlobalFlag {
         const key = `${bookingId}-${lessonId}`;
         this.pendingEventCreations.delete(key);
         console.log(`[GlobalFlag] Removed pending creation: ${key}`);
+    }
+
+    // ============ REALTIME SYNC OPTIMIZATION ============
+
+    /**
+     * Mark a teacher as affected by a realtime update.
+     * This prevents unnecessary re-syncing of unaffected queues (especially those in adjustment mode).
+     */
+    markTeacherAffected(teacherId: string): void {
+        this.affectedTeacherIds.add(teacherId);
+        console.log(`[GlobalFlag] Marked teacher ${teacherId} as affected by realtime update`);
+    }
+
+    /**
+     * Get and clear the affected teachers set.
+     * Called by SyncEngine to know which queues need syncing.
+     */
+    getAndClearAffectedTeachers(): Set<string> {
+        const affected = new Set(this.affectedTeacherIds);
+        this.affectedTeacherIds.clear();
+        return affected;
+    }
+
+    /**
+     * Check if there are any affected teachers from realtime updates.
+     */
+    hasAffectedTeachers(): boolean {
+        return this.affectedTeacherIds.size > 0;
     }
 
     // ============ DATE CHANGE HANDLING ============

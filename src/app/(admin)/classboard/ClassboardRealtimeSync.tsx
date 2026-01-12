@@ -205,12 +205,30 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                 console.warn(`  ⚠️ [Timezone] No timezone found, using UTC as-is: ${date}`);
             }
 
+            // Find the teacher ID from lessonId (will be used for selective sync optimization)
+            const prevModel = modelRef.current;
+            let affectedTeacherId: string | undefined;
+
+            for (const bookingData of prevModel) {
+                for (const lesson of bookingData.lessons) {
+                    if (lesson.id === lessonId) {
+                        affectedTeacherId = lesson.teacher?.id;
+                        if (affectedTeacherId) {
+                            console.log(`  👨‍🏫 Found affected teacher: ${lesson.teacher?.username} (${affectedTeacherId})`);
+                            // Mark this teacher as affected so SyncEngine only syncs them
+                            globalFlag.markTeacherAffected(affectedTeacherId);
+                        }
+                        break;
+                    }
+                }
+                if (affectedTeacherId) break;
+            }
+
             // Handle INSERT: look up pending creation and clear its mutation
             if (eventType === "INSERT") {
                 console.log(`[ClassboardRealtimeSync] INSERT event ${eventId}, looking up pending creation`);
 
                 // Search for pending creation for this lesson
-                const prevModel = modelRef.current;
                 let found = false;
                 for (const bookingData of prevModel) {
                     if (found) break;

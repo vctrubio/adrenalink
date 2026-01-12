@@ -195,6 +195,14 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         const queuesMap = stableQueuesRef.current;
         const mutatingIds = globalFlag.getMutatingEventIds();
 
+        // OPTIMIZATION: Check if this is a selective sync from realtime updates
+        const affectedTeachers = globalFlag.getAndClearAffectedTeachers();
+        const isSelectiveSync = affectedTeachers.size > 0;
+
+        if (isSelectiveSync) {
+            console.log(`⚙️ [SyncEngine] SELECTIVE SYNC - Only syncing affected teachers:`, Array.from(affectedTeachers));
+        }
+
         // A. Ensure ALL teachers exist in registry and sync their active status
         allTeachers.forEach((teacher) => {
             let queue = queuesMap.get(teacher.schema.id);
@@ -227,8 +235,13 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             });
         });
 
-        // C. Surgical Sync
-        queuesMap.forEach((queue, teacherId) => {
+        // C. Surgical Sync - SELECTIVE when realtime updates, FULL when user edits
+        const teachersToSync = isSelectiveSync ? affectedTeachers : queuesMap.keys();
+
+        for (const teacherId of teachersToSync) {
+            const queue = queuesMap.get(teacherId);
+            if (!queue) continue;
+
             const serverEvents = eventsByTeacher.get(teacherId) || [];
             serverEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
 
@@ -248,12 +261,18 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                     globalFlag.clearEventMutation(id);
                 }
             });
-        });
+        }
 
         // D. Update Global Authority
-        const currentQueues = allTeachers.map((t) => queuesMap.get(t.schema.id)).filter((q): q is TeacherQueueClass => !!q);
-
-        globalFlag.updateTeacherQueues(currentQueues);
+        if (!isSelectiveSync) {
+            // Full sync: update all queues (preserves adjustment mode queues internally)
+            const currentQueues = allTeachers.map((t) => queuesMap.get(t.schema.id)).filter((q): q is TeacherQueueClass => !!q);
+            globalFlag.updateTeacherQueues(currentQueues);
+        } else {
+            // Selective sync: trigger UI refresh WITHOUT replacing queues (preserves adjustment mode)
+            console.log(`⚙️ [SyncEngine] Selective sync - triggering UI refresh`);
+            setFlagTick((t) => t + 1);  // Increment to re-render affected queues
+        }
     }, [allTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
 
     // Derived reactive array for the UI
