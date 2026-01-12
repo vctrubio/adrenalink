@@ -47,6 +47,12 @@ const DEFAULT_CONTROLLER: ControllerSettings = {
     locationOptions: ["Beach", "Bay", "Lake", "River", "Pool", "Indoor"],
     minTimeMinutes: 0,
     maxTimeMinutes: 1380,
+    share: {
+        admin: true,
+        student: true,
+        teacher: true,
+    },
+    sharingMode: null,
 };
 
 // ============ CLASS ============
@@ -145,6 +151,25 @@ export class GlobalFlag {
 
         this.refreshKey++;
         this.triggerRefresh();
+    }
+
+    // ============ SHARING SETTINGS ============
+
+    getSharingMode() {
+        return this.controller.sharingMode;
+    }
+
+    setSharingMode(mode: "admin" | "student" | "teacher" | null) {
+        this.updateController({ sharingMode: mode });
+    }
+
+    isRoleShared(role: "admin" | "student" | "teacher"): boolean {
+        return this.controller.share[role];
+    }
+
+    toggleShare(role: "admin" | "student" | "teacher"): void {
+        const newShare = { ...this.controller.share, [role]: !this.controller.share[role] };
+        this.updateController({ share: newShare });
     }
 
     // ============ OPTIMISTIC EVENT MANAGEMENT ============

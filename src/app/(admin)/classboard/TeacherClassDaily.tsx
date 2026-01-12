@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
@@ -19,6 +20,7 @@ type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
     const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
     const controller = globalFlag.getController();
+    const sharingMode = globalFlag.getSharingMode();
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -101,71 +103,97 @@ export default function TeacherClassDaily() {
         <div className="flex flex-col h-full bg-card">
             {/* Header: Global Toggles & Filter */}
             <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
-                <div style={{ color: TEACHER_COLOR }}>
-                    <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
-                </div>
-                <span className="text-lg font-bold text-foreground">Teachers</span>
+                {sharingMode ? (
+                    <>
+                        <div className="text-secondary">
+                            <BookingIcon className="w-7 h-7 flex-shrink-0" />
+                        </div>
+                        <span className="text-lg font-bold text-foreground">
+                            {new Date(selectedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                        </span>
+                    </>
+                ) : (
+                    <>
+                        <div style={{ color: TEACHER_COLOR }}>
+                            <HeadsetIcon className="w-7 h-7 flex-shrink-0" />
+                        </div>
+                        <span className="text-lg font-bold text-foreground">Teachers</span>
 
-                <StartTimeSection
-                    controller={controller}
-                    flagColor={flagColor}
-                    onFlagClick={handleFlagClick}
-                    onTimeIncrement={handleTimeIncrement}
-                    onTimeDecrement={handleTimeDecrement}
-                />
+                        <StartTimeSection
+                            controller={controller}
+                            flagColor={flagColor}
+                            onFlagClick={handleFlagClick}
+                            onTimeIncrement={handleTimeIncrement}
+                            onTimeDecrement={handleTimeDecrement}
+                        />
 
-                <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <ToggleSwitch
-                        value={filter}
-                        onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}
-                        values={{ left: "active", right: "all" }}
-                        counts={counts}
-                        tintColor={TEACHER_COLOR}
-                    />
-                </div>
+                        <div className="ml-auto flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                            <ToggleSwitch
+                                value={filter}
+                                onChange={(newFilter) => setFilter(newFilter as TeacherFilter)}
+                                values={{ left: "active", right: "all" }}
+                                counts={counts}
+                                tintColor={TEACHER_COLOR}
+                            />
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Teacher List Content */}
 
             <div className="overflow-auto flex-1 min-h-0">
                 <div className={`p-2 transition-colors ${filteredQueues.length > 0 ? "bg-card" : ""}`}>
-                    <div className="flex flex-col divide-y-2 divide-background">
-                        <AnimatePresence mode="popLayout" initial={false}>
-                            {filteredQueues.length > 0 &&
-                                filteredQueues.map((queue) => {
-                                    const isCollapsed = collapsedTeachers.has(queue.teacher.id);
+                    {sharingMode ? (
+                        <div className="flex flex-col items-center justify-center h-full py-12 gap-4">
+                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
+                                Viewing {sharingMode} Share Mode
+                            </p>
+                            <div className="w-full max-w-md p-6 rounded-2xl border-2 border-dashed border-border/50 flex flex-col items-center gap-2">
+                                <span className="text-xs text-muted-foreground text-center">
+                                    This section will display the synchronized classboard view for {sharingMode}s.
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col divide-y-2 divide-background">
+                            <AnimatePresence mode="popLayout" initial={false}>
+                                {filteredQueues.length > 0 &&
+                                    filteredQueues.map((queue) => {
+                                        const isCollapsed = collapsedTeachers.has(queue.teacher.id);
 
-                                    const queueController = globalFlag.getQueueController(queue.teacher.id);
+                                        const queueController = globalFlag.getQueueController(queue.teacher.id);
 
-                                    const isAdjustmentMode = !!queueController;
+                                        const isAdjustmentMode = !!queueController;
 
-                                    const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
+                                        const viewMode = isAdjustmentMode ? "adjustment" : isCollapsed ? "collapsed" : "expanded";
 
-                                    return (
-                                        <motion.div
-                                            layout="position"
-                                            key={queue.teacher.id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            transition={{
-                                                duration: 0.6,
+                                        return (
+                                            <motion.div
+                                                layout="position"
+                                                key={queue.teacher.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{
+                                                    duration: 0.6,
 
-                                                ease: [0.22, 1, 0.36, 1],
-                                            }}
-                                            className="py-2 transition-colors"
-                                        >
-                                            <TeacherQueueRow
-                                                queue={queue}
-                                                viewMode={viewMode}
-                                                isCollapsed={isCollapsed}
-                                                onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
-                                            />
-                                        </motion.div>
-                                    );
-                                })}
-                        </AnimatePresence>
-                    </div>
+                                                    ease: [0.22, 1, 0.36, 1],
+                                                }}
+                                                className="py-2 transition-colors"
+                                            >
+                                                <TeacherQueueRow
+                                                    queue={queue}
+                                                    viewMode={viewMode}
+                                                    isCollapsed={isCollapsed}
+                                                    onToggleCollapse={() => toggleCollapsed(queue.teacher.id)}
+                                                />
+                                            </motion.div>
+                                        );
+                                    })}
+                            </AnimatePresence>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

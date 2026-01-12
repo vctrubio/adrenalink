@@ -43,7 +43,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "#eab308",
         bgColor: "#fcd34d",
         link: "/students",
-        description: ["Students registers"],
+        description: ["Registrations"],
         relations: ["schoolPackage", "booking", "event"],
     },
     {
@@ -63,7 +63,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "#fb923c",
         bgColor: "#fed7aa",
         link: "/packages",
-        description: ["Set your packages"],
+        description: ["Reservations & Pricing"],
         relations: ["school", "booking"],
     },
     {
@@ -73,7 +73,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "#22c55e",
         bgColor: "#86efac",
         link: "/teachers",
-        description: ["Create teachers"],
+        description: ["Management"],
         relations: ["commission", "lesson", "equipment"],
     },
     {
@@ -93,7 +93,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "#3b82f6",
         bgColor: "#93c5fd",
         link: "/bookings",
-        description: ["You accept the booking"],
+        description: ["Core of the system"],
         relations: ["teacher", "student", "schoolPackage", "lesson", "event"],
     },
     {
@@ -123,7 +123,7 @@ export const ENTITY_DATA: EntityConfig[] = [
         color: "#a855f7",
         bgColor: "#d8b4fe",
         link: "/equipments",
-        description: ["Link equipment"],
+        description: ["Tracking and Repairs"],
         relations: ["package", "teacher", "event"],
     },
     {

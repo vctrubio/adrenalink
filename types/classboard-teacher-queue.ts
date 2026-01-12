@@ -63,6 +63,13 @@ export interface ControllerSettings {
     locationOptions?: string[];
     minTimeMinutes?: number;
     maxTimeMinutes?: number;
+    // Sharing Settings
+    share: {
+        admin: boolean;
+        student: boolean;
+        teacher: boolean;
+    };
+    sharingMode: "admin" | "student" | "teacher" | null;
 }
 
 /**
