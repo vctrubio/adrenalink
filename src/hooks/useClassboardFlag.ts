@@ -295,8 +295,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         [globalFlag],
     );
 
-    const gapMinutes = globalFlag.getController().gapMinutes;
-
     // ============ EVENT MUTATION TRACKING ============
 
     const setEventMutation = useCallback((eventId: string, status: EventCardStatus, cascadeIds?: string[]) => {
@@ -570,7 +568,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 shiftUpdates.forEach((u) => globalFlag.clearEventMutation(u.id));
             }
         },
-        [setEventMutation, clearEventMutation, globalFlag, gapMinutes],
+        [setEventMutation, clearEventMutation, globalFlag],
     );
 
     const updateEventStatusAction = useCallback(
@@ -632,7 +630,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             error: serverError || teachersError,
             selectedDate,
             setSelectedDate,
-            gapMinutes,
             draggedBooking,
             setDraggedBooking,
             addLessonEvent,
@@ -651,7 +648,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             teachersError,
             selectedDate,
             setSelectedDate,
-            gapMinutes,
             draggedBooking,
             setDraggedBooking,
             addLessonEvent,

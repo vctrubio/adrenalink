@@ -104,7 +104,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
     return (
         <TablesProvider>
-            <div className="space-y-10">
+            <div className="space-y-10 max-w-7xl mx-auto">
                 <HomeHeader school={credentials} globalTotals={globalTotals} />
 
                 <div className="flex items-end justify-between border-b border-border pb-6">
