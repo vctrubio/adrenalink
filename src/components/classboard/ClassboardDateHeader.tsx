@@ -107,7 +107,7 @@ export default function ClassboardDateHeader({ contentViewType, onContentViewCha
         diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
     return (
-        <div className="flex items-stretch border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32">
+        <div className="flex items-stretch border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32 max-w-xl mx-auto">
             <LeftButtonStrip contentViewType={contentViewType} onViewChange={handleViewChange} isAdjustmentMode={isAdjustmentMode} />
 
             {/* Main Content: Navigation & Date */}

@@ -40,7 +40,7 @@ export default function ClassboardContentHeader({ viewType }: ClassboardContentH
     };
 
     return (
-        <div className="flex-1 min-w-0 border border-border/30 rounded-lg overflow-hidden h-full min-h-32 flex flex-col bg-card/50 backdrop-blur-sm shadow-sm select-none">
+        <div className="flex-1 min-w-0 border border-border/30 rounded-lg overflow-hidden h-full min-h-32 flex flex-col backdrop-blur-sm shadow-sm select-none ">
             {renderContent()}
         </div>
     );

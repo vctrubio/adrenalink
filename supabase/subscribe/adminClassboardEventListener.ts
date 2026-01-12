@@ -8,13 +8,22 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 
 interface AdminClassboardEventListenerOptions {
     onEventDetected: (data: ClassboardModel) => void;
+    onEventUpdate?: (payload: {
+        eventType: "INSERT" | "UPDATE" | "DELETE";
+        eventId: string;
+        lessonId: string;
+        date?: string;
+        duration?: number;
+        location?: string;
+        status?: string;
+    }) => void;
     getBookingIdForEvent?: (eventId: string) => string | undefined;
 }
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 3000;
 
-export function useAdminClassboardEventListener({ onEventDetected, getBookingIdForEvent }: AdminClassboardEventListenerOptions) {
+export function useAdminClassboardEventListener({ onEventDetected, onEventUpdate, getBookingIdForEvent }: AdminClassboardEventListenerOptions) {
     const credentials = useSchoolCredentials();
     const schoolId = credentials?.id || "";
     const retryCountRef = useRef(0);
@@ -36,6 +45,26 @@ export function useAdminClassboardEventListener({ onEventDetected, getBookingIdF
                         new: payload.new,
                         old: payload.old,
                     });
+
+                    // ZERO-FETCH PATH: If onEventUpdate callback is provided, use direct payload for events
+                    if (onEventUpdate && payload.table === "event") {
+                        const eventData = payload.eventType === "DELETE" ? payload.old : payload.new;
+                        const lessonId = eventData?.lesson_id;
+
+                        if (lessonId) {
+                            console.log("[EVENT-LISTENER] ✅ Using zero-fetch path - direct payload update");
+                            onEventUpdate({
+                                eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+                                eventId: eventData.id,
+                                lessonId: lessonId,
+                                date: eventData.date,
+                                duration: eventData.duration,
+                                location: eventData.location,
+                                status: eventData.status,
+                            });
+                            return;  // Skip fetch, use payload directly
+                        }
+                    }
 
                     // 1. Direct Case: Lesson table has booking_id directly
                     if (payload.table === "lesson") {

@@ -55,6 +55,9 @@ export class GlobalFlag {
     // Event Mutations - tracks spinners
     private eventMutations = new Map<string, EventMutation>();
 
+    // Pending Event Creations - maps bookingId-lessonId to tempId
+    private pendingEventCreations = new Map<string, string>();
+
     // Controller Settings - persisted
     private controller: ControllerSettings;
 
@@ -211,6 +214,25 @@ export class GlobalFlag {
 
     getMutatingEventIds(): Set<string> {
         return new Set(this.eventMutations.keys());
+    }
+
+    // ============ PENDING EVENT CREATIONS ============
+
+    trackPendingEventCreation(tempId: string, bookingId: string, lessonId: string): void {
+        const key = `${bookingId}-${lessonId}`;
+        this.pendingEventCreations.set(key, tempId);
+        console.log(`[GlobalFlag] Tracking pending creation: ${key} → ${tempId}`);
+    }
+
+    getPendingTempId(bookingId: string, lessonId: string): string | undefined {
+        const key = `${bookingId}-${lessonId}`;
+        return this.pendingEventCreations.get(key);
+    }
+
+    removePendingEventCreation(bookingId: string, lessonId: string): void {
+        const key = `${bookingId}-${lessonId}`;
+        this.pendingEventCreations.delete(key);
+        console.log(`[GlobalFlag] Removed pending creation: ${key}`);
     }
 
     // ============ DATE CHANGE HANDLING ============

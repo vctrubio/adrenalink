@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -17,7 +17,8 @@ const ACTION_CYAN = "#06b6d4";
 
 type TeacherFilter = "active" | "all";
 export default function TeacherClassDaily() {
-    const { teacherQueues, draggedBooking, globalFlag, selectedDate, controller, setController } = useClassboardContext();
+    const { teacherQueues, draggedBooking, globalFlag, selectedDate } = useClassboardContext();
+    const controller = globalFlag.getController();
 
     // Get gapMinutes from GlobalFlag (single source of truth)
     const gapMinutes = globalFlag.getController().gapMinutes;
@@ -37,21 +38,21 @@ export default function TeacherClassDaily() {
         });
     };
 
-    const handleTimeIncrement = useCallback(() => {
+    const handleTimeIncrement = () => {
         if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
         const newHours = (hours + 1) % 24;
         const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        setController({ ...controller, submitTime: newTime });
-    }, [controller, setController]);
+        globalFlag.updateController({ submitTime: newTime });
+    };
 
-    const handleTimeDecrement = useCallback(() => {
+    const handleTimeDecrement = () => {
         if (!controller) return;
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
         const newHours = (hours - 1 + 24) % 24;
         const newTime = `${String(newHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        setController({ ...controller, submitTime: newTime });
-    }, [controller, setController]);
+        globalFlag.updateController({ submitTime: newTime });
+    };
 
     // Get earliest time from queues array (recalculate when any queue's head node changes)
     const earliestTime = useMemo(() => {
@@ -67,7 +68,7 @@ export default function TeacherClassDaily() {
 
     const handleFlagClick = () => {
         if (earliestTime && controller) {
-            setController({ ...controller, submitTime: earliestTime });
+            globalFlag.updateController({ submitTime: earliestTime });
         }
     };
 

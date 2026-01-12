@@ -5,6 +5,8 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import toast from "react-hot-toast";
 
 interface ClassboardRealtimeSyncProps {
@@ -17,8 +19,13 @@ interface ClassboardRealtimeSyncProps {
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
     const { setClassboardModel, classboardModel, globalFlag } = useClassboardContext();
+    const credentials = useSchoolCredentials();
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
+
+    // Get timezone from credentials - try multiple field names
+    const schoolTimezone = credentials?.zone || credentials?.timezone || null;
+    console.log(`🔍 [ClassboardRealtimeSync] School timezone:`, schoolTimezone, `Full credentials:`, credentials);
 
     // Monitor connectivity status
     useEffect(() => {
@@ -174,8 +181,115 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
         return undefined;
     }, []);
 
+    const handleEventUpdate = useCallback(
+        (payload: {
+            eventType: "INSERT" | "UPDATE" | "DELETE";
+            eventId: string;
+            lessonId: string;
+            date?: string;
+            duration?: number;
+            location?: string;
+            status?: string;
+        }) => {
+            console.log(`🔔 [ClassboardRealtimeSync] Event ${payload.eventType} - Zero-fetch update`);
+
+            const { eventType, eventId, lessonId, date, duration, location, status } = payload;
+
+            // Convert UTC to school timezone
+            let convertedDate = date;
+            if (date && schoolTimezone) {
+                console.log(`  🕐 [Timezone] Before conversion: ${date}`);
+                console.log(`  🕐 [Timezone] School timezone: ${schoolTimezone}`);
+                const utcDate = new Date(date);
+                console.log(`  🕐 [Timezone] Parsed UTC Date: ${utcDate.toISOString()}`);
+                const converted = convertUTCToSchoolTimezone(utcDate, schoolTimezone);
+                convertedDate = converted.toISOString();
+                console.log(`  🕐 [Timezone] After conversion: ${convertedDate}`);
+                console.log(`  🕐 [Timezone] Expected wall clock time from ${date} should be ${convertedDate}`);
+            } else if (date) {
+                console.warn(`  ⚠️ [Timezone] No timezone found (schoolTimezone=${schoolTimezone}), using UTC date as-is: ${date}`);
+            }
+
+            // Handle INSERT: look up pending creation and clear its mutation
+            if (eventType === "INSERT") {
+                console.log(`[ClassboardRealtimeSync] INSERT event ${eventId}, looking up pending creation`);
+
+                // Search for pending creation for this lesson
+                const prevModel = modelRef.current;
+                let found = false;
+                for (const bookingData of prevModel) {
+                    if (found) break;
+                    for (const lesson of bookingData.lessons) {
+                        if (lesson.id === lessonId) {
+                            const tempId = globalFlag.getPendingTempId(bookingData.booking.id, lessonId);
+                            if (tempId) {
+                                console.log(`[ClassboardRealtimeSync] Found pending temp event ${tempId}, clearing mutation`);
+                                // Clear mutation for the temp ID - stops the spinner immediately!
+                                globalFlag.clearEventMutation(tempId);
+                                globalFlag.removePendingEventCreation(bookingData.booking.id, lessonId);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Update classboardModel for all event types (INSERT, UPDATE, DELETE)
+            setClassboardModel((prevModel) => {
+                return prevModel.map((bookingData) => {
+                    const updatedLessons = bookingData.lessons.map((lesson) => {
+                        if (lesson.id !== lessonId) return lesson;
+
+                        const updatedEvents = (lesson.events || [])
+                            .map((event) => {
+                                // For INSERT: replace temp event with real event
+                                if (eventType === "INSERT" && event.id.startsWith("temp-")) {
+                                    return {
+                                        ...event,
+                                        id: eventId,  // Replace temp ID with real ID
+                                        date: convertedDate,
+                                        duration,
+                                        location,
+                                        status,
+                                    };
+                                }
+
+                                // For UPDATE/DELETE: match by real ID
+                                if (event.id !== eventId) return event;
+
+                                if (eventType === "DELETE") {
+                                    return null;  // Mark for deletion
+                                }
+
+                                return {
+                                    ...event,
+                                    date: convertedDate,
+                                    duration,
+                                    location,
+                                    status,
+                                };
+                            })
+                            .filter((e): e is NonNullable<typeof e> => e !== null);  // Remove deleted
+
+                        return { ...lesson, events: updatedEvents };
+                    });
+
+                    return { ...bookingData, lessons: updatedLessons };
+                });
+            });
+
+            // Only clear real ID mutation for UPDATE/DELETE (INSERT uses temp ID which we already cleared)
+            if (eventType !== "INSERT") {
+                globalFlag.clearEventMutation(eventId);
+            }
+        },
+        [globalFlag, schoolTimezone, setClassboardModel],
+    );
+
     useAdminClassboardEventListener({
         onEventDetected: handleEventDetected,
+        onEventUpdate: handleEventUpdate,
         getBookingIdForEvent,
     });
     useAdminClassboardBookingListener({ onNewBooking: handleNewBookingDetected });

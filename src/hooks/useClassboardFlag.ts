@@ -29,20 +29,6 @@ import type { DraggableBooking } from "@/types/classboard-teacher-queue";
 // ============ CONSTANTS ============
 
 const STORAGE_KEY_DATE = "classboard-selected-date";
-const STORAGE_KEY_CONTROLLER = "classboard-controller-settings";
-
-const DEFAULT_CONTROLLER: ControllerSettings = {
-    submitTime: "09:00",
-    location: "Beach",
-    durationCapOne: DEFAULT_DURATION_CAP_ONE,
-    durationCapTwo: DEFAULT_DURATION_CAP_TWO,
-    durationCapThree: DEFAULT_DURATION_CAP_THREE,
-    gapMinutes: 0,
-    stepDuration: 30,
-    minDuration: 60,
-    maxDuration: 180,
-    locked: false,
-};
 
 // ============ TYPES ============
 
@@ -175,20 +161,15 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     const [minDelayPassed, setMinDelayPassed] = useState(false);
     const [classboardModel, setClassboardModel] = useState<ClassboardModel>(initialClassboardModel || []);
     const [selectedDate, setSelectedDateState] = useState(() => getTodayDateString());
-    const [controller, setControllerState] = useState<ControllerSettings>(DEFAULT_CONTROLLER);
     const [draggedBooking, setDraggedBooking] = useState<DraggableBooking | null>(null);
     const [eventMutations, setEventMutations] = useState<Map<string, EventMutationState>>(new Map());
 
     // --- 3. REFS FOR CALLBACKS ---
     const selectedDateRef = useRef(selectedDate);
-    const controllerRef = useRef(controller);
 
     useEffect(() => {
         selectedDateRef.current = selectedDate;
     }, [selectedDate]);
-    useEffect(() => {
-        controllerRef.current = controller;
-    }, [controller]);
 
     // Derived mounted state
     // STICKY MOUNT: Once loaded, stay loaded to prevent skeletons during background refetches
@@ -287,23 +268,10 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         return () => clearTimeout(timer);
     }, []);
 
-    useEffect(() => {
-        if (!clientReady) return;
-        globalFlag.updateController(controller);
-    }, [clientReady, globalFlag, controller]);
-
     const setSelectedDate = useCallback(
         (date: string) => {
             globalFlag.onDateChange(); // Clears internal optimistic state
             setSelectedDateState(date);
-        },
-        [globalFlag],
-    );
-
-    const setController = useCallback(
-        (newController: ControllerSettings) => {
-            globalFlag.updateController(newController);
-            setControllerState(newController);
         },
         [globalFlag],
     );
@@ -369,7 +337,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 }
 
                 const capacityStudents = bookingData.schoolPackage.capacityStudents;
-                const controller = controllerRef.current;
+                const controller = globalFlag.getController();
                 const duration =
                     capacityStudents === 1
                         ? controller.durationCapOne
@@ -385,6 +353,9 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 }
 
                 const eventDate = `${selectedDateRef.current}T${slotTime}:00`;
+                console.log(`📅 [addLessonEvent] Creating temp event with wall clock time: ${eventDate}`);
+                console.log(`📅 [addLessonEvent] selectedDate: ${selectedDateRef.current}, slotTime: ${slotTime}`);
+                console.log(`📅 [addLessonEvent] Temp event date format: ${eventDate} (should be wall clock, not UTC)`);
 
                 const optimisticEvent: OptimisticEvent = {
                     id: tempId,
@@ -417,10 +388,56 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 const optimisticNode = optimisticEventToNode(optimisticEvent);
                 globalFlag.addOptimisticEvent(lesson.teacher.id, optimisticNode);
 
+                // Track this pending creation so we can match it when the real event comes back
+                globalFlag.trackPendingEventCreation(tempId, bookingData.booking.id, lessonId);
+
+                // Add temp event to classboardModel so it appears in student cards immediately
+                setClassboardModel((prev) => {
+                    return prev.map((b) => {
+                        if (b.booking.id !== bookingData.booking.id) return b;
+                        return {
+                            ...b,
+                            lessons: b.lessons.map((l) => {
+                                if (l.id !== lessonId) return l;
+                                const tempEvent = {
+                                    id: tempId,
+                                    date: eventDate,
+                                    duration,
+                                    location: controller.location,
+                                    status: "planned",
+                                };
+                                return {
+                                    ...l,
+                                    events: [...(l.events || []), tempEvent],
+                                };
+                            }),
+                        };
+                    });
+                });
+
                 const result = await createClassboardEvent(lessonId, eventDate, duration, controller.location);
 
                 if (!result.success) {
                     globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
+                    globalFlag.removePendingEventCreation(bookingData.booking.id, lessonId);
+
+                    // Remove temp event from classboardModel
+                    setClassboardModel((prev) => {
+                        return prev.map((b) => {
+                            if (b.booking.id !== bookingData.booking.id) return b;
+                            return {
+                                ...b,
+                                lessons: b.lessons.map((l) => {
+                                    if (l.id !== lessonId) return l;
+                                    return {
+                                        ...l,
+                                        events: (l.events || []).filter((e) => e.id !== tempId),
+                                    };
+                                }),
+                            };
+                        });
+                    });
+
                     toast.error(result.error || "Failed to create event");
                     return;
                 }
@@ -430,10 +447,29 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                 if (lesson?.teacher) {
                     globalFlag.removeOptimisticEvent(lesson.teacher.id, tempId);
                 }
+                globalFlag.removePendingEventCreation(bookingData.booking.id, lessonId);
+
+                // Remove temp event from classboardModel
+                setClassboardModel((prev) => {
+                    return prev.map((b) => {
+                        if (b.booking.id !== bookingData.booking.id) return b;
+                        return {
+                            ...b,
+                            lessons: b.lessons.map((l) => {
+                                if (l.id !== lessonId) return l;
+                                return {
+                                    ...l,
+                                    events: (l.events || []).filter((e) => e.id !== tempId),
+                                };
+                            }),
+                        };
+                    });
+                });
+
                 toast.error("Error creating event");
             }
         },
-        [globalFlag],
+        [globalFlag, setClassboardModel],
     );
 
     const deleteEvent = useCallback(
@@ -558,12 +594,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
     useEffect(() => {
         const storedDate = localStorage.getItem(STORAGE_KEY_DATE);
         if (storedDate) setSelectedDateState(storedDate);
-        const storedController = localStorage.getItem(STORAGE_KEY_CONTROLLER);
-        if (storedController) {
-            try {
-                setControllerState(JSON.parse(storedController));
-            } catch (e) {}
-        }
         setClientReady(true);
     }, []);
 
@@ -571,11 +601,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         if (!mounted) return;
         localStorage.setItem(STORAGE_KEY_DATE, selectedDate);
     }, [selectedDate, mounted]);
-
-    useEffect(() => {
-        if (!mounted) return;
-        localStorage.setItem(STORAGE_KEY_CONTROLLER, JSON.stringify(controller));
-    }, [controller, mounted]);
 
     const setClassboardModelWrapper = useCallback((modelOrUpdater: ClassboardModel | ((prev: ClassboardModel) => ClassboardModel)) => {
         if (typeof modelOrUpdater === "function") setClassboardModel((prev) => modelOrUpdater(prev));
@@ -591,8 +616,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             error: serverError || teachersError,
             selectedDate,
             setSelectedDate,
-            controller,
-            setController,
             gapMinutes,
             draggedBooking,
             setDraggedBooking,
@@ -612,8 +635,6 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             teachersError,
             selectedDate,
             setSelectedDate,
-            controller,
-            setController,
             gapMinutes,
             draggedBooking,
             setDraggedBooking,

@@ -61,7 +61,7 @@ function ClassboardContent() {
 
             <ClassboardContentBoard />
 
-            <ClassboardFooter />
+            {/* <ClassboardFooter /> */}
         </div>
     );
 }
