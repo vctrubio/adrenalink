@@ -136,7 +136,7 @@ const CommissionsListField = memo(function CommissionsListField({
     currency,
     commissionColor,
 }: {
-    commissions: Array<{ id: string; commissionType: "fixed" | "percentage"; commissionValue: string; commissionDescription: string }>;
+    commissions: { id: string; commissionType: "fixed" | "percentage"; commissionValue: string; commissionDescription: string }[];
     onAddCommission: (commission: {
         commissionType: "fixed" | "percentage";
         commissionValue: string;

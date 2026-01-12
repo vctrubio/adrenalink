@@ -33,7 +33,7 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
     const statusOptions = getStatusOptions(entity.id);
 
     return (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
                 <SearchInput

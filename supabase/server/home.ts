@@ -92,6 +92,7 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
 
     // Fallback: fetch timezone if not in headers (though middleware should provide it)
     if (!timezone) {
+        console.log("Timezone not found in headers, fetching from school header SHOULD NOT HAPPEN:...");
         const schoolHeader = await getSchoolHeader();
         if (schoolHeader) {
             timezone = schoolHeader.timezone;
@@ -105,7 +106,7 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
         .from("booking")
         .select(buildBookingQuery())
         .eq("school_id", schoolId)
-        .order("date_start", { ascending: false });
+        .order("date_start", { ascending: true });
 
     if (bookingsError) {
         throw new Error(`Failed to fetch bookings: ${bookingsError.message}`);

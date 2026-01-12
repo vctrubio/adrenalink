@@ -78,7 +78,7 @@ function Heatmap({
     const intensityColors = ["bg-muted/20 hover:bg-muted/40", "bg-primary/20", "bg-primary/40", "bg-primary/70", "bg-primary"];
 
     return (
-        <div className="bg-card border border-border rounded-3xl px-6 pb-6 pt-24 shadow-sm">
+        <div className="bg-card border border-border rounded-3xl px-6 pb-6 pt-24 shadow-sm max-w-7xl mx-auto">
             <div className="flex flex-col gap-2 min-w-fit -mt-16">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                         exit={{ opacity: 0, y: -20 }}
                         className="space-y-4"
                     >
-                        <div className="flex items-center justify-between border-b border-border pb-4">
+                        <div className="flex items-center justify-between border-b border-border pb-4 max-w-7xl mx-auto">
                             <h3 className="text-xl font-black tracking-tight uppercase tracking-tighter flex items-center gap-3">
                                 <Calendar size={20} className="text-primary" />
                                 {new Date(selectedDate).toLocaleDateString(undefined, {
@@ -220,7 +220,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                                     year: "numeric",
                                 })}
                             </h3>
-                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest ">
                                 {filteredEvents.length} Lessons
                             </span>
                         </div>
@@ -228,7 +228,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                         {filteredEvents.length > 0 ? (
                             <TransactionEventsTable events={filteredEvents} groupBy="none" />
                         ) : (
-                            <div className="p-12 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5">
+                            <div className="p-12 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5 max-w-7xl mx-auto">
                                 <p className="text-muted-foreground font-medium italic">No transactions recorded for this date.</p>
                             </div>
                         )}
@@ -237,7 +237,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="p-20 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5"
+                        className="p-20 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5 max-w-7xl mx-auto"
                     >
                         <Activity size={48} className="mx-auto text-muted-foreground/20 mb-4" strokeWidth={1} />
                         <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">

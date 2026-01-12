@@ -370,7 +370,7 @@ export async function masterBookingAdd(
  * Data type for register tables
  */
 export interface RegisterTables {
-    students: Array<{
+    students: {
         id: string;
         studentId: string;
         description: string | null;
@@ -386,8 +386,8 @@ export interface RegisterTables {
             phone: string;
             languages: string[];
         };
-    }>;
-    packages: Array<{
+    }[];
+    packages: {
         id: string;
         durationMinutes: number;
         description: string;
@@ -398,15 +398,15 @@ export interface RegisterTables {
         packageType: string;
         isPublic: boolean;
         active: boolean;
-    }>;
-    referrals: Array<{
+    }[];
+    referrals: {
         id: string;
         code: string;
         commissionType: string;
         commissionValue: string;
         description: string | null;
         active: boolean;
-    }>;
+    }[];
     studentBookingStats: Record<
         string,
         {

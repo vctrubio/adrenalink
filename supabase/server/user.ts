@@ -8,13 +8,13 @@ export interface StudentPackageBookingLessons {
     id: string;
     firstName: string;
     lastName: string;
-    lessons: Array<{
+    lessons: {
         id: string;
         teacherUsername: string;
         teacherName: string;
         status: string;
         commission: { type: string; cph: number };
-        events: Array<{ id: string; date: string; duration: number; location: string; status: string }>;
+        events: { id: string; date: string; duration: number; location: string; status: string }[];
         booking: { id: string; dateStart: string; dateEnd: string; schoolId: string };
         schoolPackage: {
             id: string;
@@ -25,7 +25,7 @@ export interface StudentPackageBookingLessons {
             categoryEquipment: string;
             capacityEquipment: number;
         };
-    }>;
+    }[];
 }
 
 export interface TeacherPackageBookingLessons {
@@ -33,11 +33,11 @@ export interface TeacherPackageBookingLessons {
     username: string;
     firstName: string;
     lastName: string;
-    lessons: Array<{
+    lessons: {
         id: string;
         status: string;
         commission: { type: string; cph: number };
-        events: Array<{ id: string; date: string; duration: number; location: string; status: string }>;
+        events: { id: string; date: string; duration: number; location: string; status: string }[];
         booking: { id: string; dateStart: string; dateEnd: string; schoolId: string };
         schoolPackage: {
             id: string;
@@ -49,7 +49,7 @@ export interface TeacherPackageBookingLessons {
             capacityEquipment: number;
         };
         studentNames: string[];
-    }>;
+    }[];
 }
 
 /**

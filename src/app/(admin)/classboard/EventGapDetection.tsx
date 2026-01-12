@@ -78,9 +78,9 @@ export default function EventGapDetection({
                 if (result.success) {
                     // Server confirmed the update - wait for realtime sync to clear mutation
                     // This prevents brief flicker of the gap warning with old time
-                    console.log(`🔧 [EventGapDetection] Sent to server, waiting for realtime sync confirmation...`);
+                    console.log("🔧 [EventGapDetection] Sent to server, waiting for realtime sync confirmation...");
                 } else {
-                    console.error(`🔧 [EventGapDetection] ❌ Update failed:`, result.error);
+                    console.error("🔧 [EventGapDetection] ❌ Update failed:", result.error);
                     // Clear on error so event isn't stuck spinning
                     globalFlag.clearEventMutation(eventId);
                 }

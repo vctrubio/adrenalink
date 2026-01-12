@@ -89,7 +89,7 @@ export function EventStatusLabel({
                 ref={dropdownTriggerRef}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={isStatusUpdating}
-                className={`w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative`}
+                className={"w-12 h-12 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors border border-border relative"}
                 style={{ color: statusConfig.color }}
             >
                 {/* Glow pulse ring - from icon outward */}

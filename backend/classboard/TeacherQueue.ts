@@ -21,8 +21,8 @@ export { type EventNode, type ControllerSettings } from "@/types/classboard-teac
 export class TeacherQueue {
     private head: EventNode | null = null;
     public teacher: TeacherInfo;
-    public version: number = 0;
-    public isActive: boolean = true;
+    public version = 0;
+    public isActive = true;
 
     // THE GROUND TRUTH: Last known state from the server
     private serverEvents = new Map<string, EventNode>();
@@ -262,7 +262,7 @@ export class TeacherQueue {
      * Sync queue with a new list of events, preserving object identity where possible
      * Returns a list of IDs that were confirmed (additions confirmed or deletions confirmed)
      */
-    syncEvents(newEventsData: EventNode[], mutatingIds: Set<string> = new Set()): string[] {
+    syncEvents(newEventsData: EventNode[], mutatingIds = new Set<string>()): string[] {
         console.log(`[Queue:${this.teacher.username}] 🔄 Syncing ${newEventsData.length} events from server...`);
         const confirmedIds: string[] = [];
 
@@ -398,10 +398,10 @@ export class TeacherQueue {
     optimiseFromTime(
         startTimeMinutes: number,
         gapMinutes: number,
-    ): { updates: Array<{ id: string; date: string; duration: number }>; skipped: string[] } {
+    ): { updates: { id: string; date: string; duration: number }[]; skipped: string[] } {
         // Use getAllEvents() which automatically excludes ghosted (deleting) nodes
         const events = this.getAllEvents();
-        const updates: Array<{ id: string; date: string; duration: number }> = [];
+        const updates: { id: string; date: string; duration: number }[] = [];
         const skipped: string[] = [];
 
         if (events.length === 0) return { updates, skipped };
@@ -454,7 +454,7 @@ export class TeacherQueue {
      * Packs all events back-to-back with required gap minutes, starting from first event's current time
      * Returns updates for events that need moving + skipped event IDs if they exceed 24:00
      */
-    optimiseQueue(gapMinutes: number): { updates: Array<{ id: string; date: string; duration: number }>; skipped: string[] } {
+    optimiseQueue(gapMinutes: number): { updates: { id: string; date: string; duration: number }[]; skipped: string[] } {
         const events = this.getAllEvents();
         if (events.length === 0) return { updates: [], skipped: [] };
 

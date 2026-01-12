@@ -304,7 +304,7 @@ export async function deleteClassboardEvent(eventId: string): Promise<ApiActionR
         // Check if event exists
         const { data: eventToDelete, error: fetchError } = await supabase.from("event").select("id").eq("id", eventId).single();
 
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Fetch result:`, {
+        console.log("🗑️ [classboard/deleteClassboardEvent] Fetch result:", {
             eventToDelete,
             fetchError: fetchError ? { code: fetchError.code, message: fetchError.message, details: fetchError.details } : null
         });
@@ -314,29 +314,29 @@ export async function deleteClassboardEvent(eventId: string): Promise<ApiActionR
             return { success: false, error: `Event not found: ${eventId}` };
         }
 
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Event exists, proceeding with delete...`);
+        console.log("🗑️ [classboard/deleteClassboardEvent] Event exists, proceeding with delete...");
 
         // First delete related equipment_event records (cascade delete)
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Deleting related equipment_event records...`);
+        console.log("🗑️ [classboard/deleteClassboardEvent] Deleting related equipment_event records...");
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().eq("event_id", eventId);
 
         if (equipmentDeleteError) {
-            console.error(`🗑️ [classboard/deleteClassboardEvent] ⚠️ Could not delete equipment_event records:`, equipmentDeleteError);
+            console.error("🗑️ [classboard/deleteClassboardEvent] ⚠️ Could not delete equipment_event records:", equipmentDeleteError);
             // Continue anyway - try to delete the event
         } else {
-            console.log(`✅ [classboard/deleteClassboardEvent] Related equipment_event records deleted`);
+            console.log("✅ [classboard/deleteClassboardEvent] Related equipment_event records deleted");
         }
 
         // Now delete the event
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Deleting event...`);
+        console.log("🗑️ [classboard/deleteClassboardEvent] Deleting event...");
         const { error: deleteError } = await supabase.from("event").delete().eq("id", eventId);
 
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Delete result:`, {
+        console.log("🗑️ [classboard/deleteClassboardEvent] Delete result:", {
             deleteError: deleteError ? { code: deleteError.code, message: deleteError.message, details: deleteError.details } : null
         });
 
         if (deleteError) {
-            console.error(`🗑️ [classboard/deleteClassboardEvent] ❌ Delete failed:`, deleteError);
+            console.error("🗑️ [classboard/deleteClassboardEvent] ❌ Delete failed:", deleteError);
             return { success: false, error: `Failed to delete event: ${deleteError.message}` };
         }
 
@@ -517,14 +517,14 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
         const supabase = getServerConnection();
 
         // First delete related equipment_event records (cascade delete)
-        console.log(`🗑️ [classboard/bulkDeleteClassboardEvents] Deleting related equipment_event records...`);
+        console.log("🗑️ [classboard/bulkDeleteClassboardEvents] Deleting related equipment_event records...");
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().in("event_id", eventIds);
 
         if (equipmentDeleteError) {
-            console.error(`🗑️ [classboard/bulkDeleteClassboardEvents] ⚠️ Could not delete equipment_event records:`, equipmentDeleteError);
+            console.error("🗑️ [classboard/bulkDeleteClassboardEvents] ⚠️ Could not delete equipment_event records:", equipmentDeleteError);
             // Continue anyway
         } else {
-            console.log(`✅ [classboard/bulkDeleteClassboardEvents] Related equipment_event records deleted`);
+            console.log("✅ [classboard/bulkDeleteClassboardEvents] Related equipment_event records deleted");
         }
 
         // Now delete the events
@@ -532,7 +532,7 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
         const { error } = await supabase.from("event").delete().in("id", eventIds);
 
         if (error) {
-            console.error(`🗑️ [classboard/bulkDeleteClassboardEvents] ❌ Delete failed:`, error);
+            console.error("🗑️ [classboard/bulkDeleteClassboardEvents] ❌ Delete failed:", error);
             return { success: false, error: `Failed to delete events: ${error.message}` };
         }
 
@@ -620,7 +620,7 @@ export async function deleteUncompletedClassboardEvents(
             return { success: false, error: "Failed to delete events" };
         }
 
-        console.log(`✅ [classboard] Deleted uncompleted events`);
+        console.log("✅ [classboard] Deleted uncompleted events");
 
         return {
             success: true,

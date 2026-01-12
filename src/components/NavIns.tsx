@@ -132,7 +132,7 @@ function MobileNavItem({ item, basePath }: { item: NavItemConfig; basePath: stri
     return (
         <Link
             href={href}
-            className={`flex-1 flex flex-col items-center justify-center h-full transition-all active:scale-95 hover:bg-neutral-100/50 dark:hover:bg-white/5`}
+            className={"flex-1 flex flex-col items-center justify-center h-full transition-all active:scale-95 hover:bg-neutral-100/50 dark:hover:bg-white/5"}
         >
             <div
                 className={`relative p-2 rounded-xl transition-colors ${isActive ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500"}`}

@@ -20,7 +20,7 @@ export default function SchoolCard({ school }: SchoolCardProps) {
     const studentCount = getSchoolStudentCount(school);
 
     const handleCardClick = () => {
-        router.push(`/discover`);
+        router.push("/discover");
     };
 
     const handleSubdomainClick = (e: React.MouseEvent) => {

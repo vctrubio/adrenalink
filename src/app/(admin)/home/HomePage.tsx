@@ -106,15 +106,18 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
     return (
         <TablesProvider>
-            <div className="space-y-10 max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <HomeHeader school={credentials} globalTotals={globalTotals} />
 
-                <div className="flex items-end justify-between border-b border-border pb-6">
+                <div className="flex items-end justify-between border-b border-border py-6">
                     <HomeViewHeader {...VIEW_CONFIG[viewMode]} />
                     <HomeViewToggle mode={viewMode} setMode={setViewMode} />
                 </div>
+            </div>
 
-                <div className="space-y-6">
+            <div className='container mx-auto'>
+
+                <div className="space-y-4 pt-6 mb-20">
                     {viewMode === "grouped" && <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />}
 
                     {viewMode === "table" && (
@@ -126,7 +129,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} />}
                 </div>
-            </div>
-        </TablesProvider>
+        </div>
+        </TablesProvider >
     );
 }

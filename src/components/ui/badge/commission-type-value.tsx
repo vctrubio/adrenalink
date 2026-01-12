@@ -30,7 +30,7 @@ export function CommissionTypeValue({
             onClick={onClick}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex-shrink-0 whitespace-nowrap ${
                 isSelected ? "border-emerald-500/50 bg-emerald-500/10" : "border-border/50 bg-muted/20"
-            } ${Component === 'button' ? 'cursor-pointer hover:bg-muted/30' : ''} ${className}`}
+            } ${Component === "button" ? "cursor-pointer hover:bg-muted/30" : ""} ${className}`}
         >
             <div style={{ color: "#10b981" }}>
                 <HandshakeIcon size={14} />

@@ -219,7 +219,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     // Apply sort to timeline events
     const sortedTimelineEvents = useMemo(() => {
-        let result = [...filteredTimelineEvents];
+        const result = [...filteredTimelineEvents];
 
         result.sort((a, b) => {
             let valA: number, valB: number;

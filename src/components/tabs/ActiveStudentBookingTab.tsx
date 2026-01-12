@@ -378,7 +378,7 @@ export const ActiveStudentBookingTab = ({ bookingData, draggableBooking, selecte
 
     const handleDragStart = (e: React.DragEvent) => {
         const target = e.target as HTMLElement;
-        if (target.closest("button") || target.closest('[role="button"]')) {
+        if (target.closest("button") || target.closest("[role=\"button\"]")) {
             e.preventDefault();
             return;
         }

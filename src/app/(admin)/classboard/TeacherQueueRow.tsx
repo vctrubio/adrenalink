@@ -124,7 +124,7 @@ function EventsSection({
     queue,
 }: {
     viewMode: TeacherViewMode;
-    eventsWithOptimistic: Array<{ node: any }>;
+    eventsWithOptimistic: { node: any }[];
     queueController: QueueController | null;
     getEventCardStatus: (eventId: string) => string | undefined;
     gapMinutes: number;

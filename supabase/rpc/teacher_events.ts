@@ -9,7 +9,7 @@ export interface TeacherEvent {
     booking_id: string;
     leader_student_name: string;
     student_count: number;
-    students_json: Array<{ id: string; firstName: string; lastName: string }>;
+    students_json: { id: string; firstName: string; lastName: string }[];
     package_id: string;
     package_description: string;
     package_duration_minutes: number;

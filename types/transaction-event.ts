@@ -37,7 +37,6 @@ export interface TransactionEventData {
         status: string;
     };
     teacher: {
-        id: string;
         username: string;
     };
     leaderStudentName: string;

@@ -43,7 +43,7 @@ export interface EventTransaction {
 /**
  * Maps RPC result to the rich TransactionEventData type used by components
  */
-export function mapTransactionToEventData(t: EventTransaction, currency: string = "YEN"): TransactionEventData {
+export function mapTransactionToEventData(t: EventTransaction, currency = "YEN"): TransactionEventData {
     return {
         event: {
             id: t.event_id,

@@ -44,7 +44,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-7xl mx-auto">
             {groupedEvents.map((group) => {
                 const statsCalculator = new ClassboardStatistics(classboardData, group.date, true);
                 const stats = statsCalculator.getDailyLessonStats();

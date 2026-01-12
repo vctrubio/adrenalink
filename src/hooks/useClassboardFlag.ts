@@ -200,7 +200,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         const isSelectiveSync = affectedTeachers.size > 0;
 
         if (isSelectiveSync) {
-            console.log(`⚙️ [SyncEngine] SELECTIVE SYNC - Only syncing affected teachers:`, Array.from(affectedTeachers));
+            console.log("⚙️ [SyncEngine] SELECTIVE SYNC - Only syncing affected teachers:", Array.from(affectedTeachers));
         }
 
         // A. Ensure ALL teachers exist in registry and sync their active status
@@ -270,7 +270,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             globalFlag.updateTeacherQueues(currentQueues);
         } else {
             // Selective sync: trigger UI refresh WITHOUT replacing queues (preserves adjustment mode)
-            console.log(`⚙️ [SyncEngine] Selective sync - triggering UI refresh`);
+            console.log("⚙️ [SyncEngine] Selective sync - triggering UI refresh");
             setFlagTick((t) => t + 1);  // Increment to re-render affected queues
         }
     }, [allTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
@@ -530,22 +530,22 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
                     }
                     await deleteClassboardEvent(eventId);
                     if (shiftUpdates.length > 0) {
-                        console.log(`📅 [deleteEvent] Sending cascade updates to server`);
+                        console.log("📅 [deleteEvent] Sending cascade updates to server");
                         await bulkUpdateClassboardEvents(shiftUpdates, []);
-                        console.log(`📅 [deleteEvent] Cascade updates sent. Waiting for realtime sync to confirm...`);
+                        console.log("📅 [deleteEvent] Cascade updates sent. Waiting for realtime sync to confirm...");
                         // Do NOT clear mutations here - let realtime sync confirm them
                     }
                 } else {
                     console.log(`🗑️ [deleteEvent] Calling server to delete single event: ${eventId}`);
                     const result = await deleteClassboardEvent(eventId);
-                    console.log(`🗑️ [deleteEvent] Server response:`, result);
+                    console.log("🗑️ [deleteEvent] Server response:", result);
 
                     if (!result.success) {
                         console.error(`🗑️ [deleteEvent] ❌ Delete failed for ${eventId}:`, result.error);
                         clearEventMutation(eventId);
                         globalFlag.clearEventMutation(eventId);
                         globalFlag.unmarkEventAsDeleted(teacherId, eventId);
-                        toast.error(`Failed to delete event: ${result.error || 'Unknown error'}`);
+                        toast.error(`Failed to delete event: ${result.error || "Unknown error"}`);
                         return;
                     }
                     console.log(`🗑️ [deleteEvent] ✅ Delete successful for ${eventId}`);
