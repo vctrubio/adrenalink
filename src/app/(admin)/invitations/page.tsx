@@ -12,8 +12,8 @@ export default async function InvitationsPage() {
         <div className="flex-1 h-full p-4 md:p-8 overflow-hidden flex flex-col bg-background">
             <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col min-h-0 overflow-y-auto pb-20">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Invitations</h1>
-                    <p className="text-muted-foreground font-medium">Manage incoming package requests</p>
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Reservations & Invitations</h1>
+                    <p className="text-muted-foreground font-bold">Manage Incoming Package Requests</p>
                 </div>
 
                 <InvitationsController invitations={invitations} />
