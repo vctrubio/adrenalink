@@ -1,21 +1,16 @@
 /**
- * Mock Berkley Windsurf Academy - Complete Seed
+ * Mock Lisboa School Seed
  *
- * Comprehensive seeding flow:
- * 1. School setup with equipment_categories
+ * Seeds:
+ * 1. School setup
  * 2. Teachers & Commissions
- * 3. Students & School Association
- * 4. Equipment (36 items: 12 windsurfs, 12 wings, 12 foils)
- * 5. School Packages (4 packages with student capacity)
- * 6. Student Packages
- * 7. Bookings (today to +3 days, respecting package capacity)
- * 8. Teacher-Equipment relations
- * 9. Lessons & Events (1 per booking, event duration from package)
- * 10. Equipment to Events (via teacher_equipment)
- * 11. Student Feedback
- * 12. Teacher & Student Payments
+ * 3. Students
+ * 4. Equipment
+ * 5. School Packages (capacity 1, 2, 4)
+ * 6. Bookings (12, 1 per student, various capacities, spread over days)
+ * 7. Lessons & Events (spread, not all in one day)
  *
- * Usage: bun supabase/db/mock-berkley.ts
+ * Usage: bun supabase/db/mock-lisboa.ts
  */
 
 import {
@@ -23,53 +18,37 @@ import {
     createTeachers,
     createDefaultTeacherCommissions,
     createStudents,
-    associateStudentsWithSchool,
     createDefaultEquipment,
     createDefaultSchoolPackages,
-    createStudentPackages,
-    createDefaultReferrals,
     createBookings,
     linkStudentsToBookings,
-    updateStudentPackageStatus,
     createLessonsAndEvents,
-    addEquipmentToEvents,
-    createStudentLessonFeedback,
-    createTeacherLessonPayments,
-    createStudentBookingPayments,
     supabase,
 } from "../seeding/index";
 
-const seedBerkleyWindsurfAcademyFresh = async () => {
+const seedLisboaSchool = async () => {
     try {
-        console.log("🌱 Starting Berkley Windsurf Academy FRESH Seed...\n");
+        console.log("🌱 Starting Lisboa School Seed...\n");
 
-        // Delete existing Berkley school completely
-        const { data: existingSchools } = await supabase.from("school").select("id").eq("username", "berkley");
-
+        // Delete existing Lisboa school completely
+        const { data: existingSchools } = await supabase.from("school").select("id").eq("username", "lisboa");
         if (existingSchools && existingSchools.length > 0) {
             const schoolId = existingSchools[0].id;
-            console.log("🗑️  Cleaning up existing Berkley school...\n");
-
+            console.log("🗑️  Cleaning up existing Lisboa school...\n");
             // Delete all related data in reverse dependency order
             const { data: bookings } = await supabase.from("booking").select("id").eq("school_id", schoolId);
             const bookingIds = bookings?.map((b) => b.id) || [];
-
             const { data: lessons } = await supabase.from("lesson").select("id").eq("school_id", schoolId);
             const lessonIds = lessons?.map((l) => l.id) || [];
-
             const { data: events } = await supabase.from("event").select("id").eq("school_id", schoolId);
             const eventIds = events?.map((e) => e.id) || [];
-
             const { data: teachers } = await supabase.from("teacher").select("id").eq("school_id", schoolId);
             const teacherIds = teachers?.map((t) => t.id) || [];
-
             const { data: equipmentRecords } = await supabase.from("equipment").select("id").eq("school_id", schoolId);
             const equipmentIds = equipmentRecords?.map((e) => e.id) || [];
-
             const { data: packages } = await supabase.from("school_package").select("id").eq("school_id", schoolId);
             const packageIds = packages?.map((p) => p.id) || [];
 
-            // Delete in order
             if (bookingIds.length > 0) {
                 await supabase.from("student_booking_payment").delete().in("booking_id", bookingIds);
                 await supabase.from("booking_student").delete().in("booking_id", bookingIds);
@@ -101,7 +80,6 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                 await supabase.from("student_package").delete().in("school_package_id", packageIds);
                 await supabase.from("school_package").delete().in("id", packageIds);
             }
-
             await supabase.from("rental_equipment").delete().in("equipment_id", equipmentIds);
             await supabase
                 .from("rental_student")
@@ -118,63 +96,62 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
             }
             await supabase.from("school_subscription").delete().eq("school_id", schoolId);
             await supabase.from("school").delete().eq("id", schoolId);
-
-            console.log("✅ Cleaned up existing data\n");
         }
 
-        // ========== SEEDING FLOW ==========
-
         // 1. Create School
-        console.log("1️⃣  Creating school...");
         const school = await createSchool({
-            name: "Berkley Wind Academy",
-            username: "berkley",
-            country: "USA",
-            phone: "15105551234",
+            name: "Lisboa Kite School",
+            username: "lisboa",
+            country: "Portugal",
+            phone: "+35121000000",
             status: "beta",
-            currency: "USD",
-            latitude: "37.8716",
-            longitude: "-122.2727",
-            timezone: "America/Los_Angeles",
-            website_url: "https://berkleywindacademy.com",
-            instagram_url: "https://instagram.com/berkleywindacademy",
+            currency: "EUR",
+            latitude: "38.7223",
+            longitude: "-9.1393",
+            timezone: "Europe/Lisbon",
+            website_url: "https://lisboakiteschool.com",
+            instagram_url: "https://instagram.com/lisboakiteschool",
         });
         const schoolId = school.id;
 
-        // Update school with equipment_categories
-        await supabase.from("school").update({ equipment_categories: "windsurf,wing,foil" }).eq("id", schoolId);
-        console.log("✅ Updated with equipment_categories: windsurf,wing,foil");
-
-        // 2. Create Teachers & Commissions
-        console.log("2️⃣  Creating teachers and commissions...");
-        const teachers = await createTeachers(schoolId, 2);
-        const allCommissions: any[] = [];
-        const commissionMap = new Map<string, any>();
+        // 2. Create Teachers
+        const teachers = await createTeachers(schoolId, 4);
         for (const teacher of teachers) {
-            const comms = await createDefaultTeacherCommissions(teacher.id);
-            allCommissions.push(...comms);
-            comms.forEach((c) => commissionMap.set(c.id, c));
+            await createDefaultTeacherCommissions(teacher.id);
         }
 
-        // 3. Create Students & Associate
-        console.log("3️⃣  Creating students...");
-        const students = await createStudents(6);
-        await associateStudentsWithSchool(schoolId, students);
+        // 3. Create Students
+        let students = await createStudents(16);
+        if (!students || students.length === 0) throw new Error("No students created for Lisboa school");
+        // Add 10 extra rsh students (no bookings)
+        const rshStudents = await createStudents(10);
+        students = students.concat(rshStudents);
+        // Associate all students with the school
+        if (students && students.length > 0) {
+            const relations = students.map((student) => ({
+                school_id: schoolId,
+                student_id: student.id,
+                description: "",
+                active: true,
+                rental: true,
+            }));
+            await supabase.from("school_students").insert(relations);
+        }
 
-        // 4. Create Equipment & Packages
-        console.log("4️⃣  Creating equipment and school packages...");
+        // 4. Create Equipment
         const equipment = await createDefaultEquipment(schoolId);
-        const packages = await createDefaultSchoolPackages(schoolId);
-        const packageMap = new Map<string, any>();
-        packages.forEach((p) => packageMap.set(p.id, p));
+
+        // 5. Create School Packages (capacity 1, 2, 4)
+        let packages = await createDefaultSchoolPackages(schoolId);
+        if (!Array.isArray(packages)) {
+            packages = packages?.packages || packages?.data || [];
+        }
+        // Optionally, customize package capacities here if needed
 
 
-        // 5. Create Bookings (today to +3 days)
-        console.log("5️⃣  Creating bookings (today to +3 days)...");
-        // Create 60 bookings, spread over 4 days, 1 per student per package
+        // 6. Create Bookings (1 per student per package, today to +3 days)
         const today = new Date();
         const bookings = [];
-        const bookingStudents = new Map();
         let bookingCount = 0;
         for (let day = 0; day < 4; day++) {
             for (const pkg of packages) {
@@ -193,16 +170,13 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                     const booking = bookingData[0];
                     bookings.push(booking);
                     await supabase.from("booking_student").insert({ booking_id: booking.id, student_id: student.id });
-                    bookingStudents.set(booking.id, [student.id]);
                     bookingCount++;
                 }
             }
         }
         console.log(`✅ Created ${bookingCount} bookings from today to +3 days (all COMPLETED)`);
 
-
-        // 6. Create Teacher-Equipment Relations (diverse, at least one per category)
-        console.log("6️⃣  Creating teacher-equipment relations...");
+        // 7. Create Teacher-Equipment Relations (diverse, at least one per category)
         const categories = [...new Set(equipment.map(e => e.category))];
         const usedEquipment = new Set();
         const teacherEquipmentMap = new Map();
@@ -225,82 +199,62 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
         }
         console.log("✅ Created diverse teacher-equipment relations");
 
-
-        // 7. Create Lessons & Events
-        console.log("7️⃣  Creating lessons and events...");
-        const { lessons, events } = await createLessonsAndEvents(
-            bookings,
-            teachers,
-            allCommissions,
-            schoolId,
-            packages,
-            equipment,
-            new Map(),
-        );
-
-        // 8. Add Equipment to Events (match category)
-        console.log("8️⃣  Adding equipment to events...");
-        for (const event of events) {
-            const lesson = lessons.find(l => l.id === event.lesson_id);
-            if (!lesson) continue;
-            const requiredCategory = lesson._categoryEquipment;
-            // Find the school_package for this event
-            const pkg = packages.find(p => p.id === event.school_package_id);
+        // 8. Create Lessons & Events
+        // 8. Create Lessons, Events, and Equipment Assignments (guaranteed per booking)
+        const lessons = [];
+        const events = [];
+        for (const booking of bookings) {
+            // Pick a random teacher
+            const teacher = teachers[Math.floor(Math.random() * teachers.length)];
+            // Find a commission for this teacher
+            const { data: commissions, error: commError } = await supabase.from("teacher_commission").select("id").eq("teacher_id", teacher.id);
+            if (commError || !commissions || commissions.length === 0) throw new Error("No commission for teacher");
+            const commission_id = commissions[0].id;
+            // Find the package for this booking
+            const pkg = packages.find(p => p.id === booking.school_package_id);
+            const category = pkg ? pkg.category_equipment : "kite";
+            // Create lesson
+            const { data: lessonData, error: lessonError } = await supabase.from("lesson").insert({
+                school_id: schoolId,
+                teacher_id: teacher.id,
+                booking_id: booking.id,
+                commission_id,
+                status: "completed",
+            }).select();
+            if (lessonError || !lessonData || lessonData.length === 0) throw new Error("Failed to create lesson");
+            const lesson = lessonData[0];
+            lessons.push(lesson);
+            // Create event
+            const { data: eventData, error: eventError } = await supabase.from("event").insert({
+                school_id: schoolId,
+                lesson_id: lesson.id,
+                date: booking.date_start,
+                duration: pkg && pkg.duration_minutes ? pkg.duration_minutes : 60,
+                location: "Lisbon Beach",
+                status: "completed",
+            }).select();
+            if (eventError || !eventData || eventData.length === 0) throw new Error("Failed to create event");
+            const event = eventData[0];
+            events.push(event);
+            // Assign equipment to event
             const capacity = pkg ? pkg.capacity_equipment : 1;
             // Gather all eligible equipment (from all teachers) for this category
             const eligible = [];
             for (const eqIds of teacherEquipmentMap.values()) {
                 for (const id of eqIds) {
-                    const eq = equipment.find(e => e.id === id && e.category === requiredCategory);
+                    const eq = equipment.find(e => e.id === id && e.category === category);
                     if (eq) eligible.push(eq);
                 }
             }
-            // Assign up to capacity_equipment equipment to the event
             for (let i = 0; i < Math.min(capacity, eligible.length); i++) {
                 await supabase.from("equipment_event").insert({ equipment_id: eligible[i].id, event_id: event.id });
             }
         }
-        console.log("✅ Added equipment to events by category");
-
-
-        // 9. Create Student Feedback
-        console.log("🔟 Creating student lesson feedback...");
-        // Build bookingStudents map for feedback
-        const bookingStudentsMap = new Map();
-        for (const booking of bookings) {
-            // Each booking is for one student
-            const rels = await supabase.from("booking_student").select("student_id").eq("booking_id", booking.id);
-            const studentIds = rels.data ? rels.data.map(r => r.student_id) : [];
-            bookingStudentsMap.set(booking.id, studentIds);
-        }
-        await createStudentLessonFeedback(bookings, lessons, bookingStudentsMap);
-
-        // 10. Create Teacher Payments
-        console.log("1️⃣1️⃣  Creating teacher lesson payments...");
-        await createTeacherLessonPayments(lessons, commissionMap, packageMap);
-
-        // 11. Create Student Payments
-        console.log("1️⃣2️⃣  Creating student booking payments...");
-        await createStudentBookingPayments(bookings, bookingStudentsMap, packageMap);
-
-        console.log("\n✨ Berkley Windsurf Academy FRESH seed completed successfully!");
-        console.log(`   School ID: ${schoolId}`);
-        console.log("   Username: berkley12");
-        console.log(`   Teachers: ${teachers.length}`);
-        console.log(`   Students: ${students.length}`);
-        console.log(`   Packages: ${packages.length}`);
-        console.log(`   Bookings: ${bookings.length} (today to +3 days)`);
-        console.log(`   Lessons: ${lessons.length} (1 per booking)`);
-        console.log(`   Events: ${events.length}`);
-        console.log(`   Equipment: ${equipment.length}`);
-        console.log("   All payments and relationships created! ✅\n");
-    } catch (error) {
-        console.error("❌ Seed failed:", error);
-        process.exit(1);
+        console.log(`✅ Created ${lessons.length} lessons and ${events.length} events (1 per booking)`);
+        console.log("✅ Lisboa School seeded (students, teachers, commissions, packages, equipment, bookings, lessons, events, equipment-events)");
+    } catch (err) {
+        console.error("❌ Error seeding Lisboa School:", err);
     }
 };
 
-seedBerkleyWindsurfAcademyFresh().then(() => {
-    console.log("✨ Done! Exiting...");
-    process.exit(0);
-});
+seedLisboaSchool();

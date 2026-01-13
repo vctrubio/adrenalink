@@ -76,7 +76,18 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     // Navigation functions
     const next = async () => {
         const currentFields = steps[stepIndex].fields;
+        console.log(`[MultiFormContainer] Validating step ${stepIndex}`, {
+            fields: currentFields,
+            currentValues: formMethods.getValues(),
+        });
+
         const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as (keyof T)[]);
+
+        console.log(`[MultiFormContainer] Step ${stepIndex} isValid:`, isValid);
+        if (!isValid) {
+            console.error(`[MultiFormContainer] Step ${stepIndex} validation errors:`, formMethods.formState.errors);
+        }
+
         if (isValid && stepIndex < steps.length - 1) {
             const newStep = stepIndex + 1;
             setStepIndex(newStep);

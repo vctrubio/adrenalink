@@ -65,8 +65,6 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
             timezone: schoolData.timezone,
             google_place_id: schoolData.googlePlaceId,
             equipment_categories: schoolData.equipmentCategories, // Expecting comma-separated string from form
-            owner_email: schoolData.ownerEmail,
-            reference_note: schoolData.referenceNote,
             website_url: schoolData.websiteUrl,
             instagram_url: schoolData.instagramUrl,
             currency: schoolData.currency,

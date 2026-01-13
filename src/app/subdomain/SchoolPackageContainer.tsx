@@ -25,7 +25,6 @@ interface SchoolPackageContainerProps {
 export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
     const {
         id,
-        name,
         description,
         price_per_student,
         duration_minutes,
@@ -57,51 +56,20 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
             onMouseLeave={() => setIsHovered(false)}
             onClick={handleCardClick}
             className={
-                "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm cursor-pointer flex flex-col select-none"
+                "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-lg cursor-pointer flex flex-col select-none"
             }
         >
-            {/* 1. Header: Logo + Type + Description */}
+            {/* 1. Header: Description */}
             <div className="px-8 pt-8 pb-6 border-b border-zinc-100 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div
-                            className="relative w-10 h-10 transition-all duration-500"
-                            style={{
-                                filter: isHovered
-                                    ? "brightness(0) saturate(100%) hue-rotate(30deg) drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))"
-                                    : "brightness(0) opacity(0.3)",
-                            }}
-                        >
-                            <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
-                        </div>
-                        <span
-                            className={`
-                            text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 text-zinc-900
-                            ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
-                        `}
-                        >
-                            Book Now
-                        </span>
-                    </div>
-
-                    {package_type && (
-                        <span
-                            className={`
-                            shrink-0 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border
-                            ${isRental ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"}
-                        `}
-                        >
-                            <span className="font-black mr-2">{getHMDuration(duration_minutes)}</span>
-                            <span className="font-medium opacity-60">{package_type}</span>
-                        </span>
-                    )}
-                </div>
+                <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-zinc-900 group-hover:text-black transition-colors line-clamp-2">
+                    {description}
+                </h4>
             </div>
 
             {/* 2. Middle: Equipment vs Students */}
             <div className="px-8 py-10 flex flex-col items-center justify-center gap-4 bg-zinc-50/30">
                 <div className="flex items-center gap-4">
-                    <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">
+                    <span className="text-l font-black text-zinc-900 tracking-tighter uppercase">
                         {capacity_equipment} {category_equipment}
                     </span>
                     <span className="text-sm font-bold text-zinc-300 uppercase tracking-widest italic">vs</span>
@@ -120,12 +88,8 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                 )}
             </div>
 
-            {/* 3. Footer: Prices & Description */}
+            {/* 3. Footer: Prices & Book Now */}
             <div className="px-8 py-8 mt-auto border-t border-zinc-100 bg-white rounded-b-[2.5rem] flex flex-col gap-6">
-                <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-zinc-900 group-hover:text-black transition-colors line-clamp-2">
-                    {description || name}
-                </h4>
-
                 <div className="flex flex-col gap-1">
                     <div className="flex items-baseline gap-2">
                         <span className="text-4xl font-black text-zinc-900 tracking-tighter">
@@ -135,19 +99,46 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
                         <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">per student</span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-zinc-400 font-bold text-xs uppercase tracking-tight">
-                        <span className="px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-100 text-[10px]">
-                            {getHMDuration(duration_minutes)} session
+                    {pph && (
+                        <div className="flex items-center gap-2 text-zinc-400 font-bold text-xs uppercase tracking-tight">
+                            <span className="text-zinc-200">•</span>
+                            <span>
+                                {currencySymbol}
+                                {pph}/hour
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                    {package_type && (
+                        <span
+                            className={`
+                                shrink-0 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border
+                                ${isRental ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"}
+                            `}
+                        >
+                            <span className="font-black mr-2">{getHMDuration(duration_minutes)}</span>
+                            <span className="font-medium opacity-60">{package_type}</span>
                         </span>
-                        {pph && (
-                            <>
-                                <span className="text-zinc-200">•</span>
-                                <span>
-                                    {currencySymbol}
-                                    {pph}/hour
-                                </span>
-                            </>
-                        )}
+                    )}
+                    <span
+                        className={`
+                            text-[10px] font-black uppercase transition-all duration-500 text-zinc-900
+                            ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
+                        `}
+                    >
+                        Book
+                    </span>
+                    <div
+                        className="relative w-8 h-8 transition-all duration-500"
+                        style={{
+                            filter: isHovered
+                                ? "brightness(0) saturate(100%) hue-rotate(30deg) drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))"
+                                : "brightness(0) opacity(0.3)",
+                        }}
+                    >
+                        <Image src="/ADR.webp" alt="ADR" fill className="object-contain" />
                     </div>
                 </div>
             </div>
@@ -157,21 +148,41 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
 
 export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPackageContainerProps) {
     const [isSelectedArray, setIsSelectedArray] = useState<string[]>([]);
+    const [packageTypeFilter, setPackageTypeFilter] = useState<"lessons" | "rental" | null>(null);
 
     const toggleCategory = (cat: string) => {
         setIsSelectedArray((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
     };
 
+    const togglePackageType = (type: "lessons" | "rental") => {
+        setPackageTypeFilter((prev) => (prev === type ? null : type));
+    };
+
+    // Filter packages by type first
+    const filteredPackages = useMemo(() => {
+        if (!packageTypeFilter) return packages;
+        return packages.filter((pkg) => {
+            const pkgType = pkg.package_type?.toLowerCase() || "";
+            if (packageTypeFilter === "rental") {
+                return pkgType.includes("rental");
+            }
+            if (packageTypeFilter === "lessons") {
+                return pkgType.includes("lesson") || (!pkgType.includes("rental") && pkgType);
+            }
+            return true;
+        });
+    }, [packages, packageTypeFilter]);
+
     // Group packages by category (using snake_case from Supabase)
     const groupedPackages = useMemo(() => {
         const groups: Record<string, SchoolPackage[]> = {};
-        packages.forEach((pkg) => {
+        filteredPackages.forEach((pkg) => {
             const cat = pkg.category_equipment || "Other";
             if (!groups[cat]) groups[cat] = [];
             groups[cat].push(pkg);
         });
         return groups;
-    }, [packages]);
+    }, [filteredPackages]);
 
     // Get sorted categories
     const categories = useMemo(() => {
@@ -202,8 +213,9 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
     return (
         <div className="flex flex-col h-full gap-8">
             {/* Category Selector Bar */}
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start px-2">
-                {categories.map((cat) => {
+            <div className="flex flex-wrap items-center gap-4 justify-between px-2">
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                    {categories.map((cat) => {
                     const config = EQUIPMENT_CATEGORIES.find((c) => c.id === cat);
                     const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
                     const isSelected = isSelectedArray.includes(cat);
@@ -245,6 +257,29 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                         </button>
                     );
                 })}
+                </div>
+                {/* Package Type Filters */}
+                <div className="flex gap-3">
+                    {(["lessons", "rental"] as const).map((type) => {
+                        const isSelected = packageTypeFilter === type;
+                        return (
+                            <button
+                                key={type}
+                                onClick={() => togglePackageType(type)}
+                                className={`
+                                    px-6 py-3 rounded-2xl border transition-all duration-300
+                                    ${
+                                        isSelected
+                                            ? "bg-zinc-900 border-zinc-900 text-white shadow-xl scale-105"
+                                            : "bg-white border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-zinc-600"
+                                    }
+                                `}
+                            >
+                                <span className="text-lg font-black uppercase tracking-tight">{type === "lessons" ? "Lessons" : "Rental"}</span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Scrollable Cards Area */}

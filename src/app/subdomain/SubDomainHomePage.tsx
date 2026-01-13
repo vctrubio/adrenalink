@@ -24,6 +24,7 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
         instagram_url: instagramUrl,
         currency,
         username,
+        status,
     } = school;
     const { bannerUrl, iconUrl } = assets;
     const currencySymbol = getCurrencySymbol(currency);
@@ -82,6 +83,20 @@ export function SubDomainHomePage({ school, packages, assets }: SchoolWithPackag
                                     <MapPin className="w-5 h-5 text-secondary" />
                                     {country}
                                 </motion.span>
+                                {status && (
+                                    <motion.span
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.25, duration: 0.4, ease: "backOut" }}
+                                        className={`px-4 py-2 rounded-lg text-sm md:text-base font-bold uppercase tracking-wider ${
+                                            status.toLowerCase() === "beta"
+                                                ? "bg-orange-50 text-orange-600"
+                                                : "bg-white text-zinc-600"
+                                        }`}
+                                    >
+                                        {status}
+                                    </motion.span>
+                                )}
                             </div>
                         </div>
 

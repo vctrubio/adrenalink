@@ -22,43 +22,61 @@ export const createLessonsAndEvents = async (
     const lessonRecords: any[] = [];
     const eventRecords: any[] = [];
 
+    // Group bookings by date_start
+    const bookingsByDate: Record<string, any[]> = {};
     for (const bk of bookings) {
-        // One teacher per booking
-        const teacher = teachers[Math.floor(Math.random() * teachers.length)];
-        const teacherComms = teacherCommissions.filter((tc) => tc.teacher_id === teacher.id);
-        if (teacherComms.length === 0) continue;
+        if (!bookingsByDate[bk.date_start]) bookingsByDate[bk.date_start] = [];
+        bookingsByDate[bk.date_start].push(bk);
+    }
 
-        const commission = teacherComms[0];
-        const schoolPkg = packages.find((p) => p.id === bk.school_package_id);
-        if (!schoolPkg) continue;
+    for (const dateStr of Object.keys(bookingsByDate)) {
+        const dayBookings = bookingsByDate[dateStr];
+        // Sort bookings for determinism (optional)
+        dayBookings.sort((a, b) => a.id.localeCompare(b.id));
 
-        const lesson = {
-            school_id: schoolId,
-            teacher_id: teacher.id,
-            booking_id: bk.id,
-            commission_id: commission.id,
-            status: "completed",
-            _packageDuration: schoolPkg.duration_minutes,
-            _capacityEquipment: schoolPkg.capacity_equipment,
-            _categoryEquipment: schoolPkg.category_equipment,
-        };
+        let currentTime = new Date(dateStr + "T09:00:00Z");
 
-        lessonRecords.push(lesson);
+        for (const bk of dayBookings) {
+            // One teacher per booking
+            const teacher = teachers[Math.floor(Math.random() * teachers.length)];
+            const teacherComms = teacherCommissions.filter((tc) => tc.teacher_id === teacher.id);
+            if (teacherComms.length === 0) continue;
 
-        // Create one event from booking date + package duration
-        const bookingDate = new Date(bk.date_start + "T09:00:00Z");
-        const duration = schoolPkg.duration_minutes || 60;
+            const commission = teacherComms[0];
+            const schoolPkg = packages.find((p) => p.id === bk.school_package_id);
+            if (!schoolPkg) continue;
 
-        eventRecords.push({
-            school_id: schoolId,
-            lesson_id: "", // Will be filled after lessons created
-            date: bookingDate.toISOString(),
-            duration: duration,
-            location: faker.location.city(),
-            status: "completed",
-            _lessonIndex: lessonRecords.length - 1,
-            _capacityEquipment: schoolPkg.capacity_equipment,
-        });
+            const lesson = {
+                school_id: schoolId,
+                teacher_id: teacher.id,
+                booking_id: bk.id,
+                commission_id: commission.id,
+                status: "completed",
+                _packageDuration: schoolPkg.duration_minutes,
+                _capacityEquipment: schoolPkg.capacity_equipment,
+                _categoryEquipment: schoolPkg.category_equipment,
+            };
+
+            lessonRecords.push(lesson);
+
+            // Schedule event to start at currentTime
+            const duration = schoolPkg.duration_minutes || 60;
+            const eventDate = new Date(currentTime);
+
+            eventRecords.push({
+                school_id: schoolId,
+                lesson_id: "", // Will be filled after lessons created
+                date: eventDate.toISOString(),
+                duration: duration,
+                location: faker.location.city(),
+                status: "completed",
+                _lessonIndex: lessonRecords.length - 1,
+                _capacityEquipment: schoolPkg.capacity_equipment,
+            });
+
+            // Move currentTime forward by duration (minutes)
+            currentTime = new Date(currentTime.getTime() + duration * 60000);
+        }
     }
 
     // Insert lessons
@@ -103,14 +121,25 @@ export const addEquipmentToEvents = async (
         const lesson = lessons.find((l) => l.id === event.lesson_id);
         if (!lesson) continue;
 
+        const requiredCategory = lesson._categoryEquipment;
         const teacherEquipmentIds = teacherEquipment.get(lesson.teacher_id) || [];
         if (teacherEquipmentIds.length === 0) continue;
 
-        // Add up to 2 equipment items per event
-        const numEquipment = Math.min(2, teacherEquipmentIds.length);
+        // Filter teacher's equipment by required category
+        const teacherEquipmentByCategory = lesson.teacher_equipment_details
+            ? lesson.teacher_equipment_details.filter((eq: any) => eq.category === requiredCategory)
+            : [];
+
+        // Fallback: if no details, just use all teacher equipment
+        const eligibleEquipmentIds = teacherEquipmentByCategory.length > 0
+            ? teacherEquipmentByCategory.map((eq: any) => eq.id)
+            : teacherEquipmentIds;
+
+        // Add up to 2 equipment items per event, matching category
+        const numEquipment = Math.min(2, eligibleEquipmentIds.length);
         for (let i = 0; i < numEquipment; i++) {
             equipmentEventRecords.push({
-                equipment_id: teacherEquipmentIds[i],
+                equipment_id: eligibleEquipmentIds[i],
                 event_id: event.id,
             });
         }

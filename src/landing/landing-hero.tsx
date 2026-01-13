@@ -94,52 +94,26 @@ function LandingHeroHeader() {
     );
 }
 
-function ThreeWayConnection({ word, delay }: { word: string; delay: number }) {
+function ThreeWayConnection({ word }: { word: string }) {
     const [isHovered, setIsHovered] = React.useState(false);
 
     return (
-        <motion.span
+        <span
             className={`relative inline-block cursor-pointer px-1 text-gray-400 ${isHovered ? "font-bold" : ""}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-                opacity: 1, 
-                y: 0,
-            }}
-            transition={{ 
-                delay,
-                duration: 0.6,
-                ease: [0.22, 1, 0.36, 1] as const,
-            }}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
             {word}
             {isHovered && (
-                <motion.span
+                <span
                     className="absolute inset-0 -z-10"
-                    initial={{ 
-                        scaleX: 0,
-                        transformOrigin: "left",
-                    }}
-                    animate={{ 
-                        scaleX: 1,
-                        transformOrigin: "left",
-                    }}
-                    exit={{ 
-                        scaleX: 0,
-                        transformOrigin: "right",
-                    }}
-                    transition={{ 
-                        duration: 0.8,
-                        ease: [0.16, 1, 0.3, 1] as const,
-                    }}
                     style={{
                         backgroundColor: "rgb(59, 130, 246)",
                         opacity: 0.8,
                     }}
                 />
             )}
-        </motion.span>
+        </span>
     );
 }
 
@@ -154,121 +128,22 @@ function LandingShortDesc() {
                     lineHeight: '1.6'
                 }}
             >
-                <motion.span 
-                    className="text-white font-semibold"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.connecting,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    Connecting
-                </motion.span>{" "}
+                <span className="text-white font-semibold">Connecting</span>{" "}
                 
-                <ThreeWayConnection word="schools" delay={ANIMATION_DELAYS.schools} />
-                <motion.span 
-                    className="text-gray-400"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.comma,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    ,{" "}
-                </motion.span>
-                <ThreeWayConnection word="students" delay={ANIMATION_DELAYS.students} />{" "}
-                <motion.span 
-                    className="text-gray-400"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.and,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    and
-                </motion.span>{" "}
-                <ThreeWayConnection word="teachers" delay={ANIMATION_DELAYS.teachers} />{" "}
+                <ThreeWayConnection word="schools" />
+                <span className="text-gray-400">,{" "}</span>
+                <ThreeWayConnection word="students" />{" "}
+                <span className="text-gray-400">and</span>{" "}
+                <ThreeWayConnection word="teachers" />{" "}
                 
-                <motion.span 
-                    className="text-white font-semibold"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.toSynchronize,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    to synchronize
-                </motion.span>{" "}
-                <motion.span 
-                    className="text-gray-400"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.lessonPlanning,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    lesson planning, with
-                </motion.span>{" "}
+                <span className="text-white font-semibold">to synchronize</span>{" "}
+                <span className="text-gray-400">lesson planning, with</span>{" "}
                 
-                <motion.span 
-                    className="text-white font-semibold"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.smartAutomation,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    smart automation
-                </motion.span>{" "}
-                <motion.span 
-                    className="text-gray-400"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.andAfterAutomation,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    and
-                </motion.span>{" "}
+                <span className="text-white font-semibold">smart automation</span>{" "}
+                <span className="text-gray-400">and</span>{" "}
                 
-                <motion.span 
-                    className="text-white font-semibold"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.equipmentTracking,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    equipment tracking
-                </motion.span>
-                <motion.span 
-                    className="text-gray-500"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                        delay: ANIMATION_DELAYS.period,
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1] as const
-                    }}
-                >
-                    .
-                </motion.span>
+                <span className="text-white font-semibold">equipment tracking</span>
+                <span className="text-gray-500">.</span>
             </p>
         </div>
     );
