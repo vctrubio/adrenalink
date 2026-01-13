@@ -21,10 +21,15 @@ export function LandingDescription() {
     const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [selectedSport, setSelectedSport] = useState<string | null>(null);
+    const [isExiting, setIsExiting] = useState(false);
 
     useEffect(() => {
         if (selectedRole && selectedSport) {
-            router.push("/pillars");
+            setIsExiting(true);
+            const timer = setTimeout(() => {
+                router.push("/pillars");
+            }, 500);
+            return () => clearTimeout(timer);
         }
     }, [selectedRole, selectedSport, router]);
 
@@ -40,9 +45,13 @@ export function LandingDescription() {
             <PhotoCredit />
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={
+                    isExiting
+                        ? { opacity: 0, x: -100, filter: "blur(10px)" }
+                        : { opacity: 1, x: 0, filter: "blur(0px)", scale: 1 }
+                }
+                transition={{ duration: 0.5, ease: "easeOut" }}
                 viewport={{ once: true, amount: 0.3 }}
                 className="relative z-10 h-full flex flex-col items-center justify-center px-4"
             >
@@ -134,10 +143,10 @@ function UserRoleSelection({
                             onClick={() => setSelectedRole(isSelected ? null : role.id)}
                             onHoverStart={() => setHoveredRole(role.id)}
                             onHoverEnd={() => setHoveredRole(null)}
-                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
+                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg backdrop-blur-lg text-white ${
                                 isSelected
-                                    ? "bg-white/20 border-white/60 text-white z-10"
-                                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                    ? "bg-white/20 border-white/60 z-10"
+                                    : "bg-slate-950/60 border-white/10 hover:bg-slate-950/70 hover:border-white/40"
                             }`}
                         >
                             <motion.div
@@ -148,12 +157,12 @@ function UserRoleSelection({
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                 className="flex items-center justify-center"
                             >
-                                <Icon size={42} className="transition-all duration-300" />
+                                <Icon size={42} className="transition-all duration-300 text-white" />
                             </motion.div>
 
                             <motion.span
                                 layout="position"
-                                className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${isHovered || isSelected ? "text-white" : "text-white/60"}`}
+                                className="hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 text-white"
                             >
                                 {role.label}
                             </motion.span>

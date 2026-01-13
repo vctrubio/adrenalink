@@ -11,7 +11,7 @@ const HIGHLIGHT_SPAN_CLASSNAME = "border-b border-secondary/50 tracking-wider";
 const KEY_WORDS = "text-xl text-white";
 
 const ANIMATION_DELAYS = {
-    connecting: 0,
+    connecting: 0.2,
     schools: 0.5,
     students: 0.9,
     and: 1.0,
@@ -156,8 +156,8 @@ function LandingShortDesc() {
             >
                 <motion.span 
                     className="text-white font-semibold"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ 
                         delay: ANIMATION_DELAYS.connecting,
                         duration: 0.6,

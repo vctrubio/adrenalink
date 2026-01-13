@@ -53,13 +53,13 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             }}
                             onHoverStart={() => setHoveredSport(sport.id)}
                             onHoverEnd={() => setHoveredSport(null)}
-                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${
+                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${isLanding ? "backdrop-blur-lg text-white" : ""} ${
                                 isSelected
                                     ? isLanding
-                                        ? "bg-white/20 border-white/60 text-white z-10"
+                                        ? "bg-white/20 border-white/60 z-10"
                                         : "bg-secondary/20 border-secondary text-secondary z-10"
                                     : isLanding
-                                      ? "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/15 hover:border-white/40"
+                                      ? "bg-slate-950/60 border-white/10 hover:bg-slate-950/70 hover:border-white/40"
                                       : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-border"
                             }`}
                         >
@@ -90,9 +90,7 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                     fill
                                     className={`object-fill transition-all duration-300 ${
                                         isLanding
-                                            ? isHovered || isSelected
-                                                ? "brightness-0 invert"
-                                                : "brightness-0 invert opacity-60"
+                                            ? "brightness-0 invert"
                                             : isHovered || isSelected
                                               ? "brightness-0 dark:invert"
                                               : "brightness-0 dark:invert opacity-70"
@@ -104,9 +102,7 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                                 layout="position"
                                 className={`hidden md:block text-xs font-black uppercase tracking-[0.2em] ${
                                     isLanding
-                                        ? isHovered || isSelected
-                                            ? "text-white"
-                                            : "text-white/60"
+                                        ? "text-white"
                                         : isHovered || isSelected
                                           ? "text-foreground"
                                           : "text-muted-foreground/60"

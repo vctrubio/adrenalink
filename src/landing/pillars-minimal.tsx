@@ -17,6 +17,7 @@ const pillarConfig = [
     { id: "rental", number: "06", title: "Rentals", description: "Equipment hire" },
 ];
 
+
 const PillarsMinimal = () => {
     const [isStarting, setIsStarting] = useState(false);
     const [isNavigatingTeam, setIsNavigatingTeam] = useState(false);
@@ -88,44 +89,6 @@ const PillarsMinimal = () => {
                     onGetStarted={() => setIsStarting(true)}
                     variant="primary"
                     getStartedUrl="/discover"
-                    extraActions={
-                        isMoreButtonVisible && (
-                            <>
-                                {extraPillarsCount < 2 ? (
-                                    <div
-                                        onClick={handleTellMeMore}
-                                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group relative"
-                                    >
-                                        <Plus className="w-5 h-5 group-hover:text-primary transition-colors" />
-                                        <span className="font-medium">Tell me more</span>
-                                        {extraPillarsCount > 0 && (
-                                            <AnimatePresence mode="wait">
-                                                <motion.span
-                                                    initial={{ scale: 0, opacity: 0, y: 5 }}
-                                                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                                                    exit={{ scale: 0, opacity: 0, y: -5 }}
-                                                    key={extraPillarsCount}
-                                                    className="absolute -top-3 -right-3 bg-primary text-primary-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md"
-                                                >
-                                                    {extraPillarsCount}
-                                                </motion.span>
-                                            </AnimatePresence>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => {
-                                            setIsNavigatingTeam(true);
-                                            window.location.href = "/team";
-                                        }}
-                                        className="px-6 py-3 rounded-full border border-transparent text-primary/70 hover:border-primary/40 hover:text-primary/70 transition-colors font-bold flex items-center gap-3"
-                                    >
-                                        <span>Meet the team</span>
-                                    </button>
-                                )}
-                            </>
-                        )
-                    }
                 />
             }
         >
