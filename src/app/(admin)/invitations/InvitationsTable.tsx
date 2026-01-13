@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { StudentPackageRequest } from "@/supabase/server/student-package";
 import { updateStudentPackageStatus } from "@/supabase/server/student-package";
 import Image from "next/image";
+import Link from "next/link";
 import adrLogo from "@/public/ADR.webp";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";
@@ -13,8 +14,8 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { formatDate, getRelativeDateLabel } from "@/getters/date-getter";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
-
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { getCurrencySymbol } from "@/supabase/db/currency";
 
 interface InvitationsTableProps {
     invitations: StudentPackageRequest[];
@@ -83,7 +84,7 @@ const STATUS_CONFIG: Record<string, { label: string; textColor: string; hoverBg:
 
 function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
     const { currency } = useSchoolCredentials();
-    const currencySymbol = currency === "EUR" ? "€" : currency || "¥";
+    const currencySymbol = getCurrencySymbol(currency);
     const [isPending, setIsPending] = useState(false);
     const { id, requested_date_start, requested_date_end, status, wallet_id, created_at, school_package } = invitation;
 
@@ -124,11 +125,21 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
             {/* Package Column */}
             <td className="px-8 py-8 align-middle rounded-l-3xl border-y border-l border-zinc-100 dark:border-zinc-800 shadow-sm relative">
                 <div className="flex flex-col gap-4">
-                    <div className="pl-1">
-                        <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
-                            {packageDesc}
-                        </span>
-                    </div>
+                                        <div className="pl-1">
+                                                {school_package?.id ? (
+                                                    <Link
+                                                        href={`/packages/${school_package.id}`}
+                                                        className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block"
+                                                        title="View Package Details"
+                                                    >
+                                                        {packageDesc}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
+                                                        {packageDesc}
+                                                    </span>
+                                                )}
+                                        </div>
                     <PackageComparisonBadge
                         categoryEquipment={category_equipment}
                         equipmentCapacity={capacity_equipment}
@@ -212,7 +223,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                         <span
                             className={`text-[10px] font-bold uppercase tracking-widest ${isRental ? "text-[rgb(var(--red-clade))]" : "text-[rgb(var(--blue-clude))]"}`}
                         >
-                            {isRental ? "Rental Service" : "Lesson Package"}
+                            {isRental ? "Rental" : "Lesson"}
                         </span>
                         <PackageIcon size={16} className="text-muted-foreground" />
                     </div>

@@ -26,7 +26,7 @@ export function PackageComparisonBadge({
     currencySymbol,
 }: PackageComparisonBadgeProps) {
     // Calculate total revenue
-    const totalRevenue = studentCapacity * packageDurationHours * pricePerHour;
+    const totalRevenue = pricePerHour * studentCapacity * packageDurationHours;
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === categoryEquipment);
 
@@ -110,7 +110,7 @@ export function PackageComparisonBadge({
                     <div className="flex flex-col leading-none">
                         <span className="text-sm font-black">{currencySymbol}{totalRevenue.toLocaleString()}</span>
                         <div className="w-full border-t border-zinc-200 dark:border-zinc-700 my-1" />
-                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{pricePerHour.toFixed(0)} {currencySymbol}/hr</span>
+                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{pricePerHour.toFixed(0)} PPS/H</span>
                     </div>
                 </div>
             )}

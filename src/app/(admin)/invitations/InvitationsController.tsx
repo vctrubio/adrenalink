@@ -47,7 +47,7 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            {/* <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="w-full sm:w-96">
                     <SearchInput
                         placeholder="Search wallet ID..."
@@ -74,7 +74,7 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
                         entityColor="#3b82f6"
                     />
                 </div>
-            </div>
+            </div> */}
 
             <InvitationsTable invitations={filteredAndSortedInvitations} />
         </div>

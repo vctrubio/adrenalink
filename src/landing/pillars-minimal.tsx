@@ -23,6 +23,7 @@ const PillarsMinimal = () => {
     const [extraPillarsCount, setExtraPillarsCount] = useState(0);
     const [isMoreButtonVisible, setIsMoreButtonVisible] = useState(true);
     const [showFooter, setShowFooter] = useState(false);
+    const [titleMain, setTitleMain] = useState("Four pillars.");
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -46,8 +47,16 @@ const PillarsMinimal = () => {
     }, []);
 
     const handleTellMeMore = () => {
-        if (extraPillarsCount < 2) setExtraPillarsCount((prev) => prev + 1);
-        else setIsMoreButtonVisible(false);
+        if (extraPillarsCount < 2) {
+            setExtraPillarsCount((prev) => {
+                const next = prev + 1;
+                if (next === 1) setTitleMain("Five pillars.");
+                if (next === 2) setTitleMain("Six pillars.");
+                return next;
+            });
+        } else {
+            setIsMoreButtonVisible(false);
+        }
     };
 
     const isExiting = isStarting || isNavigatingTeam;
@@ -58,7 +67,11 @@ const PillarsMinimal = () => {
             isNavigatingOther={isNavigatingTeam}
             header={
                 <SchoolHeaderContent
-                    titleMain="Four pillars."
+                    titleMain={
+                        <span key={titleMain} className="inline-block transition-all duration-500 ease-in-out opacity-100 translate-y-0 will-change-transform">
+                            {titleMain}
+                        </span>
+                    }
                     titleSub="One platform."
                     descriptionMain="Home of Adrenaline Activities"
                     descriptionSub="An abnormal documentation for schools looking to get started"

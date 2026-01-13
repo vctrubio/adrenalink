@@ -27,6 +27,7 @@ export function PackageLeftColumn({ packageData }: PackageLeftColumnProps) {
     // Package calculations
     const durationHours = pkg.duration_minutes ? pkg.duration_minutes / 60 : 0;
     const pricePerHour = durationHours > 0 ? (pkg.price_per_student || 0) / durationHours : 0;
+    const totalRevenue = (pkg.price_per_student || 0) * (pkg.capacity_students || 0) * durationHours;
 
     // Status badges
     const statusElements = [];
@@ -50,7 +51,7 @@ export function PackageLeftColumn({ packageData }: PackageLeftColumnProps) {
         fields: [
             {
                 label: "Category",
-                value: pkg.category_equipment,
+                value: pkg.category_equipment ? pkg.category_equipment.charAt(0).toUpperCase() + pkg.category_equipment.slice(1) : "",
             },
             {
                 label: "Eq Capacity",
@@ -73,8 +74,12 @@ export function PackageLeftColumn({ packageData }: PackageLeftColumnProps) {
                 value: `${Math.round(pricePerHour)} ${currency}`,
             },
             {
+                label: "Total Revenue",
+                value: `${Math.round(totalRevenue)} ${currency}`,
+            },
+            {
                 label: "Type",
-                value: pkg.package_type,
+                value: pkg.package_type ? pkg.package_type.charAt(0).toUpperCase() + pkg.package_type.slice(1) : "",
             },
             {
                 label: "Created",
