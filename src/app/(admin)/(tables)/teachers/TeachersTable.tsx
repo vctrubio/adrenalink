@@ -393,6 +393,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
             showGroupToggle={false}
+            populateType="teacher"
         />
     );
 }

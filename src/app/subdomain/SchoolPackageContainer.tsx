@@ -16,6 +16,7 @@ interface PackageCardProps {
 interface SchoolPackageContainerProps {
     packages: SchoolPackage[];
     currencySymbol: string;
+    schoolId: string;
 }
 
 /**
@@ -146,9 +147,11 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
     );
 }
 
-export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPackageContainerProps) {
+export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: SchoolPackageContainerProps) {
     const [isSelectedArray, setIsSelectedArray] = useState<string[]>([]);
     const [packageTypeFilter, setPackageTypeFilter] = useState<"lessons" | "rental" | null>(null);
+    const [isSeeding, setIsSeeding] = useState(false);
+    const router = useRouter();
 
     const toggleCategory = (cat: string) => {
         setIsSelectedArray((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
@@ -198,13 +201,54 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
         });
     }, [groupedPackages]);
 
+    const handleSeedPackages = async () => {
+        setIsSeeding(true);
+        try {
+            const response = await fetch("/api/beta", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ type: "package", schoolId }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to populate packages");
+            }
+
+            // Revalidate the page to show new packages
+            router.refresh();
+        } catch (error) {
+            console.error("Error populating packages:", error);
+            setIsSeeding(false);
+        }
+    };
+
     if (categories.length === 0) {
         return (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-10 select-none pointer-events-none">
-                <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale" />
-                <div className="mt-6">
-                    <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2">No Packages</span>
-                    <span className="text-sm font-bold uppercase tracking-[0.5em]">Available right now</span>
+            <div className="h-full flex flex-col items-center justify-center text-center gap-6">
+                <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale opacity-20" />
+                <div className="flex flex-col items-center gap-4">
+                    <div>
+                        <span className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] block mb-2 text-zinc-400">
+                            No Packages
+                        </span>
+                        <span className="text-sm font-bold uppercase tracking-[0.5em] text-zinc-300">Available right now</span>
+                    </div>
+                    <button
+                        onClick={handleSeedPackages}
+                        disabled={isSeeding}
+                        className={`
+                            px-8 py-4 rounded-2xl border transition-all duration-300 font-black uppercase tracking-tight
+                            ${
+                                isSeeding
+                                    ? "bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed"
+                                    : "bg-zinc-900 border-zinc-900 text-white hover:bg-zinc-800 hover:scale-105 shadow-xl"
+                            }
+                        `}
+                    >
+                        {isSeeding ? "Populating..." : "Populate My School"}
+                    </button>
                 </div>
             </div>
         );

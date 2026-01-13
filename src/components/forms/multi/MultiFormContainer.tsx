@@ -49,7 +49,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     title,
     subtitle,
     stepSubtitles,
-    className = "w-full max-w-3xl mx-auto",
+    className = "w-full max-w-5xl mx-auto",
     onStepChange,
     submitButtonText = "Submit",
     successTitle = "Congratulations",
@@ -206,23 +206,25 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     }
 
     return (
-        <div className={`mt-4 md:mt-18 px-2 md:px-0 ${className}`}>
+        <div className={`mt-12 md:mt-32 px-4 md:px-0 ${className}`}>
             {/* Header */}
             {(title || currentSubtitle) && (
-                <div className="mb-3 md:mb-8 text-center">
-                    {title && <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-foreground mb-1 md:mb-2">{title}</h1>}
+                <div className="mb-6 md:mb-12 text-center">
+                    {title && <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">{title}</h1>}
                     {currentSubtitle && <p className="text-sm md:text-lg text-muted-foreground">{currentSubtitle}</p>}
                 </div>
             )}
 
             {/* Stepper */}
-            <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
+            <div className="mb-8 md:mb-12">
+                <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
+            </div>
 
             {/* Form */}
             <Form
                 methods={formMethods}
                 onSubmit={handleSubmit(handleFormSubmit)}
-                className="bg-card rounded-lg md:rounded-xl border border-border/50 p-3 md:p-8 lg:p-12 shadow-lg mx-auto"
+                className="bg-card rounded-2xl md:rounded-[2.5rem] border border-border/50 p-6 md:p-12 lg:p-20 shadow-2xl mx-auto"
             >
                 {/* Current Step Content */}
                 {CurrentStepComponent && (

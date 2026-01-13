@@ -9,22 +9,24 @@ import { SpinAdranalink } from "@/src/components/ui/SpinAdranalink";
 
 interface ChangeTheWindFooterProps {
     showFooter: boolean;
-    isStarting: boolean;
+    isStarting?: boolean;
     onGetStarted?: () => void;
     variant?: "primary" | "secondary";
     extraActions?: React.ReactNode;
-    getStartedUrl: string;
+    getStartedUrl?: string;
     registerUrl?: string;
+    minimal?: boolean;
 }
 
 export function ChangeTheWindFooter({
     showFooter,
-    isStarting,
+    isStarting = false,
     onGetStarted,
     variant = "primary",
     extraActions,
-    getStartedUrl,
+    getStartedUrl = "/",
     registerUrl = "/",
+    minimal = false,
 }: ChangeTheWindFooterProps) {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
 
@@ -42,33 +44,35 @@ export function ChangeTheWindFooter({
         >
             <div className="w-full backdrop-blur-xl">
                 <div className="container mx-auto px-4">
-                    <div className="max-w-5xl mx-auto py-3 flex items-center justify-between gap-8">
-                        <div className="flex items-center gap-6">
-                            <Link
-                                href={getStartedUrl}
-                                onClick={onGetStarted}
-                                onMouseEnter={() => setIsButtonHovered(true)}
-                                onMouseLeave={() => setIsButtonHovered(false)}
-                                className="px-6 py-3 rounded-full border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors font-medium flex items-center gap-3"
-                            >
-                                <SpinAdranalink
-                                    isSpinning={isStarting || isButtonHovered}
-                                    duration={isStarting ? 0.3 : 0.8}
-                                    size={20}
-                                />
-                                <span>Get Started</span>
-                            </Link>
+                    <div className={`max-w-5xl mx-auto py-3 flex items-center gap-8 ${minimal ? "justify-end" : "justify-between"}`}>
+                        {!minimal && (
+                            <div className="flex items-center gap-6">
+                                <Link
+                                    href={getStartedUrl}
+                                    onClick={onGetStarted}
+                                    onMouseEnter={() => setIsButtonHovered(true)}
+                                    onMouseLeave={() => setIsButtonHovered(false)}
+                                    className="px-6 py-3 rounded-full border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors font-medium flex items-center gap-3"
+                                >
+                                    <SpinAdranalink
+                                        isSpinning={isStarting || isButtonHovered}
+                                        duration={isStarting ? 0.3 : 0.8}
+                                        size={20}
+                                    />
+                                    <span>Get Started</span>
+                                </Link>
 
-                            <Link
-                                href={registerUrl}
-                                className="cursor-pointer transition-all group flex items-center gap-3 text-muted-foreground hover:text-foreground"
-                            >
-                                <AdminIcon className={`w-5 h-5 transition-colors ${accentTextClass}`} />
-                                <span className="font-medium hover:underline">Register as a School</span>
-                            </Link>
+                                <Link
+                                    href={registerUrl}
+                                    className="cursor-pointer transition-all group flex items-center gap-3 text-muted-foreground hover:text-foreground"
+                                >
+                                    <AdminIcon className={`w-5 h-5 transition-colors ${accentTextClass}`} />
+                                    <span className="font-medium hover:underline">Register as a School</span>
+                                </Link>
 
-                            {extraActions}
-                        </div>
+                                {extraActions}
+                            </div>
+                        )}
 
                         <div className="flex items-center gap-4">
                             <span className="text-muted-foreground text-sm">Change the wind</span>

@@ -3,9 +3,10 @@
 import { useMemo, ReactNode, useState, useEffect } from "react";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { SearchX } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { SEARCH_FIELDS_DESCRIPTION } from "@/types/searching-entities";
 import { ENTITY_DATA } from "@/config/entities";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 export type GroupingType = "all" | "date" | "week" | "month";
 
@@ -33,6 +34,7 @@ interface MasterTableProps<T> {
     renderGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
     renderMobileGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
     showGroupToggle?: boolean;
+    populateType?: "student" | "teacher" | "package" | "equipment";
 }
 
 // Desktop table rendering
@@ -144,10 +146,14 @@ export function MasterTable<T extends Record<string, any>>({
     renderGroupHeader,
     renderMobileGroupHeader,
     showGroupToggle = true,
+    populateType,
 }: MasterTableProps<T>) {
     const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy || "all");
+    const [isPopulating, setIsPopulating] = useState(false);
     const { search, onSearchChange } = useTablesController();
     const pathname = usePathname();
+    const router = useRouter();
+    const credentials = useSchoolCredentials();
 
     // Sync state with prop if controlled
     useEffect(() => {
@@ -216,7 +222,45 @@ export function MasterTable<T extends Record<string, any>>({
                         </button>
                     </div>
                 ) : (
-                    <p className="text-muted-foreground">No data available to display.</p>
+                    <div className="space-y-6">
+                        <p className="text-muted-foreground">No data available to display.</p>
+                        {populateType && (
+                            <button
+                                onClick={async () => {
+                                    setIsPopulating(true);
+                                    try {
+                                        const response = await fetch("/api/beta", {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                            },
+                                            body: JSON.stringify({ type: populateType, schoolId: credentials.id }),
+                                        });
+
+                                        if (!response.ok) {
+                                            throw new Error("Failed to populate");
+                                        }
+
+                                        router.refresh();
+                                    } catch (error) {
+                                        console.error("Error populating:", error);
+                                        setIsPopulating(false);
+                                    }
+                                }}
+                                disabled={isPopulating}
+                                className={`
+                                    px-8 py-4 rounded-xl border transition-all duration-300 font-black uppercase tracking-tight
+                                    ${
+                                        isPopulating
+                                            ? "bg-muted border-muted text-muted-foreground cursor-not-allowed"
+                                            : "bg-primary border-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 shadow-lg"
+                                    }
+                                `}
+                            >
+                                {isPopulating ? "Populating..." : `Populate ${populateType.charAt(0).toUpperCase() + populateType.slice(1)}s`}
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
         );

@@ -240,6 +240,7 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
             showGroupToggle={false}
+            populateType="equipment"
         />
     );
 }

@@ -197,6 +197,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
             showGroupToggle={false}
+            populateType="package"
         />
     );
 }

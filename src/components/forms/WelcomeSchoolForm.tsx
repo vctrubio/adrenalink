@@ -379,9 +379,13 @@ export function WelcomeSchoolForm() {
     };
 
     return (
-        <div className="w-full max-w-3xl mx-auto space-y-6">
+        <div className="w-full max-w-7xl mx-auto space-y-16 md:space-y-24">
             {/* Live Header Preview - Always visible to encourage completion */}
-            {!isResultView && <WelcomeHeader formData={formValues} showPreview={isNameRegistered} />}
+            {!isResultView && (
+                <div className="mb-4 md:mb-8">
+                    <WelcomeHeader formData={formValues} showPreview={isNameRegistered} />
+                </div>
+            )}
 
             {!isNameRegistered ? (
                 <WelcomeSchoolNameRegistration

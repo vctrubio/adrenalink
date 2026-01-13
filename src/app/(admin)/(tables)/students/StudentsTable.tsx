@@ -202,6 +202,7 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             rows={filteredStudents}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
+            populateType="student"
             groupBy={masterTableGroupBy}
             getGroupKey={getGroupKey}
             calculateStats={calculateStats}
