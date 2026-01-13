@@ -34,7 +34,7 @@ export function LandingDescription() {
     }, [selectedRole, selectedSport, router]);
 
     return (
-        <section className="h-screen snap-start relative overflow-hidden ">
+        <section className="h-screen snap-start snap-always relative overflow-hidden ">
             <BackgroundImage
                 src="/kritaps_ungurs_unplash/wave-wide.jpg"
                 position="absolute"

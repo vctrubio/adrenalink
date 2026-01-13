@@ -318,7 +318,7 @@ export function LandingHero() {
     }, []);
 
     return (
-        <section className={`h-screen snap-start relative w-full ${BLUE_BG_GO}`}>
+        <section className={`h-screen snap-start snap-always relative w-full ${BLUE_BG_GO}`}>
             {/* Waves Canvas - Always present */}
             <canvas ref={wavesCanvasRef} className="absolute inset-0 w-full h-full" />
 
