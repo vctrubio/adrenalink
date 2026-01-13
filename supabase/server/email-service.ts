@@ -17,6 +17,7 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
     }
 
     const schoolUrl = `https://${school.username}.adrenalink.tech`;
+    const logoUrl = "https://adrenalink.tech/ADR.webp";
     
     // HTML Template - Premium Adrenalink Branding
     const htmlContent = `
@@ -39,7 +40,7 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
             
             /* Header */
             .header { background-color: #18181b; padding: 40px; text-align: center; }
-            .logo-text { color: #ffffff; font-size: 28px; font-weight: 900; letter-spacing: -1px; margin: 0; }
+            .logo-img { filter: invert(1); brightness: 100; }
             
             /* Content */
             .content { padding: 40px; }
@@ -73,7 +74,7 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
             <div class="main">
                 <!-- Dark Header -->
                 <div class="header">
-                    <div class="logo-text">ADR.</div>
+                    <img src="${logoUrl}" alt="Adrenalink" width="120" class="logo-img" style="display: block; margin: 0 auto; filter: invert(1);" />
                 </div>
                 
                 <div class="content">
