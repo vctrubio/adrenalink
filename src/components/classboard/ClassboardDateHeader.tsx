@@ -2,6 +2,7 @@
 
 import { Play, Share2, RefreshCw, Timer, Settings, Flag, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { getTodayDateString } from "@/getters/date-getter";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
@@ -209,7 +210,12 @@ function LeftButtonStrip({
     isAdjustmentMode: boolean;
 }) {
     return (
-        <div className="w-12 bg-slate-900 dark:bg-slate-500 flex flex-col divide-y divide-white/10 flex-shrink-0">
+        <motion.div
+            initial={{ x: -48, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="w-12 bg-slate-900 dark:bg-slate-500 flex flex-col divide-y divide-white/10 flex-shrink-0"
+        >
             {LEFT_BUTTONS.map((btn) => (
                 <button
                     key={btn.id}
@@ -245,7 +251,7 @@ function LeftButtonStrip({
                     )}
                 </button>
             ))}
-        </div>
+        </motion.div>
     );
 }
 
@@ -260,7 +266,12 @@ function RightButtonStrip({
     onViewChange: (view: ContentHeaderViewType) => void;
 }) {
     return (
-        <div className="w-12 bg-slate-900 dark:bg-slate-500 flex flex-col divide-y divide-white/10 flex-shrink-0">
+        <motion.div
+            initial={{ x: 48, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="w-12 bg-slate-900 dark:bg-slate-500 flex flex-col divide-y divide-white/10 flex-shrink-0"
+        >
             {RIGHT_BUTTONS.map((btn) => (
                 <button
                     key={btn.id}
@@ -292,6 +303,6 @@ function RightButtonStrip({
                     )}
                 </button>
             ))}
-        </div>
+        </motion.div>
     );
 }
