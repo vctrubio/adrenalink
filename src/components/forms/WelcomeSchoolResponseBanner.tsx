@@ -39,7 +39,7 @@ export function WelcomeSchoolResponseBanner({
                 transition={{ duration: 0.4, type: "spring" }}
                 className={`
                     rounded-[2.5rem] border p-8 md:p-16 text-center shadow-2xl
-                    ${isSuccess ? "bg-white border-zinc-200" : "bg-card border-warning/30"}
+                    ${isSuccess ? "bg-card border-border" : "bg-card border-warning/30"}
                 `}
             >
                 <div className="space-y-8 md:space-y-12 flex flex-col items-center">
@@ -74,8 +74,8 @@ export function WelcomeSchoolResponseBanner({
 
                     {/* Content */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="space-y-4">
-                        <h1 className="text-3xl md:text-6xl font-black text-zinc-900 tracking-tight">{title}</h1>
-                        <p className="text-zinc-500 text-lg md:text-2xl font-medium max-w-3xl mx-auto leading-relaxed">{message}</p>
+                        <h1 className="text-3xl md:text-6xl font-black text-foreground tracking-tight">{title}</h1>
+                        <p className="text-muted-foreground text-lg md:text-2xl font-medium max-w-3xl mx-auto leading-relaxed">{message}</p>
 
                         {errorDetails && (
                             <div className="mt-6 p-4 bg-muted/50 rounded-xl inline-block text-left max-w-full overflow-hidden text-ellipsis border border-border/50">
@@ -118,8 +118,8 @@ export function WelcomeSchoolResponseBanner({
                                     px-10 py-4 rounded-full font-bold text-lg md:text-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-3
                                     ${
                                         isSuccess
-                                            ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                            : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     }
                                 `}
                             >
