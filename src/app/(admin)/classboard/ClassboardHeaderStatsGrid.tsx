@@ -38,27 +38,45 @@ export default function ClassboardHeaderStatsGrid() {
                 <motion.div
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: 1 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
                     className="absolute left-1/3 top-0 bottom-0 w-px bg-border/30 origin-top"
                 />
                 <motion.div
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: 1 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
                     className="absolute left-2/3 top-0 bottom-0 w-px bg-border/30 origin-top"
                 />
-                {STATS_MAP.slice(0, 3).map((item) => {
+                {STATS_MAP.slice(0, 3).map((item, index) => {
                     const value = stats[item.key];
                     if (typeof value !== "number") return null;
+                    // Center is at column 1 (middle), row 0.5 (between rows)
+                    const column = index; // 0, 1, 2
+                    const row = 0;
+                    const centerX = 1;
+                    const centerY = 0.5;
+                    const offsetX = (column - centerX) * 120; // Distance from center
+                    const offsetY = (row - centerY) * 80; // Distance from center
+                    
                     return (
                         <motion.div
                             key={item.key}
-                            initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            initial={{ 
+                                opacity: 0, 
+                                x: -offsetX, 
+                                y: -offsetY, 
+                                scale: 0.4 
+                            }}
+                            animate={{ 
+                                opacity: 1, 
+                                x: 0, 
+                                y: 0, 
+                                scale: 1 
+                            }}
                             transition={{
-                                duration: 0.6,
+                                duration: 1.0,
                                 ease: [0.16, 1, 0.3, 1],
-                                delay: 0.2,
+                                delay: 0.1, // All stats appear together, synced with date header
                             }}
                             className="flex items-center justify-center px-1 py-2 sm:px-3 h-full"
                         >
@@ -72,7 +90,7 @@ export default function ClassboardHeaderStatsGrid() {
             <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                 className="h-px bg-border/30 w-full origin-center"
             />
 
@@ -82,27 +100,45 @@ export default function ClassboardHeaderStatsGrid() {
                 <motion.div
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: 1 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
                     className="absolute left-1/3 top-0 bottom-0 w-px bg-border/30 origin-top"
                 />
                 <motion.div
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: 1 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
                     className="absolute left-2/3 top-0 bottom-0 w-px bg-border/30 origin-top"
                 />
-                {STATS_MAP.slice(3, 6).map((item) => {
+                {STATS_MAP.slice(3, 6).map((item, index) => {
                     const value = stats[item.key];
                     if (typeof value !== "number") return null;
+                    // Center is at column 1 (middle), row 0.5 (between rows)
+                    const column = index; // 0, 1, 2
+                    const row = 1;
+                    const centerX = 1;
+                    const centerY = 0.5;
+                    const offsetX = (column - centerX) * 120; // Distance from center
+                    const offsetY = (row - centerY) * 80; // Distance from center
+                    
                     return (
                         <motion.div
                             key={item.key}
-                            initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            initial={{ 
+                                opacity: 0, 
+                                x: -offsetX, 
+                                y: -offsetY, 
+                                scale: 0.4 
+                            }}
+                            animate={{ 
+                                opacity: 1, 
+                                x: 0, 
+                                y: 0, 
+                                scale: 1 
+                            }}
                             transition={{
-                                duration: 0.6,
+                                duration: 1.0,
                                 ease: [0.16, 1, 0.3, 1],
-                                delay: 0.45,
+                                delay: 0.1, // All stats appear together, synced with date header
                             }}
                             className="flex items-center justify-center px-1 py-2 sm:px-3 h-full"
                         >

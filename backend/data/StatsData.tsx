@@ -151,21 +151,21 @@ export function StatItemUI({
             title={title}
         >
             <span
-                className={`inline-flex ${!iconColor && variant !== "primary" ? "text-muted-foreground" : ""} ${variant === "primary" ? "text-primary" : ""}`}
+                className={`inline-flex items-center ${!iconColor && variant !== "primary" ? "text-muted-foreground" : ""} ${variant === "primary" ? "text-primary" : ""}`}
                 style={iconColor && variant !== "primary" ? { color: displayColor } : undefined}
             >
                 <Icon size={12} />
             </span>
             {!hideLabel && (
                 <span
-                    className={`text-[10px] font-bold uppercase tracking-wider ${variant === "primary" ? "text-primary" : "text-muted-foreground"}`}
+                    className={`text-[10px] font-bold uppercase tracking-wider leading-none ${variant === "primary" ? "text-primary" : "text-muted-foreground"}`}
                     style={variant !== "default" && variant !== "primary" ? { color: displayColor } : undefined}
                 >
                     {labelOverride || config.label}:
                 </span>
             )}
             <span
-                className={`tabular-nums ${!className.includes("text-") ? "text-xs font-bold" : ""} ${variant === "primary" ? "text-primary" : "text-foreground"}`}
+                className={`tabular-nums leading-none ${!className.includes("text-") ? "text-xs font-bold" : ""} ${variant === "primary" ? "text-primary" : "text-foreground"}`}
                 style={variant !== "default" && variant !== "primary" ? { color: displayColor } : undefined}
             >
                 {displayValue}
