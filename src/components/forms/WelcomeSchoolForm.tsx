@@ -409,8 +409,8 @@ export function WelcomeSchoolForm() {
                     stepSubtitles={stepSubtitles}
                     submitButtonText="Create School"
                     successTitle="Congratulations"
-                    successMessage="We will get back to you in 1 business day. Thank you."
-                    successButtonText="Go to School"
+                    successMessage="Your School Application was receieved."
+                    successButtonText="Navigate Away"
                     onSuccessButtonClick={() => {
                         const targetUsername = createdSchoolUsername || methods.getValues("username");
                         window.location.href = `https://${targetUsername}.adrenalink.tech/`;

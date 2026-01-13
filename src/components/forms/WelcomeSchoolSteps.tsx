@@ -174,6 +174,9 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     );
 }
 
+import { useState } from "react";
+import { ImageCropper } from "@/src/components/ui/ImageCropper";
+
 interface AssetsStepProps extends BaseStepProps<SchoolFormData> {
     pendingToBucket?: boolean;
     uploadStatus?: string;
@@ -182,19 +185,46 @@ interface AssetsStepProps extends BaseStepProps<SchoolFormData> {
 export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: AssetsStepProps) {
     const { setValue, watch } = formMethods;
     const values = watch();
+    
+    // Cropper State
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+    const [activeField, setActiveField] = useState<"iconFile" | "bannerFile" | null>(null);
 
-    const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, field: "iconFile" | "bannerFile") => {
         const file = e.target.files?.[0];
         if (file) {
-            setValue("iconFile", file);
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                setSelectedImageSrc(reader.result?.toString() || null);
+                setActiveField(field);
+                setCropModalOpen(true);
+            });
+            reader.readAsDataURL(file);
+            // Reset input so the same file can be selected again if cancelled
+            e.target.value = ""; 
         }
     };
 
-    const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setValue("bannerFile", file);
+    const handleCropComplete = (croppedBlob: Blob) => {
+        if (activeField && selectedImageSrc) {
+            // Create a file from the blob
+            const fileName = activeField === "iconFile" ? "icon.jpg" : "banner.jpg";
+            const file = new File([croppedBlob], fileName, { type: "image/jpeg" });
+            
+            setValue(activeField, file, { shouldValidate: true, shouldDirty: true });
+            
+            // Close modal
+            setCropModalOpen(false);
+            setSelectedImageSrc(null);
+            setActiveField(null);
         }
+    };
+
+    const handleCropCancel = () => {
+        setCropModalOpen(false);
+        setSelectedImageSrc(null);
+        setActiveField(null);
     };
 
     return (
@@ -204,48 +234,64 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
                 <div className="space-y-3">
                     <div className="text-center md:text-left">
                         <label className="text-sm font-medium text-foreground">School Icon</label>
-                        <p className="text-xs text-muted-foreground mb-3">Square recommended, max 2MB</p>
+                        <p className="text-xs text-muted-foreground mb-3">Square (1:1), zoom & crop available</p>
                     </div>
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <p className="text-sm text-muted-foreground">
-                                <span className="font-semibold">Click to upload</span> icon
-                            </p>
-                        </div>
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group relative overflow-hidden">
+                         {values.iconFile ? (
+                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-background/80 group-hover:bg-background/90 transition-colors">
+                                <div className="text-center">
+                                     <p className="text-xs font-semibold text-green-600 mb-1">✓ Selected</p>
+                                     <p className="text-xs text-muted-foreground">Click to change</p>
+                                </div>
+                             </div>
+                         ) : (
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <p className="text-sm text-muted-foreground">
+                                    <span className="font-semibold">Click to upload</span> icon
+                                </p>
+                            </div>
+                         )}
                         <input
                             type="file"
-                            accept="image/png,image/jpeg,image/jpg"
-                            onChange={handleIconChange}
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={(e) => handleFileSelect(e, "iconFile")}
                             className="hidden"
                             disabled={pendingToBucket}
                         />
                     </label>
-                    {values.iconFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Icon selected</p>}
                 </div>
 
                 {/* Banner Upload */}
                 <div className="space-y-3">
                     <div className="text-center md:text-left">
                         <label className="text-sm font-medium text-foreground">School Banner</label>
-                        <p className="text-xs text-muted-foreground mb-3">16:9 recommended, max 5MB</p>
+                        <p className="text-xs text-muted-foreground mb-3">Widescreen (16:9), zoom & crop available</p>
                     </div>
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <p className="text-sm text-muted-foreground">
-                                <span className="font-semibold">Click to upload</span> banner
-                            </p>
-                        </div>
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group relative overflow-hidden">
+                        {values.bannerFile ? (
+                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-background/80 group-hover:bg-background/90 transition-colors">
+                                <div className="text-center">
+                                     <p className="text-xs font-semibold text-green-600 mb-1">✓ Selected</p>
+                                     <p className="text-xs text-muted-foreground">Click to change</p>
+                                </div>
+                             </div>
+                         ) : (
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <p className="text-sm text-muted-foreground">
+                                    <span className="font-semibold">Click to upload</span> banner
+                                </p>
+                            </div>
+                        )}
                         <input
                             type="file"
-                            accept="image/png,image/jpeg,image/jpg"
-                            onChange={handleBannerChange}
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={(e) => handleFileSelect(e, "bannerFile")}
                             className="hidden"
                             disabled={pendingToBucket}
                         />
                     </label>
-                    {values.bannerFile && <p className="text-xs text-green-500 text-center md:text-left">✓ Banner selected</p>}
                 </div>
             </div>
 
@@ -255,6 +301,16 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
                     <span className="text-xs md:text-sm font-medium">{uploadStatus || "Processing..."}</span>
                 </div>
             )}
+            
+            <ImageCropper 
+                isOpen={cropModalOpen}
+                imageSrc={selectedImageSrc}
+                aspect={activeField === "iconFile" ? 1 : 16 / 9}
+                cropShape={activeField === "iconFile" ? "round" : "rect"}
+                onCancel={handleCropCancel}
+                onCropComplete={handleCropComplete}
+                title={activeField === "iconFile" ? "Edit Icon" : "Edit Banner"}
+            />
         </div>
     );
 }
