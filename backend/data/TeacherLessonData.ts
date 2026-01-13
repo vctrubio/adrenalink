@@ -58,12 +58,7 @@ export function buildTeacherLessonData(
             const pricePerStudent = school_package?.price_per_student || 0;
             const packageDurationMinutes = school_package?.duration_minutes || 60;
 
-            const eventRevenue = calculateLessonRevenue(
-                pricePerStudent,
-                studentCount,
-                eventRow.duration,
-                packageDurationMinutes,
-            );
+            const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
             const eventCommission = calculateCommission(
                 eventRow.duration,
                 { type: commissionType, cph },
@@ -158,24 +153,18 @@ export function filterTeacherLessonData(
     if (searchQuery) {
         const query = searchQuery.toLowerCase();
 
-        filteredLessonRows = filteredLessonRows.filter((row) =>
-            row.leaderName.toLowerCase().includes(query),
-        );
+        filteredLessonRows = filteredLessonRows.filter((row) => row.leaderName.toLowerCase().includes(query));
 
-        filteredTimelineEvents = filteredTimelineEvents.filter((event) =>
-            event.location.toLowerCase().includes(query) || event.teacherName.toLowerCase().includes(query),
+        filteredTimelineEvents = filteredTimelineEvents.filter(
+            (event) => event.location.toLowerCase().includes(query) || event.teacherName.toLowerCase().includes(query),
         );
     }
 
     // Apply status filter to lessons and timeline events
     if (statusFilter && statusFilter !== "all") {
-        filteredLessonRows = filteredLessonRows.filter(
-            (row) => row.lessonStatus === statusFilter,
-        );
+        filteredLessonRows = filteredLessonRows.filter((row) => row.lessonStatus === statusFilter);
 
-        filteredTimelineEvents = filteredTimelineEvents.filter(
-            (event) => event.eventStatus === statusFilter,
-        );
+        filteredTimelineEvents = filteredTimelineEvents.filter((event) => event.eventStatus === statusFilter);
     }
 
     // Sort by date (descending)

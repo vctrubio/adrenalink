@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {  MeetTheTeamV2 } from "./MeetTheTeamV2";
+import { MeetTheTeamV2 } from "./MeetTheTeamV2";
 import { RainbowV2 } from "./RainbowV2";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
 import IntoAdrBarShell from "@/src/components/IntoAdrBarShell";

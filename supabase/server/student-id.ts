@@ -23,8 +23,8 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             schoolId = schoolHeader.id;
             timezone = schoolHeader.timezone;
         } else if (!timezone) {
-             const schoolHeader = await getSchoolHeader();
-             if (schoolHeader) timezone = schoolHeader.timezone;
+            const schoolHeader = await getSchoolHeader();
+            if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();

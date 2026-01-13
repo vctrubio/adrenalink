@@ -13,14 +13,7 @@ interface LocationPickerProps {
     className?: string;
 }
 
-export function LocationPicker({
-    value,
-    options,
-    onChange,
-    onOptionsChange,
-    noBg = false,
-    className = "",
-}: LocationPickerProps) {
+export function LocationPicker({ value, options, onChange, onOptionsChange, noBg = false, className = "" }: LocationPickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownRect, setDropdownRect] = useState({ top: 0, left: 0, width: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +33,7 @@ export function LocationPicker({
         e.stopPropagation();
         const updated = options.filter((l) => l !== locToRemove);
         onOptionsChange(updated);
-        
+
         // If we removed the currently selected one, select the first available
         if (value === locToRemove && updated.length > 0) {
             onChange(updated[0]);
@@ -96,10 +89,10 @@ export function LocationPicker({
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.15 }}
                         className="fixed bg-card border border-border rounded-lg shadow-xl z-[100] overflow-hidden flex flex-col max-h-[250px]"
-                        style={{ 
-                            top: `${dropdownRect.top}px`, 
-                            left: `${dropdownRect.left}px`, 
-                            width: `${dropdownRect.width}px` 
+                        style={{
+                            top: `${dropdownRect.top}px`,
+                            left: `${dropdownRect.left}px`,
+                            width: `${dropdownRect.width}px`,
                         }}
                     >
                         <div className="p-2 border-b border-border/30 flex gap-1 bg-card">
@@ -113,9 +106,12 @@ export function LocationPicker({
                                 autoFocus
                                 onClick={(e) => e.stopPropagation()}
                             />
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); addLocation(); }} 
-                                disabled={!newLocation} 
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addLocation();
+                                }}
+                                disabled={!newLocation}
                                 className="p-1 hover:bg-primary hover:text-white rounded disabled:opacity-50 transition-colors"
                             >
                                 <PlusIcon size={14} />
@@ -123,22 +119,25 @@ export function LocationPicker({
                         </div>
                         <div className="overflow-y-auto py-1">
                             {options.map((loc) => (
-                                <div 
-                                    key={loc} 
+                                <div
+                                    key={loc}
                                     className={`flex items-center justify-between group hover:bg-muted/30 ${
                                         value === loc ? "bg-muted/50" : ""
                                     }`}
                                 >
-                                    <button 
-                                        onClick={() => { onChange(loc); setIsOpen(false); }} 
+                                    <button
+                                        onClick={() => {
+                                            onChange(loc);
+                                            setIsOpen(false);
+                                        }}
                                         className={`flex-1 px-3 py-2 text-sm text-left truncate ${
                                             value === loc ? "font-bold text-primary" : "text-muted-foreground group-hover:text-primary"
                                         }`}
                                     >
                                         {loc}
                                     </button>
-                                    <button 
-                                        onClick={(e) => removeLocation(e, loc)} 
+                                    <button
+                                        onClick={(e) => removeLocation(e, loc)}
                                         className="p-2 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
                                     >
                                         <Trash2 size={12} />

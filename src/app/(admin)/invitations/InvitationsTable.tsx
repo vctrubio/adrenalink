@@ -107,8 +107,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
         const result = await updateStudentPackageStatus(id, newStatus);
         if (result.success) {
             toast.success(`Request ${newStatus}`);
-        }
-        else {
+        } else {
             toast.error(result.error || "Failed to update request");
         }
         setIsPending(false);
@@ -125,21 +124,21 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
             {/* Package Column */}
             <td className="px-8 py-8 align-middle rounded-l-3xl border-y border-l border-zinc-100 dark:border-zinc-800 shadow-sm relative">
                 <div className="flex flex-col gap-4">
-                                        <div className="pl-1">
-                                                {school_package?.id ? (
-                                                    <Link
-                                                        href={`/packages/${school_package.id}`}
-                                                        className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block"
-                                                        title="View Package Details"
-                                                    >
-                                                        {packageDesc}
-                                                    </Link>
-                                                ) : (
-                                                    <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
-                                                        {packageDesc}
-                                                    </span>
-                                                )}
-                                        </div>
+                    <div className="pl-1">
+                        {school_package?.id ? (
+                            <Link
+                                href={`/packages/${school_package.id}`}
+                                className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block"
+                                title="View Package Details"
+                            >
+                                {packageDesc}
+                            </Link>
+                        ) : (
+                            <span className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block">
+                                {packageDesc}
+                            </span>
+                        )}
+                    </div>
                     <PackageComparisonBadge
                         categoryEquipment={category_equipment}
                         equipmentCapacity={capacity_equipment}
@@ -200,7 +199,11 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                                         disabled={isPending}
                                         className="p-1.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-sm"
                                     >
-                                        {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} strokeWidth={3} />}
+                                        {isPending ? (
+                                            <Loader2 size={14} className="animate-spin" />
+                                        ) : (
+                                            <Check size={14} strokeWidth={3} />
+                                        )}
                                     </button>
                                     <button
                                         onClick={() => handleAction("rejected")}

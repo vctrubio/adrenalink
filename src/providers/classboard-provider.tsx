@@ -63,7 +63,9 @@ interface ClassboardProviderProps {
 export function ClassboardProvider({ children, initialClassboardModel, serverError }: ClassboardProviderProps) {
     const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
 
-    console.log(`🏛️ [ClassboardProvider] Render - Queues: ${hookValue.teacherQueues.length}, Events: ${hookValue.bookingsForSelectedDate.length}, Mounted: ${hookValue.mounted}`);
+    console.log(
+        `🏛️ [ClassboardProvider] Render - Queues: ${hookValue.teacherQueues.length}, Events: ${hookValue.bookingsForSelectedDate.length}, Mounted: ${hookValue.mounted}`,
+    );
 
     return <ClassboardContext.Provider value={hookValue}>{children}</ClassboardContext.Provider>;
 }

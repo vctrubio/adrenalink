@@ -23,7 +23,11 @@ interface AdminClassboardEventListenerOptions {
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 3000;
 
-export function useAdminClassboardEventListener({ onEventDetected, onEventUpdate, getBookingIdForEvent }: AdminClassboardEventListenerOptions) {
+export function useAdminClassboardEventListener({
+    onEventDetected,
+    onEventUpdate,
+    getBookingIdForEvent,
+}: AdminClassboardEventListenerOptions) {
     const credentials = useSchoolCredentials();
     const schoolId = credentials?.id || "";
     const retryCountRef = useRef(0);
@@ -62,7 +66,7 @@ export function useAdminClassboardEventListener({ onEventDetected, onEventUpdate
                                 location: eventData.location,
                                 status: eventData.status,
                             });
-                            return;  // Skip fetch, use payload directly
+                            return; // Skip fetch, use payload directly
                         }
                     }
 

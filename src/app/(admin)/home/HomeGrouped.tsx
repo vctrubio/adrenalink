@@ -63,7 +63,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                         // This ensures getUTCDay() etc return the exact date from the string
                                         const [year, month, day] = group.date.split("-").map(Number);
                                         const date = new Date(Date.UTC(year, month - 1, day));
-                                        
+
                                         const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                                         const months = [
                                             "Jan",
@@ -90,7 +90,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                             <div className="flex items-center gap-4 sm:gap-6 text-sm">
                                 <StatItemUI
                                     type="completed"
-                                    value={`${group.events.filter(e => e.status === "completed" || e.status === "uncompleted").length}/${group.events.length}`}
+                                    value={`${group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/${group.events.length}`}
                                     hideLabel={true}
                                 />
                                 <StatItemUI type="students" value={stats.studentCount} hideLabel={true} />
@@ -102,7 +102,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <StatItemUI type="profit" value={stats.revenue.profit} hideLabel={true} variant="profit" />
                                 </div>
                                 <div className="lg:hidden">
-                                     <StatItemUI type="profit" value={stats.revenue.profit} hideLabel={true} variant="profit" />
+                                    <StatItemUI type="profit" value={stats.revenue.profit} hideLabel={true} variant="profit" />
                                 </div>
                             </div>
 

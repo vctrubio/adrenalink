@@ -13,14 +13,14 @@ interface CommissionTypeValueProps {
     className?: string;
 }
 
-export function CommissionTypeValue({ 
-    value, 
-    type, 
-    description, 
-    onClick, 
+export function CommissionTypeValue({
+    value,
+    type,
+    description,
+    onClick,
     isSelected,
     as: Component = "button",
-    className = ""
+    className = "",
 }: CommissionTypeValueProps) {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     const displayValue = getCompactNumber(numValue);

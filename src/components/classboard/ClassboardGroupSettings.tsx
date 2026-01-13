@@ -30,7 +30,7 @@ export default function ClassboardGroupSettings() {
                     <User size={16} className="shrink-0" />
                     <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:inline">1 Person</span>
                 </div>
-                
+
                 <div className="flex items-center gap-1 sm:gap-2 w-full justify-center">
                     <button
                         onClick={() => updateDuration("durationCapOne", -step)}

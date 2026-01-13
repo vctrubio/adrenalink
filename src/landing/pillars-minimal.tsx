@@ -68,7 +68,10 @@ const PillarsMinimal = () => {
             header={
                 <SchoolHeaderContent
                     titleMain={
-                        <span key={titleMain} className="inline-block transition-all duration-500 ease-in-out opacity-100 translate-y-0 will-change-transform">
+                        <span
+                            key={titleMain}
+                            className="inline-block transition-all duration-500 ease-in-out opacity-100 translate-y-0 will-change-transform"
+                        >
                             {titleMain}
                         </span>
                     }

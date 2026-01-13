@@ -70,9 +70,9 @@ const ActiveQueueSection = ({
                                     {isSubmitting ? (
                                         <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                     ) : (
-                                        <Zap 
-                                            size={14} 
-                                            className={`transition-colors ${hasChanges ? "text-primary fill-current" : "text-muted-foreground/30"}`} 
+                                        <Zap
+                                            size={14}
+                                            className={`transition-colors ${hasChanges ? "text-primary fill-current" : "text-muted-foreground/30"}`}
                                         />
                                     )}
                                 </button>

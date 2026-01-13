@@ -76,9 +76,9 @@ export function TeacherLessonStatsBadge({
             <span className="font-medium text-foreground">{teacherUsername}</span>
 
             {showCommission && commission && (
-                <CommissionTypeValue 
-                    value={commission.cph} 
-                    type={commission.type} 
+                <CommissionTypeValue
+                    value={commission.cph}
+                    type={commission.type}
                     as="div"
                     className="!p-0 !bg-transparent !border-none"
                 />

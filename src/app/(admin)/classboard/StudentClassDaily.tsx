@@ -104,10 +104,7 @@ export default function StudentClassDaily() {
                                                 {filter === "all" || !hasRealEvents ? (
                                                     <StudentBookingCard bookingData={bookingData} />
                                                 ) : (
-                                                    <BookingOnboardCard
-                                                        bookingData={bookingData}
-                                                        selectedDate={selectedDate}
-                                                    />
+                                                    <BookingOnboardCard bookingData={bookingData} selectedDate={selectedDate} />
                                                 )}
                                             </motion.div>
                                         );

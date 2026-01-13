@@ -17,10 +17,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { Calendar, List } from "lucide-react";
-import {
-    TeacherLessonCard,
-    TeacherBookingLessonTable,
-} from "@/src/components/ids";
+import { TeacherLessonCard, TeacherBookingLessonTable } from "@/src/components/ids";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import { getHMDuration } from "@/getters/duration-getter";
 
@@ -210,12 +207,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     });
 
     // Apply global search/filter across all view modes
-    const { filteredLessonRows, filteredTimelineEvents } = filterTeacherLessonData(
-        lessonRows,
-        timelineEvents,
-        searchQuery,
-        filter,
-    );
+    const { filteredLessonRows, filteredTimelineEvents } = filterTeacherLessonData(lessonRows, timelineEvents, searchQuery, filter);
 
     // Apply sort to timeline events
     const sortedTimelineEvents = useMemo(() => {
@@ -274,11 +266,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 />
             </div>
 
-            <ToggleBar
-                value={viewMode}
-                onChange={(v) => setViewMode(v as ViewMode)}
-                options={VIEW_MODE_OPTIONS}
-            />
+            <ToggleBar value={viewMode} onChange={(v) => setViewMode(v as ViewMode)} options={VIEW_MODE_OPTIONS} />
 
             <AnimatePresence mode="wait">
                 {viewMode === "lessons" && (

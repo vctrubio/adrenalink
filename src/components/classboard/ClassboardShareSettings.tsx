@@ -23,21 +23,27 @@ export default function ClassboardShareSettings() {
 
                 return (
                     <div key={id} className="flex flex-col items-center justify-center p-2 h-full">
-                        <button 
+                        <button
                             onClick={() => globalFlag.setSharingMode(isActive ? null : id)}
                             className={`flex flex-col items-center justify-center gap-2 w-full h-full group transition-colors ${
                                 isActive ? "bg-primary/5" : ""
                             }`}
                         >
-                            <Icon 
-                                size={32} 
+                            <Icon
+                                size={32}
                                 className={`transition-colors duration-300 ${
-                                    isActive ? "text-primary" : isShared ? "text-slate-500 dark:text-slate-400" : "text-slate-300 dark:text-slate-600"
-                                } group-hover:text-primary`} 
+                                    isActive
+                                        ? "text-primary"
+                                        : isShared
+                                          ? "text-slate-500 dark:text-slate-400"
+                                          : "text-slate-300 dark:text-slate-600"
+                                } group-hover:text-primary`}
                             />
-                            <p className={`text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${
-                                isActive ? "text-primary" : "text-muted-foreground"
-                            } group-hover:text-primary`}>
+                            <p
+                                className={`text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${
+                                    isActive ? "text-primary" : "text-muted-foreground"
+                                } group-hover:text-primary`}
+                            >
                                 {label}
                             </p>
                         </button>

@@ -40,8 +40,8 @@ export function PackageComparisonBadge({
     const studentBg = "#dbeafe";
     const priceColor = "#f97316";
     const priceBg = "#ffedd5";
-        const durationColor = "#3b82f6"; // blue-500
-        const durationBg = "#dbeafe"; // blue-100
+    const durationColor = "#3b82f6"; // blue-500
+    const durationBg = "#dbeafe"; // blue-100
 
     return (
         <div className="flex flex-wrap items-center gap-6">
@@ -108,9 +108,14 @@ export function PackageComparisonBadge({
                         </div>
                     </div>
                     <div className="flex flex-col leading-none">
-                        <span className="text-sm font-black">{currencySymbol}{totalRevenue.toLocaleString()}</span>
+                        <span className="text-sm font-black">
+                            {currencySymbol}
+                            {totalRevenue.toLocaleString()}
+                        </span>
                         <div className="w-full border-t border-zinc-200 dark:border-zinc-700 my-1" />
-                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{pricePerHour.toFixed(0)} PPS/H</span>
+                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                            {pricePerHour.toFixed(0)} PPS/H
+                        </span>
                     </div>
                 </div>
             )}

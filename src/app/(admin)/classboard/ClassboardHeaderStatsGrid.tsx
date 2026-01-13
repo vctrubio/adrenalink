@@ -29,25 +29,20 @@ export default function ClassboardHeaderStatsGrid() {
 
     const renderStat = (key: keyof typeof stats, type: StatType) => (
         <div key={key} className="flex items-center justify-center px-1 py-2 sm:px-3 h-full">
-            <StatItemUI
-                type={type}
-                value={stats[key]}
-                className="text-xs sm:text-sm"
-                iconColor={true}
-            />
+            <StatItemUI type={type} value={stats[key]} className="text-xs sm:text-sm" iconColor={true} />
         </div>
     );
 
     return (
         <div className="flex-1 flex flex-col h-full">
             <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
-                {STATS_MAP.slice(0, 3).map(item => renderStat(item.key, item.type))}
+                {STATS_MAP.slice(0, 3).map((item) => renderStat(item.key, item.type))}
             </div>
 
             <div className="h-px bg-border/30 w-full" />
 
             <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
-                 {STATS_MAP.slice(3, 6).map(item => renderStat(item.key, item.type))}
+                {STATS_MAP.slice(3, 6).map((item) => renderStat(item.key, item.type))}
             </div>
         </div>
     );

@@ -115,8 +115,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
                 </div>
             </div>
 
-            <div className='container mx-auto'>
-
+            <div className="container mx-auto">
                 <div className="space-y-4 pt-6 mb-20">
                     {viewMode === "grouped" && <HomeGrouped groupedEvents={groupedEvents} classboardData={classboardData} />}
 
@@ -129,7 +128,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} />}
                 </div>
-        </div>
-        </TablesProvider >
+            </div>
+        </TablesProvider>
     );
 }

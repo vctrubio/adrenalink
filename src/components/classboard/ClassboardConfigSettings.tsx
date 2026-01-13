@@ -20,7 +20,7 @@ export default function ClassboardConfigSettings() {
     // Sync States
     const [adjustmentTime, setAdjustmentTime] = useState<string | null>(null);
     const [adjustmentLocation, setAdjustmentLocation] = useState<string | null>(null);
-    
+
     // Manual unlock states
     const [manuallyUnlockedTime, setManuallyUnlockedTime] = useState(false);
     const [manuallyUnlockedLocation, setManuallyUnlockedLocation] = useState(false);
@@ -86,18 +86,22 @@ export default function ClassboardConfigSettings() {
             globalFlag.triggerRefresh();
         }
     }, [
-        timeLock.lockCount, timeLock.totalTeachers, 
-        locLock.synchronizedTeachersCount, locLock.totalTeachers, 
-        isLockFlagTime, isLockFlagLocation, 
-        manuallyUnlockedTime, manuallyUnlockedLocation,
-        globalFlag
+        timeLock.lockCount,
+        timeLock.totalTeachers,
+        locLock.synchronizedTeachersCount,
+        locLock.totalTeachers,
+        isLockFlagTime,
+        isLockFlagLocation,
+        manuallyUnlockedTime,
+        manuallyUnlockedLocation,
+        globalFlag,
     ]);
 
     // Handlers
     const handleAdjustTime = (newTime: string) => {
         const totalMins = timeToMinutes(newTime);
         if (totalMins < MIN_TIME || totalMins > MAX_TIME) return;
-        
+
         isLocalUpdate.current = true;
         setAdjustmentTime(newTime);
         globalFlag.adjustTime(newTime);
@@ -144,28 +148,33 @@ export default function ClassboardConfigSettings() {
                 <div className="flex items-center justify-between w-full px-1">
                     <div className="flex items-center gap-2">
                         <FlagIcon size={16} className="text-muted-foreground opacity-60" />
-                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">Flag Time</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                            Flag Time
+                        </span>
                     </div>
                     <div className="bg-muted/50 px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground">
                         {timeLock.lockCount}/{timeLock.totalTeachers}
                     </div>
                 </div>
-                
+
                 <div className="flex items-center gap-1 w-full justify-center">
                     <div className="flex-1 flex justify-center">
-                        <TimePicker 
-                            value={adjustmentTime || "00:00"} 
-                            onChange={handleAdjustTime} 
-                            noBg
-                        />
+                        <TimePicker value={adjustmentTime || "00:00"} onChange={handleAdjustTime} noBg />
                     </div>
                 </div>
 
                 <div className="flex flex-col items-center gap-1.5 w-full">
                     <div className="w-24 h-1 bg-muted/20 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-primary/40" initial={{ width: 0 }} animate={{ width: `${(timeLock.lockCount / Math.max(timeLock.totalTeachers, 1)) * 100}%` }} />
+                        <motion.div
+                            className="h-full bg-primary/40"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(timeLock.lockCount / Math.max(timeLock.totalTeachers, 1)) * 100}%` }}
+                        />
                     </div>
-                    <button onClick={handleToggleTimeLock} className={`p-1 rounded-md transition-colors ${isLockFlagTime ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}>
+                    <button
+                        onClick={handleToggleTimeLock}
+                        className={`p-1 rounded-md transition-colors ${isLockFlagTime ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}
+                    >
                         {isLockFlagTime ? <Lock size={14} /> : <LockOpen size={14} />}
                     </button>
                 </div>
@@ -176,7 +185,9 @@ export default function ClassboardConfigSettings() {
                 <div className="flex items-center justify-between w-full px-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <MapPin size={16} className="opacity-60" />
-                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">Location</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                            Location
+                        </span>
                     </div>
                     <div className="bg-muted/50 px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground">
                         {locLock.synchronizedTeachersCount}/{locLock.totalTeachers}
@@ -197,9 +208,16 @@ export default function ClassboardConfigSettings() {
 
                 <div className="flex flex-col items-center gap-1.5 w-full">
                     <div className="w-24 h-1 bg-muted/20 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-primary/40" initial={{ width: 0 }} animate={{ width: `${(locLock.synchronizedTeachersCount / Math.max(locLock.totalTeachers, 1)) * 100}%` }} />
+                        <motion.div
+                            className="h-full bg-primary/40"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(locLock.synchronizedTeachersCount / Math.max(locLock.totalTeachers, 1)) * 100}%` }}
+                        />
                     </div>
-                    <button onClick={handleToggleLocationLock} className={`p-1 rounded-md transition-colors ${isLockFlagLocation ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}>
+                    <button
+                        onClick={handleToggleLocationLock}
+                        className={`p-1 rounded-md transition-colors ${isLockFlagLocation ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}
+                    >
                         {isLockFlagLocation ? <Lock size={14} /> : <LockOpen size={14} />}
                     </button>
                 </div>
@@ -210,7 +228,9 @@ export default function ClassboardConfigSettings() {
                 <div className="flex items-center justify-between w-full px-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <Timer size={16} className="opacity-60" />
-                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">In-Betweens</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                            In-Betweens
+                        </span>
                     </div>
                     <div className="bg-muted/50 px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground">
                         {optimisation.optimised}/{optimisation.total}
@@ -218,22 +238,37 @@ export default function ClassboardConfigSettings() {
                 </div>
 
                 <div className="flex items-center gap-1 w-full justify-center">
-                    <button onClick={() => handleUpdateGap(-5)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0">
+                    <button
+                        onClick={() => handleUpdateGap(-5)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
+                    >
                         <Minus size={14} />
                     </button>
                     <div className="px-3 py-1 rounded-md border border-transparent transition-all">
-                        <span className="text-lg font-bold text-foreground w-12 text-center font-mono">{controller.gapMinutes || 0}m</span>
+                        <span className="text-lg font-bold text-foreground w-12 text-center font-mono">
+                            {controller.gapMinutes || 0}m
+                        </span>
                     </div>
-                    <button onClick={() => handleUpdateGap(5)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0">
+                    <button
+                        onClick={() => handleUpdateGap(5)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
+                    >
                         <Plus size={14} />
                     </button>
                 </div>
 
                 <div className="flex flex-col items-center gap-1.5 w-full">
                     <div className="w-24 h-1 bg-muted/20 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-primary/40" initial={{ width: 0 }} animate={{ width: `${(optimisation.optimised / Math.max(optimisation.total, 1)) * 100}%` }} />
+                        <motion.div
+                            className="h-full bg-primary/40"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(optimisation.optimised / Math.max(optimisation.total, 1)) * 100}%` }}
+                        />
                     </div>
-                    <button onClick={() => globalFlag.optimiseAllQueues()} className={`p-1 rounded-md transition-colors ${isOptimized ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}>
+                    <button
+                        onClick={() => globalFlag.optimiseAllQueues()}
+                        className={`p-1 rounded-md transition-colors ${isOptimized ? "text-primary" : "text-muted-foreground/30 hover:text-muted-foreground"}`}
+                    >
                         <Zap size={14} className={isOptimized ? "fill-current" : ""} />
                     </button>
                 </div>

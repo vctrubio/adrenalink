@@ -23,7 +23,11 @@ interface TeacherQueueRowProps {
 /**
  * DropZoneOverlay - Visual feedback when dragging booking over teacher queue
  */
-function DropZoneOverlay({ isDraggingSomething, isEligible, nextSlotTime }: {
+function DropZoneOverlay({
+    isDraggingSomething,
+    isEligible,
+    nextSlotTime,
+}: {
     isDraggingSomething: boolean;
     isEligible: boolean;
     nextSlotTime: string | null;
@@ -84,7 +88,9 @@ function TeacherSection({
     onOptimise: () => Promise<void>;
 }) {
     return (
-        <div className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}>
+        <div
+            className={`flex-shrink-0 transition-all duration-200 p-2 ${viewMode !== "collapsed" ? "w-[340px] border-r-2 border-background" : "flex-1 border-r-0"}`}
+        >
             <TeacherClassCard
                 queue={activeQueue}
                 onClick={onToggleCollapse}
@@ -135,44 +141,44 @@ function EventsSection({
     return (
         <div className="flex-1 min-w-0 flex items-center p-2 overflow-x-auto scrollbar-hide">
             <div className="flex flex-row gap-4 h-full items-center">
-                {eventsWithOptimistic.length > 0 ? (
-                    eventsWithOptimistic.map(({ node: event }, index) => {
-                        const effectiveCardStatus = getEventCardStatus(event.id);
-                        const isFirst = index === 0;
-                        const isLast = index === eventsWithOptimistic.length - 1;
-                        const canMoveEarlier = queueController ? queueController.canMoveEarlier(event.id) : false;
-                        const canMoveLater = queueController ? queueController.canMoveLater(event.id) : false;
-                        const previousEvent = event.prev;
+                {eventsWithOptimistic.length > 0
+                    ? eventsWithOptimistic.map(({ node: event }, index) => {
+                          const effectiveCardStatus = getEventCardStatus(event.id);
+                          const isFirst = index === 0;
+                          const isLast = index === eventsWithOptimistic.length - 1;
+                          const canMoveEarlier = queueController ? queueController.canMoveEarlier(event.id) : false;
+                          const canMoveLater = queueController ? queueController.canMoveLater(event.id) : false;
+                          const previousEvent = event.prev;
 
-                        console.log(
-                            `  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`,
-                        );
+                          console.log(
+                              `  🎫 [Event] ${queue.teacher.username} -> ${event.bookingLeaderName} | Status: ${effectiveCardStatus || "idle"}`,
+                          );
 
-                        return (
-                            <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-start">
-                                {viewMode === "adjustment" && queueController ? (
-                                    <EventModCard
-                                        event={event}
-                                        queueController={queueController}
-                                        isFirst={isFirst}
-                                        isLast={isLast}
-                                        canMoveEarlier={canMoveEarlier}
-                                        canMoveLater={canMoveLater}
-                                        previousEvent={previousEvent}
-                                    />
-                                ) : (
-                                    <EventCard
-                                        event={event}
-                                        cardStatus={effectiveCardStatus}
-                                        queueController={queueController}
-                                        gapMinutes={gapMinutes}
-                                        showLocation={true}
-                                    />
-                                )}
-                            </div>
-                        );
-                    })
-                ) : null}
+                          return (
+                              <div key={event.id} className="w-[320px] flex-shrink-0 h-full flex flex-col justify-start">
+                                  {viewMode === "adjustment" && queueController ? (
+                                      <EventModCard
+                                          event={event}
+                                          queueController={queueController}
+                                          isFirst={isFirst}
+                                          isLast={isLast}
+                                          canMoveEarlier={canMoveEarlier}
+                                          canMoveLater={canMoveLater}
+                                          previousEvent={previousEvent}
+                                      />
+                                  ) : (
+                                      <EventCard
+                                          event={event}
+                                          cardStatus={effectiveCardStatus}
+                                          queueController={queueController}
+                                          gapMinutes={gapMinutes}
+                                          showLocation={true}
+                                      />
+                                  )}
+                              </div>
+                          );
+                      })
+                    : null}
             </div>
         </div>
     );
@@ -183,8 +189,15 @@ function EventsSection({
  * Reads state from GlobalFlag (single source of truth)
  */
 export default function TeacherQueueRow({ queue, viewMode, isCollapsed, onToggleCollapse }: TeacherQueueRowProps) {
-    const { globalFlag, bookingsForSelectedDate, draggedBooking, setDraggedBooking, addLessonEvent, getEventCardStatus, selectedDate } =
-        useClassboardContext();
+    const {
+        globalFlag,
+        bookingsForSelectedDate,
+        draggedBooking,
+        setDraggedBooking,
+        addLessonEvent,
+        getEventCardStatus,
+        selectedDate,
+    } = useClassboardContext();
 
     const controller = globalFlag.getController();
     const gapMinutes = controller.gapMinutes;

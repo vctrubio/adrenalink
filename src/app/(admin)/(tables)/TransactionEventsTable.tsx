@@ -152,10 +152,10 @@ const HEADER_CLASSES = {
 
 // --- Main component ---
 
-export function TransactionEventsTable({ 
+export function TransactionEventsTable({
     events: initialEvents = [],
-    groupBy
-}: { 
+    groupBy,
+}: {
     events: TransactionEventData[];
     groupBy?: GroupingType;
 }) {
@@ -201,7 +201,7 @@ export function TransactionEventsTable({
                 const [year, month, day] = datePart.split("-");
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 const formattedDate = `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
-                
+
                 return (
                     <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
                         {formattedDate}
@@ -216,7 +216,7 @@ export function TransactionEventsTable({
                 // Manually extract time from ISO: "2025-01-12T14:00:00Z" -> "14:00"
                 const timeMatch = data.event.date.match(/T(\d{2}:\d{2})/);
                 const formattedTime = timeMatch ? timeMatch[1] : "--:--";
-                
+
                 return (
                     <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-medium">
                         {formattedTime}
@@ -368,7 +368,7 @@ export function TransactionEventsTable({
                 const [datePart, timePartFull] = data.event.date.split("T");
                 const [, month, day] = datePart.split("-");
                 const timePart = timePartFull.substring(0, 5);
-                
+
                 return (
                     <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">

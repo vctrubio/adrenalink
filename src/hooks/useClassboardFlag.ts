@@ -245,14 +245,20 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
             const serverEvents = eventsByTeacher.get(teacherId) || [];
             serverEvents.sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
 
-            console.log(`⚙️ [SyncEngine] Syncing ${queue.teacher.username}: ${serverEvents.length} server events, mutating IDs:`, Array.from(mutatingIds));
+            console.log(
+                `⚙️ [SyncEngine] Syncing ${queue.teacher.username}: ${serverEvents.length} server events, mutating IDs:`,
+                Array.from(mutatingIds),
+            );
 
             // Mutation Guard happens inside syncEvents
             // It returns IDs that were confirmed (deleted or added)
             const confirmedIds = queue.syncEvents(serverEvents, mutatingIds);
 
             if (confirmedIds.length > 0) {
-                console.log(`⚙️ [SyncEngine] ${queue.teacher.username}: Confirmed ${confirmedIds.length} IDs (clearing spinners)`, confirmedIds);
+                console.log(
+                    `⚙️ [SyncEngine] ${queue.teacher.username}: Confirmed ${confirmedIds.length} IDs (clearing spinners)`,
+                    confirmedIds,
+                );
             }
 
             // Clear spinners for confirmed IDs
@@ -271,7 +277,7 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         } else {
             // Selective sync: trigger UI refresh WITHOUT replacing queues (preserves adjustment mode)
             console.log("⚙️ [SyncEngine] Selective sync - triggering UI refresh");
-            setFlagTick((t) => t + 1);  // Increment to re-render affected queues
+            setFlagTick((t) => t + 1); // Increment to re-render affected queues
         }
     }, [allTeachers, bookingsForSelectedDate, selectedDate, clientReady, globalFlag]);
 
@@ -571,37 +577,34 @@ export function useClassboardFlag({ initialClassboardModel, serverError }: UseCl
         [setEventMutation, clearEventMutation, globalFlag],
     );
 
-    const updateEventStatusAction = useCallback(
-        async (eventId: string, status: string) => {
-            const currentQueues = Array.from(stableQueuesRef.current.values());
-            let teacherQueue: TeacherQueueClass | null = null;
-            for (const q of currentQueues) {
-                if (q.getAllEvents({ includeDeleted: true }).some((e) => e.id === eventId)) {
-                    teacherQueue = q;
-                    break;
-                }
+    const updateEventStatusAction = useCallback(async (eventId: string, status: string) => {
+        const currentQueues = Array.from(stableQueuesRef.current.values());
+        let teacherQueue: TeacherQueueClass | null = null;
+        for (const q of currentQueues) {
+            if (q.getAllEvents({ includeDeleted: true }).some((e) => e.id === eventId)) {
+                teacherQueue = q;
+                break;
             }
+        }
 
-            // CRITICAL: Do NOT call setEventMutation or globalFlag.notifyEventMutation for status-only changes
-            // Status changes don't affect the queue and shouldn't mark the card as mutating
-            // Visual feedback comes from EventStatusLabel's own spinner, not card-level blur
-            // Only notify for queue-affecting operations (delete, time change)
+        // CRITICAL: Do NOT call setEventMutation or globalFlag.notifyEventMutation for status-only changes
+        // Status changes don't affect the queue and shouldn't mark the card as mutating
+        // Visual feedback comes from EventStatusLabel's own spinner, not card-level blur
+        // Only notify for queue-affecting operations (delete, time change)
 
-            if (teacherQueue) {
-                teacherQueue.updateEventStatus(eventId, status as any);
-            }
+        if (teacherQueue) {
+            teacherQueue.updateEventStatus(eventId, status as any);
+        }
 
-            try {
-                const result = await updateEventStatus(eventId, status);
-                if (!result.success) toast.error("Failed to update status");
-                // No mutations to clear - we never marked it as mutating
-            } catch (error) {
-                console.error("Error updating status:", error);
-                toast.error("Error updating status");
-            }
-        },
-        [],
-    );
+        try {
+            const result = await updateEventStatus(eventId, status);
+            if (!result.success) toast.error("Failed to update status");
+            // No mutations to clear - we never marked it as mutating
+        } catch (error) {
+            console.error("Error updating status:", error);
+            toast.error("Error updating status");
+        }
+    }, []);
 
     // ============ PERSISTENCE ============
 

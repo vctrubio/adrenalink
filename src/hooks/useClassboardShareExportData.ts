@@ -25,12 +25,12 @@ export function useClassboardShareExportData() {
 
     const adminViewData: TransactionEventData[] = useMemo(() => {
         if (!sharingMode || !bookingsForSelectedDate || !credentials) return [];
-        
+
         // 1. Get all transaction events for these bookings
         const allEvents = getAllTransactionEvents(bookingsForSelectedDate, credentials.currency);
-        
+
         // 2. Filter strictly for the selected date
-        return allEvents.filter(e => e.event.date.startsWith(selectedDate));
+        return allEvents.filter((e) => e.event.date.startsWith(selectedDate));
     }, [bookingsForSelectedDate, credentials, selectedDate, sharingMode]);
 
     const adminStats = useMemo(() => {

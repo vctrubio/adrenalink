@@ -14,14 +14,7 @@ interface TimelineProps {
     showFinancials?: boolean;
 }
 
-export function Timeline({
-    events,
-    currency,
-    formatCurrency,
-    showTeacher = true,
-    showFinancials = true,
-}: TimelineProps) {
-
+export function Timeline({ events, currency, formatCurrency, showTeacher = true, showFinancials = true }: TimelineProps) {
     // Events are already filtered and sorted upstream
     const filteredEvents = useMemo(() => {
         return events;

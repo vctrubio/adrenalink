@@ -67,7 +67,9 @@ export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProp
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
             onClick={handleCardClick}
-            className={"group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col select-none border"}
+            className={
+                "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col select-none border"
+            }
         >
             {/* 1. Header: Logo + Type + Description */}
             <div className="px-8 pt-8 pb-6 border-b border-zinc-100 flex flex-col gap-4">

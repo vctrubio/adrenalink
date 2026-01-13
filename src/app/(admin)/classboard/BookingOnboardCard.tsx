@@ -94,9 +94,7 @@ export default function BookingOnboardCard({ bookingData, selectedDate, onClick 
             await updateEventStatus(eventId, "completed");
             setLocalEvents((prev) =>
                 prev.map((evt) =>
-                    evt.id === eventId
-                        ? { ...evt, status: "completed", equipments: [...(evt.equipments || []), equipment] }
-                        : evt,
+                    evt.id === eventId ? { ...evt, status: "completed", equipments: [...(evt.equipments || []), equipment] } : evt,
                 ),
             );
         }

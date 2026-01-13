@@ -5,6 +5,6 @@
     },
     "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "typescript.preferences.quoteStyle": "single",
-    "javascript.preferences.quoteStyle": "single"
+    "audioCues.enabled": "off",
+    "workbench.settings.enableNaturalLanguageSearch": false
 }

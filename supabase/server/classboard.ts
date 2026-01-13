@@ -100,8 +100,8 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
             schoolId = schoolHeader.id;
             timezone = schoolHeader.timezone;
         } else if (!timezone) {
-             const schoolHeader = await getSchoolHeader();
-             if (schoolHeader) timezone = schoolHeader.timezone;
+            const schoolHeader = await getSchoolHeader();
+            if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -156,7 +156,7 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
             if (schoolHeader) {
                 timezone = schoolHeader.timezone;
             } else {
-                 return {
+                return {
                     success: false,
                     error: "School context could not be determined.",
                 };
@@ -306,7 +306,7 @@ export async function deleteClassboardEvent(eventId: string): Promise<ApiActionR
 
         console.log("🗑️ [classboard/deleteClassboardEvent] Fetch result:", {
             eventToDelete,
-            fetchError: fetchError ? { code: fetchError.code, message: fetchError.message, details: fetchError.details } : null
+            fetchError: fetchError ? { code: fetchError.code, message: fetchError.message, details: fetchError.details } : null,
         });
 
         if (fetchError || !eventToDelete) {
@@ -332,7 +332,7 @@ export async function deleteClassboardEvent(eventId: string): Promise<ApiActionR
         const { error: deleteError } = await supabase.from("event").delete().eq("id", eventId);
 
         console.log("🗑️ [classboard/deleteClassboardEvent] Delete result:", {
-            deleteError: deleteError ? { code: deleteError.code, message: deleteError.message, details: deleteError.details } : null
+            deleteError: deleteError ? { code: deleteError.code, message: deleteError.message, details: deleteError.details } : null,
         });
 
         if (deleteError) {
@@ -521,7 +521,10 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().in("event_id", eventIds);
 
         if (equipmentDeleteError) {
-            console.error("🗑️ [classboard/bulkDeleteClassboardEvents] ⚠️ Could not delete equipment_event records:", equipmentDeleteError);
+            console.error(
+                "🗑️ [classboard/bulkDeleteClassboardEvents] ⚠️ Could not delete equipment_event records:",
+                equipmentDeleteError,
+            );
             // Continue anyway
         } else {
             console.log("✅ [classboard/bulkDeleteClassboardEvents] Related equipment_event records deleted");

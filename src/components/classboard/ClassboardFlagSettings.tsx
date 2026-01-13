@@ -9,7 +9,7 @@ import { LocationPicker } from "@/src/components/ui/LocationPicker";
 export default function ClassboardFlagSettings() {
     const { globalFlag } = useClassboardContext();
     const controller = globalFlag.getController();
-    
+
     // Read locations from controller (source of truth)
     const locations = controller.locationOptions || ["Zoom", "In-Person", "Hybrid", "Phone"];
 
@@ -33,11 +33,11 @@ export default function ClassboardFlagSettings() {
                     <FlagIcon size={16} />
                     <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:inline">Flag Time</span>
                 </div>
-                
+
                 <div className="flex items-center gap-1 w-full justify-center">
-                    <TimePicker 
-                        value={controller.submitTime} 
-                        onChange={(newTime) => globalFlag.updateController({ submitTime: newTime })} 
+                    <TimePicker
+                        value={controller.submitTime}
+                        onChange={(newTime) => globalFlag.updateController({ submitTime: newTime })}
                     />
                 </div>
             </div>
@@ -71,7 +71,7 @@ export default function ClassboardFlagSettings() {
                     >
                         <Minus size={14} />
                     </button>
-                    
+
                     <div className="bg-muted/50 px-3 py-1 rounded-md border border-transparent transition-all">
                         <span className="text-lg font-bold text-foreground w-12 text-center font-mono">
                             {controller.gapMinutes || 0}m

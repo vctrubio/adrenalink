@@ -13,6 +13,7 @@ The ClassboardProvider is re-rendering constantly despite data remaining stable 
 ## Problem Analysis
 
 ### Current Symptoms
+
 ```
 Provider renders: Queues: 8, Events: 15, Mounted: true
 Provider renders: Queues: 8, Events: 15, Mounted: true  ← Same data, new render
@@ -20,6 +21,7 @@ Provider renders: Queues: 8, Events: 15, Mounted: true  ← Infinite loop
 ```
 
 ### Impact
+
 - TeacherQueueRow renders on every provider update (even without queue changes)
 - Event logs spam the console (double logging from TeacherQueueRow + installHook)
 - High CPU usage, browser lag
@@ -27,7 +29,9 @@ Provider renders: Queues: 8, Events: 15, Mounted: true  ← Infinite loop
 - Production: Unacceptable user experience
 
 ### Root Cause
+
 In `classboard-provider.tsx:69`:
+
 ```typescript
 const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
 // This creates a NEW object every render, even if data inside hasn't changed
@@ -39,22 +43,28 @@ const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
 ## Desired Architecture
 
 ### Phase 1: Render Optimization (Immediate)
+
 **Goal:** Prevent unnecessary re-renders when data hasn't actually changed
 
 **Solution:** Memoize the hook return value
+
 ```typescript
 const hookValue = useClassboardFlag({ initialClassboardModel, serverError });
-const memoizedValue = useMemo(() => hookValue, [
-  hookValue.teacherQueues.length,
-  hookValue.bookingsForSelectedDate.length,
-  hookValue.controller,
-  hookValue.selectedDate,
-  hookValue.globalFlag,
-  // Only include dependencies that matter
-]);
+const memoizedValue = useMemo(
+    () => hookValue,
+    [
+        hookValue.teacherQueues.length,
+        hookValue.bookingsForSelectedDate.length,
+        hookValue.controller,
+        hookValue.selectedDate,
+        hookValue.globalFlag,
+        // Only include dependencies that matter
+    ],
+);
 ```
 
 **Dependencies Should Change Only When:**
+
 - Queue count changes
 - Event count changes
 - Controller settings change
@@ -64,6 +74,7 @@ const memoizedValue = useMemo(() => hookValue, [
 ---
 
 ### Phase 2: Event Queue Controller Pattern (Core Fix)
+
 **Goal:** Isolate event modifications to queue controller; only render when absolutely necessary
 
 #### Architecture Flow
@@ -93,51 +104,57 @@ Error/Timeout: Toast notification + Console warning
 #### Key Requirements
 
 1. **Queue Controller Abstraction**
-   - Single entry point for all event modifications
-   - Manage pending state internally
-   - Track event awaiting server confirmation
-   - Timeout handling (configurable, e.g., 10s)
+    - Single entry point for all event modifications
+    - Manage pending state internally
+    - Track event awaiting server confirmation
+    - Timeout handling (configurable, e.g., 10s)
 
 2. **Event Listener Pattern**
-   - Listen for "event committed" signal from server
-   - Mark event as confirmed
-   - Propagate single render cycle to provider
+    - Listen for "event committed" signal from server
+    - Mark event as confirmed
+    - Propagate single render cycle to provider
 
 3. **No Render Until Committed**
-   - Optimistic updates stay local to TeacherQueue
-   - Provider only re-renders when server confirms
-   - Failed operations rollback silently + notify user
+    - Optimistic updates stay local to TeacherQueue
+    - Provider only re-renders when server confirms
+    - Failed operations rollback silently + notify user
 
 4. **Error Handling**
-   ```typescript
-   // If event not confirmed within timeout:
-   console.warn(`⚠️ [EventQueue] Event ${eventId} not confirmed after ${TIMEOUT}ms`);
-   toast.error(`Failed to save changes. Please try again.`);
-   rollbackOptimisticUpdate(eventId);
-   ```
+    ```typescript
+    // If event not confirmed within timeout:
+    console.warn(`⚠️ [EventQueue] Event ${eventId} not confirmed after ${TIMEOUT}ms`);
+    toast.error(`Failed to save changes. Please try again.`);
+    rollbackOptimisticUpdate(eventId);
+    ```
 
 ---
 
 ## Implementation Steps
 
 ### Step 1: Fix Immediate Re-render Issue
+
 **File:** `src/providers/classboard-provider.tsx`
+
 - Implement useMemo wrapper around hookValue
 - Use stable dependency array (primitive values only)
 - Verify provider renders only when actual data changes
 
 **Acceptance Criteria:**
+
 - Provider logs show render only when queue/event count changes
 - No duplicate renders with identical data
 
 ---
 
 ### Step 2: Create QueueController Enhancement
+
 **Files:**
+
 - `backend/classboard/QueueController.ts` (extend existing)
 - `backend/classboard/EventQueue.ts` (new - pending events tracker)
 
 **Responsibilities:**
+
 - Track pending modifications with unique ID
 - Await server confirmation with configurable timeout
 - Trigger provider re-render only on success
@@ -146,11 +163,14 @@ Error/Timeout: Toast notification + Console warning
 ---
 
 ### Step 3: Implement Event Listener
+
 **Files:**
+
 - `src/hooks/useEventListener.ts` (new)
 - Integrate with existing realtime sync mechanism
 
 **Responsibilities:**
+
 - Listen for "event:confirmed" signals
 - Resolve pending event promises
 - Trigger single context update
@@ -158,9 +178,11 @@ Error/Timeout: Toast notification + Console warning
 ---
 
 ### Step 4: Update TeacherQueue Component
+
 **File:** `src/app/(admin)/classboard/TeacherQueueRow.tsx`
 
 **Changes:**
+
 - When user modifies event, call `QueueController.modifyQueue()`
 - Show optimistic UI locally (no provider update)
 - Wait for event listener confirmation
@@ -170,13 +192,16 @@ Error/Timeout: Toast notification + Console warning
 ---
 
 ### Step 5: Add Comprehensive Logging
+
 **All modified files:**
+
 - Log when modifications enter queue controller
 - Log when events are awaited by listener
 - Log confirmations and timeouts
 - Log rollbacks with reasons
 
 **Format:**
+
 ```typescript
 console.log(`🎫 [Queue] Event ${id} modification queued`);
 console.warn(`⚠️ [Queue] Event ${id} not confirmed after ${ms}ms`);
@@ -188,6 +213,7 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 ## Verification Strategy
 
 ### Unit Tests
+
 - [ ] Provider memoization prevents unnecessary renders
 - [ ] Queue controller tracks pending events correctly
 - [ ] Event listener resolves promises on confirmation
@@ -195,18 +221,21 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 - [ ] Failed confirmations show toast + warning
 
 ### Integration Tests
+
 - [ ] Single user modifies event → single render
 - [ ] Multiple users modify different events → single render per event
 - [ ] Slow network (5s delay) → shows pending state, no UI freeze
 - [ ] Network error → toast + rollback without console spam
 
 ### Performance Benchmarks
+
 - [ ] Provider render count < 5 per minute during normal use
 - [ ] Event modification latency < 500ms (optimistic) + network time
 - [ ] CPU usage < 10% during idle
 - [ ] Memory stable during 1hr session (no leaks)
 
 ### Production Readiness Checklist
+
 - [ ] No console warnings during normal operation
 - [ ] All error cases handled gracefully (toast + log)
 - [ ] Realtime subscriptions properly cleaned up
@@ -218,12 +247,14 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 ## Timeline & Ownership
 
 ### Phase 1 (Immediate - This Sprint)
+
 - Fix provider memoization
 - Add detailed logging to identify remaining issues
 - **Owner:** [To Assign]
 - **Estimated:** 2-3 hours
 
 ### Phase 2 (Next Sprint - Core Fix)
+
 - Implement QueueController pattern
 - Create EventListener integration
 - Update TeacherQueue component
@@ -231,6 +262,7 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 - **Estimated:** 1-2 days
 
 ### Phase 3 (Quality Assurance)
+
 - Comprehensive testing (unit + integration)
 - Performance benchmarking
 - Production staging validation
@@ -242,6 +274,7 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 ## Critical Success Criteria
 
 **Must Achieve for Production Release:**
+
 1. ✅ Provider only re-renders when data actually changes
 2. ✅ No infinite render loops or cascading updates
 3. ✅ Event modifications have predictable latency
@@ -255,12 +288,12 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 
 ## Risks & Mitigation
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Race conditions with concurrent edits | Data loss/corruption | Use optimistic locking + server validation |
-| Event listener timeout too short | Users see false failures | Configurable timeout, clear messaging |
-| Provider still re-renders unnecessarily | Performance unchanged | Extensive logging to identify trigger |
-| Rollback loses user progress | User frustration | Store pending changes in IndexedDB as backup |
+| Risk                                    | Impact                   | Mitigation                                   |
+| --------------------------------------- | ------------------------ | -------------------------------------------- |
+| Race conditions with concurrent edits   | Data loss/corruption     | Use optimistic locking + server validation   |
+| Event listener timeout too short        | Users see false failures | Configurable timeout, clear messaging        |
+| Provider still re-renders unnecessarily | Performance unchanged    | Extensive logging to identify trigger        |
+| Rollback loses user progress            | User frustration         | Store pending changes in IndexedDB as backup |
 
 ---
 
@@ -271,4 +304,3 @@ console.log(`✅ [Queue] Event ${id} confirmed and rendered`);
 - **Production-ready error handling** - Every failure path must have user feedback
 - **Measurement first** - Verify each fix actually improves performance
 - **Document decisions** - Future maintainers need to understand the pattern
-

@@ -66,7 +66,9 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                     lesson.events?.forEach((event) => {
                         updatedEventIds.push(event.id);
                         newEventIdSet.add(event.id);
-                        console.log(`  📝 Event update detected: ${event.id} | Teacher: ${lesson.teacher?.username} | Status: ${event.status} | Time: ${event.date}`);
+                        console.log(
+                            `  📝 Event update detected: ${event.id} | Teacher: ${lesson.teacher?.username} | Status: ${event.status} | Time: ${event.date}`,
+                        );
                     });
                 });
             });
@@ -121,12 +123,16 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                                     // Check if time changed
                                     if (oldEvent.date !== newEvent.date) {
                                         changedEventIds.push(newEvent.id);
-                                        console.log(`  🔄 [Realtime] Event time changed: ${newEvent.id} from ${oldEvent.date} to ${newEvent.date}`);
+                                        console.log(
+                                            `  🔄 [Realtime] Event time changed: ${newEvent.id} from ${oldEvent.date} to ${newEvent.date}`,
+                                        );
                                     }
                                     // Check if status changed
                                     if (oldEvent.status !== newEvent.status) {
                                         changedEventIds.push(newEvent.id);
-                                        console.log(`  🔄 [Realtime] Event status changed: ${newEvent.id} from ${oldEvent.status} to ${newEvent.status}`);
+                                        console.log(
+                                            `  🔄 [Realtime] Event status changed: ${newEvent.id} from ${oldEvent.status} to ${newEvent.status}`,
+                                        );
                                     }
                                 }
                             }
@@ -260,7 +266,7 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                                 if (eventType === "INSERT" && event.id.startsWith("temp-")) {
                                     return {
                                         ...event,
-                                        id: eventId,  // Replace temp ID with real ID
+                                        id: eventId, // Replace temp ID with real ID
                                         date: convertedDate,
                                         duration,
                                         location,
@@ -272,7 +278,7 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                                 if (event.id !== eventId) return event;
 
                                 if (eventType === "DELETE") {
-                                    return null;  // Mark for deletion
+                                    return null; // Mark for deletion
                                 }
 
                                 return {
@@ -283,7 +289,7 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                                     status,
                                 };
                             })
-                            .filter((e): e is NonNullable<typeof e> => e !== null);  // Remove deleted
+                            .filter((e): e is NonNullable<typeof e> => e !== null); // Remove deleted
 
                         return { ...lesson, events: updatedEvents };
                     });

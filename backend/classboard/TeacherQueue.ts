@@ -577,7 +577,7 @@ export class TeacherQueue {
             const hours = event.eventData.duration / 60;
             const studentCount = event.bookingStudents?.length || 0;
             const eventRevenue = event.pricePerStudent * studentCount * hours;
-            
+
             totalRevenue += eventRevenue;
 
             // Calculate commission based on event duration and revenue

@@ -22,8 +22,8 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             schoolId = schoolHeader.id;
             timezone = schoolHeader.timezone;
         } else if (!timezone) {
-             const schoolHeader = await getSchoolHeader();
-             if (schoolHeader) timezone = schoolHeader.timezone;
+            const schoolHeader = await getSchoolHeader();
+            if (schoolHeader) timezone = schoolHeader.timezone;
         }
 
         const supabase = getServerConnection();
@@ -86,10 +86,12 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                 return {
                     ...l,
                     teacher_commission: l.teacher_commission,
-                    booking: l.booking ? {
-                        ...l.booking,
-                        students,
-                    } : undefined,
+                    booking: l.booking
+                        ? {
+                              ...l.booking,
+                              students,
+                          }
+                        : undefined,
                     event: events,
                     teacher_lesson_payment: l.teacher_lesson_payment || [],
                 };

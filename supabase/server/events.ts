@@ -72,7 +72,7 @@ export async function getEventTransaction(
 ): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
     try {
         const supabase = getServerConnection();
-        
+
         const headersList = await headers();
         let timezone = headersList.get("x-school-timezone");
 

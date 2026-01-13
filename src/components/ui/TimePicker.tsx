@@ -55,7 +55,9 @@ export function TimePicker({ value, onChange, className = "", noBg = false }: Ti
                 <Minus size={14} />
             </button>
 
-            <div className={`flex items-center px-2 py-1 rounded-md border border-transparent focus-within:border-primary/30 transition-all ${noBg ? "" : "bg-muted/50"}`}>
+            <div
+                className={`flex items-center px-2 py-1 rounded-md border border-transparent focus-within:border-primary/30 transition-all ${noBg ? "" : "bg-muted/50"}`}
+            >
                 <input
                     type="text"
                     value={hStr}
