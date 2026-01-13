@@ -86,7 +86,7 @@ export function LandingHeroDescription() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
-                    className="text-secondary text-xl md:text-3xl tracking-tight"
+                    className="text-secondary text-xl md:text-2xl tracking-wise"
                 >
                     Our technology
                 </motion.span>
@@ -138,9 +138,9 @@ export function LandingHeroDescription() {
                     <span className={KEY_WORDS}>communication</span>,
                 </div>
                 <div className="text-xl text-gray-300 text-center">
-                    <span className={PUNCH_WORDS}>Adrenalink</span> is{" "}
-                    <span className="font-bold text-white">built</span> to <span className={KEY_WORDS}>track equipment usage</span>,{" "}
-                    <span className="text-gray-400 italic">with</span> <span className={KEY_WORDS}>smart automation</span>.
+                    <span className={PUNCH_WORDS}>Adrenalink</span> is <span className="font-bold text-white">built</span> to{" "}
+                    <span className={KEY_WORDS}>track equipment usage</span>, <span className="text-gray-400 italic">with</span>{" "}
+                    <span className={KEY_WORDS}>smart automation</span>.
                 </div>
             </motion.div>
 
