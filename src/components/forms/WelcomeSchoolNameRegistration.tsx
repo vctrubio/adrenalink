@@ -6,6 +6,7 @@ import type { SchoolFormData } from "./WelcomeSchoolSteps";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { AnimatedCanvas } from "@/src/landing/animated-canvas";
+import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 
 interface WelcomeSchoolNameRegistrationProps {
     formMethods: UseFormReturn<SchoolFormData>;
@@ -92,7 +93,7 @@ export function WelcomeSchoolNameRegistration({
                                         onUsernameChange(e);
                                     },
                                 })}
-                                placeholder={isGeneratingUsername ? "Checking Availability..." : "school.adrenaline.com"}
+                                placeholder={isGeneratingUsername ? "Checking Availability..." : "school.adrenalink.com"}
                                 disabled={isGeneratingUsername}
                                 className={`
                                     text-lg py-6 bg-background/80 backdrop-blur-sm
@@ -152,7 +153,7 @@ export function WelcomeSchoolNameRegistration({
                         }
                     `}
                 >
-                    Let's get started<ArrowRight className="w-5 h-5" />
+                    Start Your Adventure<ArrowRight className="w-5 h-5" />
                 </button>
             </div>
         </motion.div>

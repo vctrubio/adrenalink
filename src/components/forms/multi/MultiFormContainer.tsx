@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { UseFormReturn, FieldValues } from "react-hook-form";
 import { Form } from "@/src/components/ui/form";
-import { MultiFormStepper } from "./MultiFormStepper";
-import { MultiFormButtons } from "./MultiFormButtons";
 import type { FormStep } from "./types";
 import { WelcomeSchoolResponseBanner } from "../WelcomeSchoolResponseBanner";
+import { WelcomeFormFooterWindSteps } from "../WelcomeFormFooterWindSteps";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Form configuration
@@ -62,6 +63,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isError, setIsError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [isShake, setIsShake] = useState(false);
 
     const { handleSubmit, trigger, formState, setFocus } = formMethods;
 
@@ -76,19 +78,15 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     // Navigation functions
     const next = async () => {
         const currentFields = steps[stepIndex].fields;
-        console.log(`[MultiFormContainer] Validating step ${stepIndex}`, {
-            fields: currentFields,
-            currentValues: formMethods.getValues(),
-        });
-
         const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as (keyof T)[]);
 
-        console.log(`[MultiFormContainer] Step ${stepIndex} isValid:`, isValid);
         if (!isValid) {
-            console.error(`[MultiFormContainer] Step ${stepIndex} validation errors:`, formMethods.formState.errors);
+            setIsShake(true);
+            setTimeout(() => setIsShake(false), 500);
+            return;
         }
 
-        if (isValid && stepIndex < steps.length - 1) {
+        if (stepIndex < steps.length - 1) {
             const newStep = stepIndex + 1;
             setStepIndex(newStep);
             onStepChange?.(newStep);
@@ -207,42 +205,94 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     return (
         <div className={`mt-12 md:mt-32 px-4 md:px-0 ${className}`}>
-            {/* Header */}
-            {(title || currentSubtitle) && (
-                <div className="mb-6 md:mb-12 text-center">
-                    {title && <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">{title}</h1>}
-                    {currentSubtitle && <p className="text-sm md:text-lg text-muted-foreground">{currentSubtitle}</p>}
-                </div>
-            )}
-
-            {/* Stepper */}
-            <div className="mb-8 md:mb-12">
-                <MultiFormStepper steps={steps} currentStep={stepIndex} onStepClick={goTo} />
-            </div>
-
-            {/* Form */}
             <Form
                 methods={formMethods}
                 onSubmit={handleSubmit(handleFormSubmit)}
-                className="bg-card rounded-2xl md:rounded-[2.5rem] border border-border/50 p-6 md:p-12 lg:p-20 shadow-2xl mx-auto"
+                className="w-full"
             >
-                {/* Current Step Content */}
-                {CurrentStepComponent && (
-                    <div className="space-y-4 md:space-y-6">
-                        <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
+                {/* Header Navigation */}
+                <div className="flex items-center justify-between mb-8 md:mb-12 px-2">
+                    {/* Back Button */}
+                    <div className="w-12 md:w-16 flex justify-start">
+                        <button
+                            type="button"
+                            onClick={prev}
+                            disabled={stepIndex === 0}
+                            className={`
+                                p-3 md:p-4 rounded-full transition-all duration-300
+                                ${stepIndex === 0 
+                                    ? "opacity-0 pointer-events-none" 
+                                    : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground hover:scale-110 active:scale-95"}
+                            `}
+                            aria-label="Previous Step"
+                        >
+                            <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
+                        </button>
                     </div>
-                )}
 
-                {/* Navigation */}
-                <MultiFormButtons
-                    isFirstStep={stepIndex === 0}
-                    isLastStep={stepIndex === steps.length - 1}
-                    onPrev={prev}
-                    onNext={next}
-                    submitButtonText={submitButtonText}
-                    isFormValid={formState.isValid}
-                />
+                    {/* Title */}
+                    <div className="flex-1 text-center space-y-2">
+                        {(title || currentSubtitle) && (
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                {title && <h1 className="text-xl md:text-4xl lg:text-5xl font-black text-foreground uppercase tracking-tighter mb-2">{title}</h1>}
+                                {currentSubtitle && (
+                                    <p className="text-lg md:text-2xl font-bold text-muted-foreground tracking-tight leading-tight max-w-xl mx-auto">
+                                        {currentSubtitle}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Next/Submit Button */}
+                    <div className="w-12 md:w-16 flex justify-end">
+                        {stepIndex < steps.length - 1 ? (
+                            <motion.button
+                                type="button"
+                                onClick={next}
+                                animate={isShake ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+                                transition={{ duration: 0.4 }}
+                                className={`
+                                    p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300
+                                    ${isShake 
+                                        ? "bg-red-500 text-white" 
+                                        : steps[stepIndex].fields.some(field => !!formState.errors[field as keyof T])
+                                            ? "bg-muted text-muted-foreground opacity-50 grayscale cursor-not-allowed"
+                                            : "bg-foreground text-background hover:bg-foreground/90"}
+                                `}
+                                aria-label="Next Step"
+                            >
+                                <ArrowRight className="w-6 h-6 md:w-7 md:h-7" />
+                            </motion.button>
+                        ) : (
+                            <button
+                                type="submit"
+                                disabled={!formState.isValid}
+                                className={`
+                                    p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300
+                                    ${formState.isValid 
+                                        ? "bg-green-500 text-white hover:bg-green-600" 
+                                        : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"}
+                                `}
+                                aria-label="Submit Form"
+                            >
+                                <Check className="w-6 h-6 md:w-7 md:h-7" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Content Card */}
+                <div className="bg-card rounded-2xl md:rounded-[2.5rem] border border-border/50 p-6 md:p-12 lg:p-20 shadow-2xl mx-auto min-h-[400px] flex flex-col justify-center">
+                    {CurrentStepComponent && (
+                        <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                            <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
+                        </div>
+                    )}
+                </div>
             </Form>
+
+            <WelcomeFormFooterWindSteps steps={steps} currentStep={stepIndex} onStepClick={goTo} />
         </div>
     );
 }

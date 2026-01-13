@@ -3,6 +3,8 @@
 import { getServerConnection } from "@/supabase/connection";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { logAndNotifyNewSchool, logAndNotifyError } from "./notifications";
+import { sendSchoolRegistrationEmail } from "./email-service";
 
 /**
  * Fetches all school usernames to prevent duplicates during registration
@@ -15,6 +17,7 @@ export async function getSchoolsUsernames(): Promise<ApiActionResponseModel<stri
 
         if (error) {
             console.error("Error fetching school usernames:", error);
+            // We don't notify admin for this minor read error to avoid spam
             return { success: false, error: "Failed to fetch school usernames" };
         }
 
@@ -75,17 +78,32 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
         const { data, error } = await supabase.from("school").insert(insertData).select().single();
 
         if (error) {
-            console.error("Error creating school:", error);
             if (error.code === "23505") {
                 return { success: false, error: "A school with this username already exists" };
             }
+            
+            // Log critical DB error
+            await logAndNotifyError("createSchool:DatabaseInsert", error);
+            
             return { success: false, error: error.message };
         }
+
+        // Success! Notify Admin via WhatsApp
+        // Fire and forget so UI doesn't hang
+        logAndNotifyNewSchool(data, schoolData.ownerEmail, schoolData.referenceNote).catch(err => 
+            console.error("Failed to fire notification:", err)
+        );
+
+        // Send Welcome Email (Fire and forget)
+        sendSchoolRegistrationEmail(data, schoolData.ownerEmail).catch(err => 
+            console.error("Failed to send welcome email:", err)
+        );
 
         revalidatePath("/schools");
         return { success: true, data };
     } catch (error) {
-        console.error("Unexpected error in createSchool:", error);
+        // Log critical unexpected error
+        await logAndNotifyError("createSchool:Unexpected", error);
         return { success: false, error: "Failed to create school" };
     }
 }

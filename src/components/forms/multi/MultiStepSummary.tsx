@@ -50,24 +50,33 @@ export function MultiStepSummary({ formMethods, fields, onEditField, gridCols = 
                 {fields.map((field) => {
                     const displayValue = getDisplayValue(field);
                     const isEditable = field.editable !== false; // Default to editable
+                    const isEmpty = isFieldEmpty(field);
 
                     return (
                         <div
                             key={field.key}
-                            className={`relative p-4 rounded-md border bg-background ${field.colSpan === 2 ? `md:col-span-${gridCols}` : ""} ${isFieldEmpty(field) ? "border-orange-400 border-2" : "border-border"}`}
+                            className={`
+                                group relative p-5 rounded-2xl border transition-all duration-200
+                                ${isEmpty 
+                                    ? "bg-orange-50/50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800" 
+                                    : "bg-zinc-50/50 border-zinc-100 hover:border-zinc-300 hover:shadow-md hover:bg-white dark:bg-zinc-900/50 dark:border-zinc-800 dark:hover:border-zinc-700"}
+                                ${field.colSpan === 2 ? `md:col-span-${gridCols}` : ""}
+                            `}
                         >
                             {isEditable && onEditField && (
                                 <button
                                     type="button"
                                     aria-label={`Edit ${field.label}`}
                                     onClick={() => onEditField(field.key)}
-                                    className="absolute top-2 right-2 p-1 rounded hover:bg-accent transition-colors"
+                                    className="absolute top-3 right-3 p-2 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200/50 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                                 >
-                                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                                    <Pencil className="w-3.5 h-3.5" />
                                 </button>
                             )}
-                            <div className="text-xs text-muted-foreground mb-1">{field.label}</div>
-                            <div className="font-medium pr-8">{displayValue}</div>
+                            <div className="text-[11px] uppercase tracking-wider font-bold text-zinc-400 mb-1.5">{field.label}</div>
+                            <div className={`text-base font-semibold pr-6 break-words ${isEmpty ? "text-orange-600 dark:text-orange-400 italic" : "text-zinc-900 dark:text-zinc-100"}`}>
+                                {isEmpty ? "Not provided" : displayValue}
+                            </div>
                         </div>
                     );
                 })}

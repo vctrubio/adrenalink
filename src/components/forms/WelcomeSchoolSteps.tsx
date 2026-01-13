@@ -2,7 +2,7 @@
 
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { LocationStep } from "./LocationStep";
-import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Instagram, MessageCircle } from "lucide-react";
+import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Instagram, Pencil } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
@@ -228,29 +228,35 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
     };
 
     return (
-        <div className="space-y-6 md:space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Icon Upload */}
-                <div className="space-y-3">
-                    <div className="text-center md:text-left">
-                        <label className="text-sm font-medium text-foreground">School Icon</label>
-                        <p className="text-xs text-muted-foreground mb-3">Square (1:1), zoom & crop available</p>
+        <div className="space-y-8">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
+                {/* Icon Upload - Circular */}
+                <div className="flex-shrink-0 flex flex-col items-center space-y-4 w-full md:w-auto">
+                    <div className="text-center space-y-1">
+                        <label className="text-sm font-bold text-foreground">School Icon</label>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Square (1:1)</p>
                     </div>
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group relative overflow-hidden">
+                    
+                    <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
                          {values.iconFile ? (
-                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-background/80 group-hover:bg-background/90 transition-colors">
-                                <div className="text-center">
-                                     <p className="text-xs font-semibold text-green-600 mb-1">✓ Selected</p>
-                                     <p className="text-xs text-muted-foreground">Click to change</p>
+                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="text-center text-white">
+                                     <Pencil className="w-6 h-6 mx-auto mb-1" />
+                                     <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
                                 </div>
                              </div>
                          ) : (
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <p className="text-sm text-muted-foreground">
-                                    <span className="font-semibold">Click to upload</span> icon
-                                </p>
+                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                <ImageIcon className="w-8 h-8 mb-2" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
                             </div>
+                         )}
+                         {values.iconFile && (
+                            <img 
+                                src={URL.createObjectURL(values.iconFile)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                alt="Preview" 
+                            />
                          )}
                         <input
                             type="file"
@@ -262,28 +268,35 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
                     </label>
                 </div>
 
-                {/* Banner Upload */}
-                <div className="space-y-3">
-                    <div className="text-center md:text-left">
-                        <label className="text-sm font-medium text-foreground">School Banner</label>
-                        <p className="text-xs text-muted-foreground mb-3">Widescreen (16:9), zoom & crop available</p>
+                {/* Banner Upload - Wide */}
+                <div className="flex-1 flex flex-col space-y-4 w-full">
+                    <div className="text-left space-y-1">
+                        <label className="text-sm font-bold text-foreground">School Banner</label>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Widescreen (16:9)</p>
                     </div>
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors group relative overflow-hidden">
+                    
+                    <label className="relative w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
                         {values.bannerFile ? (
-                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-background/80 group-hover:bg-background/90 transition-colors">
-                                <div className="text-center">
-                                     <p className="text-xs font-semibold text-green-600 mb-1">✓ Selected</p>
-                                     <p className="text-xs text-muted-foreground">Click to change</p>
+                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="text-center text-white">
+                                     <Pencil className="w-8 h-8 mx-auto mb-2" />
+                                     <span className="text-xs font-bold uppercase tracking-wider">Change Banner</span>
                                 </div>
                              </div>
                          ) : (
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <p className="text-sm text-muted-foreground">
-                                    <span className="font-semibold">Click to upload</span> banner
-                                </p>
+                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                <ImageIcon className="w-12 h-12 mb-3" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Click to upload banner</span>
+                                <span className="text-[10px] text-muted-foreground mt-1 opacity-60">High resolution recommended</span>
                             </div>
                         )}
+                        {values.bannerFile && (
+                            <img 
+                                src={URL.createObjectURL(values.bannerFile)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                alt="Preview" 
+                            />
+                         )}
                         <input
                             type="file"
                             accept="image/png,image/jpeg,image/jpg,image/webp"

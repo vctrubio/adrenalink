@@ -30,7 +30,7 @@ function WelcomePlaceholder() {
                     <Image src={adrLogo} alt="Adrenalink" width={160} height={160} className="dark:invert" priority />
                 </motion.div>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-2">Start Your Adventure</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Adrenalink</h1>
             <p className="text-lg md:text-xl text-muted-foreground">Register your school here.</p>
         </motion.div>
     );
