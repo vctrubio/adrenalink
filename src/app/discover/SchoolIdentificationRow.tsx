@@ -3,9 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import adrLogo from "@/public/ADR.webp";
 import { SPORTS_CONFIG } from "../../components/school/SportSelection";
 import type { SchoolWithAssets } from "@/supabase/db/types";
+import { UsernameBadge } from "@/src/components/school/UsernameBadge";
 
 interface SchoolIdentificationRowProps {
     school: SchoolWithAssets;
@@ -38,12 +38,7 @@ export const SchoolIdentificationRow = ({
             className="group relative py-8 md:py-16 flex flex-col md:flex-row items-center gap-8 md:gap-16 transition-all px-12 rounded-[4rem] cursor-pointer overflow-hidden bg-card/30 hover:bg-card/60 border border-transparent hover:border-border/50 shadow-sm hover:shadow-2xl"
         >
             {/* Username Badge */}
-            <div className="absolute top-0 right-0 z-20">
-                <div className="bg-card px-8 py-3 rounded-bl-[2.5rem] border-b border-l border-border/50 flex items-center gap-3 shadow-sm">
-                    <Image src={adrLogo} alt="" width={16} height={16} className="dark:invert" />
-                    <span className="text-md font-black tracking-[0.4em] text-primary uppercase">{school.username}</span>
-                </div>
-            </div>
+            <UsernameBadge username={school.username} variant="theme" />
 
             {/* Banner Background */}
             <div className="absolute inset-0 z-0">

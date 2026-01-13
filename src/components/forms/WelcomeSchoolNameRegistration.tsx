@@ -148,11 +148,11 @@ export function WelcomeSchoolNameRegistration({
                         ${
                             !values.name || !values.username || usernameStatus !== "available"
                                 ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                                : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                : "bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         }
                     `}
                 >
-                    Register School <ArrowRight className="w-5 h-5" />
+                    Let's get started<ArrowRight className="w-5 h-5" />
                 </button>
             </div>
         </motion.div>

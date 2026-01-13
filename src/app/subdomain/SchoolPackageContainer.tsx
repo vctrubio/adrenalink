@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import type { SchoolPackage } from "@/supabase/db/types";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { SPORTS_CONFIG } from "@/src/components/school/SportSelection";
-import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getHMDuration } from "@/getters/duration-getter";
@@ -12,7 +11,6 @@ import { getHMDuration } from "@/getters/duration-getter";
 interface PackageCardProps {
     pkg: SchoolPackage;
     currencySymbol: string;
-    isSelected?: boolean;
 }
 
 interface SchoolPackageContainerProps {
@@ -24,7 +22,7 @@ interface SchoolPackageContainerProps {
  * Game-style Package Card for subdomain view
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
-export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProps) {
+export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
     const {
         id,
         name,
@@ -54,21 +52,12 @@ export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProp
     };
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-                opacity: 1,
-                y: 0,
-                borderColor: isSelected ? "rgb(251, 146, 60)" : "rgb(228, 228, 231)",
-                borderWidth: isSelected ? "3px" : "1px",
-            }}
-            whileHover={{ y: -4 }}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
+        <div
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             onClick={handleCardClick}
             className={
-                "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col select-none border"
+                "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-sm cursor-pointer flex flex-col select-none"
             }
         >
             {/* 1. Header: Logo + Type + Description */}
@@ -162,7 +151,7 @@ export function PackageCard({ pkg, currencySymbol, isSelected }: PackageCardProp
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -267,7 +256,7 @@ export function SchoolPackageContainer({ packages, currencySymbol }: SchoolPacka
                         if (isSelectedArray.length > 0 && !isSelected) return null;
 
                         return groupedPackages[cat].map((pkg) => (
-                            <PackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} isSelected={isSelected} />
+                            <PackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} />
                         ));
                     })}
                 </div>
