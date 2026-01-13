@@ -80,7 +80,7 @@ export default function TeacherClassDaily() {
     return (
         <div className="flex flex-col h-full">
             {/* Header: Global Toggles & Filter */}
-            <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
+            <div className="h-16 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
                 {isSharing ? (
                     <>
                         <div className="text-secondary">

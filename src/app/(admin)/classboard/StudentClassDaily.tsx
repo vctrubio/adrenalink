@@ -48,9 +48,9 @@ export default function StudentClassDaily() {
     }, [bookings, filter, selectedDate]);
 
     return (
-        <div className="flex flex-col h-full bg-card">
+        <div className="flex flex-col h-full">
             {!isAdjustmentMode && (
-                <div className="p-4 px-6 border-b-2 border-background bg-card flex items-center gap-4 cursor-pointer hover:bg-muted/30 active:bg-muted/50 transition-colors select-none">
+                <div className="h-16 px-6 border-b-2 border-background bg-card flex items-center gap-4 transition-colors select-none flex-shrink-0">
                     <div style={{ color: STUDENT_COLOR }}>
                         <HelmetIcon className="w-7 h-7 flex-shrink-0" />
                     </div>
@@ -79,7 +79,7 @@ export default function StudentClassDaily() {
                     {isAdjustmentMode ? (
                         <LessonFlagLocationSettingsController />
                     ) : (
-                        <div className="p-4">
+                        <div className={`p-4 transition-colors ${filteredBookings.length > 0 ? "bg-card" : ""}`}>
                             <div className="flex flex-row xl:flex-col gap-3">
                                 <AnimatePresence mode="popLayout" initial={false}>
                                     {filteredBookings.map((bookingData) => {

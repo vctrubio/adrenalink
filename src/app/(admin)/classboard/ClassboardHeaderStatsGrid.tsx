@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useMemo } from "react";
 import { ClassboardStatistics } from "../../../../backend/classboard/ClassboardStatistics";
@@ -29,7 +29,7 @@ export default function ClassboardHeaderStatsGrid() {
 
     const renderStat = (key: keyof typeof stats, type: StatType) => (
         <div key={key} className="flex items-center justify-center px-1 py-2 sm:px-3 h-full">
-            <StatItemUI type={type} value={stats[key]} className="text-xs sm:text-sm" iconColor={true} />
+            <StatItemUI type={type} value={stats[key]} className="text-xs sm:text-sm" iconColor={false} />
         </div>
     );
 
