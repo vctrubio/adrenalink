@@ -1,13 +1,29 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import * as React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const BLUE_BG_GO = "bg-slate-950"; // Always use dark mode background
+const BLUE_BG_GO = "bg-slate-950";
 const PUNCH_WORDS = "text-white font-bold";
 const HIGHLIGHT_SPAN_CLASSNAME = "border-b border-secondary/50 tracking-wider";
 const KEY_WORDS = "text-xl text-white";
+
+const ANIMATION_DELAYS = {
+    connecting: 0,
+    schools: 0.5,
+    students: 0.9,
+    and: 1.0,
+    teachers: 1.3,
+    toSynchronize: 1.7,
+    lessonPlanning: 1.75,
+    smartAutomation: 1.9,
+    andAfterAutomation: 1.95,
+    equipmentTracking: 2.1,
+    period: 2.15,
+    comma: 2.15,
+} as const;
 
 function AdrImageSection() {
     return (
@@ -74,6 +90,186 @@ function LandingHeroHeader() {
             <h1 className="relative text-7xl md:text-9xl font-bold tracking-tight drop-shadow-2xl" style={{ zIndex: 10 }}>
                 Adrenalink
             </h1>
+        </div>
+    );
+}
+
+function ThreeWayConnection({ word, delay }: { word: string; delay: number }) {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    return (
+        <motion.span
+            className={`relative inline-block cursor-pointer px-1 text-gray-400 ${isHovered ? "font-bold" : ""}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ 
+                opacity: 1, 
+                y: 0,
+            }}
+            transition={{ 
+                delay,
+                duration: 0.6,
+                ease: [0.22, 1, 0.36, 1] as const,
+            }}
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+        >
+            {word}
+            {isHovered && (
+                <motion.span
+                    className="absolute inset-0 -z-10"
+                    initial={{ 
+                        scaleX: 0,
+                        transformOrigin: "left",
+                    }}
+                    animate={{ 
+                        scaleX: 1,
+                        transformOrigin: "left",
+                    }}
+                    exit={{ 
+                        scaleX: 0,
+                        transformOrigin: "right",
+                    }}
+                    transition={{ 
+                        duration: 0.8,
+                        ease: [0.16, 1, 0.3, 1] as const,
+                    }}
+                    style={{
+                        backgroundColor: "rgb(59, 130, 246)",
+                        opacity: 0.8,
+                    }}
+                />
+            )}
+        </motion.span>
+    );
+}
+
+function LandingShortDesc() {
+    return (
+        <div className="max-w-2xl mx-auto px-4 mt-8 relative">
+            <p 
+                className="text-base md:text-lg text-gray-300 font-mono tracking-wide leading-relaxed text-center relative z-10"
+                style={{ 
+                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+                    letterSpacing: '0.05em',
+                    lineHeight: '1.6'
+                }}
+            >
+                <motion.span 
+                    className="text-white font-semibold"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.connecting,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    Connecting
+                </motion.span>{" "}
+                
+                <ThreeWayConnection word="schools" delay={ANIMATION_DELAYS.schools} />
+                <motion.span 
+                    className="text-gray-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.comma,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    ,{" "}
+                </motion.span>
+                <ThreeWayConnection word="students" delay={ANIMATION_DELAYS.students} />{" "}
+                <motion.span 
+                    className="text-gray-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.and,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    and
+                </motion.span>{" "}
+                <ThreeWayConnection word="teachers" delay={ANIMATION_DELAYS.teachers} />{" "}
+                
+                <motion.span 
+                    className="text-white font-semibold"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.toSynchronize,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    to synchronize
+                </motion.span>{" "}
+                <motion.span 
+                    className="text-gray-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.lessonPlanning,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    lesson planning, with
+                </motion.span>{" "}
+                
+                <motion.span 
+                    className="text-white font-semibold"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.smartAutomation,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    smart automation
+                </motion.span>{" "}
+                <motion.span 
+                    className="text-gray-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.andAfterAutomation,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    and
+                </motion.span>{" "}
+                
+                <motion.span 
+                    className="text-white font-semibold"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.equipmentTracking,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    equipment tracking
+                </motion.span>
+                <motion.span 
+                    className="text-gray-500"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                        delay: ANIMATION_DELAYS.period,
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const
+                    }}
+                >
+                    .
+                </motion.span>
+            </p>
         </div>
     );
 }
@@ -260,7 +456,7 @@ export function LandingHero() {
                     </div>
                     <div className="flex-1"></div>
                     <div className="flex flex-col items-center justify-end pb-20 gap-8">
-                        <LandingHeroDescription />
+                        <LandingShortDesc />
                     </div>
                 </div>
             </div>
