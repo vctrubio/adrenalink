@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { SchoolFormData } from "./WelcomeSchoolSteps";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -65,8 +66,15 @@ function SchoolPreview({ formData, bannerUrl, iconUrl }: { formData: SchoolFormD
 }
 
 export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
-    const bannerUrl = formData.bannerFile ? URL.createObjectURL(formData.bannerFile) : "/kritaps_ungurs_unplash/forest.jpg";
-    const iconUrl = formData.iconFile ? URL.createObjectURL(formData.iconFile) : null;
+    const bannerUrl = useMemo(() => {
+        if (formData.bannerFile) return URL.createObjectURL(formData.bannerFile);
+        return "/kritaps_ungurs_unplash/forest.jpg";
+    }, [formData.bannerFile]);
+
+    const iconUrl = useMemo(() => {
+        if (formData.iconFile) return URL.createObjectURL(formData.iconFile);
+        return null;
+    }, [formData.iconFile]);
 
     return (
         <div className="w-full mb-6 md:mb-8">
