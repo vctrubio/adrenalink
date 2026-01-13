@@ -1,12 +1,14 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 import { DropdownItem } from "@/src/components/ui/dropdown";
+import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { NavigationWizardModal } from "@/src/components/modals/admin/NavigationWizardModal";
 
@@ -16,8 +18,9 @@ const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "e
 export const NavLeft = () => {
     const pathname = usePathname();
     const [isNavModalOpen, setIsNavModalOpen] = useState(false);
+    const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
+    const mobileButtonRef = useRef<HTMLButtonElement>(null);
     const credentials = useSchoolCredentials();
-    const logoUrl = credentials?.logoUrl || ""; // Fallback to empty string but safeguard below
     const schoolUsername = credentials?.username || null;
 
     const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
@@ -36,27 +39,92 @@ export const NavLeft = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    // Safety check for Image src
-    if (!logoUrl) {
-        return null; // Or some skeleton/placeholder logic, but avoiding the crash
-    }
+    // Find active route
+    const activeRoute = routesToRender.find((route) => {
+        if (route.id === "data") {
+            return pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+        }
+        return pathname.startsWith(route.href);
+    });
+
+    // Mobile dropdown items
+    const mobileDropdownItems: DropdownItemProps[] = routesToRender.map((route) => {
+        let isActive = false;
+        if (route.id === "data") {
+            isActive = pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+        } else {
+            isActive = pathname.startsWith(route.href);
+        }
+
+        if (route.id === "data") {
+            return {
+                id: route.id,
+                label: route.label,
+                icon: route.icon,
+                active: isActive,
+                onClick: () => {
+                    setIsNavModalOpen(true);
+                    setIsMobileDropdownOpen(false);
+                },
+            };
+        }
+
+        return {
+            id: route.id,
+            label: route.label,
+            icon: route.icon,
+            active: isActive,
+            href: route.href,
+            onClick: () => setIsMobileDropdownOpen(false),
+        };
+    });
 
     return (
         <>
             <div className="flex items-center gap-1">
-                <Link href="/" className="flex items-center">
-                    <Image
-                        src={logoUrl}
-                        alt={schoolUsername || "School Logo"}
-                        width={36}
-                        height={36}
-                        className="rounded-full object-cover md:w-10 md:h-10"
-                        priority
+                {/* Mobile: Icon with active route icon and dropdown */}
+                <div className="md:hidden relative flex items-center gap-1">
+                    <button
+                        ref={mobileButtonRef}
+                        onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
+                        className="flex items-center gap-1"
+                    >
+                        <Image
+                            src="/prototypes/north-icon.png"
+                            alt={schoolUsername || "School Logo"}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover w-12 h-12"
+                            priority
+                        />
+                        {activeRoute && activeRoute.icon && (
+                            <div className="relative flex h-14 w-24 items-center justify-center text-primary transition-colors rounded-lg">
+                                <activeRoute.icon className="h-7 w-7 text-primary" />
+                                <div className="absolute bottom-0 h-1 w-full bg-primary" />
+                            </div>
+                        )}
+                    </button>
+                    <Dropdown
+                        isOpen={isMobileDropdownOpen}
+                        onClose={() => setIsMobileDropdownOpen(false)}
+                        items={mobileDropdownItems}
+                        align="left"
+                        triggerRef={mobileButtonRef as React.RefObject<HTMLElement>}
                     />
-                </Link>
+                </div>
 
-                {/* Desktop navigation */}
+                {/* Desktop: Icon with navigation items */}
                 <div className="hidden md:flex items-center gap-1">
+                    <Link href="/" className="flex items-center">
+                        <Image
+                            src="/prototypes/north-icon.png"
+                            alt={schoolUsername || "School Logo"}
+                            width={56}
+                            height={56}
+                            className="rounded-full object-cover w-14 h-14"
+                            priority
+                        />
+                    </Link>
                     {routesToRender.map((route) => {
                         let isActive = false;
                         if (route.id === "data") {
