@@ -1,9 +1,8 @@
 import { School } from "@/supabase/db/types";
 
 /**
- * TODO: Verify domain 'adrenalink.tech' in Resend to allow sending to any recipient.
- * Currently using testing domain restriction (onboarding@resend.dev) which
- * only allows sending to the account owner (vctrubio@gmail.com).
+ * Domain 'adrenalink.tech' is verified in Resend.
+ * Sending welcome emails to registered school owners.
  */
 
 const ADMIN_EMAIL = "vctrubio@gmail.com";
@@ -137,7 +136,7 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
                 "Authorization": `Bearer ${emailApiKey || ""}`,
             },
             body: JSON.stringify({
-                from: "Adrenalink <onboarding@resend.dev>", // Or use your verified domain e.g. "welcome@adrenalink.tech"
+                from: "Adrenalink <onboarding@adrenalink.tech>",
                 to: ownerEmail,
                 cc: ADMIN_EMAIL,
                 subject: `Welcome to Adrenalink: ${school.name}`,
