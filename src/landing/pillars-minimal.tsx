@@ -89,6 +89,7 @@ const PillarsMinimal = () => {
                     onGetStarted={() => setIsStarting(true)}
                     variant="primary"
                     getStartedUrl="/discover"
+                    registerUrl="/welcome"
                 />
             }
         >
