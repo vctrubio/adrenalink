@@ -1,14 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 interface BrandSizeCategoryBadgeProps {
     id: string;
     model: string;
     size: number | null;
     className?: string;
-    icon?: React.ComponentType<{ size?: number; className?: string }>;
+    categoryId?: string;
 }
 
-export function BrandSizeCategoryBadge({ id, model, size, className = "", icon: Icon }: BrandSizeCategoryBadgeProps) {
+export function BrandSizeCategoryBadge({ id, model, size, className = "", categoryId }: BrandSizeCategoryBadgeProps) {
+    const categoryConfig = categoryId ? EQUIPMENT_CATEGORIES.find(c => c.id === categoryId) : null;
+    const Icon = categoryConfig?.icon;
+    
     return (
         <Link href={`/equipments/${id}`} onClick={(e) => e.stopPropagation()}>
             <div className={`flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer ${className}`}>
@@ -32,7 +38,7 @@ export function BrandSizeCategoryList({
     className = "",
     showIcon = false,
 }: {
-    equipments?: { id: string; model: string; size: number | null; icon?: React.ComponentType<any> }[];
+    equipments?: { id: string; model: string; size: number | null; categoryId?: string }[];
     emptyLabel?: string;
     className?: string;
     showIcon?: boolean;
@@ -44,7 +50,13 @@ export function BrandSizeCategoryList({
     return (
         <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
             {equipments.map((eq, i) => (
-                <BrandSizeCategoryBadge key={i} id={eq.id} model={eq.model} size={eq.size} icon={showIcon ? eq.icon : undefined} />
+                <BrandSizeCategoryBadge 
+                    key={i} 
+                    id={eq.id} 
+                    model={eq.model} 
+                    size={eq.size} 
+                    categoryId={showIcon ? eq.categoryId : undefined} 
+                />
             ))}
         </div>
     );
