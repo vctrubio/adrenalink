@@ -110,9 +110,3 @@ export function DevAboutMeFooter() {
         </section>
     );
 }
-                    </motion.div>
-                </div>
-            </div>
-        </section>
-    );
-}
