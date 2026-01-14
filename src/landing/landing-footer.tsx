@@ -30,12 +30,12 @@ export function DevAboutMeFooter() {
                         className="rounded-3xl overflow-hidden bg-white/10 backdrop-blur-md transition-all duration-300"
                     >
                         {/* Main Content */}
-                        <div className="px-16 py-12 text-center group cursor-pointer" onClick={() => router.push("/discover")}>
+                        <div className="px-16 py-12 text-center group cursor-pointer" onClick={() => router.push("/welcome")}>
                             <h2 className="text-6xl md:text-8xl font-bold tracking-tight text-white transition-colors duration-300 group-hover:text-white/20">
                                 Discover More
                             </h2>
                             <p className="text-3xl md:text-5xl font-bold tracking-tight text-white/60 mt-4 block transition-all duration-300 group-hover:text-white group-hover:scale-105">
-                                Find a School
+                                Register a school
                             </p>
                         </div>
 
