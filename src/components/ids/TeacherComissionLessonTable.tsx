@@ -2,7 +2,8 @@
 
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
-import { LessonEventRow, type LessonEventRowData } from "@/src/components/ids/LessonEventRow";
+import { LessonEventRow } from "@/src/components/ids/LessonEventRow";
+import type { EventModel } from "@/backend/data/EventModel";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 
@@ -15,7 +16,7 @@ export interface TeacherComissionLessonData {
     eventCount: number;
     duration: number;
     earned: number;
-    events: LessonEventRowData[];
+    events: EventModel[];
 }
 
 interface TeacherComissionLessonTableProps {

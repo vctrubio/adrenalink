@@ -27,6 +27,7 @@ export interface LessonEventRowData {
     durationLabel: string;
     location: string;
     status: string;
+    equipments?: { id: string; model: string; size: number | null; icon?: React.ComponentType<any> }[];
 }
 
 /**

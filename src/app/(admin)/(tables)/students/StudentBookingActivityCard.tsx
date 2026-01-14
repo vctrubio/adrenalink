@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { Check, TrendingUp, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import BookingIcon from "@/public/appSvgs/BookingIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
@@ -145,15 +146,13 @@ export function StudentBookingActivityCard({ booking, stats }: StudentBookingAct
                                 </span>
                             </div>
 
-                            {statusConfig && (
-                                <div
-                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter shrink-0"
-                                    style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
-                                >
-                                    {booking.status === "completed" && <Check size={8} strokeWidth={4} />}
-                                    {statusConfig.label}
-                                </div>
-                            )}
+                            <Link
+                                href={`/bookings/${booking.id}`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                            >
+                                <span>{booking.id.slice(0, 8)}</span>
+                                <ExternalLink size={8} strokeWidth={3} />
+                            </Link>
                         </div>
                     </div>
                 </>

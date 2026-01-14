@@ -6,9 +6,9 @@ import { getHMDuration } from "@/getters/duration-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { TimelineEventCard } from "./TimelineEventCard";
-import type { TimelineDateGroup as DateGroupType, TimelineEvent } from "./types";
+import type { TimelineDateGroup as DateGroupType, TimelineEvent, EquipmentAssignmentProps } from "./types";
 
-interface TimelineDateGroupProps {
+interface TimelineDateGroupProps extends EquipmentAssignmentProps {
     dateGroup: DateGroupType;
     currency: string;
     formatCurrency: (num: number) => string;
@@ -22,6 +22,9 @@ export function TimelineDateGroup({
     formatCurrency,
     showTeacher = true,
     showFinancials = true,
+    teacherId,
+    teacherUsername,
+    onEquipmentUpdate,
 }: TimelineDateGroupProps) {
     const { date, dayOfWeek, events } = dateGroup;
     const totalDuration = events.reduce((sum, e) => sum + e.duration, 0);
@@ -60,6 +63,9 @@ export function TimelineDateGroup({
                         formatCurrency={formatCurrency}
                         showTeacher={showTeacher}
                         showFinancials={showFinancials}
+                        teacherId={teacherId}
+                        teacherUsername={teacherUsername}
+                        onEquipmentUpdate={onEquipmentUpdate}
                     />
                 ))}
             </div>

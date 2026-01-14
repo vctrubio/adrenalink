@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { getTeacherId } from "@/supabase/server/teacher-id";
 import { getSchoolHeader } from "@/types/headers";
 import UserWelcome from "@/src/components/UserWelcome";
+import { TeacherNavigation } from "./TeacherNavigation";
 
 interface TeacherLayoutProps {
     children: ReactNode;
@@ -21,8 +22,9 @@ export default async function TeacherLayout({ children, params }: TeacherLayoutP
     const teacher = teacherResult.data;
 
     return (
-        <div className="space-y-8 max-w-2xl mx-auto">
+        <div className="space-y-6 max-w-2xl mx-auto p-4">
             <UserWelcome firstName={teacher.schema.first_name} lastName={teacher.schema.last_name} schoolName={schoolHeader?.name} />
+            <TeacherNavigation teacherId={teacherId} />
             {children}
         </div>
     );

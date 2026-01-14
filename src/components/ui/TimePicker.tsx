@@ -7,21 +7,37 @@ interface TimePickerProps {
     onChange: (newValue: string) => void;
     className?: string;
     noBg?: boolean;
+    step?: number; // Step in minutes for minute increments/decrements
 }
 
-export function TimePicker({ value, onChange, className = "", noBg = false }: TimePickerProps) {
+export function TimePicker({ value, onChange, className = "", noBg = false, step = 15 }: TimePickerProps) {
     const [hStr, mStr] = value.split(":");
+    const hours = parseInt(hStr, 10) || 0;
+    const minutes = parseInt(mStr, 10) || 0;
 
-    const updateTime = (newH: string, newM: string) => {
-        onChange(`${newH}:${newM}`);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    const updateTime = (newH: number, newM: number) => {
+        onChange(`${pad(newH)}:${pad(newM)}`);
     };
 
     const changeHour = (delta: number) => {
-        const h = parseInt(hStr, 10);
-        let newHours = h + delta;
+        let newHours = hours + delta;
         if (newHours < 0) newHours = 23;
         if (newHours > 23) newHours = 0;
-        updateTime(String(newHours).padStart(2, "0"), mStr);
+        updateTime(newHours, minutes);
+    };
+
+    const changeMinutes = (delta: number) => {
+        let newTotalMins = hours * 60 + minutes + delta;
+        
+        // Handle full day wrap around
+        const MINUTES_IN_DAY = 24 * 60;
+        newTotalMins = ((newTotalMins % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY;
+        
+        const newH = Math.floor(newTotalMins / 60);
+        const newM = newTotalMins % 60;
+        updateTime(newH, newM);
     };
 
     const handleInputChange = (type: "hour" | "minute", inputValue: string) => {
@@ -48,7 +64,7 @@ export function TimePicker({ value, onChange, className = "", noBg = false }: Ti
     return (
         <div className={`flex items-center gap-1 ${className}`}>
             <button
-                onClick={() => changeHour(-1)}
+                onClick={() => changeMinutes(-step)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                 type="button"
             >
@@ -78,7 +94,7 @@ export function TimePicker({ value, onChange, className = "", noBg = false }: Ti
             </div>
 
             <button
-                onClick={() => changeHour(1)}
+                onClick={() => changeMinutes(step)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                 type="button"
             >

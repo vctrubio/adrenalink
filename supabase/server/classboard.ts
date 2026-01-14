@@ -7,6 +7,7 @@ import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 /**
  * Shared query builder for booking relations
@@ -423,6 +424,9 @@ export async function updateEventStatus(eventId: string, status: string): Promis
 
         console.log(`✅ [classboard] Event status updated: ${eventId} -> ${status}`);
 
+        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
+        revalidatePath("/teachers");
+
         return { success: true, data: { success: true } };
     } catch (error) {
         console.error("❌ [classboard] Error updating event status:", error);
@@ -789,6 +793,9 @@ export async function assignEquipmentToEvent(
             return { success: false, error: "Failed to assign equipment" };
         }
 
+        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
+        revalidatePath("/teachers");
+
         return { success: true, data: { success: true } };
     } catch (error) {
         console.error("❌ [classboard] Error in assignEquipmentToEvent:", error);
@@ -814,6 +821,9 @@ export async function unassignEquipmentFromEvent(
             console.error("❌ [classboard] Error unassigning equipment:", error);
             return { success: false, error: "Failed to unassign equipment" };
         }
+
+        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
+        revalidatePath("/teachers");
 
         return { success: true, data: { success: true } };
     } catch (error) {

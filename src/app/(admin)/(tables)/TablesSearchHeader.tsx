@@ -5,7 +5,10 @@ import { ENTITY_DATA } from "@/config/entities";
 import { SearchInput } from "@/src/components/SearchInput";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import { SortDropdown } from "@/src/components/ui/SortDropdown";
+import { ENTITY_SORT_OPTIONS } from "@/types/sort";
 import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
+import type { SortConfig } from "@/types/sort";
 
 const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
 const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Weekly", "Monthly"];
@@ -47,13 +50,23 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
 
             {/* Filters */}
             <div className="flex items-center gap-2">
-                <FilterDropdown
-                    label="Status"
-                    value={controller.status}
-                    options={statusOptions}
-                    onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
-                    entityColor={entity.color}
-                />
+                {/* Use SortDropdown for event/booking entities, FilterDropdown for others */}
+                {(entity.id === "event" || entity.id === "booking") ? (
+                    <SortDropdown
+                        value={controller.sort}
+                        options={ENTITY_SORT_OPTIONS.event || ENTITY_SORT_OPTIONS.booking || []}
+                        onChange={controller.onSortChange}
+                        entityColor={entity.color}
+                    />
+                ) : (
+                    <FilterDropdown
+                        label="Status"
+                        value={controller.status}
+                        options={statusOptions}
+                        onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
+                        entityColor={entity.color}
+                    />
+                )}
 
                 {/* Only show Date Filter/Group for time-relevant entities */}
                 {(entity.id === "booking" ||

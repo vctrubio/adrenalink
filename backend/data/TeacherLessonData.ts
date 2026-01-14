@@ -1,9 +1,10 @@
-import { getHMDuration } from "@/getters/duration-getter";
-import { transformEventsToRows } from "@/getters/event-getter";
-import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
-import type { EventData } from "@/types/booking-lesson-event";
 import type { TimelineEvent } from "@/src/components/timeline";
+import { buildEventModels, groupEventsByLesson, eventModelToTimelineEvent, type EventModel, type LessonGroup } from "./EventModel";
 
+/**
+ * @deprecated Use EventModel and LessonGroup from EventModel.ts instead
+ * This is kept for backward compatibility
+ */
 export interface LessonRow {
     lessonId: string;
     bookingId: string;
@@ -18,157 +19,59 @@ export interface LessonRow {
     totalHours: number;
     totalEarning: number;
     eventCount: number;
-    events: any[];
+    events: EventModel[];
     equipmentCategory: string;
     studentCapacity: number;
 }
 
 /**
  * Process teacher lessons data and build lesson rows + timeline events
- * Centralizes all lesson data transformation logic for consistency
+ * Uses centralized EventModel as single source of truth
+ * 
+ * @param lessons - Array of lesson objects with event, booking, teacher_commission
+ * @param teacher - Teacher info (optional, will use lesson.teacher if available)
  */
 export function buildTeacherLessonData(
     lessons: any[],
-    teacher: { id: string; first_name?: string; username: string },
+    teacher?: { id: string; first_name?: string; username: string },
 ): {
     lessonRows: LessonRow[];
     timelineEvents: TimelineEvent[];
 } {
-    const lessonRows: LessonRow[] = [];
-    const timelineEvents: TimelineEvent[] = [];
-
-    for (const lesson of lessons) {
-        // Use standardized snake_case properties
-        const events = (lesson.event || []) as EventData[];
-        const booking = lesson.booking;
-        const commission = lesson.teacher_commission;
-        const school_package = booking?.school_package;
-
-        const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-        const totalHours = totalDuration / 60;
-        const cph = parseFloat(commission?.cph || "0");
-        const commissionType = (commission?.commission_type as "fixed" | "percentage") || "fixed";
-
-        const eventRows = transformEventsToRows(events as any);
-        let totalEarning = 0;
-
-        for (const eventRow of eventRows) {
-            // Calculate revenues
-            const studentCount = school_package?.capacity_students || 1;
-            const pricePerStudent = school_package?.price_per_student || 0;
-            const packageDurationMinutes = school_package?.duration_minutes || 60;
-
-            const eventRevenue = calculateLessonRevenue(pricePerStudent, studentCount, eventRow.duration, packageDurationMinutes);
-            const eventCommission = calculateCommission(
-                eventRow.duration,
-                { type: commissionType, cph },
-                eventRevenue,
-                packageDurationMinutes,
-            );
-            const eventEarning = eventCommission.earned;
-
-            totalEarning += eventEarning;
-            const schoolRevenue = eventRevenue - eventEarning;
-
-            // Override duration label for consistency
-            eventRow.durationLabel = getHMDuration(eventRow.duration);
-
-            // Extract students from booking
-            const bookingStudents = (booking?.students || []).map((student: any) => ({
-                id: student.id,
-                firstName: student.first_name || student.firstName || "",
-                lastName: student.last_name || student.lastName || "",
-            }));
-
-            // Build timeline event
-            timelineEvents.push({
-                eventId: eventRow.eventId,
-                lessonId: lesson.id,
-                date: eventRow.date,
-                time: eventRow.time,
-                dateLabel: eventRow.dateLabel,
-                dayOfWeek: eventRow.dayOfWeek || "",
-                duration: eventRow.duration,
-                durationLabel: eventRow.durationLabel,
-                location: eventRow.location,
-                teacherId: teacher.id,
-                teacherName: teacher.first_name || "Unknown",
-                teacherUsername: teacher.username,
-                eventStatus: eventRow.status,
-                lessonStatus: lesson.status,
-                teacherEarning: eventEarning,
-                schoolRevenue,
-                totalRevenue: eventRevenue,
-                commissionType,
-                commissionCph: cph,
-                bookingStudents,
-                equipmentCategory: school_package?.category_equipment,
-                capacityEquipment: school_package?.capacity_equipment,
-                capacityStudents: school_package?.capacity_students,
-            });
-        }
-
-        lessonRows.push({
-            lessonId: lesson.id,
-            bookingId: booking?.id || "",
-            leaderName: booking?.leader_student_name || "Unknown",
-            dateStart: booking?.date_start || "",
-            dateEnd: booking?.date_end || "",
-            lessonStatus: lesson.status,
-            bookingStatus: booking!.status,
-            commissionType,
-            cph,
-            totalDuration,
-            totalHours,
-            totalEarning,
-            eventCount: events.length,
-            events: eventRows,
-            equipmentCategory: school_package?.category_equipment!,
-            studentCapacity: school_package?.capacity_students!,
-        });
-    }
-
+    // Build flat list of events (single source of truth)
+    const eventModels = buildEventModels(lessons, teacher);
+    
+    // Group events by lesson
+    const lessonGroups = groupEventsByLesson(eventModels);
+    
+    // Convert to legacy LessonRow format for backward compatibility
+    const lessonRows: LessonRow[] = lessonGroups.map((group) => ({
+        lessonId: group.lessonId,
+        bookingId: group.bookingId,
+        leaderName: group.leaderName,
+        dateStart: group.dateStart,
+        dateEnd: group.dateEnd,
+        lessonStatus: group.lessonStatus,
+        bookingStatus: group.bookingStatus,
+        commissionType: group.commissionType,
+        cph: group.cph,
+        totalDuration: group.totalDuration,
+        totalHours: group.totalHours,
+        totalEarning: group.totalEarning,
+        eventCount: group.eventCount,
+        events: group.events,
+        equipmentCategory: group.equipmentCategory,
+        studentCapacity: group.studentCapacity,
+    }));
+    
+    // Convert to timeline events
+    const timelineEvents: TimelineEvent[] = eventModels.map(eventModelToTimelineEvent);
     timelineEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     return { lessonRows, timelineEvents };
 }
 
 /**
- * Filter lesson rows and timeline events by search query and status
- * Applied globally across all view modes (timeline, lessons, commissions)
+ * @deprecated Use filterEvents and sortEvents from EventModel.ts instead
+ * This function is no longer used and kept only for reference
  */
-export function filterTeacherLessonData(
-    lessonRows: LessonRow[],
-    timelineEvents: TimelineEvent[],
-    searchQuery: string,
-    statusFilter?: string,
-): {
-    filteredLessonRows: LessonRow[];
-    filteredTimelineEvents: TimelineEvent[];
-} {
-    let filteredLessonRows = lessonRows;
-    let filteredTimelineEvents = timelineEvents;
-
-    // Apply search filter
-    if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-
-        filteredLessonRows = filteredLessonRows.filter((row) => row.leaderName.toLowerCase().includes(query));
-
-        filteredTimelineEvents = filteredTimelineEvents.filter(
-            (event) => event.location.toLowerCase().includes(query) || event.teacherName.toLowerCase().includes(query),
-        );
-    }
-
-    // Apply status filter to lessons and timeline events
-    if (statusFilter && statusFilter !== "all") {
-        filteredLessonRows = filteredLessonRows.filter((row) => row.lessonStatus === statusFilter);
-
-        filteredTimelineEvents = filteredTimelineEvents.filter((event) => event.eventStatus === statusFilter);
-    }
-
-    // Sort by date (descending)
-    filteredTimelineEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
-
-    return { filteredLessonRows, filteredTimelineEvents };
-}

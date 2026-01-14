@@ -6,7 +6,9 @@ import { TimelineDateGroup } from "./TimelineDateGroup";
 import type { TimelineEvent, TimelineDateGroup as DateGroupType } from "./types";
 import type { TimelineStats } from "@/types/timeline-stats";
 
-interface TimelineProps {
+import type { EquipmentAssignmentProps } from "./types";
+
+interface TimelineProps extends EquipmentAssignmentProps {
     events: TimelineEvent[];
     currency: string;
     formatCurrency: (num: number) => string;
@@ -14,7 +16,16 @@ interface TimelineProps {
     showFinancials?: boolean;
 }
 
-export function Timeline({ events, currency, formatCurrency, showTeacher = true, showFinancials = true }: TimelineProps) {
+export function Timeline({ 
+    events, 
+    currency, 
+    formatCurrency, 
+    showTeacher = true, 
+    showFinancials = true,
+    teacherId,
+    teacherUsername,
+    onEquipmentUpdate,
+}: TimelineProps) {
     // Events are already filtered and sorted upstream
     const filteredEvents = useMemo(() => {
         return events;
@@ -73,6 +84,9 @@ export function Timeline({ events, currency, formatCurrency, showTeacher = true,
                             formatCurrency={formatCurrency}
                             showTeacher={showTeacher}
                             showFinancials={showFinancials}
+                            teacherId={teacherId}
+                            teacherUsername={teacherUsername}
+                            onEquipmentUpdate={onEquipmentUpdate}
                         />
                     ))}
                 </motion.div>

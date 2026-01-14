@@ -28,7 +28,7 @@ export function TableLayout({ children, stats, showSearch = true }: TableLayoutP
     // Clear search on navigation
     useEffect(() => {
         controller.onSearchChange("");
-    }, [pathname, controller]);
+    }, [pathname]);
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">

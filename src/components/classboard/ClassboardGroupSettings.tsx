@@ -3,11 +3,12 @@
 import { Minus, Plus, User, Users, Users2 } from "lucide-react";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { ControllerSettings } from "@/backend/classboard/TeacherQueue";
+import { StepStepper } from "@/src/components/ui/StepStepper";
 
 export default function ClassboardGroupSettings() {
     const { globalFlag } = useClassboardContext();
     const controller = globalFlag.getController();
-    const step = controller.stepDuration || 15;
+    const step = controller.stepDuration;
 
     const updateDuration = (key: keyof ControllerSettings, delta: number) => {
         const currentValue = (controller[key] as number) || 0;
@@ -77,7 +78,15 @@ export default function ClassboardGroupSettings() {
             </div>
 
             {/* Column 3: Group (3+ People) */}
-            <div className="flex flex-col items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 h-full">
+            <div className="flex flex-col items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 relative h-full">
+                {/* Step Stepper - Bottom Right */}
+                <div className="absolute bottom-0 right-0 z-20">
+                    <StepStepper
+                        value={step}
+                        onChange={(newValue) => globalFlag.updateController({ stepDuration: newValue })}
+                    />
+                </div>
+
                 <div className="flex items-center gap-2 text-muted-foreground opacity-60">
                     <Users size={16} className="shrink-0" />
                     <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:inline">3+ People</span>

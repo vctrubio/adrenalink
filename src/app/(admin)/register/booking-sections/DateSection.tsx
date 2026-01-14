@@ -118,7 +118,7 @@ export function DateSection({
                 dateRange={dateRange}
                 onDateRangeChange={handleDateRangeChange}
                 disabled={disabled}
-                allowPastDates={false}
+                allowPastDates={true}
                 showNavigationButtons={true}
                 showDayCounter={true}
                 oneDay={oneDay}

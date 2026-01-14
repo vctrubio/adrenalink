@@ -22,6 +22,13 @@ export interface TimelineEvent {
     equipmentCategory?: string | null;
     capacityEquipment?: number | null;
     capacityStudents?: number | null;
+    equipments?: { id: string; brand: string; model: string; size: number | null; sku?: string; color?: string }[];
+}
+
+export interface EquipmentAssignmentProps {
+    teacherId?: string;
+    teacherUsername?: string;
+    onEquipmentUpdate?: (eventId: string, equipment: any) => void;
 }
 
 export interface TimelineDateGroup {

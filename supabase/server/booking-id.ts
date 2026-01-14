@@ -49,7 +49,24 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                         first_name,
                         last_name
                     ),
-                    event(*)
+                    teacher_commission(
+                        cph,
+                        commission_type
+                    ),
+                    event(
+                        *,
+                        equipment_event(
+                            equipment(
+                                id,
+                                brand,
+                                model,
+                                size,
+                                sku,
+                                color,
+                                category
+                            )
+                        )
+                    )
                 ),
                 student_booking_payment(
                     *,

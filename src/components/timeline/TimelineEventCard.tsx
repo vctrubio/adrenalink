@@ -14,9 +14,10 @@ import { getHMDuration } from "@/getters/duration-getter";
 import { EventDurationTag } from "@/src/components/tags/EventDurationTag";
 import { updateEventStatus } from "@/supabase/server/classboard";
 import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
-import type { TimelineEvent } from "./types";
+import { EquipmentFulfillmentCell } from "@/src/components/equipment/EquipmentFulfillmentCell";
+import type { TimelineEvent, EquipmentAssignmentProps } from "./types";
 
-interface TimelineEventCardProps {
+interface TimelineEventCardProps extends EquipmentAssignmentProps {
     event: TimelineEvent;
     currency: string;
     formatCurrency: (num: number) => string;
@@ -30,6 +31,9 @@ export function TimelineEventCard({
     formatCurrency,
     showTeacher = true,
     showFinancials = true,
+    teacherId,
+    teacherUsername,
+    onEquipmentUpdate,
 }: TimelineEventCardProps) {
     const [currentStatus, setCurrentStatus] = useState<EventStatus>(event.eventStatus as EventStatus);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -109,7 +113,7 @@ export function TimelineEventCard({
                     </div>
                 )}
 
-                <div className="flex items-center gap-3 flex-wrap ">
+                <div className="flex items-center gap-3 flex-wrap mt-2">
                     {showTeacher && (
                         <Link href={`/teachers/${event.teacherId}`}>
                             <TeacherUsernameCommissionBadge
@@ -154,6 +158,20 @@ export function TimelineEventCard({
                                 </div>
                             </>
                         )}
+                        <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                            <span className="text-muted-foreground">Equipment</span>
+                            <EquipmentFulfillmentCell
+                                eventId={event.eventId}
+                                eventTime={event.time}
+                                eventDuration={event.duration}
+                                equipments={event.equipments}
+                                categoryId={event.equipmentCategory || undefined}
+                                teacherId={teacherId}
+                                teacherUsername={teacherUsername}
+                                eventStatus={currentStatus}
+                                onUpdate={onEquipmentUpdate}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

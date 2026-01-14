@@ -45,7 +45,20 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                             student(*)
                         )
                     ),
-                    event(*),
+                    event(
+                        *,
+                        equipment_event(
+                            equipment(
+                                id,
+                                brand,
+                                model,
+                                size,
+                                sku,
+                                color,
+                                category
+                            )
+                        )
+                    ),
                     teacher_lesson_payment(*)
                 ),
                 teacher_equipment(
@@ -67,13 +80,29 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
         const relations: TeacherRelations = {
             teacher_commission: teacher.teacher_commission || [],
             lesson: (teacher.lesson || []).map((l: any) => {
-                // Convert event times if timezone is available
+                // Convert event times if timezone is available and map equipment
                 const events = (l.event || []).map((evt: any) => {
+                    const equipments = (evt.equipment_event || []).map((ee: any) => ({
+                        id: ee.equipment.id,
+                        brand: ee.equipment.brand,
+                        model: ee.equipment.model,
+                        size: ee.equipment.size,
+                        sku: ee.equipment.sku,
+                        color: ee.equipment.color,
+                        category: ee.equipment.category,
+                    }));
+                    
+                    const eventData: any = {
+                        ...evt,
+                        equipments: equipments.length > 0 ? equipments : undefined,
+                    };
+                    
                     if (timezone) {
                         const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                        return { ...evt, date: convertedDate.toISOString() };
+                        eventData.date = convertedDate.toISOString();
                     }
-                    return evt;
+                    
+                    return eventData;
                 });
 
                 // Extract students from booking_student junction table

@@ -45,7 +45,7 @@ export default function Modal({
 
     return (
         <Transition show={isOpen} as={Fragment}>
-            <Dialog onClose={onClose} className="relative z-50">
+            <Dialog onClose={onClose} className="relative z-[9999]">
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200"
@@ -73,7 +73,7 @@ export default function Modal({
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="relative flex flex-col max-h-[85vh]"
+                                className="relative flex flex-col max-h-[85vh] bg-background/95 backdrop-blur-xl rounded-[2.5rem] border border-border/40 p-8 md:p-10 shadow-2xl"
                             >
                                 {/* Header */}
                                 {(title || EntityIcon || icon) && (

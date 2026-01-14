@@ -9,7 +9,7 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import TeacherQueueRow from "./TeacherQueueRow";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
-import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
+import type { TeacherQueue, ControllerSettings } from "@/backend/classboard/TeacherQueue";
 import { useClassboardShareExportData } from "@/src/hooks/useClassboardShareExportData";
 import { ShareContentBoard } from "./ShareContentBoard";
 import { StatItemUI } from "@/backend/data/StatsData";
@@ -27,6 +27,7 @@ export default function TeacherClassDaily() {
 
     // 2. Controller & Sharing State
     const controller = globalFlag.getController();
+    const step = controller.stepDuration;
     const sharingMode = globalFlag.getSharingMode();
     const isSharing = !!sharingMode;
 
@@ -46,14 +47,30 @@ export default function TeacherClassDaily() {
 
     const handleTimeIncrement = () => {
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newTime = `${String((hours + 1) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        globalFlag.updateController({ submitTime: newTime });
+        let newTotalMins = hours * 60 + minutes + step;
+        
+        // Handle full day wrap around
+        const MINUTES_IN_DAY = 24 * 60;
+        newTotalMins = ((newTotalMins % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY;
+        
+        const newH = Math.floor(newTotalMins / 60);
+        const newM = newTotalMins % 60;
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        globalFlag.updateController({ submitTime: `${pad(newH)}:${pad(newM)}` });
     };
 
     const handleTimeDecrement = () => {
         const [hours, minutes] = controller.submitTime.split(":").map(Number);
-        const newTime = `${String((hours - 1 + 24) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-        globalFlag.updateController({ submitTime: newTime });
+        let newTotalMins = hours * 60 + minutes - step;
+        
+        // Handle full day wrap around
+        const MINUTES_IN_DAY = 24 * 60;
+        newTotalMins = ((newTotalMins % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY;
+        
+        const newH = Math.floor(newTotalMins / 60);
+        const newM = newTotalMins % 60;
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        globalFlag.updateController({ submitTime: `${pad(newH)}:${pad(newM)}` });
     };
 
     // 5. Derived Values
@@ -202,7 +219,7 @@ function StartTimeSection({
     onTimeIncrement,
     onTimeDecrement,
 }: {
-    controller: typeof controller;
+    controller: ControllerSettings;
     flagColor: string;
     onFlagClick: () => void;
     onTimeIncrement: () => void;

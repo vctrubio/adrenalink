@@ -103,7 +103,10 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                             return evt;
                         });
 
+                        // Normalize to match buildTeacherLessonData expected structure
+                        // Transform: events -> event (singular), add booking with school_package nested
                         return {
+                            ...l,
                             id: l.id,
                             status: l.status,
                             teacher: {
@@ -111,8 +114,19 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                                 username: l.teacher?.username,
                                 first_name: l.teacher?.first_name,
                             },
-                            events: events,
-                            commission: {
+                            // Normalize: events -> event (singular) to match teacher data structure
+                            event: events,
+                            // Add booking object with school_package nested (as expected by buildTeacherLessonData)
+                            booking: {
+                                id: b.id,
+                                leader_student_name: b.leader_student_name,
+                                date_start: b.date_start,
+                                date_end: b.date_end,
+                                status: b.status,
+                                school_package: b.school_package,
+                            },
+                            // teacher_commission is already in the correct structure
+                            teacher_commission: {
                                 commission_type: l.teacher_commission?.commission_type,
                                 cph: l.teacher_commission?.cph,
                             },

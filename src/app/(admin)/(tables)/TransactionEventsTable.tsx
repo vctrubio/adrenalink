@@ -24,6 +24,7 @@ import { useEquipment } from "@/src/hooks/useEquipment";
 import { updateEventStatus } from "@/supabase/server/classboard";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 
 // --- Sub-component: Equipment Fulfillment Dropdown ---
 
@@ -44,8 +45,10 @@ function EquipmentFulfillmentCell({
     const handleAssign = async (equipment: any) => {
         const success = await assign(data.event.id, equipment.id);
         if (success) {
-            // Auto-complete event on gear assignment
-            await updateEventStatus(data.event.id, "completed");
+            // Only update event status if it's not already completed
+            if (data.event.status !== "completed") {
+                await updateEventStatus(data.event.id, "completed");
+            }
             onUpdate(data.event.id, equipment);
             setIsOpen(false);
         }
@@ -63,6 +66,9 @@ function EquipmentFulfillmentCell({
     if (data.equipments && data.equipments.length > 0) {
         return <BrandSizeCategoryList equipments={data.equipments as any} />;
     }
+
+    // Always allow equipment assignment if equipment is N/A (not assigned)
+    // If event is not completed, we'll update status when assigning
 
     const dropdownItems: DropdownItemProps[] = [
         {
@@ -160,6 +166,7 @@ export function TransactionEventsTable({
     groupBy?: GroupingType;
 }) {
     const [events, setEvents] = useState(initialEvents);
+    const { sort } = useTablesController();
 
     // Sync state when props change
     useEffect(() => {
@@ -167,7 +174,7 @@ export function TransactionEventsTable({
     }, [initialEvents]);
 
     const {
-        filteredRows: filteredEvents,
+        filteredRows: filteredEventsRaw,
         masterTableGroupBy,
         getGroupKey,
     } = useTableLogic({
@@ -175,6 +182,37 @@ export function TransactionEventsTable({
         filterSearch: filterTransactionEvents,
         dateField: (row) => row.event.date,
     });
+
+    // Apply sorting
+    const filteredEvents = useMemo(() => {
+        if (!sort.field) return filteredEventsRaw;
+
+        const sorted = [...filteredEventsRaw].sort((a, b) => {
+            let aValue: any;
+            let bValue: any;
+
+            if (sort.field === "date") {
+                aValue = new Date(a.event.date).getTime();
+                bValue = new Date(b.event.date).getTime();
+            } else if (sort.field === "createdAt") {
+                // Use event date as created date fallback
+                aValue = new Date(a.event.date).getTime();
+                bValue = new Date(b.event.date).getTime();
+            } else if (sort.field === "updatedAt") {
+                // Use event date as updated date fallback
+                aValue = new Date(a.event.date).getTime();
+                bValue = new Date(b.event.date).getTime();
+            } else {
+                return 0;
+            }
+
+            if (aValue < bValue) return sort.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sort.direction === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        return sorted;
+    }, [filteredEventsRaw, sort]);
 
     const handleEquipmentUpdate = (eventId: string, equipment: any) => {
         setEvents((prev) =>

@@ -5,6 +5,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { TimePicker } from "@/src/components/ui/TimePicker";
 import { LocationPicker } from "@/src/components/ui/LocationPicker";
+import { StepStepper } from "@/src/components/ui/StepStepper";
 
 export default function ClassboardFlagSettings() {
     const { globalFlag } = useClassboardContext();
@@ -25,6 +26,8 @@ export default function ClassboardFlagSettings() {
         globalFlag.updateController({ gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
     };
 
+    const step = controller.stepDuration;
+
     return (
         <div className="flex-1 grid grid-cols-3 divide-x divide-border/30 h-full">
             {/* Column 1: Flag Time */}
@@ -38,6 +41,7 @@ export default function ClassboardFlagSettings() {
                     <TimePicker
                         value={controller.submitTime}
                         onChange={(newTime) => globalFlag.updateController({ submitTime: newTime })}
+                        step={step}
                     />
                 </div>
             </div>
@@ -58,7 +62,15 @@ export default function ClassboardFlagSettings() {
             </div>
 
             {/* Column 3: In-Betweens */}
-            <div className="flex flex-col items-center justify-center gap-2 p-2 h-full">
+            <div className="flex flex-col items-center justify-center gap-2 p-2 relative h-full">
+                {/* Step Stepper - Bottom Right */}
+                <div className="absolute bottom-0 right-0 z-20">
+                    <StepStepper
+                        value={step}
+                        onChange={(newValue) => globalFlag.updateController({ stepDuration: newValue })}
+                    />
+                </div>
+
                 <div className="flex items-center gap-2 text-muted-foreground opacity-60">
                     <Timer size={16} />
                     <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:inline">In-Betweens</span>
@@ -66,7 +78,7 @@ export default function ClassboardFlagSettings() {
 
                 <div className="flex items-center gap-1 w-full justify-center">
                     <button
-                        onClick={() => updateGap(-5)}
+                        onClick={() => updateGap(-step)}
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                     >
                         <Minus size={14} />
@@ -79,7 +91,7 @@ export default function ClassboardFlagSettings() {
                     </div>
 
                     <button
-                        onClick={() => updateGap(5)}
+                        onClick={() => updateGap(step)}
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                     >
                         <Plus size={14} />

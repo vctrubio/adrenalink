@@ -12,6 +12,7 @@ import { LocationPicker } from "@/src/components/ui/LocationPicker";
 export default function ClassboardConfigSettings() {
     const { globalFlag } = useClassboardContext();
     const controller = globalFlag.getController();
+    const step = controller.stepDuration;
 
     // Configuration
     const MIN_TIME = controller.minTimeMinutes ?? 0;
@@ -159,7 +160,7 @@ export default function ClassboardConfigSettings() {
 
                 <div className="flex items-center gap-1 w-full justify-center">
                     <div className="flex-1 flex justify-center">
-                        <TimePicker value={adjustmentTime || "00:00"} onChange={handleAdjustTime} noBg />
+                        <TimePicker value={adjustmentTime || "00:00"} onChange={handleAdjustTime} noBg step={step} />
                     </div>
                 </div>
 
@@ -239,7 +240,7 @@ export default function ClassboardConfigSettings() {
 
                 <div className="flex items-center gap-1 w-full justify-center">
                     <button
-                        onClick={() => handleUpdateGap(-5)}
+                        onClick={() => handleUpdateGap(-step)}
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                     >
                         <Minus size={14} />
@@ -250,7 +251,7 @@ export default function ClassboardConfigSettings() {
                         </span>
                     </div>
                     <button
-                        onClick={() => handleUpdateGap(5)}
+                        onClick={() => handleUpdateGap(step)}
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors active:scale-95 flex-shrink-0"
                     >
                         <Plus size={14} />

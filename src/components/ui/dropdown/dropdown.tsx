@@ -65,6 +65,11 @@ export default function Dropdown({
                     spaceBelow,
                     placement,
                 });
+                
+                // Set CSS variable for width matching
+                if (typeof document !== "undefined") {
+                    document.documentElement.style.setProperty("--trigger-width", `${rect.width}px`);
+                }
             };
 
             updatePosition();
@@ -146,7 +151,7 @@ export default function Dropdown({
                               ...(isUp ? { bottom: coords.bottom } : { top: coords.top }),
                               ...(align === "left" ? { left: coords.left } : {}),
                               ...(align === "right" ? { right: coords.right } : {}),
-                              ...(align === "center" ? { left: coords.left + coords.width / 2, transform: "translateX(-50%)" } : {}),
+                              ...(align === "center" ? { left: coords.left + coords.width / 2, transform: "translateX(-50%)", width: Math.max(coords.width, 200) } : {}),
                               zIndex: 9999,
                               maxHeight,
                               overflowY: "auto",

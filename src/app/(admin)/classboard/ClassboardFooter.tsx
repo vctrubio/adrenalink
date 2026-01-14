@@ -16,25 +16,25 @@ import { ClockInput } from "@/src/components/ui/ClockInput";
  * ClassboardFooter - Reads controller from GlobalFlag (single source of truth)
  */
 export default function ClassboardFooter() {
-    const { globalFlag, setController } = useClassboardContext();
+    const { globalFlag } = useClassboardContext();
 
     // Get controller from GlobalFlag (single source of truth)
     const controller = globalFlag.getController();
     const [isOpen, setIsOpen] = useState(false);
 
-    const step = controller.stepDuration || 15;
+    const step = controller.stepDuration;
 
     // Handlers
     const updateDuration = (key: keyof ControllerSettings, minutes: number) => {
-        setController({ ...controller, [key]: minutes });
+        globalFlag.updateController({ [key]: minutes });
     };
 
     const updateGap = (delta: number) => {
-        setController({ ...controller, gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
+        globalFlag.updateController({ gapMinutes: Math.max(0, (controller.gapMinutes || 0) + delta) });
     };
 
     const updateStep = (delta: number) => {
-        setController({ ...controller, stepDuration: Math.max(5, (controller.stepDuration || 15) + delta) });
+        globalFlag.updateController({ stepDuration: Math.max(5, (controller.stepDuration ?? 0) + delta) });
     };
 
     return (
@@ -110,14 +110,14 @@ export default function ClassboardFooter() {
 
                                     <ClockInput
                                         time={controller.submitTime}
-                                        onChange={(t) => setController({ ...controller, submitTime: t })}
+                                        onChange={(t) => globalFlag.updateController({ submitTime: t })}
                                         step={step}
                                     />
 
                                     <div className="pt-2">
                                         <LocationManager
                                             selected={controller.location}
-                                            onSelect={(loc) => setController({ ...controller, location: loc })}
+                                            onSelect={(loc) => globalFlag.updateController({ location: loc })}
                                         />
                                     </div>
                                 </div>
@@ -136,14 +136,14 @@ export default function ClassboardFooter() {
                                         </label>
                                         <div className="flex items-center gap-2 bg-muted/20 p-2 rounded-xl border border-border/40 justify-between">
                                             <button
-                                                onClick={() => updateGap(-5)}
+                                                onClick={() => updateGap(-step)}
                                                 className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"
                                             >
                                                 <Minus size={14} />
                                             </button>
                                             <span className="font-mono font-bold text-lg">{controller.gapMinutes || 0}m</span>
                                             <button
-                                                onClick={() => updateGap(5)}
+                                                onClick={() => updateGap(step)}
                                                 className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"
                                             >
                                                 <Plus size={14} />
@@ -163,7 +163,7 @@ export default function ClassboardFooter() {
                                             >
                                                 <Minus size={14} />
                                             </button>
-                                            <span className="font-mono font-bold text-lg">{controller.stepDuration || 15}m</span>
+                                            <span className="font-mono font-bold text-lg">{controller.stepDuration}m</span>
                                             <button
                                                 onClick={() => updateStep(5)}
                                                 className="p-2 hover:bg-background rounded-lg shadow-sm text-muted-foreground hover:text-foreground transition-all"

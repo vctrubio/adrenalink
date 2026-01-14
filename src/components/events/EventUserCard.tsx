@@ -16,17 +16,14 @@ import { LESSON_STATUS_CONFIG } from "@/types/status";
 
 interface EventUserCardProps {
     date: string;
-
     duration: number;
-
     status?: string;
-
     footerLeftContent: ReactNode;
-
+    headerRightContent?: ReactNode;
     children: ReactNode;
 }
 
-export function EventUserCard({ date, duration, status, footerLeftContent, children }: EventUserCardProps) {
+export function EventUserCard({ date, duration, status, footerLeftContent, headerRightContent, children }: EventUserCardProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const credentials = useSchoolCredentials();
@@ -58,9 +55,11 @@ export function EventUserCard({ date, duration, status, footerLeftContent, child
                     )}
                 </div>
 
-                {/* School Logo */}
+                {/* Header Right Content or School Logo */}
                 <div className="relative z-10">
-                    {credentials?.logo ? (
+                    {headerRightContent ? (
+                        headerRightContent
+                    ) : credentials?.logo ? (
                         <div className="relative w-14 h-14 rounded-full overflow-hidden border border-black/10 bg-white shadow-sm">
                             <Image src={credentials.logo} alt={credentials.username} fill className="object-cover" sizes="56px" />
                         </div>
