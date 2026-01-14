@@ -7,7 +7,12 @@ interface EquipmentsPageProps {
     params: Promise<{ id: string }>;
 }
 
-export default async function EquipmentPage({ params }: EquipmentPageProps) {
+const TEACHER_STATUS_CONFIG = {
+    active: { label: "Active", color: "#22c55e" },
+    inactive: { label: "Inactive", color: "#6b7280" },
+};
+
+export default async function EquipmentPage({ params }: EquipmentsPageProps) {
     const { id: teacherId } = await params;
 
     const result = await getTeacherId(teacherId);
@@ -74,8 +79,8 @@ export default async function EquipmentPage({ params }: EquipmentPageProps) {
                                             <p>
                                                 SKU: <span className="text-foreground font-medium font-mono">{equip.sku}</span>
                                             </p>
-                                            <p>
-                                                Status:{" "}
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs text-muted-foreground">Status:</span>
                                                 <span
                                                     className="font-black uppercase text-[10px] tracking-widest px-2 py-0.5 rounded"
                                                     style={{
@@ -85,7 +90,7 @@ export default async function EquipmentPage({ params }: EquipmentPageProps) {
                                                 >
                                                     {equipStatusConfig.label}
                                                 </span>
-                                            </p>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="text-right">
