@@ -13,7 +13,6 @@ import {
     DetailsStep,
     CategoriesStep,
     AssetsStep,
-    ContactStep,
     SummaryStep,
     WELCOME_SCHOOL_STEPS,
     type SchoolFormData,
@@ -352,16 +351,14 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
         0: AssetsStep,
         1: DetailsStep,
         2: CategoriesStep,
-        3: ContactStep,
-        4: SummaryStep,
+        3: SummaryStep,
     };
 
     const stepSubtitles = {
         0: "Make your school stand out",
         1: "How can students find you?",
         2: "What do you have to offer?",
-        3: "How can we reach you?",
-        4: "Does everything look correct officer?",
+        3: "Does everything look correct officer?",
     };
 
     const stepProps = {
@@ -375,8 +372,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
         },
         1: {},
         2: {},
-        3: {},
-        4: {
+        3: {
             onEditField: editField,
         },
     };

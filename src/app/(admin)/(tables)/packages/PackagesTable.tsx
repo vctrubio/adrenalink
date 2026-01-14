@@ -9,7 +9,7 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
-import { Calendar } from "lucide-react";
+import { Calendar, LayoutGrid } from "lucide-react";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 import { useTableLogic } from "@/src/hooks/useTableLogic";
@@ -82,10 +82,15 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             ),
         },
         {
-            header: "Package Profile",
+            header: (
+                <div className="flex items-center justify-between w-full pr-2">
+                    <span>Package Profile</span>
+                    <LayoutGrid className="w-4 h-4 opacity-50" />
+                </div>
+            ),
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center justify-between w-full">
                     <HoverToEntity entity={packageEntity} id={data.id}>
                         <span className="font-bold text-foreground whitespace-nowrap">{data.description}</span>
                     </HoverToEntity>

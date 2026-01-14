@@ -1,12 +1,13 @@
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import { FormField, FormInput } from "@/src/components/ui/form";
-import { LocationStep } from "./LocationStep";
-import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Instagram, Pencil } from "lucide-react";
+import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Search, Clock, Check, Pencil } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
+import { ImageCropper } from "@/src/components/ui/ImageCropper";
+import { getPhoneCodeByCountryCode, COUNTRIES } from "@/config/countries";
 
 // Define the type directly for the multi-step form
 export interface SchoolFormData {
@@ -42,18 +43,13 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
         id: 2,
         title: "Details",
         icon: <MapPin className="w-4 h-4" />,
-        fields: ["websiteUrl", "instagramUrl"],
+        fields: ["websiteUrl", "instagramUrl", "ownerEmail", "referenceNote"],
     },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
-    { id: 4, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
-    { id: 5, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
+    { id: 4, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
-interface DetailsStepProps extends BaseStepProps<SchoolFormData> {
-    // Props moved to AssetsStep
-}
-
-export function DetailsStep({ formMethods }: DetailsStepProps) {
+export function DetailsStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     const {
         register,
         formState: { errors },
@@ -78,6 +74,19 @@ export function DetailsStep({ formMethods }: DetailsStepProps) {
                         </div>
                         <FormInput type="text" placeholder="username" {...register("instagramUrl")} className="rounded-l-none" />
                     </div>
+                </FormField>
+
+                <FormField label="Contact Email" error={errors.ownerEmail?.message}>
+                    <div className="relative">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                            <Mail className="w-4 h-4" />
+                        </div>
+                        <FormInput type="email" placeholder="your@email.com" {...register("ownerEmail")} className="pl-10" />
+                    </div>
+                </FormField>
+
+                <FormField label="How did you hear about us?" error={errors.referenceNote?.message}>
+                    <FormInput type="text" placeholder="Social media, Google, friend, etc..." {...register("referenceNote")} />
                 </FormField>
             </div>
         </div>
@@ -149,9 +158,6 @@ export function CategoriesStep({ formMethods }: BaseStepProps<SchoolFormData>) {
     );
 }
 
-import { useState } from "react";
-import { ImageCropper } from "@/src/components/ui/ImageCropper";
-
 interface AssetsStepProps extends BaseStepProps<SchoolFormData> {
     pendingToBucket?: boolean;
     uploadStatus?: string;
@@ -170,9 +176,15 @@ export function AssetsStep({
     onLocationChange,
     triggerPhoneClear
 }: AssetsStepProps) {
-    const { setValue, watch, formState: { errors } } = formMethods;
+    const { setValue, watch, formState: { errors }, register } = formMethods;
     const values = watch();
     
+    // Google Places Search State
+    const [searchValue, setSearchValue] = useState("");
+    const [googlePlaces, setGooglePlaces] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Cropper State
     const [cropModalOpen, setCropModalOpen] = useState(false);
     const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
@@ -188,37 +200,93 @@ export function AssetsStep({
                 setCropModalOpen(true);
             });
             reader.readAsDataURL(file);
-            // Reset input so the same file can be selected again if cancelled
             e.target.value = ""; 
         }
     };
 
     const handleCropComplete = (croppedBlob: Blob) => {
         if (activeField && selectedImageSrc) {
-            // Create a file from the blob
             const fileName = activeField === "iconFile" ? "icon.jpg" : "banner.jpg";
             const file = new File([croppedBlob], fileName, { type: "image/jpeg" });
-            
             setValue(activeField, file, { shouldValidate: true, shouldDirty: true });
-            
-            // Close modal
             setCropModalOpen(false);
             setSelectedImageSrc(null);
             setActiveField(null);
         }
     };
 
-    const handleCropCancel = () => {
-        setCropModalOpen(false);
-        setSelectedImageSrc(null);
-        setActiveField(null);
+    const searchPlaces = useCallback(async (query: string) => {
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        if (query.length < 3) {
+            setGooglePlaces([]);
+            return;
+        }
+
+        searchTimeoutRef.current = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                if (data.status === "OK") setGooglePlaces(data.predictions.slice(0, 5));
+            } catch (error) {
+                console.error("Error searching places:", error);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300);
+    }, []);
+
+    const selectPlace = async (place: any) => {
+        try {
+            const response = await fetch(`/api/places/details?place_id=${place.place_id}`);
+            const data = await response.json();
+
+            if (data.status === "OK" && data.result) {
+                const { geometry, address_components } = data.result;
+                const lat = geometry?.location?.lat;
+                const lng = geometry?.location?.lng;
+
+                // Find country code
+                const countryComponent = address_components?.find((c: any) => c.types.includes("country"));
+                const countryCode = countryComponent?.short_name;
+
+                // Fetch Timezone
+                let tz = "";
+                if (lat && lng) {
+                    const tzRes = await fetch(`/api/places/timezone?lat=${lat}&lng=${lng}`);
+                    const tzData = await tzRes.json();
+                    tz = tzData.timeZoneId || Intl.DateTimeFormat().resolvedOptions().timeZone;
+                }
+
+                onLocationChange({
+                    googlePlaceId: place.place_id,
+                    latitude: lat,
+                    longitude: lng,
+                    timezone: tz,
+                });
+
+                if (countryCode) {
+                    onCountryChange(countryCode);
+                    const prefix = getPhoneCodeByCountryCode(countryCode);
+                    // We don't overwrite the whole phone, just keep the detected country in sync
+                }
+
+                setSearchValue(data.result.formatted_address);
+                setGooglePlaces([]);
+            }
+        } catch (error) {
+            console.error("Error selecting place:", error);
+        }
     };
 
+    const selectedCountry = COUNTRIES.find(c => c.code === values.country);
+    const phonePrefix = selectedCountry?.phoneCode || "+";
+
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
-                {/* Left Column: Icon + Location + Currency */}
-                <div className="flex-shrink-0 flex flex-col items-center space-y-8 w-full md:w-[320px]">
+        <div className="space-y-12">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start">
+                {/* Left Column: Icon + Inline Form */}
+                <div className="flex-shrink-0 flex flex-col items-center space-y-10 w-full md:w-[340px]">
                     {/* Icon Section */}
                     <div className="flex flex-col items-center space-y-4 w-full">
                         <div className="text-center space-y-1">
@@ -226,61 +294,104 @@ export function AssetsStep({
                             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Square (1:1)</p>
                         </div>
                         
-                        <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
+                        <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
                              {values.iconFile ? (
-                                 <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
-                                    <div className="text-center text-white">
-                                         <Pencil className="w-6 h-6 mx-auto mb-1" />
-                                         <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
-                                    </div>
-                                 </div>
+                                <img src={URL.createObjectURL(values.iconFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
                              ) : (
-                                <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                <div className="flex flex-col items-center justify-center text-muted-foreground">
                                     <ImageIcon className="w-8 h-8 mb-2" />
                                     <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
                                 </div>
                              )}
-                             {values.iconFile && (
-                                <img 
-                                    src={URL.createObjectURL(values.iconFile)} 
-                                    className="absolute inset-0 w-full h-full object-cover" 
-                                    alt="Preview" 
-                                />
-                             )}
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp"
-                                onChange={(e) => handleFileSelect(e, "iconFile")}
-                                className="hidden"
-                                disabled={pendingToBucket}
-                            />
+                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                                <Pencil className="w-6 h-6 text-white" />
+                             </div>
+                            <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "iconFile")} className="hidden" />
                         </label>
                     </div>
 
-                    {/* Location & Currency Section - Moved here */}
-                    <div className="w-full space-y-6 bg-card border border-border/50 rounded-xl p-4 md:p-6 shadow-sm">
-                        <LocationStep
-                            country={values.country}
-                            phone={values.phone}
-                            latitude={values.latitude}
-                            longitude={values.longitude}
-                            googlePlaceId={values.googlePlaceId}
-                            countryError={errors.country?.message}
-                            phoneError={errors.phone?.message}
-                            onCountryChange={onCountryChange}
-                            onPhoneChange={onPhoneChange}
-                            onLocationChange={onLocationChange}
-                            triggerPhoneClear={triggerPhoneClear}
-                        />
+                    {/* Inline Form Section */}
+                    <div className="w-full space-y-6">
+                        {/* Search Location */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-end">
+                                <label className="text-sm font-bold text-foreground">Search Location</label>
+                                {values.googlePlaceId && <Check className="w-4 h-4 text-green-500" />}
+                            </div>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <FormInput 
+                                    className="pl-10" 
+                                    placeholder="Enter your school address..." 
+                                    value={searchValue} 
+                                    onChange={(e) => {
+                                        setSearchValue(e.target.value);
+                                        searchPlaces(e.target.value);
+                                    }}
+                                />
+                                {googlePlaces.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
+                                        {googlePlaces.map((p) => (
+                                            <button key={p.place_id} onClick={() => selectPlace(p)} className="w-full text-left px-4 py-3 hover:bg-accent text-sm border-b border-border/50 last:border-0">
+                                                {p.description}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-                        <div className="flex justify-center w-full pt-2 border-t border-border/50">
-                            <FilterDropdown
-                                label="Currency"
-                                value={values.currency || "EUR"}
-                                options={["USD", "EUR", "CHF"]}
-                                onChange={(val) => setValue("currency", val as any)}
-                                entityColor="#3b82f6"
-                            />
+                        {/* Country & Timezone Display */}
+                        {values.country && (
+                            <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Country</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                        <Globe className="w-3 h-3" />
+                                        {selectedCountry?.name || values.country}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Timezone</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium truncate">
+                                        <Clock className="w-3 h-3" />
+                                        {values.timezone?.split('/').pop()?.replace('_', ' ') || "UTC"}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Phone Input */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-foreground">Phone (WhatsApp)</label>
+                            <div className="flex gap-0">
+                                <div className="h-10 px-3 bg-muted border border-r-0 border-input flex items-center rounded-l-md text-sm font-bold text-muted-foreground min-w-[60px]">
+                                    {phonePrefix}
+                                </div>
+                                <FormInput 
+                                    className="rounded-l-none" 
+                                    placeholder="Number" 
+                                    {...register("phone")}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Currency Toggle */}
+                        <div className="pt-2">
+                            <div className="flex items-center justify-between p-1 bg-muted rounded-full">
+                                {["EUR", "USD", "CHF"].map((c) => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => setValue("currency", c as any)}
+                                        className={`flex-1 py-1.5 px-4 rounded-full text-xs font-bold transition-all ${
+                                            values.currency === c ? "bg-background text-primary shadow-sm scale-105" : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,43 +403,28 @@ export function AssetsStep({
                         <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Widescreen (16:9)</p>
                     </div>
                     
-                    <label className="relative w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
+                    <label className="relative w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
                         {values.bannerFile ? (
-                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
-                                <div className="text-center text-white">
-                                     <Pencil className="w-8 h-8 mx-auto mb-2" />
-                                     <span className="text-xs font-bold uppercase tracking-wider">Change Banner</span>
-                                </div>
-                             </div>
+                             <img src={URL.createObjectURL(values.bannerFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
                          ) : (
                             <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
                                 <ImageIcon className="w-12 h-12 mb-3" />
                                 <span className="text-xs font-bold uppercase tracking-wider">Click to upload banner</span>
-                                <span className="text-[10px] text-muted-foreground mt-1 opacity-60">High resolution recommended</span>
+                                <span className="text-[10px] opacity-60">High resolution recommended</span>
                             </div>
                         )}
-                        {values.bannerFile && (
-                            <img 
-                                src={URL.createObjectURL(values.bannerFile)} 
-                                className="absolute inset-0 w-full h-full object-cover" 
-                                alt="Preview" 
-                            />
-                         )}
-                        <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                            onChange={(e) => handleFileSelect(e, "bannerFile")}
-                            className="hidden"
-                            disabled={pendingToBucket}
-                        />
+                        <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                            <Pencil className="w-8 h-8 text-white" />
+                        </div>
+                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "bannerFile")} className="hidden" />
                     </label>
                 </div>
             </div>
 
             {pendingToBucket && (
-                <div className="flex items-center justify-center space-x-2 md:space-x-3 text-primary animate-in fade-in duration-300">
-                    <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-xs md:text-sm font-medium">{uploadStatus || "Processing..."}</span>
+                <div className="flex items-center justify-center space-x-3 text-primary animate-pulse">
+                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs font-bold uppercase tracking-widest">{uploadStatus || "Uploading Assets..."}</span>
                 </div>
             )}
             
@@ -337,36 +433,10 @@ export function AssetsStep({
                 imageSrc={selectedImageSrc}
                 aspect={activeField === "iconFile" ? 1 : 16 / 9}
                 cropShape={activeField === "iconFile" ? "round" : "rect"}
-                onCancel={handleCropCancel}
+                onCancel={() => setCropModalOpen(false)}
                 onCropComplete={handleCropComplete}
                 title={activeField === "iconFile" ? "Edit Icon" : "Edit Banner"}
             />
-        </div>
-    );
-}
-
-export function ContactStep({ formMethods }: BaseStepProps<SchoolFormData>) {
-    const {
-        register,
-        formState: { errors },
-    } = formMethods;
-
-    return (
-        <div className="space-y-4 md:space-y-6">
-            <div className="text-center space-y-1 md:space-y-2">
-                <h3 className="text-base md:text-lg font-semibold">Contact</h3>
-                <p className="text-sm md:text-base text-muted-foreground">How can we reach you and learn more about your journey?</p>
-            </div>
-
-            <div className="space-y-3 md:space-y-4">
-                <FormField label="Contact Email" error={errors.ownerEmail?.message}>
-                    <FormInput type="email" placeholder="your@email.com" {...register("ownerEmail")} />
-                </FormField>
-
-                <FormField label="How did you hear about us?" error={errors.referenceNote?.message}>
-                    <FormInput type="text" placeholder="Social media, Google, friend, etc..." {...register("referenceNote")} />
-                </FormField>
-            </div>
         </div>
     );
 }
@@ -380,76 +450,19 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
     const values = watch();
 
     const summaryFields: SummaryField[] = [
-        {
-            key: "name",
-            label: "School Name",
-            colSpan: 1,
-        },
-        {
-            key: "currency",
-            label: "Currency",
-            colSpan: 1,
-        },
-        {
-            key: "username",
-            label: "Username",
-            colSpan: 1,
-        },
-        {
-            key: "country",
-            label: "Country",
-            colSpan: 1,
-        },
-        {
-            key: "phone",
-            label: "Phone (WhatsApp)",
-            colSpan: 1,
-        },
-        {
-            key: "websiteUrl",
-            label: "Website",
-            colSpan: 1,
-            displayValue: values.websiteUrl || "—",
-        },
-        {
-            key: "instagramUrl",
-            label: "Instagram",
-            colSpan: 1,
-            displayValue: values.instagramUrl || "—",
-        },
-        {
-            key: "equipmentCategories",
-            label: "Equipment Categories",
-            colSpan: 2,
-        },
-        {
-            key: "latitude",
-            label: "Geolocation",
-            colSpan: 2,
-            displayValue: values.latitude && values.longitude ? `${values.latitude.toFixed(6)}, ${values.longitude.toFixed(6)}` : "—",
-        },
-        {
-            key: "iconFile",
-            label: "School Icon",
-            colSpan: 1,
-            displayValue: values.iconFile ? "📷 Icon uploaded" : "—",
-        },
-        {
-            key: "bannerFile",
-            label: "School Banner",
-            colSpan: 1,
-            displayValue: values.bannerFile ? "🖼️ Banner uploaded" : "—",
-        },
-        {
-            key: "ownerEmail",
-            label: "Contact Email",
-            colSpan: 1,
-        },
-        {
-            key: "referenceNote",
-            label: "How you heard about us",
-            colSpan: 1,
-        },
+        { key: "name", label: "School Name", colSpan: 1 },
+        { key: "currency", label: "Currency", colSpan: 1 },
+        { key: "username", label: "Username", colSpan: 1 },
+        { key: "country", label: "Country", colSpan: 1 },
+        { key: "phone", label: "Phone (WhatsApp)", colSpan: 1 },
+        { key: "websiteUrl", label: "Website", colSpan: 1, displayValue: values.websiteUrl || "—" },
+        { key: "instagramUrl", label: "Instagram", colSpan: 1, displayValue: values.instagramUrl || "—" },
+        { key: "equipmentCategories", label: "Equipment Categories", colSpan: 2 },
+        { key: "latitude", label: "Geolocation", colSpan: 2, displayValue: values.latitude && values.longitude ? `${values.latitude.toFixed(6)}, ${values.longitude.toFixed(6)}` : "—" },
+        { key: "iconFile", label: "School Icon", colSpan: 1, displayValue: values.iconFile ? "📷 Icon uploaded" : "—" },
+        { key: "bannerFile", label: "School Banner", colSpan: 1, displayValue: values.bannerFile ? "🖼️ Banner uploaded" : "—" },
+        { key: "ownerEmail", label: "Contact Email", colSpan: 1 },
+        { key: "referenceNote", label: "How you heard about us", colSpan: 1 },
     ];
 
     return (
