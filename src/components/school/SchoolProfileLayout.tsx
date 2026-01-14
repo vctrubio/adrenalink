@@ -4,7 +4,7 @@ import Image from "next/image";
 import { MapPin, Globe, Instagram, MessageCircle } from "lucide-react";
 import { UsernameBadge } from "@/src/components/school/UsernameBadge";
 import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 // Style Constants
 const SOCIAL_BUTTON_STYLE =
@@ -43,6 +43,9 @@ export function SchoolProfileLayout({
     className = "",
     showSocialPlaceholders = false,
 }: SchoolProfileLayoutProps) {
+    const [isBannerLoaded, setIsBannerLoaded] = useState(false);
+    const [isIconLoaded, setIsIconLoaded] = useState(false);
+
     const hasPhone = !!phone && phone.length > 5;
     const hasWebsite = !!websiteUrl && websiteUrl.length > 3;
     const hasInstagram = !!instagramUrl && instagramUrl.length > 3;
@@ -53,20 +56,24 @@ export function SchoolProfileLayout({
     return (
         <div className={`w-full max-w-[1600px] bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden ${className}`}>
             {/* 1. Banner Section */}
-            <div className="relative w-full h-64 md:h-96 shrink-0 rounded-t-[2.5rem] overflow-hidden border-b border-zinc-200">
-                {bannerUrl ? (
+            <div className="relative w-full h-64 md:h-96 shrink-0 rounded-t-[2.5rem] overflow-hidden border-b border-zinc-200 bg-zinc-100">
+                {/* Placeholder / Skeleton State */}
+                <div className={`absolute inset-0 flex items-center justify-center z-0 transition-opacity duration-500 ${isBannerLoaded ? "opacity-0" : "opacity-100"}`}>
+                     <Image src="/ADR.webp" alt="Loading..." width={120} height={120} className="opacity-20 grayscale" />
+                </div>
+
+                {bannerUrl && (
                     <Image
                         src={bannerUrl}
                         alt={`${name} Banner`}
                         fill
-                        className="object-cover"
+                        className={`object-cover transition-opacity duration-700 ${isBannerLoaded ? "opacity-100" : "opacity-0"}`}
                         priority
-                        // Add placeholder blur if it's a remote image, need to handle local/blob urls gracefully
+                        onLoadingComplete={() => setIsBannerLoaded(true)}
                     />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-zinc-200 to-zinc-300" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
                 <UsernameBadge username={username} />
             </div>
 
@@ -75,13 +82,13 @@ export function SchoolProfileLayout({
                 <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-2">
                     {/* School Icon */}
                     <div className="z-10 flex-shrink-0">
-                        <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-xl bg-white">
-                             {/* Fallback to default icon if not provided */}
+                        <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-xl bg-zinc-200">
                              <Image 
                                 src={iconUrl || "/prototypes/north-icon.png"} 
                                 alt={`${name} Icon`} 
                                 fill 
-                                className="object-cover" 
+                                className={`object-cover transition-opacity duration-500 ${isIconLoaded ? "opacity-100" : "opacity-0"}`}
+                                onLoadingComplete={() => setIsIconLoaded(true)}
                             />
                         </div>
                     </div>

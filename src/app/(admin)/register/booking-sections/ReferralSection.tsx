@@ -18,10 +18,12 @@ interface ReferralSectionProps {
     onSelect: (referral: Referral | null) => void;
     isExpanded: boolean;
     onToggle: () => void;
+    onExpand?: () => void;
     onClose?: () => void;
+    isLast?: boolean;
 }
 
-export function ReferralSection({ referrals, selectedReferral, onSelect, isExpanded, onToggle, onClose }: ReferralSectionProps) {
+export function ReferralSection({ referrals, selectedReferral, onSelect, isExpanded, onToggle, onExpand, onClose, isLast = false }: ReferralSectionProps) {
     const referralEntity = ENTITY_DATA.find((e) => e.id === "referral");
     const title = selectedReferral ? (
         <div className="flex items-center gap-2">
@@ -40,9 +42,14 @@ export function ReferralSection({ referrals, selectedReferral, onSelect, isExpan
             title={title}
             isExpanded={isExpanded}
             onToggle={onToggle}
+            onExpand={onExpand}
             entityIcon={referralEntity?.icon}
             entityColor={referralEntity?.color}
             optional={true}
+            state={{
+                isSelected: selectedReferral !== null,
+                isLast,
+            }}
             hasSelection={selectedReferral !== null}
             onClear={() => onSelect(null)}
             onOptional={onClose}

@@ -51,6 +51,7 @@ interface StudentsSectionProps {
     capacity?: number;
     isExpanded: boolean;
     onSectionToggle: () => void;
+    onExpand?: () => void;
     studentStatsMap?: Record<string, StudentStats>;
     selectedPackage?: Package | null;
 }
@@ -73,6 +74,7 @@ export function StudentsSection({
     capacity,
     isExpanded,
     onSectionToggle,
+    onExpand,
     studentStatsMap,
     selectedPackage,
 }: StudentsSectionProps) {
@@ -110,14 +112,16 @@ export function StudentsSection({
 
     const title =
         selectedPackage && selectedStudentIds.length > 0
-            ? `(${selectedStudentIds.length}/${selectedPackage.capacityStudents}) ${selectedStudentNames}`
+            ? `${selectedStudentNames} (${selectedStudentIds.length}/${selectedPackage.capacityStudents})`
             : selectedPackage
               ? `Select Students (${selectedPackage.capacityStudents})`
-              : capacity
-                ? `Select Students (${selectedStudentIds.length}/${capacity})`
-                : selectedStudentIds.length > 0
-                  ? `(${selectedStudentIds.length}) ${selectedStudentNames}`
-                  : "Select Students";
+              : capacity && selectedStudentIds.length > 0
+                ? `${selectedStudentNames} (${selectedStudentIds.length}/${capacity})`
+                : capacity
+                  ? `Select Students (${capacity})`
+                  : selectedStudentIds.length > 0
+                    ? `${selectedStudentNames} (${selectedStudentIds.length})`
+                    : "Select Students";
 
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
@@ -161,8 +165,12 @@ export function StudentsSection({
                 title={title}
                 isExpanded={isExpanded}
                 onToggle={onSectionToggle}
+                onExpand={onExpand}
                 entityIcon={studentEntity?.icon}
                 entityColor={studentEntity?.color}
+                state={{
+                    isSelected: selectedStudentIds.length > 0,
+                }}
                 hasSelection={selectedStudentIds.length > 0}
                 onClear={() => {
                     selectedStudentIds.forEach((id) => onToggle(id));

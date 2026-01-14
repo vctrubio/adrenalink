@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { DateRangeBadge } from "@/src/components/ui/badge";
 import { useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues, useShouldOpenSections } from "./RegisterContext";
 import { DateSection } from "./booking-sections/DateSection";
+import { EquipmentSection } from "./booking-sections/EquipmentSection";
 import { PackageSection } from "./booking-sections/PackageSection";
 import { StudentsSection } from "./booking-sections/StudentsSection";
 import { ReferralSection } from "./booking-sections/ReferralSection";
@@ -12,6 +13,7 @@ import { TeacherSection } from "./booking-sections/TeacherSection";
 
 type SectionId =
     | "dates-section"
+    | "equipment-section"
     | "package-section"
     | "students-section"
     | "referral-section"
@@ -63,6 +65,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     }, [currentStudents?.length, currentTeachers?.length, currentPackages?.length]);
 
     // Use context state
+    const selectedEquipmentCategory = bookingForm.form.selectedEquipmentCategory;
     const selectedPackage = bookingForm.form.selectedPackage;
     const selectedStudentIds = bookingForm.form.selectedStudentIds;
     const leaderStudentId = bookingForm.form.leaderStudentId;
@@ -77,9 +80,10 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         () =>
             new Set(
                 studentIdParam
-                    ? ["package-section", "teacher-section", "commission-section"]
+                    ? ["equipment-section", "package-section", "teacher-section", "commission-section"]
                     : [
                           "dates-section",
+                          "equipment-section",
                           "package-section",
                           "students-section",
                           "referral-section",
@@ -97,6 +101,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 setExpandedSections(
                     new Set([
                         "dates-section",
+                        "equipment-section",
                         "package-section",
                         "students-section",
                         "referral-section",
@@ -115,6 +120,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             setExpandedSections(
                 new Set([
                     "dates-section",
+                    "equipment-section",
                     "package-section",
                     "students-section",
                     "referral-section",
@@ -231,6 +237,22 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         });
     }, []);
 
+    const openSection = useCallback((sectionId: SectionId) => {
+        setExpandedSections((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(sectionId);
+            return newSet;
+        });
+    }, []);
+
+    const handleEquipmentSelect = (category: string) => {
+        bookingForm.setForm({ selectedEquipmentCategory: category });
+        // Clear package if category changed
+        if (selectedPackage && selectedPackage.categoryEquipment !== category) {
+            bookingForm.setForm({ selectedPackage: null });
+        }
+    };
+
     const handlePackageSelect = (pkg: any) => {
         bookingForm.setForm({ selectedPackage: pkg });
         closeSection("package-section");
@@ -303,7 +325,16 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onDateChange={(newDateRange) => bookingForm.setForm({ dateRange: newDateRange })}
                 isExpanded={expandedSections.has("dates-section")}
                 onToggle={() => toggleSection("dates-section")}
+                onExpand={() => openSection("dates-section")}
                 title={dateRangeTitle}
+            />
+
+            <EquipmentSection
+                selectedEquipmentCategory={selectedEquipmentCategory}
+                onSelect={handleEquipmentSelect}
+                isExpanded={expandedSections.has("equipment-section")}
+                onToggle={() => toggleSection("equipment-section")}
+                onExpand={() => openSection("equipment-section")}
             />
 
             <PackageSection
@@ -312,7 +343,11 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onSelect={handlePackageSelect}
                 isExpanded={expandedSections.has("package-section")}
                 onToggle={() => toggleSection("package-section")}
+                onExpand={() => openSection("package-section")}
                 selectedStudentCount={selectedStudentIds.length}
+                selectedEquipmentCategory={selectedEquipmentCategory}
+                previousSectionSelected={selectedEquipmentCategory !== null}
+                isLast={false}
             />
 
             <StudentsSection
@@ -321,6 +356,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onToggle={handleStudentToggle}
                 isExpanded={expandedSections.has("students-section")}
                 onSectionToggle={() => toggleSection("students-section")}
+                onExpand={() => openSection("students-section")}
                 selectedPackage={selectedPackage}
                 studentStatsMap={studentStats}
             />
@@ -334,7 +370,9 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onAddCommission={handleAddCommission}
                 isExpanded={expandedSections.has("teacher-section")}
                 onToggle={() => toggleSection("teacher-section")}
+                onExpand={() => openSection("teacher-section")}
                 onClose={() => closeSection("teacher-section")}
+                isLast={!(referrals && referrals.length > 0)}
             />
 
             {referrals && referrals.length > 0 && (
@@ -344,7 +382,9 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                     onSelect={handleReferralSelect}
                     isExpanded={expandedSections.has("referral-section")}
                     onToggle={() => toggleSection("referral-section")}
+                    onExpand={() => openSection("referral-section")}
                     onClose={() => closeSection("referral-section")}
+                    isLast={true}
                 />
             )}
 

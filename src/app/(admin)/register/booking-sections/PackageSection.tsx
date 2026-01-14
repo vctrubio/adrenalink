@@ -32,7 +32,11 @@ interface PackageSectionProps {
     onSelect: (pkg: Package) => void;
     isExpanded: boolean;
     onToggle: () => void;
+    onExpand?: () => void;
     selectedStudentCount?: number;
+    selectedEquipmentCategory?: string | null;
+    previousSectionSelected?: boolean;
+    isLast?: boolean;
 }
 
 export function PackageSection({
@@ -41,7 +45,11 @@ export function PackageSection({
     onSelect,
     isExpanded,
     onToggle,
+    onExpand,
     selectedStudentCount = 0,
+    selectedEquipmentCategory = null,
+    previousSectionSelected = false,
+    isLast = false,
 }: PackageSectionProps) {
     const pathname = usePathname();
     const router = useRouter();
@@ -142,8 +150,14 @@ export function PackageSection({
                 title={title}
                 isExpanded={isExpanded}
                 onToggle={onToggle}
+                onExpand={onExpand}
                 entityIcon={packageEntity?.icon}
                 entityColor={packageEntity?.color}
+                state={{
+                    isSelected: selectedPackage !== null,
+                    isLast,
+                    previousSectionSelected,
+                }}
                 hasSelection={selectedPackage !== null}
                 onClear={() => {
                     onSelect(null as any);
@@ -152,7 +166,11 @@ export function PackageSection({
                 onAddClick={() => setIsDialogOpen(true)}
             >
                 <PackageTable
-                    packages={packages}
+                    packages={
+                        selectedEquipmentCategory
+                            ? packages.filter((pkg) => pkg.categoryEquipment === selectedEquipmentCategory)
+                            : packages
+                    }
                     selectedPackage={selectedPackage}
                     onSelect={onSelect}
                     selectedStudentCount={selectedStudentCount}

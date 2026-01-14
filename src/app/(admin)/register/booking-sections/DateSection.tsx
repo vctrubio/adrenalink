@@ -10,6 +10,7 @@ interface DateSectionProps {
     onDateChange: (dateRange: DateRange) => void;
     isExpanded: boolean;
     onToggle: () => void;
+    onExpand?: () => void;
     disabled?: boolean;
     title?: ReactNode;
 }
@@ -19,6 +20,7 @@ export function DateSection({
     onDateChange,
     isExpanded,
     onToggle,
+    onExpand,
     disabled = false,
     title = "Booking Dates",
 }: DateSectionProps) {
@@ -28,6 +30,8 @@ export function DateSection({
         onDateChange(newDateRange);
     };
 
+    const hasDates = !!(dateRange.startDate && dateRange.endDate);
+
     return (
         <Section
             id="dates-section"
@@ -36,6 +40,12 @@ export function DateSection({
             onToggle={onToggle}
             entityIcon={bookingEntity?.icon}
             entityColor={bookingEntity?.color}
+            state={{
+                isSelected: hasDates,
+            }}
+            hasSelection={hasDates}
+            onClear={() => onDateChange({ startDate: "", endDate: "" })}
+            onExpand={onExpand}
         >
             <DoubleDatePicker
                 dateRange={dateRange}

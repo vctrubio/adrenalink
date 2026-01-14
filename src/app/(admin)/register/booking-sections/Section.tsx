@@ -1,58 +1,97 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ExpandCollapseIcon } from "@/src/components/ui/ExpandCollapseIcon";
 
-interface SectionProps {
+export interface SectionState {
+    isSelected?: boolean;
+    isLast?: boolean;
+    previousSectionSelected?: boolean;
+}
+
+export interface SectionConfig {
+    // Core props
     id: string;
     title: React.ReactNode;
     isExpanded: boolean;
-    onToggle: () => void;
     children: React.ReactNode;
+    
+    // Visual props
     entityIcon?: React.ComponentType<{ className?: string }>;
     entityColor?: string;
-    alwaysExpanded?: boolean;
+    state?: SectionState;
+    className?: string; // Additional className for the section container
+    
+    // Behavior props
     optional?: boolean;
     hasSelection?: boolean;
+    
+    // Action handlers
+    onToggle?: () => void;
     onClear?: () => void;
     onOptional?: () => void;
+    onExpand?: () => void; // Called when section should be opened (e.g. on Clear)
     showAddButton?: boolean;
     onAddClick?: () => void;
+    headerActions?: React.ReactNode; // Custom header actions/content
 }
 
-export function Section({
-    id,
-    title,
-    isExpanded,
-    onToggle,
-    children,
-    entityIcon: EntityIcon,
-    entityColor,
-    alwaysExpanded = false,
-    optional = false,
-    hasSelection = false,
-    onClear,
-    onOptional,
-    showAddButton = false,
-    onAddClick,
-}: SectionProps) {
-    const handleClick = () => {
-        if (!alwaysExpanded) {
-            onToggle();
-        }
+export function Section(config: SectionConfig) {
+    const {
+        id,
+        title,
+        isExpanded,
+        children,
+        entityIcon: EntityIcon,
+        entityColor,
+        state = {},
+        className = "",
+        optional = false,
+        hasSelection = false,
+        onToggle,
+        onClear,
+        onOptional,
+        onExpand,
+        showAddButton = false,
+        onAddClick,
+        headerActions,
+    } = config;
+
+    // Booking sections should not be manually collapsible via the header,
+    // but they *are* programmatically collapsible via `isExpanded` (e.g. on select).
+    void onToggle;
+
+    // Extract state properties
+    const {
+        isSelected = false,
+        isLast = false,
+        previousSectionSelected = false,
+    } = state;
+
+    // When selected, add bottom separator (like card-list)
+    const shouldShowSeparator = isSelected && !isLast;
+    // Remove top border/separator if previous section is also selected (they should be combined)
+    const shouldHideTopBorder = previousSectionSelected && isSelected;
+
+    // Handle clear: clear the selection AND expand the section
+    const handleClear = () => {
+        onClear?.();
+        onExpand?.(); // Open section when cleared
     };
 
     return (
-        <motion.div id={id} className="scroll-mt-4" layout>
+        <motion.div 
+            id={id} 
+            className={`scroll-mt-4 ${shouldShowSeparator ? "mb-6 pb-6 border-b border-border/50" : ""} ${shouldHideTopBorder ? "-mt-6" : ""}`} 
+            layout
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+        >
             <motion.div
-                className={`rounded-lg bg-card border border-border ${alwaysExpanded ? "" : "hover:ring-1 hover:ring-black"}`}
+                className={className}
                 layout
+                transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
             >
                 {/* Header */}
-                <div
-                    className={`flex items-center justify-between p-4 ${alwaysExpanded ? "cursor-default" : "cursor-pointer active:bg-muted touch-manipulation"}`}
-                    onClick={handleClick}
-                >
+                <div className="flex items-center justify-between p-4 cursor-default">
                     <div className="flex items-center gap-3">
                         {EntityIcon && (
                             <div className="w-8 h-8 flex items-center justify-center" style={{ color: entityColor }}>
@@ -62,6 +101,7 @@ export function Section({
                         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                     </div>
                     <div className="flex items-center gap-2">
+                        {headerActions}
                         {showAddButton && onAddClick && (
                             <button
                                 type="button"
@@ -82,7 +122,7 @@ export function Section({
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onClear();
+                                            handleClear();
                                         }}
                                         className="px-3 py-2 text-sm font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors"
                                     >
@@ -109,7 +149,7 @@ export function Section({
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onClear();
+                                            handleClear();
                                         }}
                                         disabled={!hasSelection}
                                         className="px-3 py-2 text-sm font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-muted"
@@ -119,23 +159,23 @@ export function Section({
                                 )}
                             </>
                         )}
-                        {!alwaysExpanded && (
-                            <div className="min-w-[24px] h-8 flex items-center justify-center text-primary">
-                                <ExpandCollapseIcon isExpanded={isExpanded} className="w-5 h-5" />
-                            </div>
-                        )}
                     </div>
                 </div>
 
                 {/* Content with Framer Motion animations */}
                 <AnimatePresence initial={false}>
-                    {(isExpanded || alwaysExpanded) && (
+                    {isExpanded && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
+                            transition={{
+                                duration: 0.15,
+                                ease: [0.4, 0, 0.2, 1], // Custom cubic-bezier for smoother animation
+                                opacity: { duration: 0.1 }, // Faster opacity transition
+                            }}
+                            className="overflow-hidden will-change-[height,opacity]"
+                            style={{ transform: "translateZ(0)" }} // Force GPU acceleration
                         >
                             <div className="px-4 pb-4">{children}</div>
                         </motion.div>

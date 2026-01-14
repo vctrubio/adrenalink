@@ -27,6 +27,7 @@ interface EntityQueues {
 }
 
 interface BookingFormState {
+    selectedEquipmentCategory: string | null;
     selectedPackage: any | null;
     selectedStudentIds: string[];
     selectedTeacher: any | null;
@@ -80,6 +81,7 @@ interface RegisterContextValue {
 const RegisterContext = createContext<RegisterContextValue | undefined>(undefined);
 
 const defaultBookingForm: BookingFormState = {
+    selectedEquipmentCategory: null,
     selectedPackage: null,
     selectedStudentIds: [],
     selectedTeacher: null,

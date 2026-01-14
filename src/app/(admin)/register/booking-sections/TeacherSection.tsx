@@ -31,7 +31,9 @@ interface TeacherSectionProps {
     onAddCommission?: (teacherId: string, commission: Omit<Commission, "id">) => Promise<void>;
     isExpanded: boolean;
     onToggle: () => void;
+    onExpand?: () => void;
     onClose?: () => void;
+    isLast?: boolean;
 }
 
 export function TeacherSection({
@@ -42,7 +44,9 @@ export function TeacherSection({
     onSelectCommission,
     isExpanded,
     onToggle,
+    onExpand,
     onClose,
+    isLast = false,
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const pathname = usePathname();
@@ -179,9 +183,14 @@ export function TeacherSection({
                 title={title}
                 isExpanded={isExpanded}
                 onToggle={onToggle}
+                onExpand={onExpand}
                 entityIcon={teacherEntity?.icon}
                 entityColor={teacherEntity?.color}
                 optional={true}
+                state={{
+                    isSelected: selectedTeacher !== null,
+                    isLast,
+                }}
                 hasSelection={selectedTeacher !== null}
                 onClear={() => {
                     onSelectTeacher(null);
