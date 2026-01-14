@@ -356,7 +356,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
 
     const stepSubtitles = {
         0: "Make your school stand out",
-        1: "How can students find you?",
+        1: "how can we find you",
         2: "What do you have to offer?",
         3: "Does everything look correct officer?",
     };

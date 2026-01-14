@@ -7,7 +7,7 @@ import type { FormStep } from "./types";
 import { WelcomeSchoolResponseBanner } from "../WelcomeSchoolResponseBanner";
 import { WelcomeFormFooterWindSteps } from "../WelcomeFormFooterWindSteps";
 import { Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
@@ -65,17 +65,16 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     const [isError, setIsError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [isShake, setIsShake] = useState(false);
-    const [isOpen, setIsOpen] = useState(true);
 
     const { handleSubmit, trigger, formState, setFocus, watch } = formMethods;
 
     // Auto-focus first input when step changes
     useEffect(() => {
         const currentFields = steps[stepIndex]?.fields;
-        if (currentFields && currentFields.length > 0 && isOpen) {
+        if (currentFields && currentFields.length > 0) {
             setTimeout(() => setFocus(currentFields[0] as any), 50);
         }
-    }, [stepIndex, setFocus, steps, isOpen]);
+    }, [stepIndex, setFocus, steps]);
 
     // Watch fields for reactive validation of the Next button
     const currentFields = steps[stepIndex]?.fields || [];
@@ -90,7 +89,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     // Navigation functions
     const handleNext = async (e?: React.MouseEvent) => {
-        e?.stopPropagation(); // Prevent toggling open/close
+        e?.stopPropagation();
 
         const isValid = currentFields?.length === 0 ? true : await trigger(currentFields as (keyof T)[]);
 
@@ -117,10 +116,6 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             setStepIndex(newStep);
             onStepChange?.(newStep);
         }
-    };
-
-    const handleHeaderClick = () => {
-        setIsOpen(!isOpen);
     };
 
     const goTo = (idx: number) => {
@@ -210,10 +205,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
             >
                 <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/50 bg-card">
                     {/* Header (Dark Zinc) - Static Top */}
-                    <div
-                        onClick={handleHeaderClick}
-                        className="px-6 py-4 flex items-center justify-between min-h-[84px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors"
-                    >
+                    <div className="px-6 py-4 flex items-center justify-between min-h-[84px] bg-zinc-900 text-white">
                         <div className="flex items-center gap-5">
                             {/* Step Indicator or Title */}
                             <div className="flex flex-col">
@@ -258,26 +250,16 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                         </div>
                     </div>
 
-                    {/* Collapsible Content Body */}
-                    <AnimatePresence initial={false}>
-                        {isOpen && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="bg-muted/30"
-                            >
-                                <div className="p-6 md:p-12">
-                                    {CurrentStepComponent && (
-                                        <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                                            <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
-                                        </div>
-                                    )}
+                    {/* Content Body */}
+                    <div className="bg-muted/30">
+                        <div className="p-6 md:p-12">
+                            {CurrentStepComponent && (
+                                <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                                    <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </Form>
 

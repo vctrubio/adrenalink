@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Switch } from "@headlessui/react";
 import {
     getRelativeDateLabel,
     formatDateForInput,
@@ -25,6 +24,8 @@ interface DoubleDatePickerProps {
     allowPastDates?: boolean;
     showNavigationButtons?: boolean;
     showDayCounter?: boolean;
+    oneDay?: boolean; // Controlled externally
+    onOneDayChange?: (oneDay: boolean) => void; // Callback when oneDay should change
 }
 
 export function DoubleDatePicker({
@@ -34,8 +35,11 @@ export function DoubleDatePicker({
     allowPastDates = false,
     showNavigationButtons = true,
     showDayCounter = true,
+    oneDay: controlledOneDay,
+    onOneDayChange,
 }: DoubleDatePickerProps) {
-    const [oneDay, setOneDay] = useState(false);
+    const [internalOneDay, setInternalOneDay] = useState(false);
+    const oneDay = controlledOneDay !== undefined ? controlledOneDay : internalOneDay;
 
     // Initialize with proper dates if empty
     useEffect(() => {
@@ -69,9 +73,12 @@ export function DoubleDatePicker({
 
     const daysDifference = calculateDaysDifference(safeStartDate, safeEndDate);
 
+    // Sync internal state if not controlled
     useEffect(() => {
-        setOneDay(daysDifference === 0);
-    }, [daysDifference]);
+        if (controlledOneDay === undefined) {
+            setInternalOneDay(daysDifference === 0);
+        }
+    }, [daysDifference, controlledOneDay]);
 
     const updateParent = (newStartDate: Date, newEndDate: Date) => {
         const startISO = toISOString(newStartDate);
@@ -208,29 +215,12 @@ export function DoubleDatePicker({
                 </div>
 
                 {/* End Date */}
-                <div className="space-y-2">
+                <div className={`space-y-2 ${oneDay ? "opacity-50" : ""}`}>
                     <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         End Date
                         {endRelativeLabel && (
                             <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">{endRelativeLabel}</span>
                         )}
-                        <Switch
-                            checked={oneDay}
-                            onChange={(checked) => {
-                                setOneDay(checked);
-                                if (checked) {
-                                    updateParent(startDate, startDate);
-                                } else {
-                                    updateParent(startDate, addDays(endDate, 1));
-                                }
-                            }}
-                            disabled={disabled}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ml-auto ${oneDay ? "bg-blue-500 focus:ring-blue-500" : "bg-muted-foreground/40 focus:ring-muted-foreground"}`}
-                        >
-                            <span
-                                className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform ${oneDay ? "translate-x-5" : "translate-x-0.5"}`}
-                            />
-                        </Switch>
                     </label>
                     <input
                         type="date"

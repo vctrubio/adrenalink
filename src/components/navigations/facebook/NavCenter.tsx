@@ -22,18 +22,23 @@ export const NavCenter = () => {
         return pathname.startsWith(route.href);
     });
 
+    // Check if we're on the register route
+    const isRegisterRoute = pathname.startsWith("/register");
+    const displayText = isRegisterRoute ? "Check zn" : "Adrenalink";
+
     return (
         <>
             {/* Small screens: show when there's an active route (only one icon showing) */}
             {hasActiveRoute && (
                 <div className="md:hidden flex flex-col items-center justify-center text-center">
-                    <h1 className="text-lg font-semibold text-foreground">Adrenalink</h1>
+                    <h1 className="text-lg font-semibold text-foreground">{displayText}</h1>
                 </div>
             )}
             {/* Desktop - static branding */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center">
-                <h1 className="text-2xl font-semibold text-foreground">Adrenalink</h1>
+                <h1 className="text-2xl font-semibold text-foreground">{displayText}</h1>
             </div>
         </>
     );
 };
+
