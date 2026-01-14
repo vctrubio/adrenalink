@@ -1,5 +1,10 @@
 import { getTeacherId } from "@/supabase/server/teacher-id";
 import { LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
+import {
+    calculateCommission,
+    calculateLessonRevenue,
+    type CommissionInfo,
+} from "@/getters/commission-calculator";
 
 export const dynamic = "force-dynamic";
 
