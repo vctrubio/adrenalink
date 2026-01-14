@@ -8,7 +8,7 @@ import { WelcomeSchoolResponseBanner } from "../WelcomeSchoolResponseBanner";
 import { WelcomeFormFooterWindSteps } from "../WelcomeFormFooterWindSteps";
 import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
 interface MultiFormContainerProps<T extends FieldValues = FieldValues> {
     // Form configuration
@@ -51,7 +51,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     title,
     subtitle,
     stepSubtitles,
-    className = "w-full max-w-5xl mx-auto",
+    className = "w-full max-w-7xl mx-auto",
     onStepChange,
     submitButtonText = "Submit",
     successTitle = "Congratulations",
@@ -110,7 +110,16 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
         }
     };
 
-    const handleFooterClick = () => {
+    const prev = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (stepIndex > 0) {
+            const newStep = stepIndex - 1;
+            setStepIndex(newStep);
+            onStepChange?.(newStep);
+        }
+    };
+
+    const handleHeaderClick = () => {
         setIsOpen(!isOpen);
     };
 
@@ -194,52 +203,61 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     return (
         <div className={`px-4 md:px-0 pb-32 ${className}`}>
-            {/* TOP FLOATING HEADER - Dark Bar */}
-            <motion.div
-                initial={{ y: -100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 pointer-events-none"
-            >
-                 <div 
-                    onClick={handleFooterClick}
-                    className="w-full max-w-7xl px-6 py-4 flex items-center justify-between min-h-[72px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors shadow-2xl rounded-full pointer-events-auto border border-white/10"
-                 >
-                    <div className="flex items-center gap-5">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
-                                Step {stepIndex + 1} of {steps.length}
-                            </span>
-                            <span className="text-lg font-bold tracking-tight">
-                                {currentSubtitle || title || "Details"}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex-1" />
-
-                    <div className="flex items-center gap-4">
-                        <motion.div
-                            animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
-                            transition={{ duration: 0.4 }}
-                        >
-                            <ToggleAdranalinkIcon 
-                                isOpen={isOpen} 
-                                onClick={handleNext} 
-                                color={isCurrentStepValid ? "#22c55e" : "white"}
-                                variant="lg"
-                                className="hover:scale-110 transition-transform"
-                            />
-                        </motion.div>
-                    </div>
-                 </div>
-            </motion.div>
-
             <Form
                 methods={formMethods}
                 onSubmit={handleSubmit(handleFormSubmit)}
-                className="w-full mt-24"
+                className="w-full mt-4"
             >
                 <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/50 bg-card">
+                    {/* Header (Dark Zinc) - Static Top */}
+                    <div
+                        onClick={handleHeaderClick}
+                        className="px-6 py-4 flex items-center justify-between min-h-[84px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors"
+                    >
+                        <div className="flex items-center gap-5">
+                            {/* Step Indicator or Title */}
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
+                                    Step {stepIndex + 1} of {steps.length}
+                                </span>
+                                <span className="text-lg font-bold tracking-tight">
+                                    {currentSubtitle || title || "Details"}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex-1" />
+
+                        {/* Navigation Arrows */}
+                        <div className="flex items-center gap-4">
+                            {/* Prev Arrow */}
+                            <button
+                                type="button"
+                                onClick={prev}
+                                disabled={stepIndex === 0}
+                                className={`transform -rotate-90 transition-all duration-200 ${
+                                    stepIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:scale-110 active:scale-95"
+                                }`}
+                            >
+                                <AdranlinkIcon size={32} className="text-white" />
+                            </button>
+
+                            {/* Next Arrow */}
+                            <motion.button
+                                type="button"
+                                onClick={handleNext}
+                                animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
+                                transition={{ duration: 0.4 }}
+                                className={`transform rotate-90 transition-all duration-200 hover:scale-110 active:scale-95`}
+                            >
+                                <AdranlinkIcon 
+                                    size={32} 
+                                    className={isCurrentStepValid ? "text-primary" : "text-white"} 
+                                />
+                            </motion.button>
+                        </div>
+                    </div>
+
                     {/* Collapsible Content Body */}
                     <AnimatePresence initial={false}>
                         {isOpen && (
@@ -253,7 +271,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                                 <div className="p-6 md:p-12">
                                     {CurrentStepComponent && (
                                         <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                                            <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={(idx: number) => setStepIndex(idx)} />
+                                            <CurrentStepComponent {...currentStepProps} formMethods={formMethods} onGoToStep={goTo} />
                                         </div>
                                     )}
                                 </div>
