@@ -92,25 +92,11 @@ export default function BookingOnboardCard({ bookingData, selectedDate, onClick 
         const success = await assign(eventId, equipment.id);
         if (success) {
             await updateEventStatus(eventId, "completed");
-            setLocalEvents((prev) =>
-                prev.map((evt) =>
-                    evt.id === eventId ? { ...evt, status: "completed", equipments: [...(evt.equipments || []), equipment] } : evt,
-                ),
-            );
         }
     };
 
     const handleUnassign = async (eventId: string, equipmentId: string) => {
-        const success = await unassign(eventId, equipmentId);
-        if (success) {
-            setLocalEvents((prev) =>
-                prev.map((evt) =>
-                    evt.id === eventId
-                        ? { ...evt, equipments: (evt.equipments || []).filter((eq: any) => eq.id !== equipmentId) }
-                        : evt,
-                ),
-            );
-        }
+        await unassign(eventId, equipmentId);
     };
 
     // 7. Render
