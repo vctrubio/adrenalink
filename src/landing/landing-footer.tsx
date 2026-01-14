@@ -35,7 +35,7 @@ export function DevAboutMeFooter() {
                                 Discover More
                             </h2>
                             <p className="text-3xl md:text-5xl font-bold tracking-tight text-white/60 mt-4 block transition-all duration-300 group-hover:text-white group-hover:scale-105">
-                                Register a school
+                                Register Form
                             </p>
                         </div>
 
