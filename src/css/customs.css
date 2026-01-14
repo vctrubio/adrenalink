@@ -22,3 +22,41 @@
     letter-spacing: -0.05em; /* tracking-tighter */
     text-transform: uppercase;
 }
+
+/* Popup/Modal Shared Styles */
+.popup-row {
+    @apply bg-background border-border/40 transition-all duration-200;
+}
+
+.popup-row:hover {
+    @apply bg-muted/30 border-border/60;
+}
+
+.popup-row-focused {
+    @apply bg-primary/10 border-primary/30 shadow-lg z-10;
+}
+
+.popup-text-primary {
+    @apply text-foreground font-bold;
+}
+
+.popup-text-secondary {
+    @apply text-muted-foreground/80 font-medium;
+}
+
+.popup-text-tertiary {
+    @apply text-muted-foreground/60 text-[10px] uppercase font-bold tracking-widest;
+}
+
+.popup-text-inactive {
+    @apply text-muted-foreground/40;
+}
+
+.popup-backdrop {
+    @apply fixed inset-0 bg-background/80 backdrop-blur-md;
+}
+
+.popup-loading {
+    @apply flex items-center justify-center text-primary/60;
+}
+

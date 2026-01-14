@@ -312,7 +312,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                 className="mb-4"
                                                 placeholder="Search categories..."
                                             />
-                                            <div className="flex-1 min-h-0">
+                                            <div className="flex-1 min-h-0 border border-border/40 rounded-2xl bg-muted/5 overflow-hidden">
                                                 <WizardTable
                                                     data={mainNav.filteredItems}
                                                     columns={columns}
@@ -347,7 +347,7 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                 onChange={subNav.setSearchQuery}
                                                 className="mb-4"
                                             />
-                                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar max-h-[50vh]">
+                                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar max-h-[50vh] border border-border/40 rounded-2xl bg-muted/5">
                                                 {isLoadingSubList ? (
                                                     <div className="popup-loading h-32">
                                                         <Loader2 className="w-6 h-6 animate-spin" />
