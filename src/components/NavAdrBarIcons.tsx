@@ -184,15 +184,36 @@ export function NavIconsRightSkeleton() {
     );
 }
 
+import { usePathname } from "next/navigation";
+import { ENTITY_DATA } from "@/config/entities";
+
 // Left slot - School icon (Desktop only)
 interface LeftIconsProps {
     credentials: SchoolCredentials | null;
 }
 
 export function LeftIcons({ credentials }: LeftIconsProps) {
+    const pathname = usePathname();
+
+    // Determine if we are on a student or teacher route
+    const entity = ENTITY_DATA.find((e) => {
+        if (pathname.startsWith("/student") && e.id === "student") return true;
+        if (pathname.startsWith("/teacher") && e.id === "teacher") return true;
+        return false;
+    });
+
     return (
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
-            {credentials && <SchoolIconButton logo={credentials.logo} username={credentials.username} />}
+            {entity ? (
+                <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm"
+                    style={{ backgroundColor: `${entity.color}20`, color: entity.color }}
+                >
+                    <entity.icon size={20} />
+                </div>
+            ) : (
+                credentials && <SchoolIconButton logo={credentials.logo} username={credentials.username} />
+            )}
         </motion.div>
     );
 }

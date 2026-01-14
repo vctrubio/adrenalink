@@ -125,6 +125,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             capacityEquipment={packageData.capacityEquipment}
                             commissionType={financials.commissionType}
                             commissionValue={financials.commissionValue}
+                            schoolLogo={credentials?.logo}
                         />
                     </PerspectiveSection>
 
@@ -158,6 +159,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                         packageDescription={packageData.description}
                                         pricePerHour={studentPricePerHour}
                                         status={event.status}
+                                        schoolLogo={credentials?.logo}
                                     />
                                 </div>
                             ))}

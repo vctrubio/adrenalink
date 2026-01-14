@@ -19,6 +19,7 @@ interface EventTeacherCardProps {
     capacityEquipment?: number;
     commissionType?: "fixed" | "percentage";
     commissionValue?: number;
+    schoolLogo?: string | null;
 }
 
 export function EventTeacherCard({
@@ -34,6 +35,7 @@ export function EventTeacherCard({
     commissionType = "fixed",
     commissionValue = 0,
     status,
+    schoolLogo,
 }: EventTeacherCardProps) {
     const durationHours = minutesToHours(duration);
     const earnedAmount = pricePerHour * durationHours;
@@ -80,7 +82,7 @@ export function EventTeacherCard({
     );
 
     return (
-        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent}>
+        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent} schoolLogo={schoolLogo}>
             <CardList fields={fields} />
         </EventUserCard>
     );

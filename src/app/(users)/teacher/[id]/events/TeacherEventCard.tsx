@@ -4,7 +4,6 @@ import type { EventModel } from "@/backend/data/EventModel";
 import type { EventStatus } from "@/types/status";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EventUserCard } from "@/src/components/events/EventUserCard";
-import { TeacherEventStatusLabel } from "@/src/components/labels/TeacherEventStatusLabel";
 import { EquipmentStudentCommissionBadge } from "@/src/components/ui/badge/equipment-student-commission";
 import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { MapPin } from "lucide-react";
@@ -69,42 +68,24 @@ export function TeacherEventCard({
 
             <div className="flex items-center gap-2 text-zinc-400">
                 <MapPin size={20} className="text-zinc-400" />
-                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">
-                    {event.location}
-                </span>
+                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">{event.location}</span>
             </div>
 
             {/* Equipment display */}
-            {hasEquipmentAssigned && (
-                <>
-                    <div className="h-4 w-px bg-white/10" />
-                    <BrandSizeCategoryList
-                        equipments={event.equipments!.map((eq) => ({
-                            id: eq.id,
-                            model: eq.brand ? `${eq.brand} ${eq.model}` : eq.model,
-                            size: eq.size,
-                        }))}
-                        showIcon={true}
-                    />
-                </>
-            )}
+            {/* {hasEquipmentAssigned && ( */}
+            {/*     <> */}
+            {/*         <div className="h-4 w-px bg-white/10" /> */}
+            {/*         <BrandSizeCategoryList */}
+            {/*             equipments={event.equipments!.map((eq) => ({ */}
+            {/*                 id: eq.id, */}
+            {/*                 model: eq.brand ? `${eq.brand} ${eq.model}` : eq.model, */}
+            {/*                 size: eq.size, */}
+            {/*             }))} */}
+            {/*             showIcon={true} */}
+            {/*         /> */}
+            {/*     </> */}
+            {/* )} */}
         </div>
-    );
-
-    // Status label with equipment assignment capability
-    const statusContent = (
-        <TeacherEventStatusLabel
-            eventId={event.eventId}
-            status={event.eventStatus as EventStatus}
-            teacherId={teacherId}
-            teacherUsername={teacherUsername}
-            categoryEquipment={event.equipmentCategory}
-            eventTime={event.time}
-            eventDuration={event.duration}
-            hasEquipmentAssigned={hasEquipmentAssigned}
-            onStatusChange={onStatusChange}
-            onEquipmentAssign={onEquipmentAssign}
-        />
     );
 
     return (
@@ -113,7 +94,6 @@ export function TeacherEventCard({
             duration={event.duration}
             status={event.eventStatus}
             footerLeftContent={footerLeftContent}
-            headerRightContent={statusContent}
         >
             <CardList fields={fields} />
         </EventUserCard>

@@ -21,14 +21,25 @@ interface EventUserCardProps {
     footerLeftContent: ReactNode;
     headerRightContent?: ReactNode;
     children: ReactNode;
+    schoolLogo?: string | null;
 }
 
-export function EventUserCard({ date, duration, status, footerLeftContent, headerRightContent, children }: EventUserCardProps) {
+export function EventUserCard({
+    date,
+    duration,
+    status,
+    footerLeftContent,
+    headerRightContent,
+    children,
+    schoolLogo,
+}: EventUserCardProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const credentials = useSchoolCredentials();
 
     const statusConfig = status ? LESSON_STATUS_CONFIG[status as keyof typeof LESSON_STATUS_CONFIG] : null;
+
+    const logoUrl = schoolLogo !== undefined ? schoolLogo : credentials?.logo;
 
     return (
         <motion.div
@@ -59,13 +70,15 @@ export function EventUserCard({ date, duration, status, footerLeftContent, heade
                 <div className="relative z-10">
                     {headerRightContent ? (
                         headerRightContent
-                    ) : credentials?.logo ? (
-                        <div className="relative w-14 h-14 rounded-full overflow-hidden border border-black/10 bg-white shadow-sm">
-                            <Image src={credentials.logo} alt={credentials.username} fill className="object-cover" sizes="56px" />
-                        </div>
                     ) : (
-                        <div className="w-14 h-14 rounded-full bg-zinc-900 text-white flex items-center justify-center border border-black/5 shadow-sm">
-                            <span className="font-black text-xl">{credentials?.username?.[0]?.toUpperCase() || "A"}</span>
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden border border-black/10 bg-white shadow-sm">
+                            <Image
+                                src={logoUrl || "/prototypes/north-icon.png"}
+                                alt={credentials?.username || "School"}
+                                fill
+                                className="object-cover"
+                                sizes="56px"
+                            />
                         </div>
                     )}
                 </div>

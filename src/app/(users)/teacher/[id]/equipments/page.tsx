@@ -1,5 +1,8 @@
 import { getTeacherId } from "@/supabase/server/teacher-id";
 import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
+import { BrandSizeCategoryBadge } from "@/src/components/ui/badge/brand-size-category";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -19,86 +22,119 @@ export default async function EquipmentPage({ params }: EquipmentsPageProps) {
 
     if (!result.success || !result.data) {
         return (
-            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive">
-                Error: {result.error || "Teacher not found"}
+            <div className="p-6 rounded-xl bg-destructive/10 border border-destructive text-destructive">
+                <p className="font-semibold">Error</p>
+                <p className="text-sm mt-1">{result.error || "Teacher not found"}</p>
             </div>
         );
     }
 
     const equipmentRelations = result.data.relations.teacher_equipment || [];
+    const activeCount = equipmentRelations.filter((item: any) => item.active).length;
+    const inactiveCount = equipmentRelations.length - activeCount;
 
     return (
-        <div>
-            <h2 className="text-xl font-bold text-foreground mb-4">My Equipment</h2>
+        <div className="space-y-6">
+            {/* Header Section */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">My Equipment</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        {equipmentRelations.length} {equipmentRelations.length === 1 ? "item" : "items"} total
+                        {activeCount > 0 && (
+                            <span className="ml-2">
+                                • <span className="text-green-600 dark:text-green-400">{activeCount} active</span>
+                            </span>
+                        )}
+                    </p>
+                </div>
+            </div>
 
+            {/* Equipment List */}
             {equipmentRelations.length === 0 ? (
-                <p className="text-muted-foreground">No equipment relations found</p>
+                <div className="p-12 rounded-xl border border-border bg-card text-center">
+                    <p className="text-muted-foreground text-lg">No equipment assigned</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        Equipment assigned to you will appear here
+                    </p>
+                </div>
             ) : (
-                <div className="space-y-3">
-                    {equipmentRelations.map((item: any) => {
+                <div className="grid gap-4">
+                    {equipmentRelations.map((item: any, index: number) => {
                         const equip = item.equipment;
                         const teacherStatus = item.active ? "active" : "inactive";
                         const teacherStatusConfig = TEACHER_STATUS_CONFIG[teacherStatus];
                         const equipStatus = (equip.status || "rental") as EquipmentStatus;
                         const equipStatusConfig = EQUIPMENT_STATUS_CONFIG[equipStatus];
+                        
+                        const categoryConfig = EQUIPMENT_CATEGORIES.find(c => c.id === equip.category);
 
                         return (
-                            <div
-                                key={item.id}
-                                className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
+                            <Link
+                                key={item.id || `equipment-${index}`}
+                                href={`/equipments/${equip.id}`}
+                                className="group block"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="font-bold text-foreground">{equip.model}</h3>
-                                            <span
-                                                className="text-xs px-2 py-1 rounded-full font-bold uppercase tracking-tighter"
-                                                style={{
-                                                    backgroundColor: `${teacherStatusConfig.color}20`,
-                                                    color: teacherStatusConfig.color,
-                                                }}
-                                            >
-                                                {teacherStatusConfig.label}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground space-y-1">
-                                            <p>
-                                                Category:{" "}
-                                                <span className="text-foreground font-medium capitalize">{equip.category}</span>
-                                            </p>
-                                            {equip.color && (
-                                                <p>
-                                                    Color: <span className="text-foreground font-medium">{equip.color}</span>
-                                                </p>
-                                            )}
-                                            {equip.size && (
-                                                <p>
-                                                    Size: <span className="text-foreground font-medium">{equip.size}</span>
-                                                </p>
-                                            )}
-                                            <p>
-                                                SKU: <span className="text-foreground font-medium font-mono">{equip.sku}</span>
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-xs text-muted-foreground">Status:</span>
+                                <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200">
+                                    <div className="flex items-start justify-between gap-4">
+                                        {/* Left Section - Main Info */}
+                                        <div className="flex-1 min-w-0 space-y-3">
+                                            {/* Top Row - Badge and Status */}
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                <BrandSizeCategoryBadge 
+                                                    id={equip.id} 
+                                                    model={equip.model} 
+                                                    size={equip.size}
+                                                    categoryId={equip.category}
+                                                />
                                                 <span
-                                                    className="font-black uppercase text-[10px] tracking-widest px-2 py-0.5 rounded"
+                                                    className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
                                                     style={{
-                                                        backgroundColor: `${equipStatusConfig.color}15`,
-                                                        color: equipStatusConfig.color,
+                                                        backgroundColor: `${teacherStatusConfig.color}15`,
+                                                        color: teacherStatusConfig.color,
                                                     }}
                                                 >
-                                                    {equipStatusConfig.label}
+                                                    {teacherStatusConfig.label}
                                                 </span>
+                                                {categoryConfig && (
+                                                    <span className="text-xs text-muted-foreground font-medium">
+                                                        {categoryConfig.name}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Details Row */}
+                                            <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                                                <span className="font-semibold text-foreground">{equip.brand}</span>
+                                                <span className="w-1 h-1 rounded-full bg-border" />
+                                                <span className="font-mono text-xs">{equip.sku}</span>
+                                                {equip.color && (
+                                                    <>
+                                                        <span className="w-1 h-1 rounded-full bg-border" />
+                                                        <span className="capitalize">{equip.color}</span>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-muted-foreground mb-1">Equipment ID</p>
-                                        <p className="text-xs font-mono text-foreground">{equip.id.slice(0, 8)}...</p>
+
+                                        {/* Right Section - Status and ID */}
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
+                                            <span
+                                                className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest"
+                                                style={{ 
+                                                    backgroundColor: `${equipStatusConfig.color}15`,
+                                                    color: equipStatusConfig.color 
+                                                }}
+                                            >
+                                                {equipStatusConfig.label}
+                                            </span>
+                                            <span className="text-[10px] font-mono text-muted-foreground">
+                                                {equip.id.slice(0, 8)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })}
                 </div>

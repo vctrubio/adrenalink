@@ -240,17 +240,19 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
 
             {/* Events List */}
             <div className="space-y-4">
-                <AnimatePresence mode="popLayout">
-                    {sortedEvents.length > 0 ? (
-                        sortedEvents.map((event, index) => (
-                            <motion.div
-                                key={event.eventId}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3, delay: index * 0.05 }}
-                            >
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={selectedDate}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-4"
+                    >
+                        {sortedEvents.length > 0 ? (
+                            sortedEvents.map((event) => (
                                 <TeacherEventCard
+                                    key={event.eventId}
                                     event={event}
                                     teacherId={teacher.schema.id}
                                     teacherUsername={teacher.schema.username}
@@ -258,17 +260,13 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
                                     onStatusChange={handleStatusChange}
                                     onEquipmentAssign={handleEquipmentUpdate}
                                 />
-                            </motion.div>
-                        ))
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-12 bg-card rounded-2xl border-2 border-dashed border-border text-muted-foreground"
-                        >
-                            No events scheduled for this day.
-                        </motion.div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="text-center py-12 bg-card rounded-2xl border-2 border-dashed border-border text-muted-foreground">
+                                No events scheduled for this day.
+                            </div>
+                        )}
+                    </motion.div>
                 </AnimatePresence>
             </div>
         </div>

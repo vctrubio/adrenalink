@@ -17,6 +17,7 @@ interface EventStudentCardProps {
     status?: string;
     categoryEquipment?: string;
     capacityEquipment?: number;
+    schoolLogo?: string | null;
 }
 
 export function EventStudentCard({
@@ -29,6 +30,7 @@ export function EventStudentCard({
     packageDescription = "No description available",
     pricePerHour = 0,
     status,
+    schoolLogo,
 }: EventStudentCardProps) {
     const teacherFirstName = teacherName.split(" ")[0];
 
@@ -64,7 +66,7 @@ export function EventStudentCard({
     );
 
     return (
-        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent}>
+        <EventUserCard date={date} duration={duration} status={status} footerLeftContent={footerLeftContent} schoolLogo={schoolLogo}>
             <CardList fields={fields} />
         </EventUserCard>
     );
