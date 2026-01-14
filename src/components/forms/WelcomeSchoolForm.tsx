@@ -368,13 +368,12 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
         0: {
             pendingToBucket,
             uploadStatus,
-        },
-        1: {
             onCountryChange: handleCountryChange,
             onPhoneChange: handlePhoneChange,
             onLocationChange: handleLocationChange,
             triggerPhoneClear,
         },
+        1: {},
         2: {},
         3: {},
         4: {
@@ -383,7 +382,31 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto space-y-16 md:space-y-24">
+        <div className="w-full max-w-7xl mx-auto space-y-16 md:space-y-24 pt-24">
+            {/* Top Navigation Header - Inverted & Floating */}
+            <motion.div
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="fixed top-0 left-0 right-0 z-50 pointer-events-none flex justify-center pt-4 px-4"
+            >
+                <div className="w-full max-w-7xl backdrop-blur-xl bg-zinc-900 text-white border border-white/10 pointer-events-auto shadow-2xl rounded-full">
+                    <div className="px-6 py-3 flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                            <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-white/60">
+                                Home of Adrenaline Activity
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 pl-4 border-l border-white/20">
+                            <span className="hidden md:inline text-white/60 text-xs font-medium uppercase tracking-wider">
+                                Change the Wind
+                            </span>
+                            <WindToggle />
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
             {/* Live Header Preview - Always visible to encourage completion */}
             {!isResultView && (
                 <div className="mb-4 md:mb-8">
@@ -403,30 +426,6 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                             setIsNameRegistered(true);
                         }}
                     />
-                    <motion.div
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
-                    >
-                        <div className="w-full backdrop-blur-xl bg-background/80 border-t border-border/40 pointer-events-auto shadow-2xl">
-                            <div className="container mx-auto px-4">
-                                <div className="max-w-7xl mx-auto py-3 flex items-center justify-between gap-4">
-                                    <div className="flex-1">
-                                        <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                                            Home of Adrenaline Activity
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-3 shrink-0 pl-4 border-l border-border/20">
-                                        <span className="hidden md:inline text-muted-foreground text-xs font-medium uppercase tracking-wider">
-                                            Change the Wind
-                                        </span>
-                                        <WindToggle />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
                 </>
             ) : (
                 <MultiFormContainer<SchoolFormData>

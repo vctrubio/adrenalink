@@ -32,12 +32,17 @@ export interface SchoolFormData {
 }
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
-    { id: 1, title: "Assets", icon: <ImageIcon className="w-4 h-4" />, fields: ["iconFile", "bannerFile"] },
+    {
+        id: 1,
+        title: "Assets",
+        icon: <ImageIcon className="w-4 h-4" />,
+        fields: ["iconFile", "bannerFile", "country", "phone", "currency", "latitude", "longitude", "googlePlaceId"],
+    },
     {
         id: 2,
         title: "Details",
         icon: <MapPin className="w-4 h-4" />,
-        fields: ["country", "phone", "currency", "latitude", "longitude", "googlePlaceId", "websiteUrl", "instagramUrl"],
+        fields: ["websiteUrl", "instagramUrl"],
     },
     { id: 3, title: "Categories", icon: <Tag className="w-4 h-4" />, fields: ["equipmentCategories"] },
     { id: 4, title: "Contact", icon: <Mail className="w-4 h-4" />, fields: ["ownerEmail", "referenceNote"] },
@@ -45,47 +50,17 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
 ];
 
 interface DetailsStepProps extends BaseStepProps<SchoolFormData> {
-    onCountryChange: (country: string) => void;
-    onPhoneChange: (phone: string) => void;
-    onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string }) => void;
-    triggerPhoneClear: () => void;
+    // Props moved to AssetsStep
 }
 
-export function DetailsStep({ formMethods, onCountryChange, onPhoneChange, onLocationChange, triggerPhoneClear }: DetailsStepProps) {
+export function DetailsStep({ formMethods }: DetailsStepProps) {
     const {
         register,
         formState: { errors },
-        watch,
-        setValue,
     } = formMethods;
-    const values = watch();
 
     return (
         <div className="space-y-6">
-            <LocationStep
-                country={values.country}
-                phone={values.phone}
-                latitude={values.latitude}
-                longitude={values.longitude}
-                googlePlaceId={values.googlePlaceId}
-                countryError={errors.country?.message}
-                phoneError={errors.phone?.message}
-                onCountryChange={onCountryChange}
-                onPhoneChange={onPhoneChange}
-                onLocationChange={onLocationChange}
-                triggerPhoneClear={triggerPhoneClear}
-            />
-
-            <div className="flex justify-end">
-                <FilterDropdown
-                    label="Currency"
-                    value={values.currency || "EUR"}
-                    options={["USD", "EUR", "CHF"]}
-                    onChange={(val) => setValue("currency", val as any)}
-                    entityColor="#3b82f6" // Secondary color blue-500
-                />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Website" error={errors.websiteUrl?.message}>
                     <div className="relative">
@@ -180,10 +155,22 @@ import { ImageCropper } from "@/src/components/ui/ImageCropper";
 interface AssetsStepProps extends BaseStepProps<SchoolFormData> {
     pendingToBucket?: boolean;
     uploadStatus?: string;
+    onCountryChange: (country: string) => void;
+    onPhoneChange: (phone: string) => void;
+    onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string; timezone?: string }) => void;
+    triggerPhoneClear: () => void;
 }
 
-export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: AssetsStepProps) {
-    const { setValue, watch } = formMethods;
+export function AssetsStep({ 
+    formMethods, 
+    pendingToBucket, 
+    uploadStatus,
+    onCountryChange,
+    onPhoneChange,
+    onLocationChange,
+    triggerPhoneClear
+}: AssetsStepProps) {
+    const { setValue, watch, formState: { errors } } = formMethods;
     const values = watch();
     
     // Cropper State
@@ -230,45 +217,75 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
-                {/* Icon Upload - Circular */}
-                <div className="flex-shrink-0 flex flex-col items-center space-y-4 w-full md:w-auto">
-                    <div className="text-center space-y-1">
-                        <label className="text-sm font-bold text-foreground">School Icon</label>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Square (1:1)</p>
-                    </div>
-                    
-                    <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
-                         {values.iconFile ? (
-                             <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
-                                <div className="text-center text-white">
-                                     <Pencil className="w-6 h-6 mx-auto mb-1" />
-                                     <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
+                {/* Left Column: Icon + Location + Currency */}
+                <div className="flex-shrink-0 flex flex-col items-center space-y-8 w-full md:w-[320px]">
+                    {/* Icon Section */}
+                    <div className="flex flex-col items-center space-y-4 w-full">
+                        <div className="text-center space-y-1">
+                            <label className="text-sm font-bold text-foreground">School Icon</label>
+                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Square (1:1)</p>
+                        </div>
+                        
+                        <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm hover:shadow-md">
+                             {values.iconFile ? (
+                                 <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                                    <div className="text-center text-white">
+                                         <Pencil className="w-6 h-6 mx-auto mb-1" />
+                                         <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
+                                    </div>
+                                 </div>
+                             ) : (
+                                <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                    <ImageIcon className="w-8 h-8 mb-2" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
                                 </div>
-                             </div>
-                         ) : (
-                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                <ImageIcon className="w-8 h-8 mb-2" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
-                            </div>
-                         )}
-                         {values.iconFile && (
-                            <img 
-                                src={URL.createObjectURL(values.iconFile)} 
-                                className="absolute inset-0 w-full h-full object-cover" 
-                                alt="Preview" 
+                             )}
+                             {values.iconFile && (
+                                <img 
+                                    src={URL.createObjectURL(values.iconFile)} 
+                                    className="absolute inset-0 w-full h-full object-cover" 
+                                    alt="Preview" 
+                                />
+                             )}
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                onChange={(e) => handleFileSelect(e, "iconFile")}
+                                className="hidden"
+                                disabled={pendingToBucket}
                             />
-                         )}
-                        <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                            onChange={(e) => handleFileSelect(e, "iconFile")}
-                            className="hidden"
-                            disabled={pendingToBucket}
+                        </label>
+                    </div>
+
+                    {/* Location & Currency Section - Moved here */}
+                    <div className="w-full space-y-6 bg-card border border-border/50 rounded-xl p-4 md:p-6 shadow-sm">
+                        <LocationStep
+                            country={values.country}
+                            phone={values.phone}
+                            latitude={values.latitude}
+                            longitude={values.longitude}
+                            googlePlaceId={values.googlePlaceId}
+                            countryError={errors.country?.message}
+                            phoneError={errors.phone?.message}
+                            onCountryChange={onCountryChange}
+                            onPhoneChange={onPhoneChange}
+                            onLocationChange={onLocationChange}
+                            triggerPhoneClear={triggerPhoneClear}
                         />
-                    </label>
+
+                        <div className="flex justify-center w-full pt-2 border-t border-border/50">
+                            <FilterDropdown
+                                label="Currency"
+                                value={values.currency || "EUR"}
+                                options={["USD", "EUR", "CHF"]}
+                                onChange={(val) => setValue("currency", val as any)}
+                                entityColor="#3b82f6"
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Banner Upload - Wide */}
+                {/* Right Column: Banner */}
                 <div className="flex-1 flex flex-col space-y-4 w-full">
                     <div className="text-left space-y-1">
                         <label className="text-sm font-bold text-foreground">School Banner</label>
