@@ -5,6 +5,7 @@ import { UseFormReturn, FieldValues } from "react-hook-form";
 import { Form } from "@/src/components/ui/form";
 import type { FormStep } from "./types";
 import { WelcomeSchoolResponseBanner } from "../WelcomeSchoolResponseBanner";
+import { WelcomeFormFooterWindSteps } from "../WelcomeFormFooterWindSteps";
 import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
@@ -78,15 +79,12 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     // Watch fields for reactive validation of the Next button
     const currentFields = steps[stepIndex]?.fields || [];
-    // We subscribe to the fields to trigger re-renders when they change
     watch(currentFields as any);
 
     // Determine if the current step is valid (visually)
     const isCurrentStepValid = currentFields.every((field) => {
         const value = formMethods.getValues(field);
         const hasError = !!formState.errors[field];
-        // Basic check: value exists (if string) and no error.
-        // For strict validation, we rely on trigger() on click.
         return !hasError && value !== "" && value !== undefined && value !== null;
     });
 
@@ -114,6 +112,11 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
 
     const handleFooterClick = () => {
         setIsOpen(!isOpen);
+    };
+
+    const goTo = (idx: number) => {
+        setStepIndex(idx);
+        onStepChange?.(idx);
     };
 
     // Keyboard navigation
@@ -190,13 +193,53 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
     }
 
     return (
-        <div className={`mt-4 px-4 md:px-0 ${className}`}>
+        <div className={`px-4 md:px-0 pb-32 ${className}`}>
+            {/* TOP FLOATING HEADER - Dark Bar */}
+            <motion.div
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 pointer-events-none"
+            >
+                 <div 
+                    onClick={handleFooterClick}
+                    className="w-full max-w-7xl px-6 py-4 flex items-center justify-between min-h-[72px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors shadow-2xl rounded-full pointer-events-auto border border-white/10"
+                 >
+                    <div className="flex items-center gap-5">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
+                                Step {stepIndex + 1} of {steps.length}
+                            </span>
+                            <span className="text-lg font-bold tracking-tight">
+                                {currentSubtitle || title || "Details"}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1" />
+
+                    <div className="flex items-center gap-4">
+                        <motion.div
+                            animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <ToggleAdranalinkIcon 
+                                isOpen={isOpen} 
+                                onClick={handleNext} 
+                                color={isCurrentStepValid ? "#22c55e" : "white"}
+                                variant="lg"
+                                className="hover:scale-110 transition-transform"
+                            />
+                        </motion.div>
+                    </div>
+                 </div>
+            </motion.div>
+
             <Form
                 methods={formMethods}
                 onSubmit={handleSubmit(handleFormSubmit)}
-                className="w-full"
+                className="w-full mt-24"
             >
-                <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/50">
+                <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/50 bg-card">
                     {/* Collapsible Content Body */}
                     <AnimatePresence initial={false}>
                         {isOpen && (
@@ -205,7 +248,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="bg-muted/30" // Gray background
+                                className="bg-muted/30"
                             >
                                 <div className="p-6 md:p-12">
                                     {CurrentStepComponent && (
@@ -217,44 +260,10 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                             </motion.div>
                         )}
                     </AnimatePresence>
-
-                    {/* Footer (Dark Zinc) */}
-                    <div
-                        onClick={handleFooterClick}
-                        className="px-6 py-4 flex items-center justify-between min-h-[72px] bg-zinc-900 text-white cursor-pointer hover:bg-zinc-800 transition-colors"
-                    >
-                        <div className="flex items-center gap-5">
-                            {/* Step Indicator or Title */}
-                            <div className="flex flex-col">
-                                <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
-                                    Step {stepIndex + 1} of {steps.length}
-                                </span>
-                                <span className="text-lg font-bold tracking-tight">
-                                    {currentSubtitle || title || "Details"}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex-1" />
-
-                        {/* Next Action / Toggle */}
-                        <div className="flex items-center gap-4">
-                            <motion.div
-                                animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
-                                transition={{ duration: 0.4 }}
-                            >
-                                <ToggleAdranalinkIcon 
-                                    isOpen={isOpen} 
-                                    onClick={handleNext} // The arrow triggers Next
-                                    color={isCurrentStepValid ? "#22c55e" : "white"} // Green if valid, white otherwise
-                                    variant="lg"
-                                    className="hover:scale-110 transition-transform"
-                                />
-                            </motion.div>
-                        </div>
-                    </div>
                 </div>
             </Form>
+
+            <WelcomeFormFooterWindSteps steps={steps} currentStep={stepIndex} onStepClick={goTo} />
         </div>
     );
 }
