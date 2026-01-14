@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { BackgroundImage } from "@/src/components/BackgroundImage";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -11,7 +9,6 @@ import CreditIcon from "@/public/appSvgs/CreditIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 
 export function DevAboutMeFooter() {
-    const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
 
     return (
@@ -54,79 +51,65 @@ export function DevAboutMeFooter() {
                                         <p className="text-sm text-white/60 font-normal">Connecting Students</p>
                                     </div>
                                 </div>
-
-                                <ToggleAdranalinkIcon
-                                    isOpen={isOpen}
-                                    onClick={(e) => {
-                                        e?.stopPropagation();
-                                        setIsOpen(!isOpen);
-                                    }}
-                                    color="white"
-                                    variant="lg"
-                                />
                             </div>
 
-                            {/* Dropdown Content */}
-                            <AnimatePresence>
-                                {isOpen && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3, ease: "easeOut" }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="border-t border-white/10" />
-                                        <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
-                                            <div className="group cursor-pointer flex items-start gap-3">
-                                                <FlagIcon
-                                                    size={48}
-                                                    className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
-                                                />
-                                                <div>
-                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
-                                                        Lesson Management
-                                                    </h3>
-                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
-                                                        3 way communication
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="group cursor-pointer flex items-start gap-3">
-                                                <CreditIcon
-                                                    size={48}
-                                                    className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
-                                                />
-                                                <div>
-                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
-                                                        Payment Tracking
-                                                    </h3>
-                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
-                                                        To the minute.
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="group cursor-pointer flex items-start gap-3">
-                                                <EquipmentIcon
-                                                    size={48}
-                                                    className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
-                                                />
-                                                <div>
-                                                    <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
-                                                        Equipment Handling
-                                                    </h3>
-                                                    <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
-                                                        Know when it's time to say goodbye
-                                                    </p>
-                                                </div>
-                                            </div>
+                            {/* Dropdown Content - Now Always Visible */}
+                            <div className="overflow-hidden">
+                                <div className="border-t border-white/10" />
+                                <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
+                                    <div className="group cursor-pointer flex items-start gap-3">
+                                        <FlagIcon
+                                            size={48}
+                                            className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
+                                        />
+                                        <div>
+                                            <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
+                                                Lesson Management
+                                            </h3>
+                                            <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
+                                                3 way communication
+                                            </p>
                                         </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                    </div>
+
+                                    <div className="group cursor-pointer flex items-start gap-3">
+                                        <CreditIcon
+                                            size={48}
+                                            className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
+                                        />
+                                        <div>
+                                            <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
+                                                Payment Tracking
+                                            </h3>
+                                            <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
+                                                To the minute.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="group cursor-pointer flex items-start gap-3">
+                                        <EquipmentIcon
+                                            size={48}
+                                            className="text-white/60 group-hover:text-white transition-colors duration-500 flex-shrink-0"
+                                        />
+                                        <div>
+                                            <h3 className="font-bold text-base group-hover:text-white/60 transition-colors duration-500">
+                                                Equipment Handling
+                                            </h3>
+                                            <p className="text-sm text-white/60 group-hover:text-white transition-colors duration-500">
+                                                Know when it's time to say goodbye
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </motion.div>
+                </div>
+            </div>
+        </section>
+    );
+}
                     </motion.div>
                 </div>
             </div>
