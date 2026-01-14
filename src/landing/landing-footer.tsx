@@ -36,24 +36,8 @@ export function DevAboutMeFooter() {
                             </p>
                         </div>
 
-                        <div className="bg-zinc-900">
-                            <div className="px-6 py-4 flex items-center justify-between min-h-[84px]">
-                                <div className="text-white flex items-center gap-1">
-                                    <Image
-                                        src="/ADR.webp"
-                                        alt="Adrenalink Logo"
-                                        width={48}
-                                        height={48}
-                                        className="brightness-0 invert"
-                                    />
-                                    <div>
-                                        <p className="text-3xl leading-none font-black tracking-tighter pt-4">Adrenalink</p>
-                                        <p className="text-sm text-white/60 font-normal">Connecting Students</p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="bg-zinc-900 flex divide-y divide-white">
 
-                            {/* Dropdown Content - Now Always Visible */}
                             <div className="overflow-hidden">
                                 <div className="border-t border-white/10" />
                                 <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
