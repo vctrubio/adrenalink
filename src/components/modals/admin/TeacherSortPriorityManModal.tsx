@@ -38,7 +38,6 @@ interface TeacherSortItem {
 
 export function TeacherSortPriorityManModal({ isOpen, onClose }: TeacherSortPriorityManModalProps) {
     const { allTeachers, setTeacherActive } = useSchoolTeachers();
-    const savedOrder = useTeacherSortOrder();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
     const router = useRouter();
 

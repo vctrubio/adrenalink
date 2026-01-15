@@ -174,5 +174,5 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
         isAddable: true,
     };
 
-    return <EntityLeftColumn cards={[bookingCardData, leaderCardData, packageCardData, paymentCardData]} />;
+    return <EntityLeftColumn cards={[bookingCardData, packageCardData, leaderCardData, paymentCardData]} />;
 }

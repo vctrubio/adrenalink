@@ -113,19 +113,6 @@ export default function Modal({
                                 >
                                     {children}
                                 </motion.div>
-
-                                {/* Footer Hint */}
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="mt-4 text-center"
-                                >
-                                    <div className="popup-hint-container bg-transparent">
-                                        <span className="popup-hint-key">ESC</span>
-                                        <span>to close</span>
-                                    </div>
-                                </motion.div>
                             </motion.div>
                         </Dialog.Panel>
                     </Transition.Child>

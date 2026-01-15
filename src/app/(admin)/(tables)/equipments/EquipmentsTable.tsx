@@ -1,19 +1,86 @@
 "use client";
 
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
 import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
-import { ENTITY_DATA } from "@/config/entities";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { EquipmentTableData } from "@/config/tables";
-import { Activity } from "lucide-react";
 
 import { StatItemUI } from "@/backend/data/StatsData";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
+import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 
 import { filterEquipment } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
+import { ENTITY_DATA } from "@/config/entities";
+import { Activity } from "lucide-react";
+
+interface EquipmentDisplayProps {
+    equipment: {
+        id: string;
+        brand: string;
+        model: string;
+        size?: string | number | null;
+        sku?: string;
+        color?: string | null;
+        category: string;
+    };
+    variant?: "full" | "compact";
+    iconSize?: number;
+    showSku?: boolean;
+}
+
+function EquipmentDisplay({ equipment, variant = "full", iconSize = 16, showSku = true }: EquipmentDisplayProps) {
+    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
+    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.category);
+    const Icon = config?.icon || Activity;
+    const color = config?.color || "#a855f7";
+
+    if (variant === "compact") {
+        return (
+            <div className="flex items-center gap-2">
+                <div style={{ color }}>
+                    <Icon size={iconSize} />
+                </div>
+                <HoverToEntity entity={equipmentEntity} id={equipment.id}>
+                    <span className="font-bold text-foreground">
+                        {equipment.brand} {equipment.model}
+                    </span>
+                </HoverToEntity>
+                {equipment.size && (
+                    <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
+                        {equipment.size}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-1 items-start">
+            <div className="flex items-center gap-2">
+                <div style={{ color }}>
+                    <Icon size={iconSize} />
+                </div>
+                <HoverToEntity entity={equipmentEntity} id={equipment.id}>
+                    <span className="font-bold text-foreground">
+                        {equipment.brand} {equipment.model}
+                    </span>
+                </HoverToEntity>
+                {equipment.size && (
+                    <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
+                        {equipment.size}
+                    </span>
+                )}
+            </div>
+            {showSku && equipment.sku && (
+                <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-6">
+                    SKU: {equipment.sku} {equipment.color && `• ${equipment.color}`}
+                </div>
+            )}
+        </div>
+    );
+}
 
 const HEADER_CLASSES = {
     purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-yellow-900/10",
@@ -25,8 +92,6 @@ const HEADER_CLASSES = {
 } as const;
 
 export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTableData[] }) {
-    const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
-
     const {
         filteredRows: filteredEquipment,
         masterTableGroupBy,
@@ -80,34 +145,22 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
         {
             header: "Equipment",
             headerClassName: HEADER_CLASSES.purple,
-            render: (data) => {
-                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === data.category);
-                const Icon = config?.icon || Activity;
-                const color = config?.color || "#a855f7";
-
-                return (
-                    <div className="flex flex-col gap-1 items-start">
-                        <div className="flex items-center gap-2">
-                            <div style={{ color }}>
-                                <Icon size={16} />
-                            </div>
-                            <HoverToEntity entity={equipmentEntity} id={data.id}>
-                                <span className="font-bold text-foreground">
-                                    {data.brand} {data.model}
-                                </span>
-                            </HoverToEntity>
-                            {data.size && (
-                                <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
-                                    {data.size}
-                                </span>
-                            )}
-                        </div>
-                        <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-6">
-                            SKU: {data.sku} {data.color && `• ${data.color}`}
-                        </div>
-                    </div>
-                );
-            },
+            render: (data) => (
+                <EquipmentDisplay
+                    equipment={{
+                        id: data.id,
+                        brand: data.brand,
+                        model: data.model,
+                        size: data.size,
+                        sku: data.sku,
+                        color: data.color,
+                        category: data.category,
+                    }}
+                    variant="full"
+                    iconSize={16}
+                    showSku={true}
+                />
+            ),
         },
         {
             header: "Activity",
@@ -179,29 +232,22 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
         {
             label: "Equipment",
             headerClassName: HEADER_CLASSES.purple,
-            render: (data) => {
-                const config = EQUIPMENT_CATEGORIES.find((c) => c.id === data.category);
-                const Icon = config?.icon || Activity;
-                const color = config?.color || "#a855f7";
-
-                return (
-                    <div className="flex items-center gap-2">
-                        <div style={{ color }}>
-                            <Icon size={14} />
-                        </div>
-                        <HoverToEntity entity={equipmentEntity} id={data.id}>
-                            <div className="font-bold text-sm leading-tight">
-                                {data.brand} {data.model}
-                            </div>
-                        </HoverToEntity>
-                        {data.size && (
-                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
-                                {data.size}
-                            </span>
-                        )}
-                    </div>
-                );
-            },
+            render: (data) => (
+                <EquipmentDisplay
+                    equipment={{
+                        id: data.id,
+                        brand: data.brand,
+                        model: data.model,
+                        size: data.size,
+                        sku: data.sku,
+                        color: data.color,
+                        category: data.category,
+                    }}
+                    variant="compact"
+                    iconSize={14}
+                    showSku={false}
+                />
+            ),
         },
         {
             label: "Activity",

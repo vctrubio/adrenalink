@@ -1,4 +1,7 @@
+"use server";
+
 import { getServerConnection } from "@/supabase/connection";
+import { revalidatePath } from "next/cache";
 
 export async function linkTeacherToEquipment(equipmentId: string, teacherId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -28,6 +31,8 @@ export async function linkTeacherToEquipment(equipmentId: string, teacherId: str
             }
         }
 
+        revalidatePath("/equipments");
+        revalidatePath("/teachers");
         return { success: true };
     } catch (error) {
         console.error("Error linking teacher to equipment:", error);
@@ -52,6 +57,8 @@ export async function removeTeacherFromEquipment(
             return { success: false, error: "Failed to remove teacher from equipment" };
         }
 
+        revalidatePath("/equipments");
+        revalidatePath("/teachers");
         return { success: true };
     } catch (error) {
         console.error("Error removing teacher from equipment:", error);

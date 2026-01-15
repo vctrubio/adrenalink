@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
 import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress";
@@ -11,6 +12,7 @@ import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TeacherCommissionPanelModal } from "@/src/components/modals/admin/TeacherCommissionPanelModal";
+import { TeacherEquipmentManModal } from "@/src/components/modals/admin";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { Percent } from "lucide-react";
@@ -22,9 +24,11 @@ interface TeacherLeftColumnProps {
 }
 
 export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
+    const router = useRouter();
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
     const [isCommissionPanelOpen, setIsCommissionPanelOpen] = useState(false);
+    const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
 
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
     const lessonEntity = ENTITY_DATA.find((e) => e.id === "lesson")!;
@@ -134,6 +138,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         fields: lessonFields.length > 0 ? lessonFields : [{ label: "Lessons", value: "No lessons found" }],
         accentColor: lessonEntity.color,
         isAddable: true,
+        onAdd: () => router.push(`/register?add=teacher:${teacher.schema.id}`),
     };
 
     // Commission Card
@@ -295,6 +300,7 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         fields: equipmentFields as any,
         accentColor: equipmentEntity.color,
         isAddable: true,
+        onAdd: () => setIsEquipmentModalOpen(true),
     };
 
     return (
@@ -308,6 +314,11 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
                 commissions={teacher.relations?.teacher_commission || []}
                 lessons={teacher.relations?.lesson || []}
                 currency={currency}
+            />
+            <TeacherEquipmentManModal
+                isOpen={isEquipmentModalOpen}
+                onClose={() => setIsEquipmentModalOpen(false)}
+                teacher={teacher}
             />
         </>
     );

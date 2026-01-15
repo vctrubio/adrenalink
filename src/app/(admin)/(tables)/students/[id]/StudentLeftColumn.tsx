@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -15,16 +16,15 @@ interface StudentLeftColumnProps {
 }
 
 export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
+    const router = useRouter();
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
 
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
 
     const StudentIcon = studentEntity.icon;
-    const PackageIcon = packageEntity.icon;
     const BookingIcon = bookingEntity.icon;
 
     // Student Card
@@ -68,41 +68,6 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         ],
         accentColor: studentEntity.color,
         isEditable: true,
-    };
-
-    // Packages Card (student_package relation)
-    const packages = student.relations?.student_package || [];
-    const totalPackages = packages.length;
-    const acceptedPackages = packages.filter((p: any) => p.status === "confirmed" || p.status === "purchased").length;
-
-    const packageProgressPercentage = totalPackages > 0 ? (acceptedPackages / totalPackages) * 100 : 0;
-    const packageProgressBar = {
-        background: `linear-gradient(to right, ${packageEntity.color} ${packageProgressPercentage}%, #e5e7eb ${packageProgressPercentage}%)`,
-    };
-
-    const packageFields = packages.map((pkg: any) => ({
-        label: pkg.school_package?.description || "Unknown Package",
-        value: pkg.status.charAt(0).toUpperCase() + pkg.status.slice(1),
-    }));
-
-    const packagesCardData: LeftColumnCardData = {
-        name: "Packages",
-        status: (
-            <div className="flex items-center gap-3">
-                <div className="h-2 flex-1 rounded-full overflow-hidden" style={{ background: packageProgressBar.background }} />
-                <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold text-foreground bg-muted">
-                    {acceptedPackages}/{totalPackages}
-                </span>
-            </div>
-        ),
-        avatar: (
-            <div className="flex-shrink-0" style={{ color: packageEntity.color }}>
-                <PackageIcon className="w-10 h-10" />
-            </div>
-        ),
-        fields: packageFields.length > 0 ? packageFields : [{ label: "Packages", value: "No packages" }],
-        accentColor: packageEntity.color,
-        isAddable: true,
     };
 
     // Bookings Card
@@ -154,6 +119,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         fields: bookingFields.length > 0 ? bookingFields : [{ label: "Bookings", value: "No bookings" }],
         accentColor: bookingEntity.color,
         isAddable: true,
+        onAdd: () => router.push(`/register?add=student:${student.schema.id}`),
     };
 
     // Payments Card
@@ -179,5 +145,5 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         isAddable: true,
     };
 
-    return <EntityLeftColumn cards={[studentCardData, packagesCardData, bookingsCardData, paymentsCardData]} />;
+    return <EntityLeftColumn cards={[studentCardData, bookingsCardData, paymentsCardData]} />;
 }

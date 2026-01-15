@@ -78,8 +78,8 @@ export function useModalNavigation<T extends { id: string }>({
             }
         };
 
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown, true); // Use capture phase
+        return () => window.removeEventListener("keydown", handleKeyDown, true);
     }, [isOpen, isActive, filteredItems, focusedIndex, onSelect, onShiftSelect, onTabSelect]);
 
     return {

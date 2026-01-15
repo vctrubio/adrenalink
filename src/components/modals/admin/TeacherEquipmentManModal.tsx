@@ -1,83 +1,104 @@
 "use client";
 
-import { useState, useMemo, useCallback, Fragment } from "react";
+import { useState, useMemo, useCallback, Fragment, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
-import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import { useModalNavigation } from "@/src/hooks/useModalNavigation";
+import { useEquipment } from "@/src/hooks/useEquipment";
 import { linkTeacherToEquipment, removeTeacherFromEquipment } from "@/supabase/server/teacher-equipment";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
-import type { EquipmentData } from "@/backend/data/EquipmentData";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import type { TeacherData } from "@/backend/data/TeacherData";
 import { PopUpHeader } from "@/src/components/ui/popup/PopUpHeader";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
 import { StatusToggle } from "@/src/components/ui/StatusToggle";
 import { GoToAdranlink } from "@/src/components/ui/GoToAdranlink";
 import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 
-interface EquipmentTeacherManModalProps {
+interface TeacherEquipmentManModalProps {
     isOpen: boolean;
     onClose: () => void;
-    equipment: EquipmentData;
+    teacher: TeacherData;
 }
 
-export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: EquipmentTeacherManModalProps) {
+type CategoryFilter = "all" | "kite" | "wing" | "windsurf";
+type SortOption = "brand" | "size";
+
+export function TeacherEquipmentManModal({ isOpen, onClose, teacher }: TeacherEquipmentManModalProps) {
     const router = useRouter();
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [filterMode, setFilterMode] = useState<"assigned" | "all">("all");
-    const { teachers, allTeachers } = useSchoolTeachers();
+    const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+    const [sortBy, setSortBy] = useState<SortOption>("brand");
 
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
-    const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.schema.category);
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment");
-    const EquipmentIcon = categoryConfig?.icon || equipmentEntity?.icon;
-    const equipmentColor = categoryConfig?.color || equipmentEntity?.color;
 
-    const equipmentDisplayName = `${equipment.schema.model}${equipment.schema.size ? ` - ${equipment.schema.size}m` : ""}`;
+    // Fetch equipment for each category
+    const kiteHook = useEquipment("kite");
+    const wingHook = useEquipment("wing");
+    const windsurfHook = useEquipment("windsurf");
+
+    // Fetch equipment when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            kiteHook.fetchAvailable();
+            wingHook.fetchAvailable();
+            windsurfHook.fetchAvailable();
+        }
+    }, [isOpen]);
+
+    // Combine all equipment
+    const allEquipment = useMemo(() => {
+        return [
+            ...kiteHook.availableEquipment.map((e: any) => ({ ...e, category: "kite" })),
+            ...wingHook.availableEquipment.map((e: any) => ({ ...e, category: "wing" })),
+            ...windsurfHook.availableEquipment.map((e: any) => ({ ...e, category: "windsurf" })),
+        ].filter((e) => e.status === "public");
+    }, [kiteHook.availableEquipment, wingHook.availableEquipment, windsurfHook.availableEquipment]);
 
     // Track linkage state
-    const [linkedTeacherIds, setLinkedTeacherIds] = useState<Set<string>>(
-        new Set(equipment.relations?.teachers?.map((t: any) => t.id).filter(Boolean) || [])
+    const [linkedEquipmentIds, setLinkedEquipmentIds] = useState<Set<string>>(
+        new Set(teacher.relations?.teacher_equipment?.map((te: any) => te.equipment?.id).filter(Boolean) || [])
     );
     const [linkageChanges, setLinkageChanges] = useState<Map<string, boolean>>(new Map());
 
     const handleToggleLink = useCallback(
-        (teacherId: string, isLinked: boolean) => {
-            const originallyLinked = equipment.relations?.teachers?.some((t: any) => t.id === teacherId) || false;
+        (equipmentId: string, isLinked: boolean) => {
+            const originallyLinked = teacher.relations?.teacher_equipment?.some((te: any) => te.equipment?.id === equipmentId) || false;
 
             setLinkageChanges((prev) => {
                 const newChanges = new Map(prev);
                 if (originallyLinked === isLinked) {
-                    newChanges.delete(teacherId);
+                    newChanges.delete(equipmentId);
                 } else {
-                    newChanges.set(teacherId, isLinked);
+                    newChanges.set(equipmentId, isLinked);
                 }
                 return newChanges;
             });
 
-            setLinkedTeacherIds((prev) => {
+            setLinkedEquipmentIds((prev) => {
                 const newSet = new Set(prev);
                 if (isLinked) {
-                    newSet.add(teacherId);
+                    newSet.add(equipmentId);
                 } else {
-                    newSet.delete(teacherId);
+                    newSet.delete(equipmentId);
                 }
                 return newSet;
             });
         },
-        [equipment.relations?.teachers]
+        [teacher.relations?.teacher_equipment]
     );
 
     const handleSubmit = useCallback(async () => {
         try {
             if (linkageChanges.size > 0) {
-                for (const [teacherId, isLinked] of linkageChanges.entries()) {
+                for (const [equipmentId, isLinked] of linkageChanges.entries()) {
                     if (isLinked) {
-                        await linkTeacherToEquipment(equipment.schema.id, teacherId);
+                        await linkTeacherToEquipment(equipmentId, teacher.schema.id);
                     } else {
-                        await removeTeacherFromEquipment(equipment.schema.id, teacherId);
+                        await removeTeacherFromEquipment(equipmentId, teacher.schema.id);
                     }
                 }
             }
@@ -88,42 +109,68 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
         } catch (error) {
             console.error("Error submitting changes:", error);
         }
-    }, [linkageChanges, equipment.schema.id, router, onClose]);
+    }, [linkageChanges, teacher.schema.id, router, onClose]);
 
     const handleReset = useCallback(() => {
-        setLinkedTeacherIds(new Set(equipment.relations?.teachers?.map((t: any) => t.id).filter(Boolean) || []));
+        setLinkedEquipmentIds(new Set(teacher.relations?.teacher_equipment?.map((te: any) => te.equipment?.id).filter(Boolean) || []));
         setLinkageChanges(new Map());
         setFilterMode("all");
-    }, [equipment.relations?.teachers]);
+        setCategoryFilter("all");
+        setSortBy("brand");
+    }, [teacher.relations?.teacher_equipment]);
 
     const handleCancel = useCallback(() => {
         handleReset();
         onClose();
     }, [handleReset, onClose]);
 
-    const displayTeachers = useMemo(() => {
-        if (filterMode === "all") return allTeachers;
-        // Filter to show only assigned teachers
-        return allTeachers.filter((t) => linkedTeacherIds.has(t.schema.id));
-    }, [allTeachers, filterMode, linkedTeacherIds]);
+    // Filter by category
+    const categoryFilteredEquipment = useMemo(() => {
+        if (categoryFilter === "all") return allEquipment;
+        return allEquipment.filter((e) => e.category === categoryFilter);
+    }, [allEquipment, categoryFilter]);
 
-    const { searchQuery, setSearchQuery, filteredItems: filteredTeachers, focusedIndex, setFocusedIndex } = useModalNavigation({
-        items: displayTeachers,
-        filterField: (teacher) => teacher.schema.username,
+    // Filter by assigned/all and sort
+    const displayEquipment = useMemo(() => {
+        let filtered = filterMode === "all" ? categoryFilteredEquipment : categoryFilteredEquipment.filter((e) => linkedEquipmentIds.has(e.id));
+
+        // Sort
+        return [...filtered].sort((a, b) => {
+            if (sortBy === "brand") {
+                const brandCompare = (a.brand || "").localeCompare(b.brand || "");
+                if (brandCompare !== 0) return brandCompare;
+                return (a.model || "").localeCompare(b.model || "");
+            } else {
+                // Sort by size
+                const aSize = parseFloat(a.size) || 0;
+                const bSize = parseFloat(b.size) || 0;
+                return aSize - bSize;
+            }
+        });
+    }, [categoryFilteredEquipment, filterMode, linkedEquipmentIds, sortBy]);
+
+    const { searchQuery, setSearchQuery, filteredItems: filteredEquipment, focusedIndex, setFocusedIndex } = useModalNavigation({
+        items: displayEquipment,
+        filterField: (equipment: any) => `${equipment.brand} ${equipment.model} ${equipment.size || ""}`,
         isOpen,
         isActive: true,
-        onSelect: (teacher) => {
-            router.push(`/teachers/${teacher.schema.id}`);
+        onSelect: (equipment: any) => {
+            router.push(`/equipments/${equipment.id}`);
             onClose();
         },
         onShiftSelect: () => handleSubmit(),
-        onTabSelect: (teacher) => {
-            const isLinked = linkedTeacherIds.has(teacher.schema.id);
-            handleToggleLink(teacher.schema.id, !isLinked);
+        onTabSelect: (equipment: any) => {
+            const isLinked = linkedEquipmentIds.has(equipment.id);
+            handleToggleLink(equipment.id, !isLinked);
         },
     });
 
-    const assignedCount = linkedTeacherIds.size;
+    const assignedCount = linkedEquipmentIds.size;
+    const kiteCount = allEquipment.filter((e) => e.category === "kite").length;
+    const wingCount = allEquipment.filter((e) => e.category === "wing").length;
+    const windsurfCount = allEquipment.filter((e) => e.category === "windsurf").length;
+
+    const isLoading = kiteHook.isLoading || wingHook.isLoading || windsurfHook.isLoading;
 
     return (
         <Transition show={isOpen} as={Fragment}>
@@ -158,9 +205,9 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
                                 className="relative flex flex-col max-h-[85vh] bg-background/95 backdrop-blur-xl rounded-3xl border border-border/40 p-6 shadow-2xl"
                             >
                                 <PopUpHeader
-                                    title="Assign Teachers"
-                                    subtitle={equipmentDisplayName}
-                                    icon={EquipmentIcon && <div style={{ color: equipmentColor }}><EquipmentIcon size={32} /></div>}
+                                    title={teacher.schema.username}
+                                    subtitle="Assign Equipment"
+                                    icon={<div style={{ color: teacherEntity?.color }}>{teacherEntity?.icon && <teacherEntity.icon size={32} />}</div>}
                                 />
 
                                 <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -175,7 +222,7 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
                                             onClick={() => setFilterMode("all")}
                                             className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterMode === "all" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         >
-                                            All ({allTeachers.length})
+                                            All ({categoryFilteredEquipment.length})
                                         </button>
                                         <button
                                             onClick={() => setFilterMode("assigned")}
@@ -186,24 +233,67 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
                                     </div>
                                 </div>
 
+                                <div className="flex gap-2 mb-4">
+                                    <button
+                                        onClick={() => setCategoryFilter("all")}
+                                        className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${categoryFilter === "all" ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        All ({allEquipment.length})
+                                    </button>
+                                    {EQUIPMENT_CATEGORIES.map((cat) => {
+                                        const count = cat.id === "kite" ? kiteCount : cat.id === "wing" ? wingCount : windsurfCount;
+                                        const CategoryIcon = cat.icon;
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() => setCategoryFilter(cat.id as CategoryFilter)}
+                                                className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 ${categoryFilter === cat.id ? "text-white shadow-md" : "bg-muted/30 text-muted-foreground hover:text-foreground"}`}
+                                                style={categoryFilter === cat.id ? { backgroundColor: cat.color } : {}}
+                                            >
+                                                <CategoryIcon size={14} />
+                                                {cat.label} ({count})
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex gap-2 mb-4">
+                                    <button
+                                        onClick={() => setSortBy("brand")}
+                                        className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "brand" ? "bg-background shadow-sm text-foreground border border-border/50" : "bg-muted/30 text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        Sort by Brand
+                                    </button>
+                                    <button
+                                        onClick={() => setSortBy("size")}
+                                        className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "size" ? "bg-background shadow-sm text-foreground border border-border/50" : "bg-muted/30 text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        Sort by Size
+                                    </button>
+                                </div>
+
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.25, duration: 0.3, ease: "easeOut" }}
                                     className="flex-1 min-h-0 overflow-y-auto custom-scrollbar mb-6 p-1"
                                 >
-                                    {filteredTeachers.length === 0 ? (
-                                        <div className="text-center py-8 text-muted-foreground">No teachers found</div>
+                                    {isLoading ? (
+                                        <div className="text-center py-8 text-muted-foreground">Loading equipment...</div>
+                                    ) : filteredEquipment.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">No equipment found</div>
                                     ) : (
                                         <div className="flex flex-col gap-3">
-                                            {filteredTeachers.map((teacher, index) => {
-                                                const isLinked = linkedTeacherIds.has(teacher.schema.id);
+                                            {filteredEquipment.map((equipment: any, index: number) => {
+                                                const isLinked = linkedEquipmentIds.has(equipment.id);
                                                 const isFocused = index === focusedIndex;
                                                 const isHovered = index === hoveredIndex;
+                                                const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.category);
+                                                const CategoryIcon = categoryConfig?.icon;
 
                                                 return (
                                                     <motion.div
-                                                        key={teacher.schema.id}
+                                                        key={equipment.id}
                                                         initial={{ opacity: 0, x: -10 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.02 }}
@@ -217,45 +307,49 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
                                                     >
                                                         {isFocused && (
                                                             <motion.div
-                                                                layoutId="equipment-teacher-indicator"
+                                                                layoutId="teacher-equipment-indicator"
                                                                 className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-primary"
-                                                                style={{ backgroundColor: teacherEntity?.color }}
+                                                                style={{ backgroundColor: categoryConfig?.color }}
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}
                                                                 transition={{ duration: 0.2 }}
                                                             />
                                                         )}
 
-                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                            <div
-                                                                style={{
-                                                                    color: isLinked ? teacherEntity?.color : "rgb(var(--muted-foreground))",
-                                                                    opacity: isLinked ? 1 : 0.4,
-                                                                }}
-                                                                className="transition-all duration-200 flex-shrink-0"
-                                                            >
-                                                                <HeadsetIcon size={20} />
+                                                        <div
+                                                            className="flex items-center gap-3 flex-1 min-w-0 transition-all duration-200"
+                                                            style={{
+                                                                opacity: isLinked ? 1 : 0.4,
+                                                            }}
+                                                        >
+                                                            <div style={{ color: categoryConfig?.color }}>
+                                                                {CategoryIcon && <CategoryIcon size={20} />}
                                                             </div>
-                                                            <span
-                                                                className={`transition-colors truncate ${isFocused ? "font-black text-foreground" : `font-bold ${isLinked ? "text-foreground" : "text-muted-foreground/60"}`}`}
-                                                            >
-                                                                {teacher.schema.username}
-                                                            </span>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span
+                                                                    className={`transition-colors truncate ${isFocused ? "font-black text-foreground" : `font-bold ${isLinked ? "text-foreground" : "text-muted-foreground/60"}`}`}
+                                                                >
+                                                                    {equipment.brand} {equipment.model}
+                                                                </span>
+                                                                {equipment.size && (
+                                                                    <span className="text-xs text-muted-foreground">{equipment.size}m</span>
+                                                                )}
+                                                            </div>
                                                         </div>
 
                                                         <div className="flex items-center gap-3 flex-shrink-0">
                                                             <StatusToggle
                                                                 isActive={isLinked}
                                                                 onToggle={(linked) => {
-                                                                    handleToggleLink(teacher.schema.id, linked);
+                                                                    handleToggleLink(equipment.id, linked);
                                                                     setFocusedIndex(index);
                                                                 }}
-                                                                color={teacherEntity?.color}
+                                                                color={categoryConfig?.color}
                                                                 className="popup-toggle-unchecked"
                                                             />
 
                                                             <GoToAdranlink
-                                                                href={`/teachers/${teacher.schema.id}`}
+                                                                href={`/equipments/${equipment.id}`}
                                                                 onNavigate={onClose}
                                                                 isHovered={isHovered}
                                                             />
@@ -274,7 +368,7 @@ export function EquipmentTeacherManModal({ isOpen, onClose, equipment }: Equipme
                                         onReset={handleReset}
                                         hasChanges={linkageChanges.size > 0}
                                         submitLabel="Apply Changes"
-                                        color={equipmentColor}
+                                        color={teacherEntity?.color}
                                         extraContent={
                                             linkageChanges.size > 0 && (
                                                 <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-white/25 text-white text-[10px] font-extrabold ml-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.1)] border border-white/10">

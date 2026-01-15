@@ -13,7 +13,6 @@ import { useModalNavigation } from "@/src/hooks/useModalNavigation";
 import { getWizardEntities, type WizardEntity } from "@/supabase/server/wizard-entities";
 import { PopUpRows } from "@/src/components/ui/popup/PopUpRows";
 import { PopUpSearch } from "@/src/components/ui/popup/PopUpSearch";
-import { KeyboardHint } from "@/src/components/ui/popup/KeyboardHint";
 import React from "react";
 
 interface NavigationWizardModalProps {
@@ -40,6 +39,11 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
         () => allEntities.find((e) => e.id === expandedEntityId)?.name,
         [expandedEntityId, allEntities],
     );
+
+    const currentEntityName = useMemo(() => {
+        const currentEntity = allEntities.find((e) => pathname.startsWith(e.link));
+        return currentEntity?.name || "Navigate your way";
+    }, [pathname, allEntities]);
 
     // Reset state when closing
     const handleClose = useCallback(() => {
@@ -213,18 +217,18 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                 <div className="fixed inset-0 flex items-center justify-center p-4">
                     <Transition.Child
                         as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0 scale-95 translate-y-4"
-                        enterTo="opacity-100 scale-100 translate-y-0"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100 scale-100 translate-y-0"
-                        leaveTo="opacity-0 scale-95 translate-y-4"
+                        enter="ease-out duration-200"
+                        enterFrom="opacity-0 scale-98"
+                        enterTo="opacity-100 scale-100"
+                        leave="ease-in duration-150"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-98"
                     >
                         <Dialog.Panel className="w-full max-w-2xl outline-none">
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.15, ease: "easeOut" }}
                                 className="relative flex flex-col max-h-[85vh] bg-background/95 backdrop-blur-xl rounded-3xl border border-border/40 p-6 shadow-2xl"
                             >
                                 {/* Dynamic Header */}
@@ -233,18 +237,13 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                         {!expandedEntityId ? (
                                             <motion.div
                                                 key="header-main"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.2 }}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.15 }}
                                                 className="flex items-center gap-4"
                                             >
-                                                <motion.div
-                                                    initial={{ scale: 0.9, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    transition={{ delay: 0.05, duration: 0.3, ease: "easeOut" }}
-                                                    className="shrink-0 dark:invert"
-                                                >
+                                                <div className="shrink-0 dark:invert">
                                                     <Image
                                                         src="/ADR.webp"
                                                         alt="Adrenalink"
@@ -252,39 +251,29 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                         height={64}
                                                         className="drop-shadow-[0_0_8px_rgba(var(--primary),0.3)]"
                                                     />
-                                                </motion.div>
+                                                </div>
                                                 <div className="flex flex-col">
-                                                    <motion.h2
-                                                        initial={{ opacity: 0, x: -5 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
-                                                        className="text-3xl font-black tracking-tighter text-foreground leading-none"
-                                                    >
+                                                    <h2 className="text-3xl font-black tracking-tighter text-foreground leading-none">
                                                         Adrenalink
-                                                    </motion.h2>
+                                                    </h2>
                                                     <p className="text-muted-foreground/60 text-sm font-bold uppercase tracking-widest">
-                                                        Navigate your way
+                                                        {currentEntityName}
                                                     </p>
                                                 </div>
                                             </motion.div>
                                         ) : (
                                             <motion.div
                                                 key="header-sub"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.2 }}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.15 }}
                                                 className="flex flex-col items-center cursor-pointer group gap-2"
                                                 onClick={() => setExpandedEntityId(null)}
                                             >
-                                                <motion.div
-                                                    initial={{ rotate: 0 }}
-                                                    animate={{ rotate: -90 }}
-                                                    transition={{ duration: 0.4, ease: "backOut" }}
-                                                    className="dark:invert opacity-60 group-hover:opacity-100 transition-opacity"
-                                                >
+                                                <div className="dark:invert opacity-60 group-hover:opacity-100 transition-opacity">
                                                     <Image src="/ADR.webp" alt="Adrenalink" width={40} height={40} />
-                                                </motion.div>
+                                                </div>
                                                 <h2 className="text-4xl font-black tracking-tight text-foreground">
                                                     {expandedEntityName}
                                                 </h2>
@@ -300,10 +289,10 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                     {!expandedEntityId ? (
                                         <motion.div
                                             key="main-list"
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -20 }}
-                                            transition={{ duration: 0.2 }}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.15 }}
                                             className="flex flex-col flex-1 min-h-0"
                                         >
                                             <PopUpSearch
@@ -327,19 +316,14 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     className="max-h-[50vh] border-none bg-transparent backdrop-blur-none shadow-none"
                                                 />
                                             </div>
-                                            {mainNav.selectedItem && (
-                                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
-                                                    <KeyboardHint keys="TAB" action={`to browse ${mainNav.selectedItem.name}`} />
-                                                </motion.div>
-                                            )}
                                         </motion.div>
                                     ) : (
                                         <motion.div
                                             key="sub-list"
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ duration: 0.2 }}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.15 }}
                                             className="flex flex-col flex-1 min-h-0"
                                         >
                                             <PopUpSearch
@@ -391,9 +375,6 @@ export function NavigationWizardModal({ isOpen, onClose }: NavigationWizardModal
                                                     />
                                                 )}
                                             </div>
-                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
-                                                <KeyboardHint keys={["Shift", "TAB"]} action="to go back" />
-                                            </motion.div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
