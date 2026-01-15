@@ -17,16 +17,19 @@ export const BackgroundImage = ({ src, position = "fixed", overlay, priority = t
     return (
         <div className={`inset-0 z-0 pointer-events-none ${positionClass}`} style={transform ? { transform } : undefined}>
             {/* Background Image */}
+            {/* Next.js Image with priority={true} automatically adds preload links server-side */}
             <Image
                 src={src}
                 alt="Background"
                 fill
                 priority={priority}
-                quality={75}
+                quality={85}
                 sizes="100vw"
                 placeholder="blur"
                 blurDataURL={BLUR_DATA_URL}
                 className="object-cover"
+                fetchPriority={priority ? "high" : "auto"}
+                loading={priority ? "eager" : "lazy"}
             />
 
             {/* Overlay using CSS pseudo-element */}
