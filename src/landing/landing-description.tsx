@@ -58,7 +58,7 @@ export function LandingDescription() {
                 <div className="w-full max-w-5xl space-y-6 sm:space-y-8 md:space-y-12 text-center">
                     <JoinForcesHeading />
 
-                    <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-4 sm:space-y-6 w-full max-w-2xl mx-auto">
                         <UserRoleSelection selectedRole={selectedRole} setSelectedRole={setSelectedRole} />
                         <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} variant="landing" />
                         <div className="text-xs sm:text-sm md:text-base text-white/40 font-light tracking-[0.3em] sm:tracking-[0.5em] uppercase px-2">Who are you?</div>
@@ -123,7 +123,7 @@ function UserRoleSelection({
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
 
     return (
-        <div className="grid grid-cols-3 md:flex md:flex-row gap-2 sm:gap-3 md:gap-4 h-[90px] sm:h-[100px] md:h-[140px] w-full items-stretch justify-center max-w-2xl mx-auto">
+        <div className="grid grid-cols-3 md:flex md:flex-row gap-2 sm:gap-3 md:gap-4 h-[90px] sm:h-[100px] md:h-[140px] w-full items-stretch">
             {USER_ROLES.map((role) => {
                 const isSelected = selectedRole === role.id;
                 const isHovered = hoveredRole === role.id;
@@ -146,7 +146,9 @@ function UserRoleSelection({
                             onHoverEnd={() => setHoveredRole(null)}
                             className={`relative rounded-2xl overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg backdrop-blur-lg text-white ${
                                 isSelected
-                                    ? "bg-white/20 border-white/60 z-10"
+                                    ? isHovered
+                                        ? "bg-white/30 border-white/80 z-10"
+                                        : "bg-white/20 border-white/60 z-10"
                                     : "bg-slate-950/60 border-white/10 hover:bg-slate-950/70 hover:border-white/40"
                             }`}
                         >

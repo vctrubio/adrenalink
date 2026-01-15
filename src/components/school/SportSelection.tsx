@@ -28,8 +28,9 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
 
     return (
         <div
-            className={`grid grid-cols-3 md:flex md:flex-row gap-4 w-full items-stretch justify-center ${isLanding ? "h-[100px] md:h-[140px]" : "h-[80px] md:h-[110px]"}`}
+            className={`grid grid-cols-3 md:flex md:flex-row gap-2 sm:gap-3 md:gap-4 w-full items-stretch ${isLanding ? "h-[90px] sm:h-[100px] md:h-[140px]" : "h-[80px] md:h-[110px]"}`}
         >
+            {/* Desktop buttons with hover effects */}
             {visibleSports.map((sport) => {
                 const isSelected = selectedSport === sport.id;
                 const isHovered = hoveredSport === sport.id;
@@ -44,6 +45,7 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             flex: isHovered ? 2 : 1,
                         }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="hidden md:block"
                     >
                         <motion.button
                             onClick={(e) => {
@@ -56,7 +58,9 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg ${isLanding ? "backdrop-blur-lg text-white" : ""} ${
                                 isSelected
                                     ? isLanding
-                                        ? "bg-white/20 border-white/60 z-10"
+                                        ? isHovered
+                                            ? "bg-white/30 border-white/80 z-10"
+                                            : "bg-white/20 border-white/60 z-10"
                                         : "bg-secondary/20 border-secondary text-secondary z-10"
                                     : isLanding
                                       ? "bg-slate-950/60 border-white/10 hover:bg-slate-950/70 hover:border-white/40"
@@ -112,6 +116,37 @@ export function SportSelection({ selectedSport, onSelectSport, variant = "school
                             </motion.span>
                         </motion.button>
                     </motion.div>
+                );
+            })}
+            {/* Mobile buttons - simpler without hover effects */}
+            {isLanding && visibleSports.map((sport) => {
+                const isSelected = selectedSport === sport.id;
+                return (
+                    <button
+                        key={`${sport.id}-mobile`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onSelectSport(isSelected ? null : sport.id);
+                        }}
+                        className={`relative rounded-xl overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-1 w-full h-full shadow-lg backdrop-blur-lg text-white md:hidden ${
+                            isSelected
+                                ? "bg-white/20 border-white/60 z-10"
+                                : "bg-slate-950/60 border-white/10 active:bg-slate-950/80"
+                        }`}
+                    >
+                        <div className="relative w-10 h-7">
+                            <Image
+                                src={sport.image}
+                                alt={sport.label}
+                                fill
+                                className="object-fill brightness-0 invert"
+                            />
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] transition-colors duration-300 text-white">
+                            {sport.label}
+                        </span>
+                    </button>
                 );
             })}
         </div>
