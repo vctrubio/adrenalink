@@ -204,8 +204,8 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
     const handleSeedPackages = async () => {
         setIsSeeding(true);
         try {
-            // Call package, student, and teacher seeding in parallel
-            const [packageResponse, studentResponse, teacherResponse] = await Promise.all([
+            // Call package, student, teacher, and equipment seeding in parallel
+            const [packageResponse, studentResponse, teacherResponse, equipmentResponse] = await Promise.all([
                 fetch("/api/beta", {
                     method: "POST",
                     headers: {
@@ -227,6 +227,13 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
                     },
                     body: JSON.stringify({ type: "teacher", schoolId }),
                 }),
+                fetch("/api/beta", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type: "equipment", schoolId }),
+                }),
             ]);
 
             // Check all responses
@@ -238,6 +245,9 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
             }
             if (!teacherResponse.ok) {
                 throw new Error("Failed to populate teachers");
+            }
+            if (!equipmentResponse.ok) {
+                throw new Error("Failed to populate equipment");
             }
 
             // Revalidate the page to show new packages
